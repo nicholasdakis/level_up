@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ACTIVITIES BUTTON
+                    // PERSONAL BUTTON
                     SizedBox( // to explicitly control the ElevatedButton size
                     height: screenHeight*0.15,
                     width: screenWidth*0.90,
@@ -85,11 +85,11 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO ACTIVITIES
+                        // GO TO PERSONAL
                       },
                         child: Center(
                           child: Text(
-                            "Activities",
+                            "Personal",
                               style: GoogleFonts.workSans(
                                 fontSize: screenWidth*0.1,
                                 color: Colors.white,
