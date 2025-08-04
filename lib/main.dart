@@ -30,8 +30,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height; // Make widgets the size of the user's personal screen size
-    double screenWidth = MediaQuery.of(context).size.width; // Make widgets the size of the user's personal screen size
+    double screenHeight = 1.sh; // Make widgets the size of the user's personal screen size
+    double screenWidth = 1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
         backgroundColor:Color(0xFF1E1E1E),
         body: Column(
@@ -64,14 +64,16 @@ class HomeScreen extends StatelessWidget {
             child: SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.all(screenHeight*0.02),
+                child: Center(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // ACTIVITIES BUTTON
                     SizedBox( // to explicitly control the ElevatedButton size
-                    height: screenHeight*0.11,
-                    width: screenWidth*0.80,
+                    height: screenHeight*0.15,
+                    width: screenWidth*0.90,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: screenWidth*0.05, vertical: screenHeight*0.03),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30)
                         ),
@@ -85,31 +87,233 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () {
                         // GO TO ACTIVITIES
                       },
-                      child: Stack( // stack text for outline
-                        children: [
-                          Text(
+                        child: Center(
+                          child: Text(
                             "Activities",
-                            style: GoogleFonts.russoOne(
-                              fontSize: screenWidth*0.1002,
-                              foreground: Paint()
-                              // cascade operators (..)
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 4
-                              ..color = Colors.pink
-                            )
+                              style: GoogleFonts.workSans(
+                                fontSize: screenWidth*0.1,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow( // Up Left
+                                    offset: Offset(-1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Up Right
+                                    offset: Offset(1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Left
+                                    offset: Offset(-1,1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Right
+                                    offset: Offset(1,1),
+                                    color: Colors.black
+                                  )
+                                ]
+                              )
                           ),
-                          Text(
-                            "Activities",
-                            style: GoogleFonts.russoOne(
-                              fontSize: screenWidth*0.1,
-                              color: Colors.white
-                            )
-                          )
-                        ],
-                      )
+                        )
                     ),
-                    )
+                    ),
+                    SizedBox(height: 10.h), // Space between buttons
+                    // FOOD TRACKING TAB
+                    SizedBox( // to explicitly control the ElevatedButton size
+                    height: screenHeight*0.15,
+                    width: screenWidth*0.90,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)
+                        ),
+                        backgroundColor: Color(0xFF2A2A2A), // Actual button color
+                        foregroundColor: Colors.white, // Button text color
+                        side: BorderSide(
+                          color: Colors.black,
+                          width: screenWidth*0.005,
+                        )
+                      ),
+                      onPressed: () {
+                        // GO TO FOOD TRACKING
+                      },
+                        child: Center(
+                          child: Text(
+                            "Food Tracking",
+                              style: GoogleFonts.workSans(
+                                fontSize: screenWidth*0.1,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow( // Up Left
+                                    offset: Offset(-1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Up Right
+                                    offset: Offset(1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Left
+                                    offset: Offset(-1,1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Right
+                                    offset: Offset(1,1),
+                                    color: Colors.black
+                                  )
+                                ]
+                              )
+                          ),
+                        )
+                    ),
+                    ),
+                    SizedBox(height: 10.h), // Space between buttons
+                    // REMINDERS TAB
+                    SizedBox( // to explicitly control the ElevatedButton size
+                    height: screenHeight*0.15,
+                    width: screenWidth*0.90,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)
+                        ),
+                        backgroundColor: Color(0xFF2A2A2A), // Actual button color
+                        foregroundColor: Colors.white, // Button text color
+                        side: BorderSide(
+                          color: Colors.black,
+                          width: screenWidth*0.005,
+                        )
+                      ),
+                      onPressed: () {
+                        // GO TO REMINDERS
+                      },
+                        child: Center(
+                          child: Text(
+                            "Reminders",
+                              style: GoogleFonts.workSans(
+                                fontSize: screenWidth*0.1,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow( // Up Left
+                                    offset: Offset(-1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Up Right
+                                    offset: Offset(1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Left
+                                    offset: Offset(-1,1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Right
+                                    offset: Offset(1,1),
+                                    color: Colors.black
+                                  )
+                                ]
+                              )
+                          ),
+                        )
+                    ),
+                    ),
+                    SizedBox(height: 10.h), // Space between buttons
+                    // BADGES TAB
+                    SizedBox( // to explicitly control the ElevatedButton size
+                    height: screenHeight*0.15,
+                    width: screenWidth*0.90,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)
+                        ),
+                        backgroundColor: Color(0xFF2A2A2A), // Actual button color
+                        foregroundColor: Colors.white, // Button text color
+                        side: BorderSide(
+                          color: Colors.black,
+                          width: screenWidth*0.005,
+                        )
+                      ),
+                      onPressed: () {
+                        // GO TO BADGES
+                      },
+                        child: Center(
+                          child: Text(
+                            "Badges",
+                              style: GoogleFonts.workSans(
+                                fontSize: screenWidth*0.1,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow( // Up Left
+                                    offset: Offset(-1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Up Right
+                                    offset: Offset(1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Left
+                                    offset: Offset(-1,1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Right
+                                    offset: Offset(1,1),
+                                    color: Colors.black
+                                  )
+                                ]
+                              )
+                          ),
+                        )
+                    ),
+                    ),
+                    SizedBox(height: 10.h), // Space between buttons
+                    // LEADERBOARD TAB
+                    SizedBox( // to explicitly control the ElevatedButton size
+                    height: screenHeight*0.15,
+                    width: screenWidth*0.90,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)
+                        ),
+                        backgroundColor: Color(0xFF2A2A2A), // Actual button color
+                        foregroundColor: Colors.white, // Button text color
+                        side: BorderSide(
+                          color: Colors.black,
+                          width: screenWidth*0.005,
+                        )
+                      ),
+                      onPressed: () {
+                        // GO TO LEADERBOARD
+                      },
+                        child: Center(
+                          child: Text(
+                            "Leaderboard",
+                              style: GoogleFonts.workSans(
+                                fontSize: screenWidth*0.1,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow( // Up Left
+                                    offset: Offset(-1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Up Right
+                                    offset: Offset(1,-1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Left
+                                    offset: Offset(-1,1),
+                                    color: Colors.black
+                                  ),
+                                  Shadow( // Down Right
+                                    offset: Offset(1,1),
+                                    color: Colors.black
+                                  )
+                                ]
+                              )
+                          ),
+                        )
+                    ),
+                    ),
                   ],
+                )
                 )
               )
             )

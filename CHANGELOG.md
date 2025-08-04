@@ -15,3 +15,8 @@ Developmental progress by date is stored in this file.
 - Added the first button of several that will lead to separate screens
 - Moved the main screen to a new class, HomeScreen
 - Wrapped the app in ScreenUtilInit to keep font sizes consistent on different screen sizes (not yet implemented)
+
+## 2025-08-03
+
+- Used ScreenUtilInit instead of MediaQuery for screen resizing
+- Added the remainder of the buttons in the main body
