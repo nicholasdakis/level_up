@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+// --- Imports for switching screens ---
+import 'screens/personal.dart';
+import 'screens/food_logging.dart';
+import 'screens/reminders.dart';
+import 'screens/badges.dart';
+import 'screens/leaderboard.dart';
 
 void main() {
   runApp(const MyApp());
@@ -85,7 +91,20 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO PERSONAL
+                          Navigator.push(
+                          context,
+                          PageRouteBuilder( // Animation when switching screen
+                            pageBuilder: (context, animation, secondaryAnimation) => Personal(),
+                            transitionDuration: Duration(milliseconds:220),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const start = Offset(0.0,1.0); // Start right below the screen
+                              const finish = Offset.zero; // Stop right at the top of the screen
+                              final tween = Tween(begin: start, end: finish).chain(CurveTween(curve: Curves.easeIn));
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child:child);
+                            }
+                          )
+                        );
                       },
                         child: Center(
                           child: Text(
@@ -117,7 +136,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     ),
                     SizedBox(height: 10.h), // Space between buttons
-                    // FOOD TRACKING TAB
+                    // FOOD LOGGING TAB
                     SizedBox( // to explicitly control the ElevatedButton size
                     height: screenHeight*0.15,
                     width: screenWidth*0.90,
@@ -134,11 +153,24 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO FOOD TRACKING
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder( // Animation when switching screen
+                            pageBuilder: (context, animation, secondaryAnimation) => FoodLogging(),
+                            transitionDuration: Duration(milliseconds:220),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const start = Offset(0.0,1.0); // Start right below the screen
+                              const finish = Offset.zero; // Stop right at the top of the screen
+                              final tween = Tween(begin: start, end: finish).chain(CurveTween(curve: Curves.easeIn));
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child:child);
+                            }
+                          )
+                        );
                       },
                         child: Center(
                           child: Text(
-                            "Food Tracking",
+                            "Food Logging",
                               style: GoogleFonts.workSans(
                                 fontSize: screenWidth*0.1,
                                 color: Colors.white,
@@ -183,7 +215,20 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO REMINDERS
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder( // Animation when switching screen
+                            pageBuilder: (context, animation, secondaryAnimation) => Reminders(),
+                            transitionDuration: Duration(milliseconds:220),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const start = Offset(0.0,1.0); // Start right below the screen
+                              const finish = Offset.zero; // Stop right at the top of the screen
+                              final tween = Tween(begin: start, end: finish).chain(CurveTween(curve: Curves.easeIn));
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child:child);
+                            }
+                          )
+                        );
                       },
                         child: Center(
                           child: Text(
@@ -232,7 +277,20 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO BADGES
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder( // Animation when switching screen
+                            pageBuilder: (context, animation, secondaryAnimation) => Badges(),
+                            transitionDuration: Duration(milliseconds:220),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const start = Offset(0.0,1.0); // Start right below the screen
+                              const finish = Offset.zero; // Stop right at the top of the screen
+                              final tween = Tween(begin: start, end: finish).chain(CurveTween(curve: Curves.easeIn));
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child:child);
+                            }
+                          )
+                        );
                       },
                         child: Center(
                           child: Text(
@@ -281,7 +339,20 @@ class HomeScreen extends StatelessWidget {
                         )
                       ),
                       onPressed: () {
-                        // GO TO LEADERBOARD
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder( // Animation when switching screen
+                            pageBuilder: (context, animation, secondaryAnimation) => Leaderboard(),
+                            transitionDuration: Duration(milliseconds:220),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const start = Offset(0.0,1.0); // Start right below the screen
+                              const finish = Offset.zero; // Stop right at the top of the screen
+                              final tween = Tween(begin: start, end: finish).chain(CurveTween(curve: Curves.easeIn));
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child:child);
+                            }
+                          )
+                        );
                       },
                         child: Center(
                           child: Text(

@@ -20,3 +20,9 @@ Developmental progress by date is stored in this file.
 
 - Used ScreenUtilInit instead of MediaQuery for screen resizing
 - Added the remainder of the buttons in the main body
+
+## 2025-08-04
+
+- Renamed Food Tracking to Food Logging
+- Added route functionalities to the buttons in order to switch to the appropriate files
+- Added animations when changing screens using PageRouteBuilder
