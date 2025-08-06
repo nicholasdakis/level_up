@@ -26,3 +26,9 @@ Developmental progress by date is stored in this file.
 - Renamed Food Tracking to Food Logging
 - Added route functionalities to the buttons in order to switch to the appropriate files
 - Added animations when changing screens using PageRouteBuilder
+
+## 2025-08-05
+
+- Started working on the Personal tab
+- Added two buttons
+- "Update Your Information" planned to be a dropdown menu
