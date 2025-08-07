@@ -19,22 +19,15 @@ class _PersonalState extends State<Personal> {
         double screenWidth = 1.sw; // Make widgets the size of the user's personal screen size
         return Scaffold(
                 backgroundColor:Color(0xFF1E1E1E),
-                body: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Header box
-                    Container(
-                    height: screenHeight * 0.15,
-                    width: screenWidth,
-                    color: Color(0xFF121212),
-                    padding: EdgeInsets.all(25),
-                      child: Center (
-                        child: Text(
+                // Header box
+                appBar: AppBar(
+                  backgroundColor: Color(0xFF121212),
+                  centerTitle: true,
+                  toolbarHeight: screenHeight * 0.15,
+                  title: Text(
                         "Personal",
                         style: GoogleFonts.russoOne(
-                          fontSize: screenWidth*0.15,
+                          fontSize: screenWidth*0.12,
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -45,8 +38,13 @@ class _PersonalState extends State<Personal> {
                           ]
                           )
                         )
-                      )
-                  ),
+                ),
+                body: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Header box
                   // Middle body
                   Expanded(
                       child: Padding(
