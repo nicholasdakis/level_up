@@ -95,7 +95,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           PageRouteBuilder( // Animation when switching screen
                             pageBuilder: (context, animation, secondaryAnimation) => Personal(),
-                            transitionDuration: Duration(milliseconds:220),
+                            transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
                               const finish = Offset.zero; // Stop right at the top of the screen
@@ -157,7 +157,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           PageRouteBuilder( // Animation when switching screen
                             pageBuilder: (context, animation, secondaryAnimation) => FoodLogging(),
-                            transitionDuration: Duration(milliseconds:220),
+                            transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
                               const finish = Offset.zero; // Stop right at the top of the screen
@@ -219,7 +219,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           PageRouteBuilder( // Animation when switching screen
                             pageBuilder: (context, animation, secondaryAnimation) => Reminders(),
-                            transitionDuration: Duration(milliseconds:220),
+                            transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
                               const finish = Offset.zero; // Stop right at the top of the screen
@@ -281,7 +281,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           PageRouteBuilder( // Animation when switching screen
                             pageBuilder: (context, animation, secondaryAnimation) => Badges(),
-                            transitionDuration: Duration(milliseconds:220),
+                            transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
                               const finish = Offset.zero; // Stop right at the top of the screen
@@ -343,7 +343,7 @@ class HomeScreen extends StatelessWidget {
                           context,
                           PageRouteBuilder( // Animation when switching screen
                             pageBuilder: (context, animation, secondaryAnimation) => Leaderboard(),
-                            transitionDuration: Duration(milliseconds:220),
+                            transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
                               const finish = Offset.zero; // Stop right at the top of the screen

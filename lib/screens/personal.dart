@@ -124,7 +124,7 @@ class _PersonalState extends State<Personal> {
                                   context,
                                   PageRouteBuilder( // Animation when switching screen
                                     pageBuilder: (context, animation, secondaryAnimation) => CalorieCalculator(),
-                                    transitionDuration: Duration(milliseconds:220),
+                                    transitionDuration: Duration(milliseconds:400),
                                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                       const start = Offset(0.0,1.0); // Start right below the screen
                                       const finish = Offset.zero; // Stop right at the top of the screen
