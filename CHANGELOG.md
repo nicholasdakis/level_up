@@ -43,3 +43,12 @@ Developmental progress by date is stored in this file.
 - Started working on the 'Calorie Calculator' tab
 - Added a few options, and variables to hold those options
 - The chosen options will be used to calculate caloric needs for the desired inputs
+
+## 2025-08-09
+
+- More options added to the Calorie Calculator tab
+- Information about activity levels added
+- Get Results button added, which leads to a new Results screen
+- The button has a validity check (still W.I.P), which only changes screen if all fields are filled out
+- Otherwise, the user is told that all fields must be filled
+- A flag is used to prevent snackBars from stacking if the button is repeatedly pressed without all fields filled out
