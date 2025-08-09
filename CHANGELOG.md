@@ -32,3 +32,14 @@ Developmental progress by date is stored in this file.
 - Started working on the Personal tab
 - Added two buttons
 - "Update Your Information" planned to be a dropdown menu
+
+## 2025-08-07
+
+- Added an AppBar to 'Personal' so the back arrow in the top left corner is visible and functional
+- Applied the style from 'Personal' to all other tabs
+
+## 2025-08-08
+
+- Started working on the 'Calorie Calculator' tab
+- Added a few options, and variables to hold those options
+- The chosen options will be used to calculate caloric needs for the desired inputs

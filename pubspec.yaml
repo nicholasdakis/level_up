@@ -41,6 +41,12 @@ dependencies:
   # Making fonts look natural across different screens
   flutter_screenutil: ^5.9.3
 
+  # Splash screen
+  flutter_native_splash: ^2.4.6
+
+  # For making dropdown boxes always open downward
+  dropdown_button2: ^2.3.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
