@@ -52,3 +52,14 @@ Developmental progress by date is stored in this file.
 - The button has a validity check (still W.I.P), which only changes screen if all fields are filled out
 - Otherwise, the user is told that all fields must be filled
 - A flag is used to prevent snackBars from stacking if the button is repeatedly pressed without all fields filled out
+
+## 2025-08-10
+
+- Added the option to select units and input height in the Calorie Calculator tab
+- Shows cm when metric is chosen and foot and inch marks when imperial is chosen
+- Height was dealt with by storing height in inches regardless of what the user chose, and converting it and rounding to centimeters. If the user has imperial selected, it visually shows both feet and inches based on the heightInches variable.
+- Made metrics the default value to prevent errors if the user selected height before units
+- Made the default metrics value have its own string name so the "Enter your units" text would not automatically show the "Metrics" value
+- Added a dropdownValue variable to prevent an error caused by the "Enter your units" dropdown expecting an option called "MetricDefault". MetricDefault is simply set to null in this case.
+- Planning to automatically convert if the user changes units after selecting height (not currently implemented)
+- Results class was moved to its own file

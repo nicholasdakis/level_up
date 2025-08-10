@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart'; // more customizable dropdown button (specifically, always open downward and round borders)
+import 'results.dart';
 
 class CalorieCalculator extends StatefulWidget{
   const CalorieCalculator({super.key});
@@ -12,6 +13,7 @@ class CalorieCalculator extends StatefulWidget{
 
 class _CalorieCalculatorState extends State<CalorieCalculator> {
   // store information about the user to use in the calculations
+  String? units = "MetricDefault"; // default value, but uses a different name so the user can still see "Enter your units" text
   String? sex;
   String? goal;
   String? activityLevel;
@@ -19,19 +21,27 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   int? age;
 
   int? heightCm;
-  int? heightFeet;
   int? heightInches;
 
   double? weightKg;
   double? weightLbs;
 
   final TextEditingController weightController = TextEditingController(); // allow the user to type in their weight
-  bool snackbarActive = false; // flag for only one snack bar at a time
+  bool resultsSnackbarActive = false; // flag so only one snackbar shows at a time
+
 
   @override
   Widget build(BuildContext context) {
     double screenHeight = 1.sh; // Make widgets the size of the user's personal screen size
     double screenWidth = 1.sw; // Make widgets the size of the user's personal screen size
+    // preventing an error by setting the dropdownvalue to null instead of "MetricDefault"
+    String? dropdownValue;
+    if (units=="MetricDefault") {
+      dropdownValue = null;
+    }
+    else {
+      dropdownValue = units;
+    }
     return Scaffold(
                 backgroundColor:Color(0xFF1E1E1E),
                 // Header box
@@ -59,6 +69,51 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           padding: EdgeInsets.all(16),
         child: Column(
           children: [
+              // Change units dropdown
+              DropdownButton2<String>(
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 91, 89, 89).withAlpha(128),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                maxHeight: 200, // adds a scrollbar if needed (if larger than 200px)
+              ),
+              style: GoogleFonts.russoOne(
+                fontSize: screenWidth*0.05,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(4,4),
+                    blurRadius: 10,
+                    color: const Color.fromARGB(255, 0, 0, 0)
+                  )
+                ]
+                ),
+              hint: Text(
+                "Enter your units",
+                style: GoogleFonts.russoOne(
+                fontSize: screenWidth*0.05,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(4,4),
+                    blurRadius: 10,
+                    color: const Color.fromARGB(255, 0, 0, 0)
+                  )
+                ]
+                ),
+              ),
+              value: dropdownValue,
+              items: [
+                DropdownMenuItem(value: 'Metric', child: Text('Metric (default)')),
+                DropdownMenuItem(value: 'Imperial', child: Text('Imperial')),
+              ],
+              onChanged: (value) { // when the user selects their units
+                setState(() { // update the value
+                  units = value;
+                });
+              },
+            ),
             // ENTER YOUR SEX BUTTON
             DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
@@ -143,7 +198,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 for (int i=13;i<=122;i++)
                   DropdownMenuItem(value: i, child: Text("$i"))
               ],
-              onChanged: (value) { // when the user selects their sex
+              onChanged: (value) { // when the user selects their age
                 setState(() { // update the value
                   age = value;
                 });
@@ -183,14 +238,20 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               ),
-              value: heightCm,
+              value: heightInches,
               items: [
-                for (int i=100;i<=250;i++)
-                  DropdownMenuItem(value: i, child: Text("$i"))
+                if (units=="Metric" || units=="MetricDefault")
+                for (int i=100;i<=275;i++)
+                  DropdownMenuItem(value: i, child: Text("$i cm"))
+                else if (units=="Imperial") 
+                  for (int j=3;j<9;j++)
+                    for (int k=0;k<12;k++)
+                      DropdownMenuItem(value: j*12 + k, child: Text("$j'$k''")) // store value entirely in inches but visually show feet and inches
               ],
-              onChanged: (value) { // when the user selects their sex
+              onChanged: (value) { // when the user selects their height
                 setState(() { // update the value
-                  heightCm = value;
+                  heightInches = value;
+                    heightCm = (heightInches! * 2.54).round(); // ! next to heightInches because I know it won't be null
                 });
               },
             ),
@@ -234,7 +295,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 DropdownMenuItem(value: 'Lose Weight', child: Text('Lose Weight')),
                 DropdownMenuItem(value: 'Maintain Weight', child: Text('Maintain Weight')),
               ],
-              onChanged: (value) { // when the user selects their sex
+              onChanged: (value) { // when the user selects their goal
                 setState(() { // update the value
                   goal = value;
                 });
@@ -281,7 +342,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 DropdownMenuItem(value: 'Moderate', child: Text('Moderate')),
                 DropdownMenuItem(value: 'Very', child: Text('Very')),
               ],
-              onChanged: (value) { // when the user selects their sex
+              onChanged: (value) { // when the user selects their activity level
                 setState(() { // update the value
                   activityLevel = value;
                 });
@@ -366,8 +427,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 onPressed: () {
                   // validity checks
                   if (age==null) {
-                    if (snackbarActive == true) return; // a snackBar is already opened
-                    snackbarActive=true;
+                    if (resultsSnackbarActive == true) return; // a snackBar is already opened
+                    resultsSnackbarActive=true;
                     // Let the user know that not all fields are filled out.
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -381,7 +442,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     )
                     ).closed.then(
                       (_) {
-                      snackbarActive=false; // reset the flag (prevent many snackbars from stacking)
+                      resultsSnackbarActive=false; // reset the flag (prevent many snackbars from stacking)
                       }
                     );
                     return;
@@ -435,48 +496,6 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             ]
             ),
         )
-      )
-    );
-  }
-}
-
-// RESULTS CLASS //
-class Results extends StatefulWidget{
-  const Results({super.key});
-  
-  @override
-  State<Results> createState() => _ResultsState();
-}
-
-class _ResultsState extends State<Results> {
-  @override
-  Widget build(BuildContext context) {
-    double screenHeight = 1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth = 1.sw; // Make widgets the size of the user's personal screen size
-    return Scaffold(
-                backgroundColor:Color(0xFF1E1E1E),
-                // Header box
-                appBar: AppBar(
-                  backgroundColor: Color(0xFF121212),
-                  centerTitle: true,
-                  toolbarHeight: screenHeight * 0.15,
-                  title: Text(
-                        "Results",
-                        style: GoogleFonts.russoOne(
-                          fontSize: screenWidth*0.12,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(4,4),
-                              blurRadius: 10,
-                              color: const Color.fromARGB(255, 0, 0, 0)
-                            )
-                          ]
-                          )
-                        )
-                ),
-      body: Center(
-        child: Text("Results tab")
       )
     );
   }
