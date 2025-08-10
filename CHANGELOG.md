@@ -63,3 +63,5 @@ Developmental progress by date is stored in this file.
 - Added a dropdownValue variable to prevent an error caused by the "Enter your units" dropdown expecting an option called "MetricDefault". MetricDefault is simply set to null in this case.
 - Planning to automatically convert if the user changes units after selecting height (not currently implemented)
 - Results class was moved to its own file
+- Added the option to select which calorie equation to use (Harris-Benedict or Mifflin-St Jeor)
+- Added an option to enter weight via typing
