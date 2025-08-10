@@ -2,9 +2,12 @@
 
 Level Up is a health app that aims to make fitness enjoyable by encouraging activity via experience gain and badge acquisition. It includes helpful tools, including calorie calculators and a food tracker.
 
+## Changelog
+
+This project contains a CHANGELOG.md file which I update throughout development.
+
 ## Features (including W.I.P ones)
-- 5 main tabs
-- An experience system which is visible in the footer section of all screens
+- 5 main tabs:
 
 ### Personal tab
 - Customize preferences
