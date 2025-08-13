@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 // --- Imports for switching screens ---
-import 'screens/personal.dart';
+import 'screens/calorie_calculator.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
@@ -74,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // PERSONAL BUTTON
+                    // CALORIE CALCULATOR BUTTON
                     SizedBox( // to explicitly control the ElevatedButton size
                     height: screenHeight*0.15,
                     width: screenWidth*0.90,
@@ -94,7 +94,7 @@ class HomeScreen extends StatelessWidget {
                           Navigator.push(
                           context,
                           PageRouteBuilder( // Animation when switching screen
-                            pageBuilder: (context, animation, secondaryAnimation) => Personal(),
+                            pageBuilder: (context, animation, secondaryAnimation) => CalorieCalculator(),
                             transitionDuration: Duration(milliseconds:400),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               const start = Offset(0.0,1.0); // Start right below the screen
@@ -108,7 +108,8 @@ class HomeScreen extends StatelessWidget {
                       },
                         child: Center(
                           child: Text(
-                            "Personal",
+                            "Calorie Calculator",
+                            textAlign: TextAlign.center,
                               style: GoogleFonts.workSans(
                                 fontSize: screenWidth*0.1,
                                 color: Colors.white,

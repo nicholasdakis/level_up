@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart'; // more customizable dropdown button (specifically, always open downward and round borders)
-import 'results.dart';
+import 'calorie_calculator_buttons/results.dart';
+import 'package:flutter/services.dart';
 
 class CalorieCalculator extends StatefulWidget{
   const CalorieCalculator({super.key});
@@ -23,8 +24,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   int? heightCm;
   int? heightInches;
 
-  double? weightKg;
-  double? weightLbs;
+  String? weight; // One value for either Lbs or Kg -> Converted to a double -> Calculated based on units chosen
 
   final TextEditingController weightController = TextEditingController(); // allow the user to type in their weight
   bool resultsSnackbarActive = false; // flag so only one snackbar shows at a time
@@ -49,7 +49,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   centerTitle: true,
                   toolbarHeight: screenHeight * 0.15,
                   title: Text(
-                        "Calories",
+                        "Calculator",
                         style: GoogleFonts.russoOne(
                           fontSize: screenWidth*0.12,
                           color: Colors.white,
@@ -63,58 +63,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                           )
                         )
                 ),
-      body: Center(
+      body: SingleChildScrollView(
+        child: Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: SizedBox( // make sure all input options take the same amount of width on the screen
+          padding: EdgeInsets.all(40),
+          child: SizedBox( 
             width: 300,
         child: Column(
           children: [
-            // SELECT CALORIE EQUATION FORMULA
-            DropdownButton2<String>(
-              dropdownStyleData: DropdownStyleData(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 91, 89, 89).withAlpha(128),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                maxHeight: 200, // adds a scrollbar if needed (if larger than 200px)
-              ),
-              style: GoogleFonts.russoOne(
-                fontSize: screenWidth*0.05,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    offset: Offset(4,4),
-                    blurRadius: 10,
-                    color: const Color.fromARGB(255, 0, 0, 0)
-                  )
-                ]
-                ),
-              hint: Text(
-                "Select Equation",
-                style: GoogleFonts.russoOne(
-                fontSize: screenWidth*0.05,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    offset: Offset(4,4),
-                    blurRadius: 10,
-                    color: const Color.fromARGB(255, 0, 0, 0)
-                  )
-                ]
-                ),
-              ),
-              value: equation,
-              items: [
-                DropdownMenuItem(value: 'Harris-Benedict', child: Text('Harris-Benedict')),
-                DropdownMenuItem(value: 'Mifflin-St Jeor', child: Text('Mifflin-St Jeor'))
-              ],
-              onChanged: (value) { // when the user selects their sex
-                setState(() { // update the value
-                  equation = value;
-                });
-              },
-            ),
               // ENTER YOUR UNITS BUTTON
               DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
@@ -157,6 +113,54 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               onChanged: (value) { // when the user selects their units
                 setState(() { // update the value
                   units = value;
+                  // empty the height fields just in case they were altered before units were changed
+                  heightInches = null;
+                  heightCm = null;
+                });
+              },
+            ),
+                        // SELECT CALORIE EQUATION FORMULA
+            DropdownButton2<String>(
+              dropdownStyleData: DropdownStyleData(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 91, 89, 89).withAlpha(128),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                maxHeight: 200, // adds a scrollbar if needed (if larger than 200px)
+              ),
+              style: GoogleFonts.russoOne(
+                fontSize: screenWidth*0.05,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(4,4),
+                    blurRadius: 10,
+                    color: const Color.fromARGB(255, 0, 0, 0)
+                  )
+                ]
+                ),
+              hint: Text(
+                "Select Equation",
+                style: GoogleFonts.russoOne(
+                fontSize: screenWidth*0.05,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(4,4),
+                    blurRadius: 10,
+                    color: const Color.fromARGB(255, 0, 0, 0)
+                  )
+                ]
+                ),
+              ),
+              value: equation,
+              items: [
+                DropdownMenuItem(value: 'Harris-Benedict', child: Text('Harris-Benedict')),
+                DropdownMenuItem(value: 'Mifflin-St Jeor', child: Text('Mifflin-St Jeor'))
+              ],
+              onChanged: (value) { // when the user selects their sex
+                setState(() { // update the value
+                  equation = value;
                 });
               },
             ),
@@ -251,10 +255,24 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               },
             ),
               // ENTER YOUR WEIGHT INPUT
-                TextField(
+              SizedBox( // make the underline narrower
+                width: screenWidth*0.5,
+                child: Theme(
+                  data: Theme.of(context).copyWith( // Theme to remove the purple when interacting with the input weight
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    textSelectionTheme: TextSelectionThemeData(
+                      cursorColor: Colors.white,
+                      selectionHandleColor: Colors.white,
+                      selectionColor: const Color.fromARGB(255, 83, 75, 75).withAlpha(128)
+                    ),
+                  ),
+                child: TextField(
                 controller: weightController,
-                cursorColor: Colors.white,
-                textAlign: TextAlign.center, // user's text starts from the middle of the box
+                 keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
+                 inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                 ],
                 style: GoogleFonts.russoOne( // style of the input text
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -267,8 +285,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
                 decoration: InputDecoration( // style of the hint text
-                border: InputBorder.none, // no purple outline around the text box
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 0.25)
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 0.25)
+                ),
                 hintText: "Enter your weight",
+                contentPadding: EdgeInsets.only(top: 13), // Move the text down so it is consistent with the other tabs
                 hintStyle: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -281,7 +305,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               ),
-                ),
+              onChanged: (inputWeight) {
+                weight = inputWeight; // store the user's input
+              }
+              )
+              )
+              ),
               // ENTER YOUR HEIGHT BUTTON
               DropdownButton2<int>(
               dropdownStyleData: DropdownStyleData(
@@ -402,7 +431,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               hint: Text(
                 "Enter your activity level",
                 style: GoogleFonts.russoOne(
-                fontSize: screenWidth*0.05,
+                fontSize: screenWidth*0.045,
                 color: Colors.white,
                 shadows: [
                   Shadow(
@@ -504,7 +533,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
                 onPressed: () {
                   // validity checks
-                  if (age==null) {
+                  if (units == null || equation == null || sex == null || age == null || weight==null
+                  || (heightCm == null && heightInches == null) || goal == null || activityLevel == null) {
                     if (resultsSnackbarActive == true) return; // a snackBar is already opened
                     resultsSnackbarActive=true;
                     // Let the user know that not all fields are filled out.
@@ -528,7 +558,16 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   Navigator.push(
                     context,
                     PageRouteBuilder( // Animation when switching screen
-                      pageBuilder: (context, animation, secondaryAnimation) => Results(),
+                      pageBuilder: (context, animation, secondaryAnimation) => Results( // // pass in variables to the same-named variables in Results
+                        units: units,
+                        goal: goal,
+                        activityLevel: activityLevel,
+                        equation: equation,
+                        age: age,
+                        heightCm: heightCm,
+                        heightInches: heightInches,
+                        weight: weight
+                        ), 
                       transitionDuration: Duration(milliseconds:400),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         const start = Offset(0.0,1.0); // Start right below the screen
@@ -575,6 +614,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             ),
           )
         )
+      )
       )
     );
   }

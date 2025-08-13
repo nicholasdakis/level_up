@@ -65,3 +65,16 @@ Developmental progress by date is stored in this file.
 - Results class was moved to its own file
 - Added the option to select which calorie equation to use (Harris-Benedict or Mifflin-St Jeor)
 - Added an option to enter weight via typing
+
+## 2025-08-13
+
+- Made the Calculator tab "scrollable" to make Column expandable and prevent pixel overflow when the popup keyboard for weight was opened
+- Renamed the title for the Calorie Calculator tab from Calories to Calculator
+- Underlined "Enter your weight" to appear consistent with the other options
+- Added a regular expression to weight input so only valid doubles can be entered with an optional decimal point
+- Reset height if units were changed after a height was input to avoid errors
+- Passed the variables from Calorie Calculator to the Results tab to access them for calculations
+- Stored the user's input weight into the weight variable
+- Updated the validity checks to be functional, so the Results tab can only be entered when all fields are filled
+- The Personal tab was deleted and replaced with the Calorie Calculator tab, and "Update your profile" will be available via a separate button
+- Learned about using themes to replace the default purple color when interacting with the input weight text. Replaced it with a white color which is more consistent with the page layout.
