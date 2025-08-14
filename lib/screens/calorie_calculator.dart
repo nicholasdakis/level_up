@@ -14,7 +14,7 @@ class CalorieCalculator extends StatefulWidget{
 
 class _CalorieCalculatorState extends State<CalorieCalculator> {
   // store information about the user to use in the calculations
-  String? units = "MetricDefault"; // default value, but uses a different name so the user can still see "Enter your units" text
+  String? units = "MetricDefault"; // default value, but uses a different name so the user can still see "Choose your units" text
   String? sex;
   String? goal;
   String? activityLevel;
@@ -64,14 +64,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         )
                 ),
       body: SingleChildScrollView(
-        child: Center(
         child: Padding(
-          padding: EdgeInsets.all(40),
+          padding: EdgeInsets.all(50),
           child: SizedBox( 
-            width: 300,
+            width: double.infinity,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-              // ENTER YOUR UNITS BUTTON
+              // CHOOSE YOUR UNITS BUTTON
               DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -92,7 +92,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your units",
+                "     Choose your units",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -140,7 +140,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Select Equation",
+                "Select Calorie Equation",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -164,7 +164,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 });
               },
             ),
-            // ENTER YOUR SEX BUTTON
+            // CHOOSE YOUR SEX BUTTON
             DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -185,7 +185,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your sex",
+                "      Choose your sex",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -209,7 +209,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 });
               },
             ),
-                        // ENTER YOUR AGE BUTTON
+                        // CHOOSE YOUR AGE BUTTON
               DropdownButton2<int>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -230,7 +230,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your age",
+                "      Choose your age",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -256,7 +256,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             ),
               // ENTER YOUR WEIGHT INPUT
               SizedBox( // make the underline narrower
-                width: screenWidth*0.5,
+                width: screenWidth*0.65,
                 child: Theme(
                   data: Theme.of(context).copyWith( // Theme to remove the purple when interacting with the input weight
                     splashColor: Colors.transparent,
@@ -285,14 +285,16 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
                 decoration: InputDecoration( // style of the hint text
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white, width: 0.25)
+                enabledBorder: UnderlineInputBorder( // custom border to look consistent with the other prompts
+                  borderSide: BorderSide(color: Colors.grey, width: 0.25)
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white, width: 0.25)
+                focusedBorder: UnderlineInputBorder( // custom border to look consistent with the other prompts
+                  borderSide: BorderSide(color: Colors.grey, width: 0.25)
                 ),
-                hintText: "Enter your weight",
-                contentPadding: EdgeInsets.only(top: 13), // Move the text down so it is consistent with the other tabs
+                hintText: (units=="MetricDefault" || units=="Metric")
+                ? "  Type your weight in kg" // if
+                : "  Type your weight in lbs", // else
+                contentPadding: EdgeInsets.only(top: 13, left:6), // Move the text down and to the right to look more natural
                 hintStyle: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -311,7 +313,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               )
               )
               ),
-              // ENTER YOUR HEIGHT BUTTON
+              // CHOOSE YOUR HEIGHT BUTTON
               DropdownButton2<int>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -332,7 +334,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your height",
+                "   Choose your height",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.05,
                 color: Colors.white,
@@ -362,7 +364,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 });
               },
             ),
-            // ENTER YOUR GOAL BUTTON
+            // CHOOSE YOUR GOAL BUTTON
               DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -383,9 +385,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your goal",
+                "Choose your calorie goal",
                 style: GoogleFonts.russoOne(
-                fontSize: screenWidth*0.05,
+                fontSize: screenWidth*0.045,
                 color: Colors.white,
                 shadows: [
                   Shadow(
@@ -408,7 +410,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 });
               },
             ),
-            // ENTER YOUR ACTIVITY LEVEL BUTTON
+            // CHOOSE YOUR ACTIVITY LEVEL BUTTON
               DropdownButton2<String>(
               dropdownStyleData: DropdownStyleData(
                 decoration: BoxDecoration(
@@ -429,7 +431,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               hint: Text(
-                "Enter your activity level",
+                "Choose your activity level",
                 style: GoogleFonts.russoOne(
                 fontSize: screenWidth*0.045,
                 color: Colors.white,
@@ -564,6 +566,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         activityLevel: activityLevel,
                         equation: equation,
                         age: age,
+                        sex: sex,
                         heightCm: heightCm,
                         heightInches: heightInches,
                         weight: weight
@@ -614,7 +617,6 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             ),
           )
         )
-      )
       )
     );
   }

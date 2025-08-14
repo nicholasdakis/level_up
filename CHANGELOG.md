@@ -78,3 +78,15 @@ Developmental progress by date is stored in this file.
 - Updated the validity checks to be functional, so the Results tab can only be entered when all fields are filled
 - The Personal tab was deleted and replaced with the Calorie Calculator tab, and "Update your profile" will be available via a separate button
 - Learned about using themes to replace the default purple color when interacting with the input weight text. Replaced it with a white color which is more consistent with the page layout.
+
+## 2025-08-14
+
+- Passed the user's sex from the Calorie Calculator to Results screen (missed last patch)
+- Learned about ternary operators for the Input Weight prompt on the Results screen, showing kg or lbs based on units chosen
+- Removed the outer Center widget and stretched the Column horizontally which fixed an issue with dropdown boxes not having equal length
+- Improved the look of the prompts by centering their text and making language more specific (e.g., Enter -> Type in, Enter -> Choose)
+- Results tab is now scrollable and has a scrollbar so the user knows to scroll
+- Results tab provides information on Basal Metabolic Rate (currently only shows the Mifflin-St Jeor formula)
+- Results tab shows the general formula for Males, the general formula for Females, and the specific formula for the user
+- The calculation for BMR depends on the units chosen by the user
+- Used nested ternary operators to show the formula for the Harris-Benedict or Mifflin-St Jeor equations in metric or imperial based on the user's input (8 possible cases)
