@@ -69,8 +69,11 @@ class _ResultsState extends State<Results> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
       Text(
-        """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum
-number of calories your body needs to undergo essential roles for survival.\n • Examples include breathing, cell repair, and blood circulation.""",
+        widget.equation=="Mifflin-St Jeor"
+        ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum
+number of calories your body needs to undergo essential roles for survival.\n • Examples include breathing, cell repair, and blood circulation. • This formula is a revised version of the Harris-Benedict equation."""
+        :"""• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum
+number of calories your body needs to undergo essential roles for survival.\n • Examples include breathing, cell repair, and blood circulation.\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.045,
         color: Colors.white,
@@ -117,10 +120,10 @@ number of calories your body needs to undergo essential roles for survival.\n �
         widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
           ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n + 5" // Mifflin and Metric
-          : "(4.536 x weight (lbs))\n + (15.88 x height (inches))\n - (5 x age (years))\n + 5"// Mifflin and NOT Metric
-        : widget.units=="MetricDefault" || widget.units=="Metric" // NOT Mifflin and Metric
-          ? "harris and metric"
-          : "Harris and NOT metric", // NOT Mifflin and NOT Metric
+          : "(4.536 x weight (lbs))\n + (15.88 x height (inches))\n - (5 x age (years))\n + 5" // Mifflin and Imperial
+        : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
+          ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" // Harris and Metric
+          : "(6.23 x weight (lbs))\n + (12.7 x height (inches))\n - (6.8 x age (years))\n + 66.473", // Harris and Imperial
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.062,
         color: const Color.fromARGB(255, 5, 71, 142),
@@ -153,10 +156,10 @@ number of calories your body needs to undergo essential roles for survival.\n �
         widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
           ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n - 161" // Mifflin and Metric
-          : "(4.536 x weight (lbs))\n + (15.88 x height (inches))\n - (5 x age (years))\n - 161"// Mifflin and NOT Metric
-        : widget.units=="MetricDefault" || widget.units=="Metric" // NOT Mifflin and Metric
-          ? "harris and metric"
-          : "Harris and NOT metric", // NOT Mifflin and NOT Metric
+          : "(4.536 x weight (lbs))\n + (15.88 x height (inches))\n - (5 x age (years))\n - 161"// Mifflin and Imperial
+        : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
+          ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" // Harris and Metric
+          : "(4.35 x weight (lbs))\n + (4.7 x height (inches))\n - (4.7 x age (years))\n + 655.095", // Harris and NOT Imperial
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.065,
         color: const Color.fromARGB(255, 132, 9, 79),
@@ -189,19 +192,19 @@ number of calories your body needs to undergo essential roles for survival.\n �
         ? widget.units=="MetricDefault" || widget.units=="Metric" // Mifflin and Metric
           ? widget.sex=="Female" // Female and Metric and Mifflin
             ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161" // Female and Metric and Mifflin
-            : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // NOT Female and Metric and Mifflin
+            : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // Male and Metric and Mifflin
         : widget.sex=="Female" // Female and NOT Metric and Mifflin
-          ? "(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n - 161" // Female and NOT Metric and Mifflin
-          : "(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n + 5" // NOT Female and NOT Metric and Mifflin
+          ? "(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n - 161" // Female and Imperial and Mifflin
+          : "(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n + 5" // Male and Imperial and Mifflin
 
-        // HARRISON CASES
+        // HARRIS CASES
         : widget.units=="MetricDefault" || widget.units=="Metric" // NOT Mifflin and Metric
           ? widget.sex=="Female" // Female and Metric and NOT Mifflin
-            ? "Female, Harrison, Metric" // Female and Metric and NOT Mifflin
-            : "Male, Harrison, Metric" // NOT Female and Metric and NOT Mifflin
+            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593" // Female and Metric and Harris
+            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362" //Male and Metric and Harris
         : widget.sex=="Female" // Female and NOT Metric and Mifflin
-          ? "Female, Harrison, Imperial" // Female and NOT Metric and NOT Mifflin
-          : "Male, Harrison, Imperial", // NOT Female and NOT Metric and NOT Mifflin
+          ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095" // Female and Imperial and Harris
+          : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473", // Male and Imperial and Harris
 
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.065,

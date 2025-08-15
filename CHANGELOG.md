@@ -5,88 +5,96 @@ Developmental progress by date is stored in this file.
 ## 2025-08-01
 
 - First day of development
-- Created the header and footer section of the application
+- Created header and footer sections of the Home Screen
 - Learned about different widgets and started adjusting to using Dart
-- Created basic outlines of the app (app name in the Header; experience bar in the Footer)
+- Created basic outlines of the app (e.g., "Level Up!" appears in the Header, and the Experience Bar appears in the footer)
 
 ## 2025-08-02
 
-- Started working on the body of the app home screen
-- Added the first button of several that will lead to separate screens
-- Moved the main screen to a new class, HomeScreen
-- Wrapped the app in ScreenUtilInit to keep font sizes consistent on different screen sizes (not yet implemented)
+- Began development on the Home Screen's body section
+- Added a button that will lead to a separate screen
+- Wrapped the Home Screen in ScreenUtilInit to keep font sizes consistent on different screen sizes (not yet implemented)
 
 ## 2025-08-03
 
 - Used ScreenUtilInit instead of MediaQuery for screen resizing
-- Added the remainder of the buttons in the main body
+- Added remaining buttons to the body of the Home Screen
 
 ## 2025-08-04
 
-- Renamed Food Tracking to Food Logging
-- Added route functionalities to the buttons in order to switch to the appropriate files
-- Added animations when changing screens using PageRouteBuilder
+- Renamed the Food Tracking button to Food Logging
+- Added route functionalities so clicking a button changes the screen to the appropriate .dart file
+- Added animations when changing screens (using PageRouteBuilder)
 
 ## 2025-08-05
 
 - Started working on the Personal tab
-- Added two buttons
-- "Update Your Information" planned to be a dropdown menu
+- Added two buttons, "Update your Information" and "Calorie Calculator"
+- "Update your Information" planned to be a dropdown menu
 
 ## 2025-08-07
 
-- Added an AppBar to 'Personal' so the back arrow in the top left corner is visible and functional
-- Applied the style from 'Personal' to all other tabs
+- Added an AppBar to the Personal tab so the back arrow in the top left corner is visible and functional
+- Applied the style from the Personal tab to all other tabs
 
 ## 2025-08-08
 
-- Started working on the 'Calorie Calculator' tab
+- Started working on the Calorie Calculator tab
 - Added a few options, and variables to hold those options
-- The chosen options will be used to calculate caloric needs for the desired inputs
+- The chosen options will calculate how many calories the user should consume to reach their goals
 
 ## 2025-08-09
 
-- More options added to the Calorie Calculator tab
-- Information about activity levels added
-- Get Results button added, which leads to a new Results screen
-- The button has a validity check (still W.I.P), which only changes screen if all fields are filled out
-- Otherwise, the user is told that all fields must be filled
-- A flag is used to prevent snackBars from stacking if the button is repeatedly pressed without all fields filled out
+- More input options added to the Calorie Calculator tab
+- Information about activity levels added, aiding the user in choosing the correct activity level
+- "Get Results" button added, leading to the screen which shows the user their results
+- Validity check added to the "Get Results" button (W.I.P), so the screen only changes when the user fills all fields out
+- If the user does not fill all fields and clicks the "Get Results" button, a SnackBar notifies them to do so
+- A flag variable is used to prevent SnackBars from stacking if the button is repeatedly pressed without all fields filled out
 
 ## 2025-08-10
 
 - Added the option to select units and input height in the Calorie Calculator tab
-- Shows cm when metric is chosen and foot and inch marks when imperial is chosen
-- Height was dealt with by storing height in inches regardless of what the user chose, and converting it and rounding to centimeters. If the user has imperial selected, it visually shows both feet and inches based on the heightInches variable.
+- The height prompt Shows centimeter values when metric is chosen and foot and inch marks when imperial is chosen
+- Height is stored in inches and converted and rounded to centimeters
+- If the user has Imperial selected, it visually shows the option in feet and inches based on the heightInches variable
 - Made metrics the default value to prevent errors if the user selected height before units
-- Made the default metrics value have its own string name so the "Enter your units" text would not automatically show the "Metrics" value
+- Made the default metrics value have its own string name, "MetricDefault" so the "Enter your units" prompt would not automatically show the "Metrics" value
 - Added a dropdownValue variable to prevent an error caused by the "Enter your units" dropdown expecting an option called "MetricDefault". MetricDefault is simply set to null in this case.
 - Planning to automatically convert if the user changes units after selecting height (not currently implemented)
 - Results class was moved to its own file
 - Added the option to select which calorie equation to use (Harris-Benedict or Mifflin-St Jeor)
-- Added an option to enter weight via typing
+- Added the option to enter weight via typing
 
 ## 2025-08-13
 
-- Made the Calculator tab "scrollable" to make Column expandable and prevent pixel overflow when the popup keyboard for weight was opened
-- Renamed the title for the Calorie Calculator tab from Calories to Calculator
+- Made the Calculator tab "scrollable" to make Column expandable and prevent pixel overflow when the popup keyboard for inputting weight was opened
+- Renamed the title for the Calorie Calculator tab from "Calories" to "Calculator"
 - Underlined "Enter your weight" to appear consistent with the other options
-- Added a regular expression to weight input so only valid doubles can be entered with an optional decimal point
+- Added a regular expression to weight input so only valid doubles can be entered with 0 or 1 decimal points
 - Reset height if units were changed after a height was input to avoid errors
 - Passed the variables from Calorie Calculator to the Results tab to access them for calculations
 - Stored the user's input weight into the weight variable
 - Updated the validity checks to be functional, so the Results tab can only be entered when all fields are filled
 - The Personal tab was deleted and replaced with the Calorie Calculator tab, and "Update your profile" will be available via a separate button
-- Learned about using themes to replace the default purple color when interacting with the input weight text. Replaced it with a white color which is more consistent with the page layout.
+- Learned about using themes to replace the default purple color when interacting with the input weight text. Replaced it with a white color which is more consistent with the page layout
 
 ## 2025-08-14
 
-- Passed the user's sex from the Calorie Calculator to Results screen (missed last patch)
+- Passed the user's sex from the Calorie Calculator tab to the Results tab (missed last patch)
 - Learned about ternary operators for the Input Weight prompt on the Results screen, showing kg or lbs based on units chosen
-- Removed the outer Center widget and stretched the Column horizontally which fixed an issue with dropdown boxes not having equal length
+- Removed the outer Center widget in the Calorie Calculator tab and stretched the Column horizontally which fixed an issue with dropdown boxes not having equal length
 - Improved the look of the prompts by centering their text and making language more specific (e.g., Enter -> Type in, Enter -> Choose)
 - Results tab is now scrollable and has a scrollbar so the user knows to scroll
 - Results tab provides information on Basal Metabolic Rate (currently only shows the Mifflin-St Jeor formula)
 - Results tab shows the general formula for Males, the general formula for Females, and the specific formula for the user
 - The calculation for BMR depends on the units chosen by the user
 - Used nested ternary operators to show the formula for the Harris-Benedict or Mifflin-St Jeor equations in metric or imperial based on the user's input (8 possible cases)
+
+## 2025-08-15
+
+- Gave more information to the user about their chosen equation for BMR calculation
+- Correctly display the Harris-Benedict formula to the user in the units of their choice
+- Rewrote the comments within the ternary operators to be clearer (e.g., NOT Mifflin -> Harris)
+- Rewrote the CHANGELOG file to make it clearer
+- Changing units after entering a height now automatically converts the units instead of just resetting them to null

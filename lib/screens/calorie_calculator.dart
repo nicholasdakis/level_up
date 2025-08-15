@@ -112,10 +112,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               ],
               onChanged: (value) { // when the user selects their units
                 setState(() { // update the value
-                  units = value;
-                  // empty the height fields just in case they were altered before units were changed
-                  heightInches = null;
-                  heightCm = null;
+                units=value;
+                if (heightInches!=null && value=="Metric") { // initially set an imperial height and switched units to metric
+                  heightCm=(heightInches!*2.54).round(); // store that imperial height in metric
+                  heightInches=null; // reset the imperial value
+                } else if (heightCm!=null && value=="Imperial") { // initially set a metric height and switched units to imperial
+                  heightInches=(heightCm! / 2.54).round(); // store that metric height in imperial
+                  heightCm=null; // reset the metric value
+                }
                 });
               },
             ),
@@ -347,7 +351,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ]
                 ),
               ),
-              value: heightInches,
+              value: units=="Metric" || units=="MetricDefault" ? heightCm : heightInches, // only set value to the height unit chosen
               items: [
                 if (units=="Metric" || units=="MetricDefault")
                 for (int i=100;i<=275;i++)
@@ -359,8 +363,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               ],
               onChanged: (value) { // when the user selects their height
                 setState(() { // update the value
-                  heightInches = value;
-                    heightCm = (heightInches! * 2.54).round(); // ! next to heightInches because I know it won't be null
+                  if (units=="Metric" || units=="MetricDefault") {
+                    heightCm=value;
+                  } else {
+                    heightInches=value;
+                  }
                 });
               },
             ),
