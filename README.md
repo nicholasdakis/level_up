@@ -7,11 +7,13 @@ Level Up is a health app that aims to make fitness enjoyable by encouraging acti
 This project contains a CHANGELOG.md file which I update throughout development.
 
 ## Features (including W.I.P ones)
-- 5 main tabs:
+- The app has 5 main tabs:
 
-### Personal tab
-- Customize preferences
-- Input your details and calculate caloric needs based on weight goals
+### Calorie Calculator tab
+- Input information in either imperial or metric
+- Calculate caloric needs using either Harris-Benedict or Mifflin-St Jeor
+- Displays information about Basal Metabolic Rate and Total Daily Energy Expenditure
+- Calculates the user's Total Daily Energy Expenditure
 
 ### Food Logging tab
 - Track food intake

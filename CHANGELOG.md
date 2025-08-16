@@ -98,3 +98,14 @@ Developmental progress by date is stored in this file.
 - Rewrote the comments within the ternary operators to be clearer (e.g., NOT Mifflin -> Harris)
 - Rewrote the CHANGELOG file to make it clearer
 - Changing units after entering a height now automatically converts the units instead of just resetting them to null
+
+## 2025-08-16
+
+- Displayed information about Total Daily Energy Expenditure (TDEE) and how it is calculated (Still W.I.P)
+- Created a method that calculates the user's BMR
+- Updated the README file to more accurately represent the current state of the project
+- Added null-coalescing operators when passing variables to the Results tab to prevent crashing when switching units after having had run the calculateBMR() method
+- Converted the weight value to a double instead of a string
+- Weight now automatically converts to the corresponding unit if the user changes units after having had entered a weight value
+- Added a variable called currentUnits which ensures that weight does not keep multiplying itself when the user selects the already chosen units
+- Started correcting some miscalculations with the different calorie equations (Will fully fix next commit)

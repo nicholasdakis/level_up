@@ -15,6 +15,7 @@ class CalorieCalculator extends StatefulWidget{
 class _CalorieCalculatorState extends State<CalorieCalculator> {
   // store information about the user to use in the calculations
   String? units = "MetricDefault"; // default value, but uses a different name so the user can still see "Choose your units" text
+  String? currentUnits = "MetricDefault"; // store the user's currently chosen units
   String? sex;
   String? goal;
   String? activityLevel;
@@ -24,10 +25,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   int? heightCm;
   int? heightInches;
 
-  String? weight; // One value for either Lbs or Kg -> Converted to a double -> Calculated based on units chosen
+  double? weight; // One value for either Lbs or Kg -> Converted to a double -> Calculated based on units chosen
 
   final TextEditingController weightController = TextEditingController(); // allow the user to type in their weight
   bool resultsSnackbarActive = false; // flag so only one snackbar shows at a time
+  bool weightNeverChanged = true; // flag so weight is not converted if the user switches from MetricDefault to Metric
 
   @override
   Widget build(BuildContext context) {
@@ -112,13 +114,31 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               ],
               onChanged: (value) { // when the user selects their units
                 setState(() { // update the value
+                if (value==currentUnits) {
+                  return; // selected the already chosen unit, so do nothing
+                }
                 units=value;
+                currentUnits = units;
+                // USER CHANGES UNITS AFTER ALREADY HAVING A HEIGHT SET
                 if (heightInches!=null && value=="Metric") { // initially set an imperial height and switched units to metric
                   heightCm=(heightInches!*2.54).round(); // store that imperial height in metric
                   heightInches=null; // reset the imperial value
                 } else if (heightCm!=null && value=="Imperial") { // initially set a metric height and switched units to imperial
                   heightInches=(heightCm! / 2.54).round(); // store that metric height in imperial
                   heightCm=null; // reset the metric value
+                }
+                // USER CHANGES UNITS AFTER ALREADY HAVING A WEIGHT SET
+                if (weight!=null && weightNeverChanged) {
+                  if (value=="Metric") { // inner if so that the else ifs run even when value is not metric
+                  // do nothing (keep the weight the same)
+                  weightNeverChanged=false; // true only when user hasn't chosen units and is using the MetricDefault units
+                  }
+                } else if (weight!=null && value=="Metric") { // initially set an imperial height and switched units to metric
+                  weight=weight!/2.205; // lbs to kg
+                  weightController.text = weight!.toStringAsFixed(2); // update the controller to visually see the change
+                } else if (weight!=null && value=="Imperial") { // initially set a metric height and switched units to imperial
+                  weight=weight!*2.205; // kg to lbs
+                  weightController.text = weight!.toStringAsFixed(2);
                 }
                 });
               },
@@ -312,7 +332,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
               ),
               onChanged: (inputWeight) {
-                weight = inputWeight; // store the user's input
+                weight = double.parse(inputWeight); // store the user's input
               }
               )
               )
@@ -568,15 +588,15 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     context,
                     PageRouteBuilder( // Animation when switching screen
                       pageBuilder: (context, animation, secondaryAnimation) => Results( // // pass in variables to the same-named variables in Results
-                        units: units,
-                        goal: goal,
-                        activityLevel: activityLevel,
-                        equation: equation,
-                        age: age,
-                        sex: sex,
-                        heightCm: heightCm,
-                        heightInches: heightInches,
-                        weight: weight
+                        units: units ?? "0", // default value of 0 if null
+                        goal: goal ?? "0",
+                        activityLevel: activityLevel ?? "0",
+                        equation: equation ?? "0",
+                        age: age ?? 0 ,
+                        sex: sex ?? "0",
+                        heightCm: heightCm ?? 0,
+                        heightInches: heightInches ?? 0,
+                        weight: weight ?? 0
                         ), 
                       transitionDuration: Duration(milliseconds:400),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
