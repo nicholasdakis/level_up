@@ -109,3 +109,9 @@ Developmental progress by date is stored in this file.
 - Weight now automatically converts to the corresponding unit if the user changes units after having had entered a weight value
 - Added a variable called currentUnits which ensures that weight does not keep multiplying itself when the user selects the already chosen units
 - Started correcting some miscalculations with the different calorie equations (Will fully fix next commit)
+
+## 2025-08-17
+
+- Fixed all calculation issues with the calorie formulas, making the BMR calculation results much more accurate
+- Cleaned up some visuals in the Results tab by spacing out text more consistently
+- Learned about the RichText widget to underline headings in the Results tab

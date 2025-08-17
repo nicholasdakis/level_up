@@ -37,21 +37,20 @@ String calculateBMR() {
     widget.equation=="Mifflin-St Jeor" // MIFFLIN
     ? widget.units=="MetricDefault" || widget.units=="Metric" // Mifflin and Metric
       ? widget.sex=="Female" // Female and Metric and Mifflin
-        ? "BMR:\n(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161" // Female and Metric and Mifflin
-        : "BMR:\n(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // Male and Metric and Mifflin
+        ? ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) - 161).toStringAsFixed(0) //correct Female and Metric and Mifflin
+        :  ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) + 5).toStringAsFixed(0) //correct Male and Metric and Mifflin
     : widget.sex=="Female" // Female and Imperial and Mifflin
-      ? "BMR:\n(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n - 161" // Female and Imperial and Mifflin
-      : "BMR:\n(4.536 x ${widget.weight})\n + (15.88 x ${widget.heightInches})\n - (5 x ${widget.age})\n + 5" // Male and Imperial and Mifflin
+      ? (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) - 161).toStringAsFixed(0) //correct Female and Imperial and Mifflin
+      : (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) + 5).toStringAsFixed(0) //correct Male and Imperial and Mifflin
     // HARRIS CASES
     : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
       ? widget.sex=="Female" // Female and Metric and Harris
-        ? ((9.247 * widget.weight!) + (3.098 * widget.heightCm!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) // Female and Metric and Harris
-        : ((13.397 * widget.weight!) + (4.799 * widget.heightCm!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0) // Male and Metric and Harris
+        ? ((9.247 * widget.weight!) + (3.098 * widget.heightCm!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) //correct Female and Metric and Harris
+        : ((13.397 * widget.weight!) + (4.799 * widget.heightCm!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0) //correct Male and Metric and Harris
     : widget.sex=="Female" // Female and Imperial and Harris
-      ? ((4.35 * widget.weight!) + (4.7 * widget.heightInches!) - (4.7 * widget.age!) + 655.095).toStringAsFixed(0) // Female and Imperial and Harris
-      : ((6.23 * widget.weight!) + (12.7 * widget.heightInches!) - (6.8 * widget.age!) + 66.473).toStringAsFixed(0); // Male and Imperial and Harris
+      ? (((9.247/2.205) * widget.weight!) + ((3.098*2.54) * widget.heightInches!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) //correct Female and Imperial and Harris
+      : (((13.397/2.205) * widget.weight!) + ((4.799*2.54) * widget.heightInches!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0); //correct Male and Imperial and Harris
 }
-
 
   @override
   Widget build(BuildContext context) {
@@ -91,12 +90,10 @@ String calculateBMR() {
       children: [
       Text(
         widget.equation=="Mifflin-St Jeor"
-        ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum
-number of calories your body needs to undergo essential roles for survival.\n • Examples include breathing, cell repair, and blood circulation.\n • This formula is a revised version of the Harris-Benedict equation."""
-        :"""• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum
-number of calories your body needs to undergo essential roles for survival.\n • Examples include breathing, cell repair, and blood circulation.\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
+        ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • This formula is a revised version of the Harris-Benedict equation."""
+        :"""• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
       style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.045,
+        fontSize: screenWidth*0.05,
         color: Colors.white,
         shadows: [
           Shadow( offset: Offset(4,4),
@@ -123,10 +120,11 @@ number of calories your body needs to undergo essential roles for survival.\n �
       ]
       )
       ),
-      Text(
+      RichText(
         textAlign: TextAlign.center,
-        "Males:",
+        text: TextSpan( text: "Males:",
       style: GoogleFonts.russoOne(
+        decoration: TextDecoration.underline,
         fontSize: screenWidth*0.15,
         color: const Color.fromARGB(255, 5, 71, 142),
         shadows: [
@@ -136,15 +134,16 @@ number of calories your body needs to undergo essential roles for survival.\n �
           )
       ]
       )
+      )
       ),
       Text(
         widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
-          ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n + 5" // Mifflin and Metric
-          : "(6.23 × weight (lbs)) + (12.7 × height (inches)) – (6.8 × age (years))\n + 66" // Mifflin and Imperial
+          ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n + 5" //correct Mifflin and Metric
+          : "([10/2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n + 5" //correct Mifflin and Imperial
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
-          ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" // Harris and Metric
-          : "(6.23 x weight (lbs))\n + (12.7 x height (inches))\n - (6.8 x age (years))\n + 66.473", // Harris and Imperial
+          ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
+          : "([13.397/2.205] x weight (lbs))\n + ([4.799 * 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362", //correct Harris and Imperial
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.062,
         color: const Color.fromARGB(255, 5, 71, 142),
@@ -159,31 +158,33 @@ number of calories your body needs to undergo essential roles for survival.\n �
             SizedBox( // Separate the text
         height: 0.025*screenWidth
       ),
-        Text(
+        RichText(
         textAlign: TextAlign.center,
-        "Females:",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.15,
-        color: const Color.fromARGB(255, 132, 9, 79),
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
+        text: TextSpan(text: "Females:",
+          style: GoogleFonts.russoOne(
+          decoration: TextDecoration.underline,
+          fontSize: screenWidth*0.15,
+          color: const Color.fromARGB(255, 210, 4, 138),
+          shadows: [
+            Shadow( offset: Offset(4,4),
+            blurRadius: 10,
+            color: const Color.fromARGB(255, 0, 0, 0)
+            )
+          ]
           )
-      ]
-      )
-      ),
+        )
+        ),
       Text(
         widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
-          ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n - 161" // Mifflin and Metric
-          : "(4.35 × weight(lbs)) + (4.7 × height(inches)) – (4.7 × age)\n + 655"// Mifflin and Imperial
+          ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n - 161" //correct Mifflin and Metric
+          : "([10/2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n - 161"//correct Mifflin and Imperial
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
-          ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" // Harris and Metric
-          : "(4.35 x weight (lbs))\n + (4.7 x height (inches))\n - (4.7 x age (years))\n + 655.095", // Harris and Imperial
+          ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Metric
+          : "([9.247/2.205] x weight (lbs))\n + ([3.098*2.54] x height (inches))\n - (4.330 x age (years))\n + 447.593", //correct Harris and Imperial
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.065,
-        color: const Color.fromARGB(255, 132, 9, 79),
+        color: const Color.fromARGB(255, 210, 4, 138),
         shadows: [
           Shadow( offset: Offset(4,4),
           blurRadius: 10,
@@ -193,7 +194,7 @@ number of calories your body needs to undergo essential roles for survival.\n �
       )
       ),
       Text(
-      "• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n• Consuming this amount of calories will cause your weight to maintain itself.",
+      "\n• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n• Consuming this amount of calories will cause your weight to maintain itself.\n",
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.045,
         color: Colors.white,
@@ -204,9 +205,6 @@ number of calories your body needs to undergo essential roles for survival.\n �
           )
       ]
       )
-      ),
-      SizedBox( // Separate the text
-        height: 0.025*screenWidth
       ),
       Text(
         textAlign: TextAlign.center,
@@ -227,7 +225,7 @@ number of calories your body needs to undergo essential roles for survival.\n �
           "BMR x Activity Level",
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.062,
-        color: const Color.fromARGB(255, 51, 254, 0),
+        color: Colors.greenAccent,
         shadows: [
           Shadow( offset: Offset(4,4),
           blurRadius: 10,
@@ -236,18 +234,20 @@ number of calories your body needs to undergo essential roles for survival.\n �
       ]
       )
       ),
-        Text(
+        RichText(
         textAlign: TextAlign.center,
-        "Your TDEE:",
+        text: TextSpan(text: "Your TDEE:",
       style: GoogleFonts.russoOne(
+        decoration: TextDecoration.underline,
         fontSize: screenWidth*0.15,
-        color: Colors.white,
+        color: Colors.red,
         shadows: [
           Shadow( offset: Offset(4,4),
           blurRadius: 10,
           color: const Color.fromARGB(255, 0, 0, 0)
           )
       ]
+      )
       )
       ),
             Text(
@@ -255,20 +255,20 @@ number of calories your body needs to undergo essential roles for survival.\n �
         widget.equation=="Mifflin-St Jeor" // MIFFLIN
         ? widget.units=="MetricDefault" || widget.units=="Metric" // Mifflin and Metric
           ? widget.sex=="Female" // Female and Metric and Mifflin
-            ? "BMR:\n(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161" // Female and Metric and Mifflin
-            : "BMR:\n(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // Male and Metric and Mifflin
+            ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161" // Female and Metric and Mifflin
+            : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // Male and Metric and Mifflin
         : widget.sex=="Female" // Female and Imperial and Mifflin
-          ? "BMR: (4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)" // Female and Imperial and Mifflin
-          : "BMR: (6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)" // Male and Imperial and Mifflin
+          ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)" // Female and Imperial and Mifflin
+          : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)" // Male and Imperial and Mifflin
 
         // HARRIS CASES
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
           ? widget.sex=="Female" // Female and Metric and Harris
-            ? "BMR:\n(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593" // Female and Metric and Harris
-            : "BMR:\n(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362" //Male and Metric and Harris
+            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593" // Female and Metric and Harris
+            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362" //Male and Metric and Harris
         : widget.sex=="Female" // Female and Imperial and Mifflin
-          ? "BMR:\n(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095" // Female and Imperial and Harris
-          : "BMR:\n(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473", // Male and Imperial and Harris
+          ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095" // Female and Imperial and Harris
+          : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473", // Male and Imperial and Harris
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.065,
         color:Colors.white,
@@ -281,7 +281,7 @@ number of calories your body needs to undergo essential roles for survival.\n �
       )
       ),
       Text(
-      "= ${calculateBMR()}",
+      "= ${calculateBMR()} is your BMR",
       style: GoogleFonts.russoOne(
         fontSize: screenWidth*0.065,
         color:Colors.white,
