@@ -115,3 +115,5 @@ Developmental progress by date is stored in this file.
 - Fixed all calculation issues with the calorie formulas, making the BMR calculation results much more accurate
 - Cleaned up some visuals in the Results tab by spacing out text more consistently
 - Learned about the RichText widget to underline headings in the Results tab
+- Started wrapping text in the Results tab with the Card widget for better visuals
+- Planning to move the "Your TDEE" text to the very top of the screen
