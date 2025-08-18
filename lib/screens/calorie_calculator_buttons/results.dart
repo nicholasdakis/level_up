@@ -26,7 +26,6 @@ class Results extends StatefulWidget{
     required this.heightInches,
     required this.weight
     });
-  
   @override
   State<Results> createState() => _ResultsState();
 }
@@ -37,19 +36,83 @@ String calculateBMR() {
     widget.equation=="Mifflin-St Jeor" // MIFFLIN
     ? widget.units=="MetricDefault" || widget.units=="Metric" // Mifflin and Metric
       ? widget.sex=="Female" // Female and Metric and Mifflin
-        ? ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) - 161).toStringAsFixed(0) //correct Female and Metric and Mifflin
-        :  ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) + 5).toStringAsFixed(0) //correct Male and Metric and Mifflin
+        ? ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) - 161).toStringAsFixed(0) // Female and Metric and Mifflin
+        :  ((10 * widget.weight!) + (6.25 * widget.heightCm!) - (5 * widget.age!) + 5).toStringAsFixed(0) // Male and Metric and Mifflin
     : widget.sex=="Female" // Female and Imperial and Mifflin
-      ? (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) - 161).toStringAsFixed(0) //correct Female and Imperial and Mifflin
-      : (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) + 5).toStringAsFixed(0) //correct Male and Imperial and Mifflin
+      ? (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) - 161).toStringAsFixed(0) // Female and Imperial and Mifflin
+      : (((10/2.205) * widget.weight!) + ((6.25*2.54) * widget.heightInches!) - (5 * widget.age!) + 5).toStringAsFixed(0) // Male and Imperial and Mifflin
     // HARRIS CASES
     : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
       ? widget.sex=="Female" // Female and Metric and Harris
-        ? ((9.247 * widget.weight!) + (3.098 * widget.heightCm!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) //correct Female and Metric and Harris
-        : ((13.397 * widget.weight!) + (4.799 * widget.heightCm!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0) //correct Male and Metric and Harris
+        ? ((9.247 * widget.weight!) + (3.098 * widget.heightCm!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) // Female and Metric and Harris
+        : ((13.397 * widget.weight!) + (4.799 * widget.heightCm!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0) // Male and Metric and Harris
     : widget.sex=="Female" // Female and Imperial and Harris
-      ? (((9.247/2.205) * widget.weight!) + ((3.098*2.54) * widget.heightInches!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) //correct Female and Imperial and Harris
-      : (((13.397/2.205) * widget.weight!) + ((4.799*2.54) * widget.heightInches!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0); //correct Male and Imperial and Harris
+      ? (((9.247/2.205) * widget.weight!) + ((3.098*2.54) * widget.heightInches!) - (4.330 * widget.age!) + 447.593).toStringAsFixed(0) // Female and Imperial and Harris
+      : (((13.397/2.205) * widget.weight!) + ((4.799*2.54) * widget.heightInches!) - (5.677 * widget.age!) + 88.362).toStringAsFixed(0); // Male and Imperial and Harris
+}
+
+double calculateActivityLevel() {
+  switch (widget.activityLevel!) {
+    case "Sedentary":
+    return 1.2;
+    case "Light":
+    return 1.375;
+    case "Moderate":
+    return 1.5;
+    case "Active":
+    return 1.725;
+    case "Very Active":
+    return 1.9;
+  }
+  return 1.2;
+}
+
+int calculateTDEE(String userBMR, double activityLvl) {
+  return (double.parse(userBMR) * activityLvl).round();
+}
+
+Widget textWithCard(String text, double screenWidth, double letterSize){
+  return Card(
+          elevation: 10,
+          color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
+          child: Padding(
+          padding: EdgeInsetsGeometry.all(4),
+          child:Text(
+            text,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.russoOne(
+        fontSize: letterSize*screenWidth,
+        color: Colors.white,
+        shadows: [
+          Shadow( offset: Offset(4,4),
+          blurRadius: 10,
+          color: const Color.fromARGB(255, 0, 0, 0)
+          )
+      ]
+      )
+      ),
+      )
+  );
+}
+
+Widget textWithFont(String text, double screenWidth, double letterSize, {TextDecoration? decoration, Color? color}) { // optional decoration and color parameter
+        return RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          text: text,
+          style: GoogleFonts.russoOne(
+          fontSize: screenWidth*letterSize,
+          color: color ?? Colors.white, // defaults to white if no parameter is given
+          shadows: [
+            Shadow( offset: Offset(4,4),
+            blurRadius: 10,
+            color: const Color.fromARGB(255, 0, 0, 0)
+            )
+          ],
+          decoration: decoration ?? TextDecoration.none, // defaults to no decoration if no parameter is given
+          )
+          )
+          );
 }
 
   @override
@@ -88,247 +151,116 @@ String calculateBMR() {
         Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          elevation: 10,
-          color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-          child: Padding(
-          padding: EdgeInsetsGeometry.all(16),
-          child: Text(
+        textWithFont(
+          "About BMR",
+          screenWidth,
+          0.1,
+          decoration: TextDecoration.underline,
+        ),
+        textWithCard(
         widget.equation=="Mifflin-St Jeor"
         ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • This formula is a revised version of the Harris-Benedict equation."""
         :"""• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.05,
-        color: Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      )
-      )
-      ),
-      SizedBox( // Separate the text
+        screenWidth,
+        0.05
+        ),
+        SizedBox( // Separate the text
         height: 0.025*screenWidth
-      ),
-      Card(
-          elevation: 10,
-          color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-          child: Padding(
-          padding: EdgeInsetsGeometry.all(4),
-          child:Text(
-        textAlign: TextAlign.center,
-        "BMR is calculated as follows:",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.08,
-        color: Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-      )
-      ),
-      SizedBox( // Separate the text
-        height: 0.025*screenWidth
-      ),
-      Card(
-          elevation: 10,
-          color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-          child: Padding(
-          padding: EdgeInsetsGeometry.all(4),
-          child:RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan( text: "Males:",
-      style: GoogleFonts.russoOne(
-        decoration: TextDecoration.underline,
-        fontSize: screenWidth*0.15,
-        color: const Color.fromARGB(255, 5, 71, 142),
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      ),
-      children: [
-        TextSpan(text: widget.equation=="Mifflin-St Jeor"
+        ),
+        textWithFont("Male BMR:", screenWidth, 0.1, decoration: TextDecoration.underline, color:const Color.fromARGB(255, 5, 71, 142)),
+        textWithCard(
+        widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
           ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n + 5" //correct Mifflin and Metric
           : "([10 / 2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n + 5" //correct Mifflin and Imperial
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
           ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
-          : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362", //correct Harris and Imperial
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.062,
-        decoration: TextDecoration.none,
-        color: const Color.fromARGB(255, 5, 71, 142),
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-        )
-      ]
-      )
-      )
-      )
-      ),
-      SizedBox( // Separate the text
+          : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362",
+          screenWidth,
+          0.05 //correct Harris and Imperial
+        ),
+        SizedBox( // Separate the text
         height: 0.025*screenWidth
-      ),
-       Card(
-          elevation: 10,
-          color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-          child: Padding(
-          padding: EdgeInsetsGeometry.all(4),
-          child:RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(text: "Females:",
-              style: GoogleFonts.russoOne(
-              decoration: TextDecoration.underline,
-              fontSize: screenWidth*0.15,
-              color: const Color.fromARGB(255, 210, 4, 138),
-              shadows: [
-                Shadow( offset: Offset(4,4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0)
-                )
-              ]
-          ),
-          children: [
-          TextSpan(text:
+        ),
+        textWithFont("Female BMR:", screenWidth, 0.1, decoration: TextDecoration.underline, color:const Color.fromARGB(255, 210, 4, 138)),
+        textWithCard(
         widget.equation=="Mifflin-St Jeor"
         ? widget.units=="MetricDefault" || widget.units=="Metric"
           ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n - 161" //correct Mifflin and Metric
           : "([10 / 2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n - 161"//correct Mifflin and Imperial
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
           ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Metric
-          : "([9.247 / 2.205] x weight (lbs))\n + ([3.098 x 2.54]\n x height (inches))\n - (4.330 x age (years))\n + 447.593", //correct Harris and Imperial
-      style: GoogleFonts.russoOne(
-        decoration: TextDecoration.none,
-        fontSize: screenWidth*0.065,
-        color: const Color.fromARGB(255, 210, 4, 138),
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-          ]
-        )
-        )
-        )
-       ),
-      Text(
-      "\n• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n• Consuming this amount of calories will cause your weight to maintain itself.\n",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.045,
-        color: Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-      Text(
-        textAlign: TextAlign.center,
-        "TDEE is calculated as follows:",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.08,
-        color: Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-        Text(
-          textAlign: TextAlign.center,
-          "BMR x Activity Level",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.062,
-        color: Colors.greenAccent,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-        RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(text: "Your TDEE:",
-      style: GoogleFonts.russoOne(
+          : "([9.247 / 2.205] x weight (lbs))\n + ([3.098 x 2.54]\n x height (inches))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Imperial
+          , screenWidth, 0.05
+        ),
+        SizedBox( // Separate the text
+        height: 0.025*screenWidth
+        ),
+        textWithFont(
+        "About TDEE",
+        screenWidth,
+        0.1,
         decoration: TextDecoration.underline,
-        fontSize: screenWidth*0.15,
-        color: Colors.red,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      )
-      ),
-            Text(
-        // MIFFLIN CASES
+        ),
+        textWithCard(
+        "• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n\n• Consuming this amount of calories will cause your weight to maintain itself.\n\n TDEE = BMR x Activity Level",
+        screenWidth,
+        0.05
+        ),
+        SizedBox( // Separate the text
+        height: 0.025*screenWidth
+        ),
+                textWithFont(
+        "Activity Level",
+        screenWidth,
+        0.1,
+        decoration: TextDecoration.underline,
+        ),
+        textWithCard(
+          "• Sedentary = 1.2\n\n• Light = 1.375\n\n• Moderate = 1.55\n\n• Active = 1.725\n\n• Very Active = 1.9",
+          screenWidth,
+          0.05
+        ),
+        textWithFont(
+          "Your BMR",
+          screenWidth,
+          0.1,
+          decoration: TextDecoration.underline,
+          color: Colors.redAccent
+        ),
+        textWithCard(
         widget.equation=="Mifflin-St Jeor" // MIFFLIN
         ? widget.units=="MetricDefault" || widget.units=="Metric" // Mifflin and Metric
           ? widget.sex=="Female" // Female and Metric and Mifflin
-            ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161" // Female and Metric and Mifflin
-            : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5" // Male and Metric and Mifflin
+            ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161\n = ${calculateBMR()} is your BMR." // Female and Metric and Mifflin
+            : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5\n = ${calculateBMR()} is your BMR." // Male and Metric and Mifflin
         : widget.sex=="Female" // Female and Imperial and Mifflin
-          ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)" // Female and Imperial and Mifflin
-          : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)" // Male and Imperial and Mifflin
+          ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)\n= ${calculateBMR()} is your BMR." // Female and Imperial and Mifflin
+          : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)\n= ${calculateBMR()} is your BMR." // Male and Imperial and Mifflin
 
         // HARRIS CASES
         : widget.units=="MetricDefault" || widget.units=="Metric" // Harris and Metric
           ? widget.sex=="Female" // Female and Metric and Harris
-            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593" // Female and Metric and Harris
-            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362" //Male and Metric and Harris
+            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593\n = ${calculateBMR()} is your BMR." // Female and Metric and Harris
+            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362\n = ${calculateBMR()} is your BMR." //Male and Metric and Harris
         : widget.sex=="Female" // Female and Imperial and Mifflin
-          ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095" // Female and Imperial and Harris
-          : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473", // Male and Imperial and Harris
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.065,
-        color:Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
-      Text(
-      "= ${calculateBMR()} is your BMR",
-      style: GoogleFonts.russoOne(
-        fontSize: screenWidth*0.065,
-        color:Colors.white,
-        shadows: [
-          Shadow( offset: Offset(4,4),
-          blurRadius: 10,
-          color: const Color.fromARGB(255, 0, 0, 0)
-          )
-      ]
-      )
-      ),
+          ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = ${calculateBMR()} is your BMR." // Female and Imperial and Harris
+          : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = ${calculateBMR()} is your BMR.", // Male and Imperial and Harris
+          screenWidth,
+          0.05
+        ),
+        textWithFont(
+        "Your TDEE",
+        screenWidth,
+        0.1,
+        decoration: TextDecoration.underline,
+        color: Colors.redAccent
+        ),
+        textWithCard(
+        "${calculateBMR()} x ${calculateActivityLevel()} = ${calculateTDEE(calculateBMR(), calculateActivityLevel())} is your TDEE.",
+        screenWidth,
+        0.05
+        )
       ]
     )
       )

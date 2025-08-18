@@ -117,3 +117,14 @@ Developmental progress by date is stored in this file.
 - Learned about the RichText widget to underline headings in the Results tab
 - Started wrapping text in the Results tab with the Card widget for better visuals
 - Planning to move the "Your TDEE" text to the very top of the screen
+
+## 2025-08-18
+
+- Created helper methods for text widget creation to apply Don't Repeat Yourself principles
+    - Led to results.dart being much shorter and easier to read
+- Learned about optional function parameters for choosing text decoration with the helper methods being used
+- Altered the formatting of the Results tab to look much smoother, separated by underlined title text, and body information wrapped in Card widgets
+- Added one more Activity Level option, "Active", and renamed "Very" to "Very Active"
+- Created a method to calculate activity level using switch cases
+    - Parsed the chosen activity level from a string to a double, used a switch case, and then returned the appropriate double value for the chosen activity level
+- The user's TDEE is now displayed using the calculateBMR(), calculateActivityLevel(), and calculateTDEE() methods

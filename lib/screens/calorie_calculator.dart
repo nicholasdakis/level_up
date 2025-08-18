@@ -476,7 +476,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 DropdownMenuItem(value: 'Sedentary', child: Text('Sedentary')),
                 DropdownMenuItem(value: 'Light', child: Text('Light')),
                 DropdownMenuItem(value: 'Moderate', child: Text('Moderate')),
-                DropdownMenuItem(value: 'Very', child: Text('Very')),
+                DropdownMenuItem(value: 'Active', child: Text('Active')),
+                DropdownMenuItem(value: 'Very Active', child: Text('Very Active')),
               ],
               onChanged: (value) { // when the user selects their activity level
                 setState(() { // update the value
@@ -530,7 +531,21 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
               ),
               Text(
-                "• Very = Hard exercise 6-7 days per week.",
+                "• Active = Hard exercise 6-7 days per week.",
+                style: GoogleFonts.roboto(
+                fontSize: screenWidth*0.03,
+                color: Colors.white.withAlpha(128),
+                shadows: [
+                  Shadow(
+                    offset: Offset(4,4),
+                    blurRadius: 10,
+                    color: Color.fromARGB(255, 0, 0, 0)
+                  )
+                ]
+                ),
+              ),
+              Text(
+                "• Very Active = Very hard exercise or physical job 6-7 days per week.",
                 style: GoogleFonts.roboto(
                 fontSize: screenWidth*0.03,
                 color: Colors.white.withAlpha(128),
