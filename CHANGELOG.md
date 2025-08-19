@@ -128,3 +128,11 @@ Developmental progress by date is stored in this file.
 - Created a method to calculate activity level using switch cases
     - Parsed the chosen activity level from a string to a double, used a switch case, and then returned the appropriate double value for the chosen activity level
 - The user's TDEE is now displayed using the calculateBMR(), calculateActivityLevel(), and calculateTDEE() methods
+- Used VSCode's code formatting keyboard shortcut to clean up the indentation of the code in all classes
+- Refactored code in main.dart by replacing all manual button creations with helper methods
+- Reimplemented the Header section of the Home Screen as an appBar widget
+- Added a gear icon to the Home Screen app bar, leading to the "Settings" tab as a Drawer widget
+- Added a visible scrollbar to the Home Screen
+- Moved the textWithFont() method in the results.dart file to the top of the file (outside every class) to use that method globally
+- Changed the font of the header text from all screens from russoOne to pacifico
+- The gear icon is clickable and displays several new options, "
