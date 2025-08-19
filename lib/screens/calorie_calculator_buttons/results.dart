@@ -129,6 +129,42 @@ class _ResultsState extends State<Results> {
               .toStringAsFixed(0); // Male and Imperial and Harris
   }
 
+  String calculateGoal() {
+    int userTDEE = calculateTDEE(calculateBMR(), calculateActivityLevel());
+    // Case 1: Goal is to maintian
+    if (widget.goal=="Maintain Weight") {
+      return "You must consume $userTDEE calories per day to maintain your weight.";
+    }
+    StringBuffer sb = StringBuffer();
+    // Case 2: Goal is to lose
+    if (widget.goal=="Lose Weight") {
+      if (widget.units=="Imperial") {
+      sb.write("• A healthy weight loss rate is 0.5-2 pounds per week.\n\n");
+      sb.write("• To lose 0.5 pounds per week, consume ${userTDEE-250} calories per day.\n\n");
+      sb.write("• To lose 1 pound per week, consume ${userTDEE-500} calories per day.\n\n");
+      sb.write("• To lose 1.5 pounds per week, consume ${userTDEE-750} calories per day.\n\n");
+      sb.write("• To lose 2 pounds per week, consume ${userTDEE-1000} calories per day.");
+      }
+      else {
+      sb.write("• A healthy weight loss rate is 0.23-0.9 kilograms per week.\n\n");
+      sb.write("• To lose 0.23 kilograms per week, consume ${userTDEE-250} calories per day.\n\n");
+      sb.write("• To lose 0.45 kilograms per week, consume ${userTDEE-500} calories per day.\n\n");
+      sb.write("• To lose 0.68 kilograms per week, consume ${userTDEE-750} calories per day.\n\n");
+      sb.write("• To lose 0.9 kilograms per week, consume ${userTDEE-1000} calories per day.");
+      }
+    // Case 3: Goal is to gain
+    } else if (widget.units=="Imperial" && widget.goal=="Gain Weight") {
+      sb.write("• A healthy weight gain rate is 0.5-1 pound per week.\n\n");
+      sb.write("• To gain 0.5 pounds per week, consume ${userTDEE+250} calories per day.\n\n");
+      sb.write("• To gain 1 pound per week, consume ${userTDEE+500} calories per day.");   
+    } else {
+      sb.write("• A healthy weight gain rate is 0.23-0.45 kilograms per week.\n\n");
+      sb.write("• To gain 0.23 kilograms per week, consume ${userTDEE+250} calories per day.\n\n");
+      sb.write("• To gain 0.45 kilograms per week, consume ${userTDEE+500} calories per day.");
+    }
+    return sb.toString();
+  }
+
   double calculateActivityLevel() {
     switch (widget.activityLevel!) {
       case "Sedentary":
@@ -225,10 +261,6 @@ class _ResultsState extends State<Results> {
                   screenWidth,
                   0.05,
                 ),
-                SizedBox(
-                  // Separate the text
-                  height: 0.025 * screenWidth,
-                ),
                 textWithFont(
                   "Male BMR:",
                   screenWidth,
@@ -249,10 +281,6 @@ class _ResultsState extends State<Results> {
                       : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362",
                   screenWidth,
                   0.05, //correct Harris and Imperial
-                ),
-                SizedBox(
-                  // Separate the text
-                  height: 0.025 * screenWidth,
                 ),
                 textWithFont(
                   "Female BMR:",
@@ -275,10 +303,6 @@ class _ResultsState extends State<Results> {
                   screenWidth,
                   0.05,
                 ),
-                SizedBox(
-                  // Separate the text
-                  height: 0.025 * screenWidth,
-                ),
                 textWithFont(
                   "About TDEE",
                   screenWidth,
@@ -290,10 +314,6 @@ class _ResultsState extends State<Results> {
                   screenWidth,
                   0.05,
                 ),
-                SizedBox(
-                  // Separate the text
-                  height: 0.025 * screenWidth,
-                ),
                 textWithFont(
                   "Activity Level",
                   screenWidth,
@@ -301,7 +321,7 @@ class _ResultsState extends State<Results> {
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
-                  "• Sedentary = 1.2\n\n• Light = 1.375\n\n• Moderate = 1.55\n\n• Active = 1.725\n\n• Very Active = 1.9",
+                  "• Sedentary = 1.2\n• Light = 1.375\n• Moderate = 1.55\n• Active = 1.725\n• Very Active = 1.9",
                   screenWidth,
                   0.05,
                 ),
@@ -353,6 +373,18 @@ class _ResultsState extends State<Results> {
                   screenWidth,
                   0.05,
                 ),
+                textWithFont(
+                  "How to ${widget.goal}",
+                  screenWidth,
+                  0.075,
+                  decoration: TextDecoration.underline,
+                  color: Colors.redAccent,
+                ),
+                textWithCard(
+                  calculateGoal(),
+                  screenWidth,
+                  0.04,
+                )
               ],
             ),
           ),

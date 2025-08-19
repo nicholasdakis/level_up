@@ -135,4 +135,12 @@ Developmental progress by date is stored in this file.
 - Added a visible scrollbar to the Home Screen
 - Moved the textWithFont() method in the results.dart file to the top of the file (outside every class) to use that method globally
 - Changed the font of the header text from all screens from russoOne to pacifico
-- The gear icon is clickable and displays several new options, "
+- The gear icon is clickable and displays several new options, including "Personal Information", "About", "Contact" and "Donate"
+
+## 2025-08-19
+
+- Completed the Results tab
+- Added information on how to lose, gain, or maintain weight in terms of pounds or kilograms, dependent on the user's inputs
+- Only shows healthy rates for weight loss / weight gain
+- Changed font of the Settings button to pacifico
+- Refactored Settings Drawer items code by creating a drawerItem() method, and added a hover color for those items

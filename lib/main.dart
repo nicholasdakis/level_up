@@ -65,6 +65,24 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget drawerItem(String text, IconData icon, screenWidth, context) {
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: Color(0xFF121212)),
+        title: textWithFont(
+          text,
+          screenWidth,
+          0.05,
+          color: Colors.white,
+          alignment: TextAlign.left,
+        ),
+        hoverColor: Color.fromARGB(255, 43, 43, 43),
+        onTap: () => Navigator.pop(context), // close the DrawerF
+      ),
+    );
+  }
+
   Widget customButton(
     String text,
     double letterSize,
@@ -143,60 +161,38 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Color(0xFF121212),
                 ), // Header color of the settings popup
-                child: textWithFont(
-                  "Settings",
-                  screenWidth,
-                  0.15,
-                  color: Colors.white,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    text: "Settings",
+                    style: GoogleFonts.pacifico(
+                      fontSize: screenWidth * 0.15,
+                      color: Colors
+                          .white, // defaults to white if no parameter is given
+                      shadows: [
+                        Shadow(
+                          offset: Offset(4, 4),
+                          blurRadius: 10,
+                          color: const Color.fromARGB(255, 0, 0, 0),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              ListTile(
-                leading: Icon(Icons.account_circle, color: Color(0xFF121212)),
-                title: textWithFont(
-                  "Personal Preferences",
-                  screenWidth,
-                  0.05,
-                  color: Colors.white,
-                  alignment: TextAlign.left,
-                ),
-                onTap: () => Navigator.pop(context), // close the Drawer
+              drawerItem(
+                "Personal Preferences",
+                Icons.account_circle,
+                screenWidth,
+                context,
               ),
-              ListTile(
-                leading: Icon(
-                  Icons.person_pin_rounded,
-                  color: Color(0xFF121212),
-                ),
-                title: textWithFont(
-                  "About",
-                  screenWidth,
-                  0.05,
-                  color: Colors.white,
-                  alignment: TextAlign.left,
-                ),
-                onTap: () => Navigator.pop(context), // close the Drawer
+              drawerItem(
+                "About The Developer",
+                Icons.phone_iphone,
+                screenWidth,
+                context,
               ),
-              ListTile(
-                leading: Icon(Icons.phone_iphone, color: Color(0xFF121212)),
-                title: textWithFont(
-                  "Contact",
-                  screenWidth,
-                  0.05,
-                  color: Colors.white,
-                  alignment: TextAlign.left,
-                ),
-                onTap: () => Navigator.pop(context), // close the Drawer
-              ),
-              ListTile(
-                leading: Icon(Icons.monetization_on, color: Color(0xFF121212)),
-                title: textWithFont(
-                  "Donate",
-                  screenWidth,
-                  0.05,
-                  color: Colors.white,
-                  alignment: TextAlign.left,
-                ),
-                onTap: () => Navigator.pop(context), // close the Drawer
-              ),
+              drawerItem("Donate", Icons.monetization_on, screenWidth, context),
             ],
           ),
         ),
