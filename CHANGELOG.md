@@ -144,3 +144,7 @@ Developmental progress by date is stored in this file.
 - Only shows healthy rates for weight loss / weight gain
 - Changed font of the Settings button to pacifico
 - Refactored Settings Drawer items code by creating a drawerItem() method, and added a hover color for those items
+
+## 2025-08-20
+
+- Created a backend folder and a backend file, server.py, to handle API usage

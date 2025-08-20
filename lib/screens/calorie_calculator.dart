@@ -724,8 +724,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                               (heightCm == null && heightInches == null) ||
                               goal == null ||
                               activityLevel == null) {
-                            if (resultsSnackbarActive == true)
+                            if (resultsSnackbarActive == true) {
                               return; // a snackBar is already opened
+                            }
                             resultsSnackbarActive = true;
                             // Let the user know that not all fields are filled out.
                             ScaffoldMessenger.of(context)
