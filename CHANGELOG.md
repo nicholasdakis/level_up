@@ -148,3 +148,8 @@ Developmental progress by date is stored in this file.
 ## 2025-08-20
 
 - Created a backend folder and a backend file, server.py, to handle API usage
+- Hosted the project on Render so API calls can be made from outside of the local machine
+- Moved buttonText() and customButton() methods outside all classes to be used globally
+- Edited the customButton() method to make the destination parameter optional
+- Started working on Food Logging UI
+- Added a search button, a meal type button (Breakfast, Lunch, Dinner, Snack), and a Log Food button

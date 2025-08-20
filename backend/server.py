@@ -42,7 +42,7 @@ def get_food(food_name):
             headers=headers,
             data=data
         )
-        # Some responses might be XML if request fails
+        # Possibly a XML response if the above request fails
         try:
             return jsonify(api_response.json())
         except ValueError:
@@ -50,5 +50,5 @@ def get_food(food_name):
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == "__main__": # Only run when the application starts
+    app.run()

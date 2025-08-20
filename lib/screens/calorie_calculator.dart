@@ -681,7 +681,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       ),
                     ),
                     Text(
-                      "• Very Active = Very hard exercise or physical job 6-7 days per week.",
+                      "• Very Active = Very hard exercise or physical job 6-7 days per week.\n",
                       style: GoogleFonts.roboto(
                         fontSize: screenWidth * 0.03,
                         color: Colors.white.withAlpha(128),

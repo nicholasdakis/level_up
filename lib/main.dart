@@ -9,29 +9,6 @@ import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/calorie_calculator_buttons/results.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812), // Base size, scales from this
-      minTextAdapt: true, // Keep text readable on very small screens
-      builder: (context, child) {
-        return MaterialApp(debugShowCheckedModeBanner: false, home: child);
-      },
-      child: const HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
   Widget buttonText(String text, double letterSize) {
     return Text(
       text,
@@ -65,23 +42,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget drawerItem(String text, IconData icon, screenWidth, context) {
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        leading: Icon(icon, color: Color(0xFF121212)),
-        title: textWithFont(
-          text,
-          screenWidth,
-          0.05,
-          color: Colors.white,
-          alignment: TextAlign.left,
-        ),
-        hoverColor: Color.fromARGB(255, 43, 43, 43),
-        onTap: () => Navigator.pop(context), // close the DrawerF
-      ),
-    );
-  }
 
   Widget customButton(
     String text,
@@ -89,7 +49,7 @@ class HomeScreen extends StatelessWidget {
     double screenHeight,
     double screenWidth,
     BuildContext context,
-    Widget destination,
+    {Widget? destination}
   ) {
     return SizedBox(
       // to explicitly control the ElevatedButton size
@@ -105,6 +65,9 @@ class HomeScreen extends StatelessWidget {
           side: BorderSide(color: Colors.black, width: screenWidth * 0.005),
         ),
         onPressed: () {
+          if (destination==null) { // No desination, so stop
+            return;
+          }
           Navigator.push(
             context,
             PageRouteBuilder(
@@ -134,6 +97,47 @@ class HomeScreen extends StatelessWidget {
           );
         },
         child: buttonText(text, screenWidth * 0.1),
+      ),
+    );
+  }
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // Base size, scales from this
+      minTextAdapt: true, // Keep text readable on very small screens
+      builder: (context, child) {
+        return MaterialApp(debugShowCheckedModeBanner: false, home: child);
+      },
+      child: const HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  Widget drawerItem(String text, IconData icon, screenWidth, context) {
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: Color(0xFF121212)),
+        title: textWithFont(
+          text,
+          screenWidth,
+          0.05,
+          color: Colors.white,
+          alignment: TextAlign.left,
+        ),
+        hoverColor: Color.fromARGB(255, 43, 43, 43),
+        onTap: () => Navigator.pop(context), // close the DrawerF
       ),
     );
   }
@@ -276,7 +280,7 @@ class HomeScreen extends StatelessWidget {
                           screenHeight,
                           screenWidth,
                           context,
-                          CalorieCalculator(),
+                          destination: CalorieCalculator(),
                         ),
                         SizedBox(height: 10.h), // Space between buttons
                         // FOOD LOGGING TAB
@@ -286,7 +290,7 @@ class HomeScreen extends StatelessWidget {
                           screenHeight,
                           screenWidth,
                           context,
-                          FoodLogging(),
+                          destination: FoodLogging(),
                         ),
                         SizedBox(height: 10.h), // Space between buttons
                         // REMINDERS TAB
@@ -296,7 +300,7 @@ class HomeScreen extends StatelessWidget {
                           screenHeight,
                           screenWidth,
                           context,
-                          Reminders(),
+                          destination: Reminders(),
                         ),
                         SizedBox(height: 10.h), // Space between buttons
                         // BADGES TAB
@@ -306,7 +310,7 @@ class HomeScreen extends StatelessWidget {
                           screenHeight,
                           screenWidth,
                           context,
-                          Badges(),
+                          destination: Badges(),
                         ),
                         SizedBox(height: 10.h), // Space between buttons
                         // LEADERBOARD TAB
@@ -316,7 +320,7 @@ class HomeScreen extends StatelessWidget {
                           screenHeight,
                           screenWidth,
                           context,
-                          Leaderboard(),
+                          destination: Leaderboard(),
                         ),
                       ],
                     ),
