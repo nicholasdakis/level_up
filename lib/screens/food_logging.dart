@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import '../main.dart';
+import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -19,10 +22,70 @@ class _FoodLoggingState extends State<FoodLogging> {
     return DropdownMenuItem<String>(value: text, child: Text(text));
   }
 
+  // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
+  String latestQuery =
+      ""; // Store the latest query so that if the function is called multiple times, it only runs for the latest query
+  void handleApiCall(DateTime? dateTime, String query) async {
+    //latestQuery=query;
+    if (query.isEmpty) {
+      return;
+    }
+    final url = Uri.parse('https://level-up-69vz.onrender.com/get_food/$query');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        // if (latestQuery == query) {// status code for okay, so continue only if this is the latest query
+        final data = jsonDecode(response.body); // raw JSON file
+        setState(() {
+          // Update state to reload the UI
+          foodList =
+              data["foods"]["food"] ??
+              []; // Extract the list under "food" to see actual food items of that search
+        });
+        // }
+      } else {
+        setState(() {
+          FocusScope.of(context).unfocus(); // disable keyboard focus
+          searchController.text =
+              "Error: ${response.statusCode}"; // Show the user there was an error in the Search Food box
+        });
+      }
+    } catch (error) {
+      setState(() {
+        FocusScope.of(context).unfocus(); // disable keyboard focus
+        searchController.text =
+            "Error: $error"; // Show the user there was an error in the Search Food box
+      });
+    }
+  }
+
   final TextEditingController searchController =
-      TextEditingController(); // allow the user to type in their weight
+      TextEditingController(); // for reading the user's search input
+
+  // Whether the user is allowed to type in the search bar (disabled after a food is clicked on)
+  bool userCanType = true;
+  // Whether the validity check can pass or not (Equal to !userCanType, simply created for readability)
+  bool mealChosen = false;
+
+  // Whether a snackbar is already opened
+  bool snackbarActive = false;
 
   String? mealType;
+
+  // Timer to prevent too many requests to the API too frequently
+  Timer? checkTimer;
+
+  // Variable to store the user's current time for Timer usage
+  DateTime? lastInput;
+
+  // The list that holds and displays the foods found from the user's search
+  List<dynamic> foodList = [];
+
+  // The list that holds and displays the foods the user selects based on the category of food
+  List<String> breakfastFoods = [];
+  List<String> lunchFoods = [];
+  List<String> dinnerFoods = [];
+  List<String> snackFoods = [];
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +97,8 @@ class _FoodLoggingState extends State<FoodLogging> {
       backgroundColor: Color(0xFF1E1E1E),
       // Header box
       appBar: AppBar(
+        scrolledUnderElevation:
+            0, // So the appBar does not change color when the user scrolls down
         backgroundColor: Color(0xFF121212),
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
@@ -78,10 +143,11 @@ class _FoodLoggingState extends State<FoodLogging> {
                 ),
                 child: TextField(
                   controller: searchController,
+                  enabled: userCanType,
                   keyboardType: TextInputType.text,
                   style: GoogleFonts.russoOne(
                     // style of the input text
-                    fontSize: screenWidth * 0.05,
+                    fontSize: screenWidth * 0.04,
                     color: Colors.white,
                     shadows: [
                       Shadow(
@@ -119,11 +185,25 @@ class _FoodLoggingState extends State<FoodLogging> {
                       ],
                     ),
                   ),
-                  onChanged: (inputWeight) {},
+                  onChanged: (value) {
+                    lastInput =
+                        DateTime.now(); // Store the time at which the user pressed the last character
+                    checkTimer
+                        ?.cancel(); // Cancel any previous timers to avoid calling the function continuously
+                    checkTimer = Timer(
+                      Duration(milliseconds: 150), // Set a timer for 150ms
+                      () {
+                        handleApiCall(
+                          lastInput,
+                          value,
+                        ); // Run if the timer goes to 0
+                      },
+                    );
+                  },
                 ),
               ),
             ),
-            SizedBox(height: 0.01*screenHeight), // Lower the next two buttons
+            SizedBox(height: 0.01 * screenHeight), // Lower the next two buttons
             // Horizontally lay out the next two buttons
             Row(
               children: [
@@ -183,27 +263,103 @@ class _FoodLoggingState extends State<FoodLogging> {
                     },
                   ),
                 ), // Log Food Button
-                  Expanded(
-                    child: SizedBox(
-                          // to explicitly control the ElevatedButton size
-                          height: screenHeight * 0.05,
-                          width: screenWidth * 0.4,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              backgroundColor: Color(0xFF2A2A2A), // Actual button color
-                              foregroundColor: Colors.white, // Button text color
-                              side: BorderSide(color: Colors.black, width: screenWidth * 0.005),
-                            ),
-                            onPressed: () {
-                            },
-                            child: buttonText("Log Food", screenWidth * 0.05),
-                          ),
+                Expanded(
+                  child: SizedBox(
+                    // to explicitly control the ElevatedButton size
+                    height: screenHeight * 0.05,
+                    width: screenWidth * 0.4,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        backgroundColor: Color(
+                          0xFF2A2A2A,
+                        ), // Actual button color
+                        foregroundColor: Colors.white, // Button text color
+                        side: BorderSide(
+                          color: Colors.black,
+                          width: screenWidth * 0.005,
+                        ),
+                      ),
+                      onPressed: () {
+                        // When "Log Food" is pressed
+                        // VALIDITY CHECKS
+                        if (mealType == null || !mealChosen) {
+                          if (snackbarActive == true) {
+                            return; // a snackBar is already opened, so do nothing
+                          }
+                        snackbarActive = true; // Otherwise open a snackbar
+                        // Let the user know that not all fields are filled out.
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    Icon(Icons.info, color: Colors.white),
+                                    SizedBox(width: 10),
+                                    Text("All fields must be filled."),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .closed
+                            .then((_) {
+                              snackbarActive =
+                                  false; // reset the flag (prevent many snackbars from stacking)
+                            });
+                        }
+                        return;
+                      },
+                      child: buttonText("Log Food", screenWidth * 0.05),
+                    ),
                   ),
+                ),
               ],
+            ),
+            SizedBox(height: 20),
+            // DISPLAY AVAILABLE FOOD OPTIONS
+            Expanded(
+              child: ListView.builder(
+                itemCount: foodList.length,
+                itemBuilder: (context, index) {
+                  final food = foodList[index];
+                  return InkWell(
+                    // To make each item clickable
+                    onTap: () {
+                      FocusScope.of(
+                        context,
+                      ).unfocus(); // disable keyboard focus
+                      setState(() {
+                        userCanType = false; // disable typing
+                        mealChosen =
+                            true; // allow the validity check to successfully pass
+                        searchController.text =
+                            food["food_name"] ??
+                            ""; // update the searchbar text to the selected food
+                        searchController.selection = TextSelection.fromPosition(
+                          TextPosition(
+                            offset: searchController.text.length,
+                          ), // keep the blinking cursor at the end of the word
+                        );
+                        debugPrint(food['food_name']);
+                      });
+                    },
+                    child: ListTile(
+                      title: Text(
+                        food['food_name'] ??
+                            '', // List the food name (or nothing if nothing is found)
+                        style: GoogleFonts.russoOne(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        food['food_description'] ??
+                            '', // List the information (or nothing if nothing is found)
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

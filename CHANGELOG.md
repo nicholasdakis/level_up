@@ -153,3 +153,17 @@ Developmental progress by date is stored in this file.
 - Edited the customButton() method to make the destination parameter optional
 - Started working on Food Logging UI
 - Added a search button, a meal type button (Breakfast, Lunch, Dinner, Snack), and a Log Food button
+
+## 2025-08-22
+
+- Added debouncing logic with a Timer when a user searches up a food so the API is called only when the timer becomes 0
+- Created a method that handles the api call by retrieving the URL with the user's search option and showing options to the user
+- The method stores the URL of the backend server link (via Render) with the user's chosen input string
+- The input string is used as the food to search for
+- A foodList variable was created, which is updated every time a URL is successfully fetched.
+- The content is displayed on the Food Logging tab under the buttons (under the Row widget) and allows the user to swipe through all the results
+- Learned about the InkWell widget, which allows making things (in this case, the user's choice of food) clickable
+- Created lists that hold the foods the user chooses for specific meal types (breakfast, lunch, dinner, snack)
+- Added a variable called latestQuery that updates every time the API-calling method is called to prevent the possibility of race conditions
+- Added a snackbar that appears if "Log Food" is pressed without all fields being filled (similar to Calorie Calculator)
+- Added a package to setup API rate limiting (W.I.P)

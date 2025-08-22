@@ -47,6 +47,12 @@ dependencies:
   # For making dropdown boxes always open downward
   dropdown_button2: ^2.3.9
 
+  # http requests
+  http: ^1.1.0
+
+  # rate limiting
+  limit: ^1.0.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
