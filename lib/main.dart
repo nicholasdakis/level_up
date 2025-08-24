@@ -1,105 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-// --- Imports for switching screens ---
 import 'screens/calorie_calculator.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
-import 'screens/calorie_calculator_buttons/results.dart';
-
-  Widget buttonText(String text, double letterSize) {
-    return Text(
-      text,
-      textAlign: TextAlign.center,
-      style: GoogleFonts.workSans(
-        fontSize: letterSize,
-        color: Colors.white,
-        shadows: [
-          Shadow(
-            // Up Left
-            offset: Offset(-1, -1),
-            color: Colors.black,
-          ),
-          Shadow(
-            // Up Right
-            offset: Offset(1, -1),
-            color: Colors.black,
-          ),
-          Shadow(
-            // Down Left
-            offset: Offset(-1, 1),
-            color: Colors.black,
-          ),
-          Shadow(
-            // Down Right
-            offset: Offset(1, 1),
-            color: Colors.black,
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  Widget customButton(
-    String text,
-    double letterSize,
-    double screenHeight,
-    double screenWidth,
-    BuildContext context,
-    {Widget? destination}
-  ) {
-    return SizedBox(
-      // to explicitly control the ElevatedButton size
-      height: screenHeight * 0.15,
-      width: screenWidth * 0.90,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          backgroundColor: Color(0xFF2A2A2A), // Actual button color
-          foregroundColor: Colors.white, // Button text color
-          side: BorderSide(color: Colors.black, width: screenWidth * 0.005),
-        ),
-        onPressed: () {
-          if (destination==null) { // No desination, so stop
-            return;
-          }
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              // Animation when switching screen
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  destination,
-              transitionDuration: Duration(milliseconds: 400),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    const start = Offset(
-                      0.0,
-                      1.0,
-                    ); // Start right below the screen
-                    const finish =
-                        Offset.zero; // Stop right at the top of the screen
-                    final tween = Tween(
-                      begin: start,
-                      end: finish,
-                    ).chain(CurveTween(curve: Curves.easeIn));
-                    final offsetAnimation = animation.drive(tween);
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-            ),
-          );
-        },
-        child: buttonText(text, screenWidth * 0.1),
-      ),
-    );
-  }
+import 'screens/settings.dart';
+import 'globals.dart';
 
 void main() {
   runApp(const MyApp());
@@ -124,24 +32,6 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  Widget drawerItem(String text, IconData icon, screenWidth, context) {
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        leading: Icon(icon, color: Color(0xFF121212)),
-        title: textWithFont(
-          text,
-          screenWidth,
-          0.05,
-          color: Colors.white,
-          alignment: TextAlign.left,
-        ),
-        hoverColor: Color.fromARGB(255, 43, 43, 43),
-        onTap: () => Navigator.pop(context), // close the DrawerF
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     double screenHeight =
@@ -149,58 +39,7 @@ class HomeScreen extends StatelessWidget {
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      drawer: Drawer(
-        // The contents of the Settings gear icon button
-        child: Container(
-          color: Color.fromARGB(
-            255,
-            43,
-            43,
-            43,
-          ), // Body color of the settings popup
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color(0xFF121212),
-                ), // Header color of the settings popup
-                child: RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    text: "Settings",
-                    style: GoogleFonts.pacifico(
-                      fontSize: screenWidth * 0.15,
-                      color: Colors
-                          .white, // defaults to white if no parameter is given
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              drawerItem(
-                "Personal Preferences",
-                Icons.account_circle,
-                screenWidth,
-                context,
-              ),
-              drawerItem(
-                "About The Developer",
-                Icons.phone_iphone,
-                screenWidth,
-                context,
-              ),
-              drawerItem("Donate", Icons.monetization_on, screenWidth, context),
-            ],
-          ),
-        ),
-      ),
+      drawer: buildSettingsDrawer(screenWidth, context),
       backgroundColor: Color(0xFF1E1E1E),
       // Header
       appBar: PreferredSize(

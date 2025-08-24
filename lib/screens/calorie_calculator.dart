@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart'; // more customizable dropdown button (specifically, always open downward and round borders)
-import 'calorie_calculator_buttons/results.dart';
 import 'package:flutter/services.dart';
+import 'calorie_calculator_buttons/results.dart';
+import '../globals.dart';
 
 class CalorieCalculator extends StatefulWidget {
   const CalorieCalculator({super.key});
@@ -57,20 +58,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         backgroundColor: Color(0xFF121212),
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: Text(
-          "Calculator",
-          style: GoogleFonts.pacifico(
-            fontSize: screenWidth * 0.12,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ),
+        title: createTitle("Calculator", screenWidth)
       ),
       body: SingleChildScrollView(
         child: Padding(

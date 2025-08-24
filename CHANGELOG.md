@@ -170,6 +170,13 @@ Developmental progress by date is stored in this file.
 
 ## 2025-08-23
 
-- Used the limit package to limit API calls to 5000 per day, as per FatSecret's terms
+- Used the limit package to limit API calls on a single device in a single session to 100 per day
 - Added attribution to the FatSecret service while in the Food Logging tab, as per FatSecret's terms
 - Clicking the "Powered by fatsecret" text directs the user to the FatSecret website
+
+## 2025-08-04
+- Created the file global.dart to hold global variables, rather than having them scattered in separate classes
+- Created the method createTitle() in global.dart to create the appBar's title text of each screen rather than manually typing the code for each class
+- Created a file settings.dart to store the code for the Settings Drawer originally written in main.dart
+- Removed all imports that were no longer needed after the changes above
+- Started working on consuming tokens via the backend (W.I.P)

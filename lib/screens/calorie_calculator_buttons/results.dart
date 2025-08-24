@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '/globals.dart';
 
   Widget textWithFont(
     String text,
@@ -183,31 +184,6 @@ class _ResultsState extends State<Results> {
 
   int calculateTDEE(String userBMR, double activityLvl) {
     return (double.parse(userBMR) * activityLvl).round();
-  }
-
-  Widget textWithCard(String text, double screenWidth, double letterSize) {
-    return Card(
-      elevation: 10,
-      color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(4),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.russoOne(
-            fontSize: letterSize * screenWidth,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '/globals.dart';
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -23,20 +23,7 @@ class _LeaderboardState extends State<Leaderboard> {
         backgroundColor: Color(0xFF121212),
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: Text(
-          "Leaderboard",
-          style: GoogleFonts.pacifico(
-            fontSize: screenWidth * 0.10,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ),
+        title: createTitle("Leaderboard", screenWidth),
       ),
       body: Center(child: Text("Leaderboard tab")),
     );

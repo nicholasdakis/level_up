@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:limit/limit.dart'; // api limits
-import 'package:url_launcher/url_launcher.dart'; // FatSecret HTML snippet code
-import '../main.dart';
-import 'calorie_calculator_buttons/results.dart';
+import 'package:limit/limit.dart'; // api limits (on a single device and single app session)
+import 'package:url_launcher/url_launcher.dart'; // FatSecret snippet code launch
 import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+// Class imports
+import '../globals.dart';
 
 class FoodLogging extends StatefulWidget {
   const FoodLogging({super.key});
@@ -23,7 +23,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     return DropdownMenuItem<String>(value: text, child: Text(text));
   }
 
-  // HTML snippet provided by FatSecret for attribution purposes
+  // This method tries to launch the FatSecret website when called
   Future<void> launchFatSecret() async {
     final uri = Uri.parse(
       "https://www.fatsecret.com",
@@ -34,10 +34,10 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
-  // Variable to limit api requests to 5000 per day
+  // Variable to limit single-session api requests to 100 per day
   final _limiter = RateLimiter(
     'food_request',
-    maxTokens: 5000,
+    maxTokens: 100,
     refillDuration: Duration(minutes: 1440),
   );
 
@@ -52,7 +52,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
     // Next, check if an API request is allowed
     final canRequest = await _limiter
-        .tryConsume(); // Can consume up to 5000 tokens per day
+        .tryConsume(); // Can consume up to 100 tokens per day per session per user
     if (canRequest) {
       final tokens = await _limiter.getAvailableTokens();
       debugPrint('Tokens left: ${tokens.toStringAsFixed(2)}');
@@ -64,7 +64,7 @@ class _FoodLoggingState extends State<FoodLogging> {
         final response = await http.get(url);
         if (response.statusCode == 200) {
           if (latestQuery == query) {
-            // status code for okay, so continue only if this is the latest query
+            // status code for okay, so continue only if this is the latest query's method call
             final data = jsonDecode(response.body); // raw JSON file
             setState(() {
               // Update state to reload the UI
@@ -88,7 +88,7 @@ class _FoodLoggingState extends State<FoodLogging> {
         });
       }
     } else {
-      // 5000 tokens already consumed today.
+      // tokens already consumed today.
       debugPrint("Maximum amount of calls today reached.");
     }
   }
@@ -115,7 +115,7 @@ class _FoodLoggingState extends State<FoodLogging> {
   // The list that holds and displays the foods found from the user's search
   List<dynamic> foodList = [];
 
-  // The list that holds and displays the foods the user selects based on the category of food
+  // The lists that hold and display the foods the user selects based on the category of food
   List<String> breakfastFoods = [];
   List<String> lunchFoods = [];
   List<String> dinnerFoods = [];
@@ -136,20 +136,7 @@ class _FoodLoggingState extends State<FoodLogging> {
         backgroundColor: Color(0xFF121212),
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: Text(
-          "Food Logging",
-          style: GoogleFonts.pacifico(
-            fontSize: screenWidth * 0.10,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ),
+        title: createTitle("Food Logging", screenWidth),
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
@@ -162,7 +149,12 @@ class _FoodLoggingState extends State<FoodLogging> {
                 onTap: () async {
                   await launchFatSecret(); // wait for the function to finish calling
                 },
-                child: textWithFont("Powered by fatsecret", screenWidth, 0.035, color: Colors.blue),
+                child: textWithFont(
+                  "Powered by fatsecret",
+                  screenWidth,
+                  0.035,
+                  color: Colors.blue,
+                ),
               ),
             ),
 

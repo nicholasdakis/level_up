@@ -2,11 +2,15 @@ from flask import Flask, jsonify
 import os
 import requests
 from dotenv import load_dotenv
+from backend.token_manager import TokenManager
 
 # Load the .env file
 load_dotenv()
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", 5000))
+
+token_manager = TokenManager()
 
 app = Flask(__name__)
 
@@ -24,10 +28,12 @@ def get_access_token():
 
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
+    # Check if tokens are available
+    app.logger.debug("Current tokens before request: %d", token_manager.current_tokens)
+    if not token_manager.consume():
+        return jsonify({"error": "Token limit exceeded"}), 500
+    # Continue if tokens are available
     access_token = get_access_token()
-    if not access_token:
-        return jsonify({"error": "Failed to get access token"}), 500
-
     headers = {"Authorization": f"Bearer {access_token}"}
     # FatSecret REST API expects form-encoded data
     data = {
