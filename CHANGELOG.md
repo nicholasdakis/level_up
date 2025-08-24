@@ -167,3 +167,9 @@ Developmental progress by date is stored in this file.
 - Added a variable called latestQuery that updates every time the API-calling method is called to prevent the possibility of race conditions
 - Added a snackbar that appears if "Log Food" is pressed without all fields being filled (similar to Calorie Calculator)
 - Added a package to setup API rate limiting (W.I.P)
+
+## 2025-08-23
+
+- Used the limit package to limit API calls to 5000 per day, as per FatSecret's terms
+- Added attribution to the FatSecret service while in the Food Logging tab, as per FatSecret's terms
+- Clicking the "Powered by fatsecret" text directs the user to the FatSecret website

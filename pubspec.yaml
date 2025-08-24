@@ -53,6 +53,9 @@ dependencies:
   # rate limiting
   limit: ^1.0.9
 
+  # using FatSecret's HTML attribution code
+  url_launcher: ^6.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

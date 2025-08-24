@@ -1,10 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:limit/limit.dart'; // api limits
+import 'package:url_launcher/url_launcher.dart'; // FatSecret HTML snippet code
 import '../main.dart';
+import 'calorie_calculator_buttons/results.dart';
 import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
 import 'dart:convert';
@@ -22,40 +23,73 @@ class _FoodLoggingState extends State<FoodLogging> {
     return DropdownMenuItem<String>(value: text, child: Text(text));
   }
 
+  // HTML snippet provided by FatSecret for attribution purposes
+  Future<void> launchFatSecret() async {
+    final uri = Uri.parse(
+      "https://www.fatsecret.com",
+    ); // Store the url as a Uri
+    if (!await launchUrl(uri)) {
+      // If the website could not be launched
+      throw "Error: Could not open website.";
+    }
+  }
+
+  // Variable to limit api requests to 5000 per day
+  final _limiter = RateLimiter(
+    'food_request',
+    maxTokens: 5000,
+    refillDuration: Duration(minutes: 1440),
+  );
+
+  String latestQuery = "";
+
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
-  String latestQuery =
-      ""; // Store the latest query so that if the function is called multiple times, it only runs for the latest query
   void handleApiCall(DateTime? dateTime, String query) async {
-    //latestQuery=query;
+    // If string is empty, don't consume a token
+    latestQuery = query;
     if (query.isEmpty) {
       return;
     }
-    final url = Uri.parse('https://level-up-69vz.onrender.com/get_food/$query');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        // if (latestQuery == query) {// status code for okay, so continue only if this is the latest query
-        final data = jsonDecode(response.body); // raw JSON file
-        setState(() {
-          // Update state to reload the UI
-          foodList =
-              data["foods"]["food"] ??
-              []; // Extract the list under "food" to see actual food items of that search
-        });
-        // }
-      } else {
+    // Next, check if an API request is allowed
+    final canRequest = await _limiter
+        .tryConsume(); // Can consume up to 5000 tokens per day
+    if (canRequest) {
+      final tokens = await _limiter.getAvailableTokens();
+      debugPrint('Tokens left: ${tokens.toStringAsFixed(2)}');
+
+      final url = Uri.parse(
+        'https://level-up-69vz.onrender.com/get_food/$query',
+      );
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          if (latestQuery == query) {
+            // status code for okay, so continue only if this is the latest query
+            final data = jsonDecode(response.body); // raw JSON file
+            setState(() {
+              // Update state to reload the UI
+              foodList =
+                  data["foods"]["food"] ??
+                  []; // Extract the list under "food" to see actual food items of that search
+            });
+          }
+        } else {
+          setState(() {
+            FocusScope.of(context).unfocus(); // disable keyboard focus
+            searchController.text =
+                "Error: ${response.statusCode}"; // Show the user there was an error in the Search Food box
+          });
+        }
+      } catch (error) {
         setState(() {
           FocusScope.of(context).unfocus(); // disable keyboard focus
           searchController.text =
-              "Error: ${response.statusCode}"; // Show the user there was an error in the Search Food box
+              "Error: $error"; // Show the user there was an error in the Search Food box
         });
       }
-    } catch (error) {
-      setState(() {
-        FocusScope.of(context).unfocus(); // disable keyboard focus
-        searchController.text =
-            "Error: $error"; // Show the user there was an error in the Search Food box
-      });
+    } else {
+      // 5000 tokens already consumed today.
+      debugPrint("Maximum amount of calls today reached.");
     }
   }
 
@@ -121,6 +155,17 @@ class _FoodLoggingState extends State<FoodLogging> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            // FatSecret attribution
+            Container(
+              alignment: Alignment.center,
+              child: InkWell(
+                onTap: () async {
+                  await launchFatSecret(); // wait for the function to finish calling
+                },
+                child: textWithFont("Powered by fatsecret", screenWidth, 0.035, color: Colors.blue),
+              ),
+            ),
+
             // Search Food input
             SizedBox(
               // make the underline narrower
@@ -191,7 +236,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     checkTimer
                         ?.cancel(); // Cancel any previous timers to avoid calling the function continuously
                     checkTimer = Timer(
-                      Duration(milliseconds: 150), // Set a timer for 150ms
+                      Duration(milliseconds: 500), // Set a timer for 500ms
                       () {
                         handleApiCall(
                           lastInput,
@@ -289,25 +334,25 @@ class _FoodLoggingState extends State<FoodLogging> {
                           if (snackbarActive == true) {
                             return; // a snackBar is already opened, so do nothing
                           }
-                        snackbarActive = true; // Otherwise open a snackbar
-                        // Let the user know that not all fields are filled out.
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    Icon(Icons.info, color: Colors.white),
-                                    SizedBox(width: 10),
-                                    Text("All fields must be filled."),
-                                  ],
+                          snackbarActive = true; // Otherwise open a snackbar
+                          // Let the user know that not all fields are filled out.
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(Icons.info, color: Colors.white),
+                                      SizedBox(width: 10),
+                                      Text("All fields must be filled."),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            )
-                            .closed
-                            .then((_) {
-                              snackbarActive =
-                                  false; // reset the flag (prevent many snackbars from stacking)
-                            });
+                              )
+                              .closed
+                              .then((_) {
+                                snackbarActive =
+                                    false; // reset the flag (prevent many snackbars from stacking)
+                              });
                         }
                         return;
                       },
