@@ -174,9 +174,10 @@ Developmental progress by date is stored in this file.
 - Added attribution to the FatSecret service while in the Food Logging tab, as per FatSecret's terms
 - Clicking the "Powered by fatsecret" text directs the user to the FatSecret website
 
-## 2025-08-04
+## 2025-08-24
 - Created the file global.dart to hold global variables, rather than having them scattered in separate classes
 - Created the method createTitle() in global.dart to create the appBar's title text of each screen rather than manually typing the code for each class
 - Created a file settings.dart to store the code for the Settings Drawer originally written in main.dart
 - Removed all imports that were no longer needed after the changes above
 - Started working on consuming tokens via the backend (W.I.P)
+- Added functionality to Settings Drawer options. They now lead to their appropriate screens

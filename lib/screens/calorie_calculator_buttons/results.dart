@@ -3,40 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
 
-  Widget textWithFont(
-    String text,
-    double screenWidth,
-    double letterSize, {
-    TextDecoration? decoration,
-    Color? color,
-    TextAlign? alignment,
-  }) {
-    // optional decoration, alignment and color parameters
-    return RichText(
-      textAlign: alignment ?? TextAlign.center,
-      text: TextSpan(
-        text: text,
-        style: GoogleFonts.russoOne(
-          fontSize: screenWidth * letterSize,
-          color:
-              color ??
-              Colors.white, // defaults to white if no parameter is given
-          shadows: [
-            Shadow(
-              offset: Offset(4, 4),
-              blurRadius: 10,
-              color: const Color.fromARGB(255, 0, 0, 0),
-            ),
-          ],
-          decoration:
-              decoration ??
-              TextDecoration
-                  .none, // defaults to no decoration if no parameter is given
-        ),
-      ),
-    );
-  }
-
 class Results extends StatefulWidget {
   // same-named variables from Calorie Calculator that are assigned when the page is switched from that tab to this one
   final String? units;

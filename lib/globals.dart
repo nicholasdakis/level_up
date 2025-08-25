@@ -2,39 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // CREATE TEXT WITH THE MAIN APP FONT
-  Widget textWithFont(
-    String text,
-    double screenWidth,
-    double letterSize, {
-    TextDecoration? decoration,
-    Color? color,
-    TextAlign? alignment,
-  }) {
-    // optional decoration, alignment and color parameters
-    return RichText(
-      textAlign: alignment ?? TextAlign.center,
-      text: TextSpan(
-        text: text,
-        style: GoogleFonts.russoOne(
-          fontSize: screenWidth * letterSize,
-          color:
-              color ??
-              Colors.white, // defaults to white if no parameter is given
-          shadows: [
-            Shadow(
-              offset: Offset(4, 4),
-              blurRadius: 10,
-              color: const Color.fromARGB(255, 0, 0, 0),
-            ),
-          ],
-          decoration:
-              decoration ??
-              TextDecoration
-                  .none, // defaults to no decoration if no parameter is given
-        ),
+Widget textWithFont(
+  String text,
+  double screenWidth,
+  double letterSize, {
+  TextDecoration? decoration,
+  Color? color,
+  TextAlign? alignment,
+}) {
+  // optional decoration, alignment and color parameters
+  return RichText(
+    textAlign: alignment ?? TextAlign.center,
+    text: TextSpan(
+      text: text,
+      style: GoogleFonts.russoOne(
+        fontSize: screenWidth * letterSize,
+        color:
+            color ?? Colors.white, // defaults to white if no parameter is given
+        shadows: [
+          Shadow(
+            offset: Offset(4, 4),
+            blurRadius: 10,
+            color: const Color.fromARGB(255, 0, 0, 0),
+          ),
+        ],
+        decoration:
+            decoration ??
+            TextDecoration
+                .none, // defaults to no decoration if no parameter is given
       ),
-    );
-  }
+    ),
+  );
+}
 
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
 Widget createTitle(String text, double screenWidth) {
@@ -55,49 +54,58 @@ Widget createTitle(String text, double screenWidth) {
 }
 
 // CREATE TEXT INSIDE OF A CARD
- Widget textWithCard(String text, double screenWidth, double letterSize) {
-    return Card(
-      elevation: 10,
-      color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
-      child: Padding(
-        padding: EdgeInsetsGeometry.all(4),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.russoOne(
-            fontSize: letterSize * screenWidth,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ADD ITEMS TO A DRAWER
-    Widget drawerItem(String text, IconData icon, screenWidth, context) {
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        leading: Icon(icon, color: Color(0xFF121212)),
-        title: textWithFont(
-          text,
-          screenWidth,
-          0.05,
+Widget textWithCard(String text, double screenWidth, double letterSize) {
+  return Card(
+    elevation: 10,
+    color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
+    child: Padding(
+      padding: EdgeInsetsGeometry.all(4),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.russoOne(
+          fontSize: letterSize * screenWidth,
           color: Colors.white,
-          alignment: TextAlign.left,
+          shadows: [
+            Shadow(
+              offset: Offset(4, 4),
+              blurRadius: 10,
+              color: const Color.fromARGB(255, 0, 0, 0),
+            ),
+          ],
         ),
-        hoverColor: Color.fromARGB(255, 43, 43, 43),
-        onTap: () => Navigator.pop(context), // close the DrawerF
       ),
-    );
-  }
+    ),
+  );
+}
+
+// ADD ITEMS TO A DRAWER, AND ON TAP: CLOSE THE DRAWER AND CHANGE TO THE APPROPRIATE SCREEN
+Widget drawerItem(
+  String text,
+  IconData icon,
+  screenWidth,
+  context, {
+  Widget? destination,
+}) {
+  return Material(
+    color: Colors.transparent,
+    child: ListTile(
+      leading: Icon(icon, color: Color(0xFF121212)),
+      title: textWithFont(
+        text,
+        screenWidth,
+        0.05,
+        color: Colors.white,
+        alignment: TextAlign.left,
+      ),
+      hoverColor: Color.fromARGB(255, 43, 43, 43),
+      onTap: () {
+        Navigator.pop(context); // close the Drawer
+        if (destination != null) {changeToScreen(context, destination);}
+      },
+    ),
+  );
+}
 
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
 Widget buttonText(String text, double letterSize) {
@@ -158,35 +166,31 @@ Widget customButton(
           // No desination, so stop
           return;
         }
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            // Animation when switching screen
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                destination,
-            transitionDuration: Duration(milliseconds: 400),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  const start = Offset(
-                    0.0,
-                    1.0,
-                  ); // Start right below the screen
-                  const finish =
-                      Offset.zero; // Stop right at the top of the screen
-                  final tween = Tween(
-                    begin: start,
-                    end: finish,
-                  ).chain(CurveTween(curve: Curves.easeIn));
-                  final offsetAnimation = animation.drive(tween);
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: child,
-                  );
-                },
-          ),
-        );
+        changeToScreen(context, destination);
       },
       child: buttonText(text, screenWidth * 0.1),
+    ),
+  );
+}
+
+// CHANGE SCREEN (DART FILE) WITH A TRANSITION
+void changeToScreen(BuildContext context, Widget destination) {
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      // Animation when switching screen
+      pageBuilder: (context, animation, secondaryAnimation) => destination,
+      transitionDuration: Duration(milliseconds: 400),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const start = Offset(0.0, 1.0); // Start right below the screen
+        const finish = Offset.zero; // Stop right at the top of the screen
+        final tween = Tween(
+          begin: start,
+          end: finish,
+        ).chain(CurveTween(curve: Curves.easeIn));
+        final offsetAnimation = animation.drive(tween);
+        return SlideTransition(position: offsetAnimation, child: child);
+      },
     ),
   );
 }
