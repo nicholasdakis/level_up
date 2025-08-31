@@ -86,6 +86,7 @@ Widget drawerItem(
   screenWidth,
   context, {
   Widget? destination,
+  Offset? startOffset = const Offset(0, 1),
 }) {
   return Material(
     color: Colors.transparent,
@@ -101,7 +102,9 @@ Widget drawerItem(
       hoverColor: Color.fromARGB(255, 43, 43, 43),
       onTap: () {
         Navigator.pop(context); // close the Drawer
-        if (destination != null) {changeToScreen(context, destination);}
+        if (destination != null) {
+          changeToScreen(context, destination, startOffset: startOffset);
+        }
       },
     ),
   );
@@ -174,7 +177,11 @@ Widget customButton(
 }
 
 // CHANGE SCREEN (DART FILE) WITH A TRANSITION
-void changeToScreen(BuildContext context, Widget destination) {
+void changeToScreen(
+  BuildContext context,
+  Widget destination, {
+  Offset? startOffset = const Offset(0, 1),
+}) {
   Navigator.push(
     context,
     PageRouteBuilder(
@@ -182,8 +189,13 @@ void changeToScreen(BuildContext context, Widget destination) {
       pageBuilder: (context, animation, secondaryAnimation) => destination,
       transitionDuration: Duration(milliseconds: 400),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const start = Offset(0.0, 1.0); // Start right below the screen
-        const finish = Offset.zero; // Stop right at the top of the screen
+        final start =
+            startOffset ??
+            Offset(
+              0.0,
+              1.0,
+            ); // Choose where to start, or default to starting right below the screen
+        final finish = Offset.zero; // Stop right at the top of the screen
         final tween = Tween(
           begin: start,
           end: finish,

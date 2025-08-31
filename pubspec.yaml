@@ -56,6 +56,9 @@ dependencies:
   # using FatSecret's HTML attribution code
   url_launcher: ^6.3.0
 
+  # changing profile picture
+  image_picker: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

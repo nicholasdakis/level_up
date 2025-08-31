@@ -175,9 +175,22 @@ Developmental progress by date is stored in this file.
 - Clicking the "Powered by fatsecret" text directs the user to the FatSecret website
 
 ## 2025-08-24
+
 - Created the file global.dart to hold global variables, rather than having them scattered in separate classes
 - Created the method createTitle() in global.dart to create the appBar's title text of each screen rather than manually typing the code for each class
 - Created a file settings.dart to store the code for the Settings Drawer originally written in main.dart
 - Removed all imports that were no longer needed after the changes above
 - Started working on consuming tokens via the backend (W.I.P)
 - Added functionality to Settings Drawer options. They now lead to their appropriate screens
+- Made the start transition of sliding into a new screen an optional parameter to changeToScreen() to customize slide direction
+- Settings buttons now transition from left to right
+
+
+## 2025-08-30
+- Moved code of footer section of Home Screen to a new class, footer.dart
+- Added the ability to choose an image from camera roll as a profile picture while in Personal Preferences (W.I.P)
+- The chosen profile picture appears in the footer of the Home Screen
+- The app now displays the name 'Level Up!' on the user's phone home screen instead of level_up
+- Downgraded java version from 24 to 17 due to incompatibility errors in build.gradle.kts (did not fix the errors; ignoring for now)
+- Updated the UI of the experience bar in the footer
+- Planned to show a user icon if no profile picture is chosen, and the user's chosen profile picture otherwise

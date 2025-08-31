@@ -47,6 +47,7 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context) {
             screenWidth,
             context,
             destination: PersonalPreferences(),
+            startOffset: Offset(-1,0)
           ),
           drawerItem(
             "About The Developer",
@@ -54,6 +55,7 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context) {
             screenWidth,
             context,
             destination: AboutTheDeveloper(),
+            startOffset: Offset(-1,0)
           ),
           drawerItem(
             "Donate",
@@ -61,6 +63,7 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context) {
             screenWidth,
             context,
             destination: Donate(),
+            startOffset: Offset(-1,0)
           ),
         ],
       ),

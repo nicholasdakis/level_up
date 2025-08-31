@@ -7,6 +7,7 @@ import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/settings.dart';
+import 'screens/footer.dart';
 import 'globals.dart';
 
 void main() {
@@ -169,35 +170,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           // Footer box
-          Container(
-            height: screenHeight * 0.15,
-            width: screenWidth,
-            color: Color(0xFF121212),
-            padding: EdgeInsets.all(25),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer bar
-                Container(
-                  height: screenHeight * 0.020,
-                  width: screenWidth * 0.615,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                // Inner bar
-                Container(
-                  height: screenHeight * 0.015,
-                  width: screenWidth * 0.6,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 227, 210, 210),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          buildFooter(screenHeight, screenWidth)
         ],
       ),
     );
