@@ -5,7 +5,7 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/donate.dart';
 
-Widget buildSettingsDrawer(double screenWidth, BuildContext context) {
+Widget buildSettingsDrawer(double screenWidth, BuildContext context, {VoidCallback? onProfileImageUpdated}) {
   return Drawer(
     // The contents of the Settings gear icon button
     child: Container(
@@ -46,8 +46,10 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context) {
             Icons.account_circle,
             screenWidth,
             context,
-            destination: PersonalPreferences(),
-            startOffset: Offset(-1,0)
+            destination: PersonalPreferences(
+              onProfileImageUpdated: onProfileImageUpdated,
+            ),
+            startOffset: Offset(-1,0),
           ),
           drawerItem(
             "About The Developer",

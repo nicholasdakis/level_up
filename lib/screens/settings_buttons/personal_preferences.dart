@@ -4,22 +4,34 @@ import '/globals.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
+File? selectedProfileImage; // above classes to be globally accessible
+
 class PersonalPreferences extends StatefulWidget {
-  const PersonalPreferences({super.key});
+  final VoidCallback? onProfileImageUpdated; // callback to call HomeScreen when the profile picture is updated
+  const PersonalPreferences({super.key, this.onProfileImageUpdated});
 
   @override
   State<PersonalPreferences> createState() => _PersonalPreferencesState();
 }
 
 class _PersonalPreferencesState extends State<PersonalPreferences> {
+  
   File? _selectedImage;
 
   Future _imageFromGallery() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
+
+    if (!mounted) return; // !mounted means Widget is not in the widget tree, so do not set state to the invalid widget tree
+
     setState(() {
-      _selectedImage = File(returnedImage!.path);
+      if (returnedImage != null) {
+        _selectedImage = File(returnedImage.path);
+        selectedProfileImage =
+            _selectedImage; // store to retrieve in footer.dart
+            widget.onProfileImageUpdated?.call(); // trigger HomeScreen rebuild
+      }
     });
   }
 
@@ -40,14 +52,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       ),
       body: Column(
         children: [
-          _selectedImage != null
-              ? Image.file(
-                  _selectedImage!,
-                  width: 200,
-                  height: 200,
-                  fit: BoxFit.cover,
-                )
-              : const Text("Please select an image"),
           // Middle body
           Expanded(
             child: Scrollbar(
@@ -59,12 +63,33 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // CALORIE CALCULATOR BUTTON
-                        ElevatedButton(
-                          onPressed: () {
-                            _imageFromGallery();
-                          },
-                          child: Text("Choose an image"),
+                        SizedBox(
+                          // to explicitly control the ElevatedButton size
+                          height: screenHeight * 0.15,
+                          width: screenWidth * 0.90,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: Color(
+                                0xFF2A2A2A,
+                              ), // Actual button color
+                              foregroundColor:
+                                  Colors.white, // Button text color
+                              side: BorderSide(
+                                color: Colors.black,
+                                width: screenWidth * 0.005,
+                              ),
+                            ),
+                            onPressed: () {
+                              _imageFromGallery();
+                            },
+                            child: buttonText(
+                              "Update your profile picture",
+                              screenWidth * 0.1,
+                            ),
+                          ),
                         ),
                       ],
                     ),

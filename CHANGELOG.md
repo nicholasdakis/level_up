@@ -194,3 +194,15 @@ Developmental progress by date is stored in this file.
 - Downgraded java version from 24 to 17 due to incompatibility errors in build.gradle.kts (did not fix the errors; ignoring for now)
 - Updated the UI of the experience bar in the footer
 - Planned to show a user icon if no profile picture is chosen, and the user's chosen profile picture otherwise
+
+## 2025-09-01
+- Changed the button style of "Enter your profile picture" to match with other app buttons
+- Fixed app crashing when user clicked the button to edit profile picture but exited without selecting one
+- When the user selects an image, it is stored in a private variable, _selectedImage and in a public global variable, selectedProfileImage
+- main.dart imports personal_preferences.dart to directly use that global variable
+- insertProfilePicture() moved to main.dart
+- HomeScreen was changed from a Stateless to Stateful Widget (for UI changes in the footer)
+- insertProfilePicture() is called to return the appropriate Widget, and that Widget is used in buildFooter()'s parameter to build the appropriate Widget for the profile picture
+- Added a voidCallback in personal_preferences.dart to notify the HomeScreen when the profile picture has been updated
+- Updated buildSettingsDrawer() to optionally take a voidCallback parameter, which is used by the Personal Preferences Drawer
+- When HomeScreen calls buildSettingsDrawer(), it rebuilds its UI if a callback has been received

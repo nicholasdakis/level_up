@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget insertProfilePicture() {
-  return Icon(
-    Icons.person,
-    color: Colors.white,
-    size: 40,
-  ); // When there is no chosen PFP, default to the person icon
-}
-
-Widget buildFooter(double screenHeight, double screenWidth) {
+Widget buildFooter(double screenHeight, double screenWidth, Widget selectedProfileImage) {
   return Container(
     height: screenHeight * 0.15,
     width: screenWidth,
@@ -54,7 +46,7 @@ Widget buildFooter(double screenHeight, double screenWidth) {
                     shape: BoxShape.circle,
                     color: Colors.black,
                   ),
-                  child: ClipOval(child: insertProfilePicture()),
+                  child: ClipOval(child: selectedProfileImage), // the profile picture
                 ),
               ),
             ],

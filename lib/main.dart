@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:io';
 import 'screens/calorie_calculator.dart';
+import 'screens/settings_buttons/personal_preferences.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
@@ -30,8 +32,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Widget insertProfilePicture() {
+    File? chosenPfp = selectedProfileImage;
+    // Case 1: User has a profile picture selected
+    if (chosenPfp != null) {
+      return Image.file(chosenPfp, width: 40, height: 40, fit: BoxFit.cover);
+    }
+    // Case 2: User has no profile picture selected (default to Icon avatar)
+    else {
+      return Icon(Icons.person, color: Colors.white, size: 40);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +59,13 @@ class HomeScreen extends StatelessWidget {
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      drawer: buildSettingsDrawer(screenWidth, context),
+      drawer: buildSettingsDrawer(
+        screenWidth,
+        context,
+        onProfileImageUpdated: () {
+          setState(() {}); // rebuild HomeScreen
+        },
+      ),
       backgroundColor: Color(0xFF1E1E1E),
       // Header
       appBar: PreferredSize(
@@ -170,7 +195,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           // Footer box
-          buildFooter(screenHeight, screenWidth)
+          buildFooter(screenHeight, screenWidth, insertProfilePicture()),
         ],
       ),
     );
