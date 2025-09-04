@@ -206,3 +206,8 @@ Developmental progress by date is stored in this file.
 - Added a voidCallback in personal_preferences.dart to notify the HomeScreen when the profile picture has been updated
 - Updated buildSettingsDrawer() to optionally take a voidCallback parameter, which is used by the Personal Preferences Drawer
 - When HomeScreen calls buildSettingsDrawer(), it rebuilds its UI if a callback has been received
+
+## 2025-09-03
+- Added food categories for meal types in Food Logging
+- Added a card that updates under the appropriate category when the user tracks a food in that category
+- Used foodList (the list returned from the API) as a flag (foodList.isNotEmpty) to display search results in place of the food category sections, preventing them from appearing above or below the category text

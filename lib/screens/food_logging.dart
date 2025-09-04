@@ -322,6 +322,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       onPressed: () {
                         // When "Log Food" is pressed
                         // VALIDITY CHECKS
+                        // CASE 1) LOG FOOD IS INVALID TO PRESS
                         if (mealType == null || !mealChosen) {
                           if (snackbarActive == true) {
                             return; // a snackBar is already opened, so do nothing
@@ -345,8 +346,34 @@ class _FoodLoggingState extends State<FoodLogging> {
                                 snackbarActive =
                                     false; // reset the flag (prevent many snackbars from stacking)
                               });
+                          return;
                         }
-                        return;
+                        // CASE 2: LOG FOOD IS VALID TO PRESS, SO ADD THE FOOD TO THE LIST
+                        else {
+                          setState(() {
+                            final foodName = searchController.text;
+
+                            switch (mealType) {
+                              case "Breakfast":
+                                breakfastFoods.add(foodName);
+                                break;
+                              case "Lunch":
+                                lunchFoods.add(foodName);
+                                break;
+                              case "Dinner":
+                                dinnerFoods.add(foodName);
+                                break;
+                              case "Snack":
+                                snackFoods.add(foodName);
+                                break;
+                            }
+                            // Reset inputs for next entry
+                            userCanType = true;
+                            mealChosen = false;
+                            searchController.clear();
+                            mealType = null;
+                          });
+                        }
                       },
                       child: buttonText("Log Food", screenWidth * 0.05),
                     ),
@@ -355,49 +382,99 @@ class _FoodLoggingState extends State<FoodLogging> {
               ],
             ),
             SizedBox(height: 20),
-            // DISPLAY AVAILABLE FOOD OPTIONS
-            Expanded(
-              child: ListView.builder(
-                itemCount: foodList.length,
-                itemBuilder: (context, index) {
-                  final food = foodList[index];
-                  return InkWell(
-                    // To make each item clickable
-                    onTap: () {
-                      FocusScope.of(
-                        context,
-                      ).unfocus(); // disable keyboard focus
-                      setState(() {
-                        userCanType = false; // disable typing
-                        mealChosen =
-                            true; // allow the validity check to successfully pass
-                        searchController.text =
-                            food["food_name"] ??
-                            ""; // update the searchbar text to the selected food
-                        searchController.selection = TextSelection.fromPosition(
-                          TextPosition(
-                            offset: searchController.text.length,
-                          ), // keep the blinking cursor at the end of the word
-                        );
-                        debugPrint(food['food_name']);
-                      });
-                    },
-                    child: ListTile(
-                      title: Text(
-                        food['food_name'] ??
-                            '', // List the food name (or nothing if nothing is found)
-                        style: GoogleFonts.russoOne(color: Colors.white),
+            // DISPLAY AVAILABLE FOOD OPTIONS (when searching) OR FOOD CATEGORIES
+            if (foodList.isNotEmpty) // A food was not returned from the API,
+              // Show search results
+              Expanded(
+                child: ListView.builder(
+                  itemCount: foodList.length,
+                  itemBuilder: (context, index) {
+                    final food = foodList[index];
+                    return InkWell(
+                      // To make each item clickable
+                      onTap: () {
+                        FocusScope.of(
+                          context,
+                        ).unfocus(); // disable keyboard focus
+                        setState(() {
+                          userCanType = false; // disable typing
+                          mealChosen =
+                              true; // allow the validity check to successfully pass
+                          searchController.text =
+                              food["food_name"] ??
+                              ""; // update the searchbar text to the selected food
+                          searchController
+                              .selection = TextSelection.fromPosition(
+                            TextPosition(
+                              offset: searchController.text.length,
+                            ), // keep the blinking cursor at the end of the word
+                          );
+                          debugPrint(food['food_name']);
+                          foodList = []; // hide search results after selecting
+                        });
+                      },
+                      child: ListTile(
+                        title: Text(
+                          food['food_name'] ??
+                              '', // List the food name (or nothing if nothing is found)
+                          style: GoogleFonts.russoOne(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          food['food_description'] ??
+                              '', // List the information (or nothing if nothing is found)
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
-                      subtitle: Text(
-                        food['food_description'] ??
-                            '', // List the information (or nothing if nothing is found)
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              // DISPLAY FOOD CATEGORIES
+              Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        textWithCard("Breakfast", screenWidth, 0.1),
+                        textWithCard(
+                          breakfastFoods.join(
+                            "\n",
+                          ),
+                          screenWidth,
+                          0.025,
+                        ),
+                        textWithCard("Lunch", screenWidth, 0.1),
+                        textWithCard(
+                          lunchFoods.join(
+                            "\n",
+                          ),
+                          screenWidth,
+                          0.025,
+                        ),
+                        textWithCard("Dinner", screenWidth, 0.1),
+                        textWithCard(
+                          dinnerFoods.join(
+                            "\n",
+                          ),
+                          screenWidth,
+                          0.025,
+                        ),
+                        textWithCard("Snacks", screenWidth, 0.1),
+                        textWithCard(
+                          snackFoods.join(
+                            "\n",
+                          ),
+                          screenWidth,
+                          0.025,
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
