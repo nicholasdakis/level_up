@@ -185,7 +185,6 @@ Developmental progress by date is stored in this file.
 - Made the start transition of sliding into a new screen an optional parameter to changeToScreen() to customize slide direction
 - Settings buttons now transition from left to right
 
-
 ## 2025-08-30
 - Moved code of footer section of Home Screen to a new class, footer.dart
 - Added the ability to choose an image from camera roll as a profile picture while in Personal Preferences (W.I.P)
@@ -211,3 +210,10 @@ Developmental progress by date is stored in this file.
 - Added food categories for meal types in Food Logging
 - Added a card that updates under the appropriate category when the user tracks a food in that category
 - Used foodList (the list returned from the API) as a flag (foodList.isNotEmpty) to display search results in place of the food category sections, preventing them from appearing above or below the category text
+
+## 2025-09-06
+- Integrated Firebase CLI into this project
+- Created a Firebase project and linked it to this application
+- Setup Firestore rules
+- Added a snackBar popup to notify when the user updates their profile picture
+- Added a "Log Out" button in the Settings drawer

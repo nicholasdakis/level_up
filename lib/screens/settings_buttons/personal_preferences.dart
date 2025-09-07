@@ -31,6 +31,12 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         selectedProfileImage =
             _selectedImage; // store to retrieve in footer.dart
             widget.onProfileImageUpdated?.call(); // trigger HomeScreen rebuild
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Profile picture successfully updated."),
+                duration: Duration(milliseconds: 1500)
+              )
+            );
       }
     });
   }
@@ -86,7 +92,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               _imageFromGallery();
                             },
                             child: buttonText(
-                              "Update your profile picture",
+                              "Update Profile Picture",
                               screenWidth * 0.1,
                             ),
                           ),

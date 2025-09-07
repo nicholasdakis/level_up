@@ -352,7 +352,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                         else {
                           setState(() {
                             final foodName = searchController.text;
-
                             switch (mealType) {
                               case "Breakfast":
                                 breakfastFoods.add(foodName);
@@ -383,7 +382,7 @@ class _FoodLoggingState extends State<FoodLogging> {
             ),
             SizedBox(height: 20),
             // DISPLAY AVAILABLE FOOD OPTIONS (when searching) OR FOOD CATEGORIES
-            if (foodList.isNotEmpty) // A food was not returned from the API,
+            if (foodList.isNotEmpty) // if results were not returned from the API,
               // Show search results
               Expanded(
                 child: ListView.builder(

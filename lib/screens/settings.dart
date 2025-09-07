@@ -5,7 +5,11 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/donate.dart';
 
-Widget buildSettingsDrawer(double screenWidth, BuildContext context, {VoidCallback? onProfileImageUpdated}) {
+Widget buildSettingsDrawer(
+  double screenWidth,
+  BuildContext context, {
+  VoidCallback? onProfileImageUpdated,
+}) {
   return Drawer(
     // The contents of the Settings gear icon button
     child: Container(
@@ -49,7 +53,7 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context, {VoidCallba
             destination: PersonalPreferences(
               onProfileImageUpdated: onProfileImageUpdated,
             ),
-            startOffset: Offset(-1,0),
+            startOffset: Offset(-1, 0),
           ),
           drawerItem(
             "About The Developer",
@@ -57,7 +61,7 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context, {VoidCallba
             screenWidth,
             context,
             destination: AboutTheDeveloper(),
-            startOffset: Offset(-1,0)
+            startOffset: Offset(-1, 0),
           ),
           drawerItem(
             "Donate",
@@ -65,7 +69,24 @@ Widget buildSettingsDrawer(double screenWidth, BuildContext context, {VoidCallba
             screenWidth,
             context,
             destination: Donate(),
-            startOffset: Offset(-1,0)
+            startOffset: Offset(-1, 0),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: ListTile(
+              leading: Icon(Icons.logout, color: Color(0xFF121212)),
+              title: textWithFont(
+                "Log Out",
+                screenWidth,
+                0.05,
+                color: Colors.white,
+                alignment: TextAlign.left,
+              ),
+              hoverColor: Color.fromARGB(255, 43, 43, 43),
+              onTap: () async {
+                // LOGOUT LOGIC (wip)
+              },
+            ),
           ),
         ],
       ),
