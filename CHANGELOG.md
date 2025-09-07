@@ -217,3 +217,9 @@ Developmental progress by date is stored in this file.
 - Setup Firestore rules
 - Added a snackBar popup to notify when the user updates their profile picture
 - Added a "Log Out" button in the Settings drawer
+
+## 2025-09-07
+- Moved the HomeScreen class from main.dart to a new file, home_screen.dart
+- Created register_or_login.dart to be used as the welcoming screen for user registration / logging in
+- Created auth_gate.dart to determine if the user should be redirected to register_or_login.dart if not logged in, else home_screen.dart
+- Created auth_services.dart for authentication functions

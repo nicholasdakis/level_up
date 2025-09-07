@@ -4,6 +4,7 @@ import '../globals.dart';
 import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/donate.dart';
+import '../authentication/auth_services.dart';
 
 Widget buildSettingsDrawer(
   double screenWidth,
@@ -84,7 +85,7 @@ Widget buildSettingsDrawer(
               ),
               hoverColor: Color.fromARGB(255, 43, 43, 43),
               onTap: () async {
-                // LOGOUT LOGIC (wip)
+                await authService.value.signOut();
               },
             ),
           ),
