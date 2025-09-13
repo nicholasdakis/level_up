@@ -12,7 +12,7 @@ class AuthenticationGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: authService
           .value
-          .authStateChanges, // checks if there is a logged in user
+          .authStateChanges, // Check if there is a logged-in user
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // waiting for the check
@@ -25,7 +25,6 @@ class AuthenticationGate extends StatelessWidget {
           // user is logged in
           return const HomeScreen();
         }
-
         return const RegisterOrLogin(); // user is not logged in
       },
     );
