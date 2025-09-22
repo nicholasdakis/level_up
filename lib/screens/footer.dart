@@ -1,58 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:level_up/screens/settings_buttons/personal_preferences.dart';
 
-Widget buildFooter(double screenHeight, double screenWidth, Widget selectedProfileImage) {
-  return Container(
-    height: screenHeight * 0.15,
-    width: screenWidth,
-    color: Color(0xFF121212),
-    padding: EdgeInsets.all(25),
-    child: Center(
-      child: Row(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Outer EXP bar
-              Container(
-                height: screenHeight * 0.03,
-                width: screenWidth * 0.7,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              // Inner EXP bar
-              Positioned(
-                // align onto the outer bar
-                top: screenWidth * 0.01,
-                child: Container(
-                  height: screenHeight * 0.02,
-                  width: screenWidth * 0.65,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 227, 210, 210),
-                    borderRadius: BorderRadius.circular(10),
+class Footer extends StatefulWidget {
+  final double screenHeight;
+  final double screenWidth;
+  final Widget profilePicture;
+  final VoidCallback onProfileImageUpdated;
+
+  const Footer({
+    super.key,
+    required this.screenHeight,
+    required this.screenWidth,
+    required this.profilePicture,
+    required this.onProfileImageUpdated,
+  });
+
+  @override
+  State<Footer> createState() => _FooterState();
+}
+
+class _FooterState extends State<Footer> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: widget.screenHeight * 0.15,
+      width: widget.screenWidth,
+      color: Color(0xFF121212),
+      padding: EdgeInsets.all(25),
+      child: Center(
+        child: Row(
+          children: [
+            // Wrapper Container with sufficient width to contain the overlapping circle
+            // ignore: sized_box_for_whitespace
+            Container(
+              width:
+                  widget.screenWidth * 0.7 +
+                  widget.screenHeight *
+                      0.045, // EXP bar width + half circle width
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Outer EXP bar
+                  Container(
+                    height: widget.screenHeight * 0.03,
+                    width: widget.screenWidth * 0.7,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-              ),
-              // Circle overlapping the bar with user's profile picture
-              Positioned(
-                // Properly align with the experience bar
-                right: screenHeight * -0.07,
-                top: screenHeight * -0.03,
-                child: Container(
-                  width: screenHeight * 0.09,
-                  height: screenHeight * 0.09,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black,
+                  // Inner EXP bar
+                  Positioned(
+                    top: widget.screenHeight * 0.005,
+                    left: widget.screenWidth * 0.025,
+                    child: Container(
+                      height: widget.screenHeight * 0.02,
+                      width: widget.screenWidth * 0.65,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 227, 210, 210),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
-                  child: ClipOval(child: selectedProfileImage), // the profile picture
-                ),
+                  // Profile picture
+                  Positioned(
+                    right:
+                        -widget.screenWidth *
+                        0.02, // move both hitbox and profile picture to the right
+                    top:
+                        (widget.screenHeight * 0.03 -
+                            widget.screenHeight * 0.09) /
+                        2,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          debugPrint("Tapped");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PersonalPreferences(
+                                onProfileImageUpdated:
+                                    widget.onProfileImageUpdated,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                        child: Container(
+                          width: widget.screenHeight * 0.09,
+                          height: widget.screenHeight * 0.09,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black,
+                          ),
+                          child: ClipOval(child: widget.profilePicture),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

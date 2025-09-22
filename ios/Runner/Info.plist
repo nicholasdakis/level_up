@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Level Up!</string>
+	<string>Level Up</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -34,12 +34,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription<.key>
-	<string>Camera permissions are required to update your profile picture.</string>
-	<key>NSCameraUsageDescription<.key>
-	<key>NSPhotoLibraryUsageDescription<.key>
-	<string>Camera permissions are required to update your profile picture.</string>
-	<key>NSPhotoLibraryUsageDescription<.key>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

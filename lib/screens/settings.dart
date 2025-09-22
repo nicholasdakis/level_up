@@ -52,7 +52,7 @@ Widget buildSettingsDrawer(
             screenWidth,
             context,
             destination: PersonalPreferences(
-              onProfileImageUpdated: onProfileImageUpdated,
+              onProfileImageUpdated: onProfileImageUpdated, // update the callback to update the Home Screen
             ),
             startOffset: Offset(-1, 0),
           ),

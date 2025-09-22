@@ -1,4 +1,7 @@
 flutter/ephemeral/
+local.properties
+android/app/build/git
+lib/firebase_options.dart
 
 # Visual Studio user-specific files.
 *.suo

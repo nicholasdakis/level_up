@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'authentication/user_data.dart';
+
+UserData? currentUser; // global user-specific variable
 
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(

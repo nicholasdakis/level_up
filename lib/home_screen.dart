@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import 'screens/calorie_calculator.dart';
-import 'screens/settings_buttons/personal_preferences.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/settings.dart';
 import 'screens/footer.dart';
-import 'authentication/auth_services.dart';
-import 'authentication/auth_gate.dart';
 import 'globals.dart';
+import '../authentication/user_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,14 +22,45 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Widget insertProfilePicture() {
-    File? chosenPfp = selectedProfileImage;
-    // Case 1: User has a profile picture selected
-    if (chosenPfp != null) {
-      return Image.file(chosenPfp, width: 40, height: 40, fit: BoxFit.cover);
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePicture();
+  }
+
+  void _loadProfilePicture() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    // if the user is logged in
+    if (uid != null) {
+      // Initialize currentUser if it's null or has the wrong UID
+      if (currentUser == null || currentUser!.uid != uid) {
+        currentUser = UserData(uid: uid, pfpBase64: null);
+      }
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      // if the user has a stored profile picture in Base64, load that profile picture
+      if (!mounted) return;
+      if (doc.exists && doc.data()?['pfpBase64'] != null) {
+        setState(() {
+          currentUser?.pfpBase64 = doc.data()?['pfpBase64'];
+        });
+      }
     }
-    // Case 2: User has no profile picture selected (default to Icon avatar)
-    else {
+  }
+
+  Widget insertProfilePicture() {
+    // user selected a profile picture
+    if (currentUser?.pfpBase64 != null) {
+      return Image.memory(
+        base64Decode(currentUser!.pfpBase64!),
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
+      );
+      // otherwise, no profile picture was selected (load the default avatar)
+    } else {
       return Icon(Icons.person, color: Colors.white, size: 40);
     }
   }
@@ -45,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
         screenWidth,
         context,
         onProfileImageUpdated: () {
+          if (!mounted) return;
           setState(() {}); // rebuild HomeScreen
         },
       ),
@@ -178,7 +210,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Footer box
-          buildFooter(screenHeight, screenWidth, insertProfilePicture()),
+          Footer(
+            screenHeight: screenHeight,
+            screenWidth: screenWidth,
+            profilePicture: insertProfilePicture(),
+            onProfileImageUpdated: () {
+              if (!mounted) return;
+              setState(() {}); // safely rebuild HomeScreen
+            }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
+          ),
         ],
       ),
     );

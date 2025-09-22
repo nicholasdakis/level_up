@@ -122,6 +122,12 @@ class _FoodLoggingState extends State<FoodLogging> {
   List<String> snackFoods = [];
 
   @override
+  void dispose() {
+    checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double screenHeight =
         1.sh; // Make widgets the size of the user's personal screen size
@@ -382,7 +388,8 @@ class _FoodLoggingState extends State<FoodLogging> {
             ),
             SizedBox(height: 20),
             // DISPLAY AVAILABLE FOOD OPTIONS (when searching) OR FOOD CATEGORIES
-            if (foodList.isNotEmpty) // if results were not returned from the API,
+            if (foodList
+                .isNotEmpty) // if results were not returned from the API,
               // Show search results
               Expanded(
                 child: ListView.builder(
@@ -408,7 +415,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                               offset: searchController.text.length,
                             ), // keep the blinking cursor at the end of the word
                           );
-                          debugPrint(food['food_name']);
                           foodList = []; // hide search results after selecting
                         });
                       },
@@ -439,36 +445,20 @@ class _FoodLoggingState extends State<FoodLogging> {
                       children: [
                         textWithCard("Breakfast", screenWidth, 0.1),
                         textWithCard(
-                          breakfastFoods.join(
-                            "\n",
-                          ),
+                          breakfastFoods.join("\n"),
                           screenWidth,
                           0.025,
                         ),
                         textWithCard("Lunch", screenWidth, 0.1),
-                        textWithCard(
-                          lunchFoods.join(
-                            "\n",
-                          ),
-                          screenWidth,
-                          0.025,
-                        ),
+                        textWithCard(lunchFoods.join("\n"), screenWidth, 0.025),
                         textWithCard("Dinner", screenWidth, 0.1),
                         textWithCard(
-                          dinnerFoods.join(
-                            "\n",
-                          ),
+                          dinnerFoods.join("\n"),
                           screenWidth,
                           0.025,
                         ),
                         textWithCard("Snacks", screenWidth, 0.1),
-                        textWithCard(
-                          snackFoods.join(
-                            "\n",
-                          ),
-                          screenWidth,
-                          0.025,
-                        ),
+                        textWithCard(snackFoods.join("\n"), screenWidth, 0.025),
                       ],
                     ),
                   ),

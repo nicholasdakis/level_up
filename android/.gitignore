@@ -12,15 +12,3 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
-
-# flutter / dart-specific things to ignore
-build/
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.melos_tool/
-.pub-cache/
-
-# vs-code-specific things to ignore
-.vscode/

@@ -228,3 +228,31 @@ Developmental progress by date is stored in this file.
 - Added fields for entering email and password for Registration / Login on the Welcome screen
 - Added functional Register / Login buttons on the Welcome screen
 - Caught error messages from failed registrations / logins and displayed them to the user
+
+## 2025-09-17
+- Created user_data.dart to store user-specific data (experience, profile picture, etc.)
+- Added a global currentUser variable in globals.dart for easy access across screens
+- Updated PersonalPreferences.dart: imageFromGallery() now stores the profile picture URL directly in Firestore for persistent profile pictures
+- Removed selectedProfileImage; profile pictures are now accessed directly from currentUser.pfpUrl
+- Updated HomeScreen.dart: insertProfilePicture() now loads the profile picture from currentUser.pfpUrl and shows a default icon if null
+- Enabled Firestore in the Firebase console to store user data
+- A problem I faced: Removed Firebase Storage usage to avoid billing issues; all profile pictures are handled via Firestore
+- The problem was resolved by converting the profile picture to a Base64 string and then retrieving that
+
+## 2025-09-17 - 2025-09-22
+- Troubleshooting issues with the project not running after attempting to move it out of OneDrive due to OneDrive interfering with the "flutter clean" command
+- Tried many things, including copying over the project into a new Flutter project, updating Flutter SDK, rebuilding the project, moving the Flutter SDK, downgrading Java version, trying to rebuild the project via flutterbase, rewriting the .kts files dozens of times, etc...
+- Simplest solution seemed to work: Copied the build.gradle.kts, app/build.gradle.kts and settings.kts files from the last pushed version of the app on GitHub
+
+## 2025-09-22
+- Updated firestore rules to allow users to write their own data (i.e. update their profile picture)
+- Used 'dart:convert' import for decoding the Base64 profile picture
+- Updated the insertProfilePicture method to use base64Decode() (part of dart:convert)
+- Same changed were made in footer.dart, so the footer circle properly shows the new profile picture
+- buildFooter takes selectedProfileImage Widget instead of currentUser
+- Converted footer.dart to a StatefulWidget and added a ValueListenableBuilder to rebuild the footer when the profile picture is updated
+- Footer() updated to take insertProfilePicture()'s result as an argument
+- That result is stored in footer.dart as profilePicture
+- profilePicture is set as the child of the footer's circle to show the up-to-date profile picture
+- Updated currentUser appropriately in loadProfilePicture() as it was being reinitialized to empty every time the app restarted, causing persistent profile pictures not to work
+- Added the InkWell Widget inside the ClipOval of the footer to make the profile picture clickable. Redirects the user to "Personal Preferences" tab when clicked
