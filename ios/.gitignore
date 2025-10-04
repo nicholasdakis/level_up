@@ -32,3 +32,9 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# Ignore Android manifest
+android/app/src/main/AndroidManifest.xml
+
+# Ignore iOS AppDelegate
+ios/Runner/AppDelegate.swift

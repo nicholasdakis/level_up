@@ -7,7 +7,7 @@ Level Up is a health app that aims to make fitness enjoyable by encouraging acti
 This project contains a CHANGELOG.md file which I update throughout development.
 
 ## Features (including W.I.P ones)
-- The app has 5 main tabs:
+- The app has 6 main tabs:
 
 ### Calorie Calculator tab
 - Input information in either imperial or metric
@@ -18,6 +18,9 @@ This project contains a CHANGELOG.md file which I update throughout development.
 ### Food Logging tab
 - Track food intake
 - Uses the FatSecret service which contains data about many foods
+
+### Explore tab
+- Visit nearby locations to gain experience points
 
 ### Reminders tab
 - Set reminders and be notified via notification

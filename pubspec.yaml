@@ -59,6 +59,10 @@ dependencies:
   # changing profile picture
   image_picker: ^1.2.0
 
+  # google maps and user location
+  google_maps_flutter: ^2.13.1
+  geolocator: ^14.0.2
+
   # firebase implementation
   firebase_core: ^4.1.0
   firebase_messaging: ^16.0.1

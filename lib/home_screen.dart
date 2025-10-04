@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'screens/calorie_calculator.dart';
+import 'screens/explore.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
@@ -171,6 +172,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           screenWidth,
                           context,
                           destination: FoodLogging(),
+                        ),
+                        SizedBox(height: 10.h), // Space between buttons
+                        customButton(
+                          "Explore",
+                          screenWidth * 0.1,
+                          screenHeight,
+                          screenWidth,
+                          context,
+                          destination: Explore(),
                         ),
                         SizedBox(height: 10.h), // Space between buttons
                         // REMINDERS TAB

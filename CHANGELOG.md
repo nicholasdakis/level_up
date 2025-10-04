@@ -256,3 +256,8 @@ Developmental progress by date is stored in this file.
 - profilePicture is set as the child of the footer's circle to show the up-to-date profile picture
 - Updated currentUser appropriately in loadProfilePicture() as it was being reinitialized to empty every time the app restarted, causing persistent profile pictures not to work
 - Added the InkWell Widget inside the ClipOval of the footer to make the profile picture clickable. Redirects the user to "Personal Preferences" tab when clicked
+
+## 2025-10-04
+- Created an "Explore" tab for a new way to gain experience points
+- Imported google_maps_flutter to implement the Google Maps API into the project
+- Imported geolocator to get the user's current location to set as the initial point of the map implementation
