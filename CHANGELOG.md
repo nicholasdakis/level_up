@@ -261,3 +261,9 @@ Developmental progress by date is stored in this file.
 - Created an "Explore" tab for a new way to gain experience points
 - Imported google_maps_flutter to implement the Google Maps API into the project
 - Imported geolocator to get the user's current location to set as the initial point of the map implementation
+
+## 2025-10-05
+- Added a card on the 'Explore' tab that appears in the upper-middle part of the map
+- The card is for showing nearby experience spots
+- The card can be clicked to expand / contract it
+- The card will show the generated expereince spots for the user to visit

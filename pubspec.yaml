@@ -62,6 +62,7 @@ dependencies:
   # google maps and user location
   google_maps_flutter: ^2.13.1
   geolocator: ^14.0.2
+  flutter_polyline_points: ^3.1.0
 
   # firebase implementation
   firebase_core: ^4.1.0

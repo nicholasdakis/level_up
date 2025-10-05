@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // Manually make the title text, since appBar is already being used
               child: Text(
                 "Level Up!",
-                style: GoogleFonts.pacifico(
+                style: GoogleFonts.dangrek(
                   fontSize: screenWidth * 0.13,
                   color: Color(0xFFFFFFFF),
                   shadows: [
