@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'authentication/user_data.dart';
+import 'user/user_data.dart';
+import 'user/user_data_manager.dart';
 
-UserData? currentUser; // global user-specific variable
+UserData?
+currentUserData; // global current user-specific variable (not Firestore-dependent)
+final UserDataManager userManager =
+    UserDataManager(); // global current user manager variable (not Firestore-dependent)
 
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(

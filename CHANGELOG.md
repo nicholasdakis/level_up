@@ -267,3 +267,11 @@ Developmental progress by date is stored in this file.
 - The card is for showing nearby experience spots
 - The card can be clicked to expand / contract it
 - The card will show the generated expereince spots for the user to visit
+
+## 2025-10-21
+- Moved profile picture logic from home_screen.dart into user/user_data_manager.dart for refactoring purposes
+- Added level and experience fields to the user's data. The default level is 1.
+- Changed loadProfilePicture() to loadUserData() to load profile picture, level, and experience with the same call
+- Moved logic for storing profile picture to Firestore from personal_preferences.dart into user_data_manager.dart for refactoring purposes
+- Created a formula for calculating level experience needed: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10)
+- Added text on the experience bar that shows experience progress to the next level

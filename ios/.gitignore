@@ -36,5 +36,6 @@ Runner/GeneratedPluginRegistrant.*
 # Ignore Android manifest
 android/app/src/main/AndroidManifest.xml
 
-# Ignore iOS AppDelegate
+# Ignore iOS AppDelegate and Info.plist
 ios/Runner/AppDelegate.swift
+ios/Runner/Info.plist

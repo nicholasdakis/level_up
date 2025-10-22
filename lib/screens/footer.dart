@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:level_up/screens/settings_buttons/personal_preferences.dart';
+import '../globals.dart';
 
 class Footer extends StatefulWidget {
   final double screenHeight;
@@ -62,6 +63,43 @@ class _FooterState extends State<Footer> {
                       ),
                     ),
                   ),
+                  // Experience text
+                  Positioned.fill(
+                    child: Center(
+                      child: Stack(
+                        children: [
+                          // black outline around text
+                          Builder(
+                            builder: (context) {
+                              Paint outlinePaint = Paint();
+                              outlinePaint.style = PaintingStyle.stroke;
+                              outlinePaint.strokeWidth = 1;
+                              outlinePaint.color = Colors.black;
+
+                              return Text(
+                                '${currentUserData?.expPoints ?? 0} / ${userManager.experienceNeeded ?? 0}',
+                                style: TextStyle(
+                                  fontSize: widget.screenHeight * 0.015,
+                                  fontWeight: FontWeight.bold,
+                                  foreground: outlinePaint,
+                                ),
+                              );
+                            },
+                          ),
+                          // white color on the inside
+                          Text(
+                            '${currentUserData?.expPoints ?? 0} / ${userManager.experienceNeeded ?? 0}',
+                            style: TextStyle(
+                              fontSize: widget.screenHeight * 0.015,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   // Profile picture
                   Positioned(
                     right:

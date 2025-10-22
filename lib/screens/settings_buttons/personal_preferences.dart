@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
-import 'package:level_up/authentication/user_data.dart';
-import 'dart:io';
-import 'dart:convert'; // for base64
+import 'dart:io'; // for base64
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '/user/user_data_manager.dart';
 
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
@@ -18,34 +15,20 @@ class PersonalPreferences extends StatefulWidget {
 }
 
 class _PersonalPreferencesState extends State<PersonalPreferences> {
-  Future _imageFromGallery() async {
-    // Let the user pick an image
+  Future _pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
-
-    if (!mounted || returnedImage == null) {
-      return; // stop if the user exited without picking a profile picture
-    }
+    if (!mounted || returnedImage == null) return; // stop if user canceled
 
     final file = File(returnedImage.path);
 
     try {
-      // 1. Convert image to Base64
-      final bytes = await file.readAsBytes();
-      final base64String = base64Encode(bytes);
+      await UserDataManager().updateProfilePicture(
+        file,
+        onProfileUpdated: widget.onProfileImageUpdated,
+      );
 
-      // 2. Save Base64 string in Firestore
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'pfpBase64': base64String,
-      }, SetOptions(merge: true));
-
-      // 3. Update currentUser with the base64 string
-      setState(() {
-        currentUser = UserData(uid: currentUser!.uid, pfpBase64: base64String);
-      });
-      widget.onProfileImageUpdated?.call(); // rebuild HomeScreen
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -106,7 +89,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               ),
                             ),
                             onPressed: () {
-                              _imageFromGallery();
+                              _pickProfileImage();
                             },
                             child: buttonText(
                               "Update Profile Picture",

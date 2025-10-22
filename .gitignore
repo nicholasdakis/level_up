@@ -48,3 +48,10 @@ android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
 
+# Ignore Android manifest
+android/app/src/main/AndroidManifest.xml
+
+# Ignore iOS AppDelegate
+ios/Runner/AppDelegate.swift
+
+

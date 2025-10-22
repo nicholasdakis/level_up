@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
 import 'screens/calorie_calculator.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
@@ -13,7 +10,6 @@ import 'screens/leaderboard.dart';
 import 'screens/settings.dart';
 import 'screens/footer.dart';
 import 'globals.dart';
-import '../authentication/user_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,46 +20,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
+  // Load user data from Firestore
   void initState() {
     super.initState();
-    _loadProfilePicture();
-  }
-
-  void _loadProfilePicture() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    // if the user is logged in
-    if (uid != null) {
-      // Initialize currentUser if it's null or has the wrong UID
-      if (currentUser == null || currentUser!.uid != uid) {
-        currentUser = UserData(uid: uid, pfpBase64: null);
-      }
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      // if the user has a stored profile picture in Base64, load that profile picture
-      if (!mounted) return;
-      if (doc.exists && doc.data()?['pfpBase64'] != null) {
-        setState(() {
-          currentUser?.pfpBase64 = doc.data()?['pfpBase64'];
-        });
-      }
-    }
-  }
-
-  Widget insertProfilePicture() {
-    // user selected a profile picture
-    if (currentUser?.pfpBase64 != null) {
-      return Image.memory(
-        base64Decode(currentUser!.pfpBase64!),
-        width: 40,
-        height: 40,
-        fit: BoxFit.cover,
-      );
-      // otherwise, no profile picture was selected (load the default avatar)
-    } else {
-      return Icon(Icons.person, color: Colors.white, size: 40);
-    }
+    userManager.loadUserData().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -223,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Footer(
             screenHeight: screenHeight,
             screenWidth: screenWidth,
-            profilePicture: insertProfilePicture(),
+            profilePicture: userManager.insertProfilePicture(),
             onProfileImageUpdated: () {
               if (!mounted) return;
               setState(() {}); // safely rebuild HomeScreen
