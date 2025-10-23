@@ -275,3 +275,10 @@ Developmental progress by date is stored in this file.
 - Moved logic for storing profile picture to Firestore from personal_preferences.dart into user_data_manager.dart for refactoring purposes
 - Created a formula for calculating level experience needed: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10)
 - Added text on the experience bar that shows experience progress to the next level
+
+## 2025-10-22
+- Added a snackbar for popup for caught errors to updateProfilePicture()
+- Created an updateExpPoints() method
+- Used a ValueNotifier for rebuilding the Footer UI when experience points are updated (Was having issues / confusing using VoidCallbacks)
+- Added a blue visual indicator in the footer based on XP progress to the next level
+- Added text that show's the user's level under the Profile Picture in the footer

@@ -8,6 +8,7 @@ import '/user/user_data_manager.dart';
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
   onProfileImageUpdated; // callback to call HomeScreen when the profile picture is updated
+
   const PersonalPreferences({super.key, this.onProfileImageUpdated});
 
   @override
@@ -27,6 +28,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       await UserDataManager().updateProfilePicture(
         file,
         onProfileUpdated: widget.onProfileImageUpdated,
+        context: context,
       );
 
       if (mounted) {

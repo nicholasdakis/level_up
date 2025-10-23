@@ -38,106 +38,147 @@ class _FooterState extends State<Footer> {
                   widget.screenWidth * 0.7 +
                   widget.screenHeight *
                       0.045, // EXP bar width + half circle width
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Outer EXP bar
-                  Container(
-                    height: widget.screenHeight * 0.03,
-                    width: widget.screenWidth * 0.7,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  // Inner EXP bar
-                  Positioned(
-                    top: widget.screenHeight * 0.005,
-                    left: widget.screenWidth * 0.025,
-                    child: Container(
-                      height: widget.screenHeight * 0.02,
-                      width: widget.screenWidth * 0.65,
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 227, 210, 210),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  // Experience text
-                  Positioned.fill(
-                    child: Center(
-                      child: Stack(
-                        children: [
-                          // black outline around text
-                          Builder(
-                            builder: (context) {
-                              Paint outlinePaint = Paint();
-                              outlinePaint.style = PaintingStyle.stroke;
-                              outlinePaint.strokeWidth = 1;
-                              outlinePaint.color = Colors.black;
+              child: ValueListenableBuilder<int>(
+                valueListenable: expNotifier, // reactive XP value
+                builder: (context, exp, child) {
+                  final fullWidth = widget.screenWidth * 0.65;
+                  final progressWidth =
+                      fullWidth * (exp / (userManager.experienceNeeded ?? 1));
 
-                              return Text(
-                                '${currentUserData?.expPoints ?? 0} / ${userManager.experienceNeeded ?? 0}',
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Outer EXP bar
+                      Container(
+                        height: widget.screenHeight * 0.03,
+                        width: widget.screenWidth * 0.7,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      // Gray outline bar
+                      Positioned(
+                        top: widget.screenHeight * 0.005,
+                        left: widget.screenWidth * 0.025,
+                        child: Container(
+                          height: widget.screenHeight * 0.02,
+                          width: fullWidth,
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 227, 210, 210),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      // inner-most XP bar that fills up
+                      Positioned(
+                        top: widget.screenHeight * 0.005,
+                        left: widget.screenWidth * 0.025,
+                        child: Container(
+                          height: widget.screenHeight * 0.02,
+                          width: progressWidth,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      // Experience text
+                      Positioned.fill(
+                        child: Center(
+                          child: Stack(
+                            children: [
+                              // black outline around text
+                              Builder(
+                                builder: (context) {
+                                  Paint outlinePaint = Paint();
+                                  outlinePaint.style = PaintingStyle.stroke;
+                                  outlinePaint.strokeWidth = 1;
+                                  outlinePaint.color = Colors.black;
+
+                                  return Text(
+                                    '$exp / ${userManager.experienceNeeded ?? 0}',
+                                    style: TextStyle(
+                                      fontSize: widget.screenHeight * 0.015,
+                                      fontWeight: FontWeight.bold,
+                                      foreground: outlinePaint,
+                                    ),
+                                  );
+                                },
+                              ),
+                              // white color on the inside
+                              Text(
+                                '$exp / ${userManager.experienceNeeded ?? 0}',
                                 style: TextStyle(
                                   fontSize: widget.screenHeight * 0.015,
                                   fontWeight: FontWeight.bold,
-                                  foreground: outlinePaint,
+                                  color: Colors.white,
                                 ),
-                              );
-                            },
-                          ),
-                          // white color on the inside
-                          Text(
-                            '${currentUserData?.expPoints ?? 0} / ${userManager.experienceNeeded ?? 0}',
-                            style: TextStyle(
-                              fontSize: widget.screenHeight * 0.015,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Profile picture
-                  Positioned(
-                    right:
-                        -widget.screenWidth *
-                        0.02, // move both hitbox and profile picture to the right
-                    top:
-                        (widget.screenHeight * 0.03 -
-                            widget.screenHeight * 0.09) /
-                        2,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          debugPrint("Tapped");
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PersonalPreferences(
-                                onProfileImageUpdated:
-                                    widget.onProfileImageUpdated,
                               ),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(50),
-                        child: Container(
-                          width: widget.screenHeight * 0.09,
-                          height: widget.screenHeight * 0.09,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black,
+                            ],
                           ),
-                          child: ClipOval(child: widget.profilePicture),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                      // Profile picture
+                      Positioned(
+                        right:
+                            -widget.screenWidth *
+                            0.02, // move both hitbox and profile picture to the right
+                        top:
+                            (widget.screenHeight * 0.03 -
+                                widget.screenHeight * 0.09) /
+                            2,
+                        child: Column(
+                          children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  debugPrint("Tapped");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PersonalPreferences(
+                                        onProfileImageUpdated:
+                                            widget.onProfileImageUpdated,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(50),
+                                child: Container(
+                                  width: widget.screenHeight * 0.09,
+                                  height: widget.screenHeight * 0.09,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black,
+                                  ),
+                                  child: ClipOval(child: widget.profilePicture),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: widget.screenHeight * 0.005),
+                            // Display current level under profile picture
+                            Text(
+                              'Level ${currentUserData?.level ?? 1}',
+                              style: TextStyle(
+                                fontSize: widget.screenHeight * 0.015,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(1, 1),
+                                    color: Colors.black,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

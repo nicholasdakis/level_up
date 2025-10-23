@@ -24,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userManager.loadUserData().then((_) {
+      // sync ValueNotifier with loaded XP
+      expNotifier.value = currentUserData?.expPoints ?? 0;
       if (mounted) setState(() {});
     });
   }
@@ -186,6 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
             screenHeight: screenHeight,
             screenWidth: screenWidth,
             profilePicture: userManager.insertProfilePicture(),
+            // Rebuild footer with correct Profile Picture
             onProfileImageUpdated: () {
               if (!mounted) return;
               setState(() {}); // safely rebuild HomeScreen

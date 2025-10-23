@@ -3,6 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 
+ValueNotifier<int> expNotifier = ValueNotifier<int>(
+  currentUserData?.expPoints ?? 0,
+);
+
 UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
 final UserDataManager userManager =

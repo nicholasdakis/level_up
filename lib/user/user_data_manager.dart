@@ -66,6 +66,7 @@ class UserDataManager {
   Future<void> updateProfilePicture(
     File file, {
     VoidCallback? onProfileUpdated,
+    BuildContext? context, // for error snackbar
   }) async {
     try {
       // 1. Convert image to Base64
@@ -78,18 +79,59 @@ class UserDataManager {
         'pfpBase64': base64String,
       }, SetOptions(merge: true));
 
-      // 3. Update currentUserData with the base64 string
+      // 3. Update currentUserData with the complete stored variables with the updated profile picture
       currentUserData = UserData(
         uid: currentUserData!.uid,
         pfpBase64: base64String,
         level: currentUserData!.level,
         expPoints: currentUserData!.expPoints,
       );
-
-      // Call callback in case the UI must rebuild
+      // Call callback when the UI must rebuild
       onProfileUpdated?.call();
     } catch (e) {
-      rethrow; // Let the UI handle SnackBars
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture update unsuccessful: $e"),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateExpPoints(int expGained, {BuildContext? context}) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Case 1. The experience gained will lead to a level up
+      int newExp = expNotifier.value + expGained;
+      while (newExp >= experienceNeeded!) {
+        newExp -= experienceNeeded!;
+        currentUserData!.level += 1; // Increase level by 1 locally
+      }
+      // Case 2. Experience gained without leveling up handled by while loop above
+
+      // UPDATE LOCALLY
+      currentUserData!.expPoints = newExp;
+
+      // UPDATE ValueNotifier so UI rebuilds automatically
+      expNotifier.value = newExp;
+
+      // UPDATE TO FIRESTORE
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'level': currentUserData!.level,
+        'expPoints': currentUserData!.expPoints,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating experience points: $e"),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
     }
   }
 }
