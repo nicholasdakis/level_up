@@ -50,7 +50,7 @@ Widget textWithFont(
 Widget createTitle(String text, double screenWidth) {
   return Text(
     text,
-    style: GoogleFonts.pacifico(
+    style: GoogleFonts.dangrek(
       fontSize: screenWidth * 0.12,
       color: Colors.white,
       shadows: [
@@ -126,7 +126,7 @@ Widget buttonText(String text, double letterSize) {
   return Text(
     text,
     textAlign: TextAlign.center,
-    style: GoogleFonts.workSans(
+    style: GoogleFonts.dangrek(
       fontSize: letterSize,
       color: Colors.white,
       shadows: [

@@ -11,7 +11,7 @@ class RegisterOrLogin extends StatefulWidget {
 }
 
 class _RegisterOrLoginState extends State<RegisterOrLogin> {
-  // Keep track of enterred email and password fields
+  // Keep track of entered email and password fields
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String? notifyingMessage;
@@ -87,10 +87,12 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                               email: emailController.text.trim(),
                               password: passwordController.text.trim(),
                             );
+                            if (!mounted) return;
                             setState(() {
                               notifyingMessage = "Registration successful";
                             });
                           } catch (e) {
+                            if (!mounted) return;
                             setState(() {
                               notifyingMessage = "Registration error: $e";
                             });
@@ -122,10 +124,12 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                               email: emailController.text.trim(),
                               password: passwordController.text.trim(),
                             );
+                            if (!mounted) return;
                             setState(() {
                               notifyingMessage = "Login successful";
                             });
                           } catch (e) {
+                            if (!mounted) return;
                             setState(() {
                               notifyingMessage = "Login error: $e";
                             });

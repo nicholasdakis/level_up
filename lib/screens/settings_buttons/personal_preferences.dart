@@ -16,6 +16,9 @@ class PersonalPreferences extends StatefulWidget {
 }
 
 class _PersonalPreferencesState extends State<PersonalPreferences> {
+  TextEditingController? usernameController =
+      TextEditingController(); // controller to read the user's input for username change
+
   Future _pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -75,8 +78,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Update profile picture button
                         SizedBox(
-                          height: screenHeight * 0.15,
+                          height: screenHeight * 0.1,
                           width: screenWidth * 0.90,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -94,9 +98,127 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               _pickProfileImage();
                             },
                             child: buttonText(
-                              "Update Profile Picture",
+                              "Profile Picture",
                               screenWidth * 0.1,
                             ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: screenHeight * 0.05,
+                            child: Text(
+                              "Please wait for confirmation that your profile picture has been updated before exiting this screen.",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        // Update username button
+                        SizedBox(
+                          height: screenHeight * 0.1,
+                          width: screenWidth * 0.90,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              backgroundColor: Color(0xFF2A2A2A),
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.black,
+                                width: screenWidth * 0.005,
+                              ),
+                            ),
+                            onPressed: () {
+                              // Dialog box for updating username
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: Colors.grey[900],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  title: Text(
+                                    "Update your username",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Current username: \n ${currentUserData?.username ?? ''}",
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      SizedBox(height: 10),
+                                      TextField(
+                                        controller: usernameController,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              "Enter your updated username.",
+                                          hintStyle: TextStyle(
+                                            color: Colors.white54,
+                                          ),
+                                          enabledBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.white24,
+                                            ),
+                                          ),
+                                          focusedBorder: UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        TextButton(
+                                          child: Text(
+                                            "CANCEL",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          // close if canceled
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                        ),
+                                        TextButton(
+                                          child: Text(
+                                            "CONFIRM",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          // Handle username update
+                                          onPressed: () {
+                                            String updatedUsername =
+                                                usernameController!.text.trim();
+                                            UserDataManager().updateUsername(
+                                              updatedUsername,
+                                              context,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ).then((_) {
+                                // Reset the text field after exiting the dialog box
+                                usernameController!.text = "";
+                              });
+                            },
+                            child: buttonText("Username", screenWidth * 0.1),
                           ),
                         ),
                       ],

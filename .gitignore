@@ -54,4 +54,7 @@ android/app/src/main/AndroidManifest.xml
 # Ignore iOS AppDelegate
 ios/Runner/AppDelegate.swift
 
+# web index
+web\index.html
+
 

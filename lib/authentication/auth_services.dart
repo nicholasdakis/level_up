@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
@@ -18,10 +20,26 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    return await firebaseAuth.createUserWithEmailAndPassword(
+    // 1. Create the user in Firebase Auth
+    final credential = await firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    // 2. Refresh the user after account creation
+    await FirebaseAuth.instance.currentUser!.reload();
+
+    // 3. Store this user into the Firestore database
+    final uid = credential.user!.uid;
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'username': uid, // default username = UID
+      'level': 1, // starting level
+      'expPoints': 0, // starting XP
+      'pfpBase64': null, // no profile picture yet
+    });
+
+    // 3. Return the Auth credential
+    return credential;
   }
 
   // SIGNING IN WITH EMAIL AND PASSWORD

@@ -8,15 +8,18 @@ import '../globals.dart';
 import 'user_data.dart';
 
 class UserDataManager {
-  // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10)
+  // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
   int? get experienceNeeded {
     if (currentUserData == null) return null;
-    return (100 * pow(1.25, currentUserData!.level - 0.5) * 1.05 +
-            (currentUserData!.level * 10))
-        .round();
+    int exp =
+        (100 * pow(1.25, currentUserData!.level - 0.5) * 1.05 +
+                (currentUserData!.level * 10))
+            .round();
+    // Round the experience formula to a multiple of 10
+    return (exp / 10).round() * 10;
   }
 
-  // Loads the user's profile picture, level, and experience from Firebase if they exist
+  // Loads the user's profile picture, level, experience, and username from Firebase if they exist
   Future<void> loadUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     // if the user is logged in
@@ -28,6 +31,7 @@ class UserDataManager {
           pfpBase64: null,
           level: 1,
           expPoints: 0,
+          username: uid, // default username is uid
         );
       }
       final doc = await FirebaseFirestore.instance
@@ -45,6 +49,10 @@ class UserDataManager {
       // if the user has stored expPoints, load them
       if (doc.exists && doc.data()?['expPoints'] != null) {
         currentUserData?.expPoints = doc.data()?['expPoints'];
+      }
+      // if the user has a stored username, load it
+      if (doc.exists && doc.data()?['username'] != null) {
+        currentUserData?.username = doc.data()?['username'];
       }
     }
   }
@@ -85,6 +93,7 @@ class UserDataManager {
         pfpBase64: base64String,
         level: currentUserData!.level,
         expPoints: currentUserData!.expPoints,
+        username: currentUserData!.username,
       );
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
@@ -132,6 +141,65 @@ class UserDataManager {
           ),
         );
       }
+    }
+  }
+
+  // Method for checking if a username already exists on the server
+  Future<bool> usernameExists(String username) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .where(
+          'username',
+          isEqualTo: username.toLowerCase(),
+        ) // username uniqueness is not case sensitive
+        .get();
+
+    // Check if any doc with this username belongs to another user
+    for (var doc in query.docs) {
+      if (doc.id != uid) {
+        return true; // duplicate found for another user
+      }
+    }
+    return false; // No duplicates. Either the user is modifying capitalization, or choosing a new username entirely
+  }
+
+  Future<void> updateUsername(
+    String updatedUsername,
+    BuildContext context,
+  ) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // First, check that the username is not already assigned to another user
+      if (await usernameExists(updatedUsername)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: This username is taken."),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      } else {
+        // Update locally
+        currentUserData!.username = updatedUsername;
+        // Update to Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'username': currentUserData!.username,
+        }, SetOptions(merge: true));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Success! Username updated."),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating username: $e"),
+          duration: const Duration(milliseconds: 1500),
+        ),
+      );
     }
   }
 }

@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userManager.loadUserData().then((_) {
-      // sync ValueNotifier with loaded XP
+      // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
       expNotifier.value = currentUserData?.expPoints ?? 0;
       if (mounted) setState(() {});
     });

@@ -282,3 +282,20 @@ Developmental progress by date is stored in this file.
 - Used a ValueNotifier for rebuilding the Footer UI when experience points are updated (Was having issues / confusing using VoidCallbacks)
 - Added a blue visual indicator in the footer based on XP progress to the next level
 - Added text that show's the user's level under the Profile Picture in the footer
+
+## 2025-10-24
+- Made the Explore tab map accessible when opening the app through the web
+- Added a theme in main.dart to remove the automatic purple underlines / text in text boxes
+- Added a username field for the user's data
+- Added a button in Personal Preferences for updating username. All usernames must be unique, and the default username is the user's UID
+- Usernames can be updated to modify capitalization. E.g. john to John
+- Changed button and header fonts to dangrek
+- Automatically store newly-created user data to Firestore upon account creation
+- Added mounted checks before setState() methods in register_or_login.dart to prevent crashes due to the line above
+- Experience formula updated to be rounded to a multiple of 10
+- Edited Firestore rules to allow writing username changes
+- Added a note under the "Profile Picture" button saying to wait for the confirmation snackbar before exiting the Personal Preferences tab
+- Created an index on Firestore that sorts level and expPoints in descending order (for Leaderboards)
+- Loaded users by level and expPoints to create the Leaderboard tab
+- First place gets gold text, second place gets silver text, third place gets bronze text, all others receive white text
+- The Leaderboard tab shows each user's position, profile picture, username, current level, current experience, and experience required to level up
