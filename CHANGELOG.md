@@ -299,3 +299,25 @@ Developmental progress by date is stored in this file.
 - Loaded users by level and expPoints to create the Leaderboard tab
 - First place gets gold text, second place gets silver text, third place gets bronze text, all others receive white text
 - The Leaderboard tab shows each user's position, profile picture, username, current level, current experience, and experience required to level up
+
+## 2025-10-26
+- Added an input box in the Reminders tab
+
+## 2025-10-29
+- Added an optional onPressed voidCallback and onPressed() logic code to customButton() to handle onPressed()
+- Added a cupertino-style date and time picker for the Reminders tab
+- Used the logic from the "Log Food" button to add a "Set Reminder" button in the Reminders tab
+- Setup permissions for notifications in the AndroidManifest and AppDelegate files
+- Added a package for retrieving the user's local timezone
+- Initialized the notifications plugin during app startup in main.dart
+- Added an import for requesting notification permissions cross-platform
+- A notification should have been sent based on the time the user picks the reminder to appear at
+- Major problem I faced: Notifications were not working on the Xiaomi phone I was testing on due to strict background killing
+- Solution: Firebase Cloud Messaging to send the Notifications themselves
+- Problem: Firebase Functions required paying, so had to revert these changes
+- Troubleshooted and realized the notification testing was making all notifications send in 30 minutes, which is why nothing appeared (as opposed to believing it to be strict OS properties of Xiaomi phones)
+- Fixed by scheduling the notification to the exact chosen time
+- Instead of attempting to default to 30 minutes into the future if no time is chosen, a snackbar appears prompting the user to enter a time
+- Added validity checks to prevent reminders in the past being set
+- Updated the README file to make it much more informative and visually pleasing
+- Updated the font of the Results tab to be consistent with the other titles

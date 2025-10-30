@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 
@@ -11,6 +12,8 @@ UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin(); // global instance of the notification plugin
 
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(
@@ -156,6 +159,7 @@ Widget buttonText(String text, double letterSize) {
 }
 
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
+// CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(
   String text,
   double letterSize,
@@ -163,6 +167,7 @@ Widget customButton(
   double screenWidth,
   BuildContext context, {
   Widget? destination,
+  VoidCallback? onPressed, // optional callback for custom actions
 }) {
   return SizedBox(
     // to explicitly control the ElevatedButton size
@@ -175,13 +180,16 @@ Widget customButton(
         foregroundColor: Colors.white, // Button text color
         side: BorderSide(color: Colors.black, width: screenWidth * 0.005),
       ),
-      onPressed: () {
-        if (destination == null) {
-          // No desination, so stop
-          return;
-        }
-        changeToScreen(context, destination);
-      },
+      onPressed:
+          onPressed ??
+          () {
+            // If no custom action provided, fallback to navigation
+            if (destination == null) {
+              // No destination, so stop
+              return;
+            }
+            changeToScreen(context, destination);
+          },
       child: buttonText(text, screenWidth * 0.1),
     ),
   );

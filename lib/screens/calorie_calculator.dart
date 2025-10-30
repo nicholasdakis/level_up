@@ -58,7 +58,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         backgroundColor: Color(0xFF121212),
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Calculator", screenWidth)
+        title: createTitle("Calculator", screenWidth),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -788,7 +788,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                             ),
                           );
                         },
-                        
+
                         child: Center(
                           child: Text(
                             "Get Results",

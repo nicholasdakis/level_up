@@ -99,35 +99,62 @@ class _ResultsState extends State<Results> {
   String calculateGoal() {
     int userTDEE = calculateTDEE(calculateBMR(), calculateActivityLevel());
     // Case 1: Goal is to maintian
-    if (widget.goal=="Maintain Weight") {
+    if (widget.goal == "Maintain Weight") {
       return "You must consume $userTDEE calories per day to maintain your weight.";
     }
     StringBuffer sb = StringBuffer();
     // Case 2: Goal is to lose
-    if (widget.goal=="Lose Weight") {
-      if (widget.units=="Imperial") {
-      sb.write("• A healthy weight loss rate is 0.5-2 pounds per week.\n\n");
-      sb.write("• To lose 0.5 pounds per week, consume ${userTDEE-250} calories per day.\n\n");
-      sb.write("• To lose 1 pound per week, consume ${userTDEE-500} calories per day.\n\n");
-      sb.write("• To lose 1.5 pounds per week, consume ${userTDEE-750} calories per day.\n\n");
-      sb.write("• To lose 2 pounds per week, consume ${userTDEE-1000} calories per day.");
+    if (widget.goal == "Lose Weight") {
+      if (widget.units == "Imperial") {
+        sb.write("• A healthy weight loss rate is 0.5-2 pounds per week.\n\n");
+        sb.write(
+          "• To lose 0.5 pounds per week, consume ${userTDEE - 250} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 1 pound per week, consume ${userTDEE - 500} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 1.5 pounds per week, consume ${userTDEE - 750} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 2 pounds per week, consume ${userTDEE - 1000} calories per day.",
+        );
+      } else {
+        sb.write(
+          "• A healthy weight loss rate is 0.23-0.9 kilograms per week.\n\n",
+        );
+        sb.write(
+          "• To lose 0.23 kilograms per week, consume ${userTDEE - 250} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 0.45 kilograms per week, consume ${userTDEE - 500} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 0.68 kilograms per week, consume ${userTDEE - 750} calories per day.\n\n",
+        );
+        sb.write(
+          "• To lose 0.9 kilograms per week, consume ${userTDEE - 1000} calories per day.",
+        );
       }
-      else {
-      sb.write("• A healthy weight loss rate is 0.23-0.9 kilograms per week.\n\n");
-      sb.write("• To lose 0.23 kilograms per week, consume ${userTDEE-250} calories per day.\n\n");
-      sb.write("• To lose 0.45 kilograms per week, consume ${userTDEE-500} calories per day.\n\n");
-      sb.write("• To lose 0.68 kilograms per week, consume ${userTDEE-750} calories per day.\n\n");
-      sb.write("• To lose 0.9 kilograms per week, consume ${userTDEE-1000} calories per day.");
-      }
-    // Case 3: Goal is to gain
-    } else if (widget.units=="Imperial" && widget.goal=="Gain Weight") {
+      // Case 3: Goal is to gain
+    } else if (widget.units == "Imperial" && widget.goal == "Gain Weight") {
       sb.write("• A healthy weight gain rate is 0.5-1 pound per week.\n\n");
-      sb.write("• To gain 0.5 pounds per week, consume ${userTDEE+250} calories per day.\n\n");
-      sb.write("• To gain 1 pound per week, consume ${userTDEE+500} calories per day.");   
+      sb.write(
+        "• To gain 0.5 pounds per week, consume ${userTDEE + 250} calories per day.\n\n",
+      );
+      sb.write(
+        "• To gain 1 pound per week, consume ${userTDEE + 500} calories per day.",
+      );
     } else {
-      sb.write("• A healthy weight gain rate is 0.23-0.45 kilograms per week.\n\n");
-      sb.write("• To gain 0.23 kilograms per week, consume ${userTDEE+250} calories per day.\n\n");
-      sb.write("• To gain 0.45 kilograms per week, consume ${userTDEE+500} calories per day.");
+      sb.write(
+        "• A healthy weight gain rate is 0.23-0.45 kilograms per week.\n\n",
+      );
+      sb.write(
+        "• To gain 0.23 kilograms per week, consume ${userTDEE + 250} calories per day.\n\n",
+      );
+      sb.write(
+        "• To gain 0.45 kilograms per week, consume ${userTDEE + 500} calories per day.",
+      );
     }
     return sb.toString();
   }
@@ -169,7 +196,7 @@ class _ResultsState extends State<Results> {
         toolbarHeight: screenHeight * 0.15,
         title: Text(
           "Results",
-          style: GoogleFonts.pacifico(
+          style: GoogleFonts.dangrek(
             fontSize: screenWidth * 0.12,
             color: Colors.white,
             shadows: [
@@ -322,11 +349,7 @@ class _ResultsState extends State<Results> {
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
-                textWithCard(
-                  calculateGoal(),
-                  screenWidth,
-                  0.04,
-                )
+                textWithCard(calculateGoal(), screenWidth, 0.04),
               ],
             ),
           ),

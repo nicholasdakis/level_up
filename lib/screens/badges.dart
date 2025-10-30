@@ -25,7 +25,12 @@ class _BadgesState extends State<Badges> {
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Badges", screenWidth),
       ),
-      body: Center(child: Text("Badges tab")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [const Text("Badges tab")],
+        ),
+      ),
     );
   }
 }

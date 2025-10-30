@@ -58,5 +58,12 @@
     <true/>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+    <key>NSLocalNotificationsUsageDescription</key>
+    <string>This app uses notifications to remind you about important events.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+    <string>fetch</string>
+    <string>remote-notification</string>
+    </array>
 </dict>
 </plist>
