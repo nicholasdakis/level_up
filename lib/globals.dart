@@ -159,7 +159,6 @@ Widget buttonText(String text, double letterSize) {
 }
 
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
-// CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(
   String text,
   double letterSize,

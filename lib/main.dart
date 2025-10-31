@@ -44,10 +44,11 @@ Future<void> main() async {
   try {
     final timezoneInfo = await FlutterTimezone.getLocalTimezone();
     final String timeZoneString = timezoneInfo.toString();
-    final String timeZoneName = timeZoneString
-        .split('(')[1]
-        .split(')')[0]
-        .split(',')[0];
+    final String timeZoneName =
+        timeZoneString // Splits to get the part of the important part of the timezone, e.g "America/New_York"
+            .split('(')[1]
+            .split(')')[0]
+            .split(',')[0];
     tz.setLocalLocation(tz.getLocation(timeZoneName));
   } catch (e) {
     tz.setLocalLocation(

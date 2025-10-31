@@ -321,3 +321,13 @@ Developmental progress by date is stored in this file.
 - Added validity checks to prevent reminders in the past being set
 - Updated the README file to make it much more informative and visually pleasing
 - Updated the font of the Results tab to be consistent with the other titles
+
+## 2025-10-30
+- Added donation handling to the Donate page
+- Used the flutter_svg package to show the PayPal button logo in high quality
+- Deleted the Donate tab and instead added it as part of the "About The Developer" tab
+- Added a description of the developer with a placeholder picture
+- Added a "Send Feedback" button that redirects to the developer email for sending feedback
+- Added the PayPal logo as a clickable redirect to the donation page
+- Added a confirmation dialog popup after "Log Out" is pressed
+- Changed the font of "Settings" to match the other titles

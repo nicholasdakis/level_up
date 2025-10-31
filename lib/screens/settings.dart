@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
 import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
-import 'settings_buttons/donate.dart';
 import '../authentication/auth_services.dart';
 
 Widget buildSettingsDrawer(
@@ -31,7 +30,7 @@ Widget buildSettingsDrawer(
               textAlign: TextAlign.center,
               text: TextSpan(
                 text: "Settings",
-                style: GoogleFonts.pacifico(
+                style: GoogleFonts.dangrek(
                   fontSize: screenWidth * 0.15,
                   color: Colors
                       .white, // defaults to white if no parameter is given
@@ -52,7 +51,8 @@ Widget buildSettingsDrawer(
             screenWidth,
             context,
             destination: PersonalPreferences(
-              onProfileImageUpdated: onProfileImageUpdated, // update the callback to update the Home Screen
+              onProfileImageUpdated:
+                  onProfileImageUpdated, // update the callback to update the Home Screen
             ),
             startOffset: Offset(-1, 0),
           ),
@@ -62,14 +62,6 @@ Widget buildSettingsDrawer(
             screenWidth,
             context,
             destination: AboutTheDeveloper(),
-            startOffset: Offset(-1, 0),
-          ),
-          drawerItem(
-            "Donate",
-            Icons.monetization_on,
-            screenWidth,
-            context,
-            destination: Donate(),
             startOffset: Offset(-1, 0),
           ),
           Material(
@@ -85,7 +77,55 @@ Widget buildSettingsDrawer(
               ),
               hoverColor: Color.fromARGB(255, 43, 43, 43),
               onTap: () async {
-                await authService.value.signOut();
+                // Dialog box for confirming logout
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Colors.grey[900],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: Text(
+                      "Confirm Logout",
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    actions: [
+                      Row(
+                        mainAxisAlignment:
+                            // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            child: Text(
+                              "CANCEL",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            // close if canceled
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          TextButton(
+                            child: Text(
+                              "CONFIRM",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            // Handle logout
+                            onPressed: () async {
+                              // close the dialog box
+                              Navigator.pop(context);
+                              // sign out
+                              await authService.value.signOut();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ),
