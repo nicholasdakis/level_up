@@ -29,7 +29,7 @@ Widget textWithFont(
     textAlign: alignment ?? TextAlign.center,
     text: TextSpan(
       text: text,
-      style: GoogleFonts.russoOne(
+      style: GoogleFonts.manrope(
         fontSize: screenWidth * letterSize,
         color:
             color ?? Colors.white, // defaults to white if no parameter is given
@@ -77,7 +77,7 @@ Widget textWithCard(String text, double screenWidth, double letterSize) {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: GoogleFonts.russoOne(
+        style: GoogleFonts.manrope(
           fontSize: letterSize * screenWidth,
           color: Colors.white,
           shadows: [

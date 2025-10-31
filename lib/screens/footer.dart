@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:level_up/screens/settings_buttons/personal_preferences.dart';
 import '../globals.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Footer extends StatefulWidget {
   final double screenHeight;
@@ -23,6 +25,10 @@ class Footer extends StatefulWidget {
 class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
+    double screenHeight =
+        1.sh; // Make widgets the size of the user's personal screen size
+    double screenWidth =
+        1.sw; // Make widgets the size of the user's personal screen size
     return Container(
       height: widget.screenHeight * 0.15,
       width: widget.screenWidth,
@@ -57,7 +63,7 @@ class _FooterState extends State<Footer> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      // Gray outline bar
+                      // Light Gray bar
                       Positioned(
                         top: widget.screenHeight * 0.005,
                         left: widget.screenWidth * 0.025,
@@ -65,7 +71,7 @@ class _FooterState extends State<Footer> {
                           height: widget.screenHeight * 0.02,
                           width: fullWidth,
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 227, 210, 210),
+                            color: const Color.fromARGB(255, 175, 169, 169),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -153,22 +159,34 @@ class _FooterState extends State<Footer> {
                                     shape: BoxShape.circle,
                                     color: Colors.black,
                                   ),
-                                  child: ClipOval(child: widget.profilePicture),
+                                  // black border around profile picture
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 4, // pfp border width
+                                      ),
+                                    ),
+                                    child: ClipOval(
+                                      child: widget.profilePicture,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                            SizedBox(height: widget.screenHeight * 0.005),
+                            SizedBox(height: widget.screenHeight * 0.001),
                             // Display current level under profile picture
                             Text(
                               'Level ${currentUserData?.level ?? 1}',
-                              style: TextStyle(
-                                fontSize: widget.screenHeight * 0.015,
-                                fontWeight: FontWeight.bold,
+                              style: GoogleFonts.manrope(
+                                fontSize: screenWidth * 0.03,
                                 color: Colors.white,
                                 shadows: [
                                   Shadow(
-                                    offset: Offset(1, 1),
-                                    color: Colors.black,
+                                    offset: Offset(4, 4),
+                                    blurRadius: 10,
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ],
                               ),

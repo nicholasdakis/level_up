@@ -57,7 +57,7 @@ class _RemindersState extends State<Reminders> {
             TextField(
               controller: remindersController,
               keyboardType: TextInputType.text,
-              style: GoogleFonts.russoOne(
+              style: GoogleFonts.manrope(
                 fontSize: screenWidth * 0.05,
                 color: Colors.white,
                 shadows: [
@@ -78,7 +78,7 @@ class _RemindersState extends State<Reminders> {
                 ),
                 hintText: "       Enter a reminder.",
                 contentPadding: EdgeInsets.only(top: 13, left: 6),
-                hintStyle: GoogleFonts.russoOne(
+                hintStyle: GoogleFonts.manrope(
                   fontSize: screenWidth * 0.05,
                   color: Colors.white,
                   shadows: [

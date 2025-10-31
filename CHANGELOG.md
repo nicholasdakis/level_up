@@ -331,3 +331,13 @@ Developmental progress by date is stored in this file.
 - Added the PayPal logo as a clickable redirect to the donation page
 - Added a confirmation dialog popup after "Log Out" is pressed
 - Changed the font of "Settings" to match the other titles
+
+## 2025-10-31
+- Replaced russoOne font with manrope font
+- snackBar theme updated to match the gray theme of the app
+- Created claimDailyReward() method and canClaimDailyReward and lastDailyClaim variables for adding daily rewards
+- claimDailyReward() updates the variables if a claim can be made, otherwise it sets canClaimDailyReward to 
+- There is a 23 hour period between each daily reward claim
+- Updated loadUserDate() to properly handle new fields being added to existing users (adding that field to the user's database)
+- Popup dialog appears when the user opens the Home Screen and an XP reward can be claimed
+- Daily XP given is somewhat random and based on the user's level

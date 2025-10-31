@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
 import 'dart:io'; // for base64
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '/user/user_data_manager.dart';
 
 class PersonalPreferences extends StatefulWidget {
@@ -110,6 +111,17 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             child: Text(
                               "Please wait for confirmation that your profile picture has been updated before exiting this screen.",
                               textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                fontSize: screenWidth * 0.03,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(4, 4),
+                                    blurRadius: 10,
+                                    color: const Color.fromARGB(255, 0, 0, 0),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

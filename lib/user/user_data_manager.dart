@@ -19,7 +19,7 @@ class UserDataManager {
     return (exp / 10).round() * 10;
   }
 
-  // Loads the user's profile picture, level, experience, and username from Firebase if they exist
+  // Loads the user's information from Firebase if it exists
   Future<void> loadUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     // if the user is logged in
@@ -31,6 +31,8 @@ class UserDataManager {
           pfpBase64: null,
           level: 1,
           expPoints: 0,
+          canClaimDailyReward: true,
+          lastDailyClaim: null,
           username: uid, // default username is uid
         );
       }
@@ -41,18 +43,59 @@ class UserDataManager {
       // if the user has a stored profile picture in Base64, load that profile picture
       if (doc.exists && doc.data()?['pfpBase64'] != null) {
         currentUserData?.pfpBase64 = doc.data()?['pfpBase64'];
+        // else statement so existent users can add any newly added fields
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'pfpBase64': null,
+        }, SetOptions(merge: true));
       }
+
       // if the user has a stored level, load that level
       if (doc.exists && doc.data()?['level'] != null) {
         currentUserData?.level = doc.data()?['level'];
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'level': 1,
+        }, SetOptions(merge: true));
       }
+
       // if the user has stored expPoints, load them
       if (doc.exists && doc.data()?['expPoints'] != null) {
         currentUserData?.expPoints = doc.data()?['expPoints'];
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'expPoints': 0,
+        }, SetOptions(merge: true));
       }
+
+      // load the boolean for claiming the daily reward if it exists
+      if (doc.exists && doc.data()?['canClaimDailyReward'] != null) {
+        currentUserData?.canClaimDailyReward = doc
+            .data()?['canClaimDailyReward'];
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'canClaimDailyReward': true,
+        }, SetOptions(merge: true));
+      }
+
+      // load the last claiming date if it exists
+      if (doc.exists && doc.data()?['lastDailyClaim'] != null) {
+        // Convert to Timestamp so Firestore understands (Firestore stores dates as Timestamp, not DateTime)
+        final timestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
+        currentUserData?.lastDailyClaim = timestamp?.toDate();
+      } else {
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'lastDailyClaim': null,
+        }, SetOptions(merge: true));
+      }
+
       // if the user has a stored username, load it
       if (doc.exists && doc.data()?['username'] != null) {
         currentUserData?.username = doc.data()?['username'];
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'username': uid,
+        }, SetOptions(merge: true));
       }
     }
   }
@@ -141,6 +184,34 @@ class UserDataManager {
           ),
         );
       }
+    }
+  }
+
+  // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CLAIMDAILYREWARD APPROPRIATELY
+  Future<bool> claimDailyReward() async {
+    // Returns true if reward was successfully claimed, false otherwise
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    DateTime? lastClaim = currentUserData!.lastDailyClaim;
+
+    if (lastClaim == null ||
+        DateTime.now().isAfter(lastClaim.add(Duration(hours: 23)))) {
+      final now = DateTime.now();
+
+      // Update Firestore first
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'canClaimDailyReward': false,
+        'lastDailyClaim': Timestamp.fromDate(now),
+      }, SetOptions(merge: true));
+
+      // Only after Firestore update, update local state
+      currentUserData!.canClaimDailyReward = false;
+      currentUserData!.lastDailyClaim = now;
+
+      return true; // Successfully claimed
+    } else {
+      // Not enough time passed, cannot claim
+      currentUserData!.canClaimDailyReward = false;
+      return false;
     }
   }
 

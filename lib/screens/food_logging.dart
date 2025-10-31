@@ -188,7 +188,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   controller: searchController,
                   enabled: userCanType,
                   keyboardType: TextInputType.text,
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     // style of the input text
                     fontSize: screenWidth * 0.04,
                     color: Colors.white,
@@ -216,7 +216,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       top: 13,
                       left: 6,
                     ), // Move the text down and to the right to look more natural
-                    hintStyle: GoogleFonts.russoOne(
+                    hintStyle: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -266,7 +266,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       maxHeight:
                           200, // adds a scrollbar if needed (if larger than 200px)
                     ),
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -279,7 +279,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     ),
                     hint: Text(
                       "Meal Type",
-                      style: GoogleFonts.russoOne(
+                      style: GoogleFonts.manrope(
                         fontSize: screenWidth * 0.05,
                         color: Colors.white,
                         shadows: [
@@ -422,7 +422,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         title: Text(
                           food['food_name'] ??
                               '', // List the food name (or nothing if nothing is found)
-                          style: GoogleFonts.russoOne(color: Colors.white),
+                          style: GoogleFonts.manrope(color: Colors.white),
                         ),
                         subtitle: Text(
                           food['food_description'] ??

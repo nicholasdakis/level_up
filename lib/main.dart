@@ -115,6 +115,10 @@ class MyApp extends StatelessWidget {
                 foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
             ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: Color(0xFF2A2A2A),
+              contentTextStyle: TextStyle(color: Colors.white),
+            ),
             elevatedButtonTheme: ElevatedButtonThemeData(
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.all(

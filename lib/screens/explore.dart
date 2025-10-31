@@ -112,7 +112,7 @@ class _ExploreState extends State<Explore> {
                             children: [
                               Text(
                                 "Nearby Experience Spots",
-                                style: GoogleFonts.russoOne(
+                                style: GoogleFonts.manrope(
                                   fontSize: 20.sp,
                                   color: Colors.white,
                                 ),

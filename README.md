@@ -1,6 +1,6 @@
 # Level Up! 🎮💪
 
-**Level Up** is a health app that aims to make **fitness** enjoyable by encouraging activity via **experience gain** and **badge acquisition**. It includes helpful tools, all of which are listed below. 🚀
+**Level Up!** is a health app that aims to make **fitness** enjoyable by encouraging activity via **experience gain** and **badge acquisition**. It includes helpful tools, all of which are listed below. 🚀
 
 ## Changelog 📝
 
@@ -38,6 +38,9 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - **Login and registration** system
 - **Profile synchronization** across devices
 - **Data persistence** for user progress and settings
+
+### 🎁 Daily XP Reward
+- Users can **claim a daily experience reward** once every 24 hours
 
 ### 👤 Footer Tab
 - Displays the user's **current experience points** and **level**

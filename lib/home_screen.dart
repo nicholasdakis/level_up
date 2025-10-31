@@ -9,6 +9,7 @@ import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/settings.dart';
 import 'screens/footer.dart';
+import 'screens/daily_rewards.dart';
 import 'globals.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,11 +24,22 @@ class _HomeScreenState extends State<HomeScreen> {
   // Load user data from Firestore
   void initState() {
     super.initState();
-    userManager.loadUserData().then((_) {
-      // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
-      expNotifier.value = currentUserData?.expPoints ?? 0;
-      if (mounted) setState(() {});
-    });
+    initializeUser();
+  }
+
+  // Method for initializing the user's stats from Firestore
+  Future<void> initializeUser() async {
+    await userManager.loadUserData(); // load stats first
+
+    // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
+    expNotifier.value = currentUserData?.expPoints ?? 0;
+
+    // Only show the daily reward dialog after user data is loaded and mounted
+    if (mounted && currentUserData!.canClaimDailyReward) {
+      DailyRewardDialog.showDailyRewardDialog(context);
+    }
+
+    if (mounted) setState(() {}); // rebuild UI with loaded stats
   }
 
   @override
@@ -36,6 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
         1.sh; // Make widgets the size of the user's personal screen size
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
+    // Show loading if user data not loaded yet
+    if (currentUserData == null) {
+      return Scaffold(
+        backgroundColor: Color(0xFF1E1E1E),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       drawer: buildSettingsDrawer(
         screenWidth,

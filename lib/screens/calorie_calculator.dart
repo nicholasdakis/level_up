@@ -83,7 +83,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -96,7 +96,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "     Choose your units",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -177,7 +177,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -190,7 +190,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "Select Calorie Equation",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -236,7 +236,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -249,7 +249,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "      Choose your sex",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -289,7 +289,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -302,7 +302,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "      Choose your age",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -358,7 +358,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                           RegExp(r'^\d*\.?\d*$'),
                         ),
                       ],
-                      style: GoogleFonts.russoOne(
+                      style: GoogleFonts.manrope(
                         // style of the input text
                         fontSize: screenWidth * 0.05,
                         color: Colors.white,
@@ -394,7 +394,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                           top: 13,
                           left: 6,
                         ), // Move the text down and to the right to look more natural
-                        hintStyle: GoogleFonts.russoOne(
+                        hintStyle: GoogleFonts.manrope(
                           fontSize: screenWidth * 0.05,
                           color: Colors.white,
                           shadows: [
@@ -429,7 +429,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -442,7 +442,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "   Choose your height",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.05,
                       color: Colors.white,
                       shadows: [
@@ -496,7 +496,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -509,7 +509,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "Choose your calorie goal",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.045,
                       color: Colors.white,
                       shadows: [
@@ -559,7 +559,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     maxHeight:
                         200, // adds a scrollbar if needed (if larger than 200px)
                   ),
-                  style: GoogleFonts.russoOne(
+                  style: GoogleFonts.manrope(
                     fontSize: screenWidth * 0.05,
                     color: Colors.white,
                     shadows: [
@@ -572,7 +572,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   hint: Text(
                     "Choose your activity level",
-                    style: GoogleFonts.russoOne(
+                    style: GoogleFonts.manrope(
                       fontSize: screenWidth * 0.045,
                       color: Colors.white,
                       shadows: [
