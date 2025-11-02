@@ -40,10 +40,11 @@ class UserDataManager {
           .collection('users')
           .doc(uid)
           .get();
+
       // if the user has a stored profile picture in Base64, load that profile picture
       if (doc.exists && doc.data()?['pfpBase64'] != null) {
         currentUserData?.pfpBase64 = doc.data()?['pfpBase64'];
-        // else statement so existent users can add any newly added fields
+        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'pfpBase64': null,
@@ -53,6 +54,7 @@ class UserDataManager {
       // if the user has a stored level, load that level
       if (doc.exists && doc.data()?['level'] != null) {
         currentUserData?.level = doc.data()?['level'];
+        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'level': 1,
@@ -62,19 +64,10 @@ class UserDataManager {
       // if the user has stored expPoints, load them
       if (doc.exists && doc.data()?['expPoints'] != null) {
         currentUserData?.expPoints = doc.data()?['expPoints'];
+        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'expPoints': 0,
-        }, SetOptions(merge: true));
-      }
-
-      // load the boolean for claiming the daily reward if it exists
-      if (doc.exists && doc.data()?['canClaimDailyReward'] != null) {
-        currentUserData?.canClaimDailyReward = doc
-            .data()?['canClaimDailyReward'];
-      } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'canClaimDailyReward': true,
         }, SetOptions(merge: true));
       }
 
@@ -84,14 +77,34 @@ class UserDataManager {
         final timestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
         currentUserData?.lastDailyClaim = timestamp?.toDate();
       } else {
+        currentUserData?.lastDailyClaim = null;
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'lastDailyClaim': null,
+        }, SetOptions(merge: true));
+      }
+
+      // load the boolean for claiming the daily reward
+      final lastClaim = currentUserData?.lastDailyClaim;
+      final now = DateTime.now();
+      // Case 1: Can claim because 23+ hours passed, or the user has never claimed before
+      if (lastClaim == null ||
+          now.isAfter(lastClaim.add(Duration(hours: 23)))) {
+        currentUserData?.canClaimDailyReward = true;
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'canClaimDailyReward': true,
+        }, SetOptions(merge: true));
+        // Case 2: <23 hours have passed, so cannot claim
+      } else {
+        currentUserData?.canClaimDailyReward = false;
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'canClaimDailyReward': false,
         }, SetOptions(merge: true));
       }
 
       // if the user has a stored username, load it
       if (doc.exists && doc.data()?['username'] != null) {
         currentUserData?.username = doc.data()?['username'];
+        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'username': uid,
@@ -187,12 +200,13 @@ class UserDataManager {
     }
   }
 
-  // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CLAIMDAILYREWARD APPROPRIATELY
+  // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CANCLAIMDAILYREWARD APPROPRIATELY
   Future<bool> claimDailyReward() async {
     // Returns true if reward was successfully claimed, false otherwise
     final uid = FirebaseAuth.instance.currentUser!.uid;
     DateTime? lastClaim = currentUserData!.lastDailyClaim;
 
+    // if allowed to claim
     if (lastClaim == null ||
         DateTime.now().isAfter(lastClaim.add(Duration(hours: 23)))) {
       final now = DateTime.now();

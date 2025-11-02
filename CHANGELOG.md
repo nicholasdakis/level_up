@@ -335,9 +335,16 @@ Developmental progress by date is stored in this file.
 ## 2025-10-31
 - Replaced russoOne font with manrope font
 - snackBar theme updated to match the gray theme of the app
+- Added a black border around the profile picture in the footer
 - Created claimDailyReward() method and canClaimDailyReward and lastDailyClaim variables for adding daily rewards
 - claimDailyReward() updates the variables if a claim can be made, otherwise it sets canClaimDailyReward to 
 - There is a 23 hour period between each daily reward claim
 - Updated loadUserDate() to properly handle new fields being added to existing users (adding that field to the user's database)
 - Popup dialog appears when the user opens the Home Screen and an XP reward can be claimed
 - Daily XP given is somewhat random and based on the user's level
+
+## 2025-11-01
+- Updated loadUserData() to correctly handle the canClaimDailyReward variable (the variable was never being set to true before)
+- Updated the check in daily_rewards.dart to check the stored canClaimDailyReward variable instead of the local one
+- Removed the check from daily_rewards.dart as it was redundant. Applied the changes above to the check in home_screen.dart
+- Reordered logic in loadUserData() to stop additional Daily Reward dialog boxes. The problem was that lastClaim = currentUserData?.lastDailyClaim was being assigned before lastDailyClaim's correct value was loaded into currentUserData

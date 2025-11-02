@@ -40,7 +40,7 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - **Data persistence** for user progress and settings
 
 ### 🎁 Daily XP Reward
-- Users can **claim a daily experience reward** once every 24 hours
+- Users can **claim a daily experience reward** once a day
 
 ### 👤 Footer Tab
 - Displays the user's **current experience points** and **level**

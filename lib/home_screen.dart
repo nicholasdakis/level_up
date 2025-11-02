@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'screens/calorie_calculator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
@@ -34,8 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
     expNotifier.value = currentUserData?.expPoints ?? 0;
 
+    // Check if the Daily Reward Dialog Box should open
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserData!.uid)
+        .get();
+    final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
     // Only show the daily reward dialog after user data is loaded and mounted
-    if (mounted && currentUserData!.canClaimDailyReward) {
+    if (mounted && canClaim) {
       DailyRewardDialog.showDailyRewardDialog(context);
     }
 

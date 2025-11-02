@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 import '../globals.dart';
 
 class DailyRewardDialog {
-  static void showDailyRewardDialog(BuildContext context) async {
-    if (currentUserData == null) return;
-
-    // Check if user can claim
-    if (!currentUserData!.canClaimDailyReward) return;
-
+  static Future<void> showDailyRewardDialog(BuildContext context) async {
     // Random XP based on level
     final xpGain =
         25 * currentUserData!.level +
