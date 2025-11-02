@@ -351,3 +351,5 @@ Developmental progress by date is stored in this file.
 - Refactored code by moving notification and timezone setup into its own file, utility/notification_setup.dart
 - Scheduled a 23-hour notification upon claiming a Daily Reward
 - The reminder contains some random possible messages for the claim messages
+- Removed redundant code that stored new user data to Firebase, as it is all handled in loadUserData()
+- Fixed a bug where the Leaderboard showed the UID of unnamed users on the leaderboard instead of the username "Unnamed". The problem was that uid is not stored as part of each user's account data, but the code treated it as such => Added a field for each user that extracts their doc.id as a field called uid.

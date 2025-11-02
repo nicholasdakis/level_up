@@ -27,16 +27,6 @@ class AuthService {
 
     // 2. Refresh the user after account creation
     await FirebaseAuth.instance.currentUser!.reload();
-
-    // 3. Store this user into the Firestore database
-    final uid = credential.user!.uid;
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'username': uid, // default username = UID
-      'level': 1, // starting level
-      'expPoints': 0, // starting XP
-      'pfpBase64': null, // no profile picture yet
-    });
-
     // 3. Return the Auth credential
     return credential;
   }

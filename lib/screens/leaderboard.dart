@@ -38,7 +38,11 @@ class _LeaderboardState extends State<Leaderboard> {
         .get();
     // Update the screen with the users
     setState(() {
-      users = leaderboard.docs.map((doc) => doc.data()).toList();
+      users = leaderboard.docs.map((doc) {
+        final data = doc.data();
+        data['uid'] = doc.id; // Store the UID as an additional field
+        return data;
+      }).toList();
     });
   }
 
@@ -104,8 +108,8 @@ class _LeaderboardState extends State<Leaderboard> {
                           SizedBox(width: 10),
                           Text(
                             // Only show the user's username if it exists and is not the default username (their UID)
-                            users[i]['username'] != null &&
-                                    users[i]['username'] != users[i]['uid']
+                            users[i]['username'] != users[i]['uid'] &&
+                                    users[i]['username'] != null
                                 ? users[i]['username']
                                 : 'Unnamed',
                             style: TextStyle(color: Colors.white, fontSize: 18),
