@@ -1,11 +1,14 @@
+import 'reminder_data.dart';
+
 class UserData {
   final String uid;
   String? pfpBase64;
   int level;
   int expPoints;
-  String? username;
   bool canClaimDailyReward;
   DateTime? lastDailyClaim;
+  List<ReminderData> reminders;
+  String? username;
 
   // constructor
   UserData({
@@ -16,5 +19,6 @@ class UserData {
     this.canClaimDailyReward = true,
     this.lastDailyClaim,
     String? username,
+    this.reminders = const [],
   }) : username = username ?? uid; // Default username is the UID
 }

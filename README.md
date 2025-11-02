@@ -24,7 +24,8 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - Visit **nearby locations** to gain **experience points** 🏞️🚶
 
 ### ⏰ 4) Reminders tab
-- **Set reminders** and be notified via **notifications** 🔔 
+- **Set reminders** and be notified via **notifications** 🔔
+- **Delete** reminders you no longer require 🗑️
 
 ### 🏆 5) Badges tab
 - Be rewarded for **your progression** 🎖️  
@@ -56,7 +57,7 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - Also accessible via the footer by tapping the Profile Picture
 
 #### ℹ️ 2) About The Developer
-- Learn more about the creator behind Level Up
+- Learn more about the creator behind Level Up!
 
 #### 💝 3) Donate
-- Support the development of Level Up
+- Support the development of Level Up!

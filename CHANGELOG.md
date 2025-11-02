@@ -266,7 +266,7 @@ Developmental progress by date is stored in this file.
 - Added a card on the 'Explore' tab that appears in the upper-middle part of the map
 - The card is for showing nearby experience spots
 - The card can be clicked to expand / contract it
-- The card will show the generated expereince spots for the user to visit
+- The card will show the generated experience spots for the user to visit
 
 ## 2025-10-21
 - Moved profile picture logic from home_screen.dart into user/user_data_manager.dart for refactoring purposes
@@ -359,3 +359,11 @@ Developmental progress by date is stored in this file.
 - Updated the logic for updating profile picture to make sure the file is under 1 MB when converted and stored as a Base64 string
 - Made the confirmation snackBar for Profile Picture updating only appear when the update is explicitly valid (using a flag variable)
 - Added a yellow tint in the Leaderboard tab if the user is looking at their own profile
+- Created a ReminderData class to persist the reminders the user sets. Each user now has a reminders field which is a list of ReminderData objects
+- This is used to show a table of upcoming reminders using the DataTable widget
+- Allows deleting reminders (using their notification ID)
+- loadRemindersFromFirestore() method added which gets the "reminders" collection for each specific user. Loaded into the currentUser variable's data when loadUserData() is called on initialization
+- The reminders for the table are sorted chronologically, then the table is built with the sorted list
+- The reminders table is refreshed every time the Reminders tab is opened
+- Updated Firebase rules to let users write their own reminders subcollection
+- Each reminder is removed from the list after the time for it passes

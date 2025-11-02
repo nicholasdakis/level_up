@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import 'user_data.dart';
+import 'reminder_data.dart';
 
 class UserDataManager {
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
@@ -17,6 +18,21 @@ class UserDataManager {
             .round();
     // Round the experience formula to a multiple of 10
     return (exp / 10).round() * 10;
+  }
+
+  // Load the user's "reminders" collection from Firestore
+  Future<List<ReminderData>> loadRemindersFromFirestore(String uid) async {
+    final remindersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('reminders')
+        .get();
+    // empty list if non-existent
+    if (remindersSnapshot.docs.isEmpty) return [];
+
+    return remindersSnapshot.docs
+        .map((doc) => ReminderData.fromMap(doc.data()))
+        .toList();
   }
 
   // Loads the user's information from Firebase if it exists
@@ -34,6 +50,7 @@ class UserDataManager {
           canClaimDailyReward: true,
           lastDailyClaim: null,
           username: uid, // default username is uid
+          reminders: [],
         );
       }
       final doc = await FirebaseFirestore.instance
@@ -112,6 +129,16 @@ class UserDataManager {
           'username': uid,
         }, SetOptions(merge: true));
       }
+
+      // Load the list of  reminders
+      try {
+        currentUserData?.reminders = await loadRemindersFromFirestore(
+          currentUserData!.uid,
+        );
+      } catch (e) {
+        debugPrint('Error loading reminders: $e');
+        currentUserData?.reminders = [];
+      }
     }
   }
 
@@ -176,7 +203,10 @@ class UserDataManager {
         pfpBase64: base64String,
         level: currentUserData!.level,
         expPoints: currentUserData!.expPoints,
+        canClaimDailyReward: currentUserData!.canClaimDailyReward,
+        lastDailyClaim: currentUserData!.lastDailyClaim,
         username: currentUserData!.username,
+        reminders: currentUserData!.reminders,
       );
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
