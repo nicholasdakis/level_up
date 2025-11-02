@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../globals.dart'; // For flutterLocalNotificationsPlugin
+import 'package:flutter/foundation.dart';
 
 Future<void> initializeNotificationsAndTimezones() async {
   // Initialize timezones
@@ -56,9 +57,20 @@ Future<void> initializeNotificationsAndTimezones() async {
 }
 
 Future<void> _requestNotificationPermissions() async {
-  // Android 13+
-  if (await Permission.notification.isDenied) {
+  // For Android 13+ notification permission
+  if (defaultTargetPlatform == TargetPlatform.android) {
     await Permission.notification.request();
+
+    // Request exact alarm permission for Android 12+
+    try {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await androidPlugin?.requestExactAlarmsPermission();
+    } catch (e) {
+      debugPrint('Error requesting exact alarm permission: $e');
+    }
   }
 
   // iOS

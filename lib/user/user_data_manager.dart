@@ -129,11 +129,36 @@ class UserDataManager {
     }
   }
 
+  // boolean flag to ensure profile picture updating is valid
+  Future<bool> canUpdateProfilePicture(File file, BuildContext? context) async {
+    // 750 KB size limit in bytes (To meet the 1 MB Firebase limit when converted to base64)
+    const int maxFileSize = 750 * 1024; // 768000 bytes
+
+    // Check file size
+    final int fileSize = file.lengthSync();
+    if (fileSize > maxFileSize) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture must be 0.75 MB or less."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
+      return false; // early exit if file too large
+    }
+    return true;
+  }
+
   Future<void> updateProfilePicture(
     File file, {
     VoidCallback? onProfileUpdated,
     BuildContext? context, // for error snackbar
   }) async {
+    if (!await canUpdateProfilePicture(file, context)) {
+      return;
+    }
+
     try {
       // 1. Convert image to Base64
       final bytes = await file.readAsBytes();

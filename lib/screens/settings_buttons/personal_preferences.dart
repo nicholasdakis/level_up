@@ -29,13 +29,27 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     final file = File(returnedImage.path);
 
     try {
-      await UserDataManager().updateProfilePicture(
+      // await the boolean flag to make sure the update will be valid
+      final canUpdate = await userManager.canUpdateProfilePicture(
         file,
-        onProfileUpdated: widget.onProfileImageUpdated,
-        context: context,
+        context,
       );
 
-      if (mounted) {
+      // Case 1: can't update
+      if (!canUpdate) {
+        return;
+      }
+
+      // Case 2: update
+      if (mounted && canUpdate) {
+        // Update pfp
+        await userManager.updateProfilePicture(
+          file,
+          context: context,
+          onProfileUpdated: widget.onProfileImageUpdated,
+        );
+
+        // Confirmation snackBar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Profile picture successfully updated."),

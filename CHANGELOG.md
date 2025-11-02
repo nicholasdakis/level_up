@@ -353,3 +353,9 @@ Developmental progress by date is stored in this file.
 - The reminder contains some random possible messages for the claim messages
 - Removed redundant code that stored new user data to Firebase, as it is all handled in loadUserData()
 - Fixed a bug where the Leaderboard showed the UID of unnamed users on the leaderboard instead of the username "Unnamed". The problem was that uid is not stored as part of each user's account data, but the code treated it as such => Added a field for each user that extracts their doc.id as a field called uid.
+
+## 2025-11-02
+- Updated exact alarm / notification permissions for Android 12+ and Android 13+ (Reminders were not being scheduled on Android 13+ before)
+- Updated the logic for updating profile picture to make sure the file is under 1 MB when converted and stored as a Base64 string
+- Made the confirmation snackBar for Profile Picture updating only appear when the update is explicitly valid (using a flag variable)
+- Added a yellow tint in the Leaderboard tab if the user is looking at their own profile

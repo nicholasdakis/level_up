@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
 import '../globals.dart';
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart'; // needed for currentUser
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -49,15 +50,19 @@ class _LeaderboardState extends State<Leaderboard> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = 1.sw;
+
+    // Get current user's UID to highlight their row
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: const Color(0xFF121212),
         centerTitle: true,
         title: createTitle("Leaderboard", screenWidth),
       ),
       body: users.isEmpty
-          ? Center(
+          ? const Center(
               child:
                   CircularProgressIndicator(), // Wait until the users are loaded
             )
@@ -70,57 +75,73 @@ class _LeaderboardState extends State<Leaderboard> {
                       padding: EdgeInsets.symmetric(
                         vertical: screenWidth * 0.02,
                       ),
-                      child: Row(
-                        children: [
-                          SizedBox(width: screenWidth * 0.025),
-                          Text(
-                            "#${i + 1}",
-                            style: TextStyle(
-                              color: i == 0
-                                  ? Colors
-                                        .yellow // #1 Gets yellow text
-                                  : i == 1
-                                  ? Colors
-                                        .grey // #2 Gets grey text
-                                  : i ==
-                                        2 // #3 Gets bronze text
-                                  ? Color(0xFFCD7F32)
-                                  // All other users receive white text
-                                  : Colors.white,
-                              fontSize: 18,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: users[i]['uid'] == currentUserId
+                              ? Colors.yellow.withAlpha(
+                                  32,
+                                ) // yellow tint to emphasize the user's profile
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(width: screenWidth * 0.025),
+                            Text(
+                              "#${i + 1}",
+                              style: TextStyle(
+                                color: i == 0
+                                    ? Colors
+                                          .yellow // #1 Gets yellow text
+                                    : i == 1
+                                    ? Colors
+                                          .grey // #2 Gets grey text
+                                    : i ==
+                                          2 // #3 Gets bronze text
+                                    ? const Color(0xFFCD7F32)
+                                    // All other users receive white text
+                                    : Colors.white,
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 10),
-                          // Load the user's profile picture if it exists
-                          users[i]['pfpBase64'] != null
-                              ? Image.memory(
-                                  base64Decode(users[i]['pfpBase64']),
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                )
-                              // Otherwise, load the default icon avatar
-                              : Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                          SizedBox(width: 10),
-                          Text(
-                            // Only show the user's username if it exists and is not the default username (their UID)
-                            users[i]['username'] != users[i]['uid'] &&
-                                    users[i]['username'] != null
-                                ? users[i]['username']
-                                : 'Unnamed',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                          Spacer(),
-                          Text(
-                            "Level ${users[i]['level'] ?? 1} | ${users[i]['expPoints'] ?? 0} / ${experienceNeededForLevel(users[i]['level'] ?? 1)}",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                          SizedBox(width: 10),
-                        ],
+                            const SizedBox(width: 10),
+                            // Load the user's profile picture if it exists
+                            users[i]['pfpBase64'] != null
+                                ? Image.memory(
+                                    base64Decode(users[i]['pfpBase64']),
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                  )
+                                // Otherwise, load the default icon avatar
+                                : const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                            const SizedBox(width: 10),
+                            Text(
+                              // Only show the user's username if it exists and is not the default username (their UID)
+                              users[i]['username'] != users[i]['uid'] &&
+                                      users[i]['username'] != null
+                                  ? users[i]['username']
+                                  : 'Unnamed',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              "Level ${users[i]['level'] ?? 1} | ${users[i]['expPoints'] ?? 0} / ${experienceNeededForLevel(users[i]['level'] ?? 1)}",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
                       ),
                     ),
                 ],
