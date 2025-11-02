@@ -348,3 +348,6 @@ Developmental progress by date is stored in this file.
 - Updated the check in daily_rewards.dart to check the stored canClaimDailyReward variable instead of the local one
 - Removed the check from daily_rewards.dart as it was redundant. Applied the changes above to the check in home_screen.dart
 - Reordered logic in loadUserData() to stop additional Daily Reward dialog boxes. The problem was that lastClaim = currentUserData?.lastDailyClaim was being assigned before lastDailyClaim's correct value was loaded into currentUserData
+- Refactored code by moving notification and timezone setup into its own file, utility/notification_setup.dart
+- Scheduled a 23-hour notification upon claiming a Daily Reward
+- The reminder contains some random possible messages for the claim messages

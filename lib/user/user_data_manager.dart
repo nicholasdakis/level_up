@@ -89,7 +89,9 @@ class UserDataManager {
       // Case 1: Can claim because 23+ hours passed, or the user has never claimed before
       if (lastClaim == null ||
           now.isAfter(lastClaim.add(Duration(hours: 23)))) {
+        // update locally
         currentUserData?.canClaimDailyReward = true;
+        // update to firestore
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'canClaimDailyReward': true,
         }, SetOptions(merge: true));

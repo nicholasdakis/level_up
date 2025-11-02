@@ -1,15 +1,61 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../globals.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class DailyRewardDialog {
-  static Future<void> showDailyRewardDialog(BuildContext context) async {
+  // Method for scheduling a reminder notification 23 hours after claiming the Daily Reward
+  String randomRewardReminderMessage() {
+    List<String> reminderMessages = [
+      "Come claim your daily reward!",
+      "Don't forget to claim your free experience points!",
+      "Ready to boost your level? Claim your reward now!",
+      "Your daily XP is waiting! Don't miss out!",
+      "Time to grab today's reward and level up!",
+      "Daily reward alert! Claim it before it's gone!",
+      "Keep the streak alive! Claim your reward!",
+      "Unlock new achievements with your daily reward!",
+      "Your adventure continues—claim your daily XP!",
+      "Stay ahead! Collect your daily reward now!",
+    ];
+    final random = Random();
+    int randomIndex = random.nextInt(reminderMessages.length);
+    return reminderMessages[randomIndex];
+  }
+
+  Future<void> setDailyRewardNotification() async {
+    const int notificationId = 1; // Unique ID for notification
+    final scheduledTime = tz.TZDateTime.now(tz.local).add(Duration(hours: 23));
+    debugPrint('Notification scheduled for: $scheduledTime');
+
+    const androidDetails = AndroidNotificationDetails(
+      'reminder_channel',
+      'Reminders',
+      channelDescription: 'User reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      notificationId,
+      'Daily Reward Available!',
+      randomRewardReminderMessage(),
+      scheduledTime,
+      notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> showDailyRewardDialog(BuildContext context) async {
     // Random XP based on level
     final xpGain =
         25 * currentUserData!.level +
         2 * (Random().nextInt(currentUserData!.level) + 1);
 
-    // Show dialog and only claim XP when dialog closes
+    // Show claim Dialog and only claim XP when Dialog closes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showDialog(
         context: context,
@@ -45,10 +91,11 @@ class DailyRewardDialog {
           ],
         ),
       ).then((_) async {
-        // Only after dialog is closed, claim the reward and update XP
         bool claimed = await userManager.claimDailyReward();
         if (claimed) {
+          // update experience on Firebase
           await userManager.updateExpPoints(xpGain);
+          await setDailyRewardNotification();
         }
       });
     });

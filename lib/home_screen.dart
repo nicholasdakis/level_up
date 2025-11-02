@@ -43,7 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
     // Only show the daily reward dialog after user data is loaded and mounted
     if (mounted && canClaim) {
-      DailyRewardDialog.showDailyRewardDialog(context);
+      if (mounted && canClaim) {
+        final dailyRewardDialog = DailyRewardDialog();
+        await dailyRewardDialog.showDailyRewardDialog(context);
+      }
     }
 
     if (mounted) setState(() {}); // rebuild UI with loaded stats
