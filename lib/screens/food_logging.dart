@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:limit/limit.dart'; // api limits (on a single device and single app session)
 import 'package:url_launcher/url_launcher.dart'; // FatSecret snippet code launch
 import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
@@ -34,62 +33,63 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
-  // Variable to limit single-session api requests to 100 per day
-  final _limiter = RateLimiter(
-    'food_request',
-    maxTokens: 100,
-    refillDuration: Duration(minutes: 1440),
-  );
-
   String latestQuery = "";
 
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
   void handleApiCall(DateTime? dateTime, String query) async {
-    // If string is empty, don't consume a token
     latestQuery = query;
-    if (query.isEmpty) {
-      return;
-    }
-    // Next, check if an API request is allowed
-    final canRequest = await _limiter
-        .tryConsume(); // Can consume up to 100 tokens per day per session per user
-    if (canRequest) {
-      final tokens = await _limiter.getAvailableTokens();
-      debugPrint('Tokens left: ${tokens.toStringAsFixed(2)}');
+    if (query.isEmpty) return;
 
-      final url = Uri.parse(
-        'https://level-up-69vz.onrender.com/get_food/$query',
-      );
-      try {
-        final response = await http.get(url);
-        if (response.statusCode == 200) {
-          if (latestQuery == query) {
-            // status code for okay, so continue only if this is the latest query's method call
-            final data = jsonDecode(response.body); // raw JSON file
+    debugPrint("Searching for food: $query");
+
+    final url = Uri.parse('https://level-up-69vz.onrender.com/get_food/$query');
+    try {
+      final response = await http.get(url);
+
+      debugPrint("Response status: ${response.statusCode}");
+      debugPrint("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        if (latestQuery == query) {
+          final data = jsonDecode(response.body);
+
+          final foods = data['foods'];
+          if (foods != null && foods['food'] != null) {
             setState(() {
-              // Update state to reload the UI
-              foodList =
-                  data["foods"]["food"] ??
-                  []; // Extract the list under "food" to see actual food items of that search
+              foodList = List<dynamic>.from(foods['food']);
+            });
+          } else {
+            setState(() {
+              foodList = [];
             });
           }
-        } else {
-          setState(() {
-            FocusScope.of(context).unfocus(); // disable keyboard focus
-            searchController.text =
-                "Error: ${response.statusCode}"; // Show the user there was an error in the Search Food box
-          });
         }
-      } catch (error) {
+      } else if (response.statusCode == 500) {
+        // Handle token limit exceeded or other server errors
+        final errorData = jsonDecode(response.body);
+        debugPrint("Server error: ${errorData['error']}");
+        // Show user-friendly message for token limit
+        if (errorData['error'] == "Token limit exceeded") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Daily search limit reached. Try again tomorrow."),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
         setState(() {
-          FocusScope.of(context).unfocus(); // disable keyboard focus
-          searchController.text =
-              "Error: $error"; // Show the user there was an error in the Search Food box
+          foodList = [];
+        });
+      } else {
+        setState(() {
+          foodList = [];
         });
       }
-    } else {
-      // tokens already consumed today.
-      debugPrint("Maximum amount of calls today reached.");
+    } catch (error) {
+      debugPrint("API call error: $error");
+      setState(() {
+        foodList = [];
+      });
     }
   }
 
@@ -125,6 +125,12 @@ class _FoodLoggingState extends State<FoodLogging> {
   void dispose() {
     checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint("FoodLogging widget initialized");
   }
 
   @override
@@ -426,7 +432,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         ),
                         subtitle: Text(
                           food['food_description'] ??
-                              '', // List the information (or nothing if nothing is found)
+                              '', // List the info (or nothing)
                           style: TextStyle(color: Colors.grey),
                         ),
                       ),

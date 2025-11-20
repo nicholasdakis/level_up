@@ -364,6 +364,14 @@ Developmental progress by date is stored in this file.
 - Allows deleting reminders (using their notification ID)
 - loadRemindersFromFirestore() method added which gets the "reminders" collection for each specific user. Loaded into the currentUser variable's data when loadUserData() is called on initialization
 - The reminders for the table are sorted chronologically, then the table is built with the sorted list
-- The reminders table is refreshed every time the Reminders tab is opened
 - Updated Firebase rules to let users write their own reminders subcollection
 - Each reminder is removed from the list after the time for it passes
+
+## 2025-11-19
+- Installed firebase-admin so Python backend code can interact with Firebase
+- Created a collection in Firebase called rate_limits and a document called food_logging (goal is to reimplement rate limiting to work persistently across different users)
+- Rewrote token_manager.py to store token changes to and from firebase for keeping track of rate limiting
+- Removed the local limiting RateLimit import from food_logging.dart
+- Fixed firebase timestamp handling to handle DatetimeWithNanosecond objects
+- Added token refunds to server.py if an API call fails
+- Push commit to test how it works when Render has the updated backend code

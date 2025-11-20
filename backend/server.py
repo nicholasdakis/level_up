@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 import os
 import requests
 from dotenv import load_dotenv
-from backend.token_manager import TokenManager
+from token_manager import TokenManager
 
 # Load the .env file
 load_dotenv()
@@ -23,17 +23,18 @@ def get_access_token():
         response.raise_for_status()
         return response.json().get("access_token")
     except requests.RequestException as e:
-        print("Error getting access token:", e)
         return None
 
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
-    # Check if tokens are available
-    app.logger.debug("Current tokens before request: %d", token_manager.current_tokens)
     if not token_manager.consume():
         return jsonify({"error": "Token limit exceeded"}), 500
     # Continue if tokens are available
     access_token = get_access_token()
+    # If we can't get access token, refund the consumed token
+    if not access_token:
+        token_manager.refund()  # Give back the token since we failed early
+        return jsonify({"error": "Failed to get access token"}), 500
     headers = {"Authorization": f"Bearer {access_token}"}
     # FatSecret REST API expects form-encoded data
     data = {
@@ -48,13 +49,25 @@ def get_food(food_name):
             headers=headers,
             data=data
         )
+        # If FatSecret API call fails, refund the token
+        if api_response.status_code != 200:
+            token_manager.refund()  # Give back token on API failure
+            return jsonify({"error": "FatSecret API error", "status_code": api_response.status_code}), 500
         # Possibly a XML response if the above request fails
         try:
             return jsonify(api_response.json())
         except ValueError:
+            token_manager.refund()  # Give back token on invalid JSON
             return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text})
     except requests.RequestException as e:
+        token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
 
+@app.route("/reset_tokens")
+def reset_tokens():
+    """Reset tokens for testing"""
+    success = token_manager.reset_tokens()
+    return jsonify({"success": success, "message": "Tokens reset to 5000"})
+
 if __name__ == "__main__": # Only run when the application starts
-    app.run()
+    app.run(debug=True)

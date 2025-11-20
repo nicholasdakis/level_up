@@ -496,7 +496,7 @@ class _RemindersState extends State<Reminders> {
                                           Icons.delete,
                                           color: Colors.red,
                                         ),
-                                        // Delete row is clickable
+                                        // Delete column cells are clickable
                                         onPressed: () =>
                                             _deleteReminder(reminder),
                                       ),
