@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 import os
 import requests
 from dotenv import load_dotenv
-from token_manager import TokenManager
+from backend.token_manager import TokenManager
 
 # Load the .env file
 load_dotenv()
