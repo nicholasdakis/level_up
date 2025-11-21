@@ -374,4 +374,10 @@ Developmental progress by date is stored in this file.
 - Removed the local limiting RateLimit import from food_logging.dart
 - Fixed firebase timestamp handling to handle DatetimeWithNanosecond objects
 - Added token refunds to server.py if an API call fails
-- Push commit to test how it works when Render has the updated backend code
+- Push commit to test how it works when Render has the updated backend code (Worked after a couple of changes for Render deployment)
+
+## 2025-11-21
+- Created an apiTokensCheck() method to update a boolean to true if there are no API tokens left
+- If true, red text is displayed informing the user
+- Created a get_next_reset_time() in server.py to use to calculate how much time is left until tokens reset (time left = next reset time - current time)
+- Updated the json for Token limit to also include the next reset time and the time until next reset time

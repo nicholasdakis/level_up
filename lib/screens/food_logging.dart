@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart'; // FatSecret snippet code launch
 import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
@@ -33,7 +34,44 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
+  bool noApiTokens = false;
+
+  // async method for updating noTokens accordingly
+
+  Future<void> apiTokensCheck() async {
+    // load the food_logging document
+    final doc = await FirebaseFirestore.instance
+        .collection('rate_limits')
+        .doc('food_logging')
+        .get();
+    // convert current_tokens collection in food_logging to an integer
+    int tokens = doc.data()?['current_tokens'];
+    if (tokens == 0) {
+      setState(() {
+        noApiTokens = true;
+      });
+    } else {
+      setState(() {
+        noApiTokens = false;
+      });
+    }
+  }
+
   String latestQuery = "";
+
+  // Method to format time to show user how long until tokens reset
+  String formatDuration(Duration d) {
+    // 1+ hours remaining
+    if (d.inHours > 0) {
+      return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
+      // < 1 hour remainings
+    } else if (d.inMinutes > 0) {
+      return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
+      // seconds remaining
+    } else {
+      return "${d.inSeconds}s";
+    }
+  }
 
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
   void handleApiCall(DateTime? dateTime, String query) async {
@@ -42,7 +80,9 @@ class _FoodLoggingState extends State<FoodLogging> {
 
     debugPrint("Searching for food: $query");
 
-    final url = Uri.parse('https://level-up-69vz.onrender.com/get_food/$query');
+    final url = Uri.parse(
+      'https://level-up-69vz.onrender.com/get_food/$query',
+    ); // search the food via the backend get_food method
     try {
       final response = await http.get(url);
 
@@ -70,10 +110,17 @@ class _FoodLoggingState extends State<FoodLogging> {
         debugPrint("Server error: ${errorData['error']}");
         // Show user-friendly message for token limit
         if (errorData['error'] == "Token limit exceeded") {
+          String resetTimeStr = errorData['time_left'];
+          DateTime resetTime = DateTime.parse(resetTimeStr).toLocal();
+          Duration timeLeft = resetTime.difference(DateTime.now());
+          String formattedTimeLeft = formatDuration(timeLeft);
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Daily search limit reached. Try again tomorrow."),
-              duration: Duration(seconds: 3),
+              content: Text(
+                "Daily search limit reached. Try again in $formattedTimeLeft.",
+              ),
+              duration: Duration(seconds: 5),
             ),
           );
         }
@@ -160,12 +207,24 @@ class _FoodLoggingState extends State<FoodLogging> {
               child: InkWell(
                 onTap: () async {
                   await launchFatSecret(); // wait for the function to finish calling
+                  await apiTokensCheck(); // load method which updates noApiTokens variable
                 },
-                child: textWithFont(
-                  "Powered by fatsecret",
-                  screenWidth,
-                  0.035,
-                  color: Colors.blue,
+                child: Column(
+                  children: [
+                    textWithFont(
+                      "Powered by fatsecret",
+                      screenWidth,
+                      0.035,
+                      color: Colors.blue,
+                    ),
+                    if (noApiTokens)
+                      textWithFont(
+                        "No more tokens for food logging remaining. Try again tomorrow.",
+                        screenWidth,
+                        0.035,
+                        color: Colors.red,
+                      ),
+                  ],
                 ),
               ),
             ),
