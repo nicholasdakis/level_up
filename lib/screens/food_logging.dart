@@ -60,17 +60,47 @@ class _FoodLoggingState extends State<FoodLogging> {
   String latestQuery = "";
 
   // Method to format time to show user how long until tokens reset
-  String formatDuration(Duration d) {
-    // 1+ hours remaining
-    if (d.inHours > 0) {
-      return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
-      // < 1 hour remainings
-    } else if (d.inMinutes > 0) {
-      return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
-      // seconds remaining
+  String formatDuration(String rawTime) {
+    // Split by dot then take the first section (to ignore the milliseconds section)
+    rawTime = rawTime.split('.')[0];
+    // to concatenate the string
+    StringBuffer sb = StringBuffer();
+    // split by section
+    List<String> parts = rawTime.split(':');
+
+    // convert the segments to integers: eg "01" becomes 1
+    int hours = int.parse(parts[0]);
+    int minutes = int.parse(parts[1]);
+    int seconds = int.parse(parts[2]);
+
+    // Case 1: All zeros
+    if (hours == 0 && minutes == 0 && seconds == 0) {
+      sb.write("0 seconds");
+      // There are hours
     } else {
-      return "${d.inSeconds}s";
+      if (hours > 0) {
+        sb.write(
+          "$hours hour${hours == 1 ? '' : 's'}",
+        ); // add an s only if plural
+        // edge cases
+        if (minutes > 0 || seconds > 0) sb.write(", ");
+      }
+      // There are minutes
+      if (minutes > 0) {
+        sb.write(
+          "$minutes minute${minutes == 1 ? '' : 's'}",
+        ); // add an s only if plural
+        // edge case
+        if (seconds > 0) sb.write(", and ");
+      }
+      // There are seconds
+      if (seconds > 0) {
+        sb.write(
+          "$seconds second${seconds == 1 ? '' : 's'}",
+        ); // add an s only if plural
+      }
     }
+    return sb.toString();
   }
 
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
@@ -106,21 +136,21 @@ class _FoodLoggingState extends State<FoodLogging> {
         }
       } else if (!snackbarActive && response.statusCode == 429) {
         snackbarActive = true;
-        // Handle token limit exceeded or other server errors
-        final errorData = jsonDecode(response.body);
-        debugPrint("Server error: ${errorData['error']}");
-        // Show user-friendly message for token limit
-        if (errorData['error'] == "Token limit exceeded") {
-          String resetTimeStr = errorData['time_left'];
-          DateTime resetTime = DateTime.parse(resetTimeStr).toLocal();
-          Duration timeLeft = resetTime.difference(DateTime.now());
-          String formattedTimeLeft = formatDuration(timeLeft);
 
+        // Handle errors
+        final errorData = jsonDecode(response.body);
+
+        // Token limit exceeded error
+        if (errorData['error'] == "Token limit exceeded") {
+          // retrieve time left from the json file
+          String resetTimeStr = errorData['time_left'];
+          // format nicely for UX
+          String formattedTime = formatDuration(resetTimeStr);
           ScaffoldMessenger.of(context)
               .showSnackBar(
                 SnackBar(
                   content: Text(
-                    "Daily search limit reached. Try again in $formattedTimeLeft.",
+                    "Daily search limit reached. The limit resets in $formattedTime.",
                   ),
                   duration: Duration(seconds: 5),
                 ),
