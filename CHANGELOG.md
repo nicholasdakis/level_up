@@ -384,3 +384,6 @@ Developmental progress by date is stored in this file.
 - Pushed commit to update Render with latest backend code
 - Integrated Google Firestore client with explicit service account credentials loaded from environment variable GOOGLE_APPLICATION_CREDENTIALS_JSON
 - Replaced default Firestore authentication with service account JSON parsing to avoid deployment errors on Render
+- Token limit status code changed from 500 to 429 (too many requets)
+- Added snackbar flag logic to the token limit snackbar
+- Pushed commit to update Render with latest backend code

@@ -78,7 +78,7 @@ def get_food(food_name):
             "error": "Token limit exceeded",
             "next_reset_time": reset_time.isoformat(),
             "time_left": str(time_left)  # Converted to string for JSON serializable
-        }), 500
+        }), 429
     
     # Continue if tokens are available
     access_token = get_access_token()

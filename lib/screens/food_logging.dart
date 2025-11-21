@@ -104,7 +104,8 @@ class _FoodLoggingState extends State<FoodLogging> {
             });
           }
         }
-      } else if (response.statusCode == 500) {
+      } else if (!snackbarActive && response.statusCode == 429) {
+        snackbarActive = true;
         // Handle token limit exceeded or other server errors
         final errorData = jsonDecode(response.body);
         debugPrint("Server error: ${errorData['error']}");
@@ -115,14 +116,19 @@ class _FoodLoggingState extends State<FoodLogging> {
           Duration timeLeft = resetTime.difference(DateTime.now());
           String formattedTimeLeft = formatDuration(timeLeft);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Daily search limit reached. Try again in $formattedTimeLeft.",
-              ),
-              duration: Duration(seconds: 5),
-            ),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "Daily search limit reached. Try again in $formattedTimeLeft.",
+                  ),
+                  duration: Duration(seconds: 5),
+                ),
+              )
+              .closed
+              .then((_) {
+                snackbarActive = false;
+              });
         }
         setState(() {
           foodList = [];
