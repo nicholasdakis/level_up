@@ -55,8 +55,7 @@ class _ExploreState extends State<Explore> {
     // Screen Height and Width
     double screenHeight =
         1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
+    //double screenWidth =   1.sw; // Make widgets the size of the user's personal screen size
     // Loading screen while getting user's coordinates
     if (userLocation == null) {
       return Scaffold(

@@ -1,11 +1,9 @@
 import os
 import json
-from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime, timedelta, timezone
 
-load_dotenv()
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 
 # initialize firebase_admin

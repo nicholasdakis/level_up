@@ -1,18 +1,16 @@
 from flask import Flask, jsonify
 import os
 import requests
-from dotenv import load_dotenv
 from backend.token_manager import TokenManager
 from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
 from google.oauth2 import service_account
 import json
 
-# Load the .env file
-load_dotenv()
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", 5000))
+# Get the environmental variables from Render
+CLIENT_ID = os.environ.get("CLIENT_ID")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 
 token_manager = TokenManager()
 

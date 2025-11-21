@@ -25,8 +25,7 @@ class Footer extends StatefulWidget {
 class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
+    //double screenHeight = 1.sh; // Make widgets the size of the user's personal screen size
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Container(

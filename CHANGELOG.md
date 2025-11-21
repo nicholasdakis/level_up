@@ -390,3 +390,6 @@ Developmental progress by date is stored in this file.
 - Snackbar was not showing up during conversion. Solution: Simply use time_left from the json as a string and format that string in a method (based on # of colons for differentiating time/hours/mins)
 - Then realized colon count is always 2 (00:00:10 is just seconds but still 2 colons => Converted the segments to integers, then only showed the segment if it was >0)
 - Removed the apiTokensCheck() method and corresponding flag as the snackBar is sufficient
+- Removed dotenv imports from server.py and token_manager.py
+- All references to the environmental variables are now through Render.com
+- Slightly increased timer before api calls (now 750ms)
