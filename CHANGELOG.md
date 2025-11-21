@@ -381,3 +381,6 @@ Developmental progress by date is stored in this file.
 - If true, red text is displayed informing the user
 - Created a get_next_reset_time() in server.py to use to calculate how much time is left until tokens reset (time left = next reset time - current time)
 - Updated the json for Token limit to also include the next reset time and the time until next reset time
+- Pushed commit to update Render with latest backend code
+- Integrated Google Firestore client with explicit service account credentials loaded from environment variable GOOGLE_APPLICATION_CREDENTIALS_JSON
+- Replaced default Firestore authentication with service account JSON parsing to avoid deployment errors on Render

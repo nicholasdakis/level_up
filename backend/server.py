@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from backend.token_manager import TokenManager
 from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
+from google.oauth2 import service_account
+import json
 
 # Load the .env file
 load_dotenv()
@@ -17,7 +19,17 @@ token_manager = TokenManager()
 app = Flask(__name__)
 
 # Initialize Firestore client
-db = firestore.Client()
+# Load credentials JSON string from env var
+cred_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+# Parse JSON string into a dict
+credentials_info = json.loads(cred_json)
+
+# Create Credentials object
+credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
+# Create Firestore client with explicit credentials
+db = firestore.Client(credentials=credentials)
 
 def get_next_reset_time():
     # Get the document reference for rate limit tracking
