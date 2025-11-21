@@ -34,29 +34,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
-  bool noApiTokens = false;
-
-  // async method for updating noTokens accordingly
-
-  Future<void> apiTokensCheck() async {
-    // load the food_logging document
-    final doc = await FirebaseFirestore.instance
-        .collection('rate_limits')
-        .doc('food_logging')
-        .get();
-    // convert current_tokens collection in food_logging to an integer
-    int tokens = doc.data()?['current_tokens'];
-    if (tokens == 0) {
-      setState(() {
-        noApiTokens = true;
-      });
-    } else {
-      setState(() {
-        noApiTokens = false;
-      });
-    }
-  }
-
   String latestQuery = "";
 
   // Method to format time to show user how long until tokens reset
@@ -213,7 +190,6 @@ class _FoodLoggingState extends State<FoodLogging> {
   @override
   void initState() {
     super.initState();
-    debugPrint("FoodLogging widget initialized");
   }
 
   @override
@@ -242,8 +218,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               alignment: Alignment.center,
               child: InkWell(
                 onTap: () async {
-                  await launchFatSecret(); // wait for the function to finish calling
-                  await apiTokensCheck(); // load method which updates noApiTokens variable
+                  await launchFatSecret(); // wait for the function to finish calling // load method which updates noApiTokens variable
                 },
                 child: Column(
                   children: [
@@ -253,13 +228,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                       0.035,
                       color: Colors.blue,
                     ),
-                    if (noApiTokens)
-                      textWithFont(
-                        "No more tokens for food logging remaining. Try again tomorrow.",
-                        screenWidth,
-                        0.035,
-                        color: Colors.red,
-                      ),
                   ],
                 ),
               ),
