@@ -52,9 +52,10 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - Accessible navigation menu with 3 mini-tabs:
 
 #### 🎨 1) Personal Preferences
-- **Change profile picture** - Upload new avatar images
-- **Customize username** - Update display name and personal information
-- Also accessible via the footer by tapping the Profile Picture
+- **Change app theme color** - Personalize the app’s look and feel with your favorite color
+- **Change profile picture** - Upload a new avatar to make the app truly yours 
+- **Customize username** - Create a display name that represents you 
+- The tab is also accessible via the footer by tapping the Profile Picture
 
 #### ℹ️ 2) About The Developer
 - Learn more about the creator behind Level Up!
