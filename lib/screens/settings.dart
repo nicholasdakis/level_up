@@ -13,18 +13,15 @@ Widget buildSettingsDrawer(
   return Drawer(
     // The contents of the Settings gear icon button
     child: Container(
-      color: Color.fromARGB(
-        255,
-        43,
-        43,
-        43,
+      color: appColorNotifier.value.withAlpha(
+        128,
       ), // Body color of the settings popup
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: appColorNotifier.value.withAlpha(230),
+              color: appColorNotifier.value.withAlpha(64),
             ), // Header color of the settings popup
             child: RichText(
               textAlign: TextAlign.center,

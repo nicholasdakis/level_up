@@ -381,22 +381,12 @@ class _FoodLoggingState extends State<FoodLogging> {
                 Expanded(
                   child: SizedBox(
                     // to explicitly control the ElevatedButton size
-                    height: screenHeight * 0.05,
+                    height: screenHeight * 0.075,
                     width: screenWidth * 0.4,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        backgroundColor: Color(
-                          0xFF2A2A2A,
-                        ), // Actual button color
-                        foregroundColor: Colors.white, // Button text color
-                        side: BorderSide(
-                          color: Colors.black,
-                          width: screenWidth * 0.005,
-                        ),
-                      ),
+                    child: simpleCustomButton(
+                      "Log Food",
+                      context,
+                      baseColor: appColorNotifier.value.withAlpha(64),
                       onPressed: () {
                         // When "Log Food" is pressed
                         // VALIDITY CHECKS
@@ -452,7 +442,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                           });
                         }
                       },
-                      child: buttonText("Log Food", screenWidth * 0.05),
                     ),
                   ),
                 ),

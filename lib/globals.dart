@@ -75,7 +75,7 @@ Widget createTitle(String text, double screenWidth) {
 Widget textWithCard(String text, double screenWidth, double letterSize) {
   return Card(
     elevation: 10,
-    color: Color.fromARGB(255, 36, 36, 36).withAlpha(200),
+    color: appColorNotifier.value.withAlpha(64),
     child: Padding(
       padding: EdgeInsetsGeometry.all(4),
       child: Text(
@@ -161,8 +161,6 @@ Widget buttonText(String text, double letterSize) {
     ),
   );
 }
-
-// Method to retrieve the user's app color preference from Firebase
 
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(

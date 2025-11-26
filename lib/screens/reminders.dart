@@ -386,37 +386,20 @@ class _RemindersState extends State<Reminders> {
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   // Set reminder button
-                  SizedBox(
-                    height: screenHeight * 0.075,
-                    width: screenWidth * 0.9,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                  isLoading
+                      ? Center(
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : simpleCustomButton(
+                          "Set Reminder",
+                          context,
+                          baseColor: appColorNotifier.value.withAlpha(64),
+                          onPressed: (_setReminder),
                         ),
-                        backgroundColor: const Color(0xFF2A2A2A),
-                        foregroundColor: Colors.white,
-                        side: BorderSide(
-                          color: Colors.black,
-                          width: screenWidth * 0.005,
-                        ),
-                      ),
-                      onPressed: isLoading
-                          ? null
-                          : _setReminder, // Disable when loading
-                      child: isLoading
-                          ? const SizedBox(
-                              // Loading indicator
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : buttonText(
-                              "Set Reminder",
-                              screenWidth * 0.085,
-                            ), // Button text
-                    ),
-                  ),
                   SizedBox(height: screenHeight * 0.02), // Spacing
                   // REMINDERS TABLE WITH DELETE OPTION
                   Center(

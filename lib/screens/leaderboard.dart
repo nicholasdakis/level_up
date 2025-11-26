@@ -79,8 +79,8 @@ class _LeaderboardState extends State<Leaderboard> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: users[i]['uid'] == currentUserId
-                              ? Colors.yellow.withAlpha(
-                                  32,
+                              ? Colors.white.withAlpha(
+                                  64,
                                 ) // yellow tint to emphasize the user's profile
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),

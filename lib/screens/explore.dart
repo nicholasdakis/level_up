@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../globals.dart';
 
 class Explore extends StatefulWidget {
   const Explore({super.key});
@@ -59,6 +60,7 @@ class _ExploreState extends State<Explore> {
     // Loading screen while getting user's coordinates
     if (userLocation == null) {
       return Scaffold(
+        backgroundColor: appColorNotifier.value.withAlpha(64),
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -66,7 +68,7 @@ class _ExploreState extends State<Explore> {
             SizedBox(height: 16),
             Text(
               "Retrieving location...",
-              style: TextStyle(fontSize: 16, color: Colors.black),
+              style: TextStyle(fontSize: 16, color: Colors.white),
             ),
           ],
         ),
@@ -98,6 +100,7 @@ class _ExploreState extends State<Explore> {
               // Animation for the card opening / closing
               child: AnimatedSize(
                 duration: Duration(milliseconds: 313),
+                // Nearby Experience Spots card
                 child: Card(
                   color: Colors.black.withAlpha(200),
                   child: Padding(

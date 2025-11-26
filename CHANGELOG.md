@@ -404,3 +404,6 @@ Developmental progress by date is stored in this file.
 - Added a callback so the HomeScreen gets rebuilt when a new app color is chosen
 - Got confused with this approach (wasn't working) so used a ValueNotifier instead
 - Changed hardcoded gray colors from each class to the new dynamic ones (still WIP for some hardcoded values and Dialog boxes)
+
+## 2025-11-26
+- Continued changing hard-coded gray-colored components to the dynamic app theme colors

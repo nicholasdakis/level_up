@@ -684,143 +684,98 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     ),
                     SizedBox(height: 30.h),
                     // Results button
-                    SizedBox(
-                      // to explicitly control the ElevatedButton size
-                      height: screenHeight * 0.10,
-                      width: screenWidth * 0.85,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(90),
-                          ),
-                          backgroundColor: Color(
-                            0xFF2A2A2A,
-                          ), // Actual button color
-                          foregroundColor: Colors.white, // Button text color
-                          side: BorderSide(
-                            color: Colors.black,
-                            width: screenWidth * 0.005,
-                          ),
-                        ),
-                        onPressed: () {
-                          // validity checks
-                          if (units == null ||
-                              equation == null ||
-                              sex == null ||
-                              age == null ||
-                              weight == null ||
-                              (heightCm == null && heightInches == null) ||
-                              goal == null ||
-                              activityLevel == null) {
-                            if (resultsSnackbarActive == true) {
-                              return; // a snackBar is already opened
-                            }
-                            resultsSnackbarActive = true;
-                            // Let the user know that not all fields are filled out.
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(
-                                  SnackBar(
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.info, color: Colors.white),
-                                        SizedBox(width: 10),
-                                        Text("All fields must be filled."),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                                .closed
-                                .then((_) {
-                                  resultsSnackbarActive =
-                                      false; // reset the flag (prevent many snackbars from stacking)
-                                });
-                            return;
+                    customButton(
+                      "Get Results",
+                      screenWidth * 0.1,
+                      screenHeight * 0.75,
+                      screenWidth,
+                      context,
+                      onPressed: () {
+                        // validity checks
+                        if (units == null ||
+                            equation == null ||
+                            sex == null ||
+                            age == null ||
+                            weight == null ||
+                            (heightCm == null && heightInches == null) ||
+                            goal == null ||
+                            activityLevel == null) {
+                          if (resultsSnackbarActive == true) {
+                            return; // a snackBar is already opened
                           }
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              // Animation when switching screen
-                              pageBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) => Results(
-                                    // // pass in variables to the same-named variables in Results
-                                    units:
-                                        units ??
-                                        "0", // default value of 0 if null
-                                    goal: goal ?? "0",
-                                    activityLevel: activityLevel ?? "0",
-                                    equation: equation ?? "0",
-                                    age: age ?? 0,
-                                    sex: sex ?? "0",
-                                    heightCm: heightCm ?? 0,
-                                    heightInches: heightInches ?? 0,
-                                    weight: weight ?? 0,
+                          resultsSnackbarActive = true;
+                          // Let the user know that not all fields are filled out.
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(Icons.info, color: Colors.white),
+                                      SizedBox(width: 10),
+                                      Text("All fields must be filled."),
+                                    ],
                                   ),
-                              transitionDuration: Duration(milliseconds: 400),
-                              transitionsBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    const start = Offset(
-                                      0.0,
-                                      1.0,
-                                    ); // Start right below the screen
-                                    const finish = Offset
-                                        .zero; // Stop right at the top of the screen
-                                    final tween = Tween(
-                                      begin: start,
-                                      end: finish,
-                                    ).chain(CurveTween(curve: Curves.easeIn));
-                                    final offsetAnimation = animation.drive(
-                                      tween,
-                                    );
-                                    return SlideTransition(
-                                      position: offsetAnimation,
-                                      child: child,
-                                    );
-                                  },
-                            ),
-                          );
-                        },
-
-                        child: Center(
-                          child: Text(
-                            "Get Results",
-                            style: GoogleFonts.workSans(
-                              fontSize: screenWidth * 0.1,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  // Up Left
-                                  offset: Offset(-1, -1),
-                                  color: Colors.black,
                                 ),
-                                Shadow(
-                                  // Up Right
-                                  offset: Offset(1, -1),
-                                  color: Colors.black,
+                              )
+                              .closed
+                              .then((_) {
+                                resultsSnackbarActive =
+                                    false; // reset the flag (prevent many snackbars from stacking)
+                              });
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            // Animation when switching screen
+                            pageBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                ) => Results(
+                                  // pass in variables to the same-named variables in Results
+                                  units:
+                                      units ??
+                                      "0", // default value of 0 if null
+                                  goal: goal ?? "0",
+                                  activityLevel: activityLevel ?? "0",
+                                  equation: equation ?? "0",
+                                  age: age ?? 0,
+                                  sex: sex ?? "0",
+                                  heightCm: heightCm ?? 0,
+                                  heightInches: heightInches ?? 0,
+                                  weight: weight ?? 0,
                                 ),
-                                Shadow(
-                                  // Down Left
-                                  offset: Offset(-1, 1),
-                                  color: Colors.black,
-                                ),
-                                Shadow(
-                                  // Down Right
-                                  offset: Offset(1, 1),
-                                  color: Colors.black,
-                                ),
-                              ],
-                            ),
+                            transitionDuration: Duration(milliseconds: 400),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  const start = Offset(
+                                    0.0,
+                                    1.0,
+                                  ); // Start right below the screen
+                                  const finish = Offset
+                                      .zero; // Stop right at the top of the screen
+                                  final tween = Tween(
+                                    begin: start,
+                                    end: finish,
+                                  ).chain(CurveTween(curve: Curves.easeIn));
+                                  final offsetAnimation = animation.drive(
+                                    tween,
+                                  );
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ],
                 ),
