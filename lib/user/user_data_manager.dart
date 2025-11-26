@@ -51,6 +51,7 @@ class UserDataManager {
           lastDailyClaim: null,
           username: uid, // default username is uid
           reminders: [],
+          appColor: Colors.blue,
         );
       }
       final doc = await FirebaseFirestore.instance
@@ -130,6 +131,17 @@ class UserDataManager {
         }, SetOptions(merge: true));
       }
 
+      // if the user has a stored app theme color, load it
+      if (doc.exists && doc.data()?['appColor'] != null) {
+        final int storedColor = doc.data()?['appColor'];
+        currentUserData?.appColor = Color(storedColor);
+        // update ValueNotifier with the stored value so HomeScreen is correct on initialization
+        appColorNotifier.value = currentUserData!.appColor;
+      } else {
+        // default theme color
+        currentUserData?.appColor = Colors.blue;
+      }
+
       // Load the list of  reminders
       try {
         currentUserData?.reminders = await loadRemindersFromFirestore(
@@ -207,6 +219,7 @@ class UserDataManager {
         lastDailyClaim: currentUserData!.lastDailyClaim,
         username: currentUserData!.username,
         reminders: currentUserData!.reminders,
+        appColor: currentUserData!.appColor,
       );
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
@@ -306,6 +319,7 @@ class UserDataManager {
     return false; // No duplicates. Either the user is modifying capitalization, or choosing a new username entirely
   }
 
+  // Method for storing the user's updated username to Firebase
   Future<void> updateUsername(
     String updatedUsername,
     BuildContext context,
@@ -340,6 +354,40 @@ class UserDataManager {
         SnackBar(
           content: Text("Error updating username: $e"),
           duration: const Duration(milliseconds: 1500),
+        ),
+      );
+    }
+  }
+
+  // Method for updating the app theme color and storing it
+  Future<void> updateAppColor(Color newColor, BuildContext context) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Update locally
+      currentUserData!.appColor = newColor;
+
+      // Convert color to int
+      final int argbInt = newColor.toARGB32();
+
+      // Update Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'appColor': argbInt,
+      }, SetOptions(merge: true));
+
+      // Confirmation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Theme color updated!"),
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
+      // Error snackbar
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating theme color: $e"),
+          duration: Duration(milliseconds: 1500),
         ),
       );
     }

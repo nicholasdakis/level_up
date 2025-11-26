@@ -24,7 +24,7 @@ Widget buildSettingsDrawer(
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Color(0xFF121212),
+              color: appColorNotifier.value.withAlpha(230),
             ), // Header color of the settings popup
             child: RichText(
               textAlign: TextAlign.center,
@@ -75,7 +75,7 @@ Widget buildSettingsDrawer(
                 color: Colors.white,
                 alignment: TextAlign.left,
               ),
-              hoverColor: Color.fromARGB(255, 43, 43, 43),
+              hoverColor: appColorNotifier.value.withAlpha(230),
               onTap: () async {
                 // Dialog box for confirming logout
                 showDialog(

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'reminder_data.dart';
 
 class UserData {
@@ -9,6 +10,7 @@ class UserData {
   DateTime? lastDailyClaim;
   List<ReminderData> reminders;
   String? username;
+  Color appColor;
 
   // constructor
   UserData({
@@ -18,6 +20,7 @@ class UserData {
     this.expPoints = 0,
     this.canClaimDailyReward = true,
     this.lastDailyClaim,
+    this.appColor = Colors.blue, // default app color is blue
     String? username,
     this.reminders = const [],
   }) : username = username ?? uid; // Default username is the UID

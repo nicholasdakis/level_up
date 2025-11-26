@@ -26,6 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     initializeUser();
+    // Update the HomeScreen with the updated app color
+    appColorNotifier.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   // Method for initializing the user's stats from Firestore
@@ -43,10 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
     // Only show the daily reward dialog after user data is loaded and mounted
     if (mounted && canClaim) {
-      if (mounted && canClaim) {
-        final dailyRewardDialog = DailyRewardDialog();
-        await dailyRewardDialog.showDailyRewardDialog(context);
-      }
+      final dailyRewardDialog = DailyRewardDialog();
+      await dailyRewardDialog.showDailyRewardDialog(context);
     }
 
     if (mounted) setState(() {}); // rebuild UI with loaded stats
@@ -61,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Show loading if user data not loaded yet
     if (currentUserData == null) {
       return Scaffold(
-        backgroundColor: Color(0xFF1E1E1E),
+        backgroundColor:
+            Colors.blue, // default color if user's data can't be loaded
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -69,12 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: buildSettingsDrawer(
         screenWidth,
         context,
+        // rebuild on pfp image update
         onProfileImageUpdated: () {
           if (!mounted) return;
           setState(() {}); // rebuild HomeScreen
         },
       ),
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128),
       // Header
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
@@ -85,7 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
               false, // Prevent the automatic hamburger icon from appearing
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
-          backgroundColor: Color(0xFF121212),
+          backgroundColor: appColorNotifier.value.withAlpha(32), // Header color
+
           centerTitle: true,
           toolbarHeight:
               screenHeight * 0.5, // Prevent the icon from cutting in half

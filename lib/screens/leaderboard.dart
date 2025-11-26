@@ -55,9 +55,10 @@ class _LeaderboardState extends State<Leaderboard> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      // Header box
       appBar: AppBar(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         title: createTitle("Leaderboard", screenWidth),
       ),

@@ -270,9 +270,10 @@ class _RemindersState extends State<Reminders> {
     double screenWidth = 1.sw; // Screen width
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      // Header box
       appBar: AppBar(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Reminders", screenWidth),

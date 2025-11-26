@@ -5,6 +5,7 @@ import 'dart:io'; // for base64
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/user/user_data_manager.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
@@ -20,6 +21,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   TextEditingController? usernameController =
       TextEditingController(); // controller to read the user's input for username change
 
+  Color baseColor = currentUserData!.appColor;
+
+  // Method for picking the profile picture
   Future _pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -69,14 +73,68 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     }
   }
 
+  // Method for the app theme color picker
+  void _showColorPicker() {
+    Color pickerColor = baseColor;
+    // Dialog box prompting the chosen color
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Pick theme color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (color) {
+                pickerColor = color;
+              },
+              labelTypes: [],
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: [
+            // Cancel selection
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+
+            // Confirm selection
+            TextButton(
+              child: Text('Select'),
+              onPressed: () {
+                // Update the color
+                baseColor = pickerColor;
+                currentUserData!.appColor =
+                    pickerColor; // update local user data
+
+                appColorNotifier.value =
+                    pickerColor; // notify listeners instantly
+
+                // store on Firestore
+                userManager.updateAppColor(pickerColor, context);
+                setState(
+                  () {},
+                ); // update PersonalPreferences UI to show new color
+                // Close popup
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = 1.sh;
     double screenWidth = 1.sw;
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      // Header box
       appBar: AppBar(
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Preferences", screenWidth),
@@ -93,31 +151,116 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Update profile picture button
-                        SizedBox(
-                          height: screenHeight * 0.1,
-                          width: screenWidth * 0.90,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              backgroundColor: Color(0xFF2A2A2A),
-                              foregroundColor: Colors.white,
-                              side: BorderSide(
-                                color: Colors.black,
-                                width: screenWidth * 0.005,
-                              ),
-                            ),
-                            onPressed: () {
-                              _pickProfileImage();
-                            },
-                            child: buttonText(
-                              "Profile Picture",
-                              screenWidth * 0.1,
-                            ),
-                          ),
+                        // Button for choosing the app-theme color
+                        simpleCustomButton(
+                          "App Theme Color",
+                          context,
+                          baseColor: baseColor,
+                          onPressed: () {
+                            _showColorPicker();
+                          },
                         ),
+                        // spacing
+                        SizedBox(height: screenHeight * 0.02),
+                        // Update pfp button
+                        simpleCustomButton(
+                          "Profile Picture",
+                          context,
+                          baseColor: baseColor,
+                          onPressed: _pickProfileImage,
+                        ),
+                        // spacing
+                        SizedBox(height: screenHeight * 0.02),
+                        // Update username button
+                        simpleCustomButton(
+                          "Username",
+                          context,
+                          baseColor: baseColor,
+                          onPressed: () {
+                            // Dialog box for updating username
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Colors.grey[900],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                title: Text(
+                                  "Update your username",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Current username: \n ${currentUserData?.username ?? ''}",
+                                      style: TextStyle(color: Colors.white70),
+                                    ),
+                                    SizedBox(height: 10),
+                                    TextField(
+                                      controller: usernameController,
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            "Enter your updated username.",
+                                        hintStyle: TextStyle(
+                                          color: Colors.white54,
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.white24,
+                                          ),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton(
+                                        child: Text(
+                                          "CANCEL",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        // close if canceled
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                      TextButton(
+                                        child: Text(
+                                          "CONFIRM",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        // Handle username update
+                                        onPressed: () {
+                                          String updatedUsername =
+                                              usernameController!.text.trim();
+                                          UserDataManager().updateUsername(
+                                            updatedUsername,
+                                            context,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ).then((_) {
+                              // Reset the text field after exiting the dialog box
+                              usernameController!.text = "";
+                            });
+                          },
+                        ),
+                        // text under Username button informing user
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
@@ -137,114 +280,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                 ],
                               ),
                             ),
-                          ),
-                        ),
-                        // Update username button
-                        SizedBox(
-                          height: screenHeight * 0.1,
-                          width: screenWidth * 0.90,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              backgroundColor: Color(0xFF2A2A2A),
-                              foregroundColor: Colors.white,
-                              side: BorderSide(
-                                color: Colors.black,
-                                width: screenWidth * 0.005,
-                              ),
-                            ),
-                            onPressed: () {
-                              // Dialog box for updating username
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  backgroundColor: Colors.grey[900],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  title: Text(
-                                    "Update your username",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Current username: \n ${currentUserData?.username ?? ''}",
-                                        style: TextStyle(color: Colors.white70),
-                                      ),
-                                      SizedBox(height: 10),
-                                      TextField(
-                                        controller: usernameController,
-                                        decoration: InputDecoration(
-                                          hintText:
-                                              "Enter your updated username.",
-                                          hintStyle: TextStyle(
-                                            color: Colors.white54,
-                                          ),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Colors.white24,
-                                            ),
-                                          ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        TextButton(
-                                          child: Text(
-                                            "CANCEL",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          // close if canceled
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                        ),
-                                        TextButton(
-                                          child: Text(
-                                            "CONFIRM",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          // Handle username update
-                                          onPressed: () {
-                                            String updatedUsername =
-                                                usernameController!.text.trim();
-                                            UserDataManager().updateUsername(
-                                              updatedUsername,
-                                              context,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ).then((_) {
-                                // Reset the text field after exiting the dialog box
-                                usernameController!.text = "";
-                              });
-                            },
-                            child: buttonText("Username", screenWidth * 0.1),
                           ),
                         ),
                       ],

@@ -31,7 +31,7 @@ class _FooterState extends State<Footer> {
     return Container(
       height: widget.screenHeight * 0.15,
       width: widget.screenWidth,
-      color: Color(0xFF121212),
+      color: appColorNotifier.value.withAlpha(64), // Header color
       padding: EdgeInsets.all(25),
       child: Center(
         child: Row(
@@ -139,7 +139,6 @@ class _FooterState extends State<Footer> {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: () {
-                                  debugPrint("Tapped");
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

@@ -3,10 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
+import 'dart:ui';
 
 ValueNotifier<int> expNotifier = ValueNotifier<int>(
   currentUserData?.expPoints ?? 0,
 );
+
+// for updating HomeScreen when app color is updated
+ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(Colors.blue);
 
 UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
@@ -158,6 +162,8 @@ Widget buttonText(String text, double letterSize) {
   );
 }
 
+// Method to retrieve the user's app color preference from Firebase
+
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(
   String text,
@@ -166,30 +172,162 @@ Widget customButton(
   double screenWidth,
   BuildContext context, {
   Widget? destination,
-  VoidCallback? onPressed, // optional callback for custom actions
+  VoidCallback? onPressed,
+  Color? baseColor,
 }) {
+  Color color = baseColor =
+      currentUserData!.appColor; // app theme is the user's chosen theme
+  // convert the colors to ints to use in the ARGB constructor
+  // extract the red, green, blue components from the base color
+  final int red = (color.r * 255).round().clamp(0, 255);
+  final int green = (color.g * 255).round().clamp(0, 255);
+  final int blue = (color.b * 255).round().clamp(0, 255);
+
   return SizedBox(
-    // to explicitly control the ElevatedButton size
+    height: screenHeight * 0.15, // Button height relative to screen
+    width: screenWidth * 0.90, // Button width relative to screen
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(30), // Rounded corners
+      child: Stack(
+        children: [
+          BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: 15,
+              sigmaY: 15,
+            ), // Blur background, add glass-like effect
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(
+                  (0.15 * 255).round(),
+                  red,
+                  green,
+                  blue,
+                ), // Translucent background color
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Color.fromARGB(
+                    (0.3 * 255).round(),
+                    red,
+                    green,
+                    blue,
+                  ), // Border with opacity
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color.fromARGB(
+                      (0.25 * 255).round(),
+                      0,
+                      0,
+                      0,
+                    ), // shadows
+                    offset: Offset(0, 4),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap:
+                  onPressed ??
+                  () {
+                    if (destination != null) {
+                      changeToScreen(context, destination);
+                    }
+                  },
+              // ripple effect when clicking
+              splashColor: Color.fromARGB(
+                (0.1 * 255).round(),
+                red,
+                green,
+                blue,
+              ), // Ripple color
+              highlightColor: Color.fromARGB(
+                (0.05 * 255).round(),
+                red,
+                green,
+                blue,
+              ), // Highlight on tap
+              child: Center(
+                child: buttonText(text, screenWidth * 0.1),
+              ), // Text centered and sized
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Simpler version of the customButton widget code to visually have customButtons without all the logic their constructors need
+Widget simpleCustomButton(
+  String text,
+  BuildContext context, {
+  required VoidCallback onPressed,
+  Color baseColor = Colors.blue,
+}) {
+  final red = (baseColor.red).clamp(0, 255);
+  final green = (baseColor.green).clamp(0, 255);
+  final blue = (baseColor.blue).clamp(0, 255);
+
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenWidth = MediaQuery.of(context).size.width;
+
+  return SizedBox(
     height: screenHeight * 0.15,
     width: screenWidth * 0.90,
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        backgroundColor: Color(0xFF2A2A2A), // Actual button color
-        foregroundColor: Colors.white, // Button text color
-        side: BorderSide(color: Colors.black, width: screenWidth * 0.005),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: Stack(
+        children: [
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
+                    offset: Offset(0, 4),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: onPressed,
+              splashColor: Color.fromARGB(
+                (0.1 * 255).round(),
+                red,
+                green,
+                blue,
+              ),
+              highlightColor: Color.fromARGB(
+                (0.05 * 255).round(),
+                red,
+                green,
+                blue,
+              ),
+              child: Center(child: buttonText(text, screenWidth * 0.1)),
+            ),
+          ),
+        ],
       ),
-      onPressed:
-          onPressed ??
-          () {
-            // If no custom action provided, fallback to navigation
-            if (destination == null) {
-              // No destination, so stop
-              return;
-            }
-            changeToScreen(context, destination);
-          },
-      child: buttonText(text, screenWidth * 0.1),
     ),
   );
 }

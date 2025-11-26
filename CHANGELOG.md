@@ -384,7 +384,7 @@ Developmental progress by date is stored in this file.
 - Pushed commit to update Render with latest backend code
 - Integrated Google Firestore client with explicit service account credentials loaded from environment variable GOOGLE_APPLICATION_CREDENTIALS_JSON
 - Replaced default Firestore authentication with service account JSON parsing to avoid deployment errors on Render
-- Token limit status code changed from 500 to 429 (too many requets)
+- Token limit status code changed from 500 to 429 (too many requests)
 - Added snackbar flag logic to the token limit snackbar
 - Pushed commit to update Render with latest backend code
 - Snackbar was not showing up during conversion. Solution: Simply use time_left from the json as a string and format that string in a method (based on # of colons for differentiating time/hours/mins)
@@ -393,3 +393,14 @@ Developmental progress by date is stored in this file.
 - Removed dotenv imports from server.py and token_manager.py
 - All references to the environmental variables are now through Render.com
 - Slightly increased timer before api calls (now 750ms)
+
+## 2025-11-25
+- Changed the UI of the customButton widget to appear more modern
+- Used the colorpicker import to allow the user to choose an app theme color
+- Changed firebase-related code to store the app theme color to Firebase
+- Added a simpleCustomButton widget to make the customButton code more reusable (without requiring all its constructor needs)
+- Changed code of manually-created buttons to use the simpleCustomButton widget
+- Modified user_data_manager and user_data to handle an appColor variable and store it to Firestore
+- Added a callback so the HomeScreen gets rebuilt when a new app color is chosen
+- Got confused with this approach (wasn't working) so used a ValueNotifier instead
+- Changed hardcoded gray colors from each class to the new dynamic ones (still WIP for some hardcoded values and Dialog boxes)

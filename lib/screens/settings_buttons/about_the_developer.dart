@@ -82,10 +82,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Developer", screenWidth),

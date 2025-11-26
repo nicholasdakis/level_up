@@ -52,10 +52,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
       dropdownValue = units;
     }
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Calculator", screenWidth),

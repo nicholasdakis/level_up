@@ -199,12 +199,13 @@ class _FoodLoggingState extends State<FoodLogging> {
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      // Header box
       // Header box
       appBar: AppBar(
         scrolledUnderElevation:
             0, // So the appBar does not change color when the user scrolls down
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
         title: createTitle("Food Logging", screenWidth),

@@ -84,6 +84,9 @@ dependencies:
 
   # svg rendering of assets
   flutter_svg: ^2.2.1
+
+  # color picking app theme
+  flutter_colorpicker: ^1.0.3
   
 
 dev_dependencies:
