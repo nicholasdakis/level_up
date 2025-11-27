@@ -414,3 +414,7 @@ Developmental progress by date is stored in this file.
 - Made updateAppColor() calls async to fix bug where confirmation snackbar didn't appear
 - Added backgroundColor attribute to confirmation snackbar so it would show the correct snackbar color
 - Added a flag isDefaultColor to conditionally make the snackbar mention whether the snackbar was reset to the default value or not
+- Removed the alpha slider from theme color picker as it is unneeded
+- This caused the visual circle showing the alpha level to remain and appear awkward. This was handled by setting the alpha value of the base color to 255
+- Now, the circle serves as an indicator of the color the user is choosing
+- Added a custom ScrollBehavior (NoGlowScrollBehavior) to remove awkward darkening of buttons when scrolling to the very top / very bottom of the home screen

@@ -13,6 +13,18 @@ import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'globals.dart';
 
+// small class for removing the awkward glow of buttons when scrolling to the very top / very bottom of the home screen
+class NoGlowScrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child; // No glow effect
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -145,72 +157,75 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Scrollbar(
               thumbVisibility: true,
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(screenHeight * 0.02),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // CALORIE CALCULATOR BUTTON
-                        customButton(
-                          "Calorie Calculator",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: CalorieCalculator(),
-                        ),
-                        SizedBox(height: 10.h), // Space between buttons
-                        // FOOD LOGGING TAB
-                        customButton(
-                          "Food Logging",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: FoodLogging(),
-                        ),
-                        SizedBox(height: 10.h), // Space between buttons
-                        customButton(
-                          "Explore",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: Explore(),
-                        ),
-                        SizedBox(height: 10.h), // Space between buttons
-                        // REMINDERS TAB
-                        customButton(
-                          "Reminders",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: Reminders(),
-                        ),
-                        SizedBox(height: 10.h), // Space between buttons
-                        // BADGES TAB
-                        customButton(
-                          "Badges",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: Badges(),
-                        ),
-                        SizedBox(height: 10.h), // Space between buttons
-                        // LEADERBOARD TAB
-                        customButton(
-                          "Leaderboard",
-                          screenWidth * 0.1,
-                          screenHeight,
-                          screenWidth,
-                          context,
-                          destination: Leaderboard(),
-                        ),
-                      ],
+              child: ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(screenHeight * 0.02),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // CALORIE CALCULATOR BUTTON
+                          customButton(
+                            "Calorie Calculator",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: CalorieCalculator(),
+                          ),
+                          SizedBox(height: 10.h), // Space between buttons
+                          // FOOD LOGGING TAB
+                          customButton(
+                            "Food Logging",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: FoodLogging(),
+                          ),
+                          SizedBox(height: 10.h), // Space between buttons
+                          customButton(
+                            "Explore",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: Explore(),
+                          ),
+                          SizedBox(height: 10.h), // Space between buttons
+                          // REMINDERS TAB
+                          customButton(
+                            "Reminders",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: Reminders(),
+                          ),
+                          SizedBox(height: 10.h), // Space between buttons
+                          // BADGES TAB
+                          customButton(
+                            "Badges",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: Badges(),
+                          ),
+                          SizedBox(height: 10.h), // Space between buttons
+                          // LEADERBOARD TAB
+                          customButton(
+                            "Leaderboard",
+                            screenWidth * 0.1,
+                            screenHeight,
+                            screenWidth,
+                            context,
+                            destination: Leaderboard(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

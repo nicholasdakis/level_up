@@ -75,7 +75,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
 
   // Method for the app theme color picker
   void _showColorPicker() {
-    Color pickerColor = baseColor;
+    Color pickerColor = baseColor.withAlpha(
+      255,
+    ); // .withAlpha(255) so the alpha circle is initially filled up
     double screenWidth = 1.sw;
     // Dialog box prompting the chosen color
     showDialog(
@@ -91,6 +93,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 pickerColor = color;
               },
               labelTypes: [],
+              enableAlpha: false, // disable the alpha slider
               pickerAreaHeightPercent: 0.8,
             ),
           ),
