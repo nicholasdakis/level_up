@@ -4,6 +4,7 @@ import 'authentication/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'utility/notification_setup.dart';
+import '../globals.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,11 +32,13 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
             colorScheme: ColorScheme.dark(
               primary: Colors.white, // text and buttons
-              surface: Color(0xFF1E1E1E), // scaffold background
+              surface: appColorNotifier.value.withAlpha(
+                200,
+              ), // scaffold background
             ),
-            scaffoldBackgroundColor: const Color(0xFF1E1E1E),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF121212),
+            scaffoldBackgroundColor: appColorNotifier.value.withAlpha(200),
+            appBarTheme: AppBarTheme(
+              backgroundColor: appColorNotifier.value.withAlpha(200),
               iconTheme: IconThemeData(color: Colors.white),
               titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
             ),
@@ -45,13 +48,13 @@ class MyApp extends StatelessWidget {
               ),
             ),
             snackBarTheme: SnackBarThemeData(
-              backgroundColor: Color(0xFF2A2A2A),
+              backgroundColor: appColorNotifier.value.withAlpha(200),
               contentTextStyle: TextStyle(color: Colors.white),
             ),
             elevatedButtonTheme: ElevatedButtonThemeData(
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.all(
-                  const Color(0xFF2A2A2A),
+                  appColorNotifier.value.withAlpha(200),
                 ),
                 foregroundColor: WidgetStateProperty.all(Colors.white),
               ),

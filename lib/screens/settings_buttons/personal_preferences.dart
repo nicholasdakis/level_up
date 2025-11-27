@@ -76,12 +76,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   // Method for the app theme color picker
   void _showColorPicker() {
     Color pickerColor = baseColor;
+    double screenWidth = 1.sw;
     // Dialog box prompting the chosen color
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Pick theme color'),
+          backgroundColor: appColorNotifier.value.withAlpha(200),
+          title: textWithFont('Pick theme color', screenWidth, 0.075),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
@@ -93,32 +95,53 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
             ),
           ),
           actions: [
-            // Cancel selection
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+            SizedBox(
+              width: double.infinity, // Make the row fill the dialog width
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Space buttons evenly
+                children: [
+                  // Cancel selection
+                  TextButton(
+                    child: Text('Cancel'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
 
-            // Confirm selection
-            TextButton(
-              child: Text('Select'),
-              onPressed: () {
-                // Update the color
-                baseColor = pickerColor;
-                currentUserData!.appColor =
-                    pickerColor; // update local user data
+                  // Default app color
+                  TextButton(
+                    child: Text('Default'),
+                    onPressed: () async {
+                      baseColor = Color.fromARGB(255, 45, 45, 45);
+                      currentUserData!.appColor = Color.fromARGB(
+                        255,
+                        45,
+                        45,
+                        45,
+                      );
+                      appColorNotifier.value = Color.fromARGB(255, 45, 45, 45);
+                      await userManager.updateAppColor(
+                        Color.fromARGB(255, 45, 45, 45),
+                        context,
+                      );
+                      setState(() {}); // update personalpreferences UI
+                      Navigator.of(context).pop();
+                    },
+                  ),
 
-                appColorNotifier.value =
-                    pickerColor; // notify listeners instantly
-
-                // store on Firestore
-                userManager.updateAppColor(pickerColor, context);
-                setState(
-                  () {},
-                ); // update PersonalPreferences UI to show new color
-                // Close popup
-                Navigator.of(context).pop();
-              },
+                  // Confirm selection
+                  TextButton(
+                    child: Text('Select'),
+                    onPressed: () async {
+                      baseColor = pickerColor;
+                      currentUserData!.appColor = pickerColor;
+                      appColorNotifier.value = pickerColor;
+                      await userManager.updateAppColor(pickerColor, context);
+                      setState(() {});
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -181,7 +204,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                backgroundColor: Colors.grey[900],
+                                backgroundColor: appColorNotifier.value
+                                    .withAlpha(255),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),

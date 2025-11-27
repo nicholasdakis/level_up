@@ -20,9 +20,7 @@ Widget buildSettingsDrawer(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: appColorNotifier.value.withAlpha(64),
-            ), // Header color of the settings popup
+            decoration: BoxDecoration(), // Header color of the settings popup
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
@@ -78,7 +76,7 @@ Widget buildSettingsDrawer(
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: Colors.grey[900],
+                    backgroundColor: appColorNotifier.value.withAlpha(200),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),

@@ -51,7 +51,7 @@ class UserDataManager {
           lastDailyClaim: null,
           username: uid, // default username is uid
           reminders: [],
-          appColor: Colors.blue,
+          appColor: const Color.fromARGB(255, 45, 45, 45),
         );
       }
       final doc = await FirebaseFirestore.instance
@@ -139,7 +139,12 @@ class UserDataManager {
         appColorNotifier.value = currentUserData!.appColor;
       } else {
         // default theme color
-        currentUserData?.appColor = Colors.blue;
+        currentUserData?.appColor = const Color.fromARGB(
+          255,
+          45,
+          45,
+          45,
+        ); // default app theme color
       }
 
       // Load the list of  reminders
@@ -370,6 +375,12 @@ class UserDataManager {
       // Convert color to int
       final int argbInt = newColor.toARGB32();
 
+      // Flag for checking if the chosen color is the "Default color" atribute
+      bool isDefaultColor = false;
+      if (argbInt == 4281150765) {
+        isDefaultColor = true;
+      }
+
       // Update Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'appColor': argbInt,
@@ -378,7 +389,11 @@ class UserDataManager {
       // Confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Theme color updated!"),
+          content: Text(
+            // conditionally mention whether it was updated to a custom color or reset
+            isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+          ),
+          backgroundColor: newColor, // snackbar color is the newly chosen color
           duration: Duration(milliseconds: 1500),
         ),
       );

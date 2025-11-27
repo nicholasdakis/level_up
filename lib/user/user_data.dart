@@ -20,7 +20,7 @@ class UserData {
     this.expPoints = 0,
     this.canClaimDailyReward = true,
     this.lastDailyClaim,
-    this.appColor = Colors.blue, // default app color is blue
+    this.appColor = const Color.fromARGB(255, 45, 45, 45), // default app color
     String? username,
     this.reminders = const [],
   }) : username = username ?? uid; // Default username is the UID

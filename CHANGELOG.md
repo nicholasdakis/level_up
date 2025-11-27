@@ -406,4 +406,11 @@ Developmental progress by date is stored in this file.
 - Changed hardcoded gray colors from each class to the new dynamic ones (still WIP for some hardcoded values and Dialog boxes)
 
 ## 2025-11-26
-- Continued changing hard-coded gray-colored components to the dynamic app theme colors
+- Continued changing hard-coded gray-colored components, like cards, dialog boxes, buttons, to the dynamic app theme colors
+- Changed the app theme colors in main.dart from gray to the dynamic app theme colors
+- Added a "Reset Theme" button in App Theme Color chooser to revert to the default theme color
+- Changed default theme color from Blue to Gray
+- Reformatted the App Theme Color dialog box (equal spacing between action buttons, custom font for "Pick theme color" text)
+- Made updateAppColor() calls async to fix bug where confirmation snackbar didn't appear
+- Added backgroundColor attribute to confirmation snackbar so it would show the correct snackbar color
+- Added a flag isDefaultColor to conditionally make the snackbar mention whether the snackbar was reset to the default value or not

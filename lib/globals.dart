@@ -10,7 +10,9 @@ ValueNotifier<int> expNotifier = ValueNotifier<int>(
 );
 
 // for updating HomeScreen when app color is updated
-ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(Colors.blue);
+ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(
+  Color.fromARGB(255, 45, 45, 45),
+);
 
 UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)

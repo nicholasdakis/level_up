@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (currentUserData == null) {
       return Scaffold(
         backgroundColor:
-            Colors.blue, // default color if user's data can't be loaded
+            Colors.grey[900], // default color if user's data can't be loaded
         body: Center(child: CircularProgressIndicator()),
       );
     }
