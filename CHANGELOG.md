@@ -418,3 +418,7 @@ Developmental progress by date is stored in this file.
 - This caused the visual circle showing the alpha level to remain and appear awkward. This was handled by setting the alpha value of the base color to 255
 - Now, the circle serves as an indicator of the color the user is choosing
 - Added a custom ScrollBehavior (NoGlowScrollBehavior) to remove awkward darkening of buttons when scrolling to the very top / very bottom of the home screen
+
+## 2026-01-19
+- Removed the weightNeverChanged flag in CalorieCalculator, replacing it with a previousUnits variable
+- Used the previousUnits variable to fix issues (double-counting weight, not converting weight) with changing units while already having a number entered for weight

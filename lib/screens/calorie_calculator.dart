@@ -19,6 +19,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
       "MetricDefault"; // default value, but uses a different name so the user can still see "Choose your units" text
   String? currentUnits =
       "MetricDefault"; // store the user's currently chosen units
+  String? previousUnits =
+      "MetricDefault"; // variable to store the previously chosen units
   String? sex;
   String? goal;
   String? activityLevel;
@@ -35,8 +37,6 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
       TextEditingController(); // allow the user to type in their weight
   bool resultsSnackbarActive =
       false; // flag so only one snackbar shows at a time
-  bool weightNeverChanged =
-      true; // flag so weight is not converted if the user switches from MetricDefault to Metric
 
   @override
   Widget build(BuildContext context) {
@@ -126,37 +126,24 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       if (value == currentUnits) {
                         return; // selected the already chosen unit, so do nothing
                       }
-                      units = value;
-                      currentUnits = units;
-                      // USER CHANGES UNITS AFTER ALREADY HAVING A HEIGHT SET
-                      if (heightInches != null && value == "Metric") {
-                        // initially set an imperial height and switched units to metric
-                        heightCm = (heightInches! * 2.54)
-                            .round(); // store that imperial height in metric
-                        heightInches = null; // reset the imperial value
-                      } else if (heightCm != null && value == "Imperial") {
-                        // initially set a metric height and switched units to imperial
-                        heightInches = (heightCm! / 2.54)
-                            .round(); // store that metric height in imperial
-                        heightCm = null; // reset the metric value
-                      }
-                      // USER CHANGES UNITS AFTER ALREADY HAVING A WEIGHT SET
-                      if (weight != null && weightNeverChanged) {
-                        if (value == "Metric") {
-                          // inner if so that the else ifs run even when value is not metric
-                          // do nothing (keep the weight the same)
-                          weightNeverChanged =
-                              false; // true only when user hasn't chosen units and is using the MetricDefault units
+
+                      previousUnits = currentUnits; // store the old units
+                      currentUnits = value; // update the current units
+                      units = value; // update the units variable
+
+                      if (weight != null) {
+                        // Switching from imperial to metric
+                        if (previousUnits == "Imperial" &&
+                            currentUnits == "Metric") {
+                          weight = weight! / 2.205; // lbs to kg
+
+                          // Switching from metric (or default MetricDefault value) to imperial
+                        } else if (previousUnits == "Metric" &&
+                                currentUnits == "Imperial" ||
+                            previousUnits == "MetricDefault" &&
+                                currentUnits == "Imperial") {
+                          weight = weight! * 2.205; // kg to lbs
                         }
-                      } else if (weight != null && value == "Metric") {
-                        // initially set an imperial height and switched units to metric
-                        weight = weight! / 2.205; // lbs to kg
-                        weightController.text = weight!.toStringAsFixed(
-                          2,
-                        ); // update the controller to visually see the change
-                      } else if (weight != null && value == "Imperial") {
-                        // initially set a metric height and switched units to imperial
-                        weight = weight! * 2.205; // kg to lbs
                         weightController.text = weight!.toStringAsFixed(2);
                       }
                     });
