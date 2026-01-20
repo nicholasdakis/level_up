@@ -131,6 +131,20 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       currentUnits = value; // update the current units
                       units = value; // update the units variable
 
+                      // HEIGHT CONVERSION
+                      if (heightInches != null && value == "Metric") {
+                        // initially set an imperial height and switched units to metric
+                        heightCm = (heightInches! * 2.54)
+                            .round(); // store that imperial height in metric
+                        heightInches = null; // reset the imperial value
+                      } else if (heightCm != null && value == "Imperial") {
+                        // initially set a metric height and switched units to imperial
+                        heightInches = (heightCm! / 2.54)
+                            .round(); // store that metric height in imperial
+                        heightCm = null; // reset the metric value
+                      }
+
+                      // WEIGHT CONVERSION
                       if (weight != null) {
                         // Switching from imperial to metric
                         if (previousUnits == "Imperial" &&
