@@ -38,6 +38,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   bool resultsSnackbarActive =
       false; // flag so only one snackbar shows at a time
 
+  // Method to prevent values outside of the dropdown button upon conversion
+  int keepValueInRange(int val, int min, int max) {
+    if (val < min) return min;
+    if (val > max) return max;
+    return val;
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight =
@@ -133,15 +140,17 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
 
                       // HEIGHT CONVERSION
                       if (heightInches != null && value == "Metric") {
-                        // initially set an imperial height and switched units to metric
-                        heightCm = (heightInches! * 2.54)
-                            .round(); // store that imperial height in metric
-                        heightInches = null; // reset the imperial value
+                        int converted = (heightInches! * 2.54).round();
+                        heightCm = keepValueInRange(converted, 100, 275);
+                        heightInches = null;
                       } else if (heightCm != null && value == "Imperial") {
-                        // initially set a metric height and switched units to imperial
-                        heightInches = (heightCm! / 2.54)
-                            .round(); // store that metric height in imperial
-                        heightCm = null; // reset the metric value
+                        int converted = (heightCm! / 2.54).round();
+                        heightInches = keepValueInRange(
+                          converted,
+                          36,
+                          107,
+                        ); // imperial range in inches
+                        heightCm = null;
                       }
 
                       // WEIGHT CONVERSION
@@ -389,8 +398,17 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         ),
                         hintText:
                             (units == "MetricDefault" || units == "Metric")
-                            ? "  Type your weight in kg" // if
-                            : "  Type your weight in lbs", // else
+                            ? "  Enter your weight in kg" // if
+                            : "  Enter your weight in lbs", // else
+                        // Suffix text to specify the weight's units
+                        suffixText: weightController.text.isNotEmpty
+                            ? (currentUnits == 'Metric' ||
+                                      currentUnits == 'MetricDefault'
+                                  ? 'kg'
+                                  : 'lbs')
+                            : null,
+
+                        suffixStyle: TextStyle(color: Colors.white),
                         contentPadding: EdgeInsets.only(
                           top: 13,
                           left: 6,
@@ -408,9 +426,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         ),
                       ),
                       onChanged: (inputWeight) {
-                        weight = double.parse(
-                          inputWeight,
-                        ); // store the user's input
+                        setState(() {
+                          weight = double.tryParse(inputWeight);
+                        });
                       },
                     ),
                   ),

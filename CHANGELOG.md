@@ -422,3 +422,5 @@ Developmental progress by date is stored in this file.
 ## 2026-01-19
 - Removed the weightNeverChanged flag in CalorieCalculator, replacing it with a previousUnits variable
 - Used the previousUnits variable to fix issues (double-counting weight, not converting weight) with changing units while already having a number entered for weight
+- Added a keepValueInRange method to prevent a crash with height conversions giving values outside of the dropdown button values (e.g, wanting to convert to 99 when the minimum is 100)
+- Added text to specify weight units (kg / lbs) in the weight input tab of Calorie Calculator
