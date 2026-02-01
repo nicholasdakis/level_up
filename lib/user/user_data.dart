@@ -11,6 +11,7 @@ class UserData {
   List<ReminderData> reminders;
   String? username;
   Color appColor;
+  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate;
 
   // constructor
   UserData({
@@ -21,7 +22,9 @@ class UserData {
     this.canClaimDailyReward = true,
     this.lastDailyClaim,
     this.appColor = const Color.fromARGB(255, 45, 45, 45), // default app color
+    Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,
     String? username,
     this.reminders = const [],
-  }) : username = username ?? uid; // Default username is the UID
+  }) : foodDataByDate = foodDataByDate ?? {},
+       username = username ?? uid; // Default username is the UID
 }

@@ -23,6 +23,39 @@ class _FoodLoggingState extends State<FoodLogging> {
     return DropdownMenuItem<String>(value: text, child: Text(text));
   }
 
+  // Hold selected food for updating the UI in real time
+  Map<String, dynamic>? selectedFood;
+
+  // Method to extract the calories from the food-description string
+  int extractCalories(String description) {
+    // Apple example: "Per 100g - Calories: 52kcal | Fat: 0.17g | Carbs: 13.81g | Protein: 0.26g"
+    final regex = RegExp(r'Calories:\s*(\d+)kcal', caseSensitive: false);
+    final match = regex.firstMatch(description);
+    if (match != null) {
+      return int.tryParse(match.group(1) ?? '') ?? 0;
+    }
+    return 0;
+  }
+
+  // Method for calculating caloric total for the day
+  int getTotalCaloriesForDay() {
+    num total = 0;
+
+    for (var item in breakfastFoods) {
+      total += (item['calories'] ?? 0);
+    }
+    for (var item in lunchFoods) {
+      total += (item['calories'] ?? 0);
+    }
+    for (var item in dinnerFoods) {
+      total += (item['calories'] ?? 0);
+    }
+    for (var item in snackFoods) {
+      total += (item['calories'] ?? 0);
+    }
+    return total.toInt(); // convert to int at the end
+  }
+
   // This method tries to launch the FatSecret website when called
   Future<void> launchFatSecret() async {
     final uri = Uri.parse(
@@ -166,6 +199,8 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   String? mealType;
 
+  DateTime currentDate = DateTime.now();
+
   // Timer to prevent too many requests to the API too frequently
   Timer? checkTimer;
 
@@ -175,21 +210,87 @@ class _FoodLoggingState extends State<FoodLogging> {
   // The list that holds and displays the foods found from the user's search
   List<dynamic> foodList = [];
 
-  // The lists that hold and display the foods the user selects based on the category of food
-  List<String> breakfastFoods = [];
-  List<String> lunchFoods = [];
-  List<String> dinnerFoods = [];
-  List<String> snackFoods = [];
+  // The lists that hold and display the foods and nutritional information the user selects based on the category of food
+  List<Map<String, dynamic>> breakfastFoods = [];
+  List<Map<String, dynamic>> lunchFoods = [];
+  List<Map<String, dynamic>> dinnerFoods = [];
+  List<Map<String, dynamic>> snackFoods = [];
 
-  @override
-  void dispose() {
-    checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
-    super.dispose();
-  }
+  // Map to hold all food based on date
+  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
+
+  // Use Future to load and initialize user data asynchronously
+  late Future<void> _loadUserDataFuture;
 
   @override
   void initState() {
     super.initState();
+    _loadUserDataFuture = _loadUserDataAndInit();
+  }
+
+  Future<void> _loadUserDataAndInit() async {
+    await userManager.loadUserData();
+    if (currentUserData?.foodDataByDate != null) {
+      foodDataByDate =
+          Map<String, Map<String, List<Map<String, dynamic>>>>.from(
+            currentUserData!.foodDataByDate,
+          );
+    } else {
+      foodDataByDate = {};
+    }
+    loadFoodForDate(currentDate);
+  }
+
+  // Method to format date
+  String formatDateKey(DateTime date) {
+    return "${date.year.toString().padLeft(4, '0')}-" // padLeft so date x < 10 appears as 0x
+        "${date.month.toString().padLeft(2, '0')}-"
+        "${date.day.toString().padLeft(2, '0')}";
+  }
+
+  // Method to show the correct foods based on date
+  void loadFoodForDate(DateTime date) {
+    final key = formatDateKey(date);
+    final dayData = foodDataByDate[key];
+
+    setState(() {
+      breakfastFoods =
+          (dayData?['Breakfast'] as List<dynamic>?)
+              ?.cast<Map<String, dynamic>>() ??
+          [];
+      lunchFoods =
+          (dayData?['Lunch'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ??
+          [];
+      dinnerFoods =
+          (dayData?['Dinner'] as List<dynamic>?)
+              ?.cast<Map<String, dynamic>>() ??
+          [];
+      snackFoods =
+          (dayData?['Snack'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ??
+          [];
+    });
+  }
+
+  // Save foodDataByDate to persistent storage after changes
+  Future<void> saveFoodData() async {
+    if (currentUserData == null) return;
+    currentUserData!.foodDataByDate = foodDataByDate;
+    await userManager.updateFoodDataByDate(foodDataByDate);
+  }
+
+  // Arrow-controlled method to change the date
+  void changeDate(int days) {
+    setState(() {
+      currentDate = currentDate.add(Duration(days: days));
+    });
+    loadFoodForDate(currentDate);
+  }
+
+  @override
+  void dispose() {
+    checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -198,161 +299,116 @@ class _FoodLoggingState extends State<FoodLogging> {
         1.sh; // Make widgets the size of the user's personal screen size
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
-    return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
-      // Header box
-      // Header box
-      appBar: AppBar(
-        scrolledUnderElevation:
-            0, // So the appBar does not change color when the user scrolls down
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
-        centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Food Logging", screenWidth),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // FatSecret attribution
-            Container(
-              alignment: Alignment.center,
-              child: InkWell(
-                onTap: () async {
-                  await launchFatSecret(); // wait for the function to finish calling // load method which updates noApiTokens variable
-                },
-                child: Column(
+
+    return FutureBuilder(
+      future: _loadUserDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return Scaffold(
+            backgroundColor: appColorNotifier.value.withAlpha(
+              128,
+            ), // Body color
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+          // Header box
+          appBar: AppBar(
+            scrolledUnderElevation:
+                0, // So the appBar does not change color when the user scrolls down
+            backgroundColor: appColorNotifier.value.withAlpha(
+              64,
+            ), // Header color
+            centerTitle: true,
+            toolbarHeight: screenHeight * 0.15,
+            title: createTitle("Food Logging", screenWidth),
+          ),
+          body: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // date arrows and display
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    textWithFont(
-                      "Powered by fatsecret",
-                      screenWidth,
-                      0.035,
-                      color: Colors.blue,
+                    IconButton(
+                      icon: Icon(Icons.arrow_left, color: Colors.white),
+                      onPressed: () => changeDate(-1),
+                    ),
+                    Text(
+                      "${currentDate.year.toString().padLeft(4, '0')}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
+                      style: GoogleFonts.manrope(
+                        fontSize: screenWidth * 0.045,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.arrow_right, color: Colors.white),
+                      onPressed: () => changeDate(1),
                     ),
                   ],
                 ),
-              ),
-            ),
 
-            // Search Food input
-            SizedBox(
-              // make the underline narrower
-              width: screenWidth * 0.9,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  // Theme to remove the purple when interacting with the input
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  textSelectionTheme: TextSelectionThemeData(
-                    cursorColor: Colors.white,
-                    selectionHandleColor: Colors.white,
-                    selectionColor: const Color.fromARGB(
-                      255,
-                      83,
-                      75,
-                      75,
-                    ).withAlpha(128),
+                // FatSecret attribution
+                Container(
+                  alignment: Alignment.center,
+                  child: InkWell(
+                    onTap: () async {
+                      await launchFatSecret(); // wait for the function to finish calling // load method which updates noApiTokens variable
+                    },
+                    child: Column(
+                      children: [
+                        textWithFont(
+                          "Powered by fatsecret",
+                          screenWidth,
+                          0.035,
+                          color: Colors.blue,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: TextField(
-                  controller: searchController,
-                  enabled: userCanType,
-                  keyboardType: TextInputType.text,
-                  style: GoogleFonts.manrope(
-                    // style of the input text
-                    fontSize: screenWidth * 0.04,
+
+                // Display total calories text
+                Text(
+                  "Total Calories: ${getTotalCaloriesForDay()}",
+                  style: TextStyle(
                     color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                  decoration: InputDecoration(
-                    // style of the hint text
-                    enabledBorder: UnderlineInputBorder(
-                      // custom border
-                      borderSide: BorderSide(color: Colors.grey, width: 0.25),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      // custom border
-                      borderSide: BorderSide(color: Colors.grey, width: 0.25),
-                    ),
-                    hintText: "Search",
-                    suffixIcon: Icon(Icons.search),
-                    contentPadding: EdgeInsets.only(
-                      top: 13,
-                      left: 6,
-                    ), // Move the text down and to the right to look more natural
-                    hintStyle: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
-                  onChanged: (value) {
-                    lastInput =
-                        DateTime.now(); // Store the time at which the user pressed the last character
-                    checkTimer
-                        ?.cancel(); // Cancel any previous timers to avoid calling the function continuously
-                    checkTimer = Timer(
-                      Duration(
-                        milliseconds: 750,
-                      ), // Set a timer so api calls don't happen too often
-                      () {
-                        handleApiCall(
-                          lastInput,
-                          value,
-                        ); // Run if the timer goes to 0
-                      },
-                    );
-                  },
                 ),
-              ),
-            ),
-            SizedBox(height: 0.01 * screenHeight), // Lower the next two buttons
-            // Horizontally lay out the next two buttons
-            Row(
-              children: [
-                // Meal Type chooser
-                Expanded(
-                  child: DropdownButton2<String>(
-                    dropdownStyleData: DropdownStyleData(
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(
+
+                // Search Food input
+                SizedBox(
+                  // make the underline narrower
+                  width: screenWidth * 0.9,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      // Theme to remove the purple when interacting with the input
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      textSelectionTheme: TextSelectionThemeData(
+                        cursorColor: Colors.white,
+                        selectionHandleColor: Colors.white,
+                        selectionColor: const Color.fromARGB(
                           255,
-                          91,
-                          89,
-                          89,
+                          83,
+                          75,
+                          75,
                         ).withAlpha(128),
-                        borderRadius: BorderRadius.circular(10),
                       ),
-                      maxHeight:
-                          200, // adds a scrollbar if needed (if larger than 200px)
                     ),
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                    hint: Text(
-                      "Meal Type",
+                    child: TextField(
+                      controller: searchController,
+                      enabled: userCanType,
+                      keyboardType: TextInputType.text,
                       style: GoogleFonts.manrope(
-                        fontSize: screenWidth * 0.05,
+                        // style of the input text
+                        fontSize: screenWidth * 0.04,
                         color: Colors.white,
                         shadows: [
                           Shadow(
@@ -362,172 +418,303 @@ class _FoodLoggingState extends State<FoodLogging> {
                           ),
                         ],
                       ),
-                    ),
-                    value: mealType,
-                    items: [
-                      addMenuItem("Breakfast"),
-                      addMenuItem("Lunch"),
-                      addMenuItem("Dinner"),
-                      addMenuItem("Snack"),
-                    ],
-                    onChanged: (value) {
-                      // when the user selects their sex
-                      setState(() {
-                        mealType = value; // update to chosen meal
-                      });
-                    },
-                  ),
-                ), // Log Food Button
-                Expanded(
-                  child: SizedBox(
-                    // to explicitly control the ElevatedButton size
-                    height: screenHeight * 0.075,
-                    width: screenWidth * 0.4,
-                    child: simpleCustomButton(
-                      "Log Food",
-                      context,
-                      baseColor: appColorNotifier.value.withAlpha(64),
-                      onPressed: () {
-                        // When "Log Food" is pressed
-                        // VALIDITY CHECKS
-                        // CASE 1) LOG FOOD IS INVALID TO PRESS
-                        if (mealType == null || !mealChosen) {
-                          if (snackbarActive == true) {
-                            return; // a snackBar is already opened, so do nothing
-                          }
-                          snackbarActive = true; // Otherwise open a snackbar
-                          // Let the user know that not all fields are filled out.
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Icon(Icons.info, color: Colors.white),
-                                      SizedBox(width: 10),
-                                      Text("All fields must be filled."),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .closed
-                              .then((_) {
-                                snackbarActive =
-                                    false; // reset the flag (prevent many snackbars from stacking)
-                              });
-                          return;
-                        }
-                        // CASE 2: LOG FOOD IS VALID TO PRESS, SO ADD THE FOOD TO THE LIST
-                        else {
-                          setState(() {
-                            final foodName = searchController.text;
-                            switch (mealType) {
-                              case "Breakfast":
-                                breakfastFoods.add(foodName);
-                                break;
-                              case "Lunch":
-                                lunchFoods.add(foodName);
-                                break;
-                              case "Dinner":
-                                dinnerFoods.add(foodName);
-                                break;
-                              case "Snack":
-                                snackFoods.add(foodName);
-                                break;
-                            }
-                            // Reset inputs for next entry
-                            userCanType = true;
-                            mealChosen = false;
-                            searchController.clear();
-                            mealType = null;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // DISPLAY AVAILABLE FOOD OPTIONS (when searching) OR FOOD CATEGORIES
-            if (foodList
-                .isNotEmpty) // if results were not returned from the API,
-              // Show search results
-              Expanded(
-                child: ListView.builder(
-                  itemCount: foodList.length,
-                  itemBuilder: (context, index) {
-                    final food = foodList[index];
-                    return InkWell(
-                      // To make each item clickable
-                      onTap: () {
-                        FocusScope.of(
-                          context,
-                        ).unfocus(); // disable keyboard focus
-                        setState(() {
-                          userCanType = false; // disable typing
-                          mealChosen =
-                              true; // allow the validity check to successfully pass
-                          searchController.text =
-                              food["food_name"] ??
-                              ""; // update the searchbar text to the selected food
-                          searchController
-                              .selection = TextSelection.fromPosition(
-                            TextPosition(
-                              offset: searchController.text.length,
-                            ), // keep the blinking cursor at the end of the word
-                          );
-                          foodList = []; // hide search results after selecting
-                        });
-                      },
-                      child: ListTile(
-                        title: Text(
-                          food['food_name'] ??
-                              '', // List the food name (or nothing if nothing is found)
-                          style: GoogleFonts.manrope(color: Colors.white),
+                      decoration: InputDecoration(
+                        // style of the hint text
+                        enabledBorder: UnderlineInputBorder(
+                          // custom border
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 0.25,
+                          ),
                         ),
-                        subtitle: Text(
-                          food['food_description'] ??
-                              '', // List the info (or nothing)
-                          style: TextStyle(color: Colors.grey),
+                        focusedBorder: UnderlineInputBorder(
+                          // custom border
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 0.25,
+                          ),
+                        ),
+                        hintText: "Search",
+                        suffixIcon: Icon(Icons.search),
+                        contentPadding: EdgeInsets.only(
+                          top: 13,
+                          left: 6,
+                        ), // Move the text down and to the right to look more natural
+                        hintStyle: GoogleFonts.manrope(
+                          fontSize: screenWidth * 0.05,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(4, 4),
+                              blurRadius: 10,
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
-              )
-            else
-              // DISPLAY FOOD CATEGORIES
-              Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        textWithCard("Breakfast", screenWidth, 0.1),
-                        textWithCard(
-                          breakfastFoods.join("\n"),
-                          screenWidth,
-                          0.025,
-                        ),
-                        textWithCard("Lunch", screenWidth, 0.1),
-                        textWithCard(lunchFoods.join("\n"), screenWidth, 0.025),
-                        textWithCard("Dinner", screenWidth, 0.1),
-                        textWithCard(
-                          dinnerFoods.join("\n"),
-                          screenWidth,
-                          0.025,
-                        ),
-                        textWithCard("Snacks", screenWidth, 0.1),
-                        textWithCard(snackFoods.join("\n"), screenWidth, 0.025),
-                      ],
+                      onChanged: (value) {
+                        lastInput =
+                            DateTime.now(); // Store the time at which the user pressed the last character
+                        checkTimer
+                            ?.cancel(); // Cancel any previous timers to avoid calling the function continuously
+                        checkTimer = Timer(
+                          Duration(
+                            milliseconds: 750,
+                          ), // Set a timer so api calls don't happen too often
+                          () {
+                            handleApiCall(
+                              lastInput,
+                              value,
+                            ); // Run if the timer goes to 0
+                          },
+                        );
+                      },
                     ),
                   ),
                 ),
-              ),
-          ],
-        ),
-      ),
+                SizedBox(
+                  height: 0.01 * screenHeight,
+                ), // Lower the next two buttons
+                // Horizontally lay out the next two buttons
+                Row(
+                  children: [
+                    // Meal Type chooser
+                    Expanded(
+                      child: DropdownButton2<String>(
+                        dropdownStyleData: DropdownStyleData(
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(
+                              255,
+                              91,
+                              89,
+                              89,
+                            ).withAlpha(128),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          maxHeight:
+                              200, // adds a scrollbar if needed (if larger than 200px)
+                        ),
+                        style: GoogleFonts.manrope(
+                          fontSize: screenWidth * 0.05,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(4, 4),
+                              blurRadius: 10,
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ],
+                        ),
+                        hint: Text(
+                          "Meal Type",
+                          style: GoogleFonts.manrope(
+                            fontSize: screenWidth * 0.05,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(4, 4),
+                                blurRadius: 10,
+                                color: const Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ],
+                          ),
+                        ),
+                        value: mealType,
+                        items: [
+                          addMenuItem("Breakfast"),
+                          addMenuItem("Lunch"),
+                          addMenuItem("Dinner"),
+                          addMenuItem("Snack"),
+                        ],
+                        onChanged: (value) {
+                          // when the user selects their sex
+                          setState(() {
+                            mealType = value; // update to chosen meal
+                          });
+                        },
+                      ),
+                    ), // Log Food Button
+                    Expanded(
+                      child: SizedBox(
+                        // to explicitly control the ElevatedButton size
+                        height: screenHeight * 0.075,
+                        width: screenWidth * 0.4,
+                        child: simpleCustomButton(
+                          "Log Food",
+                          context,
+                          baseColor: appColorNotifier.value.withAlpha(64),
+                          onPressed: () async {
+                            debugPrint(
+                              "Log Food pressed, mealChosen: $mealChosen, mealType: $mealType",
+                            );
+                            // When "Log Food" is pressed
+                            // VALIDITY CHECKS
+                            // CASE 1: LOG FOOD IS INVALID TO PRESS
+                            if (mealType == null || !mealChosen) {
+                              if (snackbarActive == true) {
+                                return;
+                              }
+                              snackbarActive = true;
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.info, color: Colors.white),
+                                          SizedBox(width: 10),
+                                          Text("All fields must be filled."),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .closed
+                                  .then((_) {
+                                    snackbarActive = false;
+                                  });
+                              return;
+                            }
+                            // CASE 2: LOG FOOD IS VALID TO PRESS, SO ADD THE FOOD TO THE LIST
+                            else {
+                              final foodObject = selectedFood;
+
+                              if (foodObject != null) {
+                                // extract calories
+                                foodObject['calories'] = extractCalories(
+                                  foodObject['food_description'] ?? '',
+                                );
+
+                                // Check if map has an entry for this date
+                                final dateKey = formatDateKey(currentDate);
+                                if (!foodDataByDate.containsKey(dateKey)) {
+                                  // If no entry exists, create a new empty structure for all meal types on that date
+                                  foodDataByDate[dateKey] = {
+                                    "Breakfast": [],
+                                    "Lunch": [],
+                                    "Dinner": [],
+                                    "Snack": [],
+                                  };
+                                }
+
+                                // Add the selected food object to the correct meal list inside the map for this date
+                                foodDataByDate[dateKey]![mealType!]!.add(
+                                  foodObject,
+                                );
+
+                                await saveFoodData(); // update to firestore
+
+                                setState(() {
+                                  loadFoodForDate(
+                                    currentDate,
+                                  ); // reload field to update UI
+
+                                  userCanType = true;
+                                  mealChosen = false;
+                                  selectedFood = null;
+                                  searchController.clear();
+                                  mealType = null;
+                                });
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                // DISPLAY AVAILABLE FOOD OPTIONS (when searching) OR FOOD CATEGORIES
+                if (foodList
+                    .isNotEmpty) // show search results if not empty, else show meals
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: foodList.length,
+                      itemBuilder: (context, index) {
+                        final food = foodList[index];
+                        return InkWell(
+                          onTap: () {
+                            FocusScope.of(context).unfocus();
+                            setState(() {
+                              userCanType =
+                                  false; // disable typing after selection
+                              mealChosen = true; // enable log food button
+
+                              selectedFood = food; // save selected food
+
+                              searchController.text = food["food_name"] ?? "";
+                              searchController.selection =
+                                  TextSelection.fromPosition(
+                                    TextPosition(
+                                      offset: searchController.text.length,
+                                    ),
+                                  );
+                              foodList = [];
+                            });
+                          },
+                          child: ListTile(
+                            title: Text(
+                              food['food_name'] ?? '',
+                              style: GoogleFonts.manrope(color: Colors.white),
+                            ),
+                            subtitle: Text(
+                              food['food_description'] ?? '',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  // show the user's saved food entries categorized by meal
+                  Expanded(
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            textWithCard("Breakfast", screenWidth, 0.1),
+                            textWithCard(
+                              breakfastFoods
+                                  .map((e) => e['food_name'] ?? '')
+                                  .join("\n"),
+                              screenWidth,
+                              0.025,
+                            ),
+                            textWithCard("Lunch", screenWidth, 0.1),
+                            textWithCard(
+                              lunchFoods
+                                  .map((e) => e['food_name'] ?? '')
+                                  .join("\n"),
+                              screenWidth,
+                              0.025,
+                            ),
+                            textWithCard("Dinner", screenWidth, 0.1),
+                            textWithCard(
+                              dinnerFoods
+                                  .map((e) => e['food_name'] ?? '')
+                                  .join("\n"),
+                              screenWidth,
+                              0.025,
+                            ),
+                            textWithCard("Snacks", screenWidth, 0.1),
+                            textWithCard(
+                              snackFoods
+                                  .map((e) => e['food_name'] ?? '')
+                                  .join("\n"),
+                              screenWidth,
+                              0.025,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

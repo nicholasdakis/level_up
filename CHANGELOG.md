@@ -424,3 +424,14 @@ Developmental progress by date is stored in this file.
 - Used the previousUnits variable to fix issues (double-counting weight, not converting weight) with changing units while already having a number entered for weight
 - Added a keepValueInRange method to prevent a crash with height conversions giving values outside of the dropdown button values (e.g, wanting to convert to 99 when the minimum is 100)
 - Added text to specify weight units (kg / lbs) in the weight input tab of Calorie Calculator
+
+## 2026-02-01
+- Edited food lists to also store nutritional data instead of only food names
+- Added foodDataByDate as a user variable to store / load logged foods across different days
+- Edited loadUserData() to handle foodDataByDate and added an update variable for storing this variable to Firestore
+- Added FutureBuilder in Food Logging so the screen loads until the food data is available
+- Added currentDate variable with complementary arrows for easily changing the displayed date
+- Updated logging method to handle more data about the food instead of just the name
+- Added a method to extract calories from the API using a regex
+- Added a getTotalCaloriesForDay() method
+- Added temporary text in Food Logging for showcasing the total calories for the day

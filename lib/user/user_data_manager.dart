@@ -52,6 +52,7 @@ class UserDataManager {
           username: uid, // default username is uid
           reminders: [],
           appColor: const Color.fromARGB(255, 45, 45, 45),
+          foodDataByDate: {},
         );
       }
       final doc = await FirebaseFirestore.instance
@@ -145,6 +146,33 @@ class UserDataManager {
           45,
           45,
         ); // default app theme color
+      }
+
+      // if the user has stored food data, load it
+      if (doc.exists && doc.data()?['foodDataByDate'] != null) {
+        // get the raw Map<String, dynamic> from Firestore
+        final rawData = doc.data()?['foodDataByDate'] as Map<String, dynamic>;
+
+        // convert the raw nested map into the typed Map<String, Map<String, List<Map<String, dynamic>>>>
+        currentUserData?.foodDataByDate = rawData.map((dateKey, mealMap) {
+          // cast each mealMap to Map<String, dynamic> and convert each mealType list
+          final mealMapCasted = (mealMap as Map<String, dynamic>).map((
+            mealType,
+            foods,
+          ) {
+            // convert the dynamic list of food items to List<Map<String, dynamic>>
+            final foodList = (foods as List<dynamic>)
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
+            // return meal type with its list of food item maps
+            return MapEntry(mealType, foodList);
+          });
+          // return date with its mapped meal data
+          return MapEntry(dateKey, mealMapCasted);
+        });
+      } else {
+        // no food data found
+        currentUserData?.foodDataByDate = {};
       }
 
       // Load the list of  reminders
@@ -405,6 +433,43 @@ class UserDataManager {
           duration: Duration(milliseconds: 1500),
         ),
       );
+    }
+  }
+
+  Future<void> updateFoodDataByDate(
+    Map<String, Map<String, List<Map<String, dynamic>>>> newFoodData, {
+    BuildContext? context,
+  }) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Update local currentUserData.foodDataByDate with the new data
+      currentUserData?.foodDataByDate = newFoodData;
+
+      // Update Firestore with the new food data under the user's document
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'foodDataByDate': newFoodData,
+      }, SetOptions(merge: true));
+
+      // show confirmation snackbar
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Food data updated successfully."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error snackbar if context provided
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating food data: $e"),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
     }
   }
 }
