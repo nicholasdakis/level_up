@@ -446,3 +446,7 @@ Developmental progress by date is stored in this file.
 - Added StreamBuilder to leaderboard.dart for real-time updates to the screen rather than manually calling loadLeaderboard()
 - Decoded profile pictures in leaderboard.dart are now cached to avoid decoding them on every rebuild
 - Added expCache and memoized experienceNeededForLevel() to prevent the same recalculations for equal levels in leaderboard.dart
+
+## 2026-02-18
+- Made mermaid diagrams that show the flow / architecture of some classes
+- Added the corresponding code and diagrams in the assets folder
