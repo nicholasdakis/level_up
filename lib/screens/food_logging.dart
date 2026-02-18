@@ -527,9 +527,9 @@ class _FoodLoggingState extends State<FoodLogging> {
                           addMenuItem("Snack"),
                         ],
                         onChanged: (value) {
-                          // when the user selects their sex
+                          // when the user selects their meal type
                           setState(() {
-                            mealType = value; // update to chosen meal
+                            mealType = value; // update to chosen meal type
                           });
                         },
                       ),
@@ -544,9 +544,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                           context,
                           baseColor: appColorNotifier.value.withAlpha(64),
                           onPressed: () async {
-                            debugPrint(
-                              "Log Food pressed, mealChosen: $mealChosen, mealType: $mealType",
-                            );
                             // When "Log Food" is pressed
                             // VALIDITY CHECKS
                             // CASE 1: LOG FOOD IS INVALID TO PRESS

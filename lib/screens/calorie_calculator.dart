@@ -45,6 +45,47 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     return val;
   }
 
+  /// Helper method to reduce repetition of DropdownButton2 widgets.
+  /// Takes the hint text, current value, list of items, and onChanged callback.
+  Widget buildDropdown<T>({
+    // generic type <T> to use different values for the same method
+    required String hint,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required void Function(T?) onChanged,
+    double? fontSize,
+  }) {
+    return DropdownButton2<T>(
+      dropdownStyleData: DropdownStyleData(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 91, 89, 89).withAlpha(128),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        maxHeight: 200, // adds a scrollbar if needed (if larger than 200px)
+      ),
+      style: GoogleFonts.manrope(
+        fontSize: fontSize ?? 16,
+        color: Colors.white,
+        shadows: [
+          Shadow(offset: Offset(4, 4), blurRadius: 10, color: Colors.black),
+        ],
+      ),
+      hint: Text(
+        hint,
+        style: GoogleFonts.manrope(
+          fontSize: fontSize ?? 16,
+          color: Colors.white,
+          shadows: [
+            Shadow(offset: Offset(4, 4), blurRadius: 10, color: Colors.black),
+          ],
+        ),
+      ),
+      value: value,
+      items: items,
+      onChanged: onChanged,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight =
@@ -58,6 +99,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     } else {
       dropdownValue = units;
     }
+
     return Scaffold(
       backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
       // Header box
@@ -76,45 +118,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // CHOOSE YOUR UNITS BUTTON
-                DropdownButton2<String>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "     Choose your units",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<String>(
+                  hint: "     Choose your units",
                   value: dropdownValue,
                   items: [
                     DropdownMenuItem(
@@ -129,14 +134,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   onChanged: (value) {
                     // when the user selects their units
                     setState(() {
-                      // update the value
-                      if (value == currentUnits) {
-                        return; // selected the already chosen unit, so do nothing
-                      }
+                      if (value == currentUnits) return;
 
-                      previousUnits = currentUnits; // store the old units
-                      currentUnits = value; // update the current units
-                      units = value; // update the units variable
+                      previousUnits = currentUnits;
+                      currentUnits = value;
+                      units = value;
 
                       // HEIGHT CONVERSION
                       if (heightInches != null && value == "Metric") {
@@ -145,73 +147,30 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         heightInches = null;
                       } else if (heightCm != null && value == "Imperial") {
                         int converted = (heightCm! / 2.54).round();
-                        heightInches = keepValueInRange(
-                          converted,
-                          36,
-                          107,
-                        ); // imperial range in inches
+                        heightInches = keepValueInRange(converted, 36, 107);
                         heightCm = null;
                       }
 
                       // WEIGHT CONVERSION
                       if (weight != null) {
-                        // Switching from imperial to metric
                         if (previousUnits == "Imperial" &&
                             currentUnits == "Metric") {
-                          weight = weight! / 2.205; // lbs to kg
-
-                          // Switching from metric (or default MetricDefault value) to imperial
-                        } else if (previousUnits == "Metric" &&
-                                currentUnits == "Imperial" ||
-                            previousUnits == "MetricDefault" &&
-                                currentUnits == "Imperial") {
-                          weight = weight! * 2.205; // kg to lbs
+                          weight = weight! / 2.205;
+                        } else if ((previousUnits == "Metric" &&
+                                currentUnits == "Imperial") ||
+                            (previousUnits == "MetricDefault" &&
+                                currentUnits == "Imperial")) {
+                          weight = weight! * 2.205;
                         }
                         weightController.text = weight!.toStringAsFixed(2);
                       }
                     });
                   },
+                  fontSize: screenWidth * 0.05,
                 ),
                 // SELECT CALORIE EQUATION FORMULA
-                DropdownButton2<String>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "Select Calorie Equation",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<String>(
+                  hint: "Select Calorie Equation",
                   value: equation,
                   items: [
                     DropdownMenuItem(
@@ -223,119 +182,30 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       child: Text('Mifflin-St Jeor'),
                     ),
                   ],
-                  onChanged: (value) {
-                    // when the user selects their sex
-                    setState(() {
-                      // update the value
-                      equation = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => equation = value),
+                  fontSize: screenWidth * 0.05,
                 ),
                 // CHOOSE YOUR SEX BUTTON
-                DropdownButton2<String>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "      Choose your sex",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<String>(
+                  hint: "      Choose your sex",
                   value: sex,
                   items: [
                     DropdownMenuItem(value: 'Male', child: Text('Male')),
                     DropdownMenuItem(value: 'Female', child: Text('Female')),
                   ],
-                  onChanged: (value) {
-                    // when the user selects their sex
-                    setState(() {
-                      // update the value
-                      sex = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => sex = value),
+                  fontSize: screenWidth * 0.05,
                 ),
                 // CHOOSE YOUR AGE BUTTON
-                DropdownButton2<int>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "      Choose your age",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<int>(
+                  hint: "      Choose your age",
                   value: age,
                   items: [
                     for (int i = 13; i <= 122; i++)
                       DropdownMenuItem(value: i, child: Text("$i")),
                   ],
-                  onChanged: (value) {
-                    // when the user selects their age
-                    setState(() {
-                      // update the value
-                      age = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => age = value),
+                  fontSize: screenWidth * 0.05,
                 ),
                 // ENTER YOUR WEIGHT INPUT
                 SizedBox(
@@ -398,8 +268,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         ),
                         hintText:
                             (units == "MetricDefault" || units == "Metric")
-                            ? "  Enter your weight in kg" // if
-                            : "  Enter your weight in lbs", // else
+                            ? "  Enter your weight in kg"
+                            : "  Enter your weight in lbs",
                         // Suffix text to specify the weight's units
                         suffixText: weightController.text.isNotEmpty
                             ? (currentUnits == 'Metric' ||
@@ -407,12 +277,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                   ? 'kg'
                                   : 'lbs')
                             : null,
-
                         suffixStyle: TextStyle(color: Colors.white),
-                        contentPadding: EdgeInsets.only(
-                          top: 13,
-                          left: 6,
-                        ), // Move the text down and to the right to look more natural
+                        contentPadding: EdgeInsets.only(top: 13, left: 6),
                         hintStyle: GoogleFonts.manrope(
                           fontSize: screenWidth * 0.05,
                           color: Colors.white,
@@ -434,48 +300,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                 ),
                 // CHOOSE YOUR HEIGHT BUTTON
-                DropdownButton2<int>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "   Choose your height",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.05,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<int>(
+                  hint: "   Choose your height",
                   value: units == "Metric" || units == "MetricDefault"
                       ? heightCm
-                      : heightInches, // only set value to the height unit chosen
+                      : heightInches,
                   items: [
                     if (units == "Metric" || units == "MetricDefault")
                       for (int i = 100; i <= 275; i++)
@@ -486,12 +315,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                           DropdownMenuItem(
                             value: j * 12 + k,
                             child: Text("$j'$k''"),
-                          ), // store value entirely in inches but visually show feet and inches
+                          ),
                   ],
                   onChanged: (value) {
-                    // when the user selects their height
                     setState(() {
-                      // update the value
                       if (units == "Metric" || units == "MetricDefault") {
                         heightCm = value;
                       } else {
@@ -499,47 +326,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       }
                     });
                   },
+                  fontSize: screenWidth * 0.05,
                 ),
                 // CHOOSE YOUR GOAL BUTTON
-                DropdownButton2<String>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "Choose your calorie goal",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.045,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<String>(
+                  hint: "Choose your calorie goal",
                   value: goal,
                   items: [
                     DropdownMenuItem(
@@ -555,54 +346,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       child: Text('Maintain Weight'),
                     ),
                   ],
-                  onChanged: (value) {
-                    // when the user selects their goal
-                    setState(() {
-                      // update the value
-                      goal = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => goal = value),
+                  fontSize: screenWidth * 0.045,
                 ),
                 // CHOOSE YOUR ACTIVITY LEVEL BUTTON
-                DropdownButton2<String>(
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        91,
-                        89,
-                        89,
-                      ).withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    maxHeight:
-                        200, // adds a scrollbar if needed (if larger than 200px)
-                  ),
-                  style: GoogleFonts.manrope(
-                    fontSize: screenWidth * 0.05,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ],
-                  ),
-                  hint: Text(
-                    "Choose your activity level",
-                    style: GoogleFonts.manrope(
-                      fontSize: screenWidth * 0.045,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ],
-                    ),
-                  ),
+                buildDropdown<String>(
+                  hint: "Choose your activity level",
                   value: activityLevel,
                   items: [
                     DropdownMenuItem(
@@ -620,13 +369,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       child: Text('Very Active'),
                     ),
                   ],
-                  onChanged: (value) {
-                    // when the user selects their activity level
-                    setState(() {
-                      // update the value
-                      activityLevel = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => activityLevel = value),
+                  fontSize: screenWidth * 0.045,
                 ),
                 SizedBox(height: 5.h),
                 Wrap(
@@ -754,9 +498,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                   secondaryAnimation,
                                 ) => Results(
                                   // pass in variables to the same-named variables in Results
-                                  units:
-                                      units ??
-                                      "0", // default value of 0 if null
+                                  units: units ?? "0",
                                   goal: goal ?? "0",
                                   activityLevel: activityLevel ?? "0",
                                   equation: equation ?? "0",
@@ -774,12 +516,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                   secondaryAnimation,
                                   child,
                                 ) {
-                                  const start = Offset(
-                                    0.0,
-                                    1.0,
-                                  ); // Start right below the screen
-                                  const finish = Offset
-                                      .zero; // Stop right at the top of the screen
+                                  const start = Offset(0.0, 1.0);
+                                  const finish = Offset.zero;
                                   final tween = Tween(
                                     begin: start,
                                     end: finish,

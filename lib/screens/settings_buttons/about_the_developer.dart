@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 
 class AboutTheDeveloper extends StatefulWidget {
@@ -14,11 +13,7 @@ class AboutTheDeveloper extends StatefulWidget {
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
   // Visually, simpleCustomButton. Opens an email to the developer with the appropriate subject
-  Widget sendFeedbackButton(
-    double screenHeight,
-    double screenWidth,
-    BuildContext context,
-  ) {
+  Widget sendFeedbackButton(BuildContext context) {
     return simpleCustomButton(
       "Send Feedback",
       context,
@@ -100,7 +95,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       ),
                       SizedBox(height: screenHeight * 0.025),
                       // SEND FEEDBACK BUTTON
-                      sendFeedbackButton(screenHeight, screenWidth, context),
+                      sendFeedbackButton(context),
                       // PAYPAL DONATE BUTTON
                       Padding(
                         padding: const EdgeInsets.all(20.0),

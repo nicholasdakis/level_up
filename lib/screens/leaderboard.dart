@@ -14,10 +14,19 @@ class Leaderboard extends StatefulWidget {
 }
 
 class _LeaderboardState extends State<Leaderboard> {
+  // Cache for experience calculations
+  final Map<int, int> _expCache = {};
+
   // Method to show the total experience needed for a specific user to reach their next level
   int experienceNeededForLevel(int level) {
+    if (_expCache.containsKey(level)) {
+      return _expCache[level]!;
+    } // if the exp needed has already been cached, no need to recalculate it
+
     int exp = (100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)).round();
-    return (exp / 10).round() * 10; // rounds to nearest 10
+    exp = (exp / 10).round() * 10; // rounds to nearest 10
+    _expCache[level] = exp;
+    return exp;
   }
 
   // List of Leaderboard users
@@ -37,11 +46,16 @@ class _LeaderboardState extends State<Leaderboard> {
         .orderBy('level', descending: true)
         .orderBy('expPoints', descending: true)
         .get();
+
     // Update the screen with the users
     setState(() {
       users = leaderboard.docs.map((doc) {
         final data = doc.data();
         data['uid'] = doc.id; // Store the UID as an additional field
+        // Decode base64 image once to improve performance
+        if (data['pfpBase64'] != null) {
+          data['pfpBytes'] = base64Decode(data['pfpBase64']);
+        }
         return data;
       }).toList();
     });
@@ -67,18 +81,44 @@ class _LeaderboardState extends State<Leaderboard> {
               child:
                   CircularProgressIndicator(), // Wait until the users are loaded
             )
-          : SingleChildScrollView(
-              // Scrollable
-              child: Column(
-                children: [
-                  for (int i = 0; i < users.length; i++)
-                    Padding(
+          : StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .orderBy('level', descending: true)
+                  .orderBy('expPoints', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  ); // wait for stream
+                }
+
+                // Map Firestore docs into a local users list
+                final leaderboardUsers = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['uid'] = doc.id;
+                  if (data['pfpBase64'] != null) {
+                    data['pfpBytes'] = base64Decode(data['pfpBase64']);
+                  }
+                  return data;
+                }).toList();
+
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
+                  itemCount: leaderboardUsers.length,
+                  itemBuilder: (context, i) {
+                    final user = leaderboardUsers[i];
+                    final isCurrentUser = user['uid'] == currentUserId;
+                    final level = user['level'] ?? 1;
+
+                    return Padding(
                       padding: EdgeInsets.symmetric(
                         vertical: screenWidth * 0.02,
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: users[i]['uid'] == currentUserId
+                          color: isCurrentUser
                               ? Colors.white.withAlpha(
                                   64,
                                 ) // yellow tint to emphasize the user's profile
@@ -107,9 +147,9 @@ class _LeaderboardState extends State<Leaderboard> {
                             ),
                             const SizedBox(width: 10),
                             // Load the user's profile picture if it exists
-                            users[i]['pfpBase64'] != null
+                            user['pfpBytes'] != null
                                 ? Image.memory(
-                                    base64Decode(users[i]['pfpBase64']),
+                                    user['pfpBytes'],
                                     width: 40,
                                     height: 40,
                                     fit: BoxFit.cover,
@@ -123,9 +163,9 @@ class _LeaderboardState extends State<Leaderboard> {
                             const SizedBox(width: 10),
                             Text(
                               // Only show the user's username if it exists and is not the default username (their UID)
-                              users[i]['username'] != users[i]['uid'] &&
-                                      users[i]['username'] != null
-                                  ? users[i]['username']
+                              user['username'] != user['uid'] &&
+                                      user['username'] != null
+                                  ? user['username']
                                   : 'Unnamed',
                               style: const TextStyle(
                                 color: Colors.white,
@@ -134,7 +174,7 @@ class _LeaderboardState extends State<Leaderboard> {
                             ),
                             const Spacer(),
                             Text(
-                              "Level ${users[i]['level'] ?? 1} | ${users[i]['expPoints'] ?? 0} / ${experienceNeededForLevel(users[i]['level'] ?? 1)}",
+                              "Level $level | ${user['expPoints'] ?? 0} / ${experienceNeededForLevel(level)}",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -144,9 +184,10 @@ class _LeaderboardState extends State<Leaderboard> {
                           ],
                         ),
                       ),
-                    ),
-                ],
-              ),
+                    );
+                  },
+                );
+              },
             ),
     );
   }

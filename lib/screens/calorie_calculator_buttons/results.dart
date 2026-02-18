@@ -35,6 +35,8 @@ class Results extends StatefulWidget {
 }
 
 class _ResultsState extends State<Results> {
+  late final String bmr = calculateBMR();
+
   String calculateBMR() {
     return // MIFFLIN CASES
     widget.equation ==
@@ -97,7 +99,7 @@ class _ResultsState extends State<Results> {
   }
 
   String calculateGoal() {
-    int userTDEE = calculateTDEE(calculateBMR(), calculateActivityLevel());
+    int userTDEE = calculateTDEE(bmr, calculateActivityLevel());
     // Case 1: Goal is to maintian
     if (widget.goal == "Maintain Weight") {
       return "You must consume $userTDEE calories per day to maintain your weight.";
@@ -309,24 +311,24 @@ class _ResultsState extends State<Results> {
                                     "Metric" // Mifflin and Metric
                             ? widget.sex ==
                                       "Female" // Female and Metric and Mifflin
-                                  ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161\n = ${calculateBMR()} is your BMR." // Female and Metric and Mifflin
-                                  : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5\n = ${calculateBMR()} is your BMR." // Male and Metric and Mifflin
+                                  ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161\n = $bmr is your BMR." // Female and Metric and Mifflin
+                                  : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5\n = $bmr is your BMR." // Male and Metric and Mifflin
                             : widget.sex ==
                                   "Female" // Female and Imperial and Mifflin
-                            ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)\n= ${calculateBMR()} is your BMR." // Female and Imperial and Mifflin
-                            : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)\n= ${calculateBMR()} is your BMR." // Male and Imperial and Mifflin
+                            ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)\n= $bmr is your BMR." // Female and Imperial and Mifflin
+                            : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)\n= $bmr is your BMR." // Male and Imperial and Mifflin
                       // HARRIS CASES
                       : widget.units == "MetricDefault" ||
                             widget.units ==
                                 "Metric" // Harris and Metric
                       ? widget.sex ==
                                 "Female" // Female and Metric and Harris
-                            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593\n = ${calculateBMR()} is your BMR." // Female and Metric and Harris
-                            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362\n = ${calculateBMR()} is your BMR." //Male and Metric and Harris
+                            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593\n = $bmr is your BMR." // Female and Metric and Harris
+                            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362\n = $bmr is your BMR." //Male and Metric and Harris
                       : widget.sex ==
                             "Female" // Female and Imperial and Mifflin
-                      ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = ${calculateBMR()} is your BMR." // Female and Imperial and Harris
-                      : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = ${calculateBMR()} is your BMR.", // Male and Imperial and Harris
+                      ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = $bmr is your BMR." // Female and Imperial and Harris
+                      : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = $bmr is your BMR.", // Male and Imperial and Harris
                   screenWidth,
                   0.05,
                 ),
@@ -338,7 +340,7 @@ class _ResultsState extends State<Results> {
                   color: Colors.redAccent,
                 ),
                 textWithCard(
-                  "${calculateBMR()} x ${calculateActivityLevel()} = ${calculateTDEE(calculateBMR(), calculateActivityLevel())} is your TDEE.",
+                  "$bmr x ${calculateActivityLevel()} = ${calculateTDEE(bmr, calculateActivityLevel())} is your TDEE.",
                   screenWidth,
                   0.05,
                 ),

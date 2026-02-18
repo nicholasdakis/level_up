@@ -435,3 +435,14 @@ Developmental progress by date is stored in this file.
 - Added a method to extract calories from the API using a regex
 - Added a getTotalCaloriesForDay() method
 - Added temporary text in Food Logging for showcasing the total calories for the day
+
+## 2026-02-17
+- Stored calculateBMR() result into a variable rather than recalculating it several times in results.dart
+- Removed unused screenHeight and screenWidth parameters from sendFeedbackButton()
+- Added a dispose() call for username controller in personal_preferences.dart to prevent memory leaks
+- Placed repeated code in personal_preferences.dart into applyAppColor() method
+- Added a buildDropdown() helper method in calorie_calculator.dart which removed ~250 lines of code in the class
+- Replaced SingleChildScrollView and Column with ListView.builder to improve performance for large leaderboards
+- Added StreamBuilder to leaderboard.dart for real-time updates to the screen rather than manually calling loadLeaderboard()
+- Decoded profile pictures in leaderboard.dart are now cached to avoid decoding them on every rebuild
+- Added expCache and memoized experienceNeededForLevel() to prevent the same recalculations for equal levels in leaderboard.dart

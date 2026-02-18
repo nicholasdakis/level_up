@@ -18,8 +18,14 @@ class PersonalPreferences extends StatefulWidget {
 }
 
 class _PersonalPreferencesState extends State<PersonalPreferences> {
-  TextEditingController? usernameController =
+  TextEditingController usernameController =
       TextEditingController(); // controller to read the user's input for username change
+
+  @override
+  void dispose() {
+    usernameController.dispose(); // free resources and prevent memory leaks
+    super.dispose();
+  }
 
   Color baseColor = currentUserData!.appColor;
 
@@ -73,6 +79,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     }
   }
 
+  Future<void> _applyAppColor(Color color) async {
+    baseColor = color;
+    currentUserData!.appColor = color;
+    appColorNotifier.value = color;
+    await userManager.updateAppColor(color, context);
+    setState(() {}); // refresh UI
+  }
+
   // Method for the app theme color picker
   void _showColorPicker() {
     Color pickerColor = baseColor.withAlpha(
@@ -114,19 +128,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                   TextButton(
                     child: Text('Default'),
                     onPressed: () async {
-                      baseColor = Color.fromARGB(255, 45, 45, 45);
-                      currentUserData!.appColor = Color.fromARGB(
-                        255,
-                        45,
-                        45,
-                        45,
-                      );
-                      appColorNotifier.value = Color.fromARGB(255, 45, 45, 45);
-                      await userManager.updateAppColor(
-                        Color.fromARGB(255, 45, 45, 45),
-                        context,
-                      );
-                      setState(() {}); // update personalpreferences UI
+                      await _applyAppColor(Color.fromARGB(255, 45, 45, 45));
                       Navigator.of(context).pop();
                     },
                   ),
@@ -135,11 +137,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                   TextButton(
                     child: Text('Select'),
                     onPressed: () async {
-                      baseColor = pickerColor;
-                      currentUserData!.appColor = pickerColor;
-                      appColorNotifier.value = pickerColor;
-                      await userManager.updateAppColor(pickerColor, context);
-                      setState(() {});
+                      await _applyAppColor(pickerColor);
                       Navigator.of(context).pop();
                     },
                   ),
@@ -270,7 +268,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                         // Handle username update
                                         onPressed: () {
                                           String updatedUsername =
-                                              usernameController!.text.trim();
+                                              usernameController.text.trim();
                                           UserDataManager().updateUsername(
                                             updatedUsername,
                                             context,
@@ -283,7 +281,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               ),
                             ).then((_) {
                               // Reset the text field after exiting the dialog box
-                              usernameController!.text = "";
+                              usernameController.text = "";
                             });
                           },
                         ),
