@@ -11,6 +11,7 @@ import json
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
+RESET_TOKENS_KEY = os.environ.get("RESET_TOKENS_KEY")
 
 token_manager = TokenManager()
 
@@ -111,12 +112,6 @@ def get_food(food_name):
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
-
-@app.route("/reset_tokens")
-def reset_tokens():
-    """Reset tokens for testing"""
-    success = token_manager.reset_tokens()
-    return jsonify({"success": success, "message": "Tokens reset to 5000"})
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

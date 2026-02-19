@@ -450,3 +450,6 @@ Developmental progress by date is stored in this file.
 ## 2026-02-18
 - Made mermaid diagrams that show the flow / architecture of some classes
 - Added the corresponding code and diagrams in the assets folder
+
+## 2026-02-19
+- Removed token resetting route from backend code to prevent possibility of exploiting token resets
