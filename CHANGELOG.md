@@ -454,3 +454,8 @@ Developmental progress by date is stored in this file.
 ## 2026-02-19
 - Removed token resetting route from backend code to prevent possibility of exploiting token resets
 - Added more comments to token_manager for clarity and removed the reset_tokens method as it is unneeded
+- Upgraded Food Logging table UI
+- Used ExpansionTiles instead of static cards for displaying different food categories, allowing collapsing and expanding specific food categories
+- Added calorie count under logged foods
+- Used the Dismissible widget to make logged foods removeable by swiping the food to the left
+- Each logged food creates a key that uses the index, food name, and food type, and this key is used for deletion via the Dismissible widget
