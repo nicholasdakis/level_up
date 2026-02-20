@@ -11,7 +11,6 @@ import json
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
-RESET_TOKENS_KEY = os.environ.get("RESET_TOKENS_KEY")
 
 token_manager = TokenManager()
 

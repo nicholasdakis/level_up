@@ -453,3 +453,4 @@ Developmental progress by date is stored in this file.
 
 ## 2026-02-19
 - Removed token resetting route from backend code to prevent possibility of exploiting token resets
+- Added more comments to token_manager for clarity and removed the reset_tokens method as it is unneeded
