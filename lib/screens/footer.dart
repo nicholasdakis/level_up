@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:level_up/screens/settings_buttons/personal_preferences.dart';
 import '../globals.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../utility/responsive.dart';
 
 class Footer extends StatefulWidget {
   final double screenHeight;
@@ -25,28 +25,35 @@ class Footer extends StatefulWidget {
 class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
-    //double screenHeight = 1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
+    double screenWidth = MediaQuery.of(
+      context,
+    ).size.width; // Make widgets the size of the user's personal screen size
     return Container(
-      height: widget.screenHeight * 0.15,
-      width: widget.screenWidth,
+      width: double.infinity, // full width footer
+      height: Responsive.height(context, 120), // scale responsively
       color: appColorNotifier.value.withAlpha(64), // Header color
-      padding: EdgeInsets.all(25),
+      padding: EdgeInsets.all(
+        Responsive.padding(context, 16),
+      ), // scale responsively
       child: Center(
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center, // center XP bar
           children: [
             // Wrapper Container with sufficient width to contain the overlapping circle
             // ignore: sized_box_for_whitespace
             Container(
               width:
-                  widget.screenWidth * 0.7 +
-                  widget.screenHeight *
-                      0.045, // EXP bar width + half circle width
+                  screenWidth *
+                  0.8, // EXP bar + profile picture container scales with screen width
               child: ValueListenableBuilder<int>(
                 valueListenable: expNotifier, // reactive XP value
                 builder: (context, exp, child) {
-                  final fullWidth = widget.screenWidth * 0.65;
+                  final fullWidth =
+                      (screenWidth * 0.8) -
+                      Responsive.scale(
+                        context,
+                        80,
+                      ); // scale responsively, leave space for profile picture
                   final progressWidth =
                       fullWidth * (exp / (userManager.experienceNeeded ?? 1));
 
@@ -55,36 +62,63 @@ class _FooterState extends State<Footer> {
                     children: [
                       // Outer EXP bar
                       Container(
-                        height: widget.screenHeight * 0.03,
-                        width: widget.screenWidth * 0.7,
+                        height: Responsive.height(
+                          context,
+                          24,
+                        ), // scale responsively
+                        width: fullWidth, // scale responsively
                         decoration: BoxDecoration(
                           color: Colors.black,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 10),
+                          ), // scale responsively
                         ),
                       ),
                       // Light Gray bar
                       Positioned(
-                        top: widget.screenHeight * 0.005,
-                        left: widget.screenWidth * 0.025,
+                        top: Responsive.height(
+                          context,
+                          4,
+                        ), // scale responsively
+                        left: Responsive.width(
+                          context,
+                          10,
+                        ), // scale responsively
                         child: Container(
-                          height: widget.screenHeight * 0.02,
-                          width: fullWidth,
+                          height: Responsive.height(
+                            context,
+                            16,
+                          ), // scale responsively
+                          width: fullWidth - Responsive.width(context, 20),
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(255, 175, 169, 169),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
+                            ), // scale responsively
                           ),
                         ),
                       ),
                       // inner-most XP bar that fills up
                       Positioned(
-                        top: widget.screenHeight * 0.005,
-                        left: widget.screenWidth * 0.025,
+                        top: Responsive.height(
+                          context,
+                          4,
+                        ), // scale responsively
+                        left: Responsive.width(
+                          context,
+                          10,
+                        ), // scale responsively
                         child: Container(
-                          height: widget.screenHeight * 0.02,
+                          height: Responsive.height(
+                            context,
+                            16,
+                          ), // scale responsively
                           width: progressWidth,
                           decoration: BoxDecoration(
                             color: Colors.blue,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
+                            ), // scale responsively
                           ),
                         ),
                       ),
@@ -98,13 +132,19 @@ class _FooterState extends State<Footer> {
                                 builder: (context) {
                                   Paint outlinePaint = Paint();
                                   outlinePaint.style = PaintingStyle.stroke;
-                                  outlinePaint.strokeWidth = 1;
+                                  outlinePaint.strokeWidth = Responsive.scale(
+                                    context,
+                                    1,
+                                  ); // scale responsively
                                   outlinePaint.color = Colors.black;
 
                                   return Text(
                                     '$exp / ${userManager.experienceNeeded ?? 0}',
                                     style: TextStyle(
-                                      fontSize: widget.screenHeight * 0.015,
+                                      fontSize: Responsive.font(
+                                        context,
+                                        12,
+                                      ), // scale responsively
                                       fontWeight: FontWeight.bold,
                                       foreground: outlinePaint,
                                     ),
@@ -115,7 +155,10 @@ class _FooterState extends State<Footer> {
                               Text(
                                 '$exp / ${userManager.experienceNeeded ?? 0}',
                                 style: TextStyle(
-                                  fontSize: widget.screenHeight * 0.015,
+                                  fontSize: Responsive.font(
+                                    context,
+                                    12,
+                                  ), // scale responsively
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -126,13 +169,14 @@ class _FooterState extends State<Footer> {
                       ),
                       // Profile picture
                       Positioned(
-                        right:
-                            -widget.screenWidth *
-                            0.02, // move both hitbox and profile picture to the right
+                        right: -Responsive.scale(
+                          context,
+                          8,
+                        ), // scale responsively
                         top:
-                            (widget.screenHeight * 0.03 -
-                                widget.screenHeight * 0.09) /
-                            2,
+                            (Responsive.height(context, 24) -
+                                Responsive.scale(context, 72)) /
+                            2, // scale responsively
                         child: Column(
                           children: [
                             Material(
@@ -149,10 +193,18 @@ class _FooterState extends State<Footer> {
                                     ),
                                   );
                                 },
-                                borderRadius: BorderRadius.circular(50),
+                                borderRadius: BorderRadius.circular(
+                                  50,
+                                ), // scale responsively not necessary
                                 child: Container(
-                                  width: widget.screenHeight * 0.09,
-                                  height: widget.screenHeight * 0.09,
+                                  width: Responsive.scale(
+                                    context,
+                                    72,
+                                  ), // scale responsively
+                                  height: Responsive.scale(
+                                    context,
+                                    72,
+                                  ), // scale responsively
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.black,
@@ -163,7 +215,10 @@ class _FooterState extends State<Footer> {
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: Colors.black,
-                                        width: 4, // pfp border width
+                                        width: Responsive.scale(
+                                          context,
+                                          4,
+                                        ), // scale responsively
                                       ),
                                     ),
                                     child: ClipOval(
@@ -173,17 +228,34 @@ class _FooterState extends State<Footer> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: widget.screenHeight * 0.001),
+                            SizedBox(
+                              height: Responsive.height(context, 2),
+                            ), // scale responsively
                             // Display current level under profile picture
                             Text(
                               'Level ${currentUserData?.level ?? 1}',
                               style: GoogleFonts.manrope(
-                                fontSize: screenWidth * 0.03,
+                                fontSize: Responsive.font(
+                                  context,
+                                  12,
+                                ), // scale responsively
                                 color: Colors.white,
                                 shadows: [
                                   Shadow(
-                                    offset: Offset(4, 4),
-                                    blurRadius: 10,
+                                    offset: Offset(
+                                      Responsive.scale(
+                                        context,
+                                        4,
+                                      ), // scale responsively
+                                      Responsive.scale(
+                                        context,
+                                        4,
+                                      ), // scale responsively
+                                    ),
+                                    blurRadius: Responsive.scale(
+                                      context,
+                                      10,
+                                    ), // scale responsively
                                     color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ],

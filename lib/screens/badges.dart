@@ -23,7 +23,7 @@ class _BadgesState extends State<Badges> {
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Badges", screenWidth),
+        title: createTitle("Badges", context),
       ),
       body: Center(
         child: Column(

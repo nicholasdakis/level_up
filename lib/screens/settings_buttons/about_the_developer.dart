@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '/globals.dart';
+import '/utility/responsive.dart';
 
 class AboutTheDeveloper extends StatefulWidget {
   const AboutTheDeveloper({super.key});
@@ -44,23 +44,24 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
       backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
       // Header box
       appBar: AppBar(
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Developer", screenWidth),
+        toolbarHeight: Responsive.buttonHeight(
+          context,
+          120,
+        ), // Scale based on device
+        title: createTitle("Developer", context), // Scale based on device
       ),
       // scrollable
       body: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: screenHeight),
+          constraints: BoxConstraints(
+            minHeight: Responsive.height(context, 800),
+          ), // Scale based on device
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -68,40 +69,57 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                 // Placeholder image (Flutter logo)
                 Image.network(
                   "https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png",
-                  width: screenWidth * 0.3,
-                  height: screenHeight * 0.3,
+                  width: Responsive.width(
+                    context,
+                    300,
+                  ), // Scale based on device
+                  height: Responsive.height(
+                    context,
+                    300,
+                  ), // Scale based on device
                 ),
-                SizedBox(height: 20),
+                SizedBox(
+                  height: Responsive.height(context, 20),
+                ), // Scale based on device
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(
+                    Responsive.padding(context, 20),
+                  ), // Scale based on device
                   child: Column(
                     children: [
                       textWithCard(
                         "Hi! I'm Nicholas Dakis, a third year Computer Science student at CUNY Queens College.",
-                        screenWidth,
-                        0.055,
+                        context,
+                        Responsive.font(context, 18), // Scale based on device
                       ),
-                      SizedBox(height: screenHeight * 0.025),
+                      SizedBox(
+                        height: Responsive.height(context, 20),
+                      ), // Scale based on device
                       textWithCard(
                         "I created Level Up! to learn Flutter and improve my coding skills by creating an app I aimed to be genuinely useful and enjoyable.",
-                        screenWidth,
-                        0.055,
+                        context,
+                        Responsive.font(context, 18), // Scale based on device
                       ),
-                      SizedBox(height: screenHeight * 0.025),
+                      SizedBox(
+                        height: Responsive.height(context, 20),
+                      ), // Scale based on device
                       textWithCard(
                         "Feel free to send feedback or donate using the buttons below:",
-                        screenWidth,
-                        0.055,
+                        context,
+                        Responsive.font(context, 18), // Scale based on device
                       ),
-                      SizedBox(height: screenHeight * 0.025),
+                      SizedBox(
+                        height: Responsive.height(context, 20),
+                      ), // Scale based on device
                       // SEND FEEDBACK BUTTON
                       sendFeedbackButton(context),
                       // PAYPAL DONATE BUTTON
                       Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: EdgeInsets.all(
+                          Responsive.padding(context, 20),
+                        ), // Scale based on device
                         child: InkWell(
                           onTap: () => launchUrl(
-                            // open the link
                             Uri.parse(
                               "https://www.paypal.com/donate/?business=UR3VZ962M4F4N&item_name=Support+the+developer+of+Level+Up%21&currency_code=USD",
                             ),
@@ -112,7 +130,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             alignment: Alignment.center,
                             child: SvgPicture.network(
                               "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
-                              width: screenWidth * 0.7,
+                              width: Responsive.width(
+                                context,
+                                280,
+                              ), // Scale based on device
                               placeholderBuilder: (context) =>
                                   CircularProgressIndicator(), // if image fails to load
                             ),

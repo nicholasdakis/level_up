@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../globals.dart';
 import 'auth_services.dart';
+import 'dart:ui';
+import '../utility/responsive.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -18,27 +19,36 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = 1.sh;
-    double screenWidth = 1.sw;
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenHeight * 0.15),
+        preferredSize: Size.fromHeight(
+          Responsive.buttonHeight(context, 120),
+        ), // Scale based on device
         child: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: const Color(0xFF121212),
           centerTitle: true,
-          toolbarHeight: screenHeight * 0.5,
+          toolbarHeight: Responsive.buttonHeight(
+            context,
+            120,
+          ), // Scale based on device
           elevation: 0,
-          title: createTitle("Welcome!", screenWidth),
+          title: createTitle("Welcome!", context),
           flexibleSpace: Center(
-            child: Padding(padding: EdgeInsets.only(top: screenWidth * 0.125)),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: Responsive.padding(context, 20),
+              ), // Scale based on device
+            ),
           ),
         ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(screenHeight * 0.02),
+          padding: EdgeInsets.all(
+            Responsive.padding(context, 16),
+          ), // Scale based on device
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -51,7 +61,9 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   labelStyle: TextStyle(color: Colors.white70),
                 ),
               ),
-              const SizedBox(height: 15),
+              SizedBox(
+                height: Responsive.padding(context, 15),
+              ), // Scale based on device
               // Enter Password field
               TextField(
                 controller: passwordController,
@@ -62,23 +74,33 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   labelStyle: TextStyle(color: Colors.white70),
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(
+                height: Responsive.padding(context, 30),
+              ), // Scale based on device
               // Login and Register with Email buttons
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 0.08.sh,
+                      height: Responsive.buttonHeight(
+                        context,
+                        60,
+                      ), // Scale based on device
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0.08.sw),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 30),
+                            ), // Scale based on device
                           ),
                           backgroundColor: const Color(0xFF2A2A2A),
                           foregroundColor: Colors.white,
                           side: BorderSide(
                             color: Colors.black,
-                            width: 0.003.sw,
+                            width: Responsive.scale(
+                              context,
+                              1,
+                            ), // Scale based on device
                           ),
                         ),
                         onPressed: () async {
@@ -98,24 +120,38 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             });
                           }
                         },
-                        child: buttonText("Register", 0.05.sw),
+                        child: buttonText(
+                          "Register",
+                          context,
+                          16,
+                        ), // Scale based on device
                       ),
                     ),
                   ),
-                  SizedBox(width: 0.03.sw),
+                  SizedBox(
+                    width: Responsive.padding(context, 12),
+                  ), // Scale based on device
                   Expanded(
                     child: SizedBox(
-                      height: 0.08.sh,
+                      height: Responsive.buttonHeight(
+                        context,
+                        60,
+                      ), // Scale based on device
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0.08.sw),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 30),
+                            ), // Scale based on device
                           ),
                           backgroundColor: const Color(0xFF2A2A2A),
                           foregroundColor: Colors.white,
                           side: BorderSide(
                             color: Colors.black,
-                            width: 0.003.sw,
+                            width: Responsive.scale(
+                              context,
+                              1,
+                            ), // Scale based on device
                           ),
                         ),
                         onPressed: () async {
@@ -135,19 +171,29 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             });
                           }
                         },
-                        child: buttonText("Login", 0.05.sw),
+                        child: buttonText(
+                          "Login",
+                          context,
+                          16,
+                        ), // Scale based on device
                       ),
                     ),
                   ),
                 ],
               ),
               SizedBox(
-                height: screenHeight * 0.01,
-              ), // spacing between buttons and notifying message
+                height: Responsive.padding(
+                  context,
+                  8,
+                ), // spacing between buttons and notifying message
+              ),
               Text(
                 // notify the user about any problems with registering / login
                 notifyingMessage ?? "",
-                style: TextStyle(color: Colors.red, fontSize: 14),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: Responsive.font(context, 14),
+                ), // Scale based on device
               ),
             ],
           ),

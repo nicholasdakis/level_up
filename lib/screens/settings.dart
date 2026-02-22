@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
+import '../utility/responsive.dart';
 import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import '../authentication/auth_services.dart';
 
 Widget buildSettingsDrawer(
-  double screenWidth,
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
 }) {
@@ -26,7 +26,10 @@ Widget buildSettingsDrawer(
               text: TextSpan(
                 text: "Settings",
                 style: GoogleFonts.dangrek(
-                  fontSize: screenWidth * 0.15,
+                  fontSize: Responsive.font(
+                    context,
+                    30,
+                  ), // for scaling responsively
                   color: Colors
                       .white, // defaults to white if no parameter is given
                   shadows: [
@@ -43,8 +46,7 @@ Widget buildSettingsDrawer(
           drawerItem(
             "Personal Preferences",
             Icons.account_circle,
-            screenWidth,
-            context,
+            context, // now only pass context
             destination: PersonalPreferences(
               onProfileImageUpdated:
                   onProfileImageUpdated, // update the callback to update the Home Screen
@@ -54,8 +56,7 @@ Widget buildSettingsDrawer(
           drawerItem(
             "About The Developer",
             Icons.phone_iphone,
-            screenWidth,
-            context,
+            context, // only context
             destination: AboutTheDeveloper(),
             startOffset: Offset(-1, 0),
           ),
@@ -63,12 +64,15 @@ Widget buildSettingsDrawer(
             color: Colors.transparent,
             child: ListTile(
               leading: Icon(Icons.logout, color: Color(0xFF121212)),
-              title: textWithFont(
+              title: Text(
                 "Log Out",
-                screenWidth,
-                0.05,
-                color: Colors.white,
-                alignment: TextAlign.left,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(
+                    context,
+                    18,
+                  ), // for scaling responsively
+                  color: Colors.white,
+                ),
               ),
               hoverColor: appColorNotifier.value.withAlpha(230),
               onTap: () async {

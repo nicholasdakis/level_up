@@ -99,7 +99,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: appColorNotifier.value.withAlpha(200),
-          title: textWithFont('Pick theme color', screenWidth, 0.075),
+          title: textWithFont('Pick theme color', context, 0.075),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
@@ -161,7 +161,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Preferences", screenWidth),
+        title: createTitle("Preferences", context),
       ),
       body: Column(
         children: [

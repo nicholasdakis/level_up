@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 // Class imports
 import '../globals.dart';
+import '../utility/responsive.dart';
 
 class FoodLogging extends StatefulWidget {
   const FoodLogging({super.key});
@@ -322,7 +323,7 @@ class _FoodLoggingState extends State<FoodLogging> {
             ), // Header color
             centerTitle: true,
             toolbarHeight: screenHeight * 0.15,
-            title: createTitle("Food Logging", screenWidth),
+            title: createTitle("Food Logging", context),
           ),
           body: Padding(
             padding: EdgeInsets.all(16),
@@ -339,7 +340,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     Text(
                       "${currentDate.year.toString().padLeft(4, '0')}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
                       style: GoogleFonts.manrope(
-                        fontSize: screenWidth * 0.045,
+                        fontSize: Responsive.font(context, 18),
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -362,7 +363,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       children: [
                         textWithFont(
                           "Powered by fatsecret",
-                          screenWidth,
+                          context,
                           0.035,
                           color: Colors.blue,
                         ),
@@ -608,7 +609,8 @@ class _FoodLoggingState extends State<FoodLogging> {
                             FocusScope.of(context).unfocus();
                             setState(() {
                               userCanType = false;
-                              mealChosen = true;
+                              mealChosen =
+                                  true; // allows the "Log Food" validity test to pass
 
                               selectedFood = food;
 
@@ -651,7 +653,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               initiallyExpanded: true,
                               title: textWithCard(
                                 "Breakfast (${breakfastFoods.length})",
-                                screenWidth,
+                                context,
                                 0.1,
                               ),
                               children: breakfastFoods.asMap().entries.map((
@@ -711,7 +713,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               initiallyExpanded: true,
                               title: textWithCard(
                                 "Lunch (${lunchFoods.length})",
-                                screenWidth,
+                                context,
                                 0.1,
                               ),
                               children: lunchFoods.asMap().entries.map((entry) {
@@ -769,7 +771,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               initiallyExpanded: true,
                               title: textWithCard(
                                 "Dinner (${dinnerFoods.length})",
-                                screenWidth,
+                                context,
                                 0.1,
                               ),
                               children: dinnerFoods.asMap().entries.map((
@@ -829,7 +831,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               initiallyExpanded: true,
                               title: textWithCard(
                                 "Snacks (${snackFoods.length})",
-                                screenWidth,
+                                context,
                                 0.1,
                               ),
                               children: snackFoods.asMap().entries.map((entry) {

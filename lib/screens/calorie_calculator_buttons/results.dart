@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
 
 class Results extends StatefulWidget {
@@ -183,10 +182,12 @@ class _ResultsState extends State<Results> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
+    double screenHeight = MediaQuery.of(
+      context,
+    ).size.height; // Make widgets the size of the user's personal screen size
+    double screenWidth = MediaQuery.of(
+      context,
+    ).size.width; // Make widgets the size of the user's personal screen size
     return Scaffold(
       backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
       // Header box
@@ -195,16 +196,16 @@ class _ResultsState extends State<Results> {
         scrolledUnderElevation:
             0, // So the appBar does not change color when the user scrolls down
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
+        toolbarHeight: screenHeight * 0.12,
         title: Text(
           "Results",
           style: GoogleFonts.dangrek(
-            fontSize: screenWidth * 0.12,
+            fontSize: screenWidth * 0.015,
             color: Colors.white,
             shadows: [
               Shadow(
-                offset: Offset(4, 4),
-                blurRadius: 10,
+                offset: Offset(screenWidth * 0.003, screenHeight * 0.003),
+                blurRadius: screenWidth * 0.007,
                 color: const Color.fromARGB(255, 0, 0, 0),
               ),
             ],
@@ -215,27 +216,27 @@ class _ResultsState extends State<Results> {
         thumbVisibility: true,
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(30),
+            padding: EdgeInsets.all(screenWidth * 0.03),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 textWithFont(
                   "About BMR",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
                   widget.equation == "Mifflin-St Jeor"
                       ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • This formula is a revised version of the Harris-Benedict equation."""
                       : """• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "Male BMR:",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                   color: const Color.fromARGB(255, 5, 71, 142),
                 ),
@@ -250,13 +251,13 @@ class _ResultsState extends State<Results> {
                                 "Metric" // Harris and Metric
                       ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
                       : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362",
-                  screenWidth,
-                  0.05, //correct Harris and Imperial
+                  context,
+                  0.015, //correct Harris and Imperial
                 ),
                 textWithFont(
                   "Female BMR:",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                   color: const Color.fromARGB(255, 210, 4, 138),
                 ),
@@ -271,35 +272,35 @@ class _ResultsState extends State<Results> {
                                 "Metric" // Harris and Metric
                       ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Metric
                       : "([9.247 / 2.205] x weight (lbs))\n + ([3.098 x 2.54]\n x height (inches))\n - (4.330 x age (years))\n + 447.593", //correct Harris and Imperial
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "About TDEE",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
                   "• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n\n• Consuming this amount of calories will cause your weight to maintain itself.\n\n TDEE = BMR x Activity Level",
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "Activity Level",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
                   "• Sedentary = 1.2\n• Light = 1.375\n• Moderate = 1.55\n• Active = 1.725\n• Very Active = 1.9",
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "Your BMR",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
@@ -329,29 +330,29 @@ class _ResultsState extends State<Results> {
                             "Female" // Female and Imperial and Mifflin
                       ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = $bmr is your BMR." // Female and Imperial and Harris
                       : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = $bmr is your BMR.", // Male and Imperial and Harris
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "Your TDEE",
-                  screenWidth,
-                  0.1,
+                  context,
+                  0.02,
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
                 textWithCard(
                   "$bmr x ${calculateActivityLevel()} = ${calculateTDEE(bmr, calculateActivityLevel())} is your TDEE.",
-                  screenWidth,
-                  0.05,
+                  context,
+                  0.015,
                 ),
                 textWithFont(
                   "How to ${widget.goal}",
-                  screenWidth,
-                  0.075,
+                  context,
+                  0.018,
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
-                textWithCard(calculateGoal(), screenWidth, 0.04),
+                textWithCard(calculateGoal(), context, 0.012),
               ],
             ),
           ),

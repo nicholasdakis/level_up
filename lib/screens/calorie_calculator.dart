@@ -107,7 +107,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
         toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Calculator", screenWidth),
+        title: createTitle("Calculator", context),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -449,9 +449,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     // Results button
                     customButton(
                       "Get Results",
-                      screenWidth * 0.1,
-                      screenHeight * 0.75,
-                      screenWidth,
+                      48,
+                      160,
+                      750,
                       context,
                       onPressed: () {
                         // validity checks

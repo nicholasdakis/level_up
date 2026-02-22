@@ -74,7 +74,7 @@ class _LeaderboardState extends State<Leaderboard> {
       appBar: AppBar(
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
-        title: createTitle("Leaderboard", screenWidth),
+        title: createTitle("Leaderboard", context),
       ),
       body: users.isEmpty
           ? const Center(

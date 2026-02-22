@@ -9,6 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../globals.dart';
 import '../user/reminder_data.dart';
+import '../utility/responsive.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -179,7 +180,7 @@ class _RemindersState extends State<Reminders> {
             content: Row(
               children: [
                 Icon(Icons.info, color: Colors.white), // Info icon
-                SizedBox(width: 10), // Spacing
+                SizedBox(width: Responsive.width(context, 10)), // Spacing
                 Text(message), // Message text
               ],
             ),
@@ -275,17 +276,23 @@ class _RemindersState extends State<Reminders> {
       appBar: AppBar(
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
-        title: createTitle("Reminders", screenWidth),
+        toolbarHeight: Responsive.height(
+          context,
+          100,
+        ), // for scaling responsively
+        title: createTitle("Reminders", context),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
             // Scrollable content
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 50,
-              ), // Horizontal padding
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(
+                  context,
+                  50,
+                ), // scaling responsively
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -295,7 +302,10 @@ class _RemindersState extends State<Reminders> {
                     keyboardType: TextInputType.text,
                     style: GoogleFonts.manrope(
                       // Custom font
-                      fontSize: screenWidth * 0.05,
+                      fontSize: Responsive.font(
+                        context,
+                        18,
+                      ), // scaling responsively
                       color: Colors.white,
                       shadows: const [
                         Shadow(
@@ -308,18 +318,27 @@ class _RemindersState extends State<Reminders> {
                     ),
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      enabledBorder: const UnderlineInputBorder(
+                      enabledBorder: UnderlineInputBorder(
                         // Enabled state border
-                        borderSide: BorderSide(color: Colors.grey, width: 0.25),
+                        borderSide: BorderSide(
+                          color: Colors.grey,
+                          width: Responsive.width(context, 0.25), // scaling
+                        ),
                       ),
-                      focusedBorder: const UnderlineInputBorder(
+                      focusedBorder: UnderlineInputBorder(
                         // Focused state border
-                        borderSide: BorderSide(color: Colors.grey, width: 0.25),
+                        borderSide: BorderSide(
+                          color: Colors.grey,
+                          width: Responsive.width(context, 0.25), // scaling
+                        ),
                       ),
                       hintText: "Enter a reminder.",
-                      contentPadding: const EdgeInsets.only(top: 13, left: 6),
+                      contentPadding: EdgeInsets.only(
+                        top: Responsive.height(context, 13),
+                        left: Responsive.width(context, 6),
+                      ),
                       hintStyle: GoogleFonts.manrope(
-                        fontSize: screenWidth * 0.05,
+                        fontSize: Responsive.font(context, 18), // scaling
                         color: Colors.white,
                         shadows: const [
                           Shadow(
@@ -333,14 +352,14 @@ class _RemindersState extends State<Reminders> {
                     onChanged: (value) =>
                         reminder = value, // Update on text change
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: Responsive.height(context, 20)),
 
                   // Date/time picker button
                   customButton(
                     "Pick Reminder Time",
-                    screenWidth * 0.05,
-                    screenHeight,
-                    screenWidth,
+                    48,
+                    160,
+                    750,
                     context,
                     destination: null,
                     onPressed: () {
@@ -350,11 +369,13 @@ class _RemindersState extends State<Reminders> {
                         builder: (_) => Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            height: 0.33 * screenHeight,
+                            height: screenHeight * 0.33,
                             child: Container(
                               decoration: BoxDecoration(
                                 color: const Color.fromARGB(128, 37, 37, 37),
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.width(context, 30),
+                                ),
                               ),
                               child: Column(
                                 children: [
@@ -384,13 +405,13 @@ class _RemindersState extends State<Reminders> {
                       );
                     },
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: Responsive.height(context, 20)),
                   // Set reminder button
                   isLoading
                       ? Center(
                           child: SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: Responsive.height(context, 20),
+                            width: Responsive.width(context, 20),
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         )
@@ -400,7 +421,7 @@ class _RemindersState extends State<Reminders> {
                           baseColor: appColorNotifier.value.withAlpha(64),
                           onPressed: (_setReminder),
                         ),
-                  SizedBox(height: screenHeight * 0.02), // Spacing
+                  SizedBox(height: Responsive.height(context, 20)), // Spacing
                   // REMINDERS TABLE WITH DELETE OPTION
                   Center(
                     child: reminders.isEmpty
@@ -412,7 +433,10 @@ class _RemindersState extends State<Reminders> {
                               "Upcoming reminders will appear here...",
                               style: TextStyle(
                                 color: Colors.white54, // Semi-transparent text
-                                fontSize: screenWidth * 0.04, // Responsive size
+                                fontSize: Responsive.font(
+                                  context,
+                                  16,
+                                ), // Responsive size
                               ),
                             ),
                           )
@@ -422,29 +446,17 @@ class _RemindersState extends State<Reminders> {
                             columns: [
                               DataColumn(
                                 label: Center(
-                                  child: textWithFont(
-                                    "Message",
-                                    screenWidth,
-                                    0.04,
-                                  ),
+                                  child: textWithFont("Message", context, 0.04),
                                 ),
                               ),
                               DataColumn(
                                 label: Center(
-                                  child: textWithFont(
-                                    "Date",
-                                    screenWidth,
-                                    0.04,
-                                  ),
+                                  child: textWithFont("Date", context, 0.04),
                                 ),
                               ),
                               DataColumn(
                                 label: Center(
-                                  child: textWithFont(
-                                    "Delete",
-                                    screenWidth,
-                                    0.04,
-                                  ),
+                                  child: textWithFont("Delete", context, 0.04),
                                 ),
                               ),
                             ],
@@ -457,8 +469,8 @@ class _RemindersState extends State<Reminders> {
                                     Center(
                                       child: textWithFont(
                                         reminder.message, // Reminder text
-                                        1.sw,
-                                        0.02,
+                                        context,
+                                        0.02, // scaled
                                       ),
                                     ),
                                   ),
@@ -467,8 +479,8 @@ class _RemindersState extends State<Reminders> {
                                     Center(
                                       child: textWithFont(
                                         "${reminder.dateTime.month}/${reminder.dateTime.day} ${reminder.dateTime.hour}:${reminder.dateTime.minute.toString().padLeft(2, '0')}", // Formatted date
-                                        1.sw,
-                                        0.02,
+                                        context,
+                                        0.02, // scaled
                                       ),
                                     ),
                                   ),

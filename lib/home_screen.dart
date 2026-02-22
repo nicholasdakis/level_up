@@ -12,6 +12,7 @@ import 'screens/settings.dart';
 import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'globals.dart';
+import 'utility/responsive.dart';
 
 // small class for removing the awkward glow of buttons when scrolling to the very top / very bottom of the home screen
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -82,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return Scaffold(
       drawer: buildSettingsDrawer(
-        screenWidth,
         context,
         // rebuild on pfp image update
         onProfileImageUpdated: () {
@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context) => IconButton(
                   icon: Icon(
                     Icons.settings,
-                    size: screenWidth * 0.1,
+                    size: Responsive.font(context, 64),
                     color: Colors.white,
                   ),
                   onPressed: () => Scaffold.of(context).openDrawer(),
@@ -169,9 +169,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           // CALORIE CALCULATOR BUTTON
                           customButton(
                             "Calorie Calculator",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: CalorieCalculator(),
                           ),
@@ -179,18 +179,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           // FOOD LOGGING TAB
                           customButton(
                             "Food Logging",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: FoodLogging(),
                           ),
                           SizedBox(height: 10.h), // Space between buttons
                           customButton(
                             "Explore",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: Explore(),
                           ),
@@ -198,9 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           // REMINDERS TAB
                           customButton(
                             "Reminders",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: Reminders(),
                           ),
@@ -208,9 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           // BADGES TAB
                           customButton(
                             "Badges",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: Badges(),
                           ),
@@ -218,9 +218,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           // LEADERBOARD TAB
                           customButton(
                             "Leaderboard",
-                            screenWidth * 0.1,
-                            screenHeight,
-                            screenWidth,
+                            48,
+                            160,
+                            750,
                             context,
                             destination: Leaderboard(),
                           ),

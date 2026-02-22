@@ -459,3 +459,10 @@ Developmental progress by date is stored in this file.
 - Added calorie count under logged foods
 - Used the Dismissible widget to make logged foods removeable by swiping the food to the left
 - Each logged food creates a key that uses the index, food name, and food type, and this key is used for deletion via the Dismissible widget
+
+## 2026-02-22
+- Created responsive.dart utility class for scaling differently when the user is not on mobile
+- Changed methods in globals.dart to utilize responsive.dart and raw screen size for calculating the size of widgets
+- Changed lines of code in all classes to take the correct new arguments of their globals.dart methods
+- Changed lines of code in all classes to use the Responsive class for text scaling
+- Adjusted code in classes to make buttons and the footer section look more natural on desktop

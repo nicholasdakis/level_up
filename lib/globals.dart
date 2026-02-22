@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 import 'dart:ui';
+import 'utility/responsive.dart';
 
 ValueNotifier<int> expNotifier = ValueNotifier<int>(
   currentUserData?.expPoints ?? 0,
@@ -24,48 +25,52 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(
   String text,
-  double screenWidth,
-  double letterSize, {
+  BuildContext context,
+  double baseFontSize, {
   TextDecoration? decoration,
   Color? color,
   TextAlign? alignment,
 }) {
-  // optional decoration, alignment and color parameters
   return RichText(
     textAlign: alignment ?? TextAlign.center,
     text: TextSpan(
       text: text,
       style: GoogleFonts.manrope(
-        fontSize: screenWidth * letterSize,
-        color:
-            color ?? Colors.white, // defaults to white if no parameter is given
+        fontSize: Responsive.font(
+          context,
+          baseFontSize,
+        ), // Scale based on device
+        color: color ?? Colors.white,
         shadows: [
           Shadow(
-            offset: Offset(4, 4),
-            blurRadius: 10,
+            offset: Offset(
+              Responsive.scale(context, 4), // Scale based on device
+              Responsive.scale(context, 4), // Scale based on device
+            ),
+            blurRadius: Responsive.scale(context, 10), // Scale based on device
             color: const Color.fromARGB(255, 0, 0, 0),
           ),
         ],
-        decoration:
-            decoration ??
-            TextDecoration
-                .none, // defaults to no decoration if no parameter is given
+        decoration: decoration ?? TextDecoration.none,
       ),
     ),
   );
 }
 
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
-Widget createTitle(String text, double screenWidth) {
+Widget createTitle(String text, BuildContext context) {
   return Text(
     text,
     style: GoogleFonts.dangrek(
-      fontSize: screenWidth * 0.12,
+      fontSize: Responsive.font(context, 24), // Scale based on device
       color: Colors.white,
       shadows: [
         Shadow(
-          offset: Offset(4, 4),
-          blurRadius: 10,
+          offset: Offset(
+            Responsive.scale(context, 4), // Scale based on device
+            Responsive.scale(context, 4), // Scale based on device
+          ),
+          blurRadius: Responsive.scale(context, 10), // Scale based on device
           color: const Color.fromARGB(255, 0, 0, 0),
         ),
       ],
@@ -74,22 +79,33 @@ Widget createTitle(String text, double screenWidth) {
 }
 
 // CREATE TEXT INSIDE OF A CARD
-Widget textWithCard(String text, double screenWidth, double letterSize) {
+Widget textWithCard(String text, BuildContext context, double baseFontSize) {
   return Card(
-    elevation: 10,
+    elevation: Responsive.scale(context, 10), // Scale based on device
     color: appColorNotifier.value.withAlpha(64),
     child: Padding(
-      padding: EdgeInsetsGeometry.all(4),
+      padding: EdgeInsets.all(
+        Responsive.padding(context, 4),
+      ), // Scale based on device
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          fontSize: letterSize * screenWidth,
+          fontSize: Responsive.font(
+            context,
+            baseFontSize,
+          ), // Scale based on device
           color: Colors.white,
           shadows: [
             Shadow(
-              offset: Offset(4, 4),
-              blurRadius: 10,
+              offset: Offset(
+                Responsive.scale(context, 4), // Scale based on device
+                Responsive.scale(context, 4), // Scale based on device
+              ),
+              blurRadius: Responsive.scale(
+                context,
+                10,
+              ), // Scale based on device
               color: const Color.fromARGB(255, 0, 0, 0),
             ),
           ],
@@ -103,25 +119,24 @@ Widget textWithCard(String text, double screenWidth, double letterSize) {
 Widget drawerItem(
   String text,
   IconData icon,
-  screenWidth,
-  context, {
+  BuildContext context, {
   Widget? destination,
-  Offset? startOffset = const Offset(0, 1),
+  Offset startOffset = const Offset(0, 1),
 }) {
   return Material(
     color: Colors.transparent,
     child: ListTile(
-      leading: Icon(icon, color: Color(0xFF121212)),
+      leading: Icon(icon, color: Colors.white),
       title: textWithFont(
         text,
-        screenWidth,
-        0.05,
+        context,
+        Responsive.font(context, 18), // scaled responsively
         color: Colors.white,
         alignment: TextAlign.left,
       ),
-      hoverColor: Color.fromARGB(255, 43, 43, 43),
+      hoverColor: Colors.white.withAlpha(50),
       onTap: () {
-        Navigator.pop(context); // close the Drawer
+        Navigator.pop(context); // close the drawer
         if (destination != null) {
           changeToScreen(context, destination, startOffset: startOffset);
         }
@@ -131,32 +146,40 @@ Widget drawerItem(
 }
 
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
-Widget buttonText(String text, double letterSize) {
+Widget buttonText(String text, BuildContext context, double baseFontSize) {
   return Text(
     text,
     textAlign: TextAlign.center,
     style: GoogleFonts.dangrek(
-      fontSize: letterSize,
+      fontSize: Responsive.font(context, baseFontSize), // Scale based on device
       color: Colors.white,
       shadows: [
         Shadow(
-          // Up Left
-          offset: Offset(-1, -1),
+          offset: Offset(
+            -Responsive.scale(context, 1), // Scale based on device
+            -Responsive.scale(context, 1), // Scale based on device
+          ),
           color: Colors.black,
         ),
         Shadow(
-          // Up Right
-          offset: Offset(1, -1),
+          offset: Offset(
+            Responsive.scale(context, 1), // Scale based on device
+            -Responsive.scale(context, 1), // Scale based on device
+          ),
           color: Colors.black,
         ),
         Shadow(
-          // Down Left
-          offset: Offset(-1, 1),
+          offset: Offset(
+            -Responsive.scale(context, 1), // Scale based on device
+            Responsive.scale(context, 1), // Scale based on device
+          ),
           color: Colors.black,
         ),
         Shadow(
-          // Down Right
-          offset: Offset(1, 1),
+          offset: Offset(
+            Responsive.scale(context, 1), // Scale based on device
+            Responsive.scale(context, 1), // Scale based on device
+          ),
           color: Colors.black,
         ),
       ],
@@ -167,63 +190,66 @@ Widget buttonText(String text, double letterSize) {
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(
   String text,
-  double letterSize,
-  double screenHeight,
-  double screenWidth,
+  double baseFontSize,
+  double baseHeight,
+  double baseWidth,
   BuildContext context, {
   Widget? destination,
   VoidCallback? onPressed,
   Color? baseColor,
 }) {
-  Color color = baseColor =
+  Color color =
+      baseColor ??
       currentUserData!.appColor; // app theme is the user's chosen theme
-  // convert the colors to ints to use in the ARGB constructor
-  // extract the red, green, blue components from the base color
   final int red = (color.r * 255).round().clamp(0, 255);
   final int green = (color.g * 255).round().clamp(0, 255);
   final int blue = (color.b * 255).round().clamp(0, 255);
 
   return SizedBox(
-    height: screenHeight * 0.15, // Button height relative to screen
-    width: screenWidth * 0.90, // Button width relative to screen
+    height: Responsive.buttonHeight(
+      context,
+      baseHeight,
+    ), // Scale based on device
+    width: Responsive.scale(context, baseWidth), // Scale based on device
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(30), // Rounded corners
+      borderRadius: BorderRadius.circular(
+        Responsive.scale(context, 30),
+      ), // Scale based on device
       child: Stack(
         children: [
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: 15,
-              sigmaY: 15,
-            ), // Blur background, add glass-like effect
+              sigmaX: Responsive.scale(context, 15), // Scale based on device
+              sigmaY: Responsive.scale(context, 15), // Scale based on device
+            ),
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(
-                  (0.15 * 255).round(),
-                  red,
-                  green,
-                  blue,
-                ), // Translucent background color
-                borderRadius: BorderRadius.circular(30),
+                color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 30),
+                ), // Scale based on device
                 border: Border.all(
-                  color: Color.fromARGB(
-                    (0.3 * 255).round(),
-                    red,
-                    green,
-                    blue,
-                  ), // Border with opacity
-                  width: 1.5,
+                  color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
+                  width: Responsive.scale(
+                    context,
+                    1.5,
+                  ), // Scale based on device
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color.fromARGB(
-                      (0.25 * 255).round(),
+                    color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
+                    offset: Offset(
                       0,
-                      0,
-                      0,
-                    ), // shadows
-                    offset: Offset(0, 4),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+                      Responsive.scale(context, 4), // Scale based on device
+                    ),
+                    blurRadius: Responsive.scale(
+                      context,
+                      10,
+                    ), // Scale based on device
+                    spreadRadius: Responsive.scale(
+                      context,
+                      1,
+                    ), // Scale based on device
                   ),
                 ],
               ),
@@ -232,7 +258,9 @@ Widget customButton(
           Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 30),
+              ), // Scale based on device
               onTap:
                   onPressed ??
                   () {
@@ -240,22 +268,25 @@ Widget customButton(
                       changeToScreen(context, destination);
                     }
                   },
-              // ripple effect when clicking
               splashColor: Color.fromARGB(
                 (0.1 * 255).round(),
                 red,
                 green,
                 blue,
-              ), // Ripple color
+              ),
               highlightColor: Color.fromARGB(
                 (0.05 * 255).round(),
                 red,
                 green,
                 blue,
-              ), // Highlight on tap
+              ),
               child: Center(
-                child: buttonText(text, screenWidth * 0.1),
-              ), // Text centered and sized
+                child: buttonText(
+                  text,
+                  context,
+                  baseFontSize,
+                ), // Scale inside text
+              ),
             ),
           ),
         ],
@@ -279,28 +310,47 @@ Widget simpleCustomButton(
   final screenWidth = MediaQuery.of(context).size.width;
 
   return SizedBox(
-    height: screenHeight * 0.15,
-    width: screenWidth * 0.90,
+    height: Responsive.buttonHeight(context, 150), // Scale based on device
+    width: Responsive.scale(context, 300), // Scale based on device
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(
+        Responsive.scale(context, 30),
+      ), // Scale based on device
       child: Stack(
         children: [
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            filter: ImageFilter.blur(
+              sigmaX: Responsive.scale(context, 15), // Scale based on device
+              sigmaY: Responsive.scale(context, 15), // Scale based on device
+            ),
             child: Container(
               decoration: BoxDecoration(
                 color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 30),
+                ), // Scale based on device
                 border: Border.all(
                   color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
-                  width: 1.5,
+                  width: Responsive.scale(
+                    context,
+                    1.5,
+                  ), // Scale based on device
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
-                    offset: Offset(0, 4),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+                    offset: Offset(
+                      0,
+                      Responsive.scale(context, 4), // Scale based on device
+                    ),
+                    blurRadius: Responsive.scale(
+                      context,
+                      10,
+                    ), // Scale based on device
+                    spreadRadius: Responsive.scale(
+                      context,
+                      1,
+                    ), // Scale based on device
                   ),
                 ],
               ),
@@ -309,7 +359,9 @@ Widget simpleCustomButton(
           Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 30),
+              ), // Scale based on device
               onTap: onPressed,
               splashColor: Color.fromARGB(
                 (0.1 * 255).round(),
@@ -323,7 +375,9 @@ Widget simpleCustomButton(
                 green,
                 blue,
               ),
-              child: Center(child: buttonText(text, screenWidth * 0.1)),
+              child: Center(
+                child: buttonText(text, context, 16),
+              ), // Base font size scaled inside
             ),
           ),
         ],
@@ -341,17 +395,11 @@ void changeToScreen(
   Navigator.push(
     context,
     PageRouteBuilder(
-      // Animation when switching screen
       pageBuilder: (context, animation, secondaryAnimation) => destination,
       transitionDuration: Duration(milliseconds: 400),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final start =
-            startOffset ??
-            Offset(
-              0.0,
-              1.0,
-            ); // Choose where to start, or default to starting right below the screen
-        final finish = Offset.zero; // Stop right at the top of the screen
+        final start = startOffset ?? Offset(0.0, 1.0);
+        final finish = Offset.zero;
         final tween = Tween(
           begin: start,
           end: finish,
