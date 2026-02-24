@@ -31,7 +31,8 @@ jobs:
         run: |
           mkdir -p lib  # Make sure lib folder exists
           # Decode the base64 secret and save as lib/firebase_options.dart
-          echo "${{ secrets.FIREBASE_OPTIONS_B64 }}" | base64 --decode > lib/firebase_options.dart
+          # If the file already exists, it will be overwritten
+          printf "%s" "${{ secrets.FIREBASE_OPTIONS_B64 }}" | base64 --decode > lib/firebase_options.dart
 
       # Step 4: Get dependencies
       - name: Install dependencies
