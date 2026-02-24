@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {}); // rebuild HomeScreen
         },
       ),
-      backgroundColor: appColorNotifier.value.withAlpha(128),
+      backgroundColor: appColorNotifier.value,
       // Header
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
@@ -104,8 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
 
           centerTitle: true,
-          toolbarHeight:
-              screenHeight * 0.5, // Prevent the icon from cutting in half
+          toolbarHeight: Responsive.buttonHeight(
+            context,
+            120,
+          ), // Scale based on device // Prevent the icon from cutting in half
           elevation: 0,
           actions: [
             // automatically aligns the icon into the top right of the screen

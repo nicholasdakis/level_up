@@ -5,6 +5,7 @@ import 'package:dropdown_button2/dropdown_button2.dart'; // more customizable dr
 import 'package:flutter/services.dart';
 import 'calorie_calculator_buttons/results.dart';
 import '../globals.dart';
+import '/utility/responsive.dart';
 
 class CalorieCalculator extends StatefulWidget {
   const CalorieCalculator({super.key});
@@ -106,7 +107,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
       appBar: AppBar(
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
+        toolbarHeight: Responsive.buttonHeight(
+          context,
+          120,
+        ), // Scale based on device
         title: createTitle("Calculator", context),
       ),
       body: SingleChildScrollView(
@@ -166,7 +170,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       }
                     });
                   },
-                  fontSize: screenWidth * 0.05,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // SELECT CALORIE EQUATION FORMULA
                 buildDropdown<String>(
@@ -183,7 +187,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     ),
                   ],
                   onChanged: (value) => setState(() => equation = value),
-                  fontSize: screenWidth * 0.05,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // CHOOSE YOUR SEX BUTTON
                 buildDropdown<String>(
@@ -194,7 +198,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     DropdownMenuItem(value: 'Female', child: Text('Female')),
                   ],
                   onChanged: (value) => setState(() => sex = value),
-                  fontSize: screenWidth * 0.05,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // CHOOSE YOUR AGE BUTTON
                 buildDropdown<int>(
@@ -205,7 +209,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       DropdownMenuItem(value: i, child: Text("$i")),
                   ],
                   onChanged: (value) => setState(() => age = value),
-                  fontSize: screenWidth * 0.05,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // ENTER YOUR WEIGHT INPUT
                 SizedBox(
@@ -240,7 +244,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       ],
                       style: GoogleFonts.manrope(
                         // style of the input text
-                        fontSize: screenWidth * 0.05,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white,
                         shadows: [
                           Shadow(
@@ -280,7 +284,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         suffixStyle: TextStyle(color: Colors.white),
                         contentPadding: EdgeInsets.only(top: 13, left: 6),
                         hintStyle: GoogleFonts.manrope(
-                          fontSize: screenWidth * 0.05,
+                          fontSize: Responsive.font(context, 15),
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -326,7 +330,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       }
                     });
                   },
-                  fontSize: screenWidth * 0.05,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // CHOOSE YOUR GOAL BUTTON
                 buildDropdown<String>(
@@ -347,7 +351,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     ),
                   ],
                   onChanged: (value) => setState(() => goal = value),
-                  fontSize: screenWidth * 0.045,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 // CHOOSE YOUR ACTIVITY LEVEL BUTTON
                 buildDropdown<String>(
@@ -370,15 +374,16 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     ),
                   ],
                   onChanged: (value) => setState(() => activityLevel = value),
-                  fontSize: screenWidth * 0.045,
+                  fontSize: Responsive.font(context, 15),
                 ),
                 SizedBox(height: 5.h),
-                Wrap(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, // align left
                   children: [
                     Text(
                       "• Sedentary = Low or no exercise.",
                       style: GoogleFonts.roboto(
-                        fontSize: screenWidth * 0.03,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white.withAlpha(128),
                         shadows: [
                           Shadow(
@@ -392,7 +397,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     Text(
                       "• Light = Light exercise 1-3 days per week.",
                       style: GoogleFonts.roboto(
-                        fontSize: screenWidth * 0.03,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white.withAlpha(128),
                         shadows: [
                           Shadow(
@@ -406,7 +411,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     Text(
                       "• Moderate = Moderate exercise 3-5 days per week.",
                       style: GoogleFonts.roboto(
-                        fontSize: screenWidth * 0.03,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white.withAlpha(128),
                         shadows: [
                           Shadow(
@@ -420,7 +425,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     Text(
                       "• Active = Hard exercise 6-7 days per week.",
                       style: GoogleFonts.roboto(
-                        fontSize: screenWidth * 0.03,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white.withAlpha(128),
                         shadows: [
                           Shadow(
@@ -434,7 +439,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     Text(
                       "• Very Active = Very hard exercise or physical job 6-7 days per week.\n",
                       style: GoogleFonts.roboto(
-                        fontSize: screenWidth * 0.03,
+                        fontSize: Responsive.font(context, 15),
                         color: Colors.white.withAlpha(128),
                         shadows: [
                           Shadow(
@@ -449,9 +454,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     // Results button
                     customButton(
                       "Get Results",
-                      48,
-                      160,
-                      750,
+                      24,
+                      80,
+                      375,
                       context,
                       onPressed: () {
                         // validity checks

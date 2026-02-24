@@ -16,6 +16,9 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
   Widget sendFeedbackButton(BuildContext context) {
     return simpleCustomButton(
       "Send Feedback",
+      48,
+      160,
+      750,
       context,
       baseColor: appColorNotifier.value.withAlpha(64),
       onPressed: () async {
@@ -82,23 +85,15 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                   height: Responsive.height(context, 20),
                 ), // Scale based on device
                 Padding(
-                  padding: EdgeInsets.all(
-                    Responsive.padding(context, 20),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.padding(context, 75),
                   ), // Scale based on device
                   child: Column(
                     children: [
                       textWithCard(
-                        "Hi! I'm Nicholas Dakis, a third year Computer Science student at CUNY Queens College.",
+                        "Hi! I'm Nicholas Dakis, a Computer Science student at CUNY Queens College. I created Level Up! to learn Flutter while creating an app I believed to be useful.",
                         context,
-                        Responsive.font(context, 18), // Scale based on device
-                      ),
-                      SizedBox(
-                        height: Responsive.height(context, 20),
-                      ), // Scale based on device
-                      textWithCard(
-                        "I created Level Up! to learn Flutter and improve my coding skills by creating an app I aimed to be genuinely useful and enjoyable.",
-                        context,
-                        Responsive.font(context, 18), // Scale based on device
+                        Responsive.font(context, 40), // Scale based on device
                       ),
                       SizedBox(
                         height: Responsive.height(context, 20),
@@ -106,7 +101,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       textWithCard(
                         "Feel free to send feedback or donate using the buttons below:",
                         context,
-                        Responsive.font(context, 18), // Scale based on device
+                        Responsive.font(context, 50), // Scale based on device
                       ),
                       SizedBox(
                         height: Responsive.height(context, 20),

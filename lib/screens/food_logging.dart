@@ -296,11 +296,6 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
-
     return FutureBuilder(
       future: _loadUserDataFuture,
       builder: (context, snapshot) {
@@ -322,7 +317,10 @@ class _FoodLoggingState extends State<FoodLogging> {
               64,
             ), // Header color
             centerTitle: true,
-            toolbarHeight: screenHeight * 0.15,
+            toolbarHeight: Responsive.buttonHeight(
+              context,
+              120,
+            ), // Scale based on device
             title: createTitle("Food Logging", context),
           ),
           body: Padding(
@@ -364,7 +362,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         textWithFont(
                           "Powered by fatsecret",
                           context,
-                          0.035,
+                          Responsive.font(context, 16),
                           color: Colors.blue,
                         ),
                       ],
@@ -377,14 +375,15 @@ class _FoodLoggingState extends State<FoodLogging> {
                   "Total Calories: ${getTotalCaloriesForDay()}",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: Responsive.font(context, 20),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
                 // Search Food input
                 SizedBox(
-                  width: screenWidth * 0.9,
+                  width: double
+                      .infinity, // changed from fixed width to fill screen
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       splashColor: Colors.transparent,
@@ -405,7 +404,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                       enabled: userCanType,
                       keyboardType: TextInputType.text,
                       style: GoogleFonts.manrope(
-                        fontSize: screenWidth * 0.04,
+                        fontSize: Responsive.font(
+                          context,
+                          17,
+                        ), // Scale based on device
                         color: Colors.white,
                         shadows: [
                           Shadow(
@@ -432,7 +434,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                         suffixIcon: Icon(Icons.search),
                         contentPadding: EdgeInsets.only(top: 13, left: 6),
                         hintStyle: GoogleFonts.manrope(
-                          fontSize: screenWidth * 0.05,
+                          fontSize: Responsive.font(
+                            context,
+                            15,
+                          ), // Scale based on device
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -454,7 +459,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   ),
                 ),
 
-                SizedBox(height: 0.01 * screenHeight),
+                SizedBox(height: Responsive.height(context, 10)),
 
                 // Horizontally lay out the next two buttons
                 Row(
@@ -475,7 +480,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                           maxHeight: 200,
                         ),
                         style: GoogleFonts.manrope(
-                          fontSize: screenWidth * 0.05,
+                          fontSize: Responsive.font(
+                            context,
+                            15,
+                          ), // Scale based on device
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -488,7 +496,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                         hint: Text(
                           "Meal Type",
                           style: GoogleFonts.manrope(
-                            fontSize: screenWidth * 0.05,
+                            fontSize: Responsive.font(
+                              context,
+                              20,
+                            ), // Scale based on device
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -517,10 +528,17 @@ class _FoodLoggingState extends State<FoodLogging> {
                     // Log Food Button
                     Expanded(
                       child: SizedBox(
-                        height: screenHeight * 0.075,
-                        width: screenWidth * 0.4,
+                        height: Responsive.font(
+                          context,
+                          75,
+                        ), // Scale based on device
+                        width: double
+                            .infinity, // fix inner button width to fill properly
                         child: simpleCustomButton(
                           "Log Food",
+                          40,
+                          160,
+                          750,
                           context,
                           baseColor: appColorNotifier.value.withAlpha(64),
                           onPressed: () async {
@@ -596,298 +614,279 @@ class _FoodLoggingState extends State<FoodLogging> {
 
                 SizedBox(height: 20),
 
-                // foodList not empty means the user searched a food and the API returned results
-                if (foodList.isNotEmpty)
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: foodList.length,
-                      itemBuilder: (context, index) {
-                        final food = foodList[index];
-                        return InkWell(
-                          onTap: () {
-                            // upon tap, the table disappears, the user cannot tap, and the search bar becomes the clicked-on food
-                            FocusScope.of(context).unfocus();
-                            setState(() {
-                              userCanType = false;
-                              mealChosen =
-                                  true; // allows the "Log Food" validity test to pass
-
-                              selectedFood = food;
-
-                              searchController.text = food["food_name"] ?? "";
-                              searchController.selection =
-                                  TextSelection.fromPosition(
-                                    TextPosition(
-                                      offset: searchController.text.length,
+                // scrollable area for either search results or meal table
+                Expanded(
+                  // Expanded to prevent pixel overflow
+                  child: SizedBox(
+                    child:
+                        // A food was returned, so show the table to the user
+                        (foodList.isNotEmpty)
+                        ? ListView.builder(
+                            itemCount: foodList.length,
+                            itemBuilder: (context, index) {
+                              final food = foodList[index];
+                              return InkWell(
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                  setState(() {
+                                    userCanType = false;
+                                    mealChosen = true;
+                                    selectedFood = food;
+                                    searchController.text =
+                                        food["food_name"] ?? "";
+                                    searchController
+                                        .selection = TextSelection.fromPosition(
+                                      TextPosition(
+                                        offset: searchController.text.length,
+                                      ),
+                                    );
+                                    foodList = [];
+                                  });
+                                },
+                                child: ListTile(
+                                  title: Text(
+                                    food['food_name'] ?? '',
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    food['food_description'] ?? '',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        // else no food was searched for / returned
+                        : ListView(
+                            children: [
+                              // Breakfast
+                              ExpansionTile(
+                                initiallyExpanded: true,
+                                title: textWithCard(
+                                  "Breakfast (${breakfastFoods.length})",
+                                  context,
+                                  Responsive.font(context, 25),
+                                ),
+                                children: breakfastFoods.asMap().entries.map((
+                                  entry,
+                                ) {
+                                  int idx = entry
+                                      .key; // store index of food for deletion option
+                                  Map<String, dynamic> food = entry.value;
+                                  return Dismissible(
+                                    // Dismissible widget so the food can be swiped to delete
+                                    key: ValueKey(
+                                      "breakfast_$idx${food['food_name']}",
+                                    ), // unique key that combines the index and food name
+                                    // formatting of background when user swipes to delete a food
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 20),
+                                      child: Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (direction) async {
+                                      setState(() {
+                                        // when the user swipes to delete, remove the food and update to the server
+                                        breakfastFoods.removeAt(idx);
+                                        final dateKey = formatDateKey(
+                                          currentDate,
+                                        );
+                                        foodDataByDate[dateKey]!['Breakfast'] =
+                                            breakfastFoods;
+                                      });
+                                      await saveFoodData();
+                                    },
+                                    // Display breakfast food name
+                                    child: ListTile(
+                                      title: Text(
+                                        food['food_name'] ?? '',
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      // Display breakfast calories under food name
+                                      subtitle: Text(
+                                        "${food['calories'] ?? 0} kcal",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
                                     ),
                                   );
-                              foodList = [];
-                            });
-                          },
-                          // ListTile displays the returned foods from the API and their corresponding descriptions (i.e nutritional information)
-                          child: ListTile(
-                            title: Text(
-                              food['food_name'] ?? '',
-                              style: GoogleFonts.manrope(color: Colors.white),
-                            ),
-                            subtitle: Text(
-                              food['food_description'] ?? '',
-                              style: TextStyle(color: Colors.grey),
-                            ),
+                                }).toList(),
+                              ),
+
+                              // Lunch
+                              ExpansionTile(
+                                initiallyExpanded: true,
+                                title: textWithCard(
+                                  "Lunch (${lunchFoods.length})",
+                                  context,
+                                  Responsive.font(context, 25),
+                                ),
+                                children: lunchFoods.asMap().entries.map((
+                                  entry,
+                                ) {
+                                  int idx = entry
+                                      .key; // store index of food for deletion option
+                                  Map<String, dynamic> food = entry.value;
+                                  return Dismissible(
+                                    key: ValueKey(
+                                      "lunch_$idx${food['food_name']}",
+                                    ),
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 20),
+                                      child: Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (direction) async {
+                                      setState(() {
+                                        lunchFoods.removeAt(idx);
+                                        final dateKey = formatDateKey(
+                                          currentDate,
+                                        );
+                                        foodDataByDate[dateKey]!['Lunch'] =
+                                            lunchFoods;
+                                      });
+                                      await saveFoodData();
+                                    },
+                                    child: ListTile(
+                                      title: Text(
+                                        food['food_name'] ?? '',
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "${food['calories'] ?? 0} kcal",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+
+                              // Dinner
+                              ExpansionTile(
+                                initiallyExpanded: true,
+                                title: textWithCard(
+                                  "Dinner (${dinnerFoods.length})",
+                                  context,
+                                  Responsive.font(context, 25),
+                                ),
+                                children: dinnerFoods.asMap().entries.map((
+                                  entry,
+                                ) {
+                                  int idx = entry.key;
+                                  Map<String, dynamic> food = entry.value;
+                                  return Dismissible(
+                                    key: ValueKey(
+                                      "dinner_$idx${food['food_name']}",
+                                    ),
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 20),
+                                      child: Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (direction) async {
+                                      setState(() {
+                                        dinnerFoods.removeAt(idx);
+                                        final dateKey = formatDateKey(
+                                          currentDate,
+                                        );
+                                        foodDataByDate[dateKey]!['Dinner'] =
+                                            dinnerFoods;
+                                      });
+                                      await saveFoodData();
+                                    },
+                                    child: ListTile(
+                                      title: Text(
+                                        food['food_name'] ?? '',
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "${food['calories'] ?? 0} kcal",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+
+                              // Snacks
+                              ExpansionTile(
+                                initiallyExpanded: true,
+                                title: textWithCard(
+                                  "Snacks (${snackFoods.length})",
+                                  context,
+                                  Responsive.font(context, 25),
+                                ),
+                                children: snackFoods.asMap().entries.map((
+                                  entry,
+                                ) {
+                                  int idx = entry.key;
+                                  Map<String, dynamic> food = entry.value;
+                                  return Dismissible(
+                                    key: ValueKey(
+                                      "snack_$idx${food['food_name']}",
+                                    ),
+                                    background: Container(
+                                      color: Colors.red,
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 20),
+                                      child: Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (direction) async {
+                                      setState(() {
+                                        snackFoods.removeAt(idx);
+                                        final dateKey = formatDateKey(
+                                          currentDate,
+                                        );
+                                        foodDataByDate[dateKey]!['Snack'] =
+                                            snackFoods;
+                                      });
+                                      await saveFoodData();
+                                    },
+                                    child: ListTile(
+                                      title: Text(
+                                        food['food_name'] ?? '',
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "${food['calories'] ?? 0} kcal",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  )
-                // Else means no food is being searched for, so show the table of meals
-                else
-                  Expanded(
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Breakfast
-                            ExpansionTile(
-                              initiallyExpanded: true,
-                              title: textWithCard(
-                                "Breakfast (${breakfastFoods.length})",
-                                context,
-                                0.1,
-                              ),
-                              children: breakfastFoods.asMap().entries.map((
-                                entry,
-                              ) {
-                                int idx = entry
-                                    .key; // store index of food for deletion option
-                                Map<String, dynamic> food = entry.value;
-                                return Dismissible(
-                                  // Dismissible widget so the food can be swiped to delete
-                                  key: ValueKey(
-                                    "breakfast_$idx${food['food_name']}", // unique key that combines the index and food name
-                                  ),
-                                  // formatting of background when user swipes to delete a food
-                                  background: Container(
-                                    color: Colors.red,
-                                    alignment: Alignment.centerRight,
-                                    padding: EdgeInsets.only(right: 20),
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (direction) async {
-                                    setState(() {
-                                      // when the user swipes to delete, remove the food and update to the server
-                                      breakfastFoods.removeAt(idx);
-                                      final dateKey = formatDateKey(
-                                        currentDate,
-                                      );
-                                      foodDataByDate[dateKey]!['Breakfast'] =
-                                          breakfastFoods;
-                                    });
-                                    await saveFoodData();
-                                  },
-                                  // Display breakfast food name
-                                  child: ListTile(
-                                    title: Text(
-                                      food['food_name'] ?? '',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    // Display breakfast calories under food name
-                                    subtitle: Text(
-                                      "${food['calories'] ?? 0} kcal",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                );
-                              }).toList(), // convert to a List<Widget> so ExpansionTile can render
-                            ),
-
-                            // Lunch
-                            ExpansionTile(
-                              initiallyExpanded: true,
-                              title: textWithCard(
-                                "Lunch (${lunchFoods.length})",
-                                context,
-                                0.1,
-                              ),
-                              children: lunchFoods.asMap().entries.map((entry) {
-                                int idx = entry
-                                    .key; // store index of food for deletion option
-                                Map<String, dynamic> food = entry.value;
-                                return Dismissible(
-                                  // Dismissible widget so the food can be swiped to delete
-                                  key: ValueKey(
-                                    "lunch_$idx${food['food_name']}", // unique key that combines the index and food name
-                                  ),
-                                  // formatting of background when user swipes to delete a food
-                                  background: Container(
-                                    color: Colors.red,
-                                    alignment: Alignment.centerRight,
-                                    padding: EdgeInsets.only(right: 20),
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (direction) async {
-                                    setState(() {
-                                      // when the user swipes to delete, remove the food and update to the server
-                                      lunchFoods.removeAt(idx);
-                                      final dateKey = formatDateKey(
-                                        currentDate,
-                                      );
-                                      foodDataByDate[dateKey]!['Lunch'] =
-                                          lunchFoods;
-                                    });
-                                    await saveFoodData();
-                                  },
-                                  // Display lunch food name
-                                  child: ListTile(
-                                    title: Text(
-                                      food['food_name'] ?? '',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    // Display lunch calories under food name
-                                    subtitle: Text(
-                                      "${food['calories'] ?? 0} kcal",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                );
-                              }).toList(), // convert to a List<Widget> so ExpansionTile can render
-                            ),
-
-                            // Dinner
-                            ExpansionTile(
-                              initiallyExpanded: true,
-                              title: textWithCard(
-                                "Dinner (${dinnerFoods.length})",
-                                context,
-                                0.1,
-                              ),
-                              children: dinnerFoods.asMap().entries.map((
-                                entry,
-                              ) {
-                                int idx = entry
-                                    .key; // store index of food for deletion option
-                                Map<String, dynamic> food = entry.value;
-                                return Dismissible(
-                                  // Dismissible widget so the food can be swiped to delete
-                                  key: ValueKey(
-                                    "dinner_$idx${food['food_name']}", // unique key that combines the index and food name
-                                  ),
-                                  // formatting of background when user swipes to delete a food
-                                  background: Container(
-                                    color: Colors.red,
-                                    alignment: Alignment.centerRight,
-                                    padding: EdgeInsets.only(right: 20),
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (direction) async {
-                                    setState(() {
-                                      // when the user swipes to delete, remove the food and update to the server
-                                      dinnerFoods.removeAt(idx);
-                                      final dateKey = formatDateKey(
-                                        currentDate,
-                                      );
-                                      foodDataByDate[dateKey]!['Dinner'] =
-                                          dinnerFoods;
-                                    });
-                                    await saveFoodData();
-                                  },
-                                  // Display dinner food name
-                                  child: ListTile(
-                                    title: Text(
-                                      food['food_name'] ?? '',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    // Display dinner calories under food name
-                                    subtitle: Text(
-                                      "${food['calories'] ?? 0} kcal",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                );
-                              }).toList(), // convert to a List<Widget> so ExpansionTile can render
-                            ),
-
-                            // Snacks
-                            ExpansionTile(
-                              initiallyExpanded: true,
-                              title: textWithCard(
-                                "Snacks (${snackFoods.length})",
-                                context,
-                                0.1,
-                              ),
-                              children: snackFoods.asMap().entries.map((entry) {
-                                int idx = entry
-                                    .key; // store index of food for deletion option
-                                Map<String, dynamic> food = entry.value;
-                                return Dismissible(
-                                  // Dismissible widget so the food can be swiped to delete
-                                  key: ValueKey(
-                                    "snack_$idx${food['food_name']}", // unique key that combines the index and food name
-                                  ),
-                                  // formatting of background when user swipes to delete a food
-                                  background: Container(
-                                    color: Colors.red,
-                                    alignment: Alignment.centerRight,
-                                    padding: EdgeInsets.only(right: 20),
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  direction: DismissDirection.endToStart,
-                                  onDismissed: (direction) async {
-                                    setState(() {
-                                      // when the user swipes to delete, remove the food and update to the server
-                                      snackFoods.removeAt(idx);
-                                      final dateKey = formatDateKey(
-                                        currentDate,
-                                      );
-                                      foodDataByDate[dateKey]!['Snack'] =
-                                          snackFoods;
-                                    });
-                                    await saveFoodData();
-                                  },
-                                  // Display snack food name
-                                  child: ListTile(
-                                    title: Text(
-                                      food['food_name'] ?? '',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    // Display snack calories under food name
-                                    subtitle: Text(
-                                      "${food['calories'] ?? 0} kcal",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                );
-                              }).toList(), // convert to a List<Widget> so ExpansionTile can render
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
+                ),
               ],
             ),
           ),

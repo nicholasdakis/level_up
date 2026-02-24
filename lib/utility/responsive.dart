@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 class Responsive {
+  // boolean isDesktop for if other classes ever need it
+  static bool isDesktop(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return size.width / size.height > 1.5;
+  }
+
   // Method that scales based on screen type. Context == null assumes mobile scaling (the default, ie baseSize)
   static double scale(BuildContext? context, double baseSize) {
     if (context == null) return baseSize; // fallback for base code (mobile)

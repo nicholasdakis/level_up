@@ -62,7 +62,7 @@ Widget createTitle(String text, BuildContext context) {
   return Text(
     text,
     style: GoogleFonts.dangrek(
-      fontSize: Responsive.font(context, 24), // Scale based on device
+      fontSize: Responsive.font(context, 40), // Scale based on device
       color: Colors.white,
       shadows: [
         Shadow(
@@ -298,86 +298,107 @@ Widget customButton(
 // Simpler version of the customButton widget code to visually have customButtons without all the logic their constructors need
 Widget simpleCustomButton(
   String text,
+  double baseFontSize,
+  double baseHeight,
+  double baseWidth,
   BuildContext context, {
-  required VoidCallback onPressed,
-  Color baseColor = Colors.blue,
+  required VoidCallback onPressed, // function to execute on tap
+  Color? baseColor, // optional color, default will follow currentUserData
 }) {
-  final red = (baseColor.red).clamp(0, 255);
-  final green = (baseColor.green).clamp(0, 255);
-  final blue = (baseColor.blue).clamp(0, 255);
+  Color color =
+      baseColor ??
+      currentUserData!.appColor; // app theme is the user's chosen theme
+  final int red = (color.r * 255).round().clamp(0, 255); // red channel
+  final int green = (color.g * 255).round().clamp(0, 255); // green channel
+  final int blue = (color.b * 255).round().clamp(0, 255); // blue channel
 
-  final screenHeight = MediaQuery.of(context).size.height;
-  final screenWidth = MediaQuery.of(context).size.width;
+  // set sizes based on screen context like customButton
+  final double buttonHeight = Responsive.buttonHeight(context, baseHeight);
+  final double buttonWidth = Responsive.scale(context, baseWidth);
+  final double fontSize = Responsive.font(context, baseFontSize);
 
   return SizedBox(
-    height: Responsive.buttonHeight(context, 150), // Scale based on device
-    width: Responsive.scale(context, 300), // Scale based on device
+    height: buttonHeight, // Scale based on device like customButton
+    width: buttonWidth, // Scale based on device
     child: ClipRRect(
       borderRadius: BorderRadius.circular(
-        Responsive.scale(context, 30),
-      ), // Scale based on device
+        Responsive.scale(
+          context,
+          30,
+        ), // rounded corners scale like customButton
+      ),
       child: Stack(
         children: [
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: Responsive.scale(context, 15), // Scale based on device
-              sigmaY: Responsive.scale(context, 15), // Scale based on device
+              sigmaX: Responsive.scale(context, 15), // blur like customButton
+              sigmaY: Responsive.scale(context, 15), // blur like customButton
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
+                color: Color.fromARGB(
+                  (0.15 * 255).round(),
+                  red,
+                  green,
+                  blue,
+                ), // translucent color
                 borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 30),
-                ), // Scale based on device
+                  Responsive.scale(context, 30), // border radius same as clip
+                ),
                 border: Border.all(
-                  color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
-                  width: Responsive.scale(
-                    context,
-                    1.5,
-                  ), // Scale based on device
+                  color: Color.fromARGB(
+                    (0.3 * 255).round(),
+                    red,
+                    green,
+                    blue,
+                  ), // border alpha
+                  width: Responsive.scale(context, 1.5), // border width scaled
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
+                    color: Color.fromARGB(
+                      (0.25 * 255).round(),
+                      0,
+                      0,
+                      0,
+                    ), // shadow alpha
                     offset: Offset(
                       0,
-                      Responsive.scale(context, 4), // Scale based on device
+                      Responsive.scale(context, 4), // shadow y-offset
                     ),
-                    blurRadius: Responsive.scale(
-                      context,
-                      10,
-                    ), // Scale based on device
-                    spreadRadius: Responsive.scale(
-                      context,
-                      1,
-                    ), // Scale based on device
+                    blurRadius: Responsive.scale(context, 10), // shadow blur
+                    spreadRadius: Responsive.scale(context, 1), // shadow spread
                   ),
                 ],
               ),
             ),
           ),
           Material(
-            color: Colors.transparent,
+            color: Colors.transparent, // keep material transparent
             child: InkWell(
               borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 30),
-              ), // Scale based on device
-              onTap: onPressed,
+                Responsive.scale(context, 30), // ripple matches button shape
+              ),
+              onTap: onPressed, // user tap
               splashColor: Color.fromARGB(
                 (0.1 * 255).round(),
                 red,
                 green,
                 blue,
-              ),
+              ), // splash color like customButton
               highlightColor: Color.fromARGB(
                 (0.05 * 255).round(),
                 red,
                 green,
                 blue,
-              ),
+              ), // highlight color like customButton
               child: Center(
-                child: buttonText(text, context, 16),
-              ), // Base font size scaled inside
+                child: buttonText(
+                  text,
+                  context,
+                  fontSize,
+                ), // use calculated fontSize
+              ),
             ),
           ),
         ],

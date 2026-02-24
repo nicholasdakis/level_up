@@ -280,7 +280,7 @@ class _RemindersState extends State<Reminders> {
           context,
           100,
         ), // for scaling responsively
-        title: createTitle("Reminders", context),
+        title: createTitle("Reminders (only for Android currently)", context),
       ),
       body: Stack(
         children: [
@@ -294,7 +294,7 @@ class _RemindersState extends State<Reminders> {
                 ), // scaling responsively
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Reminder text input field
                   TextField(
@@ -384,9 +384,9 @@ class _RemindersState extends State<Reminders> {
                                     child: customButton(
                                       // Confirm button
                                       "Confirm",
-                                      screenWidth * 0.9,
-                                      screenHeight * 0.33,
-                                      screenWidth * 0.6,
+                                      40,
+                                      75,
+                                      300,
                                       context,
                                       destination: null,
                                       onPressed: () => Navigator.pop(context),
@@ -417,6 +417,9 @@ class _RemindersState extends State<Reminders> {
                         )
                       : simpleCustomButton(
                           "Set Reminder",
+                          48,
+                          160,
+                          750,
                           context,
                           baseColor: appColorNotifier.value.withAlpha(64),
                           onPressed: (_setReminder),
@@ -470,7 +473,10 @@ class _RemindersState extends State<Reminders> {
                                       child: textWithFont(
                                         reminder.message, // Reminder text
                                         context,
-                                        0.02, // scaled
+                                        Responsive.font(
+                                          context,
+                                          25,
+                                        ), // Scale based on device
                                       ),
                                     ),
                                   ),
@@ -480,7 +486,10 @@ class _RemindersState extends State<Reminders> {
                                       child: textWithFont(
                                         "${reminder.dateTime.month}/${reminder.dateTime.day} ${reminder.dateTime.hour}:${reminder.dateTime.minute.toString().padLeft(2, '0')}", // Formatted date
                                         context,
-                                        0.02, // scaled
+                                        Responsive.font(
+                                          context,
+                                          25,
+                                        ), // Scale based on device// scaled
                                       ),
                                     ),
                                   ),

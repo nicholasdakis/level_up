@@ -466,3 +466,10 @@ Developmental progress by date is stored in this file.
 - Changed lines of code in all classes to take the correct new arguments of their globals.dart methods
 - Changed lines of code in all classes to use the Responsive class for text scaling
 - Adjusted code in classes to make buttons and the footer section look more natural on desktop
+
+## 2026-02-22
+- Continued changing values of widgets to create a more natural look responsively
+- Continued replacing mobile-friendly screen adjustments with their responsive replacements, essentially fixing all screens for desktop use
+- Updated simpleCustomButton to work more similarly to customButton after responsive updates
+- Spent a long time trying to find workarounds for food API table not appearing on desktop only to realize it was CORS related
+- TODO: Remove .withAlpha as it makes the app colors look very dull on desktop

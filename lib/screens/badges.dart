@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
+import '/utility/responsive.dart';
 
 class Badges extends StatefulWidget {
   const Badges({super.key});
@@ -22,7 +23,10 @@ class _BadgesState extends State<Badges> {
       appBar: AppBar(
         backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
+        toolbarHeight: Responsive.buttonHeight(
+          context,
+          120,
+        ), // Scale based on device
         title: createTitle("Badges", context),
       ),
       body: Center(

@@ -178,6 +178,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         // Button for choosing the app-theme color
                         simpleCustomButton(
                           "App Theme Color",
+                          48,
+                          160,
+                          750,
                           context,
                           baseColor: baseColor,
                           onPressed: () {
@@ -189,6 +192,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         // Update pfp button
                         simpleCustomButton(
                           "Profile Picture",
+                          48,
+                          160,
+                          750,
                           context,
                           baseColor: baseColor,
                           onPressed: _pickProfileImage,
@@ -198,6 +204,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         // Update username button
                         simpleCustomButton(
                           "Username",
+                          48,
+                          160,
+                          750,
                           context,
                           baseColor: baseColor,
                           onPressed: () {
