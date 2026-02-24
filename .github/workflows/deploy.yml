@@ -10,14 +10,22 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest  # The virtual machine used for CI
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       # Step 1: Checkout the repo
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up Flutter
       - name: Setup Flutter
@@ -28,11 +36,13 @@ jobs:
       # Step 3: Create firebase_options.dart from base64 secret
       # Used base64 because multi-line Dart files can break if echoed directly.
       - name: Create firebase_options.dart from secret
+        env:
+          FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS }}
         run: |
           mkdir -p lib  # Make sure lib folder exists
           # Decode the base64 secret and save as lib/firebase_options.dart
           # If the file already exists, it will be overwritten
-          printf "%s" "${{ secrets.FIREBASE_OPTIONS }}" | base64 --decode > lib/firebase_options.dart
+          echo "$FIREBASE_OPTIONS" | base64 --decode > lib/firebase_options.dart
 
       # Step 4: Get dependencies
       - name: Install dependencies
@@ -50,4 +60,5 @@ jobs:
 
       # Step 7: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
