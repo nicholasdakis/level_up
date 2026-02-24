@@ -20,6 +20,9 @@ jobs:
         with:
           flutter-version: '3.x'
 
+      - name: Create firebase_options.dart
+        run: echo "${{ secrets.FIREBASE_OPTIONS }}" > lib/firebase_options.dart
+
       - run: flutter pub get
 
       - run: flutter build web --base-href "/level_up/"
