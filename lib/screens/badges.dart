@@ -18,10 +18,13 @@ class _BadgesState extends State<Badges> {
     double screenWidth =
         1.sw; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
         toolbarHeight: Responsive.buttonHeight(
           context,

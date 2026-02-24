@@ -94,14 +94,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // Header
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
-          screenHeight * 0.15,
+          Responsive.height(context, 200),
         ), // Alter default appBar size
         child: AppBar(
           automaticallyImplyLeading:
               false, // Prevent the automatic hamburger icon from appearing
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
-          backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ), // Header color
 
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(
@@ -113,8 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // automatically aligns the icon into the top right of the screen
             Padding(
               padding: EdgeInsets.only(
-                top: screenHeight * 0.05,
-                right: screenWidth * 0.025,
+                top: Responsive.height(context, 20),
+                right: Responsive.width(context, 20),
               ),
               child: Builder(
                 // Wrapped in Builder so Scaffold.of() succeeds
@@ -132,13 +135,13 @@ class _HomeScreenState extends State<HomeScreen> {
           flexibleSpace: Center(
             child: Padding(
               padding: EdgeInsets.only(
-                top: screenWidth * 0.125,
+                top: Responsive.width(context, 30),
               ), // Move the title text down a little bit
               // Manually make the title text, since appBar is already being used
               child: Text(
                 "Level Up!",
                 style: GoogleFonts.dangrek(
-                  fontSize: screenWidth * 0.13,
+                  fontSize: Responsive.font(context, 100),
                   color: Color(0xFFFFFFFF),
                   shadows: [
                     Shadow(
@@ -163,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 behavior: NoGlowScrollBehavior(),
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.all(screenHeight * 0.02),
+                    padding: EdgeInsets.all(Responsive.height(context, 5)),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

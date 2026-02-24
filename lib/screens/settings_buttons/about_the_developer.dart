@@ -17,10 +17,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
     return simpleCustomButton(
       "Send Feedback",
       48,
-      160,
-      750,
+      120,
+      400,
       context,
-      baseColor: appColorNotifier.value.withAlpha(64),
+      baseColor: darkenColor(appColorNotifier.value, 0.025),
       onPressed: () async {
         final Uri emailLaunchUri = Uri(
           scheme: 'mailto',
@@ -48,10 +48,13 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
         toolbarHeight: Responsive.buttonHeight(
           context,

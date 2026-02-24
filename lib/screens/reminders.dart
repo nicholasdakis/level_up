@@ -271,10 +271,13 @@ class _RemindersState extends State<Reminders> {
     double screenWidth = 1.sw; // Screen width
 
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
         toolbarHeight: Responsive.height(
           context,
@@ -421,7 +424,10 @@ class _RemindersState extends State<Reminders> {
                           160,
                           750,
                           context,
-                          baseColor: appColorNotifier.value.withAlpha(64),
+                          baseColor: darkenColor(
+                            appColorNotifier.value,
+                            0.025,
+                          ), // Header color
                           onPressed: (_setReminder),
                         ),
                   SizedBox(height: Responsive.height(context, 20)), // Spacing

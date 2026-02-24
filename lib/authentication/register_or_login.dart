@@ -123,7 +123,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                         child: buttonText(
                           "Register",
                           context,
-                          16,
+                          24,
                         ), // Scale based on device
                       ),
                     ),
@@ -174,7 +174,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                         child: buttonText(
                           "Login",
                           context,
-                          16,
+                          24,
                         ), // Scale based on device
                       ),
                     ),

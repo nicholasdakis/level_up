@@ -190,10 +190,13 @@ class _ResultsState extends State<Results> {
       context,
     ).size.width; // Make widgets the size of the user's personal screen size
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         scrolledUnderElevation:
             0, // So the appBar does not change color when the user scrolls down
         centerTitle: true,

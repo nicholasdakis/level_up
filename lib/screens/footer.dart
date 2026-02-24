@@ -31,7 +31,7 @@ class _FooterState extends State<Footer> {
     return Container(
       width: double.infinity, // full width footer
       height: Responsive.height(context, 120), // scale responsively
-      color: appColorNotifier.value.withAlpha(64), // Header color
+      color: darkenColor(appColorNotifier.value, 0.025), // Header color
       padding: EdgeInsets.all(
         Responsive.padding(context, 16),
       ), // scale responsively

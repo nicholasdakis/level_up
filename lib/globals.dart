@@ -57,6 +57,12 @@ Widget textWithFont(
   );
 }
 
+Color darkenColor(Color color, [double amount = .1]) {
+  final hsl = HSLColor.fromColor(color);
+  final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+  return hslDark.toColor();
+}
+
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
 Widget createTitle(String text, BuildContext context) {
   return Text(
@@ -82,7 +88,7 @@ Widget createTitle(String text, BuildContext context) {
 Widget textWithCard(String text, BuildContext context, double baseFontSize) {
   return Card(
     elevation: Responsive.scale(context, 10), // Scale based on device
-    color: appColorNotifier.value.withAlpha(64),
+    color: darkenColor(appColorNotifier.value, 0.025), // Header color
     child: Padding(
       padding: EdgeInsets.all(
         Responsive.padding(context, 4),

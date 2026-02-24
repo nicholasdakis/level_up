@@ -60,7 +60,10 @@ class _ExploreState extends State<Explore> {
     // Loading screen while getting user's coordinates
     if (userLocation == null) {
       return Scaffold(
-        backgroundColor: appColorNotifier.value.withAlpha(64),
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

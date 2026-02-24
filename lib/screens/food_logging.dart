@@ -301,20 +301,19 @@ class _FoodLoggingState extends State<FoodLogging> {
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Scaffold(
-            backgroundColor: appColorNotifier.value.withAlpha(
-              128,
-            ), // Body color
+            backgroundColor: appColorNotifier.value, // Body color
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         return Scaffold(
-          backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+          backgroundColor: appColorNotifier.value, // Body color
           // Header box
           appBar: AppBar(
             scrolledUnderElevation: 0,
-            backgroundColor: appColorNotifier.value.withAlpha(
-              64,
+            backgroundColor: darkenColor(
+              appColorNotifier.value,
+              0.025,
             ), // Header color
             centerTitle: true,
             toolbarHeight: Responsive.buttonHeight(
@@ -540,7 +539,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                           160,
                           750,
                           context,
-                          baseColor: appColorNotifier.value.withAlpha(64),
+                          baseColor: darkenColor(appColorNotifier.value, 0.025),
                           onPressed: () async {
                             if (mealType == null || !mealChosen) {
                               if (snackbarActive) return;

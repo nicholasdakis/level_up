@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/user/user_data_manager.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import '/utility/responsive.dart';
 
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
@@ -155,12 +156,15 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     double screenHeight = 1.sh;
     double screenWidth = 1.sw;
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
-        toolbarHeight: screenHeight * 0.15,
+        toolbarHeight: Responsive.height(context, 60),
         title: createTitle("Preferences", context),
       ),
       body: Column(
@@ -188,7 +192,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                           },
                         ),
                         // spacing
-                        SizedBox(height: screenHeight * 0.02),
+                        SizedBox(height: Responsive.height(context, 20)),
                         // Update pfp button
                         simpleCustomButton(
                           "Profile Picture",
@@ -294,16 +298,18 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             });
                           },
                         ),
+                        // spacing
+                        SizedBox(height: Responsive.height(context, 20)),
                         // text under Username button informing user
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
-                            height: screenHeight * 0.05,
+                            height: Responsive.height(context, 100),
                             child: Text(
                               "Please wait for confirmation that your profile picture has been updated before exiting this screen.",
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
-                                fontSize: screenWidth * 0.03,
+                                fontSize: Responsive.font(context, 20),
                                 color: Colors.white,
                                 shadows: [
                                   Shadow(

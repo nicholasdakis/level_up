@@ -467,10 +467,15 @@ Developmental progress by date is stored in this file.
 - Changed lines of code in all classes to use the Responsive class for text scaling
 - Adjusted code in classes to make buttons and the footer section look more natural on desktop
 
-## 2026-02-22
+## 2026-02-23
 - Continued changing values of widgets to create a more natural look responsively
 - Continued replacing mobile-friendly screen adjustments with their responsive replacements, essentially fixing all screens for desktop use
 - Updated simpleCustomButton to work more similarly to customButton after responsive updates
 - Spent a long time trying to find workarounds for food API table not appearing on desktop only to realize it was CORS related
 - TODO: Remove .withAlpha as it makes the app colors look very dull on desktop
 - Created deploy.yml to automatically update GitHub pages version of the project on pushes
+
+## 2026-02-24
+- Continued making the UI responsive
+- Created a darkenColor method because before: Used higher alpha on body bg and lower alpha on header bg. After: no alpha on body bg and darken header bg.
+- Leaderboard tint made less prominent

@@ -102,10 +102,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     }
 
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
         toolbarHeight: Responsive.buttonHeight(
           context,

@@ -69,12 +69,17 @@ class _LeaderboardState extends State<Leaderboard> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: appColorNotifier.value.withAlpha(128), // Body color
+      backgroundColor: appColorNotifier.value, // Body color
       // Header box
       appBar: AppBar(
-        backgroundColor: appColorNotifier.value.withAlpha(64), // Header color
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ), // Header color
         centerTitle: true,
         title: createTitle("Leaderboard", context),
+        scrolledUnderElevation:
+            0, // So the appBar does not change color when the user scrolls down
       ),
       body: users.isEmpty
           ? const Center(
@@ -120,8 +125,8 @@ class _LeaderboardState extends State<Leaderboard> {
                         decoration: BoxDecoration(
                           color: isCurrentUser
                               ? Colors.white.withAlpha(
-                                  64,
-                                ) // yellow tint to emphasize the user's profile
+                                  16,
+                                ) // tint to emphasize the user's profile
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
                         ),
