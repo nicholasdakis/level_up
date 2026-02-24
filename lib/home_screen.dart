@@ -171,6 +171,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Current app version text
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "App version: Beta 02.24.26",
+                              style: TextStyle(
+                                color: darkenColor(appColorNotifier.value, 0.1),
+                                fontSize: Responsive.font(context, 15),
+                              ),
+                            ),
+                          ),
+
                           // CALORIE CALCULATOR BUTTON
                           customButton(
                             "Calorie Calculator",
