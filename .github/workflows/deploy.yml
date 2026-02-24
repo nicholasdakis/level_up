@@ -1,4 +1,4 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Build and Deploy Flutter Web to GitHub Pages
 
 on:
   push:
@@ -12,23 +12,41 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # The virtual machine used for CI
+
     steps:
-      - uses: actions/checkout@v3
+      # Step 1: Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - uses: subosito/flutter-action@v2
+      # Step 2: Set up Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.38.3'
 
-      - name: Create firebase_options.dart
-        run: echo "${{ secrets.FIREBASE_OPTIONS }}" > lib/firebase_options.dart
+      # Step 3: Create firebase_options.dart from base64 secret
+      # Used base64 because multi-line Dart files can break if echoed directly.
+      - name: Create firebase_options.dart from secret
+        run: |
+          mkdir -p lib  # Make sure lib folder exists
+          # Decode the base64 secret and save as lib/firebase_options.dart
+          echo "${{ secrets.FIREBASE_OPTIONS_B64 }}" | base64 --decode > lib/firebase_options.dart
 
-      - run: flutter pub get
+      # Step 4: Get dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
-      - run: flutter build web --base-href "/level_up/"
+      # Step 5: Build the web app
+      - name: Build Flutter web
+        run: flutter build web --release --base-href "/level_up/" 
 
-      - uses: actions/upload-pages-artifact@v3
+      # Step 6: Upload the build artifact for GitHub Pages
+      - name: Upload build for Pages
+        uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
-      - uses: actions/deploy-pages@v4
+      # Step 7: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
