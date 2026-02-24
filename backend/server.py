@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 import os
 import requests
+from flask_cors import CORS
 from backend.token_manager import TokenManager
 from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
@@ -15,6 +16,7 @@ MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 token_manager = TokenManager()
 
 app = Flask(__name__)
+CORS(app) # allow requests from desktop device browsers
 
 # Initialize Firestore client
 # Load credentials JSON string from env var
