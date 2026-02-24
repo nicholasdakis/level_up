@@ -473,3 +473,4 @@ Developmental progress by date is stored in this file.
 - Updated simpleCustomButton to work more similarly to customButton after responsive updates
 - Spent a long time trying to find workarounds for food API table not appearing on desktop only to realize it was CORS related
 - TODO: Remove .withAlpha as it makes the app colors look very dull on desktop
+- Created deploy.yml to automatically update GitHub pages version of the project on pushes
