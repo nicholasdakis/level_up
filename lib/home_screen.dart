@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 "Level Up!",
                 style: GoogleFonts.dangrek(
-                  fontSize: Responsive.font(context, 100),
+                  fontSize: Responsive.font(context, 50),
                   color: Color(0xFFFFFFFF),
                   shadows: [
                     Shadow(

@@ -683,7 +683,9 @@ class _FoodLoggingState extends State<FoodLogging> {
                                     background: Container(
                                       color: Colors.red,
                                       alignment: Alignment.centerRight,
-                                      padding: EdgeInsets.only(right: 20),
+                                      padding: EdgeInsets.only(
+                                        right: Responsive.width(context, 0),
+                                      ),
                                       child: Icon(
                                         Icons.delete,
                                         color: Colors.white,
@@ -881,6 +883,22 @@ class _FoodLoggingState extends State<FoodLogging> {
                                     ),
                                   );
                                 }).toList(),
+                              ),
+                              // Spacing
+                              SizedBox(height: Responsive.height(context, 20)),
+                              // Food deletion instructions
+                              Align(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  "Swipe left to remove a logged food.",
+                                  style: TextStyle(
+                                    color: darkenColor(
+                                      appColorNotifier.value,
+                                      0.1,
+                                    ),
+                                    fontSize: Responsive.font(context, 25),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

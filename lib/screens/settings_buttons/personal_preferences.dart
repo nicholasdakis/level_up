@@ -309,7 +309,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               "Please wait for confirmation that your profile picture has been updated before exiting this screen.",
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 20),
+                                fontSize: Responsive.font(context, 15),
                                 color: Colors.white,
                                 shadows: [
                                   Shadow(
