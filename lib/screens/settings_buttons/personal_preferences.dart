@@ -8,6 +8,80 @@ import '/user/user_data_manager.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '/utility/responsive.dart';
 
+Future<void> showUsernameDialogBox(
+  BuildContext context,
+  String title,
+  TextEditingController usernameController,
+) async {
+  await showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      // dialogContext so that the snackbar works after popping
+      backgroundColor: appColorNotifier.value.withAlpha(255),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(title, style: TextStyle(color: Colors.white)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Only show text if the username has set a username before
+          if (currentUserData?.username != currentUserData?.uid)
+            Text(
+              "Current username: \n ${currentUserData?.username}",
+              style: TextStyle(color: Colors.white70),
+            ),
+          SizedBox(height: 10),
+          TextField(
+            controller: usernameController,
+            decoration: InputDecoration(
+              hintText: "Enter a username.",
+              hintStyle: TextStyle(color: Colors.white54),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+            ),
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+      actions: [
+        Row(
+          mainAxisAlignment:
+              // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
+              MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+              // close if canceled
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            TextButton(
+              child: Text("CONFIRM", style: TextStyle(color: Colors.white)),
+              // Handle username update
+              onPressed: () async {
+                String updatedUsername = usernameController.text.trim();
+                // Only pop if successful
+                if (await UserDataManager().updateUsername(
+                  updatedUsername,
+                  context,
+                )) {
+                  Navigator.pop(dialogContext);
+                }
+              },
+            ),
+          ],
+        ),
+      ],
+    ),
+  ).then((_) {
+    // Reset the text field after exiting the dialog box
+    usernameController.text = "";
+  });
+}
+
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
   onProfileImageUpdated; // callback to call HomeScreen when the profile picture is updated
@@ -214,94 +288,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                           context,
                           baseColor: baseColor,
                           onPressed: () {
-                            // Dialog box for updating username
-                            showDialog(
-                              context: context,
-                              builder: (dialogContext) => AlertDialog(
-                                // dialogContext so that the snackbar works after popping
-                                backgroundColor: appColorNotifier.value
-                                    .withAlpha(255),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                title: Text(
-                                  "Update your username",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Current username: \n ${currentUserData?.username ?? ''}",
-                                      style: TextStyle(color: Colors.white70),
-                                    ),
-                                    SizedBox(height: 10),
-                                    TextField(
-                                      controller: usernameController,
-                                      decoration: InputDecoration(
-                                        hintText:
-                                            "Enter your updated username.",
-                                        hintStyle: TextStyle(
-                                          color: Colors.white54,
-                                        ),
-                                        enabledBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.white24,
-                                          ),
-                                        ),
-                                        focusedBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton(
-                                        child: Text(
-                                          "CANCEL",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        // close if canceled
-                                        onPressed: () =>
-                                            Navigator.pop(dialogContext),
-                                      ),
-                                      TextButton(
-                                        child: Text(
-                                          "CONFIRM",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        // Handle username update
-                                        onPressed: () async {
-                                          String updatedUsername =
-                                              usernameController.text.trim();
-                                          // Only pop if successful
-                                          if (await UserDataManager()
-                                              .updateUsername(
-                                                updatedUsername,
-                                                context,
-                                              )) {
-                                            Navigator.pop(dialogContext);
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ).then((_) {
-                              // Reset the text field after exiting the dialog box
-                              usernameController.text = "";
-                            });
+                            showUsernameDialogBox(
+                              context,
+                              "Update your username",
+                              usernameController,
+                            );
                           },
                         ),
                         // spacing

@@ -3,6 +3,7 @@ import '../globals.dart';
 import 'auth_services.dart';
 import 'dart:ui';
 import '../utility/responsive.dart';
+import '../screens/settings_buttons/personal_preferences.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});

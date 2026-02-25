@@ -483,3 +483,5 @@ Developmental progress by date is stored in this file.
 ## 2026-02-25
 - Updated README
 - Made updateUsername return a bool instead of void to conditionally pop the update username dialog box
+- Made the update username dialog box use a different BuildContext as to not pop the BuildContext parameter of updateUsername()
+- Turned the update username dialog box into a free method to be reused in initializeUser for users with no username

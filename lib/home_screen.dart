@@ -13,6 +13,7 @@ import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
+import 'screens/settings_buttons/personal_preferences.dart';
 
 // small class for removing the awkward glow of buttons when scrolling to the very top / very bottom of the home screen
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -62,6 +63,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted && canClaim) {
       final dailyRewardDialog = DailyRewardDialog();
       await dailyRewardDialog.showDailyRewardDialog(context);
+    }
+
+    // Give users without a username a dialog box to choose one
+    if (currentUserData!.username == currentUserData!.uid) {
+      TextEditingController usernameController = TextEditingController();
+      await showUsernameDialogBox(
+        context,
+        "Choose your username",
+        usernameController,
+      );
     }
 
     if (mounted) setState(() {}); // rebuild UI with loaded stats
@@ -175,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "App version: Beta 02.24.26",
+                              "App version: Beta 02.25.26.03",
                               style: TextStyle(
                                 color: darkenColor(appColorNotifier.value, 0.1),
                                 fontSize: Responsive.font(context, 15),
