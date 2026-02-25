@@ -217,7 +217,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             // Dialog box for updating username
                             showDialog(
                               context: context,
-                              builder: (context) => AlertDialog(
+                              builder: (dialogContext) => AlertDialog(
+                                // dialogContext so that the snackbar works after popping
                                 backgroundColor: appColorNotifier.value
                                     .withAlpha(255),
                                 shape: RoundedRectangleBorder(
@@ -271,7 +272,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                           style: TextStyle(color: Colors.white),
                                         ),
                                         // close if canceled
-                                        onPressed: () => Navigator.pop(context),
+                                        onPressed: () =>
+                                            Navigator.pop(dialogContext),
                                       ),
                                       TextButton(
                                         child: Text(
@@ -279,13 +281,17 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                           style: TextStyle(color: Colors.white),
                                         ),
                                         // Handle username update
-                                        onPressed: () {
+                                        onPressed: () async {
                                           String updatedUsername =
                                               usernameController.text.trim();
-                                          UserDataManager().updateUsername(
-                                            updatedUsername,
-                                            context,
-                                          );
+                                          // Only pop if successful
+                                          if (await UserDataManager()
+                                              .updateUsername(
+                                                updatedUsername,
+                                                context,
+                                              )) {
+                                            Navigator.pop(dialogContext);
+                                          }
                                         },
                                       ),
                                     ],

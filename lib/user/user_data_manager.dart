@@ -353,7 +353,7 @@ class UserDataManager {
   }
 
   // Method for storing the user's updated username to Firebase
-  Future<void> updateUsername(
+  Future<bool> updateUsername(
     String updatedUsername,
     BuildContext context,
   ) async {
@@ -368,6 +368,7 @@ class UserDataManager {
             duration: const Duration(milliseconds: 1500),
           ),
         );
+        return false;
       } else {
         // Update locally
         currentUserData!.username = updatedUsername;
@@ -381,6 +382,7 @@ class UserDataManager {
             duration: const Duration(milliseconds: 1500),
           ),
         );
+        return true;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -389,6 +391,7 @@ class UserDataManager {
           duration: const Duration(milliseconds: 1500),
         ),
       );
+      return false;
     }
   }
 

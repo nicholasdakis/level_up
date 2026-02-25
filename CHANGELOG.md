@@ -482,3 +482,4 @@ Developmental progress by date is stored in this file.
 
 ## 2026-02-25
 - Updated README
+- Made updateUsername return a bool instead of void to conditionally pop the update username dialog box
