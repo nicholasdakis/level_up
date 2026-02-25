@@ -479,3 +479,6 @@ Developmental progress by date is stored in this file.
 - Created a darkenColor method because before: Used higher alpha on body bg and lower alpha on header bg. After: no alpha on body bg and darken header bg.
 - Leaderboard tint made less prominent
 - Add text to show current version of app
+
+## 2026-02-25
+- Updated README
