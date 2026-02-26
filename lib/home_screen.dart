@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:level_up/utility/confetti.dart';
 import 'screens/calorie_calculator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confetti/confetti.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
@@ -35,6 +37,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   // Load user data from Firestore
   void initState() {
@@ -44,6 +48,16 @@ class _HomeScreenState extends State<HomeScreen> {
     appColorNotifier.addListener(() {
       if (mounted) setState(() {});
     });
+    // Initialize confetti controllers
+    confettiControllerinit();
+  }
+
+  // To prevent memory leaks
+  @override
+  void dispose() {
+    dailyRewardConfettiController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   // Method for initializing the user's stats from Firestore
@@ -54,28 +68,34 @@ class _HomeScreenState extends State<HomeScreen> {
     expNotifier.value = currentUserData?.expPoints ?? 0;
 
     // Check if the Daily Reward Dialog Box should open
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUserData!.uid)
-        .get();
-    final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
-    // Only show the daily reward dialog after user data is loaded and mounted
-    if (mounted && canClaim) {
-      final dailyRewardDialog = DailyRewardDialog();
-      await dailyRewardDialog.showDailyRewardDialog(context);
-    }
+    // Defer dialog until after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserData!.uid)
+          .get();
+      final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
+      // Only show the daily reward dialog after user data is loaded and mounted
+      if (mounted && canClaim) {
+        final dailyRewardDialog = DailyRewardDialog();
+        dailyRewardDialog.showDailyRewardDialog(
+          context,
+          dailyRewardConfettiController,
+        );
+      }
 
-    // Give users without a username a dialog box to choose one
-    if (currentUserData!.username == currentUserData!.uid) {
-      TextEditingController usernameController = TextEditingController();
-      await showUsernameDialogBox(
-        context,
-        "Choose your username",
-        usernameController,
-      );
-    }
+      // Give users without a username a dialog box to choose one
+      if (currentUserData!.username == currentUserData!.uid) {
+        TextEditingController usernameController = TextEditingController();
+        await showUsernameDialogBox(
+          context,
+          "Choose your username",
+          usernameController,
+        );
+      }
 
-    if (mounted) setState(() {}); // rebuild UI with loaded stats
+      if (mounted) setState(() {}); // rebuild UI with loaded stats
+    });
   }
 
   @override
@@ -167,109 +187,125 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: Column(
+      body: Stack(
+        // Stack for confetti to appear on top
         children: [
-          // Middle body
-          Expanded(
-            child: Scrollbar(
-              thumbVisibility: true,
-              child: ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(Responsive.height(context, 5)),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Current app version text
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "App version: Beta 02.25.26.04",
-                              style: TextStyle(
-                                color: darkenColor(appColorNotifier.value, 0.1),
-                                fontSize: Responsive.font(context, 15),
+          Column(
+            children: [
+              // Middle body
+              Expanded(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      child: Padding(
+                        padding: EdgeInsets.all(Responsive.height(context, 5)),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Current app version text
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  "App version: Beta 02.25.26",
+                                  style: TextStyle(
+                                    color: darkenColor(
+                                      appColorNotifier.value,
+                                      0.1,
+                                    ),
+                                    fontSize: Responsive.font(context, 15),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
 
-                          // CALORIE CALCULATOR BUTTON
-                          customButton(
-                            "Calorie Calculator",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: CalorieCalculator(),
+                              // CALORIE CALCULATOR BUTTON
+                              customButton(
+                                "Calorie Calculator",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: CalorieCalculator(),
+                              ),
+                              SizedBox(height: 10.h), // Space between buttons
+                              // FOOD LOGGING TAB
+                              customButton(
+                                "Food Logging",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: FoodLogging(),
+                              ),
+                              SizedBox(height: 10.h), // Space between buttons
+                              customButton(
+                                "Explore",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: Explore(),
+                              ),
+                              SizedBox(height: 10.h), // Space between buttons
+                              // REMINDERS TAB
+                              customButton(
+                                "Reminders",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: Reminders(),
+                              ),
+                              SizedBox(height: 10.h), // Space between buttons
+                              // BADGES TAB
+                              customButton(
+                                "Badges",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: Badges(),
+                              ),
+                              SizedBox(height: 10.h), // Space between buttons
+                              // LEADERBOARD TAB
+                              customButton(
+                                "Leaderboard",
+                                48,
+                                160,
+                                750,
+                                context,
+                                destination: Leaderboard(),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 10.h), // Space between buttons
-                          // FOOD LOGGING TAB
-                          customButton(
-                            "Food Logging",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: FoodLogging(),
-                          ),
-                          SizedBox(height: 10.h), // Space between buttons
-                          customButton(
-                            "Explore",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: Explore(),
-                          ),
-                          SizedBox(height: 10.h), // Space between buttons
-                          // REMINDERS TAB
-                          customButton(
-                            "Reminders",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: Reminders(),
-                          ),
-                          SizedBox(height: 10.h), // Space between buttons
-                          // BADGES TAB
-                          customButton(
-                            "Badges",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: Badges(),
-                          ),
-                          SizedBox(height: 10.h), // Space between buttons
-                          // LEADERBOARD TAB
-                          customButton(
-                            "Leaderboard",
-                            48,
-                            160,
-                            750,
-                            context,
-                            destination: Leaderboard(),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+
+              // Footer box
+              Footer(
+                screenHeight: screenHeight,
+                screenWidth: screenWidth,
+                profilePicture: userManager.insertProfilePicture(),
+                // Rebuild footer with correct Profile Picture
+                onProfileImageUpdated: () {
+                  if (!mounted) return;
+                  setState(() {}); // safely rebuild HomeScreen
+                }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
+              ),
+            ],
           ),
-          // Footer box
-          Footer(
-            screenHeight: screenHeight,
-            screenWidth: screenWidth,
-            profilePicture: userManager.insertProfilePicture(),
-            // Rebuild footer with correct Profile Picture
-            onProfileImageUpdated: () {
-              if (!mounted) return;
-              setState(() {}); // safely rebuild HomeScreen
-            }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
+          // Align Widget must be the last child of this Stack so it appears above all other widgets
+          Align(
+            alignment: Alignment.topCenter,
+            child: buildDailyRewardConfetti(dailyRewardConfettiController),
           ),
         ],
       ),

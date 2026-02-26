@@ -65,4 +65,4 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 - Learn more about the creator behind Level Up!
 
 #### 3) Donate
-- Support the development of Level Up!
+- Support the developer of Level Up!

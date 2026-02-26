@@ -12,7 +12,7 @@ class AboutTheDeveloper extends StatefulWidget {
 }
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
-  // Visually, simpleCustomButton. Opens an email to the developer with the appropriate subject
+  // Visually a simpleCustomButton. Opens an email to the developer with the appropriate subject
   Widget sendFeedbackButton(BuildContext context) {
     return simpleCustomButton(
       "Send Feedback",

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import '../globals.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -49,7 +50,10 @@ class DailyRewardDialog {
     );
   }
 
-  Future<void> showDailyRewardDialog(BuildContext context) async {
+  Future<void> showDailyRewardDialog(
+    BuildContext context,
+    ConfettiController controller,
+  ) async {
     // Random XP based on level
     final xpGain =
         25 * currentUserData!.level +
@@ -96,6 +100,9 @@ class DailyRewardDialog {
           // update experience on Firebase
           await userManager.updateExpPoints(xpGain);
           await setDailyRewardNotification();
+
+          // show the confetti
+          controller.play();
         }
       });
     });

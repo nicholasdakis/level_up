@@ -38,7 +38,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     return 0;
   }
 
-  // Method for calculating caloric total for the day
   int getTotalCaloriesForDay() {
     num total = 0;
 
@@ -54,10 +53,9 @@ class _FoodLoggingState extends State<FoodLogging> {
     for (var item in snackFoods) {
       total += (item['calories'] ?? 0);
     }
-    return total.toInt(); // convert to int at the end
+    return total.toInt();
   }
 
-  // This method tries to launch the FatSecret website when called
   Future<void> launchFatSecret() async {
     final uri = Uri.parse(
       "https://www.fatsecret.com",
@@ -119,16 +117,11 @@ class _FoodLoggingState extends State<FoodLogging> {
     latestQuery = query;
     if (query.isEmpty) return;
 
-    debugPrint("Searching for food: $query");
-
     final url = Uri.parse(
       'https://level-up-69vz.onrender.com/get_food/$query',
     ); // search the food via the backend get_food method
     try {
       final response = await http.get(url);
-
-      debugPrint("Response status: ${response.statusCode}");
-      debugPrint("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         if (latestQuery == query) {
@@ -190,7 +183,7 @@ class _FoodLoggingState extends State<FoodLogging> {
   final TextEditingController searchController =
       TextEditingController(); // for reading the user's search input
 
-  // Whether the user is allowed to type in the search bar (disabled after a food is clicked on)
+  // Whether the user is allowed to type in the search bar. This is disabled after a food is clicked on
   bool userCanType = true;
   // Whether the validity check can pass or not (Equal to !userCanType, simply created for readability)
   bool mealChosen = false;

@@ -485,3 +485,10 @@ Developmental progress by date is stored in this file.
 - Made updateUsername return a bool instead of void to conditionally pop the update username dialog box
 - Made the update username dialog box use a different BuildContext as to not pop the BuildContext parameter of updateUsername()
 - Turned the update username dialog box into a free method to be reused in initializeUser for users with no username
+
+## 2026-02-26
+- Created confetti.dart as a utility file to store different confetti decorations for various occasions
+- Wrapped HomeScreen in Stack widget so the confetti widget is always ready for use
+- Added a ScrollController to the Scrollbar in HomeScreen to fix an exception ("Scrollbar's ScrollController has no ScrollPosition attached") caused by the Scrollbar and SingleChildScrollView not sharing a ScrollController
+- Edited the daily reward dialog logic to take a ConfettiController and play the confetti when a daily reward is claimed
+- Added dispose() to HomeScreen to prevent memory leaks
