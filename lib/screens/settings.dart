@@ -45,7 +45,7 @@ Widget buildSettingsDrawer(
         drawerItem(
           "Personal Preferences",
           Icons.account_circle,
-          context, // now only pass context
+          context,
           destination: PersonalPreferences(
             onProfileImageUpdated:
                 onProfileImageUpdated, // update the callback to update the Home Screen
@@ -55,7 +55,7 @@ Widget buildSettingsDrawer(
         drawerItem(
           "About The Developer",
           Icons.phone_iphone,
-          context, // only context
+          context,
           destination: AboutTheDeveloper(),
           startOffset: Offset(-1, 0),
         ),
@@ -115,7 +115,6 @@ Widget buildSettingsDrawer(
                           onPressed: () async {
                             // close the dialog box
                             Navigator.pop(context);
-                            // sign out
                             await authService.value.signOut();
                           },
                         ),

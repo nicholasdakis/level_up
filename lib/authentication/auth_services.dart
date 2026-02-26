@@ -5,32 +5,31 @@ ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
 class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
   User? get currentUser => firebaseAuth.currentUser;
+
   Stream<User?> get authStateChanges =>
       firebaseAuth.authStateChanges(); // to see if user is connected
-  // SIGNING OUT
+
   Future<void> signOut() async {
     await firebaseAuth.signOut();
   }
 
-  // SIGNING UP WITH EMAIL AND PASSWORD
   Future<UserCredential> signUpWithEmail({
     required String email,
     required String password,
   }) async {
-    // 1. Create the user in Firebase Auth
+    // Create the user in Firebase Auth, refresh the user, and return the credential
     final credential = await firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    // 2. Refresh the user after account creation
     await FirebaseAuth.instance.currentUser!.reload();
-    // 3. Return the Auth credential
+
     return credential;
   }
 
-  // SIGNING IN WITH EMAIL AND PASSWORD
   Future<UserCredential> signInWithEmail({
     required String email,
     required String password,
@@ -41,12 +40,10 @@ class AuthService {
     );
   }
 
-  // RESETTING PASSWORD
   Future<void> resetPassword({required String email}) async {
     await firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
-  // UPDATING PASSWORD
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
@@ -60,14 +57,6 @@ class AuthService {
     await currentUser!.updatePassword(newPassword);
   }
 
-  // UPDATING USERNAME (currently unused)
-  /* 
- Future<void> updateUsername({required String username}) async {
-    await currentUser!.updateDisplayName(username);
-  }
-  */
-
-  // DELETING ACCOUNT
   Future<void> deleteAccount({
     required String email,
     required String password,

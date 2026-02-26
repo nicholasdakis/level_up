@@ -18,24 +18,21 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   // store information about the user to use in the calculations
   String? units =
       "MetricDefault"; // default value, but uses a different name so the user can still see "Choose your units" text
-  String? currentUnits =
-      "MetricDefault"; // store the user's currently chosen units
-  String? previousUnits =
-      "MetricDefault"; // variable to store the previously chosen units
+  String? currentUnits = "MetricDefault";
+  String? previousUnits = "MetricDefault";
   String? sex;
   String? goal;
   String? activityLevel;
-  String? equation; // which formula / equation to be used for the calculation
+  String? equation;
   int? age;
-
   int? heightCm;
   int? heightInches;
-
   double?
   weight; // One value for either Lbs or Kg -> Converted to a double -> Calculated based on units chosen
 
   final TextEditingController weightController =
-      TextEditingController(); // allow the user to type in their weight
+      TextEditingController(); // To allow the user to type in their weight
+
   bool resultsSnackbarActive =
       false; // flag so only one snackbar shows at a time
 

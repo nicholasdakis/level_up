@@ -23,7 +23,7 @@ class _RemindersState extends State<Reminders> {
   bool isLoading = false; // track the loading state for UI feedback
   final TextEditingController remindersController =
       TextEditingController(); // Input text for reminder message
-  String reminder = ""; // Stores the current reminder text
+  String reminder = "";
   DateTime dateTime =
       DateTime.now(); // Stores the selected date and time for reminder
 

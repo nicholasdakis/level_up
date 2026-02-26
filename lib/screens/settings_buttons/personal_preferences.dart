@@ -93,8 +93,7 @@ class PersonalPreferences extends StatefulWidget {
 }
 
 class _PersonalPreferencesState extends State<PersonalPreferences> {
-  TextEditingController usernameController =
-      TextEditingController(); // controller to read the user's input for username change
+  TextEditingController usernameController = TextEditingController();
 
   @override
   void dispose() {
@@ -104,7 +103,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
 
   Color baseColor = currentUserData!.appColor;
 
-  // Method for picking the profile picture
   Future _pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -162,7 +160,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     setState(() {}); // refresh UI
   }
 
-  // Method for the app theme color picker
   void _showColorPicker() {
     Color pickerColor = baseColor.withAlpha(
       255,

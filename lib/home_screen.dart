@@ -15,7 +15,7 @@ import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
 
-// small class for removing the awkward glow of buttons when scrolling to the very top / very bottom of the home screen
+// Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(
@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "App version: Beta 02.25.26.03",
+                              "App version: Beta 02.25.26.04",
                               style: TextStyle(
                                 color: darkenColor(appColorNotifier.value, 0.1),
                                 fontSize: Responsive.font(context, 15),

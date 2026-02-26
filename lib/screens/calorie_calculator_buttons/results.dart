@@ -9,8 +9,7 @@ class Results extends StatefulWidget {
   final String? goal;
   final String? sex;
   final String? activityLevel;
-  final String?
-  equation; // which formula / equation to be used for the calculation
+  final String? equation;
   final int? age;
   final int? heightCm;
   final int? heightInches;
@@ -257,12 +256,9 @@ class _ResultsState extends State<Results> {
                             widget.units ==
                                 "Metric" // Harris and Metric
                       ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
-                      : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362",
+                      : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362", //correct Harris and Imperial
                   context,
-                  Responsive.font(
-                    context,
-                    15,
-                  ), // Scale based on device //correct Harris and Imperial
+                  Responsive.font(context, 15), // Scale based on device
                 ),
                 textWithFont(
                   "Female BMR:",
