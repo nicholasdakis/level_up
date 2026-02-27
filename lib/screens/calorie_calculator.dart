@@ -238,9 +238,17 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         signed: false,
                       ),
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*$'),
-                        ),
+                        TextInputFormatter.withFunction((oldValue, newValue) {
+                          // Allow empty
+                          if (newValue.text.isEmpty) return newValue;
+                          // Check: max 3 digits before decimal, optional decimal, any digits after
+                          final valid = RegExp(
+                            r'^\d{0,3}(\.\d{0,3})?$',
+                          ).hasMatch(newValue.text);
+                          return valid
+                              ? newValue
+                              : oldValue; // reject if invalid, keep old value
+                        }),
                       ],
                       style: GoogleFonts.manrope(
                         // style of the input text
