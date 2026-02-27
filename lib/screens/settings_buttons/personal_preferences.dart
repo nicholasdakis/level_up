@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
+import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'dart:io'; // for base64
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -109,13 +110,25 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
     if (!mounted || returnedImage == null) return; // stop if user canceled
 
-    final file = File(returnedImage.path);
-
     try {
+      Uint8List? imageBytes;
+      File? file;
+
+      // Handle web and mobile separately
+      if (kIsWeb) {
+        // Web: get bytes directly from XFile
+        imageBytes = await returnedImage.readAsBytes();
+      } else {
+        // Mobile: convert to File
+        file = File(returnedImage.path);
+      }
+
       // await the boolean flag to make sure the update will be valid
       final canUpdate = await userManager.canUpdateProfilePicture(
         file,
         context,
+        isWeb: kIsWeb,
+        webBytes: imageBytes,
       );
 
       // Case 1: can't update
@@ -125,12 +138,21 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
 
       // Case 2: update
       if (mounted && canUpdate) {
-        // Update pfp
-        await userManager.updateProfilePicture(
-          file,
-          context: context,
-          onProfileUpdated: widget.onProfileImageUpdated,
-        );
+        if (kIsWeb) {
+          // Pass null for file, only use bytes
+          await userManager.updateProfilePicture(
+            null,
+            context: context,
+            onProfileUpdated: widget.onProfileImageUpdated,
+            imageInBytes: imageBytes,
+          );
+        } else {
+          await userManager.updateProfilePicture(
+            file,
+            context: context,
+            onProfileUpdated: widget.onProfileImageUpdated,
+          );
+        }
 
         // Confirmation snackBar
         ScaffoldMessenger.of(context).showSnackBar(

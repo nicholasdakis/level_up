@@ -492,3 +492,7 @@ Developmental progress by date is stored in this file.
 - Added a ScrollController to the Scrollbar in HomeScreen to fix an exception ("Scrollbar's ScrollController has no ScrollPosition attached") caused by the Scrollbar and SingleChildScrollView not sharing a ScrollController
 - Edited the daily reward dialog logic to take a ConfettiController and play the confetti when a daily reward is claimed
 - Added dispose() to HomeScreen to prevent memory leaks
+
+## 2026-02-27
+- pickProfileImage updated to handle if the user is on desktop by reading bytes directly from XFile (mobile uses File)
+- canUpdateProfilePicture updated to also handle desktop

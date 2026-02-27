@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import 'user_data.dart';
@@ -202,47 +203,87 @@ class UserDataManager {
   }
 
   // boolean flag to ensure profile picture updating is valid
-  Future<bool> canUpdateProfilePicture(File file, BuildContext? context) async {
+  Future<bool> canUpdateProfilePicture(
+    File? file,
+    BuildContext? context, {
+    bool isWeb = false,
+    Uint8List? webBytes, // The optional parameters are only used for web
+  }) async {
     // 750 KB size limit in bytes (To meet the 1 MB Firebase limit when converted to base64)
     const int maxFileSize = 750 * 1024; // 768000 bytes
 
-    // Check file size
+    // Handle Web
+    if (isWeb) {
+      // Check the size of the web image bytes
+      if (webBytes != null && webBytes.lengthInBytes > maxFileSize) {
+        if (context != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Profile picture must be 0.75 MB or less. This image is ${webBytes.lengthInBytes} mb.",
+              ),
+              duration: Duration(milliseconds: 1500),
+            ),
+          );
+        }
+        return false; // file too large
+      }
+      return true;
+    }
+
+    // Handle Mobile (File check)
+    if (file == null) return false; // safety check
     final int fileSize = file.lengthSync();
     if (fileSize > maxFileSize) {
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Profile picture must be 0.75 MB or less."),
+            content: Text(
+              "Profile picture must be 0.75 MB or less. This image is $fileSize mb.",
+            ),
             duration: Duration(milliseconds: 1500),
           ),
         );
       }
       return false; // early exit if file too large
     }
+
     return true;
   }
 
   Future<void> updateProfilePicture(
-    File file, {
+    File? file, {
     VoidCallback? onProfileUpdated,
     BuildContext? context, // for error snackbar
+    Uint8List? imageInBytes, // web bytes
   }) async {
-    if (!await canUpdateProfilePicture(file, context)) {
+    if (!await canUpdateProfilePicture(
+      file,
+      context,
+      isWeb: kIsWeb,
+      webBytes: imageInBytes,
+    )) {
       return;
     }
 
-    try {
-      // 1. Convert image to Base64
-      final bytes = await file.readAsBytes();
-      final base64String = base64Encode(bytes);
+    String? base64String;
 
-      // 2. Save Base64 string in Firestore
+    try {
+      if (kIsWeb) {
+        // Web
+        base64String = base64Encode(imageInBytes!);
+      } else {
+        // Mobile: Convert file into bytes and then to base64
+        final bytes = await file!.readAsBytes();
+        base64String = base64Encode(bytes);
+      }
+      // Save Base64 string in Firestore
       final uid = FirebaseAuth.instance.currentUser!.uid;
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'pfpBase64': base64String,
       }, SetOptions(merge: true));
 
-      // 3. Update currentUserData with the complete stored variables with the updated profile picture
+      // Update currentUserData with the complete stored variables with the updated profile picture
       currentUserData = UserData(
         uid: currentUserData!.uid,
         pfpBase64: base64String,
@@ -253,6 +294,7 @@ class UserDataManager {
         username: currentUserData!.username,
         reminders: currentUserData!.reminders,
         appColor: currentUserData!.appColor,
+        foodDataByDate: currentUserData!.foodDataByDate,
       );
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
