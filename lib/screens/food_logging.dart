@@ -309,10 +309,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               0.025,
             ), // Header color
             centerTitle: true,
-            toolbarHeight: Responsive.buttonHeight(
-              context,
-              120,
-            ), // Scale based on device
+            toolbarHeight: Responsive.buttonHeight(context, 120),
             title: createTitle("Food Logging", context),
           ),
           body: Padding(
@@ -396,10 +393,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       enabled: userCanType,
                       keyboardType: TextInputType.text,
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(
-                          context,
-                          17,
-                        ), // Scale based on device
+                        fontSize: Responsive.font(context, 17),
                         color: Colors.white,
                         shadows: [
                           Shadow(
@@ -426,10 +420,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         suffixIcon: Icon(Icons.search),
                         contentPadding: EdgeInsets.only(top: 13, left: 6),
                         hintStyle: GoogleFonts.manrope(
-                          fontSize: Responsive.font(
-                            context,
-                            15,
-                          ), // Scale based on device
+                          fontSize: Responsive.font(context, 15),
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -472,10 +463,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                           maxHeight: 200,
                         ),
                         style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(
-                            context,
-                            15,
-                          ), // Scale based on device
+                          fontSize: Responsive.font(context, 15),
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -488,10 +476,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         hint: Text(
                           "Meal Type",
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(
-                              context,
-                              20,
-                            ), // Scale based on device
+                            fontSize: Responsive.font(context, 20),
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -520,10 +505,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     // Log Food Button
                     Expanded(
                       child: SizedBox(
-                        height: Responsive.font(
-                          context,
-                          75,
-                        ), // Scale based on device
+                        height: Responsive.font(context, 75),
                         width: double
                             .infinity, // fix inner button width to fill properly
                         child: simpleCustomButton(

@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
           toolbarHeight: Responsive.buttonHeight(
             context,
             120,
-          ), // Scale based on device // Prevent the icon from cutting in half
+          ), // Prevent the icon from cutting in half
           elevation: 0,
           actions: [
             // automatically aligns the icon into the top right of the screen

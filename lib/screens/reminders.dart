@@ -283,7 +283,7 @@ class _RemindersState extends State<Reminders> {
           context,
           100,
         ), // for scaling responsively
-        title: createTitle("Reminders (only for Android currently)", context),
+        title: createTitle("Reminders", context),
       ),
       body: Stack(
         children: [
@@ -299,6 +299,9 @@ class _RemindersState extends State<Reminders> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Text(
+                    "Note: Reminders only work on the Android version currently.",
+                  ),
                   // Reminder text input field
                   TextField(
                     controller: remindersController,
@@ -337,11 +340,11 @@ class _RemindersState extends State<Reminders> {
                       ),
                       hintText: "Enter a reminder.",
                       contentPadding: EdgeInsets.only(
-                        top: Responsive.height(context, 13),
-                        left: Responsive.width(context, 6),
+                        top: Responsive.height(context, 10),
+                        left: Responsive.width(context, 25),
                       ),
                       hintStyle: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 18), // scaling
+                        fontSize: Responsive.font(context, 30),
                         color: Colors.white,
                         shadows: const [
                           Shadow(
@@ -372,7 +375,7 @@ class _RemindersState extends State<Reminders> {
                         builder: (_) => Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            height: screenHeight * 0.33,
+                            height: Responsive.height(context, 350),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: const Color.fromARGB(128, 37, 37, 37),
@@ -437,7 +440,9 @@ class _RemindersState extends State<Reminders> {
                         // Case 1: No set reminders
                         ? Padding(
                             // Empty state
-                            padding: EdgeInsets.only(top: screenHeight * 0.1),
+                            padding: EdgeInsets.only(
+                              top: Responsive.height(context, 10),
+                            ),
                             child: Text(
                               "Upcoming reminders will appear here...",
                               style: TextStyle(
@@ -479,10 +484,7 @@ class _RemindersState extends State<Reminders> {
                                       child: textWithFont(
                                         reminder.message, // Reminder text
                                         context,
-                                        Responsive.font(
-                                          context,
-                                          25,
-                                        ), // Scale based on device
+                                        Responsive.font(context, 25),
                                       ),
                                     ),
                                   ),
@@ -492,10 +494,7 @@ class _RemindersState extends State<Reminders> {
                                       child: textWithFont(
                                         "${reminder.dateTime.month}/${reminder.dateTime.day} ${reminder.dateTime.hour}:${reminder.dateTime.minute.toString().padLeft(2, '0')}", // Formatted date
                                         context,
-                                        Responsive.font(
-                                          context,
-                                          25,
-                                        ), // Scale based on device// scaled
+                                        Responsive.font(context, 25), // scaled
                                       ),
                                     ),
                                   ),

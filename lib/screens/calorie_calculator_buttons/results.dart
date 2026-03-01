@@ -199,19 +199,19 @@ class _ResultsState extends State<Results> {
         scrolledUnderElevation:
             0, // So the appBar does not change color when the user scrolls down
         centerTitle: true,
-        toolbarHeight: Responsive.buttonHeight(
-          context,
-          120,
-        ), // Scale based on device
+        toolbarHeight: Responsive.buttonHeight(context, 120),
         title: Text(
           "Results",
           style: GoogleFonts.dangrek(
-            fontSize: Responsive.font(context, 40), // Scale based on device
+            fontSize: Responsive.font(context, 40),
             color: Colors.white,
             shadows: [
               Shadow(
-                offset: Offset(screenWidth * 0.003, screenHeight * 0.003),
-                blurRadius: screenWidth * 0.007,
+                offset: Offset(
+                  Responsive.width(context, 10),
+                  Responsive.height(context, 10),
+                ),
+                blurRadius: Responsive.width(context, 20),
                 color: const Color.fromARGB(255, 0, 0, 0),
               ),
             ],
@@ -229,7 +229,7 @@ class _ResultsState extends State<Results> {
                 textWithFont(
                   "About BMR",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
@@ -237,12 +237,12 @@ class _ResultsState extends State<Results> {
                       ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • This formula is a revised version of the Harris-Benedict equation."""
                       : """• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "Male BMR:",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                   color: const Color.fromARGB(255, 5, 71, 142),
                 ),
@@ -258,12 +258,12 @@ class _ResultsState extends State<Results> {
                       ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
                       : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362", //correct Harris and Imperial
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "Female BMR:",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                   color: const Color.fromARGB(255, 210, 4, 138),
                 ),
@@ -279,34 +279,34 @@ class _ResultsState extends State<Results> {
                       ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Metric
                       : "([9.247 / 2.205] x weight (lbs))\n + ([3.098 x 2.54]\n x height (inches))\n - (4.330 x age (years))\n + 447.593", //correct Harris and Imperial
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "About TDEE",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
                   "• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n\n• Consuming this amount of calories will cause your weight to maintain itself.\n\n TDEE = BMR x Activity Level",
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "Activity Level",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                 ),
                 textWithCard(
                   "• Sedentary = 1.2\n• Light = 1.375\n• Moderate = 1.55\n• Active = 1.725\n• Very Active = 1.9",
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "Your BMR",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
@@ -337,32 +337,32 @@ class _ResultsState extends State<Results> {
                       ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = $bmr is your BMR." // Female and Imperial and Harris
                       : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = $bmr is your BMR.", // Male and Imperial and Harris
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "Your TDEE",
                   context,
-                  Responsive.font(context, 17), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
                 textWithCard(
                   "$bmr x ${calculateActivityLevel()} = ${calculateTDEE(bmr, calculateActivityLevel())} is your TDEE.",
                   context,
-                  Responsive.font(context, 15), // Scale based on device
+                  Responsive.font(context, 20),
                 ),
                 textWithFont(
                   "How to ${widget.goal}",
                   context,
-                  Responsive.font(context, 16), // Scale based on device
+                  Responsive.font(context, 30),
                   decoration: TextDecoration.underline,
                   color: Colors.redAccent,
                 ),
                 textWithCard(
                   calculateGoal(),
                   context,
-                  Responsive.font(context, 15),
-                ), // Scale based on device),
+                  Responsive.font(context, 20),
+                ),
               ],
             ),
           ),

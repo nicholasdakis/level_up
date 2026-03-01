@@ -36,18 +36,15 @@ Widget textWithFont(
     text: TextSpan(
       text: text,
       style: GoogleFonts.manrope(
-        fontSize: Responsive.font(
-          context,
-          baseFontSize,
-        ), // Scale based on device
+        fontSize: Responsive.font(context, baseFontSize),
         color: color ?? Colors.white,
         shadows: [
           Shadow(
             offset: Offset(
-              Responsive.scale(context, 4), // Scale based on device
-              Responsive.scale(context, 4), // Scale based on device
+              Responsive.scale(context, 4),
+              Responsive.scale(context, 4),
             ),
-            blurRadius: Responsive.scale(context, 10), // Scale based on device
+            blurRadius: Responsive.scale(context, 10),
             color: const Color.fromARGB(255, 0, 0, 0),
           ),
         ],
@@ -68,15 +65,15 @@ Widget createTitle(String text, BuildContext context) {
   return Text(
     text,
     style: GoogleFonts.dangrek(
-      fontSize: Responsive.font(context, 40), // Scale based on device
+      fontSize: Responsive.font(context, 40),
       color: Colors.white,
       shadows: [
         Shadow(
           offset: Offset(
-            Responsive.scale(context, 4), // Scale based on device
-            Responsive.scale(context, 4), // Scale based on device
+            Responsive.scale(context, 4),
+            Responsive.scale(context, 4),
           ),
-          blurRadius: Responsive.scale(context, 10), // Scale based on device
+          blurRadius: Responsive.scale(context, 10),
           color: const Color.fromARGB(255, 0, 0, 0),
         ),
       ],
@@ -87,31 +84,23 @@ Widget createTitle(String text, BuildContext context) {
 // CREATE TEXT INSIDE OF A CARD
 Widget textWithCard(String text, BuildContext context, double baseFontSize) {
   return Card(
-    elevation: Responsive.scale(context, 10), // Scale based on device
+    elevation: Responsive.scale(context, 10),
     color: darkenColor(appColorNotifier.value, 0.025), // Header color
     child: Padding(
-      padding: EdgeInsets.all(
-        Responsive.padding(context, 4),
-      ), // Scale based on device
+      padding: EdgeInsets.all(Responsive.padding(context, 4)),
       child: Text(
         text,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          fontSize: Responsive.font(
-            context,
-            baseFontSize,
-          ), // Scale based on device
+          fontSize: Responsive.font(context, baseFontSize),
           color: Colors.white,
           shadows: [
             Shadow(
               offset: Offset(
-                Responsive.scale(context, 4), // Scale based on device
-                Responsive.scale(context, 4), // Scale based on device
+                Responsive.scale(context, 4),
+                Responsive.scale(context, 4),
               ),
-              blurRadius: Responsive.scale(
-                context,
-                10,
-              ), // Scale based on device
+              blurRadius: Responsive.scale(context, 10),
               color: const Color.fromARGB(255, 0, 0, 0),
             ),
           ],
@@ -157,34 +146,34 @@ Widget buttonText(String text, BuildContext context, double baseFontSize) {
     text,
     textAlign: TextAlign.center,
     style: GoogleFonts.dangrek(
-      fontSize: Responsive.font(context, baseFontSize), // Scale based on device
+      fontSize: Responsive.font(context, baseFontSize),
       color: Colors.white,
       shadows: [
         Shadow(
           offset: Offset(
-            -Responsive.scale(context, 1), // Scale based on device
-            -Responsive.scale(context, 1), // Scale based on device
+            -Responsive.scale(context, 1),
+            -Responsive.scale(context, 1),
           ),
           color: Colors.black,
         ),
         Shadow(
           offset: Offset(
-            Responsive.scale(context, 1), // Scale based on device
-            -Responsive.scale(context, 1), // Scale based on device
+            Responsive.scale(context, 1),
+            -Responsive.scale(context, 1),
           ),
           color: Colors.black,
         ),
         Shadow(
           offset: Offset(
-            -Responsive.scale(context, 1), // Scale based on device
-            Responsive.scale(context, 1), // Scale based on device
+            -Responsive.scale(context, 1),
+            Responsive.scale(context, 1),
           ),
           color: Colors.black,
         ),
         Shadow(
           offset: Offset(
-            Responsive.scale(context, 1), // Scale based on device
-            Responsive.scale(context, 1), // Scale based on device
+            Responsive.scale(context, 1),
+            Responsive.scale(context, 1),
           ),
           color: Colors.black,
         ),
@@ -212,50 +201,33 @@ Widget customButton(
   final int blue = (color.b * 255).round().clamp(0, 255);
 
   return SizedBox(
-    height: Responsive.buttonHeight(
-      context,
-      baseHeight,
-    ), // Scale based on device
-    width: Responsive.scale(context, baseWidth), // Scale based on device
+    height: Responsive.buttonHeight(context, baseHeight),
+    width: Responsive.scale(context, baseWidth),
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Responsive.scale(context, 30),
-      ), // Scale based on device
+      borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
       child: Stack(
         children: [
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: Responsive.scale(context, 15), // Scale based on device
-              sigmaY: Responsive.scale(context, 15), // Scale based on device
+              sigmaX: Responsive.scale(context, 15),
+              sigmaY: Responsive.scale(context, 15),
             ),
             child: Container(
               decoration: BoxDecoration(
                 color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 30),
-                ), // Scale based on device
+                ),
                 border: Border.all(
                   color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
-                  width: Responsive.scale(
-                    context,
-                    1.5,
-                  ), // Scale based on device
+                  width: Responsive.scale(context, 1.5),
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
-                    offset: Offset(
-                      0,
-                      Responsive.scale(context, 4), // Scale based on device
-                    ),
-                    blurRadius: Responsive.scale(
-                      context,
-                      10,
-                    ), // Scale based on device
-                    spreadRadius: Responsive.scale(
-                      context,
-                      1,
-                    ), // Scale based on device
+                    offset: Offset(0, Responsive.scale(context, 4)),
+                    blurRadius: Responsive.scale(context, 10),
+                    spreadRadius: Responsive.scale(context, 1),
                   ),
                 ],
               ),
@@ -266,7 +238,7 @@ Widget customButton(
             child: InkWell(
               borderRadius: BorderRadius.circular(
                 Responsive.scale(context, 30),
-              ), // Scale based on device
+              ),
               onTap:
                   onPressed ??
                   () {
@@ -324,8 +296,8 @@ Widget simpleCustomButton(
   final double fontSize = Responsive.font(context, baseFontSize);
 
   return SizedBox(
-    height: buttonHeight, // Scale based on device like customButton
-    width: buttonWidth, // Scale based on device
+    height: buttonHeight, // scale like customButton
+    width: buttonWidth,
     child: ClipRRect(
       borderRadius: BorderRadius.circular(
         Responsive.scale(

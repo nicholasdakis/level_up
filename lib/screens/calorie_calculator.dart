@@ -107,10 +107,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           0.025,
         ), // Header color
         centerTitle: true,
-        toolbarHeight: Responsive.buttonHeight(
-          context,
-          120,
-        ), // Scale based on device
+        toolbarHeight: Responsive.buttonHeight(context, 120),
         title: createTitle("Calculator", context),
       ),
       body: SingleChildScrollView(
@@ -241,7 +238,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         TextInputFormatter.withFunction((oldValue, newValue) {
                           // Allow empty
                           if (newValue.text.isEmpty) return newValue;
-                          // Check: max 3 digits before decimal, optional decimal, any digits after
+                          // Check: max 3 digits before decimal, optional decimal, max 3 digits after
                           final valid = RegExp(
                             r'^\d{0,3}(\.\d{0,3})?$',
                           ).hasMatch(newValue.text);

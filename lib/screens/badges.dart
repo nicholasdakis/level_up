@@ -47,10 +47,7 @@ class _BadgesState extends State<Badges> {
           0.025,
         ), // Header color
         centerTitle: true,
-        toolbarHeight: Responsive.buttonHeight(
-          context,
-          120,
-        ), // Scale based on device
+        toolbarHeight: Responsive.buttonHeight(context, 120),
         title: createTitle("Badges", context),
       ),
       body: Stack(

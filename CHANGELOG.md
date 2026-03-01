@@ -498,3 +498,7 @@ Developmental progress by date is stored in this file.
 - canUpdateProfilePicture updated to also handle desktop
 - Changed the weight inputting Regex to use TextInputFormatter.withFunction so invalid characters would not register as opposed to clearing the text
 - Updated the weight input Regex so users cannot enter extremely high values
+
+## 2026-02-28
+- Removed unnecessary comments
+- Continued replacing fixed-size widgets with their responsive versions

@@ -56,18 +56,15 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
           0.025,
         ), // Header color
         centerTitle: true,
-        toolbarHeight: Responsive.buttonHeight(
-          context,
-          120,
-        ), // Scale based on device
-        title: createTitle("Developer", context), // Scale based on device
+        toolbarHeight: Responsive.buttonHeight(context, 120),
+        title: createTitle("Developer", context),
       ),
       // scrollable
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: Responsive.height(context, 800),
-          ), // Scale based on device
+          ),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -75,47 +72,35 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                 // Placeholder image (Flutter logo)
                 Image.network(
                   "https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png",
-                  width: Responsive.width(
-                    context,
-                    300,
-                  ), // Scale based on device
-                  height: Responsive.height(
-                    context,
-                    300,
-                  ), // Scale based on device
+                  width: Responsive.width(context, 300),
+                  height: Responsive.height(context, 300),
                 ),
-                SizedBox(
-                  height: Responsive.height(context, 20),
-                ), // Scale based on device
+                SizedBox(height: Responsive.height(context, 20)),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.padding(context, 75),
-                  ), // Scale based on device
+                  ),
                   child: Column(
                     children: [
                       textWithCard(
                         "Hi! I'm Nicholas Dakis, a Computer Science student at CUNY Queens College. I created Level Up! to learn Flutter while creating an app I believed to be useful.",
                         context,
-                        Responsive.font(context, 40), // Scale based on device
+                        Responsive.font(context, 40),
                       ),
-                      SizedBox(
-                        height: Responsive.height(context, 20),
-                      ), // Scale based on device
+                      SizedBox(height: Responsive.height(context, 20)),
                       textWithCard(
                         "Feel free to send feedback or donate using the buttons below:",
                         context,
-                        Responsive.font(context, 50), // Scale based on device
+                        Responsive.font(context, 50),
                       ),
-                      SizedBox(
-                        height: Responsive.height(context, 20),
-                      ), // Scale based on device
+                      SizedBox(height: Responsive.height(context, 20)),
                       // SEND FEEDBACK BUTTON
                       sendFeedbackButton(context),
                       // PAYPAL DONATE BUTTON
                       Padding(
                         padding: EdgeInsets.all(
                           Responsive.padding(context, 20),
-                        ), // Scale based on device
+                        ),
                         child: InkWell(
                           onTap: () => launchUrl(
                             Uri.parse(
@@ -128,10 +113,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             alignment: Alignment.center,
                             child: SvgPicture.network(
                               "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
-                              width: Responsive.width(
-                                context,
-                                280,
-                              ), // Scale based on device
+                              width: Responsive.width(context, 280),
                               placeholderBuilder: (context) =>
                                   CircularProgressIndicator(), // if image fails to load
                             ),

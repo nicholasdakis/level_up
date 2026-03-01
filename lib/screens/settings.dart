@@ -62,7 +62,7 @@ Widget buildSettingsDrawer(
         Material(
           color: Colors.transparent,
           child: ListTile(
-            leading: Icon(Icons.logout, color: Color(0xFF121212)),
+            leading: Icon(Icons.logout, color: Colors.white),
             title: Text(
               "Log Out",
               style: GoogleFonts.manrope(

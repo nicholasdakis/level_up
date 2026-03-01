@@ -267,7 +267,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               thumbVisibility: true,
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.all(screenHeight * 0.02),
+                  padding: EdgeInsets.all(Responsive.height(context, 15)),
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -296,8 +296,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                           baseColor: baseColor,
                           onPressed: _pickProfileImage,
                         ),
+
                         // spacing
-                        SizedBox(height: screenHeight * 0.02),
+                        SizedBox(height: Responsive.height(context, 20)),
+
                         // Update username button
                         simpleCustomButton(
                           "Username",
