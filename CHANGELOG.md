@@ -503,5 +503,8 @@ Developmental progress by date is stored in this file.
 - Removed unnecessary comments
 - Continued replacing fixed-size widgets with their responsive versions
 
-##2026-03-02
+## 2026-03-02
 - Created settings_icon_button.dart and redesigned the settings icon as it looked strange before
+- Made a lightenColor method to use with darkenColor for gradient handling
+- Made a buildThemeGradient method to make header and body colors more interesting
+- Did this by wrapping the Home Screen's entire contents in a Container with a gradient background, setting the body’s original backgroundColor to transparent, and applying a slightly transparent overlay to the header to maintain visual distinction

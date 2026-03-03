@@ -113,190 +113,194 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return Scaffold(
-      drawer: buildSettingsDrawer(
-        context,
-        // rebuild on pfp image update
-        onProfileImageUpdated: () {
-          if (!mounted) return;
-          setState(() {}); // rebuild HomeScreen
-        },
-      ),
-      backgroundColor: appColorNotifier.value,
-      // Header
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-          Responsive.height(context, 200),
-        ), // Alter default appBar size
-        child: AppBar(
-          automaticallyImplyLeading:
-              false, // Prevent the automatic hamburger icon from appearing
-          scrolledUnderElevation:
-              0, // So the appBar does not change color when the user scrolls down
-          backgroundColor: darkenColor(
-            appColorNotifier.value,
-            0.025,
-          ), // Header color
-
-          centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(
-            context,
-            120,
-          ), // Prevent the icon from cutting in half
-          elevation: 0,
-          actions: [
-            Builder(
-              // Wrapped in Builder so Scaffold.of succeeds
-              builder: (context) => SettingsIconButton(
-                onTap: () => Scaffold.of(context).openDrawer(),
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        drawer: buildSettingsDrawer(
+          context,
+          // rebuild on pfp image update
+          onProfileImageUpdated: () {
+            if (!mounted) return;
+            setState(() {}); // rebuild HomeScreen
+          },
+        ),
+        backgroundColor: Colors.transparent,
+        // Body + Header
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(
+            Responsive.height(context, 200),
+          ), // Alter default appBar size
+          child: AppBar(
+            automaticallyImplyLeading:
+                false, // Prevent the automatic hamburger icon from appearing
+            scrolledUnderElevation:
+                0, // So the appBar does not change color when the user scrolls down
+            backgroundColor: darkenColor(
+              appColorNotifier.value.withAlpha(100),
+              0.1,
+            ), // Header color
+            centerTitle: true,
+            toolbarHeight: Responsive.buttonHeight(
+              context,
+              120,
+            ), // Prevent the icon from cutting in half
+            elevation: 0,
+            actions: [
+              Builder(
+                // Wrapped in Builder so Scaffold.of succeeds
+                builder: (context) => SettingsIconButton(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                ),
               ),
-            ),
-          ],
-          flexibleSpace: Center(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: Responsive.width(context, 30),
-              ), // Move the title text down a little bit
-              // Manually make the title text, since appBar is already being used
-              child: Text(
-                "Level Up!",
-                style: GoogleFonts.dangrek(
-                  fontSize: Responsive.font(context, 50),
-                  color: Color(0xFFFFFFFF),
-                  shadows: [
-                    Shadow(
-                      offset: Offset(4, 4),
-                      blurRadius: 10,
-                      color: Colors.black,
-                    ),
-                  ],
+            ],
+            flexibleSpace: Center(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: Responsive.width(context, 30),
+                ), // Move the title text down a little bit
+                // Manually make the title text, since appBar is already being used
+                child: Text(
+                  "Level Up!",
+                  style: GoogleFonts.dangrek(
+                    fontSize: Responsive.font(context, 50),
+                    color: Color(0xFFFFFFFF),
+                    shadows: [
+                      Shadow(
+                        offset: Offset(4, 4),
+                        blurRadius: 10,
+                        color: Colors.black,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-      body: Stack(
-        // Stack for confetti to appear on top
-        children: [
-          Column(
-            children: [
-              // Middle body
-              Expanded(
-                child: Scrollbar(
-                  controller: _scrollController,
-                  thumbVisibility: true,
-                  child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(),
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      child: Padding(
-                        padding: EdgeInsets.all(Responsive.height(context, 5)),
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Current app version text
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  "App version: Beta 03.02",
-                                  style: TextStyle(
-                                    color: darkenColor(
-                                      appColorNotifier.value,
-                                      0.1,
+        body: Stack(
+          // Stack for confetti to appear on top
+          children: [
+            Column(
+              children: [
+                // Middle body
+                Expanded(
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true,
+                    child: ScrollConfiguration(
+                      behavior: NoGlowScrollBehavior(),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            Responsive.height(context, 5),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Current app version text
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "App version: Beta 03.02",
+                                    style: TextStyle(
+                                      color: darkenColor(
+                                        appColorNotifier.value,
+                                        0.3,
+                                      ),
+                                      fontSize: Responsive.font(context, 15),
                                     ),
-                                    fontSize: Responsive.font(context, 15),
                                   ),
                                 ),
-                              ),
 
-                              // CALORIE CALCULATOR BUTTON
-                              customButton(
-                                "Calorie Calculator",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: CalorieCalculator(),
-                              ),
-                              SizedBox(height: 10.h), // Space between buttons
-                              // FOOD LOGGING TAB
-                              customButton(
-                                "Food Logging",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: FoodLogging(),
-                              ),
-                              SizedBox(height: 10.h), // Space between buttons
-                              customButton(
-                                "Explore",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: Explore(),
-                              ),
-                              SizedBox(height: 10.h), // Space between buttons
-                              // REMINDERS TAB
-                              customButton(
-                                "Reminders",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: Reminders(),
-                              ),
-                              SizedBox(height: 10.h), // Space between buttons
-                              // BADGES TAB
-                              customButton(
-                                "Badges",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: Badges(),
-                              ),
-                              SizedBox(height: 10.h), // Space between buttons
-                              // LEADERBOARD TAB
-                              customButton(
-                                "Leaderboard",
-                                48,
-                                160,
-                                750,
-                                context,
-                                destination: Leaderboard(),
-                              ),
-                            ],
+                                // CALORIE CALCULATOR BUTTON
+                                customButton(
+                                  "Calorie Calculator",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: CalorieCalculator(),
+                                ),
+                                SizedBox(height: 10.h), // Space between buttons
+                                // FOOD LOGGING TAB
+                                customButton(
+                                  "Food Logging",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: FoodLogging(),
+                                ),
+                                SizedBox(height: 10.h), // Space between buttons
+                                customButton(
+                                  "Explore",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: Explore(),
+                                ),
+                                SizedBox(height: 10.h), // Space between buttons
+                                // REMINDERS TAB
+                                customButton(
+                                  "Reminders",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: Reminders(),
+                                ),
+                                SizedBox(height: 10.h), // Space between buttons
+                                // BADGES TAB
+                                customButton(
+                                  "Badges",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: Badges(),
+                                ),
+                                SizedBox(height: 10.h), // Space between buttons
+                                // LEADERBOARD TAB
+                                customButton(
+                                  "Leaderboard",
+                                  48,
+                                  160,
+                                  750,
+                                  context,
+                                  destination: Leaderboard(),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              // Footer box
-              Footer(
-                screenHeight: screenHeight,
-                screenWidth: screenWidth,
-                profilePicture: userManager.insertProfilePicture(),
-                // Rebuild footer with correct Profile Picture
-                onProfileImageUpdated: () {
-                  if (!mounted) return;
-                  setState(() {}); // safely rebuild HomeScreen
-                }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
-              ),
-            ],
-          ),
-          // Align Widget must be the last child of this Stack so it appears above all other widgets
-          Align(
-            alignment: Alignment.topCenter,
-            child: buildDailyRewardConfetti(dailyRewardConfettiController),
-          ),
-        ],
+                // Footer box
+                Footer(
+                  screenHeight: screenHeight,
+                  screenWidth: screenWidth,
+                  profilePicture: userManager.insertProfilePicture(),
+                  // Rebuild footer with correct Profile Picture
+                  onProfileImageUpdated: () {
+                    if (!mounted) return;
+                    setState(() {}); // safely rebuild HomeScreen
+                  }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
+                ),
+              ],
+            ),
+            // Align Widget must be the last child of this Stack so it appears above all other widgets
+            Align(
+              alignment: Alignment.topCenter,
+              child: buildDailyRewardConfetti(dailyRewardConfettiController),
+            ),
+          ],
+        ),
       ),
     );
   }

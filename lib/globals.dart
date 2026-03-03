@@ -60,6 +60,12 @@ Color darkenColor(Color color, [double amount = .1]) {
   return hslDark.toColor();
 }
 
+Color lightenColor(Color color, [double amount = .1]) {
+  final hsl = HSLColor.fromColor(color);
+  final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+  return hslLight.toColor();
+}
+
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
 Widget createTitle(String text, BuildContext context) {
   return Text(
@@ -407,5 +413,26 @@ void changeToScreen(
         return SlideTransition(position: offsetAnimation, child: child);
       },
     ),
+  );
+}
+
+Gradient buildThemeGradient() {
+  final base = appColorNotifier.value;
+  final darkEdge = darkenColor(base, 0.03); // dark sides
+  final mid = lightenColor(base, 0.03); // center lighter
+
+  return LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [
+      darkEdge,
+      darkEdge,
+      mid, // center stripe
+      darkEdge,
+      darkEdge,
+    ],
+    stops: [
+      0.0, 0.1, 0.5, 0.9, 1.0, // positions of each stripe
+    ],
   );
 }
