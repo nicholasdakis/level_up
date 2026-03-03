@@ -216,7 +216,7 @@ class UserDataManager {
     // Compress
     var result = await FlutterImageCompress.compressWithList(
       image,
-      quality: 80,
+      quality: 55,
     );
     return result;
   }
@@ -235,7 +235,7 @@ class UserDataManager {
     // Compress using FlutterImageCompress
     Uint8List? compressedBytes = await FlutterImageCompress.compressWithFile(
       file.absolute.path,
-      quality: 80,
+      quality: 55,
     );
 
     return compressedBytes!;
