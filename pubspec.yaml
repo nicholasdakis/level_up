@@ -90,6 +90,8 @@ dependencies:
 
   confetti: ^0.8.0
 
+  flutter_image_compress: ^2.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

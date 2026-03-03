@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import 'user_data.dart';
 import 'reminder_data.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class UserDataManager {
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
@@ -202,7 +203,44 @@ class UserDataManager {
     }
   }
 
-  // boolean flag to ensure profile picture updating is valid
+  Future<Uint8List> webCompressIfNeed(Uint8List image) async {
+    const int maxFileSize =
+        750 *
+        1024; // max limit for base64 images to be stored in Firebase freely
+
+    // No compression needed
+    if (image.lengthInBytes <= maxFileSize) {
+      return image;
+    }
+
+    // Compress
+    var result = await FlutterImageCompress.compressWithList(
+      image,
+      quality: 80,
+    );
+    return result;
+  }
+
+  Future<Uint8List> mobileCompressIfNeed(File file) async {
+    const int maxFileSize =
+        750 *
+        1024; // max limit for base64 images to be stored in Firebase freely
+
+    // Read bytes from the file
+    Uint8List bytes = await file.readAsBytes();
+
+    // No compression needed
+    if (bytes.lengthInBytes <= maxFileSize) return bytes;
+
+    // Compress using FlutterImageCompress
+    Uint8List? compressedBytes = await FlutterImageCompress.compressWithFile(
+      file.absolute.path,
+      quality: 80,
+    );
+
+    return compressedBytes!;
+  }
+
   Future<bool> canUpdateProfilePicture(
     File? file,
     BuildContext? context, {
@@ -216,30 +254,50 @@ class UserDataManager {
     if (isWeb) {
       // Check the size of the web image bytes
       if (webBytes != null && webBytes.lengthInBytes > maxFileSize) {
-        if (context != null) {
+        int test = webBytes.lengthInBytes; // tbd
+        debugPrint('Before WEB: $test'); // tbd
+
+        webBytes = await webCompressIfNeed(webBytes);
+
+        test = webBytes.lengthInBytes; // tbd
+        debugPrint('After WEB: $test'); // tbd
+
+        // If still too big:
+        if (context != null && webBytes.lengthInBytes > maxFileSize) {
+          double sizeInMbWeb = webBytes.lengthInBytes / (1024 * 1024);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                "Profile picture must be 0.75 MB or less. This image is ${webBytes.lengthInBytes} mb.",
+                "Profile picture must be 0.75 MB or less. This image is ${sizeInMbWeb.toStringAsFixed(2)} MB after compression.",
               ),
               duration: Duration(milliseconds: 1500),
             ),
           );
+          return false; // file too large
         }
-        return false; // file too large
       }
       return true;
     }
 
     // Handle Mobile (File check)
     if (file == null) return false; // safety check
-    final int fileSize = file.lengthSync();
+
+    int testbeforesize = file.lengthSync(); // tbd
+    debugPrint('Before MOBILE: $testbeforesize'); // tbd
+
+    Uint8List fileBytes = await mobileCompressIfNeed(file);
+
+    int fileSize = fileBytes.lengthInBytes;
+
+    debugPrint('After MOBILE: $fileSize'); // tbd
+
     if (fileSize > maxFileSize) {
       if (context != null) {
+        double sizeInMbMobile = fileSize / (1024 * 1024);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Profile picture must be 0.75 MB or less. This image is $fileSize mb.",
+              "Profile picture must be 0.75 MB or less. This image is ${sizeInMbMobile.toStringAsFixed(2)} MB after compression.",
             ),
             duration: Duration(milliseconds: 1500),
           ),
@@ -271,11 +329,10 @@ class UserDataManager {
     try {
       if (kIsWeb) {
         // Web
-        base64String = base64Encode(imageInBytes!);
+        base64String = base64Encode(await webCompressIfNeed(imageInBytes!));
       } else {
-        // Mobile: Convert file into bytes and then to base64
-        final bytes = await file!.readAsBytes();
-        base64String = base64Encode(bytes);
+        // Mobile
+        base64String = base64Encode(await mobileCompressIfNeed(file!));
       }
       // Save Base64 string in Firestore
       final uid = FirebaseAuth.instance.currentUser!.uid;
