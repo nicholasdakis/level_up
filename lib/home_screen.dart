@@ -5,6 +5,7 @@ import 'package:level_up/utility/confetti.dart';
 import 'screens/calorie_calculator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
+import 'screens/settings_buttons/settings_icon_button.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
@@ -144,22 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ), // Prevent the icon from cutting in half
           elevation: 0,
           actions: [
-            // automatically aligns the icon into the top right of the screen
-            Padding(
-              padding: EdgeInsets.only(
-                top: Responsive.height(context, 20),
-                right: Responsive.width(context, 20),
-              ),
-              child: Builder(
-                // Wrapped in Builder so Scaffold.of() succeeds
-                builder: (context) => IconButton(
-                  icon: Icon(
-                    Icons.settings,
-                    size: Responsive.font(context, 64),
-                    color: Colors.white,
-                  ),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
+            Builder(
+              // Wrapped in Builder so Scaffold.of succeeds
+              builder: (context) => SettingsIconButton(
+                onTap: () => Scaffold.of(context).openDrawer(),
               ),
             ),
           ],
@@ -211,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  "App version: Beta 02.27",
+                                  "App version: Beta 03.02",
                                   style: TextStyle(
                                     color: darkenColor(
                                       appColorNotifier.value,

@@ -502,3 +502,6 @@ Developmental progress by date is stored in this file.
 ## 2026-02-28
 - Removed unnecessary comments
 - Continued replacing fixed-size widgets with their responsive versions
+
+##2026-03-02
+- Created settings_icon_button.dart and redesigned the settings icon as it looked strange before
