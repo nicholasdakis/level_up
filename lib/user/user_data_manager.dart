@@ -396,6 +396,13 @@ class UserDataManager {
         appColor: currentUserData!.appColor,
         foodDataByDate: currentUserData!.foodDataByDate,
       );
+      // Confirmation snackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Profile picture successfully updated."),
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
     } catch (e) {
