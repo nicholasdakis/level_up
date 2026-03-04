@@ -5,8 +5,18 @@ import 'dart:io';
 // ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 
-/// Helper class to crop images on Web, Android, iOS
+// Helper class to crop images on Web, Android, iOS
 class ImageCropHelper {
+  // Returns true if running on a mobile web browser (iOS/Android browser)
+  // Treated separately to web as to not pass customDialogBuilder for this case
+  static bool get _isMobileWeb {
+    if (!kIsWeb) return false;
+    final userAgent = html.window.navigator.userAgent.toLowerCase();
+    return userAgent.contains('iphone') ||
+        userAgent.contains('ipad') ||
+        userAgent.contains('android');
+  }
+
   /// Crop the image. Returns a [CroppedFile]
   static Future<CroppedFile?> cropPicture({
     Uint8List? webBytes,
@@ -20,22 +30,52 @@ class ImageCropHelper {
       final blob = html.Blob([webBytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
 
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: url,
-        uiSettings: [
-          WebUiSettings(
-            context: context,
-            customDialogBuilder: (cropper, initCropper, crop, rotate, scale) {
-              // CroppedDialog is only setup for Web (mobile uses native cropping screen)
-              return _CropperDialog(
-                cropper: cropper,
-                initCropper: initCropper,
-                crop: crop,
-              );
-            },
-          ),
-        ],
-      );
+      CroppedFile? croppedFile;
+
+      if (_isMobileWeb) {
+        // On mobile browsers, skip customDialogBuilder — it doesn't render correctly.
+        // Use WebUiSettings directly with aspect ratio lock instead.
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: url,
+          uiSettings: [
+            WebUiSettings(
+              context: context,
+              presentStyle: WebPresentStyle.dialog,
+              size: const CropperSize(width: 360, height: 520),
+              viewwMode:
+                  WebViewMode.mode_1, // restricts crop box to image bounds
+              dragMode: WebDragMode.crop, // drag moves crop box, not image
+              initialAspectRatio: 1, // start as square
+              cropBoxResizable: false, // lock aspect ratio
+              checkCrossOrigin: false,
+            ),
+          ],
+        );
+      } else {
+        // Desktop web — custom dialog works fine
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: url,
+          uiSettings: [
+            WebUiSettings(
+              context: context,
+              presentStyle: WebPresentStyle.dialog,
+              viewwMode: WebViewMode.mode_1,
+              dragMode: WebDragMode.crop,
+              initialAspectRatio: 1, // start as square
+              cropBoxResizable: false, // lock aspect ratio
+              checkCrossOrigin: false,
+              customDialogBuilder: (cropper, initCropper, crop, rotate, scale) {
+                // CroppedDialog is only setup for Web (mobile uses native cropping screen)
+                return _CropperDialog(
+                  cropper: cropper,
+                  initCropper: initCropper,
+                  crop: crop,
+                );
+              },
+            ),
+          ],
+        );
+      }
 
       // Clean up blob URL
       html.Url.revokeObjectUrl(url);
