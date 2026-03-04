@@ -519,3 +519,4 @@ Developmental progress by date is stored in this file.
 - Wrapped the web cropper UI in a StatefulWidget (_CropperDialog) so initCropper() is called in initState(), which is required by the package for cropperjs to initialize correctly
 - Added a cancel button and snackbar messages upon crop cancelling to prevent profile picture updating in this case
 - Added a check to see if the user is both on web AND mobile for the image crop handler class to fix UI issues that made cropping not work (now skips customDialogBuilder if on mobile web)
+- Added resizing on mobile web because cropping would only work on specific images that were small enough. Did this in an attempt to prevent cropper js from not working with larger images.

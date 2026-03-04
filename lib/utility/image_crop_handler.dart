@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
+import '../utility/responsive.dart';
 import 'dart:io';
+import 'dart:ui' as ui;
 // ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 
@@ -17,6 +19,43 @@ class ImageCropHelper {
         userAgent.contains('android');
   }
 
+  // Resizes image bytes so the longest side is at most [maxDimension] pixels.
+  // Prevents cropperjs from not working on large phone photos (e.g. 3-4mb+) on iOS Safari.
+  static Future<Uint8List> _resizeIfNeeded(
+    Uint8List bytes, {
+    int maxDimension = 1500,
+  }) async {
+    // First decode at full size to get intrinsic dimensions
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    final image = frame.image;
+
+    final w = image.width;
+    final h = image.height;
+    image.dispose();
+    codec.dispose();
+
+    // Only resize if actually needed
+    if (w <= maxDimension && h <= maxDimension) return bytes;
+
+    // Scale down preserving aspect ratio
+    final isWide = w > h;
+    final resizedCodec = await ui.instantiateImageCodec(
+      bytes,
+      targetWidth: isWide ? maxDimension : null,
+      targetHeight: isWide ? null : maxDimension,
+    );
+    final resizedFrame = await resizedCodec.getNextFrame();
+    final resizedImage = resizedFrame.image;
+    final byteData = await resizedImage.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+    resizedImage.dispose();
+    resizedCodec.dispose();
+
+    return byteData!.buffer.asUint8List();
+  }
+
   /// Crop the image. Returns a [CroppedFile]
   static Future<CroppedFile?> cropPicture({
     Uint8List? webBytes,
@@ -26,8 +65,11 @@ class ImageCropHelper {
     if (kIsWeb) {
       if (webBytes == null) return null;
 
+      // Resize before cropping to prevent cropperjs from not working with large images
+      final resized = await _resizeIfNeeded(webBytes);
+
       // Create a blob URL so cropperjs can load the image
-      final blob = html.Blob([webBytes]);
+      final blob = html.Blob([resized]);
       final url = html.Url.createObjectUrlFromBlob(blob);
 
       CroppedFile? croppedFile;
@@ -41,7 +83,10 @@ class ImageCropHelper {
             WebUiSettings(
               context: context,
               presentStyle: WebPresentStyle.page,
-              size: const CropperSize(width: 360, height: 520),
+              size: CropperSize(
+                width: Responsive.width(context, 400).toInt(),
+                height: Responsive.height(context, 600).toInt(),
+              ),
               viewwMode:
                   WebViewMode.mode_1, // restricts crop box to image bounds
               dragMode: WebDragMode.crop, // drag moves crop box, not image
@@ -141,12 +186,12 @@ class _CropperDialogState extends State<_CropperDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // AlertDialog for web version (mobile uses native cropping)
+    // AlertDialog for web version (mobile uses native cropping screen)
     return AlertDialog(
       backgroundColor: Colors.black,
       content: Container(
-        width: 500,
-        height: 500,
+        width: Responsive.width(context, 500),
+        height: Responsive.height(context, 500),
         color: Colors.black,
         child: widget.cropper,
       ),
