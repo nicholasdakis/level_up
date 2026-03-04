@@ -23,7 +23,7 @@ class ImageCropHelper {
   // Prevents cropperjs from not working on large phone photos (e.g. 3-4mb+) on iOS Safari.
   static Future<Uint8List> _resizeIfNeeded(
     Uint8List bytes, {
-    int maxDimension = 1500,
+    int maxDimension = 500,
   }) async {
     // First decode at full size to get intrinsic dimensions
     final codec = await ui.instantiateImageCodec(bytes);

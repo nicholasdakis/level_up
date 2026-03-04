@@ -302,11 +302,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                           child: SizedBox(
                             height: Responsive.height(context, 100),
                             child: Text(
-                              "Please wait for confirmation that your profile picture has been updated before exiting this screen.",
+                              "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 15),
-                                color: Colors.white,
+                                fontSize: Responsive.font(context, 12),
+                                color: darkenColor(appColorNotifier.value, 0.6),
                                 shadows: [
                                   Shadow(
                                     offset: Offset(4, 4),
