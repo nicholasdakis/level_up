@@ -40,7 +40,7 @@ class ImageCropHelper {
           uiSettings: [
             WebUiSettings(
               context: context,
-              presentStyle: WebPresentStyle.dialog,
+              presentStyle: WebPresentStyle.page,
               size: const CropperSize(width: 360, height: 520),
               viewwMode:
                   WebViewMode.mode_1, // restricts crop box to image bounds
