@@ -8,7 +8,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import 'user_data.dart';
 import 'reminder_data.dart';
+import '../utility/responsive.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_cropper/image_cropper.dart';
+import '../utility/image_crop_handler.dart';
 
 class UserDataManager {
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
@@ -216,7 +219,7 @@ class UserDataManager {
     // Compress
     var result = await FlutterImageCompress.compressWithList(
       image,
-      quality: 55,
+      quality: 70,
     );
     return result;
   }
@@ -235,7 +238,7 @@ class UserDataManager {
     // Compress using FlutterImageCompress
     Uint8List? compressedBytes = await FlutterImageCompress.compressWithFile(
       file.absolute.path,
-      quality: 55,
+      quality: 70,
     );
 
     return compressedBytes!;
@@ -315,6 +318,46 @@ class UserDataManager {
     BuildContext? context, // for error snackbar
     Uint8List? imageInBytes, // web bytes
   }) async {
+    // Step 1: Crop first
+    if (kIsWeb) {
+      final cropped = await ImageCropHelper.cropPicture(
+        webBytes: imageInBytes,
+        context: context!,
+      );
+      // User cancelled
+      if (cropped == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture update cancelled."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return;
+      }
+      // Update the image to its cropped version
+      imageInBytes = await ImageCropHelper.getBytes(cropped);
+    } else {
+      // Mobile
+      final cropped = await ImageCropHelper.cropPicture(
+        mobileFile: file,
+        context: context!,
+      );
+      // User cancelled
+      if (cropped == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture update cancelled."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return;
+      }
+
+      // Update the file to its cropped version
+      file = File(cropped.path);
+    }
+
+    // Step 2: Check size and compress
     if (!await canUpdateProfilePicture(
       file,
       context,
@@ -334,7 +377,7 @@ class UserDataManager {
         // Mobile
         base64String = base64Encode(await mobileCompressIfNeed(file!));
       }
-      // Save Base64 string in Firestore
+      // Save Base64 string to Firestore
       final uid = FirebaseAuth.instance.currentUser!.uid;
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'pfpBase64': base64String,
@@ -356,14 +399,12 @@ class UserDataManager {
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
     } catch (e) {
-      if (context != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Profile picture update unsuccessful: $e"),
-            duration: Duration(milliseconds: 1500),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Profile picture update unsuccessful: $e"),
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
     }
   }
 

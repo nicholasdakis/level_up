@@ -92,6 +92,8 @@ dependencies:
 
   flutter_image_compress: ^2.4.0
 
+  image_cropper: ^11.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

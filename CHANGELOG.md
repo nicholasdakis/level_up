@@ -509,7 +509,12 @@ Developmental progress by date is stored in this file.
 - Made a buildThemeGradient method to make header and body colors more interesting
 - Did this by wrapping the Home Screen's entire contents in a Container with a gradient background, setting the body’s original backgroundColor to transparent, and applying a slightly transparent overlay to the header to maintain visual distinction
 
-## 2026-02-02
+## 2026-03-03
 - Fixed error snackbar for profile picture showing bytes instead of MB
 - Added compression methods for web and mobile to allow profile pictures with larger base file sizes
 - Web compression method directly takes the bytes, whereas mobile takes the File. This was done to not have to edit canUpdateProfilePicture() parameters
+- Added image_cropper package for profile picture cropping on web, Android, and iOS
+- Created image_crop_handler.dart as a utility class to isolate all cropping logic from UserDataManager
+- Used a blob URL on web to pass image bytes to cropperjs, as sourcePath cannot accept raw bytes directly
+- Wrapped the web cropper UI in a StatefulWidget (_CropperDialog) so initCropper() is called in initState(), which is required by the package for cropperjs to initialize correctly
+- Added a cancel button and snackbar messages upon crop cancelling to prevent profile picture updating in this case
