@@ -64,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Method for initializing the user's stats from Firestore
   Future<void> initializeUser() async {
     await userManager.loadUserData(); // load stats first
+    debugPrint('XP after load: ${currentUserData?.expPoints}');
 
     // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
     expNotifier.value = currentUserData?.expPoints ?? 0;
@@ -76,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .doc(currentUserData!.uid)
           .get();
       final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
+      debugPrint('canClaim from Firestore: $canClaim');
       // Only show the daily reward dialog after user data is loaded and mounted
       if (mounted && canClaim) {
         final dailyRewardDialog = DailyRewardDialog();
@@ -203,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 03.03",
+                                    "App version: Beta 03.08",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,

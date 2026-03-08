@@ -522,3 +522,12 @@ Developmental progress by date is stored in this file.
 - Added resizing on mobile web because cropping would only work on specific images that were small enough. Did this in an attempt to prevent cropper js from not working with larger images
 - Moved confirmation snackbar for profile picture updating into updateProfilePicture to prevent it from appearing upon cancelling cropping on web mobile
 - Removed the boolean check in pickProfileImage because that check is already done in updateProfilePicture()
+
+## 2026-03-07 - 2026-03-08
+- Attempted using FlutterKronos and NTP packages for server-side time -> did not work on Web
+- Switched to Firestore timestamps to handle reading and writing time so users cannot manipulate device time for daily rewards
+- Created serverTime collection to store Firestore timestamps
+- Edited Firestore Rules to allow writing to the serverTime collection
+- Fetched lastDailyClaim directly from Firestore instead of using local instance to prevent tampering
+- Added nextAllowedClaim variable that compares against the Firestore timestamp instead of using 23 hours after DateTime.now()
+- Each time loadUserData() or claimDailyReward() is ran, the serverTime collection's currentServerTime field gets overwritten with a fresh Firestore server timestamp, which is then compared against lastDailyClaim to determine if 23 hours have passed

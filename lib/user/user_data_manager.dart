@@ -60,15 +60,17 @@ class UserDataManager {
           foodDataByDate: {},
         );
       }
+
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
 
+      // NOTE: else statements are for newly-added fields to be compatible with existent users
+
       // if the user has a stored profile picture in Base64, load that profile picture
       if (doc.exists && doc.data()?['pfpBase64'] != null) {
         currentUserData?.pfpBase64 = doc.data()?['pfpBase64'];
-        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'pfpBase64': null,
@@ -78,7 +80,6 @@ class UserDataManager {
       // if the user has a stored level, load that level
       if (doc.exists && doc.data()?['level'] != null) {
         currentUserData?.level = doc.data()?['level'];
-        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'level': 1,
@@ -88,7 +89,6 @@ class UserDataManager {
       // if the user has stored expPoints, load them
       if (doc.exists && doc.data()?['expPoints'] != null) {
         currentUserData?.expPoints = doc.data()?['expPoints'];
-        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'expPoints': 0,
@@ -107,30 +107,9 @@ class UserDataManager {
         }, SetOptions(merge: true));
       }
 
-      // load the boolean for claiming the daily reward
-      final lastClaim = currentUserData?.lastDailyClaim;
-      final now = DateTime.now();
-      // Case 1: Can claim because 23+ hours passed, or the user has never claimed before
-      if (lastClaim == null ||
-          now.isAfter(lastClaim.add(Duration(hours: 23)))) {
-        // update locally
-        currentUserData?.canClaimDailyReward = true;
-        // update to firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'canClaimDailyReward': true,
-        }, SetOptions(merge: true));
-        // Case 2: <23 hours have passed, so cannot claim
-      } else {
-        currentUserData?.canClaimDailyReward = false;
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'canClaimDailyReward': false,
-        }, SetOptions(merge: true));
-      }
-
       // if the user has a stored username, load it
       if (doc.exists && doc.data()?['username'] != null) {
         currentUserData?.username = doc.data()?['username'];
-        // else statements are for newly-added fields to be compatible with existent users
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'username': uid,
@@ -180,7 +159,7 @@ class UserDataManager {
         currentUserData?.foodDataByDate = {};
       }
 
-      // Load the list of  reminders
+      // Load the list of reminders
       try {
         currentUserData?.reminders = await loadRemindersFromFirestore(
           currentUserData!.uid,
@@ -188,6 +167,42 @@ class UserDataManager {
       } catch (e) {
         debugPrint('Error loading reminders: $e');
         currentUserData?.reminders = [];
+      }
+
+      // Determine canClaimDailyReward using server timestamp only
+      final lastClaimTimestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
+      if (lastClaimTimestamp == null) {
+        currentUserData?.canClaimDailyReward = true;
+        // Write back to Firestore so HomeScreen reads the correct value
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'canClaimDailyReward': true,
+        }, SetOptions(merge: true));
+      } else {
+        await FirebaseFirestore.instance
+            .collection('serverTime')
+            .doc('now')
+            .set({
+              'currentServerTime': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+
+        final serverTimeSnap = await FirebaseFirestore.instance
+            .collection('serverTime')
+            .doc('now')
+            .get();
+        final serverTime = (serverTimeSnap.data()?['t'] as Timestamp)
+            .toDate()
+            .toUtc();
+
+        final lastClaim = lastClaimTimestamp.toDate().toUtc();
+
+        final canClaim = serverTime.isAfter(
+          lastClaim.add(const Duration(hours: 23)),
+        );
+        currentUserData?.canClaimDailyReward = canClaim;
+        // Write back to Firestore so HomeScreen reads the correct value
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'canClaimDailyReward': canClaim,
+        }, SetOptions(merge: true));
       }
     }
   }
@@ -452,31 +467,51 @@ class UserDataManager {
 
   // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CANCLAIMDAILYREWARD APPROPRIATELY
   Future<bool> claimDailyReward() async {
-    // Returns true if reward was successfully claimed, false otherwise
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    DateTime? lastClaim = currentUserData!.lastDailyClaim;
+    final userDocRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
-    // if allowed to claim
-    if (lastClaim == null ||
-        DateTime.now().isAfter(lastClaim.add(Duration(hours: 23)))) {
-      final now = DateTime.now();
+    // Get the current lastDailyClaim from Firestore
+    final doc = await userDocRef.get();
+    final lastClaimTimestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
 
-      // Update Firestore first
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'canClaimDailyReward': false,
-        'lastDailyClaim': Timestamp.fromDate(now),
+    // Check if 23 hours have passed since last claim
+    if (lastClaimTimestamp != null) {
+      final nextAllowedClaim = lastClaimTimestamp.toDate().toUtc().add(
+        const Duration(hours: 23),
+      );
+
+      // Fetch server timestamp by writing and reading back
+      await FirebaseFirestore.instance.collection('serverTime').doc('now').set({
+        'currentServerTime': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // Only after Firestore update, update local state
-      currentUserData!.canClaimDailyReward = false;
-      currentUserData!.lastDailyClaim = now;
+      final serverTimeSnap = await FirebaseFirestore.instance
+          .collection('serverTime')
+          .doc('now')
+          .get();
+      final serverTime = (serverTimeSnap.data()?['t'] as Timestamp)
+          .toDate()
+          .toUtc();
 
-      return true; // Successfully claimed
-    } else {
-      // Not enough time passed, cannot claim
-      currentUserData!.canClaimDailyReward = false;
-      return false;
+      if (serverTime.isBefore(nextAllowedClaim)) {
+        currentUserData!.canClaimDailyReward = false;
+        return false; // Not enough time has passed
+      }
     }
+
+    // Update Firestore first with server timestamp
+    await userDocRef.set({
+      'canClaimDailyReward': false,
+      'lastDailyClaim': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    // Update local state after Firestore write
+    final updatedDoc = await userDocRef.get();
+    currentUserData!.lastDailyClaim =
+        (updatedDoc.data()?['lastDailyClaim'] as Timestamp).toDate().toUtc();
+    currentUserData!.canClaimDailyReward = false;
+
+    return true; // Successfully claimed
   }
 
   // Method for checking if a username already exists on the server
