@@ -39,6 +39,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  late VoidCallback _appColorListener;
 
   @override
   // Load user data from Firestore
@@ -46,9 +47,10 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     initializeUser();
     // Update the HomeScreen with the updated app color
-    appColorNotifier.addListener(() {
+    _appColorListener = () {
       if (mounted) setState(() {});
-    });
+    };
+    appColorNotifier.addListener(_appColorListener);
     // Initialize confetti controllers
     confettiControllerinit();
   }
@@ -56,45 +58,56 @@ class _HomeScreenState extends State<HomeScreen> {
   // To prevent memory leaks
   @override
   void dispose() {
+    appColorNotifier.removeListener(_appColorListener);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  // Method for initializing the user's stats from Firestore
+  Future<void> promptUsernameDialog(BuildContext context) async {
+    final usernameController = TextEditingController();
+    try {
+      await showUsernameDialogBox(
+        context,
+        "Choose your username",
+        usernameController,
+      );
+    } finally {
+      usernameController.dispose();
+    }
+  }
+
+  Future<bool> canClaimDailyReward() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserData!.uid)
+        .get();
+    return doc.data()?['canClaimDailyReward'] ?? true;
+  }
+
+  void buildDailyRewardDialog() {
+    if (!mounted) return;
+    DailyRewardDialog().showDailyRewardDialog(
+      context,
+      dailyRewardConfettiController,
+    );
+  }
+
+  // Method for initializing the user upon app boot up
   Future<void> initializeUser() async {
-    await userManager.loadUserData(); // load stats first
-    debugPrint('XP after load: ${currentUserData?.expPoints}');
+    await userManager.loadUserData();
 
-    // Sync ValueNotifier with the loaded XP so the footer is accurate upon logging in
+    // Sync ValueNotifier with loaded XP amount for visually accurate Footer experience
     expNotifier.value = currentUserData?.expPoints ?? 0;
+    debugPrint('XP loaded: ${currentUserData?.expPoints}');
 
-    // Check if the Daily Reward Dialog Box should open
-    // Defer dialog until after the first frame
+    // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUserData!.uid)
-          .get();
-      final canClaim = doc.data()?['canClaimDailyReward'] ?? true;
-      debugPrint('canClaim from Firestore: $canClaim');
-      // Only show the daily reward dialog after user data is loaded and mounted
-      if (mounted && canClaim) {
-        final dailyRewardDialog = DailyRewardDialog();
-        dailyRewardDialog.showDailyRewardDialog(
-          context,
-          dailyRewardConfettiController,
-        );
-      }
+      if (await canClaimDailyReward()) buildDailyRewardDialog();
 
       // Give users without a username a dialog box to choose one
       if (currentUserData!.username == currentUserData!.uid) {
-        TextEditingController usernameController = TextEditingController();
-        await showUsernameDialogBox(
-          context,
-          "Choose your username",
-          usernameController,
-        );
+        await promptUsernameDialog(context);
       }
 
       if (mounted) setState(() {}); // rebuild UI with loaded stats

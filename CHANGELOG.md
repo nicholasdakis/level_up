@@ -531,3 +531,6 @@ Developmental progress by date is stored in this file.
 - Fetched lastDailyClaim directly from Firestore instead of using local instance to prevent tampering
 - Added nextAllowedClaim variable that compares against the Firestore timestamp instead of using 23 hours after DateTime.now()
 - Each time loadUserData() or claimDailyReward() is ran, the serverTime collection's currentServerTime field gets overwritten with a fresh Firestore server timestamp, which is then compared against lastDailyClaim to determine if 23 hours have passed
+- Refactored HomeScreen by moving initializeUser() components into sub-methods
+- Used a try finally block in the showUsernameDialog to ensure the controller is cleared to prevent memory leaks
+- Stored appColorNotifier's listener into a variable to dispose of it after use to prevent memory leaks

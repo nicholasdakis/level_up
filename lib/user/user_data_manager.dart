@@ -189,9 +189,10 @@ class UserDataManager {
             .collection('serverTime')
             .doc('now')
             .get();
-        final serverTime = (serverTimeSnap.data()?['t'] as Timestamp)
-            .toDate()
-            .toUtc();
+        final serverTime =
+            (serverTimeSnap.data()?['currentServerTime'] as Timestamp)
+                .toDate()
+                .toUtc();
 
         final lastClaim = lastClaimTimestamp.toDate().toUtc();
 
@@ -489,9 +490,10 @@ class UserDataManager {
           .collection('serverTime')
           .doc('now')
           .get();
-      final serverTime = (serverTimeSnap.data()?['t'] as Timestamp)
-          .toDate()
-          .toUtc();
+      final serverTime =
+          (serverTimeSnap.data()?['currentServerTime'] as Timestamp)
+              .toDate()
+              .toUtc();
 
       if (serverTime.isBefore(nextAllowedClaim)) {
         currentUserData!.canClaimDailyReward = false;
