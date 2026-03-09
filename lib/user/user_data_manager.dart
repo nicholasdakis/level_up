@@ -273,14 +273,9 @@ class UserDataManager {
     if (isWeb) {
       // Check the size of the web image bytes
       if (webBytes != null && webBytes.lengthInBytes > maxFileSize) {
-        int test = webBytes.lengthInBytes; // tbd
-        debugPrint('Before WEB: $test'); // tbd
 
         webBytes = await webCompressIfNeed(webBytes);
-
-        test = webBytes.lengthInBytes; // tbd
-        debugPrint('After WEB: $test'); // tbd
-
+        
         // If still too big:
         if (context != null && webBytes.lengthInBytes > maxFileSize) {
           double sizeInMbWeb = webBytes.lengthInBytes / (1024 * 1024);
@@ -301,14 +296,9 @@ class UserDataManager {
     // Handle Mobile (File check)
     if (file == null) return false; // safety check
 
-    int testbeforesize = file.lengthSync(); // tbd
-    debugPrint('Before MOBILE: $testbeforesize'); // tbd
-
     Uint8List fileBytes = await mobileCompressIfNeed(file);
 
     int fileSize = fileBytes.lengthInBytes;
-
-    debugPrint('After MOBILE: $fileSize'); // tbd
 
     if (fileSize > maxFileSize) {
       if (context != null) {

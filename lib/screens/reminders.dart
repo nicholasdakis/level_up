@@ -19,6 +19,13 @@ class Reminders extends StatefulWidget {
 }
 
 class _RemindersState extends State<Reminders> {
+  // Prevent memory leaks
+  @override
+  void dispose() {
+    remindersController.dispose();
+    super.dispose();
+  }
+
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
   final TextEditingController remindersController =

@@ -15,6 +15,13 @@ class CalorieCalculator extends StatefulWidget {
 }
 
 class _CalorieCalculatorState extends State<CalorieCalculator> {
+  // Prevent memory leaks
+  @override
+  void dispose() {
+    weightController.dispose();
+    super.dispose();
+  }
+
   // store information about the user to use in the calculations
   String? units =
       "MetricDefault"; // default value, but uses a different name so the user can still see "Choose your units" text

@@ -534,3 +534,6 @@ Developmental progress by date is stored in this file.
 - Refactored HomeScreen by moving initializeUser() components into sub-methods
 - Used a try finally block in the showUsernameDialog to ensure the controller is cleared to prevent memory leaks
 - Stored appColorNotifier's listener into a variable to dispose of it after use to prevent memory leaks
+
+## 2026-03-09
+- Added dispose() methods for controllers that did not already have them to prevent memory leaks
