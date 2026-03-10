@@ -4,6 +4,7 @@ import 'auth_services.dart';
 import 'dart:ui';
 import '../utility/responsive.dart';
 import '../screens/settings_buttons/personal_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -146,6 +147,32 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(
+                height: Responsive.padding(
+                  context,
+                  8,
+                ), // spacing between buttons and notifying message
+              ),
+              GestureDetector(
+                onTap: () async {
+                  try {
+                    await authService.value.signInWithGoogle();
+                    if (!mounted) return;
+                    setState(() {
+                      notifyingMessage = "Google login successful";
+                    });
+                  } catch (e) {
+                    if (!mounted) return;
+                    setState(() {
+                      notifyingMessage = "Google sign-in failed: $e";
+                    });
+                  }
+                },
+                child: SvgPicture.asset(
+                  "continue_with_google.svg",
+                  height: Responsive.buttonHeight(context, 60),
+                ),
               ),
               SizedBox(
                 height: Responsive.padding(

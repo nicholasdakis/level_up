@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
@@ -13,6 +15,16 @@ class AuthService {
 
   Future<void> signOut() async {
     await firebaseAuth.signOut();
+  }
+
+  Future<UserCredential?> signInWithGoogle() async {
+    GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+    if (kIsWeb) {
+      return await firebaseAuth.signInWithPopup(googleProvider);
+    } else {
+      return await firebaseAuth.signInWithProvider(googleProvider);
+    }
   }
 
   Future<UserCredential> signUpWithEmail({

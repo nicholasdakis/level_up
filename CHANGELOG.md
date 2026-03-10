@@ -537,3 +537,6 @@ Developmental progress by date is stored in this file.
 
 ## 2026-03-09
 - Added dispose() methods for controllers that did not already have them to prevent memory leaks
+- Created a signInWithGoogle() method
+- Added a Continue With Google button in Register or Login tab
+- Enabled Google sign-in on Firebase console
