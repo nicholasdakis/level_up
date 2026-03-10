@@ -170,7 +170,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   }
                 },
                 child: SvgPicture.asset(
-                  "continue_with_google.svg",
+                  "assets/continue_with_google.svg",
                   height: Responsive.buttonHeight(context, 60),
                 ),
               ),
