@@ -540,3 +540,4 @@ Developmental progress by date is stored in this file.
 - Created a signInWithGoogle() method
 - Added a Continue With Google button in Register or Login tab
 - Enabled Google sign-in on Firebase console
+- Fixed the request not going through by disabling Application Restrictions on Google Cloud

@@ -5,6 +5,7 @@ import 'dart:ui';
 import '../utility/responsive.dart';
 import '../screens/settings_buttons/personal_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -151,33 +152,77 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
               SizedBox(
                 height: Responsive.padding(
                   context,
-                  8,
+                  20,
                 ), // spacing between buttons and notifying message
               ),
-              GestureDetector(
-                onTap: () async {
-                  try {
-                    await authService.value.signInWithGoogle();
-                    if (!mounted) return;
-                    setState(() {
-                      notifyingMessage = "Google login successful";
-                    });
-                  } catch (e) {
-                    if (!mounted) return;
-                    setState(() {
-                      notifyingMessage = "Google sign-in failed: $e";
-                    });
-                  }
-                },
-                child: SvgPicture.asset(
-                  "assets/continue_with_google.svg",
-                  height: Responsive.buttonHeight(context, 60),
+              SizedBox(height: Responsive.padding(context, 10)),
+
+              // Divider section
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            right: Responsive.padding(context, 12),
+                          ),
+                          height: 1,
+                          color: Colors.white24,
+                        ),
+                      ),
+                      Text(
+                        "Other Options",
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            left: Responsive.padding(context, 12),
+                          ),
+                          height: 1,
+                          color: Colors.white24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.padding(context, 16)),
+                ],
+              ),
+
+              SizedBox(height: Responsive.padding(context, 8)),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: () async {
+                    try {
+                      await authService.value.signInWithGoogle();
+                      if (!mounted) return;
+                      setState(() {
+                        notifyingMessage = "Google login successful";
+                      });
+                    } catch (e) {
+                      if (!mounted) return;
+                      setState(() {
+                        notifyingMessage = "Google sign-in failed: $e";
+                      });
+                    }
+                  },
+                  child: SvgPicture.asset(
+                    "assets/continue_with_google.svg",
+                    height: Responsive.buttonHeight(context, 60),
+                  ),
                 ),
               ),
+
               SizedBox(
                 height: Responsive.padding(
                   context,
-                  8,
+                  20,
                 ), // spacing between buttons and notifying message
               ),
               Text(
