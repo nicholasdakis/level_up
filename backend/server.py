@@ -59,6 +59,12 @@ def get_access_token():
     except requests.RequestException as e:
         return None
 
+@app.route("/ping")
+def ping():
+    return jsonify({
+        "message": "Pinged."
+    }), 200
+
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
     if not token_manager.consume():
