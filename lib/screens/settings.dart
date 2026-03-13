@@ -66,14 +66,21 @@ Widget buildSettingsDrawer(
             title: Text(
               "Log Out",
               style: GoogleFonts.manrope(
-                fontSize: Responsive.font(
-                  context,
-                  18,
-                ), // for scaling responsively
+                fontSize: Responsive.font(context, 18),
                 color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(
+                      Responsive.scale(context, 4),
+                      Responsive.scale(context, 4),
+                    ),
+                    blurRadius: Responsive.scale(context, 10),
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ],
               ),
             ),
-            hoverColor: appColorNotifier.value.withAlpha(230),
+            hoverColor: Colors.white.withAlpha(50),
             onTap: () async {
               // Dialog box for confirming logout
               showDialog(

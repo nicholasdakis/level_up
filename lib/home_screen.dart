@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:level_up/utility/confetti.dart';
 import 'screens/calorie_calculator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:confetti/confetti.dart';
 import 'screens/settings_buttons/settings_icon_button.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
@@ -218,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 03.08",
+                                    "App version: Beta 03.12",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,

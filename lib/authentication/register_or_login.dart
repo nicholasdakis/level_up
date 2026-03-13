@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../globals.dart';
 import 'auth_services.dart';
-import 'dart:ui';
 import '../utility/responsive.dart';
-import '../screens/settings_buttons/personal_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -136,6 +134,19 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             setState(() {
                               notifyingMessage = "Login successful";
                             });
+                          } on FirebaseAuthException catch (e) {
+                            if (!mounted) return;
+
+                            if (e.code == 'invalid-credential') {
+                              setState(() {
+                                notifyingMessage =
+                                    "Login error: Invalid email or password. If your credentials are correct and your account has used 'Continue with Google' as a login method, 'Reset Password' will allow both login methods to work in the future. Alternatively, you can continue logging in using 'Continue with Login'.";
+                              });
+                            } else {
+                              setState(() {
+                                notifyingMessage = "Login error: $e";
+                              });
+                            }
                           } catch (e) {
                             if (!mounted) return;
                             setState(() {
@@ -193,10 +204,44 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   SizedBox(height: Responsive.padding(context, 16)),
                 ],
               ),
-
-              SizedBox(height: Responsive.padding(context, 8)),
+              // Reset password button
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () async {
+                    if (emailController.text.isEmpty) {
+                      setState(() {
+                        notifyingMessage =
+                            "Enter your email to reset password.";
+                      });
+                      return;
+                    }
+                    try {
+                      await authService.value.resetPassword(
+                        email: emailController.text.trim(),
+                      );
+                      setState(() {
+                        notifyingMessage =
+                            "Success: Password reset email sent to ${emailController.text.trim()}.";
+                      });
+                    } catch (e) {
+                      setState(() {
+                        notifyingMessage = "Error: $e";
+                      });
+                    }
+                  },
+                  child: Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: Responsive.font(context, 12),
+                    ),
+                  ),
+                ),
+              ),
+
+              Align(
+                alignment: Alignment.center,
                 child: GestureDetector(
                   onTap: () async {
                     try {
@@ -225,6 +270,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   20,
                 ), // spacing between buttons and notifying message
               ),
+
               Text(
                 // notify the user about any problems with registering / login
                 notifyingMessage ?? "",

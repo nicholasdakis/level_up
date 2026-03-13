@@ -541,3 +541,10 @@ Developmental progress by date is stored in this file.
 - Added a Continue With Google button in Register or Login tab
 - Enabled Google sign-in on Firebase console
 - Fixed the request not going through by disabling Application Restrictions on Google Cloud
+
+## 2026-03-12
+- Edited the signInWithGoogle method to force the Google account picker to appear (using setCustomParameters()) even when the user is already logged in to ensure the user logs in with the correct Google account
+- Added a "Reset Password" button to Register or Login screen
+- Removed unused imports
+- Realized that creating an account with email and password -> logging with via Google with that same email -> logging in with email and password caused a login error. This is fixed when the user resets their password, as Firestore links both their email / password and Google login as valid login methods. Added a specific notifyingMessage to explain this
+- Added shading to the "Log Out" button and made its hoverColor consistent with drawerItem() items
