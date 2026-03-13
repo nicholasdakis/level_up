@@ -226,106 +226,112 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   Widget build(BuildContext context) {
     double screenHeight = 1.sh;
     double screenWidth = 1.sw;
-    return Scaffold(
-      backgroundColor: appColorNotifier.value, // Body color
-      // Header box
-      appBar: AppBar(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ), // Header color
-        centerTitle: true,
-        toolbarHeight: Responsive.height(context, 60),
-        title: createTitle("Preferences", context),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Scrollbar(
-              thumbVisibility: true,
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(Responsive.height(context, 15)),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Button for choosing the app-theme color
-                        simpleCustomButton(
-                          "App Theme Color",
-                          48,
-                          160,
-                          750,
-                          context,
-                          baseColor: baseColor,
-                          onPressed: () {
-                            _showColorPicker();
-                          },
-                        ),
-                        // spacing
-                        SizedBox(height: Responsive.height(context, 20)),
-                        // Update pfp button
-                        simpleCustomButton(
-                          "Profile Picture",
-                          48,
-                          160,
-                          750,
-                          context,
-                          baseColor: baseColor,
-                          onPressed: _pickProfileImage,
-                        ),
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Body color
+        // Header box
+        appBar: AppBar(
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ), // Header color
+          centerTitle: true,
+          toolbarHeight: Responsive.height(context, 60),
+          title: createTitle("Preferences", context),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(Responsive.height(context, 15)),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Button for choosing the app-theme color
+                          simpleCustomButton(
+                            "App Theme Color",
+                            48,
+                            160,
+                            750,
+                            context,
+                            baseColor: baseColor,
+                            onPressed: () {
+                              _showColorPicker();
+                            },
+                          ),
+                          // spacing
+                          SizedBox(height: Responsive.height(context, 20)),
+                          // Update pfp button
+                          simpleCustomButton(
+                            "Profile Picture",
+                            48,
+                            160,
+                            750,
+                            context,
+                            baseColor: baseColor,
+                            onPressed: _pickProfileImage,
+                          ),
 
-                        // spacing
-                        SizedBox(height: Responsive.height(context, 20)),
+                          // spacing
+                          SizedBox(height: Responsive.height(context, 20)),
 
-                        // Update username button
-                        simpleCustomButton(
-                          "Username",
-                          48,
-                          160,
-                          750,
-                          context,
-                          baseColor: baseColor,
-                          onPressed: () {
-                            showUsernameDialogBox(
-                              context,
-                              "Update your username",
-                              usernameController,
-                            );
-                          },
-                        ),
-                        // spacing
-                        SizedBox(height: Responsive.height(context, 20)),
-                        // text under Username button informing user
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            height: Responsive.height(context, 100),
-                            child: Text(
-                              "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 12),
-                                color: darkenColor(appColorNotifier.value, 0.6),
-                                shadows: [
-                                  Shadow(
-                                    offset: Offset(4, 4),
-                                    blurRadius: 10,
-                                    color: const Color.fromARGB(255, 0, 0, 0),
+                          // Update username button
+                          simpleCustomButton(
+                            "Username",
+                            48,
+                            160,
+                            750,
+                            context,
+                            baseColor: baseColor,
+                            onPressed: () {
+                              showUsernameDialogBox(
+                                context,
+                                "Update your username",
+                                usernameController,
+                              );
+                            },
+                          ),
+                          // spacing
+                          SizedBox(height: Responsive.height(context, 20)),
+                          // text under Username button informing user
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              height: Responsive.height(context, 100),
+                              child: Text(
+                                "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 12),
+                                  color: darkenColor(
+                                    appColorNotifier.value,
+                                    0.6,
                                   ),
-                                ],
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(4, 4),
+                                      blurRadius: 10,
+                                      color: const Color.fromARGB(255, 0, 0, 0),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

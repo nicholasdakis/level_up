@@ -99,63 +99,35 @@ class _ResultsState extends State<Results> {
 
   String calculateGoal() {
     int userTDEE = calculateTDEE(bmr, calculateActivityLevel());
-    // Case 1: Goal is to maintian
+    // Case 1: Goal is to maintain
     if (widget.goal == "Maintain Weight") {
-      return "You must consume $userTDEE calories per day to maintain your weight.";
+      return "Consume $userTDEE calories per day to maintain your weight.";
     }
     StringBuffer sb = StringBuffer();
     // Case 2: Goal is to lose
     if (widget.goal == "Lose Weight") {
       if (widget.units == "Imperial") {
-        sb.write("• A healthy weight loss rate is 0.5-2 pounds per week.\n\n");
-        sb.write(
-          "• To lose 0.5 pounds per week, consume ${userTDEE - 250} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 1 pound per week, consume ${userTDEE - 500} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 1.5 pounds per week, consume ${userTDEE - 750} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 2 pounds per week, consume ${userTDEE - 1000} calories per day.",
-        );
+        sb.write("A healthy weight loss rate is 0.5–2 pounds per week.\n\n");
+        sb.write("• Lose 0.5 lbs/week → ${userTDEE - 250} cal/day\n");
+        sb.write("• Lose 1 lb/week → ${userTDEE - 500} cal/day\n");
+        sb.write("• Lose 1.5 lbs/week → ${userTDEE - 750} cal/day\n");
+        sb.write("• Lose 2 lbs/week → ${userTDEE - 1000} cal/day");
       } else {
-        sb.write(
-          "• A healthy weight loss rate is 0.23-0.9 kilograms per week.\n\n",
-        );
-        sb.write(
-          "• To lose 0.23 kilograms per week, consume ${userTDEE - 250} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 0.45 kilograms per week, consume ${userTDEE - 500} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 0.68 kilograms per week, consume ${userTDEE - 750} calories per day.\n\n",
-        );
-        sb.write(
-          "• To lose 0.9 kilograms per week, consume ${userTDEE - 1000} calories per day.",
-        );
+        sb.write("A healthy weight loss rate is 0.23–0.9 kg per week.\n\n");
+        sb.write("• Lose 0.23 kg/week → ${userTDEE - 250} cal/day\n");
+        sb.write("• Lose 0.45 kg/week → ${userTDEE - 500} cal/day\n");
+        sb.write("• Lose 0.68 kg/week → ${userTDEE - 750} cal/day\n");
+        sb.write("• Lose 0.9 kg/week → ${userTDEE - 1000} cal/day");
       }
       // Case 3: Goal is to gain
     } else if (widget.units == "Imperial" && widget.goal == "Gain Weight") {
-      sb.write("• A healthy weight gain rate is 0.5-1 pound per week.\n\n");
-      sb.write(
-        "• To gain 0.5 pounds per week, consume ${userTDEE + 250} calories per day.\n\n",
-      );
-      sb.write(
-        "• To gain 1 pound per week, consume ${userTDEE + 500} calories per day.",
-      );
+      sb.write("A healthy weight gain rate is 0.5–1 pound per week.\n\n");
+      sb.write("• Gain 0.5 lbs/week → ${userTDEE + 250} cal/day\n");
+      sb.write("• Gain 1 lb/week → ${userTDEE + 500} cal/day");
     } else {
-      sb.write(
-        "• A healthy weight gain rate is 0.23-0.45 kilograms per week.\n\n",
-      );
-      sb.write(
-        "• To gain 0.23 kilograms per week, consume ${userTDEE + 250} calories per day.\n\n",
-      );
-      sb.write(
-        "• To gain 0.45 kilograms per week, consume ${userTDEE + 500} calories per day.",
-      );
+      sb.write("A healthy weight gain rate is 0.23–0.45 kg per week.\n\n");
+      sb.write("• Gain 0.23 kg/week → ${userTDEE + 250} cal/day\n");
+      sb.write("• Gain 0.45 kg/week → ${userTDEE + 500} cal/day");
     }
     return sb.toString();
   }
@@ -180,190 +152,197 @@ class _ResultsState extends State<Results> {
     return (double.parse(userBMR) * activityLvl).round();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(
-      context,
-    ).size.height; // Make widgets the size of the user's personal screen size
-    double screenWidth = MediaQuery.of(
-      context,
-    ).size.width; // Make widgets the size of the user's personal screen size
-    return Scaffold(
-      backgroundColor: appColorNotifier.value, // Body color
-      // Header box
-      appBar: AppBar(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ), // Header color
-        scrolledUnderElevation:
-            0, // So the appBar does not change color when the user scrolls down
-        centerTitle: true,
-        toolbarHeight: Responsive.buttonHeight(context, 120),
-        title: Text(
-          "Results",
-          style: GoogleFonts.dangrek(
-            fontSize: Responsive.font(context, 40),
+  Widget sectionTitle(String text, BuildContext context, {Color? color}) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: Responsive.height(context, 20),
+        bottom: Responsive.height(context, 8),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.dangrek(
+          fontSize: Responsive.font(context, 28),
+          color: color ?? Colors.white,
+          shadows: [
+            Shadow(
+              offset: Offset(
+                Responsive.scale(context, 2),
+                Responsive.scale(context, 2),
+              ),
+              blurRadius: Responsive.scale(context, 6),
+              color: Colors.black,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget resultCard(String text, BuildContext context) {
+    return Card(
+      elevation: Responsive.scale(context, 4),
+      color: darkenColor(appColorNotifier.value, 0.025),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(Responsive.width(context, 16)),
+        child: Text(
+          text,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 18),
             color: Colors.white,
+            height: 1.6, // line spacing for readability
             shadows: [
               Shadow(
                 offset: Offset(
-                  Responsive.width(context, 10),
-                  Responsive.height(context, 10),
+                  Responsive.scale(context, 2),
+                  Responsive.scale(context, 2),
                 ),
-                blurRadius: Responsive.width(context, 20),
-                color: const Color.fromARGB(255, 0, 0, 0),
+                blurRadius: Responsive.scale(context, 6),
+                color: Colors.black,
               ),
             ],
           ),
         ),
       ),
-      body: Scrollbar(
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(Responsive.width(context, 20)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                textWithFont(
-                  "About BMR",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                ),
-                textWithCard(
-                  widget.equation == "Mifflin-St Jeor"
-                      ? """• The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • This formula is a revised version of the Harris-Benedict equation."""
-                      : """• The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR), the minimum number of calories your body needs to undergo essential roles for survival.\n\n • Examples include breathing, cell repair, and blood circulation.\n\n • The original formula was revised in 1984 by Roza and Shizgal to show more accurate results.""",
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "Male BMR:",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                  color: const Color.fromARGB(255, 5, 71, 142),
-                ),
-                textWithCard(
-                  widget.equation == "Mifflin-St Jeor"
-                      ? widget.units == "MetricDefault" ||
-                                widget.units == "Metric"
-                            ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n + 5" //correct Mifflin and Metric
-                            : "([10 / 2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n + 5" //correct Mifflin and Imperial
-                      : widget.units == "MetricDefault" ||
-                            widget.units ==
-                                "Metric" // Harris and Metric
-                      ? "(13.397 x weight (kg))\n + (4.799 x height (cm))\n - (5.677 x age (years))\n + 88.362" //correct Harris and Metric
-                      : "([13.397 / 2.205] x weight (lbs))\n + ([4.799 x 2.54] x height (inches))\n - (5.677 x age (years))\n + 88.362", //correct Harris and Imperial
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "Female BMR:",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                  color: const Color.fromARGB(255, 210, 4, 138),
-                ),
-                textWithCard(
-                  widget.equation == "Mifflin-St Jeor"
-                      ? widget.units == "MetricDefault" ||
-                                widget.units == "Metric"
-                            ? "(10 x weight (kg))\n + (6.25 x height (cm))\n - (5 x age (years))\n - 161" //correct Mifflin and Metric
-                            : "([10 / 2.205] × weight (lbs)) + ([6.25 x 2.54] × height (inches)) – (5 × age (years))\n - 161" //correct Mifflin and Imperial
-                      : widget.units == "MetricDefault" ||
-                            widget.units ==
-                                "Metric" // Harris and Metric
-                      ? "(9.247 x weight (kg))\n + (3.098 x height (cm))\n - (4.330 x age (years))\n + 447.593" //correct Harris and Metric
-                      : "([9.247 / 2.205] x weight (lbs))\n + ([3.098 x 2.54]\n x height (inches))\n - (4.330 x age (years))\n + 447.593", //correct Harris and Imperial
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "About TDEE",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                ),
-                textWithCard(
-                  "• The amount of calories you burn in a day is known as your Total Daily Energy Expenditure (TDEE).\n\n• Consuming this amount of calories will cause your weight to maintain itself.\n\n TDEE = BMR x Activity Level",
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "Activity Level",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                ),
-                textWithCard(
-                  "• Sedentary = 1.2\n• Light = 1.375\n• Moderate = 1.55\n• Active = 1.725\n• Very Active = 1.9",
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "Your BMR",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                  color: Colors.redAccent,
-                ),
-                textWithCard(
-                  widget.equation ==
-                          "Mifflin-St Jeor" // MIFFLIN
-                      ? widget.units == "MetricDefault" ||
-                                widget.units ==
-                                    "Metric" // Mifflin and Metric
-                            ? widget.sex ==
-                                      "Female" // Female and Metric and Mifflin
-                                  ? "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n - 161\n = $bmr is your BMR." // Female and Metric and Mifflin
-                                  : "(10 x ${widget.weight})\n + (6.25 x ${widget.heightCm})\n - (5 x ${widget.age})\n + 5\n = $bmr is your BMR." // Male and Metric and Mifflin
-                            : widget.sex ==
-                                  "Female" // Female and Imperial and Mifflin
-                            ? "(4.35 x ${widget.weight})\n + (4.7 x ${widget.heightInches})\n - (4.7 x ${widget.age}\n + 655)\n= $bmr is your BMR." // Female and Imperial and Mifflin
-                            : "(6.23 x ${widget.weight})\n + (12.7 x ${widget.heightInches})\n - (6.8 x ${widget.age}\n + 66)\n= $bmr is your BMR." // Male and Imperial and Mifflin
-                      // HARRIS CASES
-                      : widget.units == "MetricDefault" ||
-                            widget.units ==
-                                "Metric" // Harris and Metric
-                      ? widget.sex ==
-                                "Female" // Female and Metric and Harris
-                            ? "(9.247 x ${widget.weight} (kg))\n + (3.098 x ${widget.heightCm} (cm))\n - (4.330 x ${widget.age} (years))\n + 447.593\n = $bmr is your BMR." // Female and Metric and Harris
-                            : "(13.397 x ${widget.weight} (kg))\n + (4.799 x ${widget.heightCm} (cm))\n - (5.677 x ${widget.age} (years))\n + 88.362\n = $bmr is your BMR." //Male and Metric and Harris
-                      : widget.sex ==
-                            "Female" // Female and Imperial and Mifflin
-                      ? "(4.35 x ${widget.weight} (lbs))\n + (4.7 x ${widget.heightInches} (inches))\n - (4.7 x ${widget.age} (years))\n + 655.095\n = $bmr is your BMR." // Female and Imperial and Harris
-                      : "(6.23 x ${widget.weight} (lbs))\n + (12.7 x ${widget.heightInches} (inches))\n - (6.8 x ${widget.age} (years))\n + 66.473\n = $bmr is your BMR.", // Male and Imperial and Harris
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "Your TDEE",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                  color: Colors.redAccent,
-                ),
-                textWithCard(
-                  "$bmr x ${calculateActivityLevel()} = ${calculateTDEE(bmr, calculateActivityLevel())} is your TDEE.",
-                  context,
-                  Responsive.font(context, 20),
-                ),
-                textWithFont(
-                  "How to ${widget.goal}",
-                  context,
-                  Responsive.font(context, 30),
-                  decoration: TextDecoration.underline,
-                  color: Colors.redAccent,
-                ),
-                textWithCard(
-                  calculateGoal(),
-                  context,
-                  Responsive.font(context, 20),
-                ),
-              ],
+    );
+  }
+
+  // Divider between user and educational section
+  Widget sectionDivider(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 10)),
+      child: Divider(
+        color: Colors.white.withAlpha(40),
+        thickness: Responsive.scale(context, 1),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Body color
+        // Header box
+        appBar: AppBar(
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ), // Header color
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          toolbarHeight: Responsive.buttonHeight(context, 120),
+          title: createTitle("Results", context),
+        ),
+        body: Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(Responsive.width(context, 20)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // User results first
+                  sectionTitle("Your BMR", context, color: Colors.redAccent),
+                  resultCard(
+                    widget.equation == "Mifflin-St Jeor"
+                        ? widget.units == "MetricDefault" ||
+                                  widget.units == "Metric"
+                              ? widget.sex == "Female"
+                                    ? "(10 × ${widget.weight}) + (6.25 × ${widget.heightCm}) − (5 × ${widget.age}) − 161 = $bmr" // Female Metric Mifflin
+                                    : "(10 × ${widget.weight}) + (6.25 × ${widget.heightCm}) − (5 × ${widget.age}) + 5 = $bmr" // Male Metric Mifflin
+                              : widget.sex == "Female"
+                              ? "(4.35 × ${widget.weight}) + (4.7 × ${widget.heightInches}) − (4.7 × ${widget.age} + 655) = $bmr" // Female Imperial Mifflin
+                              : "(6.23 × ${widget.weight}) + (12.7 × ${widget.heightInches}) − (6.8 × ${widget.age} + 66) = $bmr" // Male Imperial Mifflin
+                        : widget.units == "MetricDefault" ||
+                              widget.units == "Metric"
+                        ? widget.sex == "Female"
+                              ? "(9.247 × ${widget.weight}) + (3.098 × ${widget.heightCm}) − (4.330 × ${widget.age}) + 447.593 = $bmr" // Female Metric Harris
+                              : "(13.397 × ${widget.weight}) + (4.799 × ${widget.heightCm}) − (5.677 × ${widget.age}) + 88.362 = $bmr" // Male Metric Harris
+                        : widget.sex == "Female"
+                        ? "(4.35 × ${widget.weight}) + (4.7 × ${widget.heightInches}) − (4.7 × ${widget.age}) + 655.095 = $bmr" // Female Imperial Harris
+                        : "(6.23 × ${widget.weight}) + (12.7 × ${widget.heightInches}) − (6.8 × ${widget.age}) + 66.473 = $bmr", // Male Imperial Harris
+                    context,
+                  ),
+
+                  sectionTitle("Your TDEE", context, color: Colors.redAccent),
+                  resultCard(
+                    "$bmr × ${calculateActivityLevel()} = ${calculateTDEE(bmr, calculateActivityLevel())} calories/day",
+                    context,
+                  ),
+
+                  sectionTitle(
+                    "How to ${widget.goal}",
+                    context,
+                    color: Colors.redAccent,
+                  ),
+                  resultCard(calculateGoal(), context),
+
+                  sectionDivider(context),
+
+                  // Educational section
+                  sectionTitle("What is BMR?", context),
+                  resultCard(
+                    widget.equation == "Mifflin-St Jeor"
+                        ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) — the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
+                        : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) — the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
+                    context,
+                  ),
+
+                  sectionTitle(
+                    "Male BMR Formula",
+                    context,
+                    color: const Color.fromARGB(255, 5, 71, 142),
+                  ),
+                  resultCard(
+                    widget.equation == "Mifflin-St Jeor"
+                        ? widget.units == "MetricDefault" ||
+                                  widget.units == "Metric"
+                              ? "(10 × weight kg) + (6.25 × height cm) − (5 × age) + 5" // Mifflin Metric
+                              : "([10 / 2.205] × weight lbs) + ([6.25 × 2.54] × height in) − (5 × age) + 5" // Mifflin Imperial
+                        : widget.units == "MetricDefault" ||
+                              widget.units == "Metric"
+                        ? "(13.397 × weight kg) + (4.799 × height cm) − (5.677 × age) + 88.362" // Harris Metric
+                        : "([13.397 / 2.205] × weight lbs) + ([4.799 × 2.54] × height in) − (5.677 × age) + 88.362", // Harris Imperial
+                    context,
+                  ),
+
+                  sectionTitle(
+                    "Female BMR Formula",
+                    context,
+                    color: const Color.fromARGB(255, 210, 4, 138),
+                  ),
+                  resultCard(
+                    widget.equation == "Mifflin-St Jeor"
+                        ? widget.units == "MetricDefault" ||
+                                  widget.units == "Metric"
+                              ? "(10 × weight kg) + (6.25 × height cm) − (5 × age) − 161" // Mifflin Metric
+                              : "([10 / 2.205] × weight lbs) + ([6.25 × 2.54] × height in) − (5 × age) − 161" // Mifflin Imperial
+                        : widget.units == "MetricDefault" ||
+                              widget.units == "Metric"
+                        ? "(9.247 × weight kg) + (3.098 × height cm) − (4.330 × age) + 447.593" // Harris Metric
+                        : "([9.247 / 2.205] × weight lbs) + ([3.098 × 2.54] × height in) − (4.330 × age) + 447.593", // Harris Imperial
+                    context,
+                  ),
+
+                  sectionTitle("What is TDEE?", context),
+                  resultCard(
+                    "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
+                    context,
+                  ),
+
+                  sectionTitle("Activity Level Multipliers", context),
+                  resultCard(
+                    "• Sedentary = 1.2\n• Light = 1.375\n• Moderate = 1.55\n• Active = 1.725\n• Very Active = 1.9",
+                    context,
+                  ),
+
+                  SizedBox(height: Responsive.height(context, 30)),
+                ],
+              ),
             ),
           ),
         ),

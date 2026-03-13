@@ -550,3 +550,6 @@ Developmental progress by date is stored in this file.
 - Added shading to the "Log Out" button and made its hoverColor consistent with drawerItem() items
 - Removed backgroundColor attribute from App Theme Color snackbar so it shows the correct snackbar theme color
 - Wrapped main.dart in ValueListenableBuilder so the entire theme rebuilds whenever the user changes their color instead of only rebuilding individual widgets
+- Softened gradient colors
+- Added gradient colors to all other screens
+- Overhauled Calorie Calculator UI by wrapping buttons in a Container with a matching bottom border and replacing hardcoded pixels with responsive variants

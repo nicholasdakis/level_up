@@ -68,132 +68,135 @@ class _LeaderboardState extends State<Leaderboard> {
     // Get current user's UID to highlight their row
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-    return Scaffold(
-      backgroundColor: appColorNotifier.value, // Body color
-      // Header box
-      appBar: AppBar(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ), // Header color
-        centerTitle: true,
-        title: createTitle("Leaderboard", context),
-        scrolledUnderElevation:
-            0, // So the appBar does not change color when the user scrolls down
-      ),
-      body: users.isEmpty
-          ? const Center(
-              child:
-                  CircularProgressIndicator(), // Wait until the users are loaded
-            )
-          : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .orderBy('level', descending: true)
-                  .orderBy('expPoints', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  ); // wait for stream
-                }
-
-                // Map Firestore docs into a local users list
-                final leaderboardUsers = snapshot.data!.docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  data['uid'] = doc.id;
-                  if (data['pfpBase64'] != null) {
-                    data['pfpBytes'] = base64Decode(data['pfpBase64']);
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Body color
+        // Header box
+        appBar: AppBar(
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ), // Header color
+          centerTitle: true,
+          title: createTitle("Leaderboard", context),
+          scrolledUnderElevation:
+              0, // So the appBar does not change color when the user scrolls down
+        ),
+        body: users.isEmpty
+            ? const Center(
+                child:
+                    CircularProgressIndicator(), // Wait until the users are loaded
+              )
+            : StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .orderBy('level', descending: true)
+                    .orderBy('expPoints', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    ); // wait for stream
                   }
-                  return data;
-                }).toList();
 
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-                  itemCount: leaderboardUsers.length,
-                  itemBuilder: (context, i) {
-                    final user = leaderboardUsers[i];
-                    final isCurrentUser = user['uid'] == currentUserId;
-                    final level = user['level'] ?? 1;
+                  // Map Firestore docs into a local users list
+                  final leaderboardUsers = snapshot.data!.docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    data['uid'] = doc.id;
+                    if (data['pfpBase64'] != null) {
+                      data['pfpBytes'] = base64Decode(data['pfpBase64']);
+                    }
+                    return data;
+                  }).toList();
 
-                    return Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: screenWidth * 0.02,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isCurrentUser
-                              ? Colors.white.withAlpha(
-                                  16,
-                                ) // tint to emphasize the user's profile
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
+                    itemCount: leaderboardUsers.length,
+                    itemBuilder: (context, i) {
+                      final user = leaderboardUsers[i];
+                      final isCurrentUser = user['uid'] == currentUserId;
+                      final level = user['level'] ?? 1;
+
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: screenWidth * 0.02,
                         ),
-                        child: Row(
-                          children: [
-                            SizedBox(width: screenWidth * 0.025),
-                            Text(
-                              "#${i + 1}",
-                              style: TextStyle(
-                                color: i == 0
-                                    ? Colors
-                                          .yellow // #1 Gets yellow text
-                                    : i == 1
-                                    ? Colors
-                                          .grey // #2 Gets grey text
-                                    : i ==
-                                          2 // #3 Gets bronze text
-                                    ? const Color(0xFFCD7F32)
-                                    // All other users receive white text
-                                    : Colors.white,
-                                fontSize: 18,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isCurrentUser
+                                ? Colors.white.withAlpha(
+                                    16,
+                                  ) // tint to emphasize the user's profile
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(width: screenWidth * 0.025),
+                              Text(
+                                "#${i + 1}",
+                                style: TextStyle(
+                                  color: i == 0
+                                      ? Colors
+                                            .yellow // #1 Gets yellow text
+                                      : i == 1
+                                      ? Colors
+                                            .grey // #2 Gets grey text
+                                      : i ==
+                                            2 // #3 Gets bronze text
+                                      ? const Color(0xFFCD7F32)
+                                      // All other users receive white text
+                                      : Colors.white,
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            // Load the user's profile picture if it exists
-                            user['pfpBytes'] != null
-                                ? Image.memory(
-                                    user['pfpBytes'],
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.cover,
-                                  )
-                                // Otherwise, load the default icon avatar
-                                : const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 40,
-                                  ),
-                            const SizedBox(width: 10),
-                            Text(
-                              // Only show the user's username if it exists and is not the default username (their UID)
-                              user['username'] != user['uid'] &&
-                                      user['username'] != null
-                                  ? user['username']
-                                  : 'Unnamed',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
+                              const SizedBox(width: 10),
+                              // Load the user's profile picture if it exists
+                              user['pfpBytes'] != null
+                                  ? Image.memory(
+                                      user['pfpBytes'],
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
+                                    )
+                                  // Otherwise, load the default icon avatar
+                                  : const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 40,
+                                    ),
+                              const SizedBox(width: 10),
+                              Text(
+                                // Only show the user's username if it exists and is not the default username (their UID)
+                                user['username'] != user['uid'] &&
+                                        user['username'] != null
+                                    ? user['username']
+                                    : 'Unnamed',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              "Level $level | ${user['expPoints'] ?? 0} / ${experienceNeededForLevel(level)}",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
+                              const Spacer(),
+                              Text(
+                                "Level $level | ${user['expPoints'] ?? 0} / ${experienceNeededForLevel(level)}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                          ],
+                              const SizedBox(width: 10),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                      );
+                    },
+                  );
+                },
+              ),
+      ),
     );
   }
 }

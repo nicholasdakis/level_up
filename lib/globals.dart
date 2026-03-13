@@ -418,8 +418,8 @@ void changeToScreen(
 
 Gradient buildThemeGradient() {
   final base = appColorNotifier.value;
-  final darkEdge = darkenColor(base, 0.03); // dark sides
-  final mid = lightenColor(base, 0.03); // center lighter
+  final darkEdge = darkenColor(base, 0.015); // dark sides
+  final mid = lightenColor(base, 0.015); // center lighter
 
   return LinearGradient(
     begin: Alignment.centerLeft,

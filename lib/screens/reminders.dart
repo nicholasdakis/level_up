@@ -274,268 +274,280 @@ class _RemindersState extends State<Reminders> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = 1.sh; // Screen height
-    double screenWidth = 1.sw; // Screen width
-
-    return Scaffold(
-      backgroundColor: appColorNotifier.value, // Body color
-      // Header box
-      appBar: AppBar(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ), // Header color
-        centerTitle: true,
-        toolbarHeight: Responsive.height(
-          context,
-          100,
-        ), // for scaling responsively
-        title: createTitle("Reminders", context),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            // Scrollable content
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(
-                  context,
-                  50,
-                ), // scaling responsively
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Note: Reminders only work on the Android version currently.",
-                  ),
-                  // Reminder text input field
-                  TextField(
-                    controller: remindersController,
-                    keyboardType: TextInputType.text,
-                    style: GoogleFonts.manrope(
-                      // Custom font
-                      fontSize: Responsive.font(
-                        context,
-                        18,
-                      ), // scaling responsively
-                      color: Colors.white,
-                      shadows: const [
-                        Shadow(
-                          // Text shadow
-                          offset: Offset(4, 4),
-                          blurRadius: 10,
-                          color: Colors.black,
-                        ),
-                      ],
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Body color
+        // Header box
+        appBar: AppBar(
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ), // Header color
+          centerTitle: true,
+          toolbarHeight: Responsive.height(
+            context,
+            100,
+          ), // for scaling responsively
+          title: createTitle("Reminders", context),
+        ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              // Scrollable content
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(
+                    context,
+                    50,
+                  ), // scaling responsively
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Note: Reminders only work on the Android version currently.",
                     ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: UnderlineInputBorder(
-                        // Enabled state border
-                        borderSide: BorderSide(
-                          color: Colors.grey,
-                          width: Responsive.width(context, 0.25), // scaling
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        // Focused state border
-                        borderSide: BorderSide(
-                          color: Colors.grey,
-                          width: Responsive.width(context, 0.25), // scaling
-                        ),
-                      ),
-                      hintText: "Enter a reminder.",
-                      contentPadding: EdgeInsets.only(
-                        top: Responsive.height(context, 10),
-                        left: Responsive.width(context, 25),
-                      ),
-                      hintStyle: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 30),
+                    // Reminder text input field
+                    TextField(
+                      controller: remindersController,
+                      keyboardType: TextInputType.text,
+                      style: GoogleFonts.manrope(
+                        // Custom font
+                        fontSize: Responsive.font(
+                          context,
+                          18,
+                        ), // scaling responsively
                         color: Colors.white,
                         shadows: const [
                           Shadow(
+                            // Text shadow
                             offset: Offset(4, 4),
                             blurRadius: 10,
                             color: Colors.black,
                           ),
                         ],
                       ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: UnderlineInputBorder(
+                          // Enabled state border
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: Responsive.width(context, 0.25), // scaling
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          // Focused state border
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: Responsive.width(context, 0.25), // scaling
+                          ),
+                        ),
+                        hintText: "Enter a reminder.",
+                        contentPadding: EdgeInsets.only(
+                          top: Responsive.height(context, 10),
+                          left: Responsive.width(context, 25),
+                        ),
+                        hintStyle: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 30),
+                          color: Colors.white,
+                          shadows: const [
+                            Shadow(
+                              offset: Offset(4, 4),
+                              blurRadius: 10,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                      onChanged: (value) =>
+                          reminder = value, // Update on text change
                     ),
-                    onChanged: (value) =>
-                        reminder = value, // Update on text change
-                  ),
-                  SizedBox(height: Responsive.height(context, 20)),
+                    SizedBox(height: Responsive.height(context, 20)),
 
-                  // Date/time picker button
-                  customButton(
-                    "Pick Reminder Time",
-                    48,
-                    160,
-                    750,
-                    context,
-                    destination: null,
-                    onPressed: () {
-                      // Show date/time picker modal
-                      showCupertinoModalPopup(
-                        context: context,
-                        builder: (_) => Align(
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            height: Responsive.height(context, 350),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color.fromARGB(128, 37, 37, 37),
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.width(context, 30),
+                    // Date/time picker button
+                    customButton(
+                      "Pick Reminder Time",
+                      48,
+                      160,
+                      750,
+                      context,
+                      destination: null,
+                      onPressed: () {
+                        // Show date/time picker modal
+                        showCupertinoModalPopup(
+                          context: context,
+                          builder: (_) => Align(
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              height: Responsive.height(context, 350),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color.fromARGB(128, 37, 37, 37),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.width(context, 30),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Expanded(child: buildDateTimePicker()),
+                                    CupertinoButton(
+                                      child: customButton(
+                                        // Confirm button
+                                        "Confirm",
+                                        40,
+                                        75,
+                                        300,
+                                        context,
+                                        destination: null,
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context); // Close picker
+                                        reminder = remindersController
+                                            .text; // Sync the text
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Column(
-                                children: [
-                                  Expanded(child: buildDateTimePicker()),
-                                  CupertinoButton(
-                                    child: customButton(
-                                      // Confirm button
-                                      "Confirm",
-                                      40,
-                                      75,
-                                      300,
-                                      context,
-                                      destination: null,
-                                      onPressed: () => Navigator.pop(context),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.pop(context); // Close picker
-                                      reminder = remindersController
-                                          .text; // Sync the text
-                                    },
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  // Set reminder button
-                  isLoading
-                      ? Center(
-                          child: SizedBox(
-                            height: Responsive.height(context, 20),
-                            width: Responsive.width(context, 20),
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : simpleCustomButton(
-                          "Set Reminder",
-                          48,
-                          160,
-                          750,
-                          context,
-                          baseColor: darkenColor(
-                            appColorNotifier.value,
-                            0.025,
-                          ), // Header color
-                          onPressed: (_setReminder),
-                        ),
-                  SizedBox(height: Responsive.height(context, 20)), // Spacing
-                  // REMINDERS TABLE WITH DELETE OPTION
-                  Center(
-                    child: reminders.isEmpty
-                        // Case 1: No set reminders
-                        ? Padding(
-                            // Empty state
-                            padding: EdgeInsets.only(
-                              top: Responsive.height(context, 10),
-                            ),
-                            child: Text(
-                              "Upcoming reminders will appear here...",
-                              style: TextStyle(
-                                color: Colors.white54, // Semi-transparent text
-                                fontSize: Responsive.font(
-                                  context,
-                                  16,
-                                ), // Responsive size
-                              ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    // Set reminder button
+                    isLoading
+                        ? Center(
+                            child: SizedBox(
+                              height: Responsive.height(context, 20),
+                              width: Responsive.width(context, 20),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           )
-                        // Case 2: There are reminders to show
-                        : DataTable(
-                            // Data table for reminders
-                            columns: [
-                              DataColumn(
-                                label: Center(
-                                  child: textWithFont("Message", context, 0.04),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Center(
-                                  child: textWithFont("Date", context, 0.04),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Center(
-                                  child: textWithFont("Delete", context, 0.04),
-                                ),
-                              ),
-                            ],
-                            rows: reminders.map((reminder) {
-                              return DataRow(
-                                // Row for each reminder
-                                cells: [
-                                  DataCell(
-                                    // Message cell
-                                    Center(
-                                      child: textWithFont(
-                                        reminder.message, // Reminder text
-                                        context,
-                                        Responsive.font(context, 25),
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    // Date cell
-                                    Center(
-                                      child: textWithFont(
-                                        "${reminder.dateTime.month}/${reminder.dateTime.day} ${reminder.dateTime.hour}:${reminder.dateTime.minute.toString().padLeft(2, '0')}", // Formatted date
-                                        context,
-                                        Responsive.font(context, 25), // scaled
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    // Delete cell
-                                    Center(
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        // Delete column cells are clickable
-                                        onPressed: () =>
-                                            _deleteReminder(reminder),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                        : simpleCustomButton(
+                            "Set Reminder",
+                            48,
+                            160,
+                            750,
+                            context,
+                            baseColor: darkenColor(
+                              appColorNotifier.value,
+                              0.025,
+                            ), // Header color
+                            onPressed: (_setReminder),
                           ),
-                  ),
-                ],
+                    SizedBox(height: Responsive.height(context, 20)), // Spacing
+                    // REMINDERS TABLE WITH DELETE OPTION
+                    Center(
+                      child: reminders.isEmpty
+                          // Case 1: No set reminders
+                          ? Padding(
+                              // Empty state
+                              padding: EdgeInsets.only(
+                                top: Responsive.height(context, 10),
+                              ),
+                              child: Text(
+                                "Upcoming reminders will appear here...",
+                                style: TextStyle(
+                                  color:
+                                      Colors.white54, // Semi-transparent text
+                                  fontSize: Responsive.font(
+                                    context,
+                                    16,
+                                  ), // Responsive size
+                                ),
+                              ),
+                            )
+                          // Case 2: There are reminders to show
+                          : DataTable(
+                              // Data table for reminders
+                              columns: [
+                                DataColumn(
+                                  label: Center(
+                                    child: textWithFont(
+                                      "Message",
+                                      context,
+                                      0.04,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Center(
+                                    child: textWithFont("Date", context, 0.04),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Center(
+                                    child: textWithFont(
+                                      "Delete",
+                                      context,
+                                      0.04,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              rows: reminders.map((reminder) {
+                                return DataRow(
+                                  // Row for each reminder
+                                  cells: [
+                                    DataCell(
+                                      // Message cell
+                                      Center(
+                                        child: textWithFont(
+                                          reminder.message, // Reminder text
+                                          context,
+                                          Responsive.font(context, 25),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      // Date cell
+                                      Center(
+                                        child: textWithFont(
+                                          "${reminder.dateTime.month}/${reminder.dateTime.day} ${reminder.dateTime.hour}:${reminder.dateTime.minute.toString().padLeft(2, '0')}", // Formatted date
+                                          context,
+                                          Responsive.font(
+                                            context,
+                                            25,
+                                          ), // scaled
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      // Delete cell
+                                      Center(
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          // Delete column cells are clickable
+                                          onPressed: () =>
+                                              _deleteReminder(reminder),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Loading overlay
-          if (isLoading)
-            Container(
-              color: Colors.black54,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
+            // Loading overlay
+            if (isLoading)
+              Container(
+                color: Colors.black54,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }
