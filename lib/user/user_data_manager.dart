@@ -273,9 +273,8 @@ class UserDataManager {
     if (isWeb) {
       // Check the size of the web image bytes
       if (webBytes != null && webBytes.lengthInBytes > maxFileSize) {
-
         webBytes = await webCompressIfNeed(webBytes);
-        
+
         // If still too big:
         if (context != null && webBytes.lengthInBytes > maxFileSize) {
           double sizeInMbWeb = webBytes.lengthInBytes / (1024 * 1024);
@@ -598,7 +597,6 @@ class UserDataManager {
             // conditionally mention whether it was updated to a custom color or reset
             isDefaultColor ? "Theme color reset!" : "Theme color updated!",
           ),
-          backgroundColor: newColor, // snackbar color is the newly chosen color
           duration: Duration(milliseconds: 1500),
         ),
       );

@@ -548,3 +548,5 @@ Developmental progress by date is stored in this file.
 - Removed unused imports
 - Realized that creating an account with email and password -> logging with via Google with that same email -> logging in with email and password caused a login error. This is fixed when the user resets their password, as Firestore links both their email / password and Google login as valid login methods. Added a specific notifyingMessage to explain this
 - Added shading to the "Log Out" button and made its hoverColor consistent with drawerItem() items
+- Removed backgroundColor attribute from App Theme Color snackbar so it shows the correct snackbar theme color
+- Wrapped main.dart in ValueListenableBuilder so the entire theme rebuilds whenever the user changes their color instead of only rebuilding individual widgets
