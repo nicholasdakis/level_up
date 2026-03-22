@@ -17,6 +17,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String? notifyingMessage;
+  bool hidePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -64,11 +65,22 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
               // Enter Password field
               TextField(
                 controller: passwordController,
-                obscureText: true,
+                obscureText: hidePassword,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Password",
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      hidePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white54,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        hidePassword = !hidePassword;
+                      });
+                    },
+                  ),
                 ),
               ),
               SizedBox(height: Responsive.padding(context, 30)),
