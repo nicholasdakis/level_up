@@ -25,6 +25,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(Responsive.buttonHeight(context, 120)),
         child: AppBar(
+          scrolledUnderElevation:
+              0, // So the appBar does not change color when the user scrolls down
           automaticallyImplyLeading: false,
           backgroundColor: const Color(0xFF121212),
           centerTitle: true,
@@ -44,6 +46,11 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // App logo
+              SizedBox(
+                height: Responsive.buttonHeight(context, 240),
+                child: Image.asset("assets/app_logo.png", fit: BoxFit.contain),
+              ),
               // Enter Email field
               TextField(
                 controller: emailController,

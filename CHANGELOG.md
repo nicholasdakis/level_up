@@ -553,3 +553,7 @@ Developmental progress by date is stored in this file.
 - Softened gradient colors
 - Added gradient colors to all other screens
 - Overhauled Calorie Calculator UI by wrapping buttons in a Container with a matching bottom border and replacing hardcoded pixels with responsive variants
+- Overhauled Results tab by adding the user's content first, using fonts consistent with the rest of the app and reducing text amount.
+
+## 2026-03-21
+- Added an app logo that handles Android / iOS using the flutter_launcher_icons package, and Web by manually changing the favicon image
