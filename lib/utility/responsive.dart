@@ -40,10 +40,13 @@ class Responsive {
     final screenWidth = MediaQuery.of(context).size.width;
     bool isDesktop = screenWidth / MediaQuery.of(context).size.height > 1.5;
 
-    return isDesktop
+    double scaledWidth = isDesktop
         ? baseWidth *
               0.85 // slightly smaller on desktop
         : screenWidth * (baseWidth / 400); // mobile scaling
+
+    // clamp so it never exceeds 90% of screen width
+    return scaledWidth.clamp(0, screenWidth * 0.9);
   }
 
   // height based on screen height

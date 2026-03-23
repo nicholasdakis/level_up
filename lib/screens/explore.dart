@@ -131,7 +131,8 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
           if (userLocation == null)
             Container(
               color: Colors.black54,
-              child: Center(
+              child: Align(
+                alignment: Alignment.center,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -151,7 +152,12 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
 
           // Back button
           Positioned(
-            top: Responsive.height(context, 10),
+            top: Responsive.isDesktop(context)
+                ? Responsive.height(context, 10)
+                : Responsive.height(
+                    context,
+                    130,
+                  ), // prevent back button from being covered on mobile
             left: Responsive.width(context, 10),
             child: PointerInterceptor(
               // PointerInterceptor so the back button can be clicked
@@ -170,89 +176,101 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
           ),
 
           // THE "NEARBY EXPERIENCE SPOTS" CARD
-          Positioned(
-            top: Responsive.height(context, 10),
-            left: Responsive.width(context, 350),
-            right: Responsive.width(context, 350),
-            child: PointerInterceptor(
-              // PointerInterceptor so the widget can be clicked
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => cardIsOpen = !cardIsOpen); // toggle open/close
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 313),
-                  curve: Curves.easeInOut,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(200),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(Responsive.width(context, 25)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Nearby Experience Spots",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.width(context, 25),
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(width: Responsive.width(context, 40)),
-                              Icon(
-                                cardIsOpen
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        ClipRect(
-                          child: AnimatedSize(
-                            duration: const Duration(milliseconds: 313),
-                            curve: Curves.easeInOut,
-                            child: Column(
-                              children: [
-                                // Spread operator to add the text into the Column with one if statement
-                                if (cardIsOpen) ...[
-                                  SizedBox(
-                                    height: Responsive.height(context, 15),
-                                  ),
-                                  spotText("Spot 1"),
-                                  spotText("Spot 2"),
-                                  spotText("Spot 3"),
-                                  spotText("Spot 4"),
-                                  spotText("Spot 5"),
-                                ] else
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      top: Responsive.height(context, 5),
+          Padding(
+            padding: EdgeInsets.all(Responsive.padding(context, 8.0)),
+            child: Align(
+              alignment: Alignment.topCenter, // center the widget
+              child: PointerInterceptor(
+                // PointerInterceptor so the widget can be clicked
+                child: GestureDetector(
+                  onTap: () {
+                    setState(
+                      () => cardIsOpen = !cardIsOpen,
+                    ); // toggle open/close
+                  },
+                  child: ConstrainedBox(
+                    // keeps width consistent without taking full screen
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.width(context, 400), // widget width
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 313),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(200),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(Responsive.width(context, 10)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize
+                              .min, // So widget doesn't take the height of the whole screen
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "Nearby Experience Spots",
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.width(context, 25),
+                                      color: Colors.white,
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        "Tap to view spots",
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: Responsive.width(
-                                            context,
-                                            15,
+                                  ),
+                                  SizedBox(
+                                    width: Responsive.width(context, 10),
+                                  ),
+                                  Icon(
+                                    cardIsOpen
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            ClipRect(
+                              child: AnimatedSize(
+                                duration: const Duration(milliseconds: 313),
+                                curve: Curves.easeInOut,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Spread operator to add the text into the Column with one if statement
+                                    if (cardIsOpen) ...[
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
+                                      ),
+                                      spotText("Spot 1"),
+                                      spotText("Spot 2"),
+                                      spotText("Spot 3"),
+                                      spotText("Spot 4"),
+                                      spotText("Spot 5"),
+                                    ] else
+                                      SizedBox(
+                                        height: Responsive.height(context, 30),
+                                        child: Center(
+                                          child: Text(
+                                            "Tap to view spots",
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: Responsive.width(
+                                                context,
+                                                15,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                              ],
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

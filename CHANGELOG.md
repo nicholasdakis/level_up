@@ -563,8 +563,12 @@ Developmental progress by date is stored in this file.
 - Replaced Google Maps implementation with OpenStreetMap (latter is fully free)
 - Added a marker to the show the user's current location
 - Added a back button in the Explore tab
-- Used the Pointer Interceptor
+- Used the Pointer Interceptor package to make widgets on top of the map clickable
 - Changed the Nearby Spots widget to not have the Card be edited by AnimatedSize, as this made the Card lose its rounded borders
 - Fixed by replacing Card with AnimatedContainer that has rounded borders
 - Made sizes in explore.dart use Responsive class instead of hard-coded values
 - Made a spotText method to easily give the nearby spots on the Widget have the right font / size
+- Aligned the Nearby Experience Spots in the top center instead of padding it from left and right into the center, as this caused pixel overflow on mobile
+- Wrapped the Nearby Experience Spots widget in a ConstrainedBox to limit its max width
+- Edited width method in Responsive class so that on smaller screens the width cannot take the entire screen
+- Made the Back button in Explore tab appear lower on mobile so the Nearby Spots widget does not appear on top of it
