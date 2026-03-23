@@ -558,3 +558,13 @@ Developmental progress by date is stored in this file.
 ## 2026-03-21
 - Added an app logo that handles Android / iOS using the flutter_launcher_icons package, and Web by manually changing the favicon image
 - Added the hidePassword variable to allow showing and hiding input password text
+
+## 2026-03-23
+- Replaced Google Maps implementation with OpenStreetMap (latter is fully free)
+- Added a marker to the show the user's current location
+- Added a back button in the Explore tab
+- Used the Pointer Interceptor
+- Changed the Nearby Spots widget to not have the Card be edited by AnimatedSize, as this made the Card lose its rounded borders
+- Fixed by replacing Card with AnimatedContainer that has rounded borders
+- Made sizes in explore.dart use Responsive class instead of hard-coded values
+- Made a spotText method to easily give the nearby spots on the Widget have the right font / size

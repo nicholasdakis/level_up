@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../globals.dart';
+import '../utility/responsive.dart';
 
 class Explore extends StatefulWidget {
   const Explore({super.key});
@@ -12,13 +13,33 @@ class Explore extends StatefulWidget {
   State<Explore> createState() => _ExploreState();
 }
 
-class _ExploreState extends State<Explore> {
-  LatLng? userLocation;
+// "with OSMMixinObserver" to listen for map ready events
+class _ExploreState extends State<Explore> with OSMMixinObserver {
+  GeoPoint? userLocation;
   bool cardIsOpen = false;
+
+  Widget spotText(String spotName) {
+    return Text(
+      spotName,
+      style: GoogleFonts.manrope(
+        color: Colors.white,
+        fontSize: Responsive.width(context, 18),
+      ),
+    );
+  }
+
+  // Track user location
+  late final MapController mapController = MapController.withUserPosition(
+    trackUserLocation: const UserTrackingOption(
+      enableTracking: true, // follows user automatically
+      unFollowUser: false,
+    ),
+  );
 
   @override
   void initState() {
     super.initState();
+    mapController.addObserver(this); // listen to map events
     _initLocation();
   }
 
@@ -28,6 +49,7 @@ class _ExploreState extends State<Explore> {
       await Geolocator.openLocationSettings();
       return;
     }
+
     // Check user permissions
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -47,67 +69,126 @@ class _ExploreState extends State<Explore> {
 
     setState(() {
       // update user's current position
-      userLocation = LatLng(position.latitude, position.longitude);
+      userLocation = GeoPoint(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
     });
+
+    // move map to user location and add a marker
+    if (userLocation != null) {
+      await mapController.moveTo(userLocation!); // move camera
+    }
+  }
+
+  // called automatically by map controller
+  @override
+  Future<void> mapIsReady(bool isReady) async {
+    if (isReady && userLocation != null) {
+      await mapController.moveTo(userLocation!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Screen Height and Width
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
-    //double screenWidth =   1.sw; // Make widgets the size of the user's personal screen size
-    // Loading screen while getting user's coordinates
-    if (userLocation == null) {
-      return Scaffold(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ), // Header color
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(child: CircularProgressIndicator()),
-            SizedBox(height: 16),
-            Text(
-              "Retrieving location...",
-              style: TextStyle(fontSize: 16, color: Colors.white),
-            ),
-          ],
-        ),
-      );
-    }
-    // If user's coordinates have been obtained
     return Scaffold(
       body: Stack(
         children: [
           // THE MAP
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: userLocation!,
-              zoom: 14,
+          OSMFlutter(
+            controller: mapController,
+            osmOption: OSMOption(
+              userTrackingOption: UserTrackingOption(
+                enableTracking: true,
+                unFollowUser: false,
+              ),
+              zoomOption: ZoomOption(
+                initZoom: 15,
+                minZoomLevel: 2,
+                maxZoomLevel: 19,
+              ),
+              userLocationMarker: UserLocationMaker(
+                personMarker: MarkerIcon(
+                  icon: Icon(
+                    // User marker
+                    Icons.location_pin,
+                    color: darkenColor(Colors.red, 0.1),
+                    size: Responsive.width(context, 45),
+                  ),
+                ),
+                directionArrowMarker: MarkerIcon(
+                  icon: Icon(
+                    Icons.double_arrow,
+                    size: Responsive.width(context, 50),
+                  ),
+                ),
+              ),
+              roadConfiguration: RoadOption(roadColor: Colors.yellowAccent),
             ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
           ),
+
+          // Loading screen while getting user's coordinates
+          if (userLocation == null)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    Text(
+                      "Retrieving location...",
+                      style: TextStyle(
+                        fontSize: Responsive.width(context, 35),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Back button
+          Positioned(
+            top: Responsive.height(context, 10),
+            left: Responsive.width(context, 10),
+            child: PointerInterceptor(
+              // PointerInterceptor so the back button can be clicked
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: EdgeInsets.all(Responsive.width(context, 20)),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(200),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.arrow_back, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+
           // THE "NEARBY EXPERIENCE SPOTS" CARD
           Positioned(
-            top: 0.075 * screenHeight,
-            left: 0.025 * screenHeight,
-            right: 0.025 * screenHeight,
-            // Detect taps on the card
-            child: GestureDetector(
-              onTap: () {
-                setState(() => cardIsOpen = !cardIsOpen); // toggle open/close
-              },
-              // Animation for the card opening / closing
-              child: AnimatedSize(
-                duration: Duration(milliseconds: 313),
-                // Nearby Experience Spots card
-                child: Card(
-                  color: Colors.black.withAlpha(200),
+            top: Responsive.height(context, 10),
+            left: Responsive.width(context, 350),
+            right: Responsive.width(context, 350),
+            child: PointerInterceptor(
+              // PointerInterceptor so the widget can be clicked
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => cardIsOpen = !cardIsOpen); // toggle open/close
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 313),
+                  curve: Curves.easeInOut,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(200),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Padding(
-                    padding: EdgeInsets.all(8),
+                    padding: EdgeInsets.all(Responsive.width(context, 25)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -118,12 +199,11 @@ class _ExploreState extends State<Explore> {
                               Text(
                                 "Nearby Experience Spots",
                                 style: GoogleFonts.manrope(
-                                  fontSize: 20.sp,
+                                  fontSize: Responsive.width(context, 25),
                                   color: Colors.white,
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              // Visual indicators for the card being opened or closed
+                              SizedBox(width: Responsive.width(context, 40)),
                               Icon(
                                 cardIsOpen
                                     ? Icons.keyboard_arrow_up
@@ -133,27 +213,45 @@ class _ExploreState extends State<Explore> {
                             ],
                           ),
                         ),
-                        // Spread operator to add the text into the Column with one if statement
-                        if (cardIsOpen) ...[
-                          SizedBox(height: 8),
-                          Text("Spot 1", style: TextStyle(color: Colors.white)),
-                          Text("Spot 2", style: TextStyle(color: Colors.white)),
-                          Text("Spot 3", style: TextStyle(color: Colors.white)),
-                          Text("Spot 4", style: TextStyle(color: Colors.white)),
-                          Text("Spot 5", style: TextStyle(color: Colors.white)),
-                        ] else
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Center(
-                              child: Text(
-                                "Tap to view spots",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
+
+                        ClipRect(
+                          child: AnimatedSize(
+                            duration: const Duration(milliseconds: 313),
+                            curve: Curves.easeInOut,
+                            child: Column(
+                              children: [
+                                // Spread operator to add the text into the Column with one if statement
+                                if (cardIsOpen) ...[
+                                  SizedBox(
+                                    height: Responsive.height(context, 15),
+                                  ),
+                                  spotText("Spot 1"),
+                                  spotText("Spot 2"),
+                                  spotText("Spot 3"),
+                                  spotText("Spot 4"),
+                                  spotText("Spot 5"),
+                                ] else
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      top: Responsive.height(context, 5),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Tap to view spots",
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: Responsive.width(
+                                            context,
+                                            15,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),
