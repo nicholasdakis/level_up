@@ -572,3 +572,8 @@ Developmental progress by date is stored in this file.
 - Wrapped the Nearby Experience Spots widget in a ConstrainedBox to limit its max width
 - Edited width method in Responsive class so that on smaller screens the width cannot take the entire screen
 - Made the Back button in Explore tab appear lower on mobile so the Nearby Spots widget does not appear on top of it
+
+## 2026-03-24
+- Refactored footer.dart by creating helper functions for building the footer's contents
+- Replaced calculated vertical centering on the profile picture with explicit top: 0 positioning
+- Wrapped the inner exp bar Stack in a SizedBox to explicitly constrain the hit-test area as the profile picture hitbox was not fully accurate before

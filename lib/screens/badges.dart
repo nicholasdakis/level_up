@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'package:confetti/confetti.dart';

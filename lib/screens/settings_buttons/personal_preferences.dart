@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '/globals.dart';
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'dart:io'; // for base64
@@ -164,7 +163,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     Color pickerColor = baseColor.withAlpha(
       255,
     ); // .withAlpha(255) so the alpha circle is initially filled up
-    double screenWidth = 1.sw;
     // Dialog box prompting the chosen color
     showDialog(
       context: context,
@@ -224,8 +222,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = 1.sh;
-    double screenWidth = 1.sw;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(

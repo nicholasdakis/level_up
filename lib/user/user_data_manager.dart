@@ -8,9 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import 'user_data.dart';
 import 'reminder_data.dart';
-import '../utility/responsive.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_cropper/image_cropper.dart';
 import '../utility/image_crop_handler.dart';
 
 class UserDataManager {

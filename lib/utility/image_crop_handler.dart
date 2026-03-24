@@ -20,7 +20,7 @@ class ImageCropHelper {
   }
 
   // Resizes image bytes so the longest side is at most [maxDimension] pixels.
-  // Prevents cropperjs from not working on large phone photos (e.g. 3-4mb+) on iOS Safari.
+  // Prevents cropperjs from not working on large phone photos (3-4mb+)
   static Future<Uint8List> _resizeIfNeeded(
     Uint8List bytes, {
     int maxDimension = 500,
@@ -155,7 +155,7 @@ class ImageCropHelper {
     }
   }
 
-  /// Convert a [CroppedFile] to bytes safely
+  // Convert a [CroppedFile] to bytes safely
   static Future<Uint8List?> getBytes(CroppedFile? cropped) async {
     if (cropped == null) return null;
     return await cropped.readAsBytes();
