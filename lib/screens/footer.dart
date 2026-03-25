@@ -29,7 +29,7 @@ class _FooterState extends State<Footer> {
       context,
     ).size.width; // Make widgets the size of the user's personal screen size
 
-    Widget buildFooterPfp(BuildContext context) {
+    Widget buildFooterClickablePfp(BuildContext context) {
       return SizedBox(
         width: Responsive.scale(context, 72),
         height: Responsive.scale(context, 72),
@@ -71,7 +71,22 @@ class _FooterState extends State<Footer> {
       );
     }
 
-    Widget buildFooterLevel() {
+    buildFooterPfpSection(BuildContext context, Widget pfpLevelText) {
+      return Positioned(
+        right: -Responsive.scale(context, 8),
+        top: 0,
+        child: Column(
+          children: [
+            buildFooterClickablePfp(context),
+            SizedBox(height: Responsive.height(context, 2)),
+            // Display current level under profile picture
+            pfpLevelText,
+          ],
+        ),
+      );
+    }
+
+    Widget buildFooterLevelText() {
       return Text(
         'Level ${currentUserData?.level ?? 1}',
         style: GoogleFonts.manrope(
@@ -91,7 +106,7 @@ class _FooterState extends State<Footer> {
       );
     }
 
-    Widget buildFooterInnerExpBar(double progressWidth) {
+    Widget buildFooterFillableExpBar(double progressWidth) {
       return Positioned(
         top: Responsive.height(context, 4),
         left: Responsive.width(context, 10),
@@ -100,6 +115,21 @@ class _FooterState extends State<Footer> {
           width: progressWidth,
           decoration: BoxDecoration(
             color: Colors.blue,
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+          ),
+        ),
+      );
+    }
+
+    Widget buildFooterLightGrayExpBar(double fullWidth) {
+      return Positioned(
+        top: Responsive.height(context, 4),
+        left: Responsive.width(context, 10),
+        child: Container(
+          height: Responsive.height(context, 16),
+          width: fullWidth - Responsive.width(context, 20),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 175, 169, 169),
             borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
           ),
         ),
@@ -118,36 +148,40 @@ class _FooterState extends State<Footer> {
     }
 
     Widget buildFooterExperienceText(int exp) {
-      return Stack(
-        children: [
-          // black outline around text
-          Builder(
-            builder: (context) {
-              Paint outlinePaint = Paint();
-              outlinePaint.style = PaintingStyle.stroke;
-              outlinePaint.strokeWidth = Responsive.scale(context, 1);
-              outlinePaint.color = Colors.black;
+      return Positioned.fill(
+        child: Center(
+          child: Stack(
+            children: [
+              // black outline around text
+              Builder(
+                builder: (context) {
+                  Paint outlinePaint = Paint();
+                  outlinePaint.style = PaintingStyle.stroke;
+                  outlinePaint.strokeWidth = Responsive.scale(context, 1);
+                  outlinePaint.color = Colors.black;
 
-              return Text(
+                  return Text(
+                    '$exp / ${userManager.experienceNeeded ?? 0}',
+                    style: TextStyle(
+                      fontSize: Responsive.font(context, 12),
+                      fontWeight: FontWeight.bold,
+                      foreground: outlinePaint,
+                    ),
+                  );
+                },
+              ),
+              // white color on the inside
+              Text(
                 '$exp / ${userManager.experienceNeeded ?? 0}',
                 style: TextStyle(
                   fontSize: Responsive.font(context, 12),
                   fontWeight: FontWeight.bold,
-                  foreground: outlinePaint,
+                  color: Colors.white,
                 ),
-              );
-            },
+              ),
+            ],
           ),
-          // white color on the inside
-          Text(
-            '$exp / ${userManager.experienceNeeded ?? 0}',
-            style: TextStyle(
-              fontSize: Responsive.font(context, 12),
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
+        ),
       );
     }
 
@@ -178,6 +212,7 @@ class _FooterState extends State<Footer> {
                   final progressWidth =
                       fullWidth * (exp / (userManager.experienceNeeded ?? 1));
 
+                  // Footer components
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -189,54 +224,15 @@ class _FooterState extends State<Footer> {
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              // Outer EXP bar
                               buildFooterOuterExpBar(fullWidth),
-                              // Light Gray bar
-                              Positioned(
-                                top: Responsive.height(context, 4),
-                                left: Responsive.width(context, 10),
-                                child: Container(
-                                  height: Responsive.height(context, 16),
-                                  width:
-                                      fullWidth - Responsive.width(context, 20),
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(
-                                      255,
-                                      175,
-                                      169,
-                                      169,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      Responsive.scale(context, 10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // inner-most XP bar that fills up
-                              buildFooterInnerExpBar(progressWidth),
-                              // Experience text
-                              Positioned.fill(
-                                child: Center(
-                                  child: buildFooterExperienceText(exp),
-                                ),
-                              ),
+                              buildFooterLightGrayExpBar(fullWidth),
+                              buildFooterFillableExpBar(progressWidth),
+                              buildFooterExperienceText(exp),
                             ],
                           ),
                         ),
                       ),
-                      // Profile picture
-                      Positioned(
-                        right: -Responsive.scale(context, 8),
-                        top: 0,
-                        child: Column(
-                          children: [
-                            buildFooterPfp(context),
-                            SizedBox(height: Responsive.height(context, 2)),
-                            // Display current level under profile picture
-                            buildFooterLevel(),
-                          ],
-                        ),
-                      ),
+                      buildFooterPfpSection(context, buildFooterLevelText()),
                     ],
                   );
                 },
