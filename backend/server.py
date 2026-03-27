@@ -7,6 +7,7 @@ from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
 from google.oauth2 import service_account
 import json
+import re
 
 # Get the environmental variables from Render
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -67,6 +68,9 @@ def ping():
 
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
+    # Normalize the food name to reduce API calls
+    food_name = re.sub(r'\s+', ' ', food_name.lower()).strip() # lowercase and remove unneeded whitespace
+
     if not token_manager.consume():
         # retrieve the next reset time
         reset_time = get_next_reset_time()

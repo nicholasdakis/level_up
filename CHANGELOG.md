@@ -577,3 +577,6 @@ Developmental progress by date is stored in this file.
 - Refactored footer.dart by creating helper functions for building the footer's contents
 - Replaced calculated vertical centering on the profile picture with explicit top: 0 positioning
 - Wrapped the inner exp bar Stack in a SizedBox to explicitly constrain the hit-test area as the profile picture hitbox was not fully accurate before
+
+## 2026-03-27
+- Added normalizing to food logging queries both client-side and server-side to prevent unnecessary API requests (e.g, "chicken", "Chicken", " chicken" all become "chicken")

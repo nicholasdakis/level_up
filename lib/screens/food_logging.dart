@@ -116,6 +116,9 @@ class _FoodLoggingState extends State<FoodLogging> {
     latestQuery = query;
     if (query.isEmpty) return;
 
+    // Normalize the query to reduce API calls
+    query = query.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim(); // remove extra spaces and lowercase the query
+
     final url = Uri.parse(
       'https://level-up-69vz.onrender.com/get_food/$query',
     ); // search the food via the backend get_food method
