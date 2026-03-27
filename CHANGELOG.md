@@ -580,3 +580,4 @@ Developmental progress by date is stored in this file.
 
 ## 2026-03-27
 - Added normalizing to food logging queries both client-side and server-side to prevent unnecessary API requests (e.g, "chicken", "Chicken", " chicken" all become "chicken")
+- Changed hard-coded gray background to responsive app color for dropdown items in Calorie Calculator

@@ -76,7 +76,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             SizedBox.shrink(), // remove default underline since container handles it
         dropdownStyleData: DropdownStyleData(
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 91, 89, 89).withAlpha(128),
+            color: appColorNotifier.value.withAlpha(128), // match the app's theme color
             borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
           ),
           maxHeight: Responsive.height(
