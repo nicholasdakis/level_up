@@ -588,6 +588,9 @@ class _RemindersState extends State<Reminders> {
                             children: [
                               // Text field
                               TextField(
+                                minLines: 1,
+                                maxLines:
+                                    null, // allow the text field to expand vertically as the user types more lines
                                 controller: remindersController,
                                 keyboardType: TextInputType.text,
                                 style: GoogleFonts.manrope(
