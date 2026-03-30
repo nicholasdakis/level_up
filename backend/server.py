@@ -6,6 +6,9 @@ from backend.token_manager import TokenManager
 from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
 from google.oauth2 import service_account
+from firebase_admin import messaging
+import firebase_admin
+from apscheduler.schedulers.background import BackgroundScheduler
 import json
 import re
 
@@ -31,6 +34,49 @@ credentials = service_account.Credentials.from_service_account_info(credentials_
 
 # Create Firestore client with explicit credentials
 db = firestore.Client(credentials=credentials)
+
+def send_due_reminders():
+    try:
+        now_dt = datetime.now(timezone.utc)
+        # Format to match Flutter's toUtc().toIso8601String() output (e.g. 2026-03-30T15:00:00.000Z)
+        now = now_dt.strftime('%Y-%m-%dT%H:%M:%S.') + f'{now_dt.microsecond // 1000:03d}Z'
+
+        # Query all reminders across all users that are due
+        due_reminders = db.collection_group('reminders').where('dateTime', '<=', now).stream()
+
+        for doc in due_reminders:
+            data = doc.to_dict()
+
+            # Extract UID from path: users/{uid}/reminders/{docId}
+            uid = doc.reference.parent.parent.id
+
+            # Get the user's FCM tokens
+            user_doc = db.collection('users').document(uid).get()
+            if not user_doc.exists:
+                doc.reference.delete()  # user no longer exists, clean up
+                continue
+
+            fcm_tokens = user_doc.to_dict().get('fcmTokens', [])
+            if not fcm_tokens:
+                doc.reference.delete()  # no tokens to send to, clean up
+                continue
+
+            # Build and send the FCM notification to all of the user's devices
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title='LevelUp Reminder',
+                    body=data.get('message', 'You have a reminder!'),
+                ),
+                tokens=fcm_tokens,
+            )
+            messaging.send_each_for_multicast(message)
+
+            # Delete the reminder so it does not fire again
+            doc.reference.delete()
+
+    except Exception as e:
+        print(f'Error sending reminders: {e}')
+
 
 def get_next_reset_time():
     # Get the document reference for rate limit tracking
@@ -123,6 +169,11 @@ def get_food(food_name):
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
+
+# Start the background scheduler that checks for due reminders every minute
+scheduler = BackgroundScheduler(timezone='UTC')
+scheduler.add_job(send_due_reminders, 'interval', minutes=1)
+scheduler.start()
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)
