@@ -20,7 +20,7 @@ messaging.onBackgroundMessage(function(payload) {
   const notificationTitle = payload.notification?.title || 'Level Up! Reminder';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: payload.notification?.icon || '/favicon-192.png',
+    icon: payload.notification?.icon || '/level_up/favicon-512.png',
     data: payload.data,
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
