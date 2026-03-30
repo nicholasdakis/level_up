@@ -109,7 +109,7 @@ class _RemindersState extends State<Reminders> {
         DateTime? reminderTime;
         try {
           if (data['dateTime'] == null) continue; // skip null dates
-          reminderTime = DateTime.parse(data['dateTime']);
+          reminderTime = DateTime.parse(data['dateTime']).toLocal();
         } catch (_) {
           continue; // skip invalid date strings
         }

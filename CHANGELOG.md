@@ -582,3 +582,4 @@ Developmental progress by date is stored in this file.
 - Changed the UI of the Reminders tab to appear more modern with the frosted glass effect
 - Added a formatDateTime method to show the date and time of each reminder clearly to the user
 - Used grammar-based generation for Reminder ideas to give some random ideas to the user. Also added some "before (user's next hour)" options to make the text feel personalized.
+- Fixed a visual bug of the Reminder time showing UTC time instead of converting to the user's timezone (had no impact on backend)
