@@ -41,37 +41,57 @@ def send_due_reminders():
         # Format to match Flutter's toUtc().toIso8601String() output (e.g. 2026-03-30T15:00:00.000Z)
         now = now_dt.strftime('%Y-%m-%dT%H:%M:%S.') + f'{now_dt.microsecond // 1000:03d}Z'
 
-        # Query all reminders across all users that are due
+        # collection_group queries the reminders subcollection across all users at once
+        # Requires a Firestore composite index on reminders.dateTime (collection group ASC)
         due_reminders = db.collection_group('reminders').where('dateTime', '<=', now).stream()
 
         for doc in due_reminders:
             data = doc.to_dict()
 
-            # Extract UID from path: users/{uid}/reminders/{docId}
+            # Extract the user's UID from the document path: users/{uid}/reminders/{docId}
             uid = doc.reference.parent.parent.id
 
-            # Get the user's FCM tokens
+            # Get the user's document to retrieve their FCM tokens
             user_doc = db.collection('users').document(uid).get()
             if not user_doc.exists:
-                doc.reference.delete()  # user no longer exists, clean up
+                doc.reference.delete()  # user no longer exists, clean up the reminder
                 continue
 
+            # Get the user's FCM tokens. if empty or missing, the user has no devices to notify
             fcm_tokens = user_doc.to_dict().get('fcmTokens', [])
             if not fcm_tokens:
-                doc.reference.delete()  # no tokens to send to, clean up
+                doc.reference.delete()
                 continue
 
-            # Build and send the FCM notification to all of the user's devices
+            # Send a data-only payload so the browser doesn't auto-show a notification
+            # The service worker's onBackgroundMessage handles display, preventing duplicates
             message = messaging.MulticastMessage(
-                notification=messaging.Notification(
-                    title='LevelUp Reminder',
-                    body=data.get('message', 'You have a reminder!'),
-                ),
+                data={
+                    'title': 'Level Up! Reminder',
+                    'body': data.get('message', 'You have a reminder!'),
+                },
                 tokens=fcm_tokens,
             )
-            messaging.send_each_for_multicast(message)
+            response = messaging.send_each_for_multicast(message)
 
-            # Delete the reminder so it does not fire again
+            # Clean up tokens with unregistered / invalid error codes (e.g. user uninstalled the app or revoked permissions)
+            if response.failure_count > 0:
+                invalid_tokens = [
+                    fcm_tokens[i]
+                    for i, res in enumerate(response.responses)
+                    if not res.success and res.exception and
+                    getattr(res.exception, 'code', None) in (
+                        'registration-token-not-registered',  # token was revoked or app uninstalled
+                        'invalid-registration-token',         # token is malformed
+                    )
+                ]
+                # Remove invalid tokens from Firestore as to not keep trying to send to them
+                if invalid_tokens:
+                    db.collection('users').document(uid).update({
+                        'fcmTokens': firestore.ArrayRemove(invalid_tokens)
+                    })
+
+            # Delete the reminder after sending so it does not fire again
             doc.reference.delete()
 
     except Exception as e:

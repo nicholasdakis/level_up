@@ -4,11 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../globals.dart';
 import '../user/reminder_data.dart';
 import '../utility/responsive.dart';
+import 'package:flutter/foundation.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -40,6 +39,39 @@ class _RemindersState extends State<Reminders> {
   void initState() {
     super.initState();
     _loadReminders(); // Load reminders when the widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!currentUserData!.notificationsEnabled) {
+        _showNotificationsDisabledDialog(); // prompt user to enable notifications
+      }
+    });
+  }
+
+  void _showNotificationsDisabledDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Notifications Disabled"),
+        content: Text("Enable notifications to receive reminders."),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Dismiss"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await userManager.updateNotificationsEnabled(true);
+              // If no FCM token, the browser is blocking notifications
+              if (mounted && (currentUserData?.fcmTokens.isEmpty == true)) {
+                showBrowserBlockedDialog(context);
+              }
+            },
+            child: Text("Enable"),
+          ),
+        ],
+      ),
+    );
   }
 
   // Loads reminders from Firestore and removes past ones
@@ -124,7 +156,7 @@ class _RemindersState extends State<Reminders> {
     }
   }
 
-  // Method that deletes a reminder from Firestore and cancels the notification
+  // Method that deletes a reminder from Firestore
   Future<void> _deleteReminder(ReminderData reminder) async {
     final uid = FirebaseAuth.instance.currentUser?.uid; // Get current user ID
     if (uid == null) return; // Exit if no user logged in
@@ -142,9 +174,6 @@ class _RemindersState extends State<Reminders> {
       for (var doc in querySnapshot.docs) {
         await doc.reference.delete(); // Remove from database
       }
-
-      // Cancel the scheduled notification
-      await flutterLocalNotificationsPlugin.cancel(reminder.notificationId);
 
       // Update local state by removing the deleted reminder
       final updatedReminders = reminders
@@ -174,6 +203,92 @@ class _RemindersState extends State<Reminders> {
         setState(() => dateTime = newDate), // Update state on change
   );
 
+  Future<void> pickDateTime(
+    BuildContext context,
+    DateTime dateTime,
+    Function(DateTime) onPicked,
+  ) async {
+    if (kIsWeb && Responsive.isDesktop(context)) {
+      // Desktop uses a Material pickers
+      final pickedDate = await showDatePicker(
+        context: context,
+        firstDate: DateTime.now(),
+        lastDate: DateTime(2100),
+        initialEntryMode: DatePickerEntryMode
+            .calendarOnly, // prevent users from editing text directly
+      );
+
+      if (pickedDate != null) {
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(dateTime),
+          initialEntryMode: TimePickerEntryMode
+              .dialOnly, // prevent users from editing text directly
+          builder: (context, child) => Theme(
+            // Give the picker a custom theme that matches the user's app color
+            data: ThemeData.dark().copyWith(
+              colorScheme: ColorScheme.dark(
+                primary: appColorNotifier.value,
+                onPrimary: Colors.white,
+                secondary: appColorNotifier.value,
+                onSecondary: Colors.white,
+                tertiary: appColorNotifier.value,
+                onTertiary: Colors.white,
+                surface: darkenColor(appColorNotifier.value, 0.1).withAlpha(75),
+                onSurface: Colors.white,
+              ),
+            ),
+            child: child!,
+          ),
+        );
+
+        if (pickedTime != null) {
+          onPicked(
+            DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              pickedTime.hour,
+              pickedTime.minute,
+            ),
+          );
+        }
+      }
+    } else {
+      // Mobile or mobile web shows the Cupertino picker (feels natural on mobile but not on desktop)
+      showCupertinoModalPopup(
+        context: context,
+        builder: (_) => SizedBox(
+          height: Responsive.height(context, 350),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(128, 37, 37, 37),
+              borderRadius: BorderRadius.circular(
+                Responsive.height(context, 30),
+              ),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: CupertinoDatePicker(
+                    initialDateTime: dateTime,
+                    mode: CupertinoDatePickerMode.dateAndTime,
+                    use24hFormat: true,
+                    onDateTimeChanged: (newDate) => onPicked(newDate),
+                  ),
+                ),
+                CupertinoButton(
+                  child: Text("Confirm"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
   // Snackbar helper method
   void _showSnackbar(String message, {bool isError = false}) {
     if (snackbarActive) return; // Prevent multiple snackbars
@@ -196,7 +311,7 @@ class _RemindersState extends State<Reminders> {
         .then((_) => snackbarActive = false);
   }
 
-  // Method that creates and schedules a new reminder
+  // Method that saves a new reminder to Firestore
   Future<void> _setReminder() async {
     if (isLoading) return;
     // validation check: reminder message cannot be empty
@@ -223,31 +338,11 @@ class _RemindersState extends State<Reminders> {
     setState(() => isLoading = true);
 
     try {
-      debugPrint("Generating notification ID...");
+      debugPrint("Generating reminder ID...");
       final id = Random().nextInt(2147483647);
       debugPrint("ID generated: $id");
 
-      // Schedule the notification
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        id,
-        "Reminder",
-        remindersController.text,
-        tz.TZDateTime.from(pickedTime, tz.local),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'reminder_channel',
-            'Reminders',
-            channelDescription: 'User reminders',
-            importance: Importance.max,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dateAndTime,
-      );
-
-      // Update to Firestore
+      // Save reminder to Firestore
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         await FirebaseFirestore.instance
@@ -256,13 +351,14 @@ class _RemindersState extends State<Reminders> {
             .collection('reminders')
             .add({
               'message': remindersController.text,
-              'dateTime': pickedTime.toIso8601String(),
+              'dateTime': pickedTime.toUtc().toIso8601String(),
               'notificationId': id,
             });
       }
       // Confirmation snackbar
       _showSnackbar("Reminder set successfully!");
-      // Catch any potential errors in setting the reminder
+      remindersController.clear();
+      await _loadReminders(); // Show the new reminder in the table upon successful save
     } catch (e) {
       debugPrint("Error in _setReminder: $e");
       _showSnackbar("Failed to set reminder: ${e.toString()}", isError: true);
@@ -304,9 +400,6 @@ class _RemindersState extends State<Reminders> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "Note: Reminders only work on the Android version currently.",
-                    ),
                     // Reminder text input field
                     TextField(
                       controller: remindersController,
@@ -374,46 +467,9 @@ class _RemindersState extends State<Reminders> {
                       context,
                       destination: null,
                       onPressed: () {
-                        // Show date/time picker modal
-                        showCupertinoModalPopup(
-                          context: context,
-                          builder: (_) => Align(
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              height: Responsive.height(context, 350),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(128, 37, 37, 37),
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.width(context, 30),
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Expanded(child: buildDateTimePicker()),
-                                    CupertinoButton(
-                                      child: customButton(
-                                        // Confirm button
-                                        "Confirm",
-                                        40,
-                                        75,
-                                        300,
-                                        context,
-                                        destination: null,
-                                        onPressed: () => Navigator.pop(context),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(context); // Close picker
-                                        reminder = remindersController
-                                            .text; // Sync the text
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
+                        pickDateTime(context, dateTime, (newDate) {
+                          setState(() => dateTime = newDate);
+                        });
                       },
                     ),
                     SizedBox(height: Responsive.height(context, 20)),

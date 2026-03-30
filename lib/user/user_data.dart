@@ -7,11 +7,13 @@ class UserData {
   int level;
   int expPoints;
   bool canClaimDailyReward;
+  bool notificationsEnabled;
   DateTime? lastDailyClaim;
   List<ReminderData> reminders;
   String? username;
   Color appColor;
   Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate;
+  List<String> fcmTokens;
 
   // constructor
   UserData({
@@ -20,11 +22,13 @@ class UserData {
     this.level = 1,
     this.expPoints = 0,
     this.canClaimDailyReward = true,
+    this.notificationsEnabled = false,
     this.lastDailyClaim,
     this.appColor = const Color.fromARGB(255, 45, 45, 45), // default app color
     Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,
     String? username,
     this.reminders = const [],
+    this.fcmTokens = const [],
   }) : foodDataByDate = foodDataByDate ?? {},
        username = username ?? uid; // Default username is the UID
 }

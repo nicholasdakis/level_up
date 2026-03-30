@@ -391,6 +391,38 @@ Widget simpleCustomButton(
   );
 }
 
+// Shows a dialog telling the user their browser is blocking notifications
+void showBrowserBlockedDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(
+        'Notifications Blocked',
+        style: TextStyle(
+          fontSize: Responsive.font(context, 20),
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      content: Text(
+        'You have notifications enabled, but your browser is blocking them so they won\'t work.\n\nClick the lock icon in your browser\'s address bar, set Notifications to "Allow", then refresh the page.',
+        style: TextStyle(fontSize: Responsive.font(context, 15)),
+        textAlign: TextAlign.center,
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'OK',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 // CHANGE SCREEN (DART FILE) WITH A TRANSITION
 void changeToScreen(
   BuildContext context,

@@ -3,48 +3,40 @@
 Developmental progress by date is stored in this file.
 
 ## 2025-08-01
-
 - First day of development
 - Created header and footer sections of the Home Screen
 - Learned about different widgets and started adjusting to using Dart
 - Created basic outlines of the app (e.g., "Level Up!" appears in the Header, and the Experience Bar appears in the footer)
 
 ## 2025-08-02
-
 - Began development on the Home Screen's body section
 - Added a button that will lead to a separate screen
 - Wrapped the Home Screen in ScreenUtilInit to keep font sizes consistent on different screen sizes (not yet implemented)
 
 ## 2025-08-03
-
 - Used ScreenUtilInit instead of MediaQuery for screen resizing
 - Added remaining buttons to the body of the Home Screen
 
 ## 2025-08-04
-
 - Renamed the Food Tracking button to Food Logging
 - Added route functionalities so clicking a button changes the screen to the appropriate .dart file
 - Added animations when changing screens (using PageRouteBuilder)
 
 ## 2025-08-05
-
 - Started working on the Personal tab
 - Added two buttons, "Update your Information" and "Calorie Calculator"
 - "Update your Information" planned to be a dropdown menu
 
 ## 2025-08-07
-
 - Added an AppBar to the Personal tab so the back arrow in the top left corner is visible and functional
 - Applied the style from the Personal tab to all other tabs
 
 ## 2025-08-08
-
 - Started working on the Calorie Calculator tab
 - Added a few options, and variables to hold those options
 - The chosen options will calculate how many calories the user should consume to reach their goals
 
 ## 2025-08-09
-
 - More input options added to the Calorie Calculator tab
 - Information about activity levels added, aiding the user in choosing the correct activity level
 - "Get Results" button added, leading to the screen which shows the user their results
@@ -53,7 +45,6 @@ Developmental progress by date is stored in this file.
 - A flag variable is used to prevent SnackBars from stacking if the button is repeatedly pressed without all fields filled out
 
 ## 2025-08-10
-
 - Added the option to select units and input height in the Calorie Calculator tab
 - The height prompt Shows centimeter values when metric is chosen and foot and inch marks when imperial is chosen
 - Height is stored in inches and converted and rounded to centimeters
@@ -67,7 +58,6 @@ Developmental progress by date is stored in this file.
 - Added the option to enter weight via typing
 
 ## 2025-08-13
-
 - Made the Calculator tab "scrollable" to make Column expandable and prevent pixel overflow when the popup keyboard for inputting weight was opened
 - Renamed the title for the Calorie Calculator tab from "Calories" to "Calculator"
 - Underlined "Enter your weight" to appear consistent with the other options
@@ -80,7 +70,6 @@ Developmental progress by date is stored in this file.
 - Learned about using themes to replace the default purple color when interacting with the input weight text. Replaced it with a white color which is more consistent with the page layout
 
 ## 2025-08-14
-
 - Passed the user's sex from the Calorie Calculator tab to the Results tab (missed last patch)
 - Learned about ternary operators for the Input Weight prompt on the Results screen, showing kg or lbs based on units chosen
 - Removed the outer Center widget in the Calorie Calculator tab and stretched the Column horizontally which fixed an issue with dropdown boxes not having equal length
@@ -92,7 +81,6 @@ Developmental progress by date is stored in this file.
 - Used nested ternary operators to show the formula for the Harris-Benedict or Mifflin-St Jeor equations in metric or imperial based on the user's input (8 possible cases)
 
 ## 2025-08-15
-
 - Gave more information to the user about their chosen equation for BMR calculation
 - Correctly display the Harris-Benedict formula to the user in the units of their choice
 - Rewrote the comments within the ternary operators to be clearer (e.g., NOT Mifflin -> Harris)
@@ -100,7 +88,6 @@ Developmental progress by date is stored in this file.
 - Changing units after entering a height now automatically converts the units instead of just resetting them to null
 
 ## 2025-08-16
-
 - Displayed information about Total Daily Energy Expenditure (TDEE) and how it is calculated (Still W.I.P)
 - Created a method that calculates the user's BMR
 - Updated the README file to more accurately represent the current state of the project
@@ -111,7 +98,6 @@ Developmental progress by date is stored in this file.
 - Started correcting some miscalculations with the different calorie equations (Will fully fix next commit)
 
 ## 2025-08-17
-
 - Fixed all calculation issues with the calorie formulas, making the BMR calculation results much more accurate
 - Cleaned up some visuals in the Results tab by spacing out text more consistently
 - Learned about the RichText widget to underline headings in the Results tab
@@ -119,14 +105,13 @@ Developmental progress by date is stored in this file.
 - Planning to move the "Your TDEE" text to the very top of the screen
 
 ## 2025-08-18
-
 - Created helper methods for text widget creation to apply Don't Repeat Yourself principles
-    - Led to results.dart being much shorter and easier to read
+  - Led to results.dart being much shorter and easier to read
 - Learned about optional function parameters for choosing text decoration with the helper methods being used
 - Altered the formatting of the Results tab to look much smoother, separated by underlined title text, and body information wrapped in Card widgets
 - Added one more Activity Level option, "Active", and renamed "Very" to "Very Active"
 - Created a method to calculate activity level using switch cases
-    - Parsed the chosen activity level from a string to a double, used a switch case, and then returned the appropriate double value for the chosen activity level
+  - Parsed the chosen activity level from a string to a double, used a switch case, and then returned the appropriate double value for the chosen activity level
 - The user's TDEE is now displayed using the calculateBMR(), calculateActivityLevel(), and calculateTDEE() methods
 - Used VSCode's code formatting keyboard shortcut to clean up the indentation of the code in all classes
 - Refactored code in main.dart by replacing all manual button creations with helper methods
@@ -138,7 +123,6 @@ Developmental progress by date is stored in this file.
 - The gear icon is clickable and displays several new options, including "Personal Information", "About", "Contact" and "Donate"
 
 ## 2025-08-19
-
 - Completed the Results tab
 - Added information on how to lose, gain, or maintain weight in terms of pounds or kilograms, dependent on the user's inputs
 - Only shows healthy rates for weight loss / weight gain
@@ -146,7 +130,6 @@ Developmental progress by date is stored in this file.
 - Refactored Settings Drawer items code by creating a drawerItem() method, and added a hover color for those items
 
 ## 2025-08-20
-
 - Created a backend folder and a backend file, server.py, to handle API usage
 - Hosted the project on Render so API calls can be made from outside of the local machine
 - Moved buttonText() and customButton() methods outside all classes to be used globally
@@ -155,7 +138,6 @@ Developmental progress by date is stored in this file.
 - Added a search button, a meal type button (Breakfast, Lunch, Dinner, Snack), and a Log Food button
 
 ## 2025-08-22
-
 - Added debouncing logic with a Timer when a user searches up a food so the API is called only when the timer becomes 0
 - Created a method that handles the api call by retrieving the URL with the user's search option and showing options to the user
 - The method stores the URL of the backend server link (via Render) with the user's chosen input string
@@ -169,13 +151,11 @@ Developmental progress by date is stored in this file.
 - Added a package to setup API rate limiting (W.I.P)
 
 ## 2025-08-23
-
 - Used the limit package to limit API calls on a single device in a single session to 100 per day
 - Added attribution to the FatSecret service while in the Food Logging tab, as per FatSecret's terms
 - Clicking the "Powered by fatsecret" text directs the user to the FatSecret website
 
 ## 2025-08-24
-
 - Created the file global.dart to hold global variables, rather than having them scattered in separate classes
 - Created the method createTitle() in global.dart to create the appBar's title text of each screen rather than manually typing the code for each class
 - Created a file settings.dart to store the code for the Settings Drawer originally written in main.dart
@@ -197,7 +177,7 @@ Developmental progress by date is stored in this file.
 ## 2025-09-01
 - Changed the button style of "Enter your profile picture" to match with other app buttons
 - Fixed app crashing when user clicked the button to edit profile picture but exited without selecting one
-- When the user selects an image, it is stored in a private variable, _selectedImage and in a public global variable, selectedProfileImage
+- When the user selects an image, it is stored in a private variable, \_selectedImage and in a public global variable, selectedProfileImage
 - main.dart imports personal_preferences.dart to directly use that global variable
 - insertProfilePicture() moved to main.dart
 - HomeScreen was changed from a Stateless to Stateful Widget (for UI changes in the footer)
@@ -222,7 +202,7 @@ Developmental progress by date is stored in this file.
 - Moved the HomeScreen class from main.dart to a new file, home_screen.dart
 - Created register_or_login.dart to be used as the welcoming screen for user registration / logging in
 - Created auth_gate.dart to determine if the user should be redirected to register_or_login.dart if not logged in, else home_screen.dart
-- Created auth_services.dart for authentication 
+- Created auth_services.dart for authentication
 
 ## 2025-09-13
 - Added fields for entering email and password for Registration / Login on the Welcome screen
@@ -337,7 +317,7 @@ Developmental progress by date is stored in this file.
 - snackBar theme updated to match the gray theme of the app
 - Added a black border around the profile picture in the footer
 - Created claimDailyReward() method and canClaimDailyReward and lastDailyClaim variables for adding daily rewards
-- claimDailyReward() updates the variables if a claim can be made, otherwise it sets canClaimDailyReward to 
+- claimDailyReward() updates the variables if a claim can be made, otherwise it sets canClaimDailyReward to
 - There is a 23 hour period between each daily reward claim
 - Updated loadUserDate() to properly handle new fields being added to existing users (adding that field to the user's database)
 - Popup dialog appears when the user opens the Home Screen and an XP reward can be claimed
@@ -581,3 +561,20 @@ Developmental progress by date is stored in this file.
 ## 2026-03-27
 - Added normalizing to food logging queries both client-side and server-side to prevent unnecessary API requests (e.g, "chicken", "Chicken", " chicken" all become "chicken")
 - Changed hard-coded gray background to responsive app color for dropdown items in Calorie Calculator
+- Created a fcmTokens user variable as an array so tokens across multiple devices can be stored for the same user
+- Made methods for adding, removing, and initializing FCM tokens
+
+## 2026-03-30
+- Replaced flutter_local_notifications with FCM for cross-platform notification support
+- Added notificationsEnabled user variable and fcmTokens array to store tokens across devices
+- Created firebase-messaging-sw.js and registered it in index.html to handle background notifications
+- Added APScheduler and firebase_admin to server.py, runs send_due_reminders() every minute, querying the reminders collectionGroup for due reminders, sending FCM notifications via firebase_admin's messaging module, then deleting them
+- Reminder dateTime now always stored in UTC for consistency with the backend
+- Added a dialog on the Reminders screen prompting the user to enable notifications if they haven't
+- Added a shared showBrowserBlockedDialog() that warns users their browser is blocking notifications, shown on startup and when enabling notifications from the Reminders screen
+- Fixed requestPermission() hanging on web when the browser silently blocks the dialog, skipped on web as getToken() handles permissions natively
+- Fixed race condition where initializeFcmToken() wrote a partial Firestore cache entry before loadUserData() read the document, wiping user stats
+- Fixed duplicate notifications by switching to a data-only FCM payload so the browser doesn't auto-show a notification on top of the service worker's
+- Backend now auto-removes stale FCM tokens when FCM reports them as unregistered or invalid
+- Deleted notification_setup.dart as it is now obsolete (was used for flutter_local_notifications)
+- Moved FCM-setup code to its own utility class to clean up Home Screen

@@ -1,23 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read and write their own user document
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // request.auth != null requires a valid Firebase Auth token, so the public API key alone is not enough to read data
+      allow get, list: if request.auth != null;
+      // request.auth.uid == userId ensures even logged-in users cannot write to someone else's document
+      allow write: if request.auth != null && request.auth.uid == userId;
+
+      // Only the owner can read or write their own reminders
+      match /reminders/{reminderId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
-    
-    // Users can only create/update their own posts
-    match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && 
-                     request.auth.uid == request.resource.data.authorId;
-      allow update, delete: if request.auth != null && 
-                             request.auth.uid == resource.data.authorId;
-    }
-    
-    // Users can only access their own private data
-    match /users/{userId}/private/{document} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    // Used to fetch the server timestamp for daily reward logic
+    match /serverTime/{document} {
+      allow read, write: if request.auth != null;
     }
   }
 }

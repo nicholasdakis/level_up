@@ -16,6 +16,7 @@ import 'screens/daily_rewards.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
+import 'utility/fcm_service.dart';
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -41,17 +42,23 @@ class _HomeScreenState extends State<HomeScreen> {
   late VoidCallback _appColorListener;
 
   @override
-  // Load user data from Firestore
   void initState() {
     super.initState();
+
+    // Load user data from Firestore
     initializeUser();
+
     // Update the HomeScreen with the updated app color
     _appColorListener = () {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
+
     // Initialize confetti controllers
     confettiControllerinit();
+
+    // FCM Setup
+    FcmService.initialize(context);
   }
 
   // To prevent memory leaks
@@ -217,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 03.27",
+                                    "App version: Beta 03.30",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,

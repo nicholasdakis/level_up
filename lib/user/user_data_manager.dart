@@ -51,11 +51,13 @@ class UserDataManager {
           level: 1,
           expPoints: 0,
           canClaimDailyReward: true,
+          notificationsEnabled: false,
           lastDailyClaim: null,
           username: uid, // default username is uid
           reminders: [],
           appColor: const Color.fromARGB(255, 45, 45, 45),
           foodDataByDate: {},
+          fcmTokens: [],
         );
       }
 
@@ -111,6 +113,29 @@ class UserDataManager {
       } else {
         FirebaseFirestore.instance.collection('users').doc(uid).set({
           'username': uid,
+        }, SetOptions(merge: true));
+      }
+
+      // if the user has stored fcmTokens, load them
+      if (doc.exists && doc.data()?['fcmTokens'] != null) {
+        List<dynamic> tokensFromFirestore = doc.data()?['fcmTokens'];
+        currentUserData?.fcmTokens = tokensFromFirestore
+            .map((token) => token.toString())
+            .toList();
+      } else {
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'fcmTokens': [],
+        }, SetOptions(merge: true));
+      }
+
+      // if the user has a stored notificationsEnabled, load it
+      if (doc.exists && doc.data()?['notificationsEnabled'] != null) {
+        currentUserData?.notificationsEnabled = doc
+            .data()?['notificationsEnabled'];
+      } else {
+        currentUserData?.notificationsEnabled = false;
+        FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'notificationsEnabled': false,
         }, SetOptions(merge: true));
       }
 
@@ -393,11 +418,13 @@ class UserDataManager {
         level: currentUserData!.level,
         expPoints: currentUserData!.expPoints,
         canClaimDailyReward: currentUserData!.canClaimDailyReward,
+        notificationsEnabled: currentUserData!.notificationsEnabled,
         lastDailyClaim: currentUserData!.lastDailyClaim,
         username: currentUserData!.username,
         reminders: currentUserData!.reminders,
         appColor: currentUserData!.appColor,
         foodDataByDate: currentUserData!.foodDataByDate,
+        fcmTokens: currentUserData!.fcmTokens,
       );
       // Confirmation snackBar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -563,6 +590,72 @@ class UserDataManager {
         ),
       );
       return false;
+    }
+  }
+
+  // Method to initialize FCM token on app startup and add it to Firestore if not already present, ensuring no duplicates
+  Future<void> initializeFcmToken(String deviceToken) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
+      if (currentUserData != null && !currentUserData!.fcmTokens.contains(deviceToken)) {
+        currentUserData!.fcmTokens.add(deviceToken);
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'fcmTokens': FieldValue.arrayUnion([deviceToken]),
+      });
+    } catch (e) {
+      debugPrint("Error initializing FCM token: $e");
+    }
+  }
+
+  // Adds this device's FCM token to Firestore (called on token refresh)
+  Future<void> addFcmToken(String deviceToken) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Update local list if not already present
+      if (currentUserData != null && !currentUserData!.fcmTokens.contains(deviceToken)) {
+        currentUserData!.fcmTokens.add(deviceToken);
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'fcmTokens': FieldValue.arrayUnion([deviceToken]),
+      });
+    } catch (e) {
+      debugPrint("Error adding FCM token: $e");
+    }
+  }
+
+  // Removes this device's FCM token from Firestore (called on logout)
+  Future<void> removeFcmToken(String deviceToken) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Remove token from local list
+      currentUserData!.fcmTokens.remove(deviceToken);
+
+      // Remove token from Firestore array safely
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'fcmTokens': FieldValue.arrayRemove([deviceToken]),
+      });
+    } catch (e) {
+      debugPrint("Error removing FCM token: $e");
+    }
+  }
+
+  // Method for updating the user's notification preference and storing it
+  Future<void> updateNotificationsEnabled(bool enabled) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      currentUserData!.notificationsEnabled = enabled;
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'notificationsEnabled': enabled,
+      });
+    } catch (e) {
+      debugPrint("Error updating notificationsEnabled: $e");
     }
   }
 
