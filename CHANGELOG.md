@@ -578,3 +578,7 @@ Developmental progress by date is stored in this file.
 - Backend now auto-removes stale FCM tokens when FCM reports them as unregistered or invalid
 - Deleted notification_setup.dart as it is now obsolete (was used for flutter_local_notifications)
 - Moved FCM-setup code to its own utility class to clean up Home Screen
+- Made Reminders appear as individual cards instead of one list
+- Changed the UI of the Reminders tab to appear more modern with the frosted glass effect
+- Added a formatDateTime method to show the date and time of each reminder clearly to the user
+- Used grammar-based generation for Reminder ideas to give some random ideas to the user. Also added some "before (user's next hour)" options to make the text feel personalized.

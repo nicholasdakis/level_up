@@ -17,7 +17,7 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification?.title || 'LevelUp Reminder';
+  const notificationTitle = payload.notification?.title || 'Level Up! Reminder';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || '',
     icon: payload.notification?.icon || '/favicon-192.png',
