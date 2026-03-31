@@ -140,7 +140,7 @@ class _RemindersState extends State<Reminders> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Notifications Disabled"),
+        title: Text("In-App Notifications Are Disabled"),
         content: Text("Enable notifications to receive reminders."),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [

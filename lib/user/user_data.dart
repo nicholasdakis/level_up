@@ -22,7 +22,7 @@ class UserData {
     this.level = 1,
     this.expPoints = 0,
     this.canClaimDailyReward = true,
-    this.notificationsEnabled = false,
+    this.notificationsEnabled = true,
     this.lastDailyClaim,
     this.appColor = const Color.fromARGB(255, 45, 45, 45), // default app color
     Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,

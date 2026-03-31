@@ -51,7 +51,7 @@ class UserDataManager {
           level: 1,
           expPoints: 0,
           canClaimDailyReward: true,
-          notificationsEnabled: false,
+          notificationsEnabled: true,
           lastDailyClaim: null,
           username: uid, // default username is uid
           reminders: [],
@@ -133,9 +133,9 @@ class UserDataManager {
         currentUserData?.notificationsEnabled = doc
             .data()?['notificationsEnabled'];
       } else {
-        currentUserData?.notificationsEnabled = false;
+        currentUserData?.notificationsEnabled = true;
         FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'notificationsEnabled': false,
+          'notificationsEnabled': true,
         }, SetOptions(merge: true));
       }
 
@@ -599,7 +599,8 @@ class UserDataManager {
       final uid = FirebaseAuth.instance.currentUser!.uid;
 
       // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
-      if (currentUserData != null && !currentUserData!.fcmTokens.contains(deviceToken)) {
+      if (currentUserData != null &&
+          !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
@@ -617,7 +618,8 @@ class UserDataManager {
       final uid = FirebaseAuth.instance.currentUser!.uid;
 
       // Update local list if not already present
-      if (currentUserData != null && !currentUserData!.fcmTokens.contains(deviceToken)) {
+      if (currentUserData != null &&
+          !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
