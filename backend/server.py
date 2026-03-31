@@ -63,12 +63,15 @@ def send_due_reminders():
                 doc.reference.delete()
                 continue
 
-            # Send a data-only payload so the browser doesn't auto-show a notification
-            # The service worker's onBackgroundMessage handles display, preventing duplicates
+            # Send a notification + data payload so browsers show it even when minimized
             message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title="Level Up! Reminder",
+                    body=data.get('message', 'You have a reminder!')
+                ),
                 data={
-                    'title': 'Level Up! Reminder',
-                    'body': data.get('message', 'You have a reminder!'),
+                    'body': data.get('message', 'You have a reminder!'),  # fallback for your SW
+                    'reminderId': doc.id
                 },
                 tokens=fcm_tokens,
             )
