@@ -40,12 +40,15 @@ def send_due_reminders():
         now_dt = datetime.now(timezone.utc)
         # Format to match Flutter's toUtc().toIso8601String() output (e.g. 2026-03-30T15:00:00.000Z)
         now = now_dt.strftime('%Y-%m-%dT%H:%M:%S.') + f'{now_dt.microsecond // 1000:03d}Z'
+        print(f'[reminders] Checking for due reminders at {now}')
 
         # collection_group queries the reminders subcollection across all users at once
         # Requires a Firestore composite index on reminders.dateTime (collection group ASC)
         due_reminders = db.collection_group('reminders').where('dateTime', '<=', now).stream()
 
+        count = 0
         for doc in due_reminders:
+            count += 1
             data = doc.to_dict()
 
             # Extract the user's UID from the document path: users/{uid}/reminders/{docId}
@@ -76,6 +79,7 @@ def send_due_reminders():
                 tokens=fcm_tokens,
             )
             response = messaging.send_each_for_multicast(message)
+            print(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
 
             # Clean up tokens with unregistered / invalid error codes (e.g. user uninstalled the app or revoked permissions)
             if response.failure_count > 0:
@@ -96,6 +100,9 @@ def send_due_reminders():
 
             # Delete the reminder after sending so it does not fire again
             doc.reference.delete()
+
+        if count == 0:
+            print(f'[reminders] No due reminders found')
 
     except Exception as e:
         print(f'Error sending reminders: {e}')
