@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_interop';
 
 // Binds to the getWebFcmToken() JS function defined in index.html

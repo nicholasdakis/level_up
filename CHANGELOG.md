@@ -586,3 +586,6 @@ Developmental progress by date is stored in this file.
 - Made FCM token initialization wait for user's data to be loaded first to prevent potential race conditions
 - Tried using JS interop to get FCM token on web to fix missing tokens on deployed subdirectory builds
 - Added VAPID key and JS interop getWebFcmToken to properly fetch FCM tokens on web
+- used JS_Interop package to use the JS methods from Dart
+- Added Firebase SDK scripts and JS Firebase initialization to index.html
+- Edited the Browser Notification dialog to now ask the user for notification permissions via the js interop

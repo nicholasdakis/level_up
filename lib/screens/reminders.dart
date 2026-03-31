@@ -8,7 +8,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
 import '../user/reminder_data.dart';
 import '../utility/responsive.dart';
+import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
+
+// JS interop to get the FCM token on web platforms, since Flutter's Firebase Messaging plugin can't find the service worker on subdirectory deployments (e.g. GitHub Pages at /level_up/)
+@JS('getWebFcmToken')
+external JSPromise<JSString?> getWebFcmToken(String vapidKey);
+
+@JS('Notification.requestPermission')
+external JSPromise<JSString> jsRequestPermission();
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -48,6 +56,8 @@ class _RemindersState extends State<Reminders> {
   }
 
   void _showNotificationsDisabledDialog() {
+    const String vapidKey =
+        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -61,11 +71,44 @@ class _RemindersState extends State<Reminders> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              await userManager.updateNotificationsEnabled(true);
-              // If no FCM token, the browser is blocking notifications
-              if (mounted && (currentUserData?.fcmTokens.isEmpty == true)) {
-                showBrowserBlockedDialog(context);
+              Navigator.pop(context); // close the dialog first
+              await userManager.updateNotificationsEnabled(
+                true,
+              ); // update locally and in Firestore
+
+              // Ask browser for notification permissions
+              if (kIsWeb) {
+                try {
+                  // Use the JS interop to call the browser's permission dialog
+                  final JSString jsPermission =
+                      await jsRequestPermission().toDart;
+                  final String permission = jsPermission.toDart;
+
+                  // Permission granted, get the FCM token and save it
+                  if (permission == 'granted') {
+                    final jsPromise = getWebFcmToken(
+                      vapidKey,
+                    ); // a JSPromise is like a Future in Flutter
+                    final JSString? jsToken = await jsPromise.toDart;
+                    final String? token = jsToken?.toDart;
+
+                    if (token != null) {
+                      await userManager.addFcmToken(
+                        token,
+                      ); // Update locally and in Firestore
+                    } else {
+                      if (mounted) {
+                        showBrowserBlockedDialog(context);
+                      } // Canceled or error in getting token
+                    }
+                  } else {
+                    // Denied / dismissed
+                    if (mounted) showBrowserBlockedDialog(context);
+                  }
+                } catch (e) {
+                  debugPrint('Error getting FCM token: $e');
+                  if (mounted) showBrowserBlockedDialog(context);
+                }
               }
             },
             child: Text("Enable"),

@@ -30,6 +30,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js"></script>
+
 </head>
 
 <body>
@@ -37,10 +40,20 @@
 
   <!-- Register the Firebase Cloud Messaging service worker so the browser can receive push notifications in the background -->
   <script>
+    // Required JS initialization so the 'firebase' object exists for getWebFcmToken
+    firebase.initializeApp({
+      apiKey: "AIzaSyDJGN1oGmrLRFnyJL3PMj2G_-hyJeKywnE",
+      authDomain: "level-up-a3181.firebaseapp.com",
+      projectId: "level-up-a3181",
+      storageBucket: "level-up-a3181.firebasestorage.app",
+      messagingSenderId: "722650087969",
+      appId: "1:722650087969:web:2b812c5bb0a2c30bc8d960"
+    });
+
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('firebase-messaging-sw.js')
+      navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
         .then(function(registration) {
           console.log('Service Worker registered with scope:', registration.scope);
           window._swRegistration = registration;
