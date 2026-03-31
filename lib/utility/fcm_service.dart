@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../firebase_options.dart';
 import '../globals.dart';
+import 'web_fcm_token.dart';
 
 // Handles FCM messages received while the app is in the background or terminated
 // Re-initializes Firebase since background isolates don't share state with the main app
@@ -39,13 +40,20 @@ class FcmService {
         );
 
     // Get the device's FCM token and save it to Firestore
-    // Timeout of 2s prevents hanging if the browser blocks the permission dialog
-    String? deviceToken = await FirebaseMessaging.instance
-        .getToken(
-          vapidKey:
-              "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0",
-        )
-        .timeout(const Duration(seconds: 2), onTimeout: () => null);
+    // Timeout prevents hanging if the browser blocks the permission dialog
+    const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
+    String? deviceToken;
+    if (kIsWeb) {
+      // On web, use JS interop to pass the service worker registration to getToken()
+      // Flutter's plugin can't find the SW on subdirectory deployments (e.g. GitHub Pages at /level_up/)
+      deviceToken = await getWebFcmToken(vapidKey)
+          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+    } else {
+      deviceToken = await FirebaseMessaging.instance
+          .getToken(vapidKey: vapidKey)
+          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+    }
+    debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
 
     if (deviceToken != null) {
       await userManager.initializeFcmToken(deviceToken);

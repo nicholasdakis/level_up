@@ -583,3 +583,5 @@ Developmental progress by date is stored in this file.
 - Added a formatDateTime method to show the date and time of each reminder clearly to the user
 - Used grammar-based generation for Reminder ideas to give some random ideas to the user. Also added some "before (user's next hour)" options to make the text feel personalized.
 - Fixed a visual bug of the Reminder time showing UTC time instead of converting to the user's timezone (had no impact on backend)
+- Made FCM token initialization wait for user's data to be loaded first to prevent potential race conditions
+- Tried using JS interop to get FCM token on web to fix missing tokens on deployed subdirectory builds

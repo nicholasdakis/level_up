@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Load user data from Firestore
+    // Load user data from Firestore, then initialize FCM once data is ready
     initializeUser();
 
     // Update the HomeScreen with the updated app color
@@ -56,9 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Initialize confetti controllers
     confettiControllerinit();
-
-    // FCM Setup
-    FcmService.initialize(context);
   }
 
   // To prevent memory leaks
@@ -106,6 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Sync ValueNotifier with loaded XP amount for visually accurate Footer experience
     expNotifier.value = currentUserData?.expPoints ?? 0;
     debugPrint('XP loaded: ${currentUserData?.expPoints}');
+
+    // Initialize FCM after user data is loaded so currentUserData is fully populated before token registration
+    if (mounted) await FcmService.initialize(context);
 
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {

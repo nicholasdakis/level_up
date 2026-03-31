@@ -174,9 +174,6 @@ class _RemindersState extends State<Reminders> {
     final tasks = [
       "Go for a walk",
       "Drink water",
-      "Log breakfast",
-      "Log lunch",
-      "Log dinner",
       "Log a snack",
       "Stay hydrated",
       "Go to the gym",

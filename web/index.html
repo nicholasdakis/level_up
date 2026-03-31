@@ -40,10 +40,24 @@
     navigator.serviceWorker.register('firebase-messaging-sw.js')
       .then(function(registration) {
         console.log('Service Worker registered with scope:', registration.scope);
+        window._swRegistration = registration;
       }).catch(function(err) {
         console.log('Service Worker registration failed:', err);
       });
   }
+
+  // Called from Dart via JS interop to get the FCM token on web
+  // Passes the service worker registration directly so Firebase can find it on GitHub Pages (/level_up/ subdirectory)
+  window.getWebFcmToken = async function(vapidKey) {
+    try {
+      var reg = window._swRegistration || await navigator.serviceWorker.ready;
+      var messaging = firebase.messaging();
+      return await messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: reg });
+    } catch(e) {
+      console.error('getWebFcmToken error:', e);
+      return null;
+    }
+  };
 </script>
 </body>
 
