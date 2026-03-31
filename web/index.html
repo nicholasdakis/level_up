@@ -77,6 +77,17 @@
         return null;
       }
     };
+
+    // Called from Dart via JS interop to request notification permissions from the browser
+    window.jsRequestPermission = async function() {
+  try {
+    return await Notification.requestPermission();
+  } catch (e) {
+    console.error('Permission request error:', e);
+    return 'denied';
+  }
+};
+
   </script>
 </body>
 
