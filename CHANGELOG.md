@@ -599,3 +599,5 @@ Developmental progress by date is stored in this file.
 - Made messages with notification payloads return to prevent duplicate notification messages
 - Fixed web foreground notifications by handling onMessage directly in JS (Flutter SDK's onMessage doesn't fire when the token is obtained via JS interop)
 - Update getWebFcmToken to only call the notification request if user explicitly allowed so
+- Replaced APScheduler w/ a route as gunicorn does not handle apschedulers well
+- Made a cron job to keep the send_reminders route up and running every minute

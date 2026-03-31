@@ -8,7 +8,6 @@ from google.cloud import firestore
 from google.oauth2 import service_account
 from firebase_admin import messaging
 import firebase_admin
-from apscheduler.schedulers.background import BackgroundScheduler
 import json
 import re
 
@@ -142,6 +141,11 @@ def ping():
         "message": "Pinged."
     }), 200
 
+@app.route("/send_reminders")
+def trigger_reminders():
+    send_due_reminders()
+    return jsonify({"message": "Reminders checked."}), 200
+
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
     # Normalize the food name to reduce API calls
@@ -199,11 +203,6 @@ def get_food(food_name):
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
-
-# Start the background scheduler that checks for due reminders every minute
-scheduler = BackgroundScheduler(timezone='UTC')
-scheduler.add_job(send_due_reminders, 'interval', minutes=1)
-scheduler.start()
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)
