@@ -53,7 +53,7 @@
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
+      navigator.serviceWorker.register('firebase-msg/firebase-messaging-sw.js', { scope: '/level_up/firebase-msg/' })
         .then(function (registration) {
           console.log('Service Worker registered with scope:', registration.scope);
           window._swRegistration = registration;
@@ -68,7 +68,16 @@
       // Only call getToken() if permission is already granted (prevents JS violation)
       if (Notification.permission !== 'granted') return null;
       try {
-        var reg = window._swRegistration || await navigator.serviceWorker.ready;
+        var reg = window._swRegistration;
+        if (!reg) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          reg = registrations.find(r =>
+            (r.active || r.installing || r.waiting)?.scriptURL.includes('firebase-messaging-sw')
+          );
+        }
+        if (!reg) {
+          reg = await navigator.serviceWorker.register('firebase-msg/firebase-messaging-sw.js', { scope: '/level_up/firebase-msg/' });
+        }
         var messaging = firebase.messaging();
         return await messaging.getToken({
           vapidKey: vapidKeyParam,

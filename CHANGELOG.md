@@ -603,3 +603,4 @@ Developmental progress by date is stored in this file.
 - Made a cron job to keep the send_reminders route up and running every minute
 - Added better error messages for iterating through the user's fcm tokens
 - Removed the early return for payload.notification in case this was silencing the notification
+- Fixed the app using the wrong service worker by specifically making it find the custom one. There are now two service workers (default flutter one and custom firebase-messaging-sw)
