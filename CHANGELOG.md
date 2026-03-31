@@ -593,7 +593,8 @@ Developmental progress by date is stored in this file.
 - Changed Reminder ID calculation to prevent potential conflicts
 - Moved showBrowserBlockedDialog to Reminders tab
 
-##2026-03-31
+## 2026-03-31
 - Made onMessage (which handles foreground notifications) functional instead of just debug printing
 - Reminders fire up to a minute late with a cleanupThreshold, so edited loadReminders() to only delete reminders when they've actually been fired
 - Made messages with notification payloads return to prevent duplicate notification messages
+- Fixed web foreground notifications by handling onMessage directly in JS (Flutter SDK's onMessage doesn't fire when the token is obtained via JS interop)
