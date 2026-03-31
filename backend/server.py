@@ -82,15 +82,16 @@ def send_due_reminders():
 
             # Clean up tokens with unregistered / invalid error codes (e.g. user uninstalled the app or revoked permissions)
             if response.failure_count > 0:
-                invalid_tokens = [
-                    fcm_tokens[i]
-                    for i, res in enumerate(response.responses)
-                    if not res.success and res.exception and
-                    getattr(res.exception, 'code', None) in (
-                        'registration-token-not-registered',  # token was revoked or app uninstalled
-                        'invalid-registration-token',         # token is malformed
-                    )
-                ]
+                invalid_tokens = []
+                for i, res in enumerate(response.responses):
+                    if not res.success and res.exception:
+                        code = getattr(res.exception, 'code', None)
+                        print(f'[reminders] Token {i} failed: code={code} error={res.exception}')
+                        if code in (
+                            'registration-token-not-registered',
+                            'invalid-registration-token',
+                        ):
+                            invalid_tokens.append(fcm_tokens[i])
                 # Remove invalid tokens from Firestore as to not keep trying to send to them
                 if invalid_tokens:
                     db.collection('users').document(uid).update({

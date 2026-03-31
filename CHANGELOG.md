@@ -601,3 +601,5 @@ Developmental progress by date is stored in this file.
 - Update getWebFcmToken to only call the notification request if user explicitly allowed so
 - Replaced APScheduler w/ a route as gunicorn does not handle apschedulers well
 - Made a cron job to keep the send_reminders route up and running every minute
+- Added better error messages for iterating through the user's fcm tokens
+- Removed the early return for payload.notification in case this was silencing the notification
