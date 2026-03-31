@@ -606,3 +606,8 @@ Developmental progress by date is stored in this file.
 - Fixed the app using the wrong service worker by specifically making it find the custom one. There are now two service workers (default flutter one and custom firebase-messaging-sw)
 - Imported the default SW into the custom one so that there is only one single SW
 - Edited flutter_bootstrap to not automatically call load(), so that load() is called by the firebase-messaging-sw SW instead of the default one
+- Added notification toggle in personal preferences
+- Overhauled personal preferences UI
+- Added common frosted glass card code into globals.dart instead of remaking it every time
+- Made it so a Reminder can't be set if in-app notifications are disabled
+- Made it so if the user clicks Reminders while in-app notifications are disabled the disabled in-app notifications popup opens

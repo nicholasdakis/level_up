@@ -5,7 +5,6 @@ import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
-import 'utility/fcm_service.dart';
 
 ValueNotifier<int> expNotifier = ValueNotifier<int>(
   currentUserData?.expPoints ?? 0,
@@ -413,6 +412,34 @@ void changeToScreen(
         final offsetAnimation = animation.drive(tween);
         return SlideTransition(position: offsetAnimation, child: child);
       },
+    ),
+  );
+}
+
+// Frosted glass card used across the app
+Widget frostedGlassCard(
+  BuildContext context, {
+  required Widget child,
+  double baseRadius = 20,
+  EdgeInsetsGeometry? padding,
+}) {
+  final cardRadius = BorderRadius.circular(Responsive.scale(context, baseRadius));
+  return ClipRRect(
+    borderRadius: cardRadius,
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(18),
+          borderRadius: cardRadius,
+          border: Border.all(
+            color: Colors.white.withAlpha(30),
+            width: Responsive.width(context, 1),
+          ),
+        ),
+        padding: padding,
+        child: child,
+      ),
     ),
   );
 }

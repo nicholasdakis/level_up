@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +49,7 @@ void showBrowserBlockedDialog(BuildContext context) {
     context: context,
     builder: (context) => AlertDialog(
       title: Text(
-        'Notifications Blocked',
+        'Browser Notifications are Disabled',
         style: TextStyle(
           fontSize: Responsive.font(context, 20),
           fontWeight: FontWeight.bold,
@@ -58,9 +57,8 @@ void showBrowserBlockedDialog(BuildContext context) {
         textAlign: TextAlign.center,
       ),
       content: Text(
-        'Your notifications are enabled in the app, but your browser is blocking them.\n\n'
-        'Click "Enable" to request permission again. If it still doesn\'t work, '
-        'click the lock icon in your browser\'s address bar, set Notifications to "Allow", then refresh the page.',
+        'In-app notifications are enabled, but your browser is blocking them.\n\n'
+        'Click "Enable" to request notification permissions from your browser.',
         style: TextStyle(fontSize: Responsive.font(context, 15)),
         textAlign: TextAlign.center,
       ),
@@ -563,69 +561,55 @@ class _RemindersState extends State<Reminders> {
   Widget _buildReminderCard(ReminderData reminder) {
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(18),
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 16),
-              ),
-              border: Border.all(
-                color: Colors.white.withAlpha(30),
-                width: Responsive.width(context, 1),
-              ),
+      child: frostedGlassCard(
+        context,
+        baseRadius: 16,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 14),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.notifications_outlined,
+              color: appColorNotifier.value,
+              size: Responsive.scale(context, 22),
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 20),
-              vertical: Responsive.height(context, 14),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.notifications_outlined,
-                  color: appColorNotifier.value,
-                  size: Responsive.scale(context, 22),
-                ),
-                SizedBox(width: Responsive.width(context, 14)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reminder.message,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 4)),
-                      Text(
-                        _formatDateTime(reminder.dateTime),
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 12),
-                          color: Colors.white60,
-                        ),
-                      ),
-                    ],
+            SizedBox(width: Responsive.width(context, 14)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    reminder.message,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: Colors.redAccent,
-                    size: Responsive.scale(context, 20),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    _formatDateTime(reminder.dateTime),
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: Colors.white60,
+                    ),
                   ),
-                  onPressed: () => _deleteReminder(reminder),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: Colors.redAccent,
+                size: Responsive.scale(context, 20),
+              ),
+              onPressed: () => _deleteReminder(reminder),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
         ),
       ),
     );
@@ -633,13 +617,6 @@ class _RemindersState extends State<Reminders> {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = Colors.white.withAlpha(18);
-    final cardBorder = Border.all(
-      color: Colors.white.withAlpha(30),
-      width: Responsive.width(context, 1),
-    );
-    final cardRadius = BorderRadius.circular(Responsive.scale(context, 20));
-
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -661,24 +638,13 @@ class _RemindersState extends State<Reminders> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ClipRRect(
-                      borderRadius: cardRadius,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 12,
-                          sigmaY: 12,
-                        ), // blur to give a glass effect
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: cardRadius,
-                            border: cardBorder,
-                          ),
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 20),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                    frostedGlassCard(
+                      context,
+                      padding: EdgeInsets.all(
+                        Responsive.scale(context, 20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // Text field
                               TextField(
@@ -780,7 +746,9 @@ class _RemindersState extends State<Reminders> {
                                   : SizedBox(
                                       height: Responsive.height(context, 48),
                                       child: ElevatedButton(
-                                        onPressed: _setReminder,
+                                        onPressed: currentUserData?.notificationsEnabled == true
+                                            ? _setReminder
+                                            : () => _showNotificationsDisabledDialog(),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor:
                                               appColorNotifier.value,
@@ -806,8 +774,6 @@ class _RemindersState extends State<Reminders> {
                                     ),
                             ],
                           ),
-                        ),
-                      ),
                     ),
 
                     SizedBox(height: Responsive.height(context, 28)),
