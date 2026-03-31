@@ -1,5 +1,7 @@
-// Import the flutter worker so it can handle the app's cache
-importScripts('./flutter_service_worker.js');
+
+// Take over immediately so flutter_service_worker.js can't win the scope
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js');

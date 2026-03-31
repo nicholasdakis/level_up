@@ -130,7 +130,7 @@ class _RemindersState extends State<Reminders> {
     super.initState();
     _loadReminders(); // Load reminders when the widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!currentUserData!.notificationsEnabled) {
+      if (currentUserData?.notificationsEnabled == false) {
         _showNotificationsDisabledDialog(); // prompt user to enable notifications
       }
     });

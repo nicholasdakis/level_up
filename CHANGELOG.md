@@ -605,3 +605,4 @@ Developmental progress by date is stored in this file.
 - Removed the early return for payload.notification in case this was silencing the notification
 - Fixed the app using the wrong service worker by specifically making it find the custom one. There are now two service workers (default flutter one and custom firebase-messaging-sw)
 - Imported the default SW into the custom one so that there is only one single SW
+- Edited flutter_bootstrap to not automatically call load(), so that load() is called by the firebase-messaging-sw SW instead of the default one

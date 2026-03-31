@@ -36,7 +36,24 @@
 </head>
 
 <body>
+  <!-- Load Flutter bootstrap (defines _flutter.loader, does NOT auto-call load()) -->
   <script src="flutter_bootstrap.js" defer></script>
+
+  <script>
+    window.addEventListener('load', function (ev) {
+      // Call load() ourselves to control the service worker URL
+      _flutter.loader.load({
+        serviceWorkerSettings: {
+          serviceWorkerUrl: 'firebase-messaging-sw.js', // notifications SW
+          timeout: 4000,
+        },
+        onEntrypointLoaded: async function (engineInitializer) {
+          const appRunner = await engineInitializer.initializeEngine();
+          await appRunner.runApp();
+        }
+      });
+    });
+  </script>
 
   <!-- Register the Firebase Cloud Messaging service worker so the browser can receive push notifications in the background -->
   <script>
