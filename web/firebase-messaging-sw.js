@@ -17,10 +17,15 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification?.title || 'Level Up! Reminder';
+
+  // If the message has a notification payload, the browser auto-displays it.
+  // Only call showNotification for data-only messages to avoid duplicates.
+  if (payload.notification) return;
+
+  const notificationTitle = 'Level Up! Reminder';
   const notificationOptions = {
-    body: payload.notification?.body || payload.data?.body || '',
-    icon: payload.notification?.icon || '/level_up/favicon-512.png',
+    body: payload.data?.body || '',
+    icon: '/level_up/favicon-512.png',
     data: payload.data,
   };
   self.registration.showNotification(notificationTitle, notificationOptions);

@@ -193,6 +193,9 @@ class _RemindersState extends State<Reminders> {
       }
 
       final now = DateTime.now();
+      // The backend checks for due reminders every 1 minute, so give it time
+      // to send the notification before cleaning up past-due reminders
+      final cleanupThreshold = now.subtract(const Duration(minutes: 1));
       final loadedReminders = <ReminderData>[];
       final remindersToDelete = <ReminderData>[];
 
@@ -216,15 +219,16 @@ class _RemindersState extends State<Reminders> {
           notificationId: notificationId,
         );
 
-        // Reminders that have passed should be removed and not appear in the list
         if (reminderTime.isAfter(now)) {
           loadedReminders.add(reminderData);
-        } else {
+        } else if (reminderTime.isBefore(cleanupThreshold)) {
+          // Only delete reminders that are >1 min past due, so the backend
+          // has time to send the notification before we clean them up
           remindersToDelete.add(reminderData);
         }
       }
 
-      // Delete past reminders if any
+      // Delete stale reminders the backend has already had time to process
       for (final reminder in remindersToDelete) {
         await _deleteReminder(reminder);
       }

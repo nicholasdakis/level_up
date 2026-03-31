@@ -592,3 +592,8 @@ Developmental progress by date is stored in this file.
 - Changed the Browser Notification dialog to let the user enable Browser Notifications via a Confirm button rather than telling the user to manually enable notifications
 - Changed Reminder ID calculation to prevent potential conflicts
 - Moved showBrowserBlockedDialog to Reminders tab
+
+##2026-03-31
+- Made onMessage (which handles foreground notifications) functional instead of just debug printing
+- Reminders fire up to a minute late with a cleanupThreshold, so edited loadReminders() to only delete reminders when they've actually been fired
+- Made messages with notification payloads return to prevent duplicate notification messages

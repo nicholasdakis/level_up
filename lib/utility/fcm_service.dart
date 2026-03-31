@@ -85,11 +85,17 @@ class FcmService {
       if (newToken.isNotEmpty) await userManager.addFcmToken(newToken);
     });
 
-    // Log foreground messages for debugging
+    // Show a browser notification for foreground messages on web
+    // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint(
         'onMessage: ${message.notification?.title} - ${message.notification?.body}',
       );
+      if (kIsWeb) {
+        final title = message.notification?.title ?? 'Level Up! Reminder';
+        final body = message.notification?.body ?? message.data['body'] ?? '';
+        web_fcm.showJsNotification(title, body);
+      }
     });
   }
 }

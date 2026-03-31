@@ -78,7 +78,14 @@
       }
     };
 
-    // Called from Dart via JS interop to request notification permissions from the browser
+    // Called from Dart to show a browser notification when the app is in the foreground
+    window.showJsNotification = function(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body: body, icon: '/level_up/favicon-512.png' });
+      }
+    };
+
+    //
     window.jsRequestPermission = async function() {
   try {
     return await Notification.requestPermission();
