@@ -54,25 +54,27 @@
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
-        .then(function(registration) {
+        .then(function (registration) {
           console.log('Service Worker registered with scope:', registration.scope);
           window._swRegistration = registration;
         })
-        .catch(function(err) {
+        .catch(function (err) {
           console.log('Service Worker registration failed:', err);
         });
     }
 
     // Called from Dart via JS interop to pass the SW registration to getToken() so Firebase can find the service worker on subdirectory deployments (e.g. GitHub Pages at /level_up/)
-    window.getWebFcmToken = async function(vapidKeyParam) {
+    window.getWebFcmToken = async function (vapidKeyParam) {
+      // Only call getToken() if permission is already granted (prevents JS violation)
+      if (Notification.permission !== 'granted') return null;
       try {
         var reg = window._swRegistration || await navigator.serviceWorker.ready;
         var messaging = firebase.messaging();
-        return await messaging.getToken({ 
-          vapidKey: vapidKeyParam, 
-          serviceWorkerRegistration: reg 
+        return await messaging.getToken({
+          vapidKey: vapidKeyParam,
+          serviceWorkerRegistration: reg
         });
-      } catch(e) {
+      } catch (e) {
         console.error('getWebFcmToken error:', e);
         return null;
       }
@@ -81,7 +83,7 @@
     // Handle foreground messages directly in JS since the Flutter SDK's onMessage
     // doesn't receive messages when the token was obtained via JS interop
     var messaging = firebase.messaging();
-    messaging.onMessage(function(payload) {
+    messaging.onMessage(function (payload) {
       console.log('Foreground message received:', payload);
       var title = payload.notification?.title || 'Level Up! Reminder';
       var body = payload.notification?.body || payload.data?.body || '';
@@ -91,14 +93,14 @@
     });
 
     // Called from Dart via JS interop to request notification permissions from the browser
-    window.jsRequestPermission = async function() {
-  try {
-    return await Notification.requestPermission();
-  } catch (e) {
-    console.error('Permission request error:', e);
-    return 'denied';
-  }
-};
+    window.jsRequestPermission = async function () {
+      try {
+        return await Notification.requestPermission();
+      } catch (e) {
+        console.error('Permission request error:', e);
+        return 'denied';
+      }
+    };
 
   </script>
 </body>

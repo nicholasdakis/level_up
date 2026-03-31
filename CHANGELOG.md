@@ -598,3 +598,4 @@ Developmental progress by date is stored in this file.
 - Reminders fire up to a minute late with a cleanupThreshold, so edited loadReminders() to only delete reminders when they've actually been fired
 - Made messages with notification payloads return to prevent duplicate notification messages
 - Fixed web foreground notifications by handling onMessage directly in JS (Flutter SDK's onMessage doesn't fire when the token is obtained via JS interop)
+- Update getWebFcmToken to only call the notification request if user explicitly allowed so
