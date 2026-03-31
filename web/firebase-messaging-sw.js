@@ -1,3 +1,6 @@
+// Import the flutter worker so it can handle the app's cache
+importScripts('./flutter_service_worker.js');
+
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js');
 
@@ -21,7 +24,7 @@ messaging.onBackgroundMessage(function (payload) {
   const notificationTitle = payload.notification?.title || 'Level Up! Reminder';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: '/level_up/favicon-512.png',
+    icon: 'favicon-512.png',
     data: payload.data,
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
