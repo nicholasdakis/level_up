@@ -11,12 +11,93 @@ import '../utility/responsive.dart';
 import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 
-// JS interop to get the FCM token on web platforms, since Flutter's Firebase Messaging plugin can't find the service worker on subdirectory deployments (e.g. GitHub Pages at /level_up/)
+// JS interop to get the FCM token on web
 @JS('getWebFcmToken')
 external JSPromise<JSString?> getWebFcmToken(String vapidKey);
 
 @JS('Notification.requestPermission')
 external JSPromise<JSString> jsRequestPermission();
+
+// Safely retrieve the web FCM token with error handling and null checks, returning a Dart String? instead of a JSString?
+Future<String?> getWebFcmTokenSafe(String vapidKey) async {
+  try {
+    final JSString? jsToken = await getWebFcmToken(vapidKey).toDart;
+    return jsToken?.toDart; // JSString? -> String?
+  } catch (e) {
+    debugPrint('Error getting FCM token: $e');
+    return null;
+  }
+}
+
+// Request browser permission and get token
+Future<String?> requestNotificationAndToken() async {
+  try {
+    final permission = (await jsRequestPermission().toDart).toDart;
+    if (permission != 'granted') return null;
+
+    const vapidKey =
+        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
+    return await getWebFcmTokenSafe(vapidKey);
+  } catch (e) {
+    debugPrint('Notification permission/token error: $e');
+    return null;
+  }
+}
+
+// Show a dialog telling the user their browser is blocking notifications
+void showBrowserBlockedDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(
+        'Notifications Blocked',
+        style: TextStyle(
+          fontSize: Responsive.font(context, 20),
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      content: Text(
+        'Your notifications are enabled in the app, but your browser is blocking them.\n\n'
+        'Click "Enable" to request permission again. If it still doesn\'t work, '
+        'click the lock icon in your browser\'s address bar, set Notifications to "Allow", then refresh the page.',
+        style: TextStyle(fontSize: Responsive.font(context, 15)),
+        textAlign: TextAlign.center,
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop(); // close dialog first
+
+            final token = await requestNotificationAndToken();
+            if (token != null) {
+              await userManager.initializeFcmToken(token);
+              debugPrint('FCM token obtained after enable button');
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Browser is still blocking notifications.'),
+                ),
+              );
+            }
+          },
+          child: Text(
+            'Enable',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -56,8 +137,6 @@ class _RemindersState extends State<Reminders> {
   }
 
   void _showNotificationsDisabledDialog() {
-    const String vapidKey =
-        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -71,43 +150,15 @@ class _RemindersState extends State<Reminders> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // close the dialog first
-              await userManager.updateNotificationsEnabled(
-                true,
-              ); // update locally and in Firestore
+              Navigator.pop(context); // close dialog first
+              await userManager.updateNotificationsEnabled(true);
 
-              // Ask browser for notification permissions
               if (kIsWeb) {
-                try {
-                  // Use the JS interop to call the browser's permission dialog
-                  final JSString jsPermission =
-                      await jsRequestPermission().toDart;
-                  final String permission = jsPermission.toDart;
-
-                  // Permission granted, get the FCM token and save it
-                  if (permission == 'granted') {
-                    final jsPromise = getWebFcmToken(
-                      vapidKey,
-                    ); // a JSPromise is like a Future in Flutter
-                    final JSString? jsToken = await jsPromise.toDart;
-                    final String? token = jsToken?.toDart;
-
-                    if (token != null) {
-                      await userManager.addFcmToken(
-                        token,
-                      ); // Update locally and in Firestore
-                    } else {
-                      if (mounted) {
-                        showBrowserBlockedDialog(context);
-                      } // Canceled or error in getting token
-                    }
-                  } else {
-                    // Denied / dismissed
-                    if (mounted) showBrowserBlockedDialog(context);
-                  }
-                } catch (e) {
-                  debugPrint('Error getting FCM token: $e');
-                  if (mounted) showBrowserBlockedDialog(context);
+                final token = await requestNotificationAndToken();
+                if (token != null) {
+                  await userManager.addFcmToken(token);
+                } else if (mounted) {
+                  showBrowserBlockedDialog(context); // fallback dialog
                 }
               }
             },
@@ -451,7 +502,7 @@ class _RemindersState extends State<Reminders> {
 
     try {
       debugPrint("Generating reminder ID...");
-      final id = Random().nextInt(2147483647);
+      final id = DateTime.now().millisecondsSinceEpoch;
       debugPrint("ID generated: $id");
 
       // Save reminder to Firestore

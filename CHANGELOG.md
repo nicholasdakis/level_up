@@ -589,3 +589,6 @@ Developmental progress by date is stored in this file.
 - used JS_Interop package to use the JS methods from Dart
 - Added Firebase SDK scripts and JS Firebase initialization to index.html
 - Edited the Browser Notification dialog to now ask the user for notification permissions via the js interop
+- Changed the Browser Notification dialog to let the user enable Browser Notifications via a Confirm button rather than telling the user to manually enable notifications
+- Changed Reminder ID calculation to prevent potential conflicts
+- Moved showBrowserBlockedDialog to Reminders tab
