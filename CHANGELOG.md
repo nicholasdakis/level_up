@@ -622,3 +622,4 @@ Developmental progress by date is stored in this file.
 - Made the PWA install button invisible when the app is already installed
 - Added Back button tooltip to Explore tab to be consistent with other pages
 - Added tooltip explaining what a PWA is in the Install PWA App button
+- Edited applyAppColor() to automatically darken a color that would be so light (e.g., pure white) it would make text / cards unreadable

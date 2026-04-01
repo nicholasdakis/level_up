@@ -8,6 +8,7 @@ import '/globals.dart';
 import '/user/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/screens/reminders.dart';
+import 'dart:math';
 
 Future<void> showUsernameDialogBox(
   BuildContext context,
@@ -102,8 +103,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     super.dispose();
   }
 
-  Color baseColor = currentUserData!.appColor; // tracks the current theme color for the UI
-  bool notificationsEnabled = currentUserData?.notificationsEnabled ?? true; // tracks the notification toggle state
+  Color baseColor =
+      currentUserData!.appColor; // tracks the current theme color for the UI
+  bool notificationsEnabled =
+      currentUserData?.notificationsEnabled ??
+      true; // tracks the notification toggle state
 
   Future pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
@@ -153,7 +157,36 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     }
   }
 
+  bool isColorTooLight(Color color) {
+    // calculate the relative luminance of the color (0 = black, 1 = white)
+    double luminance = color.computeLuminance();
+    return luminance > 0.7; // threshold for "too light"
+  }
+
+  double getDarknessMultiplier(Color color) {
+    return max(
+      (color.computeLuminance() - 0.7) *
+          0.5, // the lighter the color, the more it gets darkened
+      0.1,
+    ); // lighter colors get darkened more, but minimum darkness multiplier is 0.1
+  }
+
   Future<void> applyAppColor(Color color) async {
+    // Check if the color is too light for white text / cards to be visible, and if so, darken it slightly
+    if (isColorTooLight(color)) {
+      color = darkenColor(color, getDarknessMultiplier(color));
+      // show a snackbar explaining that the color was adjusted for better visibility
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "The selected color was too light, so it has been slightly darkened to improve visibility.",
+            ),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
     baseColor = color;
     currentUserData!.appColor = color;
     appColorNotifier.value = color;
@@ -228,7 +261,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     required IconData icon,
     required String label,
     String? subtitle,
-    Widget? trailing, // optional widget on the right (e.g. Switch, color preview)
+    Widget?
+    trailing, // optional widget on the right (e.g. Switch, color preview)
     VoidCallback? onTap,
   }) {
     return Material(
@@ -459,7 +493,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               if (token != null) {
                                 await userManager.addFcmToken(token);
                               } else if (mounted) {
-                                showBrowserBlockedDialog(context); // browser is blocking notifications
+                                showBrowserBlockedDialog(
+                                  context,
+                                ); // browser is blocking notifications
                               }
                             }
                           },

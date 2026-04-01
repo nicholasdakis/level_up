@@ -861,7 +861,7 @@ class _RemindersState extends State<Reminders> {
                                   child: Text(
                                     "For notifications to work, all three of the following must be enabled: in-app notifications, browser notification permissions, and browser notifications in your system settings.",
                                     style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 12),
+                                      fontSize: Responsive.font(context, 15),
                                       color: Colors.white54,
                                       height: 1.5,
                                     ),
