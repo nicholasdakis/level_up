@@ -10,22 +10,34 @@ import 'settings_buttons/install_guide.dart';
 import '../authentication/auth_services.dart';
 import 'dart:js_interop';
 
-@JS('isPwaInstalled')
-external bool isPwaInstalled();
+@JS('isPwa')
+external bool isPwa();
 
 @JS('supportsNativePrompt')
 external bool supportsNativePrompt();
+
+@JS('hasInstallPrompt')
+external bool hasInstallPrompt();
+
+@JS('wasEverInstalledAsPwa')
+external bool wasEverInstalledAsPwa();
 
 Widget buildSettingsDrawer(
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
 }) {
-  final installed = kIsWeb
-      ? isPwaInstalled()
+  final openedAsPwa = kIsWeb
+      ? isPwa()
       : false; // fallback to prevent error if called before JS is loaded
   final nativeSupported = kIsWeb
       ? supportsNativePrompt()
       : false; // fallback to prevent error if called before JS is loaded
+  final promptAvailable = kIsWeb
+      ? hasInstallPrompt()
+      : false; // true if install prompt was captured (app not yet installed)
+  final previouslyInstalled = kIsWeb
+      ? wasEverInstalledAsPwa()
+      : false; // true if the app was ever opened as an installed PWA
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
     // The contents of the Settings gear icon button
@@ -86,9 +98,9 @@ Widget buildSettingsDrawer(
 
           // Chromium browsers (Chrome/Edge), trigger the native install dialog
           // on other browsers (Safari/Firefox), show a tutorial screen with manual instructions
-          // Don't show the install button at all if the app is already installed as a PWA
-          if (kIsWeb && !installed)
-            if (nativeSupported) // Not installed, web, and supported -> show native install prompt
+          if (kIsWeb && !openedAsPwa)
+            if (nativeSupported &&
+                promptAvailable) // Opened on web, supports native and app is not installed -> show native install prompt
               Material(
                 color: Colors.transparent,
                 child: ListTile(
@@ -109,15 +121,45 @@ Widget buildSettingsDrawer(
                   hoverColor: Colors.white.withAlpha(50),
                   onTap: () {
                     Navigator.pop(context); // close drawer
-                    if (nativeSupported) {
-                      PWAInstall()
-                          .promptInstall_(); // trigger the browser's native install dialog
-                    }
+                    PWAInstall()
+                        .promptInstall_(); // trigger the browser's native install dialog
+                  },
+                ),
+              )
+            else if (nativeSupported &&
+                !promptAvailable) // Browser supports install but prompt not available -> already installed
+              Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: Icon(Icons.check_circle, color: Colors.white70),
+                  title: Tooltip(
+                    message:
+                        "This app is already installed on your device. Look for it on your home screen or app drawer.",
+                    waitDuration: Duration(milliseconds: 0),
+                    showDuration: Duration(seconds: 3),
+                    child: textWithFont(
+                      "Already Installed",
+                      context,
+                      Responsive.font(context, 18),
+                      color: Colors.white70,
+                      alignment: TextAlign.left,
+                    ),
+                  ),
+                  hoverColor: Colors.white.withAlpha(50),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "This app is already installed. Check your home screen or app drawer.",
+                        ),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   },
                 ),
               )
             // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox etc)
-            else // Not installed, web, but not supported -> show manual installation guide screen
+            else if (!previouslyInstalled) // Not supported and not previously installed -> show manual installation guide screen
               drawerItem(
                 "Install App as PWA",
                 Icons.install_mobile,
@@ -127,6 +169,37 @@ Widget buildSettingsDrawer(
                 startOffset: Offset(-1, 0),
                 tooltip:
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+              )
+            else // Not supported but previously installed -> show "Already Installed"
+              Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: Icon(Icons.check_circle, color: Colors.white70),
+                  title: Tooltip(
+                    message:
+                        "This app is already installed on your device. Look for it on your home screen or app drawer.",
+                    waitDuration: Duration(milliseconds: 0),
+                    showDuration: Duration(seconds: 3),
+                    child: textWithFont(
+                      "Already Installed",
+                      context,
+                      Responsive.font(context, 18),
+                      color: Colors.white70,
+                      alignment: TextAlign.left,
+                    ),
+                  ),
+                  hoverColor: Colors.white.withAlpha(50),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "This app is already installed. Check your home screen or app drawer.",
+                        ),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                ),
               ),
 
           Material(

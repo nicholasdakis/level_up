@@ -73,15 +73,30 @@
   </script>
 
   <script>
-  // Returns true if the app is already installed as a PWA
-  window.isPwaInstalled = function() {
-    return window.matchMedia('(display-mode: standalone)').matches
+  // Returns true if the app is opened as a PWA
+  window.isPwa = function() {
+    var standalone = window.matchMedia('(display-mode: standalone)').matches
         || window.navigator.standalone === true; // iOS support
+    // Persist a flag so browser tabs can detect a prior install (for non-Chromium browsers)
+    if (standalone) {
+      try { localStorage.setItem('pwa_installed', '1'); } catch(e) {}
+    }
+    return standalone;
+  }
+
+  // Returns true if the app was ever opened as an installed PWA on this device
+  window.wasEverInstalledAsPwa = function() {
+    try { return localStorage.getItem('pwa_installed') === '1'; } catch(e) { return false; }
   }
 
   // Returns true if the browser supports the native install prompt (Chrome/Edge)
   window.supportsNativePrompt = function() {
     return 'BeforeInstallPromptEvent' in window;
+  }
+
+  // Returns true if the install prompt was captured (app is not yet installed)
+  window.hasInstallPrompt = function() {
+    return deferredPrompt != null;
   }
 </script>
 
