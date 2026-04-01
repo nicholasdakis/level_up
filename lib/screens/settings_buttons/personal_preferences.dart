@@ -102,8 +102,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     super.dispose();
   }
 
-  Color baseColor = currentUserData!.appColor;
-  bool notificationsEnabled = currentUserData?.notificationsEnabled ?? true;
+  Color baseColor = currentUserData!.appColor; // tracks the current theme color for the UI
+  bool notificationsEnabled = currentUserData?.notificationsEnabled ?? true; // tracks the notification toggle state
 
   Future pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
@@ -222,11 +222,13 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
+  // Builds a single tappable row inside a frosted glass card
+  // Each row has: icon badge on the left, label + optional subtitle, and a trailing widget or chevron
   Widget buildPreferenceRow({
     required IconData icon,
     required String label,
     String? subtitle,
-    Widget? trailing,
+    Widget? trailing, // optional widget on the right (e.g. Switch, color preview)
     VoidCallback? onTap,
   }) {
     return Material(
@@ -243,6 +245,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           ),
           child: Row(
             children: [
+              // Icon badge with themed background
               Container(
                 padding: EdgeInsets.all(Responsive.scale(context, 8)),
                 decoration: BoxDecoration(
@@ -253,6 +256,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 ),
                 child: Icon(
                   icon,
+                  // use white if default theme, otherwise lighten the user's chosen color
                   color:
                       appColorNotifier.value ==
                           const Color.fromARGB(255, 45, 45, 45)
@@ -262,6 +266,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 ),
               ),
               SizedBox(width: Responsive.width(context, 16)),
+              // Label and subtitle
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,6 +292,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                   ],
                 ),
               ),
+              // Show trailing widget if provided, otherwise show a chevron for tappable rows
               if (trailing != null) trailing,
               if (trailing == null && onTap != null)
                 Icon(
@@ -301,6 +307,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
+  // Thin divider between rows inside a glass card
   Widget buildDivider() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 20)),
@@ -312,6 +319,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
+  // Section header label (e.g. "APPEARANCE", "PROFILE", "NOTIFICATIONS")
   Widget buildSectionHeader(String title) {
     return Padding(
       padding: EdgeInsets.only(
@@ -425,6 +433,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             : Icons.notifications_off_outlined,
                         label: "Push Notifications",
                         subtitle: notificationsEnabled ? "Enabled" : "Disabled",
+                        // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
                         trailing: Switch.adaptive(
                           value: notificationsEnabled,
                           activeThumbColor:
@@ -441,14 +450,16 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             setState(() {
                               notificationsEnabled = value;
                             });
+                            // Save the preference to Firestore
                             await userManager.updateNotificationsEnabled(value);
 
+                            // If enabling on web, also request browser permission and get FCM token
                             if (value && kIsWeb) {
                               final token = await requestNotificationAndToken();
                               if (token != null) {
                                 await userManager.addFcmToken(token);
                               } else if (mounted) {
-                                showBrowserBlockedDialog(context);
+                                showBrowserBlockedDialog(context); // browser is blocking notifications
                               }
                             }
                           },

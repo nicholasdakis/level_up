@@ -33,6 +33,45 @@
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js"></script>
 
+  <!-- Required JS for the pwa_install Flutter package. Must be in <head> so these
+       functions exist on window before Dart calls PWAInstall().setup() in main.dart.
+       The package calls these functions via JS interop to detect if the app is
+       installable and to trigger the browser's native install dialog. -->
+  <script>
+    // Stores the browser's install prompt event so we can trigger it later from Dart
+    var deferredPrompt;
+
+    // Capture the install prompt event when the browser fires it (Chrome/Edge only)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      deferredPrompt = e;
+    });
+
+    // Called from Dart to show the browser's native install dialog
+    window.promptInstall = function () {
+      deferredPrompt.prompt();
+    };
+
+    // Fires when the user successfully installs the app
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      appInstalled(); // notify the pwa_install package
+    });
+
+    // Called from Dart on startup to detect how the app was launched (browser, PWA, or TWA)
+    // The pwa_install package uses this to set installPromptEnabled
+    window.getLaunchMode = function () {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      if (deferredPrompt) hasPrompt(); // tell Dart the install prompt is available
+      if (document.referrer.startsWith('android-app://')) {
+        appLaunchedAsTWA();
+      } else if (navigator.standalone || isStandalone) {
+        appLaunchedAsPWA(); // already installed and running as PWA
+      } else {
+        window.appLaunchedInBrowser(); // running in a normal browser tab
+      }
+    };
+  </script>
+
 </head>
 
 <body>

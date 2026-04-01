@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pwa_install/pwa_install.dart';
 import 'authentication/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -7,6 +8,15 @@ import '../globals.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize PWA install prompt so users can install the app from the settings drawer
+  // try-catch because the pwa_install package crashes in dev mode (flutter run doesn't serve manifest.json)
+  try {
+    PWAInstall().setup(installCallback: () {
+      debugPrint('App installed as PWA');
+    });
+  } catch (e) {
+    debugPrint('PWA install setup skipped: $e');
+  }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }

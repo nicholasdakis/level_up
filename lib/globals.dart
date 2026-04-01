@@ -416,24 +416,27 @@ void changeToScreen(
   );
 }
 
-// Frosted glass card used across the app
+// FROSTED GLASS CARD used across the app (reminders, preferences, etc.)
+// ClipRRect clips the blur to the card's rounded corners,
+// BackdropFilter blurs whatever is behind the card,
+// and the Container adds a translucent white fill + border for the glass look
 Widget frostedGlassCard(
   BuildContext context, {
   required Widget child,
-  double baseRadius = 20,
+  double baseRadius = 20, // corner radius, scaled responsively
   EdgeInsetsGeometry? padding,
 }) {
   final cardRadius = BorderRadius.circular(Responsive.scale(context, baseRadius));
   return ClipRRect(
     borderRadius: cardRadius,
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // blur intensity
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(18),
+          color: Colors.white.withAlpha(18), // translucent white fill
           borderRadius: cardRadius,
           border: Border.all(
-            color: Colors.white.withAlpha(30),
+            color: Colors.white.withAlpha(30), // subtle white border
             width: Responsive.width(context, 1),
           ),
         ),

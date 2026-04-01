@@ -612,3 +612,10 @@ Developmental progress by date is stored in this file.
 - Made it so a Reminder can't be set if in-app notifications are disabled
 - Made it so if the user clicks Reminders while in-app notifications are disabled the disabled in-app notifications popup opens
 - Added a notes section for Web users in the Reminders tab
+
+## 2026-04-01
+- Added a button in the Settings drawer that allows installing the app as a PWA (using the pwa_install package)
+- Fixed uncaught error when Firestore tried to read an empty server time
+- Updated the manifest file to show more specific info instead of generic "new flutter project" description
+- Make some recent comments more descriptive
+- pwa_install only supports Chromium browsers, so added a fallback that leads to a different screen that will show users how to manually install as a PWA (pwa_install_guide.dart is the tutorial screen)

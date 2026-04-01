@@ -726,7 +726,8 @@ class _RemindersState extends State<Reminders> {
                           ),
                           SizedBox(height: Responsive.height(context, 16)),
 
-                          // Set reminder button
+                          // Set Reminder button
+                          // if notifications are disabled, prompt the user to enable them instead
                           isLoading
                               ? Center(
                                   child: SizedBox(
@@ -821,9 +822,10 @@ class _RemindersState extends State<Reminders> {
                                 .toList(),
                           ),
 
-                    // Notes section (web only)
+                    // Notes section only shows on web to inform users about browser notification requirements
                     if (kIsWeb) ...[
                       SizedBox(height: Responsive.height(context, 28)),
+                      // Section header
                       Padding(
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 10),
@@ -845,6 +847,7 @@ class _RemindersState extends State<Reminders> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Note about the 3 requirements for notifications to work on web
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -878,6 +881,7 @@ class _RemindersState extends State<Reminders> {
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 15)),
+                            // Note about iPhone PWA requirement
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

@@ -212,10 +212,13 @@ class UserDataManager {
             .collection('serverTime')
             .doc('now')
             .get();
-        final serverTime =
-            (serverTimeSnap.data()?['currentServerTime'] as Timestamp)
-                .toDate()
-                .toUtc();
+        // null check so the app doesn't crash if the serverTime doc is missing or hasn't loaded yet
+        final serverTimestamp = serverTimeSnap.data()?['currentServerTime'] as Timestamp?;
+        if (serverTimestamp == null) {
+          debugPrint("Server time not available, skipping daily reward check");
+          return;
+        }
+        final serverTime = serverTimestamp.toDate().toUtc();
 
         final lastClaim = lastClaimTimestamp.toDate().toUtc();
 
