@@ -65,6 +65,13 @@ void showBrowserBlockedDialog(BuildContext context) {
       actionsAlignment: MainAxisAlignment.center,
       actions: [
         TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+        TextButton(
           onPressed: () async {
             Navigator.of(context).pop(); // close dialog first
 
@@ -82,13 +89,6 @@ void showBrowserBlockedDialog(BuildContext context) {
           },
           child: Text(
             'Enable',
-            style: TextStyle(fontSize: Responsive.font(context, 16)),
-          ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'Cancel',
             style: TextStyle(fontSize: Responsive.font(context, 16)),
           ),
         ),

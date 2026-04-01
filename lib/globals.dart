@@ -123,15 +123,16 @@ Widget drawerItem(
   BuildContext context, {
   Widget? destination,
   Offset startOffset = const Offset(0, 1),
+  String? tooltip, // optional tooltip
 }) {
-  return Material(
+  final listTile = Material(
     color: Colors.transparent,
     child: ListTile(
       leading: Icon(icon, color: Colors.white),
       title: textWithFont(
         text,
         context,
-        Responsive.font(context, 18), // scaled responsively
+        Responsive.font(context, 18),
         color: Colors.white,
         alignment: TextAlign.left,
       ),
@@ -144,6 +145,18 @@ Widget drawerItem(
       },
     ),
   );
+
+  // Wrap in Tooltip if tooltip text is provided
+  if (tooltip != null) {
+    return Tooltip(
+      message: tooltip,
+      waitDuration: Duration(milliseconds: 0),
+      showDuration: Duration(seconds: 3),
+      child: listTile,
+    );
+  } else {
+    return listTile;
+  }
 }
 
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
@@ -426,7 +439,9 @@ Widget frostedGlassCard(
   double baseRadius = 20, // corner radius, scaled responsively
   EdgeInsetsGeometry? padding,
 }) {
-  final cardRadius = BorderRadius.circular(Responsive.scale(context, baseRadius));
+  final cardRadius = BorderRadius.circular(
+    Responsive.scale(context, baseRadius),
+  );
   return ClipRRect(
     borderRadius: cardRadius,
     child: BackdropFilter(

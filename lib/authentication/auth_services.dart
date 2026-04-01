@@ -94,4 +94,4 @@ class AuthService {
   }
 }
 
-// TODO: sign up/in with Google or with phone number
+// TODO: sign up/in with phone number

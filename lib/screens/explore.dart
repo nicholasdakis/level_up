@@ -169,7 +169,10 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                     color: Colors.black.withAlpha(200),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.arrow_back, color: Colors.white),
+                  child: Tooltip(
+                    message: "Back",
+                    child: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
                 ),
               ),
             ),

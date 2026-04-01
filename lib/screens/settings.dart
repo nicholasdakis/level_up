@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pwa_install/pwa_install.dart';
-
 import '../globals.dart';
 import '../utility/responsive.dart';
 import 'settings_buttons/personal_preferences.dart';
@@ -83,12 +82,18 @@ Widget buildSettingsDrawer(
               color: Colors.transparent,
               child: ListTile(
                 leading: Icon(Icons.install_mobile, color: Colors.white),
-                title: textWithFont(
-                  "Install App",
-                  context,
-                  Responsive.font(context, 18),
-                  color: Colors.white,
-                  alignment: TextAlign.left,
+                title: Tooltip(
+                  message:
+                      "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+                  waitDuration: Duration(milliseconds: 0),
+                  showDuration: Duration(seconds: 3),
+                  child: textWithFont(
+                    "Install App as PWA",
+                    context,
+                    Responsive.font(context, 18),
+                    color: Colors.white,
+                    alignment: TextAlign.left,
+                  ),
                 ),
                 hoverColor: Colors.white.withAlpha(50),
                 onTap: () {
@@ -101,12 +106,14 @@ Widget buildSettingsDrawer(
           // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox)
           else if (kIsWeb && !isInstalled)
             drawerItem(
-              "Install App",
+              "Install App as PWA",
               Icons.install_mobile,
               context,
               destination:
                   const InstallGuide(), // a tutorial screen with manual installation instructions
               startOffset: Offset(-1, 0),
+              tooltip:
+                  "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
             ),
 
           Material(
