@@ -611,3 +611,4 @@ Developmental progress by date is stored in this file.
 - Added common frosted glass card code into globals.dart instead of remaking it every time
 - Made it so a Reminder can't be set if in-app notifications are disabled
 - Made it so if the user clicks Reminders while in-app notifications are disabled the disabled in-app notifications popup opens
+- Added a notes section for Web users in the Reminders tab
