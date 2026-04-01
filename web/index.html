@@ -72,6 +72,19 @@
     };
   </script>
 
+  <script>
+  // Returns true if the app is already installed as a PWA
+  window.isPwaInstalled = function() {
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true; // iOS support
+  }
+
+  // Returns true if the browser supports the native install prompt (Chrome/Edge)
+  window.supportsNativePrompt = function() {
+    return 'BeforeInstallPromptEvent' in window;
+  }
+</script>
+
 </head>
 
 <body>

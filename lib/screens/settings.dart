@@ -8,14 +8,24 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/install_guide.dart';
 import '../authentication/auth_services.dart';
+import 'dart:js_interop';
+
+@JS('isPwaInstalled')
+external bool isPwaInstalled();
+
+@JS('supportsNativePrompt')
+external bool supportsNativePrompt();
 
 Widget buildSettingsDrawer(
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
 }) {
-  // Detect if app is already installed as a PWA to hide the install button if so
-  final isInstalled = !PWAInstall().installPromptEnabled;
-
+  final installed = kIsWeb
+      ? isPwaInstalled()
+      : false; // fallback to prevent error if called before JS is loaded
+  final nativeSupported = kIsWeb
+      ? supportsNativePrompt()
+      : false; // fallback to prevent error if called before JS is loaded
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
     // The contents of the Settings gear icon button
@@ -77,44 +87,47 @@ Widget buildSettingsDrawer(
           // Chromium browsers (Chrome/Edge), trigger the native install dialog
           // on other browsers (Safari/Firefox), show a tutorial screen with manual instructions
           // Don't show the install button at all if the app is already installed as a PWA
-          if (kIsWeb && !isInstalled && PWAInstall().installPromptEnabled)
-            Material(
-              color: Colors.transparent,
-              child: ListTile(
-                leading: Icon(Icons.install_mobile, color: Colors.white),
-                title: Tooltip(
-                  message:
-                      "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-                  waitDuration: Duration(milliseconds: 0),
-                  showDuration: Duration(seconds: 3),
-                  child: textWithFont(
-                    "Install App as PWA",
-                    context,
-                    Responsive.font(context, 18),
-                    color: Colors.white,
-                    alignment: TextAlign.left,
+          if (kIsWeb && !installed)
+            if (nativeSupported) // Not installed, web, and supported -> show native install prompt
+              Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: Icon(Icons.install_mobile, color: Colors.white),
+                  title: Tooltip(
+                    message:
+                        "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+                    waitDuration: Duration(milliseconds: 0),
+                    showDuration: Duration(seconds: 3),
+                    child: textWithFont(
+                      "Install App as PWA",
+                      context,
+                      Responsive.font(context, 18),
+                      color: Colors.white,
+                      alignment: TextAlign.left,
+                    ),
                   ),
+                  hoverColor: Colors.white.withAlpha(50),
+                  onTap: () {
+                    Navigator.pop(context); // close drawer
+                    if (nativeSupported) {
+                      PWAInstall()
+                          .promptInstall_(); // trigger the browser's native install dialog
+                    }
+                  },
                 ),
-                hoverColor: Colors.white.withAlpha(50),
-                onTap: () {
-                  Navigator.pop(context); // close drawer
-                  PWAInstall()
-                      .promptInstall_(); // trigger the browser's native install dialog
-                },
+              )
+            // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox etc)
+            else // Not installed, web, but not supported -> show manual installation guide screen
+              drawerItem(
+                "Install App as PWA",
+                Icons.install_mobile,
+                context,
+                destination:
+                    const InstallGuide(), // a tutorial screen with manual installation instructions
+                startOffset: Offset(-1, 0),
+                tooltip:
+                    "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
               ),
-            )
-          // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox)
-          else if (kIsWeb && !isInstalled)
-            drawerItem(
-              "Install App as PWA",
-              Icons.install_mobile,
-              context,
-              destination:
-                  const InstallGuide(), // a tutorial screen with manual installation instructions
-              startOffset: Offset(-1, 0),
-              tooltip:
-                  "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-            ),
 
           Material(
             color: Colors.transparent,

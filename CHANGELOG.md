@@ -623,3 +623,4 @@ Developmental progress by date is stored in this file.
 - Added Back button tooltip to Explore tab to be consistent with other pages
 - Added tooltip explaining what a PWA is in the Install PWA App button
 - Edited applyAppColor() to automatically darken a color that would be so light (e.g., pure white) it would make text / cards unreadable
+- Added isPwaInstalled and supportsNativePrompt methods in index.html and linked them to dart with JS interops to reliably detect platform to show the correct "Install PWA App" button
