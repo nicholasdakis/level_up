@@ -619,3 +619,4 @@ Developmental progress by date is stored in this file.
 - Updated the manifest file to show more specific info instead of generic "new flutter project" description
 - Make some recent comments more descriptive
 - pwa_install only supports Chromium browsers, so added a fallback that leads to a different screen that will show users how to manually install as a PWA (pwa_install_guide.dart is the tutorial screen)
+- Made the PWA install button invisible when the app is already installed

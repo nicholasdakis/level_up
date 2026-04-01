@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pwa_install/pwa_install.dart';
+
 import '../globals.dart';
 import '../utility/responsive.dart';
 import 'settings_buttons/personal_preferences.dart';
@@ -13,6 +14,9 @@ Widget buildSettingsDrawer(
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
 }) {
+  // Detect if app is already installed as a PWA to hide the install button if so
+  final isInstalled = !PWAInstall().installPromptEnabled;
+
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
     // The contents of the Settings gear icon button
@@ -70,9 +74,11 @@ Widget buildSettingsDrawer(
             destination: AboutTheDeveloper(),
             startOffset: Offset(-1, 0),
           ),
+
           // Chromium browsers (Chrome/Edge), trigger the native install dialog
           // on other browsers (Safari/Firefox), show a tutorial screen with manual instructions
-          if (kIsWeb && PWAInstall().installPromptEnabled)
+          // Don't show the install button at all if the app is already installed as a PWA
+          if (kIsWeb && !isInstalled && PWAInstall().installPromptEnabled)
             Material(
               color: Colors.transparent,
               child: ListTile(
@@ -92,8 +98,8 @@ Widget buildSettingsDrawer(
                 },
               ),
             )
-          // fallback for browsers that don't support beforeinstallprompt (Safari, Firefox)
-          else if (kIsWeb)
+          // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox)
+          else if (kIsWeb && !isInstalled)
             drawerItem(
               "Install App",
               Icons.install_mobile,
@@ -102,6 +108,7 @@ Widget buildSettingsDrawer(
                   const InstallGuide(), // a tutorial screen with manual installation instructions
               startOffset: Offset(-1, 0),
             ),
+
           Material(
             color: Colors.transparent,
             child: ListTile(
