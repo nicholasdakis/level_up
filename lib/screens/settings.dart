@@ -33,20 +33,6 @@ Widget buildSettingsDrawer(
       ? hasInstallPrompt()
       : false; // true if install prompt was captured (app not yet installed)
 
-  // Chromium: app is already installed, so show a snackbar once per drawer open
-  if (kIsWeb && !openedAsPwa && nativeSupported && !promptAvailable) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "This app is already installed. Check your home screen or app drawer.",
-          ),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    });
-  }
-
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
     // The contents of the Settings gear icon button
@@ -105,10 +91,10 @@ Widget buildSettingsDrawer(
             startOffset: Offset(-1, 0),
           ),
 
-          // Chromium browsers (Chrome/Edge): show native install prompt if app is not installed
+          // Chromium browsers (Chrome/Edge): show native install prompt, or snackbar if already installed
           // Non-Chromium browsers (Safari/Firefox): always show install guide with manual instructions
           if (kIsWeb && !openedAsPwa)
-            if (nativeSupported && promptAvailable)
+            if (nativeSupported)
               Material(
                 color: Colors.transparent,
                 child: ListTile(
@@ -128,13 +114,24 @@ Widget buildSettingsDrawer(
                   ),
                   hoverColor: Colors.white.withAlpha(50),
                   onTap: () {
-                    Navigator.pop(context); // close drawer
-                    PWAInstall()
-                        .promptInstall_(); // trigger the browser's native install dialog
+                    if (promptAvailable) {
+                      Navigator.pop(context); // close drawer
+                      PWAInstall()
+                          .promptInstall_(); // trigger the browser's native install dialog
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "This app is already installed. Check your home screen or app drawer.",
+                          ),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                 ),
               )
-            else if (!nativeSupported) // Safari, Firefox, etc.
+            else // Safari, Firefox, etc.
               drawerItem(
                 "Install App as PWA",
                 Icons.install_mobile,
