@@ -633,3 +633,20 @@ Developmental progress by date is stored in this file.
 - Moved the notification setup code into a new file, notification_service.dart
 - Replaced the flutter_local_notifications setup for daily reward notifications using FCM
 - Removed all flutter_local_notifications-related code and initializations as this package isn't being used anymore
+
+# 2026-04-02
+- Edited Food Logging to have 3 tabs: Search, Barcode, Manual using TabControllers
+- Made barcode scanning format foods in the same way Fatsecret API does
+- Using OpenFoodFacts API to handle barcode scanning, so added attribution text as per their terms
+- Replaced launchFatSecret() with launchWebsite() and added buildAttribution() to make method reusable for other attributions
+- Added methods for building each tab (Search, Barcode, Manual)
+- Used consts to link tab index to the name of the tab for readability
+- Made a lookupBarcode method that uses the Open Food Facts API to retrieve a food, then formats it like FatSecret foods to preserve existing methods for handling returned foods
+- Made a popup appear in the Manual tab if a user tries to log a food without having selected macros (as they are optional, but recommended)
+- Added hasActiveInput() to know whether the meal tiles should show or not
+- Made a submitManualEntry() method that builds the user's custom meal in the same format as FatSecret so existing regex parsing is preserved
+- Extracted repeated ExpansionTile/Dismissible meal display code into a reusable _buildMealSection method
+- Extracted food logging logic from the Log Food button's onPressed into its own logFood method
+- Fixed a bug where calories stored as the wrong type caused a TypeError in getTotalCaloriesForDay and the meal tile subtitle by using num.tryParse(...toString())
+- Added 'calories' directly to the foodObject in _submitManualEntry to avoid re-parsing manually entered calories through the regex
+- Updated logFood to skip extractCalories if calories is already set on the foodObject (which is the case for manually logged foods)

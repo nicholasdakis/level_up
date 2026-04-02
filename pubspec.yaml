@@ -94,6 +94,9 @@ dependencies:
 
   image_cropper: ^11.0.0
 
+  # barcode scanning
+  mobile_scanner: ^6.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

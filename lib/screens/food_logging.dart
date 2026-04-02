@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart'; // FatSecret snippet code launch
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:async'; // for using Timer
 // Packages for handling food information through the server.py file
 import 'dart:convert';
@@ -11,6 +12,13 @@ import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../utility/responsive.dart';
 
+// Tab indices for the food logging input methods
+class FoodTab {
+  static const int search = 0;
+  static const int barcode = 1;
+  static const int manual = 2;
+}
+
 class FoodLogging extends StatefulWidget {
   const FoodLogging({super.key});
 
@@ -18,7 +26,9 @@ class FoodLogging extends StatefulWidget {
   State<FoodLogging> createState() => _FoodLoggingState();
 }
 
-class _FoodLoggingState extends State<FoodLogging> {
+class _FoodLoggingState extends State<FoodLogging>
+    with SingleTickerProviderStateMixin {
+  // SingleTickerProviderStateMixin is needed for TabController
   DropdownMenuItem<String> addMenuItem(String text) {
     return DropdownMenuItem<String>(value: text, child: Text(text));
   }
@@ -41,28 +51,51 @@ class _FoodLoggingState extends State<FoodLogging> {
     num total = 0;
 
     for (var item in breakfastFoods) {
-      total += (item['calories'] ?? 0);
+      total += num.tryParse(item['calories'].toString()) ?? 0;
     }
     for (var item in lunchFoods) {
-      total += (item['calories'] ?? 0);
+      total += num.tryParse(item['calories'].toString()) ?? 0;
     }
     for (var item in dinnerFoods) {
-      total += (item['calories'] ?? 0);
+      total += num.tryParse(item['calories'].toString()) ?? 0;
     }
     for (var item in snackFoods) {
-      total += (item['calories'] ?? 0);
+      total += num.tryParse(item['calories'].toString()) ?? 0;
     }
     return total.toInt();
   }
 
-  Future<void> launchFatSecret() async {
-    final uri = Uri.parse(
-      "https://www.fatsecret.com",
-    ); // Store the url as a Uri
+  Future<void> launchWebsite(String websiteUrl) async {
+    final uri = Uri.parse(websiteUrl); // Store the url as a Uri
     if (!await launchUrl(uri)) {
       // If the website could not be launched
       throw "Error: Could not open website.";
     }
+  }
+
+  Widget buildAttribution(
+    String websiteUrl,
+    String displayText,
+    Color textColor,
+  ) {
+    return Container(
+      alignment: Alignment.center,
+      child: InkWell(
+        onTap: () async {
+          await launchWebsite(websiteUrl);
+        },
+        child: Column(
+          children: [
+            textWithFont(
+              displayText,
+              context,
+              Responsive.font(context, 16),
+              color: textColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   String latestQuery = "";
@@ -117,7 +150,10 @@ class _FoodLoggingState extends State<FoodLogging> {
     if (query.isEmpty) return;
 
     // Normalize the query to reduce API calls
-    query = query.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim(); // remove extra spaces and lowercase the query
+    query = query
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim(); // remove extra spaces and lowercase the query
 
     final url = Uri.parse(
       'https://level-up-69vz.onrender.com/get_food/$query',
@@ -182,6 +218,62 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
+  // Barcode lookup via Open Food Facts
+  Future<void> lookupBarcode(String barcode) async {
+    setState(() {
+      barcodeLoading = true;
+      barcodeResult = null;
+      barcodeError = null;
+    });
+
+    try {
+      final url = Uri.parse(
+        'https://world.openfoodfacts.org/api/v2/product/$barcode.json',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 1) {
+          final product = data['product'];
+          final nutriments = product['nutriments'] ?? {};
+
+          // Build a description string matching FatSecret format
+          final calories = (nutriments['energy-kcal_100g'] ?? 0).round();
+          final fat = nutriments['fat_100g'] ?? 0;
+          final carbs = nutriments['carbohydrates_100g'] ?? 0;
+          final protein = nutriments['proteins_100g'] ?? 0;
+
+          final description =
+              'Per 100g - Calories: ${calories}kcal | Fat: ${fat}g | Carbs: ${carbs}g | Protein: ${protein}g';
+
+          setState(() {
+            barcodeResult = {
+              'food_name': product['product_name'] ?? 'Unknown Product',
+              'food_description': description,
+            };
+            barcodeLoading = false;
+          });
+        } else {
+          setState(() {
+            barcodeError = "Product not found in database.";
+            barcodeLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          barcodeError = "Failed to look up product. Try again.";
+          barcodeLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        barcodeError = "Network error. Check your connection.";
+        barcodeLoading = false;
+      });
+    }
+  }
+
   final TextEditingController searchController =
       TextEditingController(); // for reading the user's search input
 
@@ -218,9 +310,27 @@ class _FoodLoggingState extends State<FoodLogging> {
   // Use Future to load and initialize user data asynchronously
   late Future<void> _loadUserDataFuture;
 
+  // Tab controller for Search, Barcode, Manual Entry
+  late TabController _tabController;
+
+  // Barcode tab state
+  bool barcodeLoading = false;
+  Map<String, dynamic>? barcodeResult;
+  String? barcodeError;
+  bool scannerActive = false;
+
+  // Manual entry controllers
+  final TextEditingController manualNameController = TextEditingController();
+  final TextEditingController manualCaloriesController =
+      TextEditingController();
+  final TextEditingController manualFatController = TextEditingController();
+  final TextEditingController manualCarbsController = TextEditingController();
+  final TextEditingController manualProteinController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     _loadUserDataFuture = _loadUserDataAndInit();
   }
 
@@ -282,11 +392,650 @@ class _FoodLoggingState extends State<FoodLogging> {
     loadFoodForDate(currentDate);
   }
 
+  // Log the selected food to the chosen meal type
+  Future<void> logFood(Map<String, dynamic> foodObject) async {
+    debugPrint('logFood called');
+    debugPrint('mealType: $mealType');
+    debugPrint('foodObject: $foodObject');
+
+    if (mealType == null) {
+      if (snackbarActive) return;
+      snackbarActive = true;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.white),
+                  SizedBox(width: Responsive.width(context, 10)),
+                  Text("Please select a meal type."),
+                ],
+              ),
+            ),
+          )
+          .closed
+          .then((_) {
+            snackbarActive = false;
+          });
+      return;
+    }
+
+    // extract calories from API search / barcode scanning (not for manual as it is already set as a key in the foodObject)
+    if (!foodObject.containsKey('calories')) {
+      foodObject['calories'] = extractCalories(
+        foodObject['food_description'] ?? '',
+      );
+    }
+
+    // extract the key for the current date
+    final dateKey = formatDateKey(currentDate);
+
+    // create a map for the date if it does not exist
+    if (!foodDataByDate.containsKey(dateKey)) {
+      foodDataByDate[dateKey] = {
+        "Breakfast": [],
+        "Lunch": [],
+        "Dinner": [],
+        "Snack": [],
+      };
+    }
+
+    foodDataByDate[dateKey]![mealType!]!.add(foodObject);
+
+    // update to firestore
+    await saveFoodData();
+
+    setState(() {
+      loadFoodForDate(currentDate); // update locally by refreshing UI
+
+      // reset conditions for searching
+      userCanType = true;
+      mealChosen = false;
+      selectedFood = null;
+      searchController.clear();
+      foodList = [];
+
+      // Reset barcode tab state
+      barcodeResult = null;
+      barcodeError = null;
+      scannerActive = false;
+
+      // Reset manual entry state
+      manualNameController.clear();
+      manualCaloriesController.clear();
+      manualFatController.clear();
+      manualCarbsController.clear();
+      manualProteinController.clear();
+
+      mealType = null;
+    });
+  }
+
+  // Handle logging from the manual entry tab
+  Future<void> handleManualEntry() async {
+    final name = manualNameController.text.trim();
+    final caloriesText = manualCaloriesController.text.trim();
+
+    if (name.isEmpty || caloriesText.isEmpty) {
+      if (snackbarActive) return;
+      snackbarActive = true;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.white),
+                  SizedBox(width: Responsive.width(context, 10)),
+                  Text("Food name and calories are required."),
+                ],
+              ),
+            ),
+          )
+          .closed
+          .then((_) {
+            snackbarActive = false;
+          });
+      return;
+    }
+
+    final calories =
+        int.tryParse(manualCaloriesController.text.trim()) ??
+        0; // calories is expected as an int because of logFood, but also as a string for the description
+    final fat = manualFatController.text.trim();
+    final carbs = manualCarbsController.text.trim();
+    final protein = manualProteinController.text.trim();
+
+    // Check if all optional fields are empty and warn the user
+    if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
+          title: Text(
+            "No macronutrients entered!",
+            style: GoogleFonts.manrope(color: Colors.white),
+          ),
+          content: Text(
+            "You haven't entered any fat, carbs, or protein for this food. Log anyway?",
+            style: GoogleFonts.manrope(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Go Back", style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _submitManualEntry(name, calories, fat, carbs, protein);
+              },
+              child: Text("Log Anyway", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    await _submitManualEntry(name, calories, fat, carbs, protein);
+  }
+
+  Future<void> _submitManualEntry(
+    String name,
+    int calories,
+    String fat,
+    String carbs,
+    String protein,
+  ) async {
+    // Add together the non-empty parts to create a description string in the same format as the API results
+    final parts = <String>['Calories: ${calories}kcal'];
+    if (fat.isNotEmpty) parts.add('Fat: ${fat}g');
+    if (carbs.isNotEmpty) parts.add('Carbs: ${carbs}g');
+    if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
+    final description = 'Per serving - ${parts.join(' | ')}';
+
+    final foodObject = {
+      'food_name': name,
+      'food_description': description,
+      'calories': calories,
+    };
+
+    await logFood(foodObject);
+  }
+
   @override
   void dispose() {
     checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
     searchController.dispose();
+    _tabController.dispose();
+    manualNameController.dispose();
+    manualCaloriesController.dispose();
+    manualFatController.dispose();
+    manualCarbsController.dispose();
+    manualProteinController.dispose();
     super.dispose();
+  }
+
+  // Shared text field styling for the manual entry tab
+  Widget _buildManualField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 4)),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          textSelectionTheme: TextSelectionThemeData(
+            cursorColor: Colors.white,
+            selectionHandleColor: Colors.white,
+            selectionColor: const Color.fromARGB(
+              255,
+              83,
+              75,
+              75,
+            ).withAlpha(128),
+          ),
+        ),
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 16),
+            color: Colors.white,
+          ),
+          decoration: InputDecoration(
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey,
+                width: Responsive.scale(context, 0.25),
+              ),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey,
+                width: Responsive.scale(context, 0.25),
+              ),
+            ),
+            hintText: hint,
+            contentPadding: EdgeInsets.only(
+              top: Responsive.height(context, 13),
+              left: Responsive.width(context, 6),
+            ),
+            hintStyle: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 14),
+              color: Colors.white54,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build the Search tab content
+  Widget _buildSearchTab() {
+    return Column(
+      children: [
+        buildAttribution(
+          "https://www.fatsecret.com",
+          "Powered by fatsecret",
+          Colors.blue,
+        ),
+        // Search Food input
+        SizedBox(
+          width: double.infinity, // changed from fixed width to fill screen
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              textSelectionTheme: TextSelectionThemeData(
+                cursorColor: Colors.white,
+                selectionHandleColor: Colors.white,
+                selectionColor: const Color.fromARGB(
+                  255,
+                  83,
+                  75,
+                  75,
+                ).withAlpha(128),
+              ),
+            ),
+            child: TextField(
+              controller: searchController,
+              enabled: userCanType,
+              keyboardType: TextInputType.text,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 17),
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: Offset(
+                      Responsive.scale(context, 4),
+                      Responsive.scale(context, 4),
+                    ),
+                    blurRadius: Responsive.scale(context, 10),
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ],
+              ),
+              decoration: InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.grey,
+                    width: Responsive.scale(context, 0.25),
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.grey,
+                    width: Responsive.scale(context, 0.25),
+                  ),
+                ),
+                hintText: "Search",
+                suffixIcon: Icon(Icons.search),
+                contentPadding: EdgeInsets.only(
+                  top: Responsive.height(context, 13),
+                  left: Responsive.width(context, 6),
+                ),
+                hintStyle: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 15),
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(
+                        Responsive.scale(context, 4),
+                        Responsive.scale(context, 4),
+                      ),
+                      blurRadius: Responsive.scale(context, 10),
+                      color: const Color.fromARGB(255, 0, 0, 0),
+                    ),
+                  ],
+                ),
+              ),
+              onChanged: (value) {
+                lastInput = DateTime.now();
+                checkTimer?.cancel();
+                checkTimer = Timer(Duration(milliseconds: 750), () {
+                  handleApiCall(lastInput, value);
+                });
+              },
+            ),
+          ),
+        ),
+
+        SizedBox(height: Responsive.height(context, 10)),
+
+        // Search results
+        if (foodList.isNotEmpty)
+          Expanded(
+            child: ListView.builder(
+              itemCount: foodList.length,
+              itemBuilder: (context, index) {
+                final food = foodList[index];
+                return InkWell(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      userCanType = false;
+                      mealChosen = true;
+                      selectedFood = food;
+                      searchController.text = food["food_name"] ?? "";
+                      searchController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: searchController.text.length),
+                      );
+                      foodList = [];
+                    });
+                  },
+                  child: ListTile(
+                    title: Text(
+                      food['food_name'] ?? '',
+                      style: GoogleFonts.manrope(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      food['food_description'] ?? '',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Build the Barcode tab content
+  Widget _buildBarcodeTab() {
+    return Column(
+      children: [
+        buildAttribution(
+          "https://openfoodfacts.org",
+          "Powered by Open Food Facts",
+          Colors.green,
+        ),
+
+        if (!scannerActive && barcodeResult == null && barcodeError == null)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 20),
+            ),
+            child: simpleCustomButton(
+              "Scan Barcode",
+              40,
+              160,
+              750,
+              context,
+              baseColor: darkenColor(appColorNotifier.value, 0.025),
+              onPressed: () {
+                setState(() {
+                  scannerActive = true;
+                });
+              },
+            ),
+          ),
+
+        // Scanner view
+        if (scannerActive)
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 12),
+              ),
+              child: MobileScanner(
+                onDetect: (BarcodeCapture capture) {
+                  final barcode = capture.barcodes.firstOrNull;
+                  if (barcode != null && barcode.rawValue != null) {
+                    setState(() {
+                      scannerActive = false;
+                    });
+                    lookupBarcode(barcode.rawValue!);
+                  }
+                },
+              ),
+            ),
+          ),
+
+        // Loading indicator
+        if (barcodeLoading)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 40),
+            ),
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+
+        // Error message
+        if (barcodeError != null)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 20),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  barcodeError!,
+                  style: GoogleFonts.manrope(
+                    color: Colors.redAccent,
+                    fontSize: Responsive.font(context, 16),
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 10)),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      barcodeError = null;
+                      scannerActive = true;
+                    });
+                  },
+                  child: Text(
+                    "Try Again",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Barcode result
+        if (barcodeResult != null)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 10),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text(
+                    barcodeResult!['food_name'] ?? '',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 18),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    barcodeResult!['food_description'] ?? '',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: Responsive.font(context, 14),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 10)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          barcodeResult = null;
+                          scannerActive = true;
+                        });
+                      },
+                      child: Text(
+                        "Scan Again",
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Build the Manual Entry tab content
+  Widget _buildManualEntryTab() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Required fields",
+            style: GoogleFonts.manrope(
+              color: Colors.white54,
+              fontSize: Responsive.font(context, 14),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          _buildManualField(manualNameController, "Food Name *"),
+          _buildManualField(
+            manualCaloriesController,
+            "Calories (kcal) *",
+            keyboardType: TextInputType.number,
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Text(
+            "Optional fields",
+            style: GoogleFonts.manrope(
+              color: Colors.white54,
+              fontSize: Responsive.font(context, 14),
+            ),
+          ),
+          _buildManualField(
+            manualFatController,
+            "Fat (g)",
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+          _buildManualField(
+            manualCarbsController,
+            "Carbs (g)",
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+          _buildManualField(
+            manualProteinController,
+            "Protein (g)",
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build the meal expansion tiles (shared across all tabs)
+  Widget _buildMealTiles() {
+    return ListView(
+      children: [
+        // Breakfast
+        _buildMealSection("Breakfast", breakfastFoods),
+        // Lunch
+        _buildMealSection("Lunch", lunchFoods),
+        // Dinner
+        _buildMealSection("Dinner", dinnerFoods),
+        // Snacks
+        _buildMealSection("Snacks", snackFoods, dataKey: "Snack"),
+        // Spacing
+        SizedBox(height: Responsive.height(context, 20)),
+        // Food deletion instructions
+        Align(
+          alignment: Alignment.center,
+          child: Text(
+            "Swipe left to remove a logged food.",
+            style: TextStyle(
+              color: darkenColor(appColorNotifier.value, 0.1),
+              fontSize: Responsive.font(context, 25),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMealSection(
+    String title,
+    List<Map<String, dynamic>> foods, {
+    String? dataKey,
+  }) {
+    final key = dataKey ?? title;
+    return ExpansionTile(
+      initiallyExpanded: true,
+      title: textWithCard(
+        "$title (${foods.length})",
+        context,
+        Responsive.font(context, 25),
+      ),
+      children: foods.asMap().entries.map((entry) {
+        int idx = entry.key; // store index of food for deletion option
+        Map<String, dynamic> food = entry.value;
+        return Dismissible(
+          // Dismissible widget so the food can be swiped to delete
+          key: ValueKey(
+            "${key.toLowerCase()}_$idx${food['food_name']}",
+          ), // unique key that combines the index and food name
+          // formatting of background when user swipes to delete a food
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(right: Responsive.width(context, 20)),
+            child: Icon(Icons.delete, color: Colors.white),
+          ),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) async {
+            setState(() {
+              // when the user swipes to delete, remove the food and update to the server
+              foods.removeAt(idx);
+              final dateKey = formatDateKey(currentDate);
+              foodDataByDate[dateKey]![key] = foods;
+            });
+            await saveFoodData();
+          },
+          // Display food name
+          child: ListTile(
+            title: Text(
+              food['food_name'] ?? '',
+              style: GoogleFonts.manrope(color: Colors.white),
+            ),
+            // Display calories under food name
+            subtitle: Text(
+              "${num.tryParse(food['calories'].toString()) ?? 0} kcal",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -346,26 +1095,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                     ],
                   ),
 
-                  // FatSecret attribution
-                  Container(
-                    alignment: Alignment.center,
-                    child: InkWell(
-                      onTap: () async {
-                        await launchFatSecret();
-                      },
-                      child: Column(
-                        children: [
-                          textWithFont(
-                            "Powered by fatsecret",
-                            context,
-                            Responsive.font(context, 16),
-                            color: Colors.blue,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
                   // Display total calories text
                   Text(
                     "Total Calories: ${getTotalCaloriesForDay()}",
@@ -376,89 +1105,36 @@ class _FoodLoggingState extends State<FoodLogging> {
                     ),
                   ),
 
-                  // Search Food input
-                  SizedBox(
-                    width: double
-                        .infinity, // changed from fixed width to fill screen
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        splashColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        textSelectionTheme: TextSelectionThemeData(
-                          cursorColor: Colors.white,
-                          selectionHandleColor: Colors.white,
-                          selectionColor: const Color.fromARGB(
-                            255,
-                            83,
-                            75,
-                            75,
-                          ).withAlpha(128),
-                        ),
-                      ),
-                      child: TextField(
-                        controller: searchController,
-                        enabled: userCanType,
-                        keyboardType: TextInputType.text,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 17),
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
-                        ),
-                        decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: Responsive.scale(context, 0.25),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: Responsive.scale(context, 0.25),
-                            ),
-                          ),
-                          hintText: "Search",
-                          suffixIcon: Icon(Icons.search),
-                          contentPadding: EdgeInsets.only(
-                            top: Responsive.height(context, 13),
-                            left: Responsive.width(context, 6),
-                          ),
-                          hintStyle: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(
-                                  Responsive.scale(context, 4),
-                                  Responsive.scale(context, 4),
-                                ),
-                                blurRadius: Responsive.scale(context, 10),
-                                color: const Color.fromARGB(255, 0, 0, 0),
-                              ),
-                            ],
-                          ),
-                        ),
-                        onChanged: (value) {
-                          lastInput = DateTime.now();
-                          checkTimer?.cancel();
-                          checkTimer = Timer(Duration(milliseconds: 750), () {
-                            handleApiCall(lastInput, value);
-                          });
-                        },
-                      ),
+                  SizedBox(height: Responsive.height(context, 8)),
+
+                  // Tab bar
+                  TabBar(
+                    controller: _tabController,
+                    onTap: (_) => setState(() {}),
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white54,
+                    labelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(
+                        context,
+                        24,
+                      ), // label gets bigger on the selected tab
+                      fontWeight: FontWeight.bold,
                     ),
+                    unselectedLabelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(
+                        context,
+                        20,
+                      ), // unselected tab label size
+                    ),
+                    tabs: const [
+                      Tab(text: "Search"),
+                      Tab(text: "Barcode Scanning"),
+                      Tab(text: "Manual Entry"),
+                    ],
                   ),
 
-                  SizedBox(height: Responsive.height(context, 10)),
+                  SizedBox(height: Responsive.height(context, 8)),
 
                   // Horizontally lay out the next two buttons
                   Row(
@@ -543,76 +1219,83 @@ class _FoodLoggingState extends State<FoodLogging> {
                               0.025,
                             ),
                             onPressed: () async {
-                              if (mealType == null || !mealChosen) {
-                                if (snackbarActive) return;
-                                snackbarActive = true;
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.info,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(
-                                              width: Responsive.width(
-                                                context,
-                                                10,
+                              final tab = _tabController.index;
+
+                              if (tab == FoodTab.search) {
+                                // Search tab
+                                if (mealType == null || !mealChosen) {
+                                  if (snackbarActive) return;
+                                  snackbarActive = true;
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                        SnackBar(
+                                          content: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info,
+                                                color: Colors.white,
                                               ),
-                                            ),
-                                            Text("All fields must be filled."),
-                                          ],
+                                              SizedBox(
+                                                width: Responsive.width(
+                                                  context,
+                                                  10,
+                                                ),
+                                              ),
+                                              Text(
+                                                "All fields must be filled.",
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                    .closed
-                                    .then((_) {
-                                      snackbarActive = false;
-                                    });
-                                return;
-                              } else {
-                                final foodObject = selectedFood;
-
-                                // extract calories
-                                if (foodObject != null) {
-                                  foodObject['calories'] = extractCalories(
-                                    foodObject['food_description'] ?? '',
-                                  );
-
-                                  // extract the key for the current date
-                                  final dateKey = formatDateKey(currentDate);
-
-                                  // create a map for the date if it does not exist
-                                  if (!foodDataByDate.containsKey(dateKey)) {
-                                    foodDataByDate[dateKey] = {
-                                      "Breakfast": [],
-                                      "Lunch": [],
-                                      "Dinner": [],
-                                      "Snack": [],
-                                    };
-                                  }
-
-                                  foodDataByDate[dateKey]![mealType!]!.add(
-                                    foodObject,
-                                  );
-
-                                  // update to firestore
-                                  await saveFoodData();
-
-                                  setState(() {
-                                    loadFoodForDate(
-                                      currentDate,
-                                    ); // update locally by refreshing UI
-
-                                    // reset conditions for searching
-                                    userCanType = true;
-                                    mealChosen = false;
-                                    selectedFood = null;
-                                    searchController.clear();
-                                    mealType = null;
-                                  });
+                                      )
+                                      .closed
+                                      .then((_) {
+                                        snackbarActive = false;
+                                      });
+                                  return;
                                 }
+                                if (selectedFood != null) {
+                                  await logFood(
+                                    Map<String, dynamic>.from(selectedFood!),
+                                  );
+                                }
+                              } else if (tab == FoodTab.barcode) {
+                                // Barcode tab
+                                if (barcodeResult == null) {
+                                  if (snackbarActive) return;
+                                  snackbarActive = true;
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                        SnackBar(
+                                          content: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(
+                                                width: Responsive.width(
+                                                  context,
+                                                  10,
+                                                ),
+                                              ),
+                                              Text("Scan a barcode first."),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                      .closed
+                                      .then((_) {
+                                        snackbarActive = false;
+                                      });
+                                  return;
+                                }
+                                await logFood(
+                                  Map<String, dynamic>.from(barcodeResult!),
+                                );
+                              } else if (tab == FoodTab.manual) {
+                                // Manual entry tab
+                                await handleManualEntry();
                               }
                             },
                           ),
@@ -621,306 +1304,29 @@ class _FoodLoggingState extends State<FoodLogging> {
                     ],
                   ),
 
-                  SizedBox(height: Responsive.height(context, 20)),
+                  SizedBox(height: Responsive.height(context, 10)),
 
-                  // scrollable area for either search results or meal table
+                  // Tab content area and meal tiles
                   Expanded(
-                    // Expanded to prevent pixel overflow
-                    child: SizedBox(
-                      child:
-                          // A food was returned, so show the table to the user
-                          (foodList.isNotEmpty)
-                          ? ListView.builder(
-                              itemCount: foodList.length,
-                              itemBuilder: (context, index) {
-                                final food = foodList[index];
-                                return InkWell(
-                                  onTap: () {
-                                    FocusScope.of(context).unfocus();
-                                    setState(() {
-                                      userCanType = false;
-                                      mealChosen = true;
-                                      selectedFood = food;
-                                      searchController.text =
-                                          food["food_name"] ?? "";
-                                      searchController.selection =
-                                          TextSelection.fromPosition(
-                                            TextPosition(
-                                              offset:
-                                                  searchController.text.length,
-                                            ),
-                                          );
-                                      foodList = [];
-                                    });
-                                  },
-                                  child: ListTile(
-                                    title: Text(
-                                      food['food_name'] ?? '',
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      food['food_description'] ?? '',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                );
-                              },
-                            )
-                          // else no food was searched for / returned
-                          : ListView(
-                              children: [
-                                // Breakfast
-                                ExpansionTile(
-                                  initiallyExpanded: true,
-                                  title: textWithCard(
-                                    "Breakfast (${breakfastFoods.length})",
-                                    context,
-                                    Responsive.font(context, 25),
-                                  ),
-                                  children: breakfastFoods.asMap().entries.map((
-                                    entry,
-                                  ) {
-                                    int idx = entry
-                                        .key; // store index of food for deletion option
-                                    Map<String, dynamic> food = entry.value;
-                                    return Dismissible(
-                                      // Dismissible widget so the food can be swiped to delete
-                                      key: ValueKey(
-                                        "breakfast_$idx${food['food_name']}",
-                                      ), // unique key that combines the index and food name
-                                      // formatting of background when user swipes to delete a food
-                                      background: Container(
-                                        color: Colors.red,
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(
-                                          right: Responsive.width(context, 20),
-                                        ),
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) async {
-                                        setState(() {
-                                          // when the user swipes to delete, remove the food and update to the server
-                                          breakfastFoods.removeAt(idx);
-                                          final dateKey = formatDateKey(
-                                            currentDate,
-                                          );
-                                          foodDataByDate[dateKey]!['Breakfast'] =
-                                              breakfastFoods;
-                                        });
-                                        await saveFoodData();
-                                      },
-                                      // Display breakfast food name
-                                      child: ListTile(
-                                        title: Text(
-                                          food['food_name'] ?? '',
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        // Display breakfast calories under food name
-                                        subtitle: Text(
-                                          "${food['calories'] ?? 0} kcal",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-
-                                // Lunch
-                                ExpansionTile(
-                                  initiallyExpanded: true,
-                                  title: textWithCard(
-                                    "Lunch (${lunchFoods.length})",
-                                    context,
-                                    Responsive.font(context, 25),
-                                  ),
-                                  children: lunchFoods.asMap().entries.map((
-                                    entry,
-                                  ) {
-                                    int idx = entry
-                                        .key; // store index of food for deletion option
-                                    Map<String, dynamic> food = entry.value;
-                                    return Dismissible(
-                                      key: ValueKey(
-                                        "lunch_$idx${food['food_name']}",
-                                      ),
-                                      background: Container(
-                                        color: Colors.red,
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(
-                                          right: Responsive.width(context, 20),
-                                        ),
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) async {
-                                        setState(() {
-                                          lunchFoods.removeAt(idx);
-                                          final dateKey = formatDateKey(
-                                            currentDate,
-                                          );
-                                          foodDataByDate[dateKey]!['Lunch'] =
-                                              lunchFoods;
-                                        });
-                                        await saveFoodData();
-                                      },
-                                      child: ListTile(
-                                        title: Text(
-                                          food['food_name'] ?? '',
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          "${food['calories'] ?? 0} kcal",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-
-                                // Dinner
-                                ExpansionTile(
-                                  initiallyExpanded: true,
-                                  title: textWithCard(
-                                    "Dinner (${dinnerFoods.length})",
-                                    context,
-                                    Responsive.font(context, 25),
-                                  ),
-                                  children: dinnerFoods.asMap().entries.map((
-                                    entry,
-                                  ) {
-                                    int idx = entry.key;
-                                    Map<String, dynamic> food = entry.value;
-                                    return Dismissible(
-                                      key: ValueKey(
-                                        "dinner_$idx${food['food_name']}",
-                                      ),
-                                      background: Container(
-                                        color: Colors.red,
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(
-                                          right: Responsive.width(context, 20),
-                                        ),
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) async {
-                                        setState(() {
-                                          dinnerFoods.removeAt(idx);
-                                          final dateKey = formatDateKey(
-                                            currentDate,
-                                          );
-                                          foodDataByDate[dateKey]!['Dinner'] =
-                                              dinnerFoods;
-                                        });
-                                        await saveFoodData();
-                                      },
-                                      child: ListTile(
-                                        title: Text(
-                                          food['food_name'] ?? '',
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          "${food['calories'] ?? 0} kcal",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-
-                                // Snacks
-                                ExpansionTile(
-                                  initiallyExpanded: true,
-                                  title: textWithCard(
-                                    "Snacks (${snackFoods.length})",
-                                    context,
-                                    Responsive.font(context, 25),
-                                  ),
-                                  children: snackFoods.asMap().entries.map((
-                                    entry,
-                                  ) {
-                                    int idx = entry.key;
-                                    Map<String, dynamic> food = entry.value;
-                                    return Dismissible(
-                                      key: ValueKey(
-                                        "snack_$idx${food['food_name']}",
-                                      ),
-                                      background: Container(
-                                        color: Colors.red,
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(
-                                          right: Responsive.width(context, 20),
-                                        ),
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) async {
-                                        setState(() {
-                                          snackFoods.removeAt(idx);
-                                          final dateKey = formatDateKey(
-                                            currentDate,
-                                          );
-                                          foodDataByDate[dateKey]!['Snack'] =
-                                              snackFoods;
-                                        });
-                                        await saveFoodData();
-                                      },
-                                      child: ListTile(
-                                        title: Text(
-                                          food['food_name'] ?? '',
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          "${food['calories'] ?? 0} kcal",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                                // Spacing
-                                SizedBox(
-                                  height: Responsive.height(context, 20),
-                                ),
-                                // Food deletion instructions
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    "Swipe left to remove a logged food.",
-                                    style: TextStyle(
-                                      color: darkenColor(
-                                        appColorNotifier.value,
-                                        0.1,
-                                      ),
-                                      fontSize: Responsive.font(context, 25),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                    child: Column(
+                      children: [
+                        if (_hasActiveInput()) // Meal tiles shouldn't show
+                          Expanded(
+                            child: _tabController.index == FoodTab.search
+                                ? _buildSearchTab()
+                                : _buildBarcodeTab(),
+                          )
+                        else ...[
+                          // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
+                          if (_tabController.index == FoodTab.manual)
+                            _buildManualEntryTab()
+                          else if (_tabController.index == FoodTab.search)
+                            _buildSearchTab()
+                          else if (_tabController.index == FoodTab.barcode)
+                            _buildBarcodeTab(),
+                          Expanded(child: _buildMealTiles()),
+                        ],
+                      ],
                     ),
                   ),
                 ],
@@ -930,5 +1336,21 @@ class _FoodLoggingState extends State<FoodLogging> {
         );
       },
     );
+  }
+
+  // Whether the current tab has active input taking up space
+  bool _hasActiveInput() {
+    final tab = _tabController.index;
+    if (tab == FoodTab.search) return foodList.isNotEmpty;
+    if (tab == FoodTab.barcode) {
+      return scannerActive ||
+          barcodeLoading ||
+          barcodeResult != null ||
+          barcodeError != null;
+    }
+    if (tab == FoodTab.manual) {
+      return false; // manual tab doesn't have dynamic input that changes the layout, so we consider it to never have "active input" for layout purposes
+    }
+    return false;
   }
 }
