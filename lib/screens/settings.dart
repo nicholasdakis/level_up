@@ -16,10 +16,12 @@ external bool isPwa();
 @JS('supportsNativePrompt')
 external bool supportsNativePrompt();
 
-@JS('hasInstallPrompt')
+@JS('hasInstallPrompt') // for PWA installation detection natively
 external bool hasInstallPrompt();
 
-@JS('wasEverInstalledAsPwa')
+@JS(
+  'wasEverInstalledAsPwa',
+) // for PWA installation detection on unsupported browsers (i.e ones that have no beforeInstallPrompt) (Safari, Firefox)
 external bool wasEverInstalledAsPwa();
 
 Widget buildSettingsDrawer(

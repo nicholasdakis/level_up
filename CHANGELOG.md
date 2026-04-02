@@ -625,5 +625,6 @@ Developmental progress by date is stored in this file.
 - Edited applyAppColor() to automatically darken a color that would be so light (e.g., pure white) it would make text / cards unreadable
 - Added isPwaInstalled and supportsNativePrompt methods in index.html and linked them to dart with JS interops to reliably detect platform to show the correct "Install PWA App" button
 - Renamed isdPwaInstalled to isPwa and changed variables dependent on it to be more accurate (it detects if Pwa is opened, not installed)
-- Readded hasInstallPrompt because it is now only used if nativeSupported is true, ie only the browser that have hasInstallPrompt property will call it
+- Readded hasInstallPrompt because it is now only used if nativeSupported is true, ie only the browsers that have beforeInstallPrompt property will call it
 - This did not fix the case where the app was already installed but the browser was not native (e.g Safari), so added a wasEverInstalledAsPwa() function that is stored in localStorage and can be checked
+- Added cookies as a fallback to PWA installation detection on non-Chromium browsers becauses cookies share the same context as the PWA and browser tab
