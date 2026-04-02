@@ -119,6 +119,9 @@ Widget buildSettingsDrawer(
                       PWAInstall()
                           .promptInstall_(); // trigger the browser's native install dialog
                     } else {
+                      Navigator.pop(
+                        context,
+                      ); // close drawer so snackbar appears clearly
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(

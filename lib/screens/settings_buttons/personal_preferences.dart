@@ -7,7 +7,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '/globals.dart';
 import '/user/user_data_manager.dart';
 import '/utility/responsive.dart';
-import '/screens/reminders.dart';
+import '/utility/notification_service.dart';
 import 'dart:math';
 
 Future<void> showUsernameDialogBox(

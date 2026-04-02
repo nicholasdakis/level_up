@@ -630,3 +630,4 @@ Developmental progress by date is stored in this file.
 - Added cookies as a fallback to PWA installation detection on non-Chromium browsers becauses cookies share the same context as the PWA and browser tab
 - Reverted previous approach as Cookies clear often and it only works if the PWA was downloaded via the same Browser. Could not find a reliable way to genuinely detect if PWA was installed on the device of a non-Chromium user in general (or to detect if the PWA is ever uninstalled). Used a simpler approach instead.
 - Removed the "App already installed" replacement text for consistency across platforms. Chromium browsers show a snackbar if PWA is installed, non-Chromium browsers route to the tutorial installation screen regardless
+- Moved the notification setup code into a new file, notification_service.dart
