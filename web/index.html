@@ -77,24 +77,7 @@
   window.isPwa = function() {
     var standalone = window.matchMedia('(display-mode: standalone)').matches
         || window.navigator.standalone === true; // iOS support
-    // Persist a flag so browser tabs can detect a prior install (for non-Chromium browsers)
-    // Uses both localStorage and a cookie because Safari partitions localStorage between
-    // PWA and browser contexts, but shares cookies across them
-    if (standalone) {
-      try { localStorage.setItem('pwa_installed', '1'); } catch(e) {}
-      try { document.cookie = 'pwa_installed=1; max-age=31536000; path=/; SameSite=Lax'; } catch(e) {}
-    }
     return standalone;
-  }
-
-  // Returns true if the app was ever opened as an installed PWA on this device
-  window.wasEverInstalledAsPwa = function() {
-    try {
-      if (localStorage.getItem('pwa_installed') === '1') return true;
-      // Fallback: check cookie (Safari shares cookies between PWA and browser contexts
-      // even when localStorage is partitioned)
-      return document.cookie.split(';').some(function(c) { return c.trim() === 'pwa_installed=1'; });
-    } catch(e) { return false; }
   }
 
   // Returns true if the browser supports the native install prompt (Chrome/Edge)

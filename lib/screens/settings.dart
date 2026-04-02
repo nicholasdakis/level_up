@@ -19,11 +19,6 @@ external bool supportsNativePrompt();
 @JS('hasInstallPrompt') // for PWA installation detection natively
 external bool hasInstallPrompt();
 
-@JS(
-  'wasEverInstalledAsPwa',
-) // for PWA installation detection on unsupported browsers (i.e ones that have no beforeInstallPrompt) (Safari, Firefox)
-external bool wasEverInstalledAsPwa();
-
 Widget buildSettingsDrawer(
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
@@ -37,9 +32,21 @@ Widget buildSettingsDrawer(
   final promptAvailable = kIsWeb
       ? hasInstallPrompt()
       : false; // true if install prompt was captured (app not yet installed)
-  final previouslyInstalled = kIsWeb
-      ? wasEverInstalledAsPwa()
-      : false; // true if the app was ever opened as an installed PWA
+
+  // Chromium: app is already installed, so show a snackbar once per drawer open
+  if (kIsWeb && !openedAsPwa && nativeSupported && !promptAvailable) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "This app is already installed. Check your home screen or app drawer.",
+          ),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    });
+  }
+
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
     // The contents of the Settings gear icon button
@@ -98,11 +105,10 @@ Widget buildSettingsDrawer(
             startOffset: Offset(-1, 0),
           ),
 
-          // Chromium browsers (Chrome/Edge), trigger the native install dialog
-          // on other browsers (Safari/Firefox), show a tutorial screen with manual instructions
+          // Chromium browsers (Chrome/Edge): show native install prompt if app is not installed
+          // Non-Chromium browsers (Safari/Firefox): always show install guide with manual instructions
           if (kIsWeb && !openedAsPwa)
-            if (nativeSupported &&
-                promptAvailable) // Opened on web, supports native and app is not installed -> show native install prompt
+            if (nativeSupported && promptAvailable)
               Material(
                 color: Colors.transparent,
                 child: ListTile(
@@ -128,40 +134,7 @@ Widget buildSettingsDrawer(
                   },
                 ),
               )
-            else if (nativeSupported &&
-                !promptAvailable) // Browser supports install but prompt not available -> already installed
-              Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  leading: Icon(Icons.check_circle, color: Colors.white70),
-                  title: Tooltip(
-                    message:
-                        "This app is already installed on your device. Look for it on your home screen or app drawer.",
-                    waitDuration: Duration(milliseconds: 0),
-                    showDuration: Duration(seconds: 3),
-                    child: textWithFont(
-                      "Already Installed",
-                      context,
-                      Responsive.font(context, 18),
-                      color: Colors.white70,
-                      alignment: TextAlign.left,
-                    ),
-                  ),
-                  hoverColor: Colors.white.withAlpha(50),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "This app is already installed. Check your home screen or app drawer.",
-                        ),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                ),
-              )
-            // Fallback for browsers that don't support beforeinstallprompt (Safari, Firefox etc)
-            else if (!previouslyInstalled) // Not supported and not previously installed -> show manual installation guide screen
+            else if (!nativeSupported) // Safari, Firefox, etc.
               drawerItem(
                 "Install App as PWA",
                 Icons.install_mobile,
@@ -171,37 +144,6 @@ Widget buildSettingsDrawer(
                 startOffset: Offset(-1, 0),
                 tooltip:
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-              )
-            else // Not supported but previously installed -> show "Already Installed"
-              Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  leading: Icon(Icons.check_circle, color: Colors.white70),
-                  title: Tooltip(
-                    message:
-                        "This app is already installed on your device. Look for it on your home screen or app drawer.",
-                    waitDuration: Duration(milliseconds: 0),
-                    showDuration: Duration(seconds: 3),
-                    child: textWithFont(
-                      "Already Installed",
-                      context,
-                      Responsive.font(context, 18),
-                      color: Colors.white70,
-                      alignment: TextAlign.left,
-                    ),
-                  ),
-                  hoverColor: Colors.white.withAlpha(50),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "This app is already installed. Check your home screen or app drawer.",
-                        ),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                ),
               ),
 
           Material(

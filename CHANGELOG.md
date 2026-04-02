@@ -628,3 +628,5 @@ Developmental progress by date is stored in this file.
 - Readded hasInstallPrompt because it is now only used if nativeSupported is true, ie only the browsers that have beforeInstallPrompt property will call it
 - This did not fix the case where the app was already installed but the browser was not native (e.g Safari), so added a wasEverInstalledAsPwa() function that is stored in localStorage and can be checked
 - Added cookies as a fallback to PWA installation detection on non-Chromium browsers becauses cookies share the same context as the PWA and browser tab
+- Reverted previous approach as Cookies clear often and it only works if the PWA was downloaded via the same Browser. Could not find a reliable way to genuinely detect if PWA was installed on the device of a non-Chromium user in general (or to detect if the PWA is ever uninstalled). Used a simpler approach instead.
+- Removed the "App already installed" replacement text for consistency across platforms. Chromium browsers show a snackbar if PWA is installed, non-Chromium browsers route to the tutorial installation screen regardless
