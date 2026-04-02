@@ -74,6 +74,101 @@ class _FoodLoggingState extends State<FoodLogging>
     }
   }
 
+  Widget buildSearchButton() {
+    return Expanded(
+      child: TextField(
+        controller: searchController,
+        enabled: userCanType,
+        keyboardType: TextInputType.text,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 17),
+          color: Colors.white,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: "Search",
+          suffixIcon: Icon(Icons.search, color: Colors.white54),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 12),
+            horizontal: Responsive.width(context, 14),
+          ),
+          hintStyle: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 15),
+            color: Colors.white54,
+          ),
+        ),
+        onChanged: (value) {
+          lastInput = DateTime.now();
+          checkTimer?.cancel();
+          checkTimer = Timer(Duration(milliseconds: 750), () {
+            handleApiCall(lastInput, value);
+          });
+        },
+      ),
+    );
+  }
+
+  Widget buildLogFoodButton() {
+    return frostedButton(
+      "Log Food",
+      context,
+      onPressed: () async {
+        final tab = _tabController.index;
+        if (tab == FoodTab.search) {
+          if (mealType == null || !mealChosen) {
+            if (snackbarActive) return;
+            snackbarActive = true;
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.white),
+                        SizedBox(width: Responsive.width(context, 10)),
+                        Text("All fields must be filled."),
+                      ],
+                    ),
+                  ),
+                )
+                .closed
+                .then((_) {
+                  snackbarActive = false;
+                });
+            return;
+          }
+          if (selectedFood != null) {
+            await logFood(Map<String, dynamic>.from(selectedFood!));
+          }
+        } else if (tab == FoodTab.barcode) {
+          if (barcodeResult == null) {
+            if (snackbarActive) return;
+            snackbarActive = true;
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.white),
+                        SizedBox(width: Responsive.width(context, 10)),
+                        Text("Scan a barcode first."),
+                      ],
+                    ),
+                  ),
+                )
+                .closed
+                .then((_) {
+                  snackbarActive = false;
+                });
+            return;
+          }
+          await logFood(Map<String, dynamic>.from(barcodeResult!));
+        } else if (tab == FoodTab.manual) {
+          await handleManualEntry();
+        }
+      },
+    );
+  }
+
   Widget buildAttribution(
     String websiteUrl,
     String displayText,
@@ -652,52 +747,14 @@ class _FoodLoggingState extends State<FoodLogging>
         SizedBox(height: Responsive.height(context, 10)),
 
         // Search Food input inside frosted glass
-        frostedGlassCard(
-          context,
-          baseRadius: 10,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              textSelectionTheme: TextSelectionThemeData(
-                cursorColor: Colors.white,
-                selectionHandleColor: Colors.white,
-                selectionColor: const Color.fromARGB(
-                  255,
-                  83,
-                  75,
-                  75,
-                ).withAlpha(128),
+        Center(
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 20),
               ),
-            ),
-            child: TextField(
-              controller: searchController,
-              enabled: userCanType,
-              keyboardType: TextInputType.text,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 17),
-                color: Colors.white,
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: "Search",
-                suffixIcon: Icon(Icons.search, color: Colors.white54),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 12),
-                  horizontal: Responsive.width(context, 14),
-                ),
-                hintStyle: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 15),
-                  color: Colors.white54,
-                ),
-              ),
-              onChanged: (value) {
-                lastInput = DateTime.now();
-                checkTimer?.cancel();
-                checkTimer = Timer(Duration(milliseconds: 750), () {
-                  handleApiCall(lastInput, value);
-                });
-              },
+              child: buildLogFoodButton(),
             ),
           ),
         ),
@@ -781,7 +838,7 @@ class _FoodLoggingState extends State<FoodLogging>
                       Icon(
                         Icons.qr_code_scanner_rounded,
                         color: appColorNotifier.value,
-                        size: Responsive.scale(context, 80),
+                        size: Responsive.scale(context, 70),
                       ),
                       SizedBox(height: Responsive.height(context, 24)),
                       Text(
@@ -1298,19 +1355,34 @@ class _FoodLoggingState extends State<FoodLogging>
                   Row(
                     children: [
                       // Meal Type chooser
-                      Expanded(
-                        child: DropdownButton2<String>(
-                          dropdownStyleData: DropdownStyleData(
-                            decoration: BoxDecoration(
-                              color: appColorNotifier.value.withAlpha(128),
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 10),
-                              ),
+                      DropdownButton2<String>(
+                        dropdownStyleData: DropdownStyleData(
+                          decoration: BoxDecoration(
+                            color: appColorNotifier.value.withAlpha(128),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
                             ),
-                            maxHeight: Responsive.height(context, 200),
                           ),
+                          maxHeight: Responsive.height(context, 200),
+                        ),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 15),
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(
+                                Responsive.scale(context, 4),
+                                Responsive.scale(context, 4),
+                              ),
+                              blurRadius: Responsive.scale(context, 10),
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ],
+                        ),
+                        hint: Text(
+                          "Meal Type",
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
+                            fontSize: Responsive.font(context, 20),
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -1323,123 +1395,28 @@ class _FoodLoggingState extends State<FoodLogging>
                               ),
                             ],
                           ),
-                          hint: Text(
-                            "Meal Type",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 20),
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  offset: Offset(
-                                    Responsive.scale(context, 4),
-                                    Responsive.scale(context, 4),
-                                  ),
-                                  blurRadius: Responsive.scale(context, 10),
-                                  color: const Color.fromARGB(255, 0, 0, 0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          value: mealType,
-                          items: [
-                            addMenuItem("Breakfast"),
-                            addMenuItem("Lunch"),
-                            addMenuItem("Dinner"),
-                            addMenuItem("Snacks"),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              mealType = value;
-                            });
-                          },
                         ),
+                        value: mealType,
+                        items: [
+                          addMenuItem("Breakfast"),
+                          addMenuItem("Lunch"),
+                          addMenuItem("Dinner"),
+                          addMenuItem("Snacks"),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            mealType = value;
+                          });
+                        },
                       ),
 
-                      // Log Food Button
-                      Expanded(
-                        child: frostedButton(
-                          "Log Food",
-                          context,
-                          onPressed: () async {
-                            final tab = _tabController.index;
+                      // Separate the two buttons with some space
+                      SizedBox(width: Responsive.width(context, 25)),
 
-                            if (tab == FoodTab.search) {
-                              // Search tab
-                              if (mealType == null || !mealChosen) {
-                                if (snackbarActive) return;
-                                snackbarActive = true;
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.info,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(
-                                              width: Responsive.width(
-                                                context,
-                                                10,
-                                              ),
-                                            ),
-                                            Text("All fields must be filled."),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                    .closed
-                                    .then((_) {
-                                      snackbarActive = false;
-                                    });
-                                return;
-                              }
-                              if (selectedFood != null) {
-                                await logFood(
-                                  Map<String, dynamic>.from(selectedFood!),
-                                );
-                              }
-                            } else if (tab == FoodTab.barcode) {
-                              // Barcode tab
-                              if (barcodeResult == null) {
-                                if (snackbarActive) return;
-                                snackbarActive = true;
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.info,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(
-                                              width: Responsive.width(
-                                                context,
-                                                10,
-                                              ),
-                                            ),
-                                            Text("Scan a barcode first."),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                    .closed
-                                    .then((_) {
-                                      snackbarActive = false;
-                                    });
-                                return;
-                              }
-                              await logFood(
-                                Map<String, dynamic>.from(barcodeResult!),
-                              );
-                            } else if (tab == FoodTab.manual) {
-                              // Manual entry tab
-                              await handleManualEntry();
-                            }
-                          },
-                        ),
-                      ),
+                      // Search Button, which is replaced with the Log Food button when not on the Search tab
+                      _tabController.index == FoodTab.search
+                          ? buildSearchButton()
+                          : Expanded(child: buildLogFoodButton()),
                     ],
                   ),
 

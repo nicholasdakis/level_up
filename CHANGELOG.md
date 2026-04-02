@@ -659,3 +659,4 @@ Developmental progress by date is stored in this file.
 - Made the Barcode Scanner button bigger
 - Added an additional way to delete logged foods, which is to click a trash can icon
 - Used the regex for weight input for the manual entry logging to prevent entering invalid numbers while not clearing incorrect inputs
+- Replaced the Log Food and Search buttons in the Search tab, but this broke other tabs that use "Log Food", so conditionally replaced the Search button with the Log button when on non-Search tab bars
