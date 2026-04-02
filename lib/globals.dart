@@ -62,6 +62,34 @@ Color lightenColor(Color color, [double amount = .1]) {
   return hslLight.toColor();
 }
 
+// Frosted glass tappable button
+Widget frostedButton(
+  String text,
+  BuildContext context, {
+  required Function() onPressed,
+}) {
+  return GestureDetector(
+    onTap: () => onPressed(),
+    child: frostedGlassCard(
+      context,
+      baseRadius: 14,
+      padding: EdgeInsets.symmetric(
+        vertical: Responsive.height(context, 15),
+        horizontal: Responsive.width(context, 24),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 18),
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+  );
+}
+
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
 Widget createTitle(String text, BuildContext context) {
   return Text(

@@ -650,3 +650,12 @@ Developmental progress by date is stored in this file.
 - Fixed a bug where calories stored as the wrong type caused a TypeError in getTotalCaloriesForDay and the meal tile subtitle by using num.tryParse(...toString())
 - Added 'calories' directly to the foodObject in _submitManualEntry to avoid re-parsing manually entered calories through the regex
 - Updated logFood to skip extractCalories if calories is already set on the foodObject (which is the case for manually logged foods)
+- Made DropdownButton2 widgets have appColorNotifier values instead of using dark gray
+- Added the frosted glass card widget into Food Logging for a more modern look
+- Made a frosted glass button method in globals.dart
+- Made the food bars use similar cards to the Reminders tab for a more modern look
+- Realized Snacks was being stored as "Snack", so fixed that but kept "Snack" to be backwards compatible
+- Added regex checks so users can't type words into the manual entry fields (was not too big of an issue as the fallback made it 0 calories)
+- Made the Barcode Scanner button bigger
+- Added an additional way to delete logged foods, which is to click a trash can icon
+- Used the regex for weight input for the manual entry logging to prevent entering invalid numbers while not clearing incorrect inputs
