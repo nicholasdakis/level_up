@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 import 'dart:ui';
@@ -19,9 +18,6 @@ UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin(); // global instance of the notification plugin
-
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(
   String text,

@@ -1,12 +1,11 @@
 import 'dart:math';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../globals.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class DailyRewardDialog {
-  // Method for scheduling a reminder notification 23 hours after claiming the Daily Reward
   String randomRewardReminderMessage() {
     List<String> reminderMessages = [
       "Come claim your daily reward!",
@@ -25,29 +24,26 @@ class DailyRewardDialog {
     return reminderMessages[randomIndex];
   }
 
+  // Schedules a reminder notification 23 hours after claiming, using the same firestore-based reminder system that the Reminders screen uses
   Future<void> setDailyRewardNotification() async {
-    const int notificationId = 1; // Unique ID for notification
-    final scheduledTime = tz.TZDateTime.now(tz.local).add(Duration(hours: 23));
-    debugPrint('Notification scheduled for: $scheduledTime');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
-    const androidDetails = AndroidNotificationDetails(
-      'reminder_channel',
-      'Reminders',
-      channelDescription: 'User reminders',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+    final scheduledTime = DateTime.now().add(const Duration(hours: 23));
+    final id =
+        DateTime.now().millisecondsSinceEpoch; // unique ID for the reminder
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('reminders')
+        .add({
+          'message': randomRewardReminderMessage(),
+          'dateTime': scheduledTime.toUtc().toIso8601String(),
+          'notificationId': id,
+        });
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      notificationId,
-      'Daily Reward Available!',
-      randomRewardReminderMessage(),
-      scheduledTime,
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+    debugPrint('Daily reward reminder scheduled for: $scheduledTime');
   }
 
   Future<void> showDailyRewardDialog(
