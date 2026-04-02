@@ -60,7 +60,7 @@ class _FoodLoggingState extends State<FoodLogging>
     for (var item in dinnerFoods) {
       total += num.tryParse(item['calories'].toString()) ?? 0;
     }
-    for (var item in snackFoods) {
+    for (var item in snacksFoods) {
       total += num.tryParse(item['calories'].toString()) ?? 0;
     }
     return total.toInt();
@@ -398,7 +398,7 @@ class _FoodLoggingState extends State<FoodLogging>
   List<Map<String, dynamic>> breakfastFoods = [];
   List<Map<String, dynamic>> lunchFoods = [];
   List<Map<String, dynamic>> dinnerFoods = [];
-  List<Map<String, dynamic>> snackFoods = [];
+  List<Map<String, dynamic>> snacksFoods = [];
 
   // Map to hold all food based on date
   Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
@@ -467,11 +467,9 @@ class _FoodLoggingState extends State<FoodLogging>
           (dayData?['Dinner'] as List<dynamic>?)
               ?.cast<Map<String, dynamic>>() ??
           [];
-      snackFoods =
-          // fall back to old "Snack" key for backwards compatibility
+      snacksFoods =
           (dayData?['Snacks'] as List<dynamic>?)
               ?.cast<Map<String, dynamic>>() ??
-          (dayData?['Snack'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ??
           [];
     });
   }
@@ -1109,7 +1107,7 @@ class _FoodLoggingState extends State<FoodLogging>
         // Dinner
         _buildMealSection("Dinner", dinnerFoods),
         // Snacks
-        _buildMealSection("Snacks", snackFoods),
+        _buildMealSection("Snacks", snacksFoods),
         SizedBox(height: Responsive.height(context, 20)),
       ],
     );
