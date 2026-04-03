@@ -12,6 +12,12 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../utility/image_crop_handler.dart';
 
 class UserDataManager {
+  // Firestore collection references
+  static CollectionReference<Map<String, dynamic>> get _publicUsers =>
+      FirebaseFirestore.instance.collection('users-public');
+  static CollectionReference<Map<String, dynamic>> get _privateUsers =>
+      FirebaseFirestore.instance.collection('users-private');
+
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
   int? get experienceNeeded {
     if (currentUserData == null) return null;
@@ -25,8 +31,7 @@ class UserDataManager {
 
   // Load the user's "reminders" collection from Firestore
   Future<List<ReminderData>> loadRemindersFromFirestore(String uid) async {
-    final remindersSnapshot = await FirebaseFirestore.instance
-        .collection('users')
+    final remindersSnapshot = await _privateUsers
         .doc(uid)
         .collection('reminders')
         .get();
@@ -61,87 +66,81 @@ class UserDataManager {
         );
       }
 
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
+      final publicDoc = await _publicUsers.doc(uid).get();
+      final privateDoc = await _privateUsers.doc(uid).get();
+      final publicData = publicDoc.data();
+      final privateData = privateDoc.data();
 
       // NOTE: else statements are for newly-added fields to be compatible with existent users
 
+      // --- PUBLIC FIELDS ---
+
       // if the user has a stored profile picture in Base64, load that profile picture
-      if (doc.exists && doc.data()?['pfpBase64'] != null) {
-        currentUserData?.pfpBase64 = doc.data()?['pfpBase64'];
+      if (publicDoc.exists && publicData?['pfpBase64'] != null) {
+        currentUserData?.pfpBase64 = publicData?['pfpBase64'];
       } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'pfpBase64': null,
-        }, SetOptions(merge: true));
+        _publicUsers.doc(uid).set({'pfpBase64': null}, SetOptions(merge: true));
       }
 
       // if the user has a stored level, load that level
-      if (doc.exists && doc.data()?['level'] != null) {
-        currentUserData?.level = doc.data()?['level'];
+      if (publicDoc.exists && publicData?['level'] != null) {
+        currentUserData?.level = publicData?['level'];
       } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'level': 1,
-        }, SetOptions(merge: true));
+        _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
       }
 
       // if the user has stored expPoints, load them
-      if (doc.exists && doc.data()?['expPoints'] != null) {
-        currentUserData?.expPoints = doc.data()?['expPoints'];
+      if (publicDoc.exists && publicData?['expPoints'] != null) {
+        currentUserData?.expPoints = publicData?['expPoints'];
       } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'expPoints': 0,
-        }, SetOptions(merge: true));
+        _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
       }
 
+      // if the user has a stored username, load it
+      if (publicDoc.exists && publicData?['username'] != null) {
+        currentUserData?.username = publicData?['username'];
+      } else {
+        _publicUsers.doc(uid).set({'username': uid}, SetOptions(merge: true));
+      }
+
+      // --- PRIVATE FIELDS ---
+
       // load the last claiming date if it exists
-      if (doc.exists && doc.data()?['lastDailyClaim'] != null) {
+      if (privateDoc.exists && privateData?['lastDailyClaim'] != null) {
         // Convert to Timestamp so Firestore understands (Firestore stores dates as Timestamp, not DateTime)
-        final timestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
+        final timestamp = privateData?['lastDailyClaim'] as Timestamp?;
         currentUserData?.lastDailyClaim = timestamp?.toDate();
       } else {
         currentUserData?.lastDailyClaim = null;
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        await _privateUsers.doc(uid).set({
           'lastDailyClaim': null,
         }, SetOptions(merge: true));
       }
 
-      // if the user has a stored username, load it
-      if (doc.exists && doc.data()?['username'] != null) {
-        currentUserData?.username = doc.data()?['username'];
-      } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'username': uid,
-        }, SetOptions(merge: true));
-      }
-
       // if the user has stored fcmTokens, load them
-      if (doc.exists && doc.data()?['fcmTokens'] != null) {
-        List<dynamic> tokensFromFirestore = doc.data()?['fcmTokens'];
+      if (privateDoc.exists && privateData?['fcmTokens'] != null) {
+        List<dynamic> tokensFromFirestore = privateData?['fcmTokens'];
         currentUserData?.fcmTokens = tokensFromFirestore
             .map((token) => token.toString())
             .toList();
       } else {
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'fcmTokens': [],
-        }, SetOptions(merge: true));
+        _privateUsers.doc(uid).set({'fcmTokens': []}, SetOptions(merge: true));
       }
 
       // if the user has a stored notificationsEnabled, load it
-      if (doc.exists && doc.data()?['notificationsEnabled'] != null) {
-        currentUserData?.notificationsEnabled = doc
-            .data()?['notificationsEnabled'];
+      if (privateDoc.exists && privateData?['notificationsEnabled'] != null) {
+        currentUserData?.notificationsEnabled =
+            privateData?['notificationsEnabled'];
       } else {
         currentUserData?.notificationsEnabled = true;
-        FirebaseFirestore.instance.collection('users').doc(uid).set({
+        _privateUsers.doc(uid).set({
           'notificationsEnabled': true,
         }, SetOptions(merge: true));
       }
 
       // if the user has a stored app theme color, load it
-      if (doc.exists && doc.data()?['appColor'] != null) {
-        final int storedColor = doc.data()?['appColor'];
+      if (privateDoc.exists && privateData?['appColor'] != null) {
+        final int storedColor = privateData?['appColor'];
         currentUserData?.appColor = Color(storedColor);
         // update ValueNotifier with the stored value so HomeScreen is correct on initialization
         appColorNotifier.value = currentUserData!.appColor;
@@ -155,28 +154,26 @@ class UserDataManager {
         ); // default app theme color
       }
 
-      // if the user has stored food data, load it
-      if (doc.exists && doc.data()?['foodDataByDate'] != null) {
-        // get the raw Map<String, dynamic> from Firestore
-        final rawData = doc.data()?['foodDataByDate'] as Map<String, dynamic>;
+      // --- FOOD DATA (subcollection) ---
+      final foodLogSnapshot = await _privateUsers
+          .doc(uid)
+          .collection('foodLog')
+          .get();
 
-        // convert the raw nested map into the typed Map<String, Map<String, List<Map<String, dynamic>>>>
-        currentUserData?.foodDataByDate = rawData.map((dateKey, mealMap) {
-          // cast each mealMap to Map<String, dynamic> and convert each mealType list
-          final mealMapCasted = (mealMap as Map<String, dynamic>).map((
-            mealType,
-            foods,
-          ) {
-            // convert the dynamic list of food items to List<Map<String, dynamic>>
+      if (foodLogSnapshot.docs.isNotEmpty) {
+        final Map<String, Map<String, List<Map<String, dynamic>>>> foodData =
+            {};
+        for (final dateDoc in foodLogSnapshot.docs) {
+          final dateKey = dateDoc.id;
+          final mealMap = dateDoc.data();
+          foodData[dateKey] = mealMap.map((mealType, foods) {
             final foodList = (foods as List<dynamic>)
                 .map((item) => Map<String, dynamic>.from(item as Map))
                 .toList();
-            // return meal type with its list of food item maps
             return MapEntry(mealType, foodList);
           });
-          // return date with its mapped meal data
-          return MapEntry(dateKey, mealMapCasted);
-        });
+        }
+        currentUserData?.foodDataByDate = foodData;
       } else {
         // no food data found
         currentUserData?.foodDataByDate = {};
@@ -193,11 +190,11 @@ class UserDataManager {
       }
 
       // Determine canClaimDailyReward using server timestamp only
-      final lastClaimTimestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
+      final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
       if (lastClaimTimestamp == null) {
         currentUserData?.canClaimDailyReward = true;
         // Write back to Firestore so HomeScreen reads the correct value
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        await _privateUsers.doc(uid).set({
           'canClaimDailyReward': true,
         }, SetOptions(merge: true));
       } else {
@@ -213,7 +210,8 @@ class UserDataManager {
             .doc('now')
             .get();
         // null check so the app doesn't crash if the serverTime doc is missing or hasn't loaded yet
-        final serverTimestamp = serverTimeSnap.data()?['currentServerTime'] as Timestamp?;
+        final serverTimestamp =
+            serverTimeSnap.data()?['currentServerTime'] as Timestamp?;
         if (serverTimestamp == null) {
           debugPrint("Server time not available, skipping daily reward check");
           return;
@@ -227,7 +225,7 @@ class UserDataManager {
         );
         currentUserData?.canClaimDailyReward = canClaim;
         // Write back to Firestore so HomeScreen reads the correct value
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        await _privateUsers.doc(uid).set({
           'canClaimDailyReward': canClaim,
         }, SetOptions(merge: true));
       }
@@ -408,9 +406,9 @@ class UserDataManager {
         // Mobile
         base64String = base64Encode(await mobileCompressIfNeed(file!));
       }
-      // Save Base64 string to Firestore
+      // Save Base64 string to users-public
       final uid = FirebaseAuth.instance.currentUser!.uid;
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      await _publicUsers.doc(uid).set({
         'pfpBase64': base64String,
       }, SetOptions(merge: true));
 
@@ -466,8 +464,8 @@ class UserDataManager {
       // UPDATE ValueNotifier so UI rebuilds automatically
       expNotifier.value = newExp;
 
-      // UPDATE TO FIRESTORE
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      // UPDATE TO FIRESTORE (public data)
+      await _publicUsers.doc(uid).set({
         'level': currentUserData!.level,
         'expPoints': currentUserData!.expPoints,
       }, SetOptions(merge: true));
@@ -486,11 +484,12 @@ class UserDataManager {
   // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CANCLAIMDAILYREWARD APPROPRIATELY
   Future<bool> claimDailyReward() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final userDocRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    final privateDocRef = _privateUsers.doc(uid);
 
     // Get the current lastDailyClaim from Firestore
-    final doc = await userDocRef.get();
-    final lastClaimTimestamp = doc.data()?['lastDailyClaim'] as Timestamp?;
+    final doc = await privateDocRef.get();
+    final data = doc.data();
+    final lastClaimTimestamp = data?['lastDailyClaim'] as Timestamp?;
 
     // Check if 23 hours have passed since last claim
     if (lastClaimTimestamp != null) {
@@ -519,15 +518,16 @@ class UserDataManager {
     }
 
     // Update Firestore first with server timestamp
-    await userDocRef.set({
+    await privateDocRef.set({
       'canClaimDailyReward': false,
       'lastDailyClaim': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
     // Update local state after Firestore write
-    final updatedDoc = await userDocRef.get();
+    final updatedDoc = await privateDocRef.get();
+    final updatedData = updatedDoc.data();
     currentUserData!.lastDailyClaim =
-        (updatedDoc.data()?['lastDailyClaim'] as Timestamp).toDate().toUtc();
+        (updatedData?['lastDailyClaim'] as Timestamp).toDate().toUtc();
     currentUserData!.canClaimDailyReward = false;
 
     return true; // Successfully claimed
@@ -536,8 +536,7 @@ class UserDataManager {
   // Method for checking if a username already exists on the server
   Future<bool> usernameExists(String username) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final query = await FirebaseFirestore.instance
-        .collection('users')
+    final query = await _publicUsers
         .where(
           'username',
           isEqualTo: username.toLowerCase(),
@@ -573,8 +572,8 @@ class UserDataManager {
       } else {
         // Update locally
         currentUserData!.username = updatedUsername;
-        // Update to Firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        // Update to users-public
+        await _publicUsers.doc(uid).set({
           'username': currentUserData!.username,
         }, SetOptions(merge: true));
         ScaffoldMessenger.of(context).showSnackBar(
@@ -607,7 +606,7 @@ class UserDataManager {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await _privateUsers.doc(uid).update({
         'fcmTokens': FieldValue.arrayUnion([deviceToken]),
       });
     } catch (e) {
@@ -626,7 +625,7 @@ class UserDataManager {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await _privateUsers.doc(uid).update({
         'fcmTokens': FieldValue.arrayUnion([deviceToken]),
       });
     } catch (e) {
@@ -643,7 +642,7 @@ class UserDataManager {
       currentUserData!.fcmTokens.remove(deviceToken);
 
       // Remove token from Firestore array safely
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await _privateUsers.doc(uid).update({
         'fcmTokens': FieldValue.arrayRemove([deviceToken]),
       });
     } catch (e) {
@@ -656,9 +655,7 @@ class UserDataManager {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
       currentUserData!.notificationsEnabled = enabled;
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'notificationsEnabled': enabled,
-      });
+      await _privateUsers.doc(uid).update({'notificationsEnabled': enabled});
     } catch (e) {
       debugPrint("Error updating notificationsEnabled: $e");
     }
@@ -681,8 +678,8 @@ class UserDataManager {
         isDefaultColor = true;
       }
 
-      // Update Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      // Update users-private
+      await _privateUsers.doc(uid).set({
         'appColor': argbInt,
       }, SetOptions(merge: true));
 
@@ -717,10 +714,12 @@ class UserDataManager {
       // Update local currentUserData.foodDataByDate with the new data
       currentUserData?.foodDataByDate = newFoodData;
 
-      // Update Firestore with the new food data under the user's document
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'foodDataByDate': newFoodData,
-      }, SetOptions(merge: true));
+      // Write each date as its own document in the foodLog subcollection
+      final foodLogCol = _privateUsers.doc(uid).collection('foodLog');
+
+      for (final entry in newFoodData.entries) {
+        await foodLogCol.doc(entry.key).set(entry.value);
+      }
 
       // show confirmation snackbar
       if (context != null) {

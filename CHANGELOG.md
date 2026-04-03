@@ -668,3 +668,14 @@ Developmental progress by date is stored in this file.
 - Liked this approach so made all title screens and button texts use gradient colors using a subtleTextGradient() method to add a slight gradient to prominent text
 - Made more visual tweaks to Food Logging to look more natural
 - Added the Manual tab of Food Logging all scrollable to prevent the logged foods from barely being visible and to prevent potential pixel overflow errors from the frosted glass card itself
+
+## 2026-04-03
+- Replaced the "users" collection with "users-private" and "users-public" collections so that the operation that sorts users in the leaderboard only exposes the user's necessary fields (pfp, name, level...) rather than all their fields.
+- Changed the backend code to reflect these changes in relation to fcm token handling
+- Made a Python script to migrate the user data to the new collections
+- Updated firestore rules so users can read users-public but not users-private
+- Replaced the stored food logging implementation because it was all stored in one document that may get too big and exceed Firestore's free limit. Foods are now stored in a new collection, foodLog, that has one document per date
+- Updated Firestore indexes to use the users-public collection for sorting the leaderboard (as composite indexes don't work without this, and ordering by level and exp are both needed)
+- Made getters for getting public and private user data instead of having to type await FirebaseFirestore.instance.collection('users-public/private') every time
+- Made the user's leaderboard tint use their app color instead of white
+- Updated leaderboard to use responsive sizes instead of fixed pixel values

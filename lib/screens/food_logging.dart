@@ -607,7 +607,10 @@ class _FoodLoggingState extends State<FoodLogging>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
+          backgroundColor: darkenColor(
+            appColorNotifier.value,
+            0.025,
+          ).withAlpha(200),
           title: Text(
             "No macronutrients entered!",
             style: GoogleFonts.manrope(color: Colors.white),
@@ -1037,9 +1040,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 _buildManualField(
                   manualProteinController,
                   "Protein (g)",
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;
@@ -1055,9 +1056,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 _buildManualField(
                   manualCarbsController,
                   "Carbs (g)",
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;
@@ -1073,9 +1072,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 _buildManualField(
                   manualFatController,
                   "Fat (g)",
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;

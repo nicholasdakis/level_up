@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<bool> canClaimDailyReward() async {
     final doc = await FirebaseFirestore.instance
-        .collection('users')
+        .collection('users-private')
         .doc(currentUserData!.uid)
         .get();
     return doc.data()?['canClaimDailyReward'] ?? true;

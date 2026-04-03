@@ -50,11 +50,11 @@ def send_due_reminders():
             count += 1
             data = doc.to_dict()
 
-            # Extract the user's UID from the document path: users/{uid}/reminders/{docId}
+            # Extract the user's UID from the document path: users-private/{uid}/reminders/{docId}
             uid = doc.reference.parent.parent.id
 
-            # Get the user's document to retrieve their FCM tokens
-            user_doc = db.collection('users').document(uid).get()
+            # Get the user's private document to retrieve their FCM tokens
+            user_doc = db.collection('users-private').document(uid).get()
             if not user_doc.exists:
                 doc.reference.delete()  # user no longer exists, clean up the reminder
                 continue
@@ -94,7 +94,7 @@ def send_due_reminders():
                             invalid_tokens.append(fcm_tokens[i])
                 # Remove invalid tokens from Firestore as to not keep trying to send to them
                 if invalid_tokens:
-                    db.collection('users').document(uid).update({
+                    db.collection('users-private').document(uid).update({
                         'fcmTokens': firestore.ArrayRemove(invalid_tokens)
                     })
 

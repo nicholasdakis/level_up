@@ -34,7 +34,7 @@ class DailyRewardDialog {
         DateTime.now().millisecondsSinceEpoch; // unique ID for the reminder
 
     await FirebaseFirestore.instance
-        .collection('users')
+        .collection('users-private')
         .doc(uid)
         .collection('reminders')
         .add({

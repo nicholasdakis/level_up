@@ -87,7 +87,7 @@ class _RemindersState extends State<Reminders> {
 
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('users-private')
           .doc(uid)
           .collection('reminders')
           .get();
@@ -251,7 +251,7 @@ class _RemindersState extends State<Reminders> {
     try {
       // Find the reminder documents with matching notification ID
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('users-private')
           .doc(uid)
           .collection('reminders')
           .where('notificationId', isEqualTo: reminder.notificationId)
@@ -424,7 +424,7 @@ class _RemindersState extends State<Reminders> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         await FirebaseFirestore.instance
-            .collection('users')
+            .collection('users-private')
             .doc(uid)
             .collection('reminders')
             .add({
