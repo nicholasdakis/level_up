@@ -90,23 +90,44 @@ Widget frostedButton(
   );
 }
 
+// Reusable gradient for title and button text
+LinearGradient subtleTextGradient() {
+  return LinearGradient(
+    colors: [
+      lightenColor(appColorNotifier.value, 0.65),
+      lightenColor(appColorNotifier.value, 0.80),
+      lightenColor(appColorNotifier.value, 0.65),
+    ],
+  );
+}
+
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
 Widget createTitle(String text, BuildContext context) {
-  return Text(
-    text,
-    style: GoogleFonts.dangrek(
-      fontSize: Responsive.font(context, 40),
-      color: Colors.white,
-      shadows: [
-        Shadow(
-          offset: Offset(
-            Responsive.scale(context, 4),
-            Responsive.scale(context, 4),
+  return ShaderMask(
+    shaderCallback: (bounds) => subtleTextGradient().createShader(
+      Rect.fromLTWH(
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      ), // Make a rectangle the same size as the text so the gradient covers it
+    ),
+    child: Text(
+      text,
+      style: GoogleFonts.dangrek(
+        fontSize: Responsive.font(context, 40),
+        color: Colors.white,
+        shadows: [
+          Shadow(
+            offset: Offset(
+              Responsive.scale(context, 4),
+              Responsive.scale(context, 4),
+            ),
+            blurRadius: Responsive.scale(context, 10),
+            color: const Color.fromARGB(255, 0, 0, 0),
           ),
-          blurRadius: Responsive.scale(context, 10),
-          color: const Color.fromARGB(255, 0, 0, 0),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -185,42 +206,52 @@ Widget drawerItem(
 
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
 Widget buttonText(String text, BuildContext context, double baseFontSize) {
-  return Text(
-    text,
-    textAlign: TextAlign.center,
-    style: GoogleFonts.dangrek(
-      fontSize: Responsive.font(context, baseFontSize),
-      color: Colors.white,
-      shadows: [
-        Shadow(
-          offset: Offset(
-            -Responsive.scale(context, 1),
-            -Responsive.scale(context, 1),
+  return ShaderMask(
+    shaderCallback: (bounds) => subtleTextGradient().createShader(
+      Rect.fromLTWH(
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      ), // Make a rectangle the same size as the text so the gradient covers it
+    ),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: GoogleFonts.dangrek(
+        fontSize: Responsive.font(context, baseFontSize),
+        color: Colors.white,
+        shadows: [
+          Shadow(
+            offset: Offset(
+              -Responsive.scale(context, 1),
+              -Responsive.scale(context, 1),
+            ),
+            color: Colors.black,
           ),
-          color: Colors.black,
-        ),
-        Shadow(
-          offset: Offset(
-            Responsive.scale(context, 1),
-            -Responsive.scale(context, 1),
+          Shadow(
+            offset: Offset(
+              Responsive.scale(context, 1),
+              -Responsive.scale(context, 1),
+            ),
+            color: Colors.black,
           ),
-          color: Colors.black,
-        ),
-        Shadow(
-          offset: Offset(
-            -Responsive.scale(context, 1),
-            Responsive.scale(context, 1),
+          Shadow(
+            offset: Offset(
+              -Responsive.scale(context, 1),
+              Responsive.scale(context, 1),
+            ),
+            color: Colors.black,
           ),
-          color: Colors.black,
-        ),
-        Shadow(
-          offset: Offset(
-            Responsive.scale(context, 1),
-            Responsive.scale(context, 1),
+          Shadow(
+            offset: Offset(
+              Responsive.scale(context, 1),
+              Responsive.scale(context, 1),
+            ),
+            color: Colors.black,
           ),
-          color: Colors.black,
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -237,11 +268,7 @@ Widget customButton(
   Color? baseColor,
 }) {
   Color color =
-      baseColor ??
       currentUserData!.appColor; // app theme is the user's chosen theme
-  final int red = (color.r * 255).round().clamp(0, 255);
-  final int green = (color.g * 255).round().clamp(0, 255);
-  final int blue = (color.b * 255).round().clamp(0, 255);
 
   return SizedBox(
     height: Responsive.buttonHeight(context, baseHeight),
@@ -257,17 +284,17 @@ Widget customButton(
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB((0.15 * 255).round(), red, green, blue),
+                color: color.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 30),
                 ),
                 border: Border.all(
-                  color: Color.fromARGB((0.3 * 255).round(), red, green, blue),
+                  color: color.withValues(alpha: 0.55),
                   width: Responsive.scale(context, 1.5),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color.fromARGB((0.25 * 255).round(), 0, 0, 0),
+                    color: Colors.black.withValues(alpha: 0.25),
                     offset: Offset(0, Responsive.scale(context, 4)),
                     blurRadius: Responsive.scale(context, 10),
                     spreadRadius: Responsive.scale(context, 1),
@@ -289,18 +316,8 @@ Widget customButton(
                       changeToScreen(context, destination);
                     }
                   },
-              splashColor: Color.fromARGB(
-                (0.1 * 255).round(),
-                red,
-                green,
-                blue,
-              ),
-              highlightColor: Color.fromARGB(
-                (0.05 * 255).round(),
-                red,
-                green,
-                blue,
-              ),
+              splashColor: color.withValues(alpha: 0.1),
+              highlightColor: color.withValues(alpha: 0.05),
               child: Center(
                 child: buttonText(
                   text,
@@ -329,9 +346,6 @@ Widget simpleCustomButton(
   Color color =
       baseColor ??
       currentUserData!.appColor; // app theme is the user's chosen theme
-  final int red = (color.r * 255).round().clamp(0, 255); // red channel
-  final int green = (color.g * 255).round().clamp(0, 255); // green channel
-  final int blue = (color.b * 255).round().clamp(0, 255); // blue channel
 
   // set sizes based on screen context like customButton
   final double buttonHeight = Responsive.buttonHeight(context, baseHeight);
@@ -357,32 +371,17 @@ Widget simpleCustomButton(
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(
-                  (0.15 * 255).round(),
-                  red,
-                  green,
-                  blue,
-                ), // translucent color
+                color: color.withValues(alpha: 0.35), // translucent color
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 30), // border radius same as clip
                 ),
                 border: Border.all(
-                  color: Color.fromARGB(
-                    (0.3 * 255).round(),
-                    red,
-                    green,
-                    blue,
-                  ), // border alpha
+                  color: color.withValues(alpha: 0.55), // border alpha
                   width: Responsive.scale(context, 1.5), // border width scaled
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color.fromARGB(
-                      (0.25 * 255).round(),
-                      0,
-                      0,
-                      0,
-                    ), // shadow alpha
+                    color: Colors.black.withValues(alpha: 0.25), // shadow alpha
                     offset: Offset(
                       0,
                       Responsive.scale(context, 4), // shadow y-offset
@@ -401,17 +400,11 @@ Widget simpleCustomButton(
                 Responsive.scale(context, 30), // ripple matches button shape
               ),
               onTap: onPressed, // user tap
-              splashColor: Color.fromARGB(
-                (0.1 * 255).round(),
-                red,
-                green,
-                blue,
+              splashColor: color.withValues(
+                alpha: 0.1,
               ), // splash color like customButton
-              highlightColor: Color.fromARGB(
-                (0.05 * 255).round(),
-                red,
-                green,
-                blue,
+              highlightColor: color.withValues(
+                alpha: 0.05,
               ), // highlight color like customButton
               child: Center(
                 child: buttonText(

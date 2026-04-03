@@ -51,24 +51,31 @@ Widget buildSettingsDrawer(
                 ),
               ),
             ),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                text: "Settings",
-                style: GoogleFonts.dangrek(
-                  fontSize: Responsive.font(
-                    context,
-                    30,
-                  ), // for scaling responsively
-                  color: Colors
-                      .white, // defaults to white if no parameter is given
-                  shadows: [
-                    Shadow(
-                      offset: Offset(4, 4),
-                      blurRadius: 10,
-                      color: const Color.fromARGB(255, 0, 0, 0),
-                    ),
-                  ],
+            child: ShaderMask(
+              shaderCallback: (bounds) => subtleTextGradient().createShader(
+                Rect.fromLTWH(
+                  0,
+                  0,
+                  bounds.width,
+                  bounds.height,
+                ), // Make a rectangle the same size as the text so the gradient covers it
+              ),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: "Settings",
+                  style: GoogleFonts.dangrek(
+                    fontSize: Responsive.font(context, 30),
+                    color: Colors
+                        .white, // defaults to white if no parameter is given
+                    shadows: [
+                      Shadow(
+                        offset: Offset(4, 4),
+                        blurRadius: 10,
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

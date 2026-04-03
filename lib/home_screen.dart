@@ -180,16 +180,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: Responsive.width(context, 30),
                 ), // Move the title text down a little bit
                 // Manually make the title text, since appBar is already being used
-                child: Text(
-                  "LEVEL UP!",
-                  style: GoogleFonts.dangrek(
-                    fontSize: Responsive.font(context, 75),
-                    color: Color(0xFFFFFFFF),
-                    shadows: [
-                      Shadow(
-                        offset: Offset(4, 4),
-                        blurRadius: 10,
-                        color: Colors.black,
+                child: ShaderMask(
+                  shaderCallback: (bounds) => subtleTextGradient().createShader(
+                    Rect.fromLTWH(
+                      0,
+                      0,
+                      bounds.width,
+                      bounds.height,
+                    ), // Make a rectangle the same size as the text so the gradient covers it
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Stroke / outline
+                      Text(
+                        "LEVEL UP!",
+                        style: GoogleFonts.dangrek(
+                          fontSize: Responsive.font(context, 60),
+                          letterSpacing: Responsive.scale(context, 2),
+                          foreground: Paint()
+                            ..style = PaintingStyle.stroke
+                            ..strokeWidth = Responsive.scale(context, 4)
+                            ..color = Colors.black,
+                        ),
+                      ),
+                      // Fill + glow
+                      Text(
+                        "LEVEL UP!",
+                        style: GoogleFonts.dangrek(
+                          fontSize: Responsive.font(context, 60),
+                          letterSpacing: Responsive.scale(context, 2),
+                          color: Colors
+                              .white, // color is needed but will be masked
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: Responsive.scale(context, 25),
+                              color: appColorNotifier.value.withAlpha(200),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -216,7 +246,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: EdgeInsets.all(
                             Responsive.height(context, 5),
                           ),
-                          child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 16),
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -244,7 +277,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   destination: CalorieCalculator(),
                                 ),
-                                SizedBox(height: 10.h), // Space between buttons
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
                                 // FOOD LOGGING TAB
                                 customButton(
                                   "Food Logging",
@@ -254,7 +289,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   destination: FoodLogging(),
                                 ),
-                                SizedBox(height: 10.h), // Space between buttons
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
                                 customButton(
                                   "Explore",
                                   48,
@@ -263,7 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   destination: Explore(),
                                 ),
-                                SizedBox(height: 10.h), // Space between buttons
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
                                 // REMINDERS TAB
                                 customButton(
                                   "Reminders",
@@ -273,7 +312,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   destination: Reminders(),
                                 ),
-                                SizedBox(height: 10.h), // Space between buttons
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
                                 // BADGES TAB
                                 customButton(
                                   "Badges",
@@ -283,7 +324,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   destination: Badges(),
                                 ),
-                                SizedBox(height: 10.h), // Space between buttons
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
                                 // LEADERBOARD TAB
                                 customButton(
                                   "Leaderboard",

@@ -661,3 +661,8 @@ Developmental progress by date is stored in this file.
 - Used the regex for weight input for the manual entry logging to prevent entering invalid numbers while not clearing incorrect inputs
 - Replaced the Log Food and Search buttons in the Search tab, but this broke other tabs that use "Log Food", so conditionally replaced the Search button with the Log button when on non-Search tab bars
 - Removed backwards compatibility for "Snack" instead of "Snacks" handling
+- Handled the Explore tab card covering the Back button while opened on mobile by using a backButtonOffset variable added to the existing offset mobile code
+- Changed the overly complicated color handling for customButton() and simpleCustomButton()
+- Fixed the formatting of the home screen buttons to use the responsive sizes for separation and wrapped in padding to feel less
+- Made the title text use gradient colors using ShaderMask widget to stand out more
+- Liked this approach so made all title screens and button texts use gradient colors using a subtleTextGradient() method to add a slight gradient to prominent text

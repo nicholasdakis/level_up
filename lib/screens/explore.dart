@@ -91,6 +91,10 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
 
   @override
   Widget build(BuildContext context) {
+    double backButtonOffset = cardIsOpen
+        ? 150
+        : 0; // offset to prevent card from covering back button on mobile devices
+
     return Scaffold(
       body: Stack(
         children: [
@@ -151,12 +155,14 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             ),
 
           // Back button
-          Positioned(
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300), // animation speed
+            curve: Curves.easeInOut, // smooth curve
             top: Responsive.isDesktop(context)
                 ? Responsive.height(context, 10)
                 : Responsive.height(
                     context,
-                    130,
+                    130 + backButtonOffset,
                   ), // prevent back button from being covered on mobile
             left: Responsive.width(context, 10),
             child: PointerInterceptor(
