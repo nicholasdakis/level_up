@@ -666,3 +666,5 @@ Developmental progress by date is stored in this file.
 - Fixed the formatting of the home screen buttons to use the responsive sizes for separation and wrapped in padding to feel less
 - Made the title text use gradient colors using ShaderMask widget to stand out more
 - Liked this approach so made all title screens and button texts use gradient colors using a subtleTextGradient() method to add a slight gradient to prominent text
+- Made more visual tweaks to Food Logging to look more natural
+- Added the Manual tab of Food Logging all scrollable to prevent the logged foods from barely being visible and to prevent potential pixel overflow errors from the frosted glass card itself

@@ -810,6 +810,8 @@ class _FoodLoggingState extends State<FoodLogging>
           Colors.green,
         ),
 
+        SizedBox(height: Responsive.height(context, 10)),
+
         // Full width scan button when scanner is not active
         if (!scannerActive && barcodeResult == null && barcodeError == null)
           GestureDetector(
@@ -820,25 +822,17 @@ class _FoodLoggingState extends State<FoodLogging>
             },
             child: Padding(
               padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 20),
+                horizontal: Responsive.width(context, 10),
               ),
               child: SizedBox(
                 width: double.infinity,
                 child: frostedGlassCard(
                   context,
                   baseRadius: 24,
-                  padding: EdgeInsets.symmetric(
-                    vertical: Responsive.height(context, 40),
-                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.qr_code_scanner_rounded,
-                        color: appColorNotifier.value,
-                        size: Responsive.scale(context, 70),
-                      ),
-                      SizedBox(height: Responsive.height(context, 24)),
+                      SizedBox(height: Responsive.height(context, 10)),
                       Text(
                         "Scan Barcode",
                         style: GoogleFonts.manrope(
@@ -855,6 +849,7 @@ class _FoodLoggingState extends State<FoodLogging>
                           color: Colors.white38,
                         ),
                       ),
+                      SizedBox(height: Responsive.height(context, 10)),
                     ],
                   ),
                 ),
@@ -1006,16 +1001,16 @@ class _FoodLoggingState extends State<FoodLogging>
                 Text(
                   "REQUIRED",
                   style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 11),
+                    fontSize: Responsive.font(context, 15),
                     color: Colors.white38,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
+                    letterSpacing: Responsive.scale(context, 1.4),
                   ),
                 ),
-                _buildManualField(manualNameController, "Food Name *"),
+                _buildManualField(manualNameController, "Food Name"),
                 _buildManualField(
                   manualCaloriesController,
-                  "Calories (kcal) *",
+                  "Calories (kcal)",
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
@@ -1033,16 +1028,18 @@ class _FoodLoggingState extends State<FoodLogging>
                 Text(
                   "OPTIONAL",
                   style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 11),
+                    fontSize: Responsive.font(context, 15),
                     color: Colors.white38,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
+                    letterSpacing: Responsive.scale(context, 1.4),
                   ),
                 ),
                 _buildManualField(
-                  manualFatController,
-                  "Fat (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  manualProteinController,
+                  "Protein (g)",
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;
@@ -1058,7 +1055,9 @@ class _FoodLoggingState extends State<FoodLogging>
                 _buildManualField(
                   manualCarbsController,
                   "Carbs (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;
@@ -1072,9 +1071,11 @@ class _FoodLoggingState extends State<FoodLogging>
                   ],
                 ),
                 _buildManualField(
-                  manualProteinController,
-                  "Protein (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  manualFatController,
+                  "Fat (g)",
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       final text = newValue.text;
@@ -1090,6 +1091,12 @@ class _FoodLoggingState extends State<FoodLogging>
               ],
             ),
           ),
+          // Meal tiles inline so everything scrolls together
+          _buildMealSection("Breakfast", breakfastFoods),
+          _buildMealSection("Lunch", lunchFoods),
+          _buildMealSection("Dinner", dinnerFoods),
+          _buildMealSection("Snacks", snacksFoods),
+          SizedBox(height: Responsive.height(context, 20)),
         ],
       ),
     );
@@ -1430,11 +1437,11 @@ class _FoodLoggingState extends State<FoodLogging>
                                 ? _buildSearchTab()
                                 : _buildBarcodeTab(),
                           )
+                        else if (_tabController.index == FoodTab.manual)
+                          Expanded(child: _buildManualEntryTab())
                         else ...[
                           // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
-                          if (_tabController.index == FoodTab.manual)
-                            _buildManualEntryTab()
-                          else if (_tabController.index == FoodTab.search)
+                          if (_tabController.index == FoodTab.search)
                             _buildSearchTab()
                           else if (_tabController.index == FoodTab.barcode)
                             _buildBarcodeTab(),

@@ -196,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         "LEVEL UP!",
                         style: GoogleFonts.dangrek(
-                          fontSize: Responsive.font(context, 60),
+                          fontSize: Responsive.font(context, 55),
                           letterSpacing: Responsive.scale(context, 2),
                           foreground: Paint()
                             ..style = PaintingStyle.stroke
@@ -208,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         "LEVEL UP!",
                         style: GoogleFonts.dangrek(
-                          fontSize: Responsive.font(context, 60),
+                          fontSize: Responsive.font(context, 55),
                           letterSpacing: Responsive.scale(context, 2),
                           color: Colors
                               .white, // color is needed but will be masked
