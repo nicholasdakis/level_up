@@ -187,6 +187,28 @@
     };
 
   </script>
+
+  <script>
+    // Only run if the browser supports service workers (always the case for PWAs)
+    if ('serviceWorker' in navigator) {
+      // Every time the user switches back to the tab (visible), the script checks if a new version of the app has been deployed
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          // Re-fetch the service worker file from the server and compare it to the cached version (the user's current swRegistration)
+          // If the content differs (Flutter embeds a unique hash on every build), a new SW installs and refreshes the user's page
+          navigator.serviceWorker.getRegistration().then((swRegistration) => {
+            if (swRegistration) swRegistration.update(); // If there is a service worker registered for this page, check for updates
+            // The update() command automatically fetches the new service worker if it is different, or does nothing if it is the same
+          });
+        }
+      });
+      // Fires when a new service worker takes over, which happens after skipWaiting() activates the new SW
+      navigator.serviceWorker.addEventListener('controllerchange', () => { // controllerchange fires when the Sw gets a new active worker
+        window.location.reload(); // Reload the page to show the latest version
+      });
+    }
+  </script>
+
 </body>
 
 </html>
