@@ -7,19 +7,22 @@ service cloud.firestore {
     match /users-public/{userId} {
       allow get, list: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId
-        && !request.resource.data.keys().hasAny(['level', 'expPoints']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['level', 'expPoints']);
     }
+
     // Private user data (settings, tokens, daily rewards)
     // Only the owner can read, only non-critical fields can be written by the client
     // lastDailyClaim and canClaimDailyReward are blocked from client writes since they are managed by the backend
     match /users-private/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId
-        && !request.resource.data.keys().hasAny(['lastDailyClaim', 'canClaimDailyReward']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastDailyClaim', 'canClaimDailyReward']);
+
       // Reminders subcollection
       match /reminders/{reminderId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
       // Food log subcollection (one document per date)
       match /foodLog/{dateId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;

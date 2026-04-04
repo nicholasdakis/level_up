@@ -484,8 +484,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             setState(() {
                               notificationsEnabled = value;
                             });
-                            // Save the preference to Firestore
+                            // Save the preference to Firestore and locally
                             await userManager.updateNotificationsEnabled(value);
+                            currentUserData!.notificationsEnabled = value;
 
                             // If enabling on web, also request browser permission and get FCM token
                             if (value && kIsWeb) {

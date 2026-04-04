@@ -701,3 +701,6 @@ Developmental progress by date is stored in this file.
 - Updated firestore rules to reflect the backend changes and why they were made in the first place. A user writing their own xp and level is now impossible, as it is entirely done by the backend
 - The locally calculated assigned XP for claiming a daily reward could be different to the actual calculated result in the backend, leading to an inaccurate amount of xp gain being shown to the user. Fixed by making claimDailyReward return an int instead of bool, where that int is the actual amount of xp they gained according to the backend's calculation
 - Then updated showDailyRewardDialog to use the actual calculated amount instead of the randomly calculated amount
+- Made reminder handling atomic so that the same reminder isn't handled twice before the cleanup happens. Uses a "processing" flag to determine if it is already being handled or not
+- Edited firestore rules again as non-critical variables were being blocked from writes
+- Made daily reward notifications only send if the user's in-app notifications are enabled

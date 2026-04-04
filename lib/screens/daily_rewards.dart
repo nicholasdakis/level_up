@@ -42,8 +42,6 @@ class DailyRewardDialog {
           'dateTime': scheduledTime.toUtc().toIso8601String(),
           'notificationId': id,
         });
-
-    debugPrint('Daily reward reminder scheduled for: $scheduledTime');
   }
 
   Future<void> showDailyRewardDialog(
@@ -94,7 +92,9 @@ class DailyRewardDialog {
         ),
       ).then((_) async {
         // Set a reminder 23 hours from now
-        await setDailyRewardNotification();
+        if (currentUserData!.notificationsEnabled) {
+          await setDailyRewardNotification();
+        }
         // Show the confetti celebration
         controller.play();
       });
