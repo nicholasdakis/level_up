@@ -699,3 +699,5 @@ Developmental progress by date is stored in this file.
 - Edited canClaimDailyReward to directly read from currentUserData instead of Firestore, because currentUserData loads the data updated by the backend, which is the most up-to-date version
 - The serverTime document was deleted because the daily reward checks are entirely handled server-side now
 - Updated firestore rules to reflect the backend changes and why they were made in the first place. A user writing their own xp and level is now impossible, as it is entirely done by the backend
+- The locally calculated assigned XP for claiming a daily reward could be different to the actual calculated result in the backend, leading to an inaccurate amount of xp gain being shown to the user. Fixed by making claimDailyReward return an int instead of bool, where that int is the actual amount of xp they gained according to the backend's calculation
+- Then updated showDailyRewardDialog to use the actual calculated amount instead of the randomly calculated amount

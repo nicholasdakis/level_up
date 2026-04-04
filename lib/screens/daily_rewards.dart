@@ -50,12 +50,13 @@ class DailyRewardDialog {
     BuildContext context,
     ConfettiController controller,
   ) async {
-    // Random XP based on level
-    final xpGain =
-        25 * currentUserData!.level +
-        2 * (Random().nextInt(currentUserData!.level) + 1);
+    // Claim the daily reward from backend first to get the actual XP awarded
+    final xpAwarded = await userManager.claimDailyReward();
 
-    // Show claim Dialog and only claim XP when Dialog closes
+    // If claim failed or cooldown not met, do nothing
+    if (xpAwarded == null) return;
+
+    // Show claim Dialog after have the backend XP is fetched
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showDialog(
         context: context,
@@ -73,8 +74,9 @@ class DailyRewardDialog {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Display XP awarded from backend
               Text(
-                "You gained $xpGain XP!",
+                "You gained $xpAwarded XP!",
                 style: TextStyle(color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -83,7 +85,7 @@ class DailyRewardDialog {
           actions: [
             Center(
               child: TextButton(
-                // just a visual button, the claiming is done when the dialog box closes
+                // just a visual button; the claiming is already done
                 child: Text("CLAIM", style: TextStyle(color: Colors.white)),
                 onPressed: () => Navigator.pop(context),
               ),
@@ -91,15 +93,10 @@ class DailyRewardDialog {
           ],
         ),
       ).then((_) async {
-        bool claimed = await userManager
-            .claimDailyReward(); // handles the claiming, including any exp updates
-        if (claimed) {
-          // Set a reminder 23 hours from now
-          await setDailyRewardNotification();
-
-          // show the confetti
-          controller.play();
-        }
+        // Set a reminder 23 hours from now
+        await setDailyRewardNotification();
+        // Show the confetti celebration
+        controller.play();
       });
     });
   }
