@@ -65,6 +65,26 @@ def send_due_reminders():
 
         count = 0
         for doc in due_reminders:
+            # Atomically claim the reminder, so skip if another instance already claimed it
+            @firestore.transactional
+            def claim(transaction, doc_ref):
+                snapshot = doc_ref.get(transaction=transaction)
+                if not snapshot.exists or snapshot.to_dict().get('processing'):
+                    return False
+                transaction.update(doc_ref, {'processing': True})
+                return True
+
+            transaction = db.transaction()
+            try:
+                claimed = claim(transaction, doc.reference)
+            except Exception as e:
+                print(f'[reminders] Failed to claim reminder {doc.id}: {e}')
+                continue
+
+            if not claimed:
+                print(f'[reminders] Reminder {doc.id} already claimed by another instance, skipping')
+                continue
+
             count += 1
             data = doc.to_dict()
 
@@ -90,7 +110,7 @@ def send_due_reminders():
                     body=data.get('message', 'You have a reminder!')
                 ),
                 data={
-                    'body': data.get('message', 'You have a reminder!'),  # fallback for your SW
+                    'body': data.get('message', 'You have a reminder!'),
                     'reminderId': doc.id
                 },
                 tokens=fcm_tokens,
