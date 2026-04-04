@@ -1,12 +1,24 @@
-from flask import Flask, jsonify
+from unittest import result
+
+from flask import Flask, jsonify, request
 import os
 import requests
 from flask_cors import CORS
 from backend.token_manager import TokenManager
+from backend.repository import UserRepository
+from backend.services import ProgressionService
+from backend.schemas import (
+    ClaimDailyRewardRequest,
+    GetProgressRequest,
+    DailyRewardResponse,
+    ProgressResponse,
+)
+from backend.auth import verify_token
 from datetime import timedelta, timezone, datetime
 from google.cloud import firestore
 from google.oauth2 import service_account
 from firebase_admin import messaging
+from pydantic import ValidationError
 import firebase_admin
 import json
 import re
@@ -33,6 +45,10 @@ credentials = service_account.Credentials.from_service_account_info(credentials_
 
 # Create Firestore client with explicit credentials
 db = firestore.Client(credentials=credentials)
+
+# Initialize the repository and service layers, passing the Firestore client to the repository so it can read/write data
+user_repo = UserRepository(db)
+progression_service = ProgressionService(user_repo)
 
 def send_due_reminders():
     try:
@@ -204,6 +220,56 @@ def get_food(food_name):
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
+
+@app.route("/claim_daily_reward", methods=["POST"]) # POST because the route is for modifying data
+def claim_daily_reward():
+    # Step 1: Validate request body with the Pydantic schema
+    try:
+        body = ClaimDailyRewardRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e: # Stops early with a detailed error
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Make sure the user is who they say they are by verifying the JWT
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: # The service calculates XP and level-ups, and the repository (in the service) writes to Firestore atomically
+    result = progression_service.claim_daily_reward(uid)
+
+    # Step 4: Build the expected response schema
+    response = DailyRewardResponse(
+        claimed=result["claimed"],
+        xp_gained=result["xp_gained"],
+        new_level=result["new_level"],
+        new_exp=result["new_exp"],
+        seconds_remaining=result["seconds_remaining"],
+    )
+
+    return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
+
+
+@app.route("/get_progress", methods=["POST"]) # POST because the route is for modifying data
+def get_progress():
+    # Step 1: Make sure the reponse matches the schema
+    try:
+        body = GetProgressRequest(**request.get_json(force=True)) # force=True is a safety net to make sure the data is parsed as JSON
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Verify the user is who they say they are
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: Fetch the user's current state through the service layer
+    result = progression_service.get_progress(uid)
+
+    # Step 4: Return validated response
+    response = ProgressResponse(**result)
+    return jsonify(response.model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

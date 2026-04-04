@@ -1,0 +1,117 @@
+# Service Layer: Contains business logic for progression, XP calculation, and cooldowns, etc
+# Doesn't touch Firestore directly, it only acts through repository.py and returns the results for the route in the end
+
+import random
+from math import pow
+from datetime import datetime, timezone
+
+from backend.repository import UserRepository
+
+
+def experience_needed(level: int):
+    # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
+    raw = 100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)
+    return round(round(raw) / 10) * 10
+
+def calculate_daily_reward_xp(level: int):
+    # Calculate how much XP a daily reward gives, based on the formula in daily_rewards.dart
+    return 25 * level + 2 * random.randint(1, level)
+
+def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
+    # Calculate the user's new level and XP after gaining XP, applying the level-up logic from user_data_manager.dart
+    new_exp = current_exp + xp_gained
+    new_level = current_level
+
+    # Keeps leveling up as long as XP exceeds the threshold
+    needed = experience_needed(new_level)
+    while new_exp >= needed:
+        new_exp -= needed        # carry over the remainder
+        new_level += 1           # bump the level
+        needed = experience_needed(new_level)  # recalculate for the new level
+
+    return new_level, new_exp
+
+
+class ProgressionService: # Service class to handle all progression-related business logic, called by server.py after authentication and validation
+    def __init__(self, repo: UserRepository):
+        # Store the repository so all methods can access Firestore through it
+        self._repo = repo
+
+    def get_progress(self, uid: str):
+        # Gets a user's current progression state
+        
+        # Get both public and private data to determine level, XP, and reward cooldown status
+        public = self._repo.get_public_user(uid) # the users-public document (level, xp, etc)
+        private = self._repo.get_private_user(uid) # the users-private document (last claim time, etc)
+
+        # Fallback for users with no Firestore document
+        if public is None:
+            self._repo.initialize_user_if_new(uid)
+            public = {"level": 1, "expPoints": 0}
+            private = {"lastDailyClaim": None, "canClaimDailyReward": True}
+
+        level = public.get("level", 1) # default to level 1 if missing
+        exp = public.get("expPoints", 0) # default to 0 XP if missing
+
+        # Determine if the user can claim (23-hour cooldown)
+        can_claim = True
+        last_claim = private.get("lastDailyClaim") if private else None
+        if last_claim is not None:
+            # if else to safely handle both Firestore Timestamp and Python datetime formats, depending on how the data was stored
+            if hasattr(last_claim, "timestamp"):
+                last_claim_dt = datetime.fromtimestamp(
+                    last_claim.timestamp(), tz=timezone.utc
+                )
+            else:
+                last_claim_dt = last_claim
+            seconds_since = (
+                datetime.now(timezone.utc) - last_claim_dt
+            ).total_seconds()
+            # 23 hours = 82800 seconds
+            can_claim = seconds_since >= 82800
+
+        # Return user's data in the format expected by schemas.py
+        return {
+            "level": level,
+            "exp_points": exp,
+            "exp_needed": experience_needed(level),
+            "can_claim_daily_reward": can_claim,
+        }
+
+    def claim_daily_reward(self, uid: str):
+        # Processes a daily reward claim attempt, applying cooldown checks, XP calculation, and level-ups
+        # Step 1: Get current state
+        public = self._repo.get_public_user(uid)
+        if public is None:
+            # Fallback if users somehow claims before initialization
+            self._repo.initialize_user_if_new(uid)
+            public = {"level": 1, "expPoints": 0}
+
+        current_level = public.get("level", 1) # default to level 1 if missing
+        current_exp = public.get("expPoints", 0) #  default to 0 XP if missing
+
+        # Step 2: Calculate XP reward and apply level-ups based on the current state of the user
+        xp_gained = calculate_daily_reward_xp(current_level)
+        new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
+
+        # Step 3: Write atomically via transaction so that if two requests come in at the same time, only one goes through
+        result = self._repo.claim_daily_reward_transaction(uid, new_level, new_exp)
+
+        if not result["claimed"]:
+            # Cooldown not met. Return the rejection with time remaining
+            return {
+                "claimed": False,
+                "xp_gained": 0,
+                "new_level": current_level,
+                "new_exp": current_exp,
+                "seconds_remaining": result.get("seconds_remaining", 0),
+            }
+
+        # Successful return with the new progression state
+        return {
+            "claimed": True,
+            "xp_gained": xp_gained,
+            "new_level": new_level,
+            "new_exp": new_exp,
+            "seconds_remaining": 0,
+        }

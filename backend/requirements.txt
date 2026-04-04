@@ -5,3 +5,5 @@ gunicorn
 firebase_admin
 flask-cors
 apscheduler
+firebase-admin
+pydantic
