@@ -33,12 +33,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js"></script>
 
-  <!-- Required JS for the pwa_install Flutter package. Must be in <head> so these
-       functions exist on window before Dart calls PWAInstall().setup() in main.dart.
-       The package calls these functions via JS interop to detect if the app is
-       installable and to trigger the browser's native install dialog. -->
+  <!-- JS required by the pwa_install package, must be in <head> so it loads before Dart -->
+
   <script>
-    // Stores the browser's install prompt event so we can trigger it later from Dart
+    // Stores the browser's install prompt event
     var deferredPrompt;
 
     // Capture the install prompt event when the browser fires it (Chrome/Edge only)
@@ -191,20 +189,26 @@
   <script>
     // Only run if the browser supports service workers (always the case for PWAs)
     if ('serviceWorker' in navigator) {
-      // Every time the user switches back to the tab (visible), the script checks if a new version of the app has been deployed
+      // Store the current controller to detect a SW swap as opposed to an initial load
+      let previousController = navigator.serviceWorker.controller;
+
+      // Every time the user switches back to the tab, check if a new version of the app has been deployed
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          // Re-fetch the service worker file from the server and compare it to the cached version (the user's current swRegistration)
-          // If the content differs (Flutter embeds a unique hash on every build), a new SW installs and refreshes the user's page
-          navigator.serviceWorker.getRegistration().then((swRegistration) => {
-            if (swRegistration) swRegistration.update(); // If there is a service worker registered for this page, check for updates
-            // The update() command automatically fetches the new service worker if it is different, or does nothing if it is the same
+          // Re-fetch the service worker file from the server and compare it to the cached version
+          // If the content differs (Flutter embeds a unique hash on every build), a new SW will install
+          navigator.serviceWorker.getRegistration().then((registration) => {
+            if (registration) registration.update();
           });
         }
       });
+
       // Fires when a new service worker takes over, which happens after skipWaiting() activates the new SW
-      navigator.serviceWorker.addEventListener('controllerchange', () => { // controllerchange fires when the Sw gets a new active worker
-        window.location.reload(); // Reload the page to show the latest version
+      // Only reload if there was a previous controller, meaning a real swap happened rather than the initial load
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (previousController) { // previousControler is null initially, so this only fires on an actual change
+          window.location.reload(); // Reload the page so the user gets the latest version
+        }
       });
     }
   </script>
