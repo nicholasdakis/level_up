@@ -189,9 +189,6 @@
   <script>
     // Only run if the browser supports service workers (always the case for PWAs)
     if ('serviceWorker' in navigator) {
-      // Store the current controller to detect a SW swap as opposed to an initial load
-      let previousController = navigator.serviceWorker.controller;
-
       // Every time the user switches back to the tab, check if a new version of the app has been deployed
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -204,11 +201,16 @@
       });
 
       // Fires when a new service worker takes over, which happens after skipWaiting() activates the new SW
-      // Only reload if there was a previous controller, meaning a real swap happened rather than the initial load
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (previousController) { // previousControler is null initially, so this only fires on an actual change
-          window.location.reload(); // Reload the page so the user gets the latest version
-        }
+        // Guard against infinite reload loops by checking if a reload is already in progress
+        if (sessionStorage.getItem('reloading')) return;
+        sessionStorage.setItem('reloading', '1'); // set the flag before reloading
+        window.location.reload(); // Reload the page so the user gets the latest version
+      });
+
+      // Clear the reload flag after the page finishes loading so future updates still trigger a reload
+      window.addEventListener('load', () => {
+        sessionStorage.removeItem('reloading');
       });
     }
   </script>
