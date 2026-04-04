@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:level_up/utility/responsive.dart';
 import 'dart:convert';
 import '../globals.dart';
@@ -37,8 +36,6 @@ class _LeaderboardState extends State<Leaderboard> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = 1.sw;
-
     // Get current user's UID to highlight their row
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 

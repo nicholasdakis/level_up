@@ -327,8 +327,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 ),
               ),
               // Show trailing widget if provided, otherwise show a chevron for tappable rows
-              if (trailing != null) trailing,
-              if (trailing == null && onTap != null)
+              if (trailing != null)
+                trailing
+              else if (onTap != null)
                 Icon(
                   Icons.chevron_right,
                   color: Colors.white38,

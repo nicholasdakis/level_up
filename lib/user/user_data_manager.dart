@@ -589,6 +589,7 @@ class UserDataManager {
 
   // Method for storing the user's updated username, verified and checked for uniqueness by the backend
   Future<bool> updateUsername(
+    // returns a bool to handle whether the dialog box should close or open
     String updatedUsername,
     BuildContext context,
   ) async {
@@ -605,8 +606,18 @@ class UserDataManager {
 
       final result = jsonDecode(response.body) as Map<String, dynamic>;
 
+      // Username is taken
+      if (response.statusCode == 409) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: This username is already taken."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return false; // false to keep the dialog box open
+      }
       // Username was successfully updated
-      if (response.statusCode == 200) {
+      else if (response.statusCode == 200) {
         // Update locally so the UI reflects the change immediately
         currentUserData!.username = updatedUsername;
         ScaffoldMessenger.of(context).showSnackBar(

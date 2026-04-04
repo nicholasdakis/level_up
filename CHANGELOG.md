@@ -714,3 +714,5 @@ Developmental progress by date is stored in this file.
 - Added snackbars for notification prefence updates as they were not added
 - Moved the username uniqueness check and update logic to the backend to prevent the client from bypassing it. username_exists was added to repository.py as a read operation, and update_username was added to ProgressionService in services.py, which calls username_exists and only writes if the username is free. Added a /update_username POST route in server.py and added request/response schemas in schemas.py for update username requests and responses
 - updateUsername in user_data_manager now calls the backend, and usernameExists was deleted entirely because it is now handled in the backend logic with the username_exists method
+- Updated Firestore rules to prevent client-side writes to the username field
+- Made unsuccessful username updates return 409 to show the appropriate snackbar, rather than always showing the "Success" one

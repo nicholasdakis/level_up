@@ -266,7 +266,9 @@ def update_username():
         success=result["success"],
         error=result.get("error"), # .get to safely return if the error is None
     )
-
+    
+    if not result["success"]:
+        return jsonify(response.model_dump()), 409 # The update was unsuccessful since success = False, so give a separate response
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
 
 @app.route("/claim_daily_reward", methods=["POST"]) # POST because the route is for modifying data

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:level_up/utility/confetti.dart';
 import 'screens/calorie_calculator.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'screens/settings_buttons/settings_icon_button.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
