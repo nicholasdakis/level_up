@@ -1,33 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     // Public user data (leaderboard, profile display)
-    // Any authenticated user can read, only the owner can write
+    // Any authenticated user can read, only the owner can write non-critical fields
+    // level and expPoints are blocked from client writes since they are managed by the backend
     match /users-public/{userId} {
       allow get, list: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId
+        && !request.resource.data.keys().hasAny(['level', 'expPoints']);
     }
-
     // Private user data (settings, tokens, daily rewards)
-    // Only the owner can read or write
+    // Only the owner can read, only non-critical fields can be written by the client
+    // lastDailyClaim and canClaimDailyReward are blocked from client writes since they are managed by the backend
     match /users-private/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId
+        && !request.resource.data.keys().hasAny(['lastDailyClaim', 'canClaimDailyReward']);
       // Reminders subcollection
       match /reminders/{reminderId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-
       // Food log subcollection (one document per date)
       match /foodLog/{dateId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
-    }
-
-    // Used to fetch the server timestamp for daily reward logic
-    match /serverTime/{document} {
-      allow read, write: if request.auth != null;
     }
   }
 }

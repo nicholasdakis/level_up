@@ -698,3 +698,4 @@ Developmental progress by date is stored in this file.
 - Updated the user_data_manager file to make critical requests use the server instead of the client
 - Edited canClaimDailyReward to directly read from currentUserData instead of Firestore, because currentUserData loads the data updated by the backend, which is the most up-to-date version
 - The serverTime document was deleted because the daily reward checks are entirely handled server-side now
+- Updated firestore rules to reflect the backend changes and why they were made in the first place. A user writing their own xp and level is now impossible, as it is entirely done by the backend
