@@ -186,34 +186,42 @@
 
   </script>
 
-  <script>
-    // Only run if the browser supports service workers (always the case for PWAs)
-    if ('serviceWorker' in navigator) {
-      // Every time the user switches back to the tab, check if a new version of the app has been deployed
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          // Re-fetch the service worker file from the server and compare it to the cached version
-          // If the content differs (Flutter embeds a unique hash on every build), a new SW will install
-          navigator.serviceWorker.getRegistration().then((registration) => {
-            if (registration) registration.update();
-          });
-        }
-      });
+<div id="update-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d2d2d; color:white; text-align:center; padding:16px; z-index:9999; font-family:sans-serif;">
+  A new version is available.
+  <button onclick="window.location.reload()" style="margin-left:12px; padding:8px 16px; background:white; color:#2d2d2d; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
+    Update
+  </button>
+</div>
 
-      // Fires when a new service worker takes over, which happens after skipWaiting() activates the new SW
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // Guard against infinite reload loops by checking if a reload is already in progress
-        if (sessionStorage.getItem('reloading')) return;
-        sessionStorage.setItem('reloading', '1'); // set the flag before reloading
-        window.location.reload(); // Reload the page so the user gets the latest version
-      });
+<script>
+  // Only run if the browser supports service workers (always the case for PWAs)
+  if ('serviceWorker' in navigator) {
+    // Every time the user switches back to the tab, check if a new version of the app has been deployed
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        // Re-fetch the service worker file from the server and compare it to the cached version
+        // If the content differs (Flutter embeds a unique hash on every build), a new SW will install
+        navigator.serviceWorker.getRegistration().then((registration) => {
+          if (registration) registration.update();
+        });
+      }
+    });
 
-      // Clear the reload flag after the page finishes loading so future updates still trigger a reload
-      window.addEventListener('load', () => {
-        sessionStorage.removeItem('reloading');
+    // Listen for a new SW being found and installed in the background
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (!registration) return;
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          // New SW is installed and waiting to take over. The banner is shown only if there was already a controller (real update, not first install)
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            document.getElementById('update-banner').style.display = 'block';
+          }
+        });
       });
-    }
-  </script>
+    });
+  }
+</script>
 
 </body>
 
