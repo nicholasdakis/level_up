@@ -10,6 +10,8 @@ from backend.services import ProgressionService
 from backend.schemas import (
     ClaimDailyRewardRequest,
     GetProgressRequest,
+    UpdateExpRequest,
+    UpdateExpResponse,
     DailyRewardResponse,
     ProgressResponse,
 )
@@ -269,6 +271,27 @@ def get_progress():
 
     # Step 4: Return validated response
     response = ProgressResponse(**result)
+    return jsonify(response.model_dump()), 200
+
+@app.route("/update_exp", methods=["POST"]) # POST because this route modifies data
+def update_exp():
+    # Step 1: Make sure the response matches the schema
+    try:
+        body = UpdateExpRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Verify the user is who they say they are
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: Run XP update through the service layer
+    result = progression_service.update_exp(uid, body.event, body.event_id)
+
+    # Step 4: Return validated response
+    response = UpdateExpResponse(**result)
     return jsonify(response.model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts

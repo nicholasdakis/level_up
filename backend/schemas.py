@@ -21,6 +21,11 @@ class GetProgressRequest(BaseModel):
         description="Firebase Auth ID token for verifying the user's identity",
     )
 
+class UpdateExpRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    event: str = Field(..., min_length=1)
+    event_id: str = Field(..., min_length=1)
+
 # Response schemas
 
 class DailyRewardResponse(BaseModel):
@@ -39,3 +44,8 @@ class ProgressResponse(BaseModel):
     exp_points: int = 0
     exp_needed: int = 100
     can_claim_daily_reward: bool = True
+
+class UpdateExpResponse(BaseModel):
+    new_level: int | None = None
+    new_exp: int | None = None
+    error: str | None = None

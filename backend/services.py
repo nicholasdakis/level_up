@@ -115,3 +115,23 @@ class ProgressionService: # Service class to handle all progression-related busi
             "new_exp": new_exp,
             "seconds_remaining": 0,
         }
+    
+    def update_exp(self, uid: str, event: str, event_id: str):
+
+        # Self-note: Make sure the events it checks are only handled by the backend and can't be written solely by the client
+
+         # check which event triggered the XP gain and verify it actually happened
+        xp_gained = 0
+
+        # xp is granted based on verifying the event actually happened by checking Firestore for the relevant data
+        if event == "event1":
+            pass  # TODO: verify workout exists in Firestore and award XP
+        elif event == "event2":
+            pass  # TODO: verify badge exists and hasn't already awarded XP
+        elif event == "event3":
+            pass  # TODO: verify quest completion and award XP
+        else:
+            return {"error": "Unknown event type"}
+
+        # no XP awarded yet since events are not implemented
+        return {"new_level": None, "new_exp": None, "error": "Event not implemented yet"}
