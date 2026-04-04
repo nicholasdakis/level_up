@@ -716,3 +716,9 @@ Developmental progress by date is stored in this file.
 - updateUsername in user_data_manager now calls the backend, and usernameExists was deleted entirely because it is now handled in the backend logic with the username_exists method
 - Updated Firestore rules to prevent client-side writes to the username field
 - Made unsuccessful username updates return 409 to show the appropriate snackbar, rather than always showing the "Success" one
+- Stopped "update username" from hanging if the user had no connection with the same logic as earlier for non-critical fields
+- Added timeout fallbacks to get_progress and IdToken to not hang indefinitely
+- Made the user data documents load in parallel instead of sequentually in loadUserData() to be a bit faster
+- Edited loadUserAndInit in Food Logging to not recalculate loadUserData every single time the tab is opened, instead getting it from currentUserData
+- Extracted loadFoodData() from loadUserData so that loadFoodData() can be called upon opening the Food Logging screen without having to rebuild the entire user's data
+- Now Food Logging does not load indefinitely when the user has no connection thanks to adding timeouts to get_progress and using currentUserData for all fields except for the food data itself, as that should not be stale

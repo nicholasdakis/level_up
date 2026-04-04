@@ -20,7 +20,9 @@ const String _backendBaseUrl = 'https://level-up-69vz.onrender.com';
 // Gets a fresh Firebase ID token, a JWT, to authenticate requests with the backend
 // Firebase caches this automatically so it only re-fetches when close to expiry (1hr)
 Future<String> _getIdToken() async {
-  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken().timeout(
+    Duration(seconds: 2),
+  );
   if (token == null) throw Exception('User not logged in');
   return token;
 }
@@ -96,8 +98,14 @@ class UserDataManager {
       }
 
       // Load the user's data from both the public and private collections (critical fields are later overwritten by the backend code)
-      final publicDoc = await _publicUsers.doc(uid).get();
-      final privateDoc = await _privateUsers.doc(uid).get();
+      final results = await Future.wait([
+        // Run in parallel instead of sequentially to load faster
+        _publicUsers.doc(uid).get(),
+        _privateUsers.doc(uid).get(),
+      ]);
+      final publicDoc = results[0];
+      final privateDoc = results[1];
+
       final publicData = publicDoc.data();
       final privateData = privateDoc.data();
 
@@ -170,29 +178,7 @@ class UserDataManager {
 
       // --- FOOD DATA (subcollection) ---
       // if the user has stored food data, load it (stored as a map of date strings to meal maps, where each meal map is a map of meal types to lists of food entries)
-      final foodLogSnapshot = await _privateUsers
-          .doc(uid)
-          .collection('foodLog')
-          .get();
-
-      if (foodLogSnapshot.docs.isNotEmpty) {
-        final Map<String, Map<String, List<Map<String, dynamic>>>> foodData =
-            {};
-        for (final dateDoc in foodLogSnapshot.docs) {
-          final dateKey = dateDoc.id;
-          final mealMap = dateDoc.data();
-          foodData[dateKey] = mealMap.map((mealType, foods) {
-            final foodList = (foods as List<dynamic>)
-                .map((item) => Map<String, dynamic>.from(item as Map))
-                .toList();
-            return MapEntry(mealType, foodList);
-          });
-        }
-        currentUserData?.foodDataByDate = foodData;
-      } else {
-        // no food data found
-        currentUserData?.foodDataByDate = {};
-      }
+      await loadFoodData(uid);
 
       // Load the list of reminders
       try {
@@ -208,7 +194,6 @@ class UserDataManager {
       // If the backend is unreachable, fall back to whatever Firestore has stored
       try {
         final progress = await _fetchProgress();
-        debugPrint('Backend progress response: $progress');
         currentUserData?.level = progress['level'] ?? currentUserData?.level;
         currentUserData?.expPoints =
             progress['exp_points'] ?? currentUserData?.expPoints;
@@ -217,9 +202,6 @@ class UserDataManager {
         // keep the notifier in sync so XP bar rebuilds immediately
         expNotifier.value = currentUserData!.expPoints;
       } catch (e) {
-        debugPrint(
-          'Backend getProgress failed, falling back to Firestore values: $e',
-        );
         // fall back to Firestore for level and XP if the backend is unreachable
         if (publicDoc.exists && publicData?['level'] != null) {
           currentUserData?.level = publicData?['level'];
@@ -247,14 +229,41 @@ class UserDataManager {
     }
   }
 
+  // Loads the user's food log from Firestore, called on initial load and on Food Logging tab switch to keep data fresh across devices
+  Future<void> loadFoodData(String uid) async {
+    final foodLogSnapshot = await _privateUsers
+        .doc(uid)
+        .collection('foodLog')
+        .get();
+    if (foodLogSnapshot.docs.isNotEmpty) {
+      final Map<String, Map<String, List<Map<String, dynamic>>>> foodData = {};
+      for (final dateDoc in foodLogSnapshot.docs) {
+        final dateKey = dateDoc.id;
+        final mealMap = dateDoc.data();
+        foodData[dateKey] = mealMap.map((mealType, foods) {
+          final foodList = (foods as List<dynamic>)
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+          return MapEntry(mealType, foodList);
+        });
+      }
+      currentUserData?.foodDataByDate = foodData;
+    } else {
+      currentUserData?.foodDataByDate = {};
+    }
+  }
+
   // Calls the backend /get_progress endpoint to get the user's level, XP, and reward status
   // Separated into its own method so it can be called on pull-to-refresh too
   static Future<Map<String, dynamic>> _fetchProgress() async {
-    final response = await http.post(
-      Uri.parse('$_backendBaseUrl/get_progress'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': await _getIdToken()}),
-    );
+    final token = await _getIdToken();
+    final response = await http
+        .post(
+          Uri.parse('$_backendBaseUrl/get_progress'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': token}),
+        )
+        .timeout(Duration(seconds: 2));
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -595,14 +604,16 @@ class UserDataManager {
   ) async {
     try {
       // Call the backend to check uniqueness and update the username atomically
-      final response = await http.post(
-        Uri.parse('$_backendBaseUrl/update_username'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': await _getIdToken(),
-          'username': updatedUsername,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$_backendBaseUrl/update_username'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await _getIdToken(),
+              'username': updatedUsername,
+            }),
+          )
+          .timeout(Duration(seconds: 2));
 
       final result = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -638,6 +649,20 @@ class UserDataManager {
         return false;
       }
     } catch (e) {
+      // No connection, so show the local confirmation snackbar
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Error updating username. Check your connection and try again.",
+            ),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return true; // to close the dialog
+      }
+
+      // Other error messages unrelated to no connection
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error updating username: $e"),

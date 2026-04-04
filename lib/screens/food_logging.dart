@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 // Class imports
 import '../globals.dart';
 import '../utility/responsive.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -431,13 +432,34 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Future<void> _loadUserDataAndInit() async {
+    // Skip reloading all user data if already loaded for this user to avoid unnecessary Firestore reads on every tab switch
+    if (currentUserData != null &&
+        currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
+      // Always refresh food data in case it was updated on another device
+      await userManager.loadFoodData(currentUserData!.uid);
+      // Sync the local food map with the updated data from Firestore
+      if (currentUserData?.foodDataByDate != null) {
+        foodDataByDate =
+            Map<String, Map<String, List<Map<String, dynamic>>>>.from(
+              currentUserData!.foodDataByDate,
+            );
+      } else {
+        foodDataByDate = {};
+      }
+      loadFoodForDate(currentDate);
+      return;
+    }
+
+    // First time loading for this user, so load all user data from Firestore and the backend
     await userManager.loadUserData();
+    // Sync the local food map with the loaded data
     if (currentUserData?.foodDataByDate != null) {
       foodDataByDate =
           Map<String, Map<String, List<Map<String, dynamic>>>>.from(
             currentUserData!.foodDataByDate,
           );
     } else {
+      // no food data found
       foodDataByDate = {};
     }
     loadFoodForDate(currentDate);
