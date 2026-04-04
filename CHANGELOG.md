@@ -722,3 +722,5 @@ Developmental progress by date is stored in this file.
 - Edited loadUserAndInit in Food Logging to not recalculate loadUserData every single time the tab is opened, instead getting it from currentUserData
 - Extracted loadFoodData() from loadUserData so that loadFoodData() can be called upon opening the Food Logging screen without having to rebuild the entire user's data
 - Now Food Logging does not load indefinitely when the user has no connection thanks to adding timeouts to get_progress and using currentUserData for all fields except for the food data itself, as that should not be stale
+- Added an informational snackbar upon logging a food to let the user know the food has been logged locally and will be added to Firestore when they reconnect
+- Added an informational snackbar for when the user tries to search for a food with no connection

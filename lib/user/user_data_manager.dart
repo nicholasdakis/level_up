@@ -854,28 +854,43 @@ class UserDataManager {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
 
-      // Update local currentUserData.foodDataByDate with the new data
+      // Update locally so the UI reflects the change immediately
       currentUserData?.foodDataByDate = newFoodData;
 
       // Write each date as its own document in the foodLog subcollection
       final foodLogCol = _privateUsers.doc(uid).collection('foodLog');
 
       for (final entry in newFoodData.entries) {
-        await foodLogCol.doc(entry.key).set(entry.value);
+        // Timeout so it doesn't hang indefinitely if there is no connection
+        await foodLogCol
+            .doc(entry.key)
+            .set(entry.value)
+            .timeout(Duration(seconds: 2));
       }
 
-      // show confirmation snackbar
-      if (context != null) {
+      // Only show success snackbar if connected, otherwise the offline snackbar is shown in the catch block
+      if (context != null && isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Food data updated successfully."),
+            content: Text("Food logged successfully."),
             duration: Duration(milliseconds: 1500),
           ),
         );
       }
     } catch (e) {
-      // Show error snackbar if context provided
       if (context != null) {
+        // No connection, so the write was added to Firestore's cache and will sync when connection is restored
+        if (!isConnected) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Food logged locally. Changes will sync when connection is restored.",
+              ),
+              duration: Duration(milliseconds: 1500),
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error updating food data: $e"),

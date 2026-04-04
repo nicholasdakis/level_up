@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../utility/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../user/user_data_manager.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -312,6 +313,16 @@ class _FoodLoggingState extends State<FoodLogging>
       setState(() {
         foodList = [];
       });
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Error searching for foods. Check your connection and try again.",
+            ),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
     }
   }
 
@@ -500,7 +511,7 @@ class _FoodLoggingState extends State<FoodLogging>
   Future<void> saveFoodData() async {
     if (currentUserData == null) return;
     currentUserData!.foodDataByDate = foodDataByDate;
-    await userManager.updateFoodDataByDate(foodDataByDate);
+    await userManager.updateFoodDataByDate(foodDataByDate, context: context);
   }
 
   // Arrow-controlled method to change the date
@@ -1287,7 +1298,22 @@ class _FoodLoggingState extends State<FoodLogging>
             decoration: BoxDecoration(gradient: buildThemeGradient()),
             child: Scaffold(
               backgroundColor: Colors.transparent, // Body color
-              body: Center(child: CircularProgressIndicator()),
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: Responsive.height(context, 24)),
+                    Text(
+                      "Loading food data, please wait...",
+                      style: TextStyle(
+                        fontSize: Responsive.font(context, 20),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }
