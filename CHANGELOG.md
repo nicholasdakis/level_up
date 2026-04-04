@@ -704,3 +704,11 @@ Developmental progress by date is stored in this file.
 - Made reminder handling atomic so that the same reminder isn't handled twice before the cleanup happens. Uses a "processing" flag to determine if it is already being handled or not
 - Edited firestore rules again as non-critical variables were being blocked from writes
 - Made daily reward notifications only send if the user's in-app notifications are enabled
+
+## 2026-04-04
+- Realized most requests in the app hang if the user has no connection. This can be fixed for non-critical user data by storing locally and updating later (and giving specific snackbar messages to inform), but for critical data requests that use the data it should reject the request entirely (and show a snackbar to inform the user)
+- Used the connectivity_plus package to detect if a user is online / offline to show appropriate snackbars
+- Initialized Connectivity as a stream so that it reflects the user's connection in real-time
+- Added timeout timers to updates so that requests don't hang and the catch block determines whether that timeout is due to slow connection (timer hitting 0 but connected), or due to no connection, which shows its own snackbar
+- Added this logic for all personal preferences-related buttons (app theme color, profile picture, notificationsEnabled) except username, which will be moved to the backend
+- Added snackbars for notification prefence updates as they were not added

@@ -11,6 +11,8 @@ import 'user_data.dart';
 import 'reminder_data.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../utility/image_crop_handler.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String _backendBaseUrl = 'https://level-up-69vz.onrender.com';
@@ -21,6 +23,16 @@ Future<String> _getIdToken() async {
   final token = await FirebaseAuth.instance.currentUser?.getIdToken();
   if (token == null) throw Exception('User not logged in');
   return token;
+}
+
+// Online connectivity checker
+bool isConnected = true;
+
+// The method acts as a stream that checks if the user is connected so that it reflects the user's current connection state
+void initConnectivity() {
+  Connectivity().onConnectivityChanged.listen((statusList) {
+    isConnected = !statusList.contains(ConnectivityResult.none);
+  });
 }
 
 class UserDataManager {
@@ -59,6 +71,9 @@ class UserDataManager {
 
   // Loads the user's non-critical information from Firebase if it exists (critical data is loaded by the backend)
   Future<void> loadUserData() async {
+    // Initialize the connectivity stream to know the user's connectivity state
+    initConnectivity();
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     // if the user is logged in
     if (uid != null) {
@@ -424,9 +439,10 @@ class UserDataManager {
       }
       // Save Base64 string to users-public
       final uid = FirebaseAuth.instance.currentUser!.uid;
-      await _publicUsers.doc(uid).set({
-        'pfpBase64': base64String,
-      }, SetOptions(merge: true));
+      await _publicUsers
+          .doc(uid)
+          .set({'pfpBase64': base64String}, SetOptions(merge: true))
+          .timeout(Duration(seconds: 2));
 
       // Update currentUserData with the complete stored variables with the updated profile picture
       currentUserData = UserData(
@@ -453,9 +469,29 @@ class UserDataManager {
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
     } catch (e) {
+      // Default snackbar for if the user is offline (the write fails but adds it to the cache)
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Profile picture updated locally. Changes will sync when connection is restored.",
+            ),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return;
+      }
+
+      String message;
+
+      if (e is TimeoutException) {
+        message = "Connection is slow. Please try again.";
+      } else {
+        message = "Profile picture update unsuccessful: $e";
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Profile picture update unsuccessful: $e"),
+          content: Text(message),
           duration: Duration(milliseconds: 1500),
         ),
       );
@@ -669,13 +705,52 @@ class UserDataManager {
   }
 
   // Method for updating the user's notification preference and storing it
-  Future<void> updateNotificationsEnabled(bool enabled) async {
+  Future<void> updateNotificationsEnabled(
+    bool enabled,
+    BuildContext context,
+  ) async {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
       currentUserData!.notificationsEnabled = enabled;
-      await _privateUsers.doc(uid).update({'notificationsEnabled': enabled});
+      await _privateUsers
+          .doc(uid)
+          .update({'notificationsEnabled': enabled})
+          .timeout(Duration(seconds: 2));
+
+      // Default confirmation snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Notification prefences updated successfully."),
+          duration: Duration(milliseconds: 500),
+        ),
+      );
     } catch (e) {
-      debugPrint("Error updating notificationsEnabled: $e");
+      // No connection, so show the local confirmation snackbar
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Notification preferences updated locally. Changes will sync when connection is restored.",
+            ),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return;
+      }
+      String message;
+
+      if (e is TimeoutException) {
+        message = "Connection is slow. Please try again.";
+      } else {
+        message = "Error updating notification preferences.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
     }
   }
 
@@ -696,26 +771,52 @@ class UserDataManager {
         isDefaultColor = true;
       }
 
-      // Update users-private
-      await _privateUsers.doc(uid).set({
-        'appColor': argbInt,
-      }, SetOptions(merge: true));
+      // Update users-private (if offline, it is added to cache)
+      await _privateUsers
+          .doc(uid)
+          .set({'appColor': argbInt}, SetOptions(merge: true))
+          .timeout(
+            Duration(seconds: 2),
+          ); // if it doesn't load instantly, there is likely an error, so stop trying quickly
 
-      // Confirmation
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            // conditionally mention whether it was updated to a custom color or reset
-            isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+      // Default confirmation snackbar
+      if (isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              // conditionally mention whether it was updated to a custom color or reset
+              isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+            ),
+            duration: Duration(milliseconds: 1500),
           ),
-          duration: Duration(milliseconds: 1500),
-        ),
-      );
-      // Error snackbar
+        );
+        // Error snackbar
+      }
     } catch (e) {
+      // No connection, so show the local confirmation snackbar
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Theme color updated locally. Changes will sync when connection is restored.",
+            ),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return;
+      }
+
+      String message;
+
+      if (e is TimeoutException) {
+        message = "Connection is slow. Please try again.";
+      } else {
+        message = "Error updating theme color.";
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error updating theme color: $e"),
+          content: Text(message),
           duration: Duration(milliseconds: 1500),
         ),
       );

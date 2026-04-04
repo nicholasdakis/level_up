@@ -62,7 +62,7 @@ class _RemindersState extends State<Reminders> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context); // close dialog first
-              await userManager.updateNotificationsEnabled(true);
+              await userManager.updateNotificationsEnabled(true, context);
 
               if (kIsWeb) {
                 final token = await requestNotificationAndToken();
