@@ -712,3 +712,5 @@ Developmental progress by date is stored in this file.
 - Added timeout timers to updates so that requests don't hang and the catch block determines whether that timeout is due to slow connection (timer hitting 0 but connected), or due to no connection, which shows its own snackbar
 - Added this logic for all personal preferences-related buttons (app theme color, profile picture, notificationsEnabled) except username, which will be moved to the backend
 - Added snackbars for notification prefence updates as they were not added
+- Moved the username uniqueness check and update logic to the backend to prevent the client from bypassing it. username_exists was added to repository.py as a read operation, and update_username was added to ProgressionService in services.py, which calls username_exists and only writes if the username is free. Added a /update_username POST route in server.py and added request/response schemas in schemas.py for update username requests and responses
+- updateUsername in user_data_manager now calls the backend, and usernameExists was deleted entirely because it is now handled in the backend logic with the username_exists method

@@ -587,62 +587,50 @@ class UserDataManager {
     }
   }
 
-  // Method for checking if a username already exists on the server
-  Future<bool> usernameExists(String username) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final query = await _publicUsers
-        .where(
-          'username',
-          isEqualTo: username.toLowerCase(),
-        ) // username uniqueness is not case sensitive
-        .get();
-
-    // Check if any doc with this username belongs to another user
-    for (var doc in query.docs) {
-      if (doc.id != uid) {
-        return true; // duplicate found for another user
-      }
-    }
-    return false; // No duplicates. Either the user is modifying capitalization, or choosing a new username entirely
-  }
-
-  // Method for storing the user's updated username to Firebase
+  // Method for storing the user's updated username, verified and checked for uniqueness by the backend
   Future<bool> updateUsername(
     String updatedUsername,
     BuildContext context,
   ) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
+      // Call the backend to check uniqueness and update the username atomically
+      final response = await http.post(
+        Uri.parse('$_backendBaseUrl/update_username'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': await _getIdToken(),
+          'username': updatedUsername,
+        }),
+      );
 
-      // First, check that the username is not already assigned to another user
-      if (await usernameExists(updatedUsername)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: This username is taken."),
-            duration: const Duration(milliseconds: 1500),
-          ),
-        );
-        return false;
-      } else {
-        // Update locally
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
+
+      // Username was successfully updated
+      if (response.statusCode == 200) {
+        // Update locally so the UI reflects the change immediately
         currentUserData!.username = updatedUsername;
-        // Update to users-public
-        await _publicUsers.doc(uid).set({
-          'username': currentUserData!.username,
-        }, SetOptions(merge: true));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Success! Username updated."),
-            duration: const Duration(milliseconds: 1500),
+            duration: Duration(milliseconds: 1500),
           ),
         );
         return true;
+      } else {
+        // Backend rejected the update (username taken)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? "Error updating username."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+        return false;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error updating username: $e"),
-          duration: const Duration(milliseconds: 1500),
+          duration: Duration(milliseconds: 1500),
         ),
       );
       return false;

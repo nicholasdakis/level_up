@@ -2,7 +2,7 @@
 # Incoming JSON is parsed into these models before any business logic, and if the data doesn't match, the request is rejected with a clear error message
 from pydantic import BaseModel, Field
 
-# Request schemas
+# Request schemas --------------
 
 class ClaimDailyRewardRequest(BaseModel):
     # Sent by Flutter when the user tries to claim their daily reward
@@ -11,7 +11,6 @@ class ClaimDailyRewardRequest(BaseModel):
         min_length=1, # token can't be empty
         description="Firebase Auth ID token for verifying the user's identity",
     )
-
 
 class GetProgressRequest(BaseModel):
     # Sent by Flutter when it wants to fetch the user's current XP, level, and reward status (on app startup)
@@ -26,7 +25,11 @@ class UpdateExpRequest(BaseModel):
     event: str = Field(..., min_length=1)
     event_id: str = Field(..., min_length=1)
 
-# Response schemas
+class UpdateUsernameRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    username: str = Field(..., min_length=1, max_length=20)
+
+# Response schemas --------------------
 
 class DailyRewardResponse(BaseModel):
     # What is returned when the user tries to claim a daily reward
@@ -48,4 +51,8 @@ class ProgressResponse(BaseModel):
 class UpdateExpResponse(BaseModel):
     new_level: int | None = None
     new_exp: int | None = None
+    error: str | None = None
+
+class UpdateUsernameResponse(BaseModel):
+    success: bool
     error: str | None = None

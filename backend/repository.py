@@ -15,6 +15,13 @@ class UserRepository:
 
     # Read operations
 
+    def username_exists(self, uid: str, username: str):
+        docs = self._public.where("username", "==", username.lower()).stream() # See if the proposed username is in the users-public document
+        for doc in docs: # If it is, it can only be written by that same user. This allows changing capitalization of the same username (e.g. john to John)
+            if doc.id != uid:
+                return True
+        return False
+
     def get_public_user(self, uid: str):
         # Fetches the user's user-public document if it exists
         doc = self._public.document(uid).get()

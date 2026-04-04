@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 
 from backend.repository import UserRepository
 
-
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
     raw = 100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)
@@ -36,6 +35,13 @@ class ProgressionService: # Service class to handle all progression-related busi
     def __init__(self, repo: UserRepository):
         # Store the repository so all methods can access Firestore through it
         self._repo = repo
+
+    def update_username(self, uid: str, username: str):
+        if self._repo.username_exists(uid, username):
+            return {"success": False, "error": "Username taken"} # Reads via the repository class and returns early without ever writing the update
+        
+        self._repo.set_public_fields(uid, {"username": username}) # Successful, so write via the repository class
+        return {"success": True}
 
     def get_progress(self, uid: str):
         # Gets a user's current progression state

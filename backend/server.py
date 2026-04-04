@@ -14,6 +14,8 @@ from backend.schemas import (
     UpdateExpResponse,
     DailyRewardResponse,
     ProgressResponse,
+    UpdateUsernameRequest,
+    UpdateUsernameResponse
 )
 from backend.auth import verify_token
 from datetime import timedelta, timezone, datetime
@@ -187,22 +189,20 @@ def trigger_reminders():
 
 @app.route("/get_food/<food_name>")
 def get_food(food_name):
-    # Normalize the food name to reduce API calls
-    food_name = re.sub(r'\s+', ' ', food_name.lower()).strip() # lowercase and remove unneeded whitespace
+    # Normalize the food name to reduce redundant API calls
+    food_name = re.sub(r'\s+', ' ', food_name.lower()).strip()
 
     if not token_manager.consume():
-        # retrieve the next reset time
+        # Retrieve the next reset time
         reset_time = get_next_reset_time()
         if reset_time is None:
-            # no reset time, return
             return jsonify({
                 "error": "Token limit exceeded",
                 "message": "No reset time available"
             }), 500
         
-        # calculate time till next reset
+        # Calculate time until next reset
         time_left = reset_time - datetime.now(timezone.utc)
-
         return jsonify({
             "error": "Token limit exceeded",
             "next_reset_time": reset_time.isoformat(),
@@ -210,13 +210,14 @@ def get_food(food_name):
         }), 429
     
     # Continue if tokens are available
+    # Get the FatSecret access token, refunding the consumed token if it fails
     access_token = get_access_token()
-    # If we can't get access token, refund the consumed token
     if not access_token:
-        token_manager.refund()  # Give back the token since we failed early
+        token_manager.refund()
         return jsonify({"error": "Failed to get access token"}), 500
-    headers = {"Authorization": f"Bearer {access_token}"}
+    
     # FatSecret REST API expects form-encoded data
+    headers = {"Authorization": f"Bearer {access_token}"}
     data = {
         "method": "foods.search",
         "search_expression": food_name,
@@ -229,11 +230,11 @@ def get_food(food_name):
             headers=headers,
             data=data
         )
-        # If FatSecret API call fails, refund the token
+        # Refund the token if the FatSecret API call fails
         if api_response.status_code != 200:
             token_manager.refund()  # Give back token on API failure
             return jsonify({"error": "FatSecret API error", "status_code": api_response.status_code}), 500
-        # Possibly a XML response if the above request fails
+        # FatSecret may return XML if the request is malformed
         try:
             return jsonify(api_response.json())
         except ValueError:
@@ -242,6 +243,31 @@ def get_food(food_name):
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
+
+@app.route("/update_username", methods=["POST"]) # POST because the route is for modifying data
+def update_username():
+    # Step 1: Validate request body with the Pydantic schema
+    try:
+        body = UpdateUsernameRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e: # Stops early with a detailed error
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Make sure the user is who they say they are by verifying the JWT
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: # The service calculates if the update is valid, and the repository (in the service) reads Firestore atomically
+    result = progression_service.update_username(uid, body.username) # Returns a dict, and update_username is successful if the uniqueness check passes
+
+    # Step 4: Build the expected response schema
+    response = UpdateUsernameResponse(
+        success=result["success"],
+        error=result.get("error"), # .get to safely return if the error is None
+    )
+
+    return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
 
 @app.route("/claim_daily_reward", methods=["POST"]) # POST because the route is for modifying data
 def claim_daily_reward():
