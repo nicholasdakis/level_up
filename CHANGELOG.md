@@ -679,3 +679,22 @@ Developmental progress by date is stored in this file.
 - Made getters for getting public and private user data instead of having to type await FirebaseFirestore.instance.collection('users-public/private') every time
 - Made the user's leaderboard tint use their app color instead of white
 - Updated leaderboard to use responsive sizes instead of fixed pixel values
+- Updated Firestore writes such that they don't trust the client at all, except for trivial operations like updating app theme color or setting reminders etc
+- Made auth.py which validates the user's token and returns their UID to ensure the user is who they say they are
+- Made schemas.py to prevent badly formatted JSONs from being passed through, so the business logic knows what to expect every time
+- Made repository.py as the only class that directly reads and writes to Firestore. When another class needs Firestore data, it gets it from this class
+- Made services.py to handle the important calculations, using repository.py to read the user's data instead of Firestore directly
+- Added the necessary routes to server.py for claiming daily rewards, updating xp, and getting the user's progress
+- Made the routes use POST as they're not for retrieving data, they are for modifying data
+- Before, the client directly wrote to Firestore. This meant Firestore trusted the client, and that the client could send any values it wanted
+- Now, all requests are directly handled by the backend. The backend decided if a request is allowed to go through or not
+- The auth.py file is used to ensure the user themselves is sending the request, if not it returns immediately
+- Then, the request is validated using schemas.py to enforce the shape of all requests and responses, protecting the backend from malformed data and making the service layer simpler and safer
+- Next, repository.py is used to actually read / write from Firestore. If other classes in the backend need Firestore data, it is done via this class. This is to keep all database-related logic in one file for clarity
+- The services.py file contains pure calculations, and includes a ProgressionService class to combine the math calculations with the database operations
+- Finally, server.py contains the routes that wires all the layers together when the user makes a request, where the routes are called in the Flutter code when the user tries to update sensitive information that the client shouldn't trust
+- The updateExp() route is currently WIP since nothing in the app needs it yet, but it will use events and check Firestore to make sure it can't be exploited
+- Updated daily_rewards.dart to no longer call updateExpPoints() because this is now handled by the POST request server-side
+- Updated the user_data_manager file to make critical requests use the server instead of the client
+- Edited canClaimDailyReward to directly read from currentUserData instead of Firestore, because currentUserData loads the data updated by the backend, which is the most up-to-date version
+- The serverTime document was deleted because the daily reward checks are entirely handled server-side now

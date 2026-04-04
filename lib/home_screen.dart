@@ -80,12 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<bool> canClaimDailyReward() async {
-    final doc = await FirebaseFirestore.instance
-        .collection('users-private')
-        .doc(currentUserData!.uid)
-        .get();
-    return doc.data()?['canClaimDailyReward'] ?? true;
+  bool canClaimDailyReward() {
+    return currentUserData?.canClaimDailyReward ??
+        true; // reads from currentUserData because upon loading, it calls the backend to get the most up-to-date value
   }
 
   void buildDailyRewardDialog() {
@@ -109,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (await canClaimDailyReward()) buildDailyRewardDialog();
+      if (canClaimDailyReward()) buildDailyRewardDialog();
 
       // Give users without a username a dialog box to choose one
       if (currentUserData!.username == currentUserData!.uid) {

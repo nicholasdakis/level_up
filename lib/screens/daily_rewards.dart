@@ -91,10 +91,10 @@ class DailyRewardDialog {
           ],
         ),
       ).then((_) async {
-        bool claimed = await userManager.claimDailyReward();
+        bool claimed = await userManager
+            .claimDailyReward(); // handles the claiming, including any exp updates
         if (claimed) {
-          // update experience on Firebase
-          await userManager.updateExpPoints(xpGain);
+          // Set a reminder 23 hours from now
           await setDailyRewardNotification();
 
           // show the confetti

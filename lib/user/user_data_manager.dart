@@ -5,20 +5,34 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import '../globals.dart';
 import 'user_data.dart';
 import 'reminder_data.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../utility/image_crop_handler.dart';
 
+// Base URL for the backend hosted on Render. All backend requests go to this URL
+const String _backendBaseUrl = 'https://level-up-69vz.onrender.com';
+
+// Gets a fresh Firebase ID token, a JWT, to authenticate requests with the backend
+// Firebase caches this automatically so it only re-fetches when close to expiry (1hr)
+Future<String> _getIdToken() async {
+  final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+  if (token == null) throw Exception('User not logged in');
+  return token;
+}
+
 class UserDataManager {
   // Firestore collection references
+  // Currently still used for non-critical data, like reminders, settings, app theme, etc.
   static CollectionReference<Map<String, dynamic>> get _publicUsers =>
       FirebaseFirestore.instance.collection('users-public');
   static CollectionReference<Map<String, dynamic>> get _privateUsers =>
       FirebaseFirestore.instance.collection('users-private');
 
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
+  // Kept here so the XP bar can render instantly
   int? get experienceNeeded {
     if (currentUserData == null) return null;
     int exp =
@@ -43,7 +57,7 @@ class UserDataManager {
         .toList();
   }
 
-  // Loads the user's information from Firebase if it exists
+  // Loads the user's non-critical information from Firebase if it exists (critical data is loaded by the backend)
   Future<void> loadUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     // if the user is logged in
@@ -66,6 +80,7 @@ class UserDataManager {
         );
       }
 
+      // Load the user's data from both the public and private collections (critical fields are later overwritten by the backend code)
       final publicDoc = await _publicUsers.doc(uid).get();
       final privateDoc = await _privateUsers.doc(uid).get();
       final publicData = publicDoc.data();
@@ -74,26 +89,11 @@ class UserDataManager {
       // NOTE: else statements are for newly-added fields to be compatible with existent users
 
       // --- PUBLIC FIELDS ---
-
       // if the user has a stored profile picture in Base64, load that profile picture
       if (publicDoc.exists && publicData?['pfpBase64'] != null) {
         currentUserData?.pfpBase64 = publicData?['pfpBase64'];
       } else {
         _publicUsers.doc(uid).set({'pfpBase64': null}, SetOptions(merge: true));
-      }
-
-      // if the user has a stored level, load that level
-      if (publicDoc.exists && publicData?['level'] != null) {
-        currentUserData?.level = publicData?['level'];
-      } else {
-        _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
-      }
-
-      // if the user has stored expPoints, load them
-      if (publicDoc.exists && publicData?['expPoints'] != null) {
-        currentUserData?.expPoints = publicData?['expPoints'];
-      } else {
-        _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
       }
 
       // if the user has a stored username, load it
@@ -104,7 +104,6 @@ class UserDataManager {
       }
 
       // --- PRIVATE FIELDS ---
-
       // load the last claiming date if it exists
       if (privateDoc.exists && privateData?['lastDailyClaim'] != null) {
         // Convert to Timestamp so Firestore understands (Firestore stores dates as Timestamp, not DateTime)
@@ -155,6 +154,7 @@ class UserDataManager {
       }
 
       // --- FOOD DATA (subcollection) ---
+      // if the user has stored food data, load it (stored as a map of date strings to meal maps, where each meal map is a map of meal types to lists of food entries)
       final foodLogSnapshot = await _privateUsers
           .doc(uid)
           .collection('foodLog')
@@ -189,50 +189,66 @@ class UserDataManager {
         currentUserData?.reminders = [];
       }
 
-      // Determine canClaimDailyReward using server timestamp only
-      final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
-      if (lastClaimTimestamp == null) {
-        currentUserData?.canClaimDailyReward = true;
-        // Write back to Firestore so HomeScreen reads the correct value
-        await _privateUsers.doc(uid).set({
-          'canClaimDailyReward': true,
-        }, SetOptions(merge: true));
-      } else {
-        await FirebaseFirestore.instance
-            .collection('serverTime')
-            .doc('now')
-            .set({
-              'currentServerTime': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
-
-        final serverTimeSnap = await FirebaseFirestore.instance
-            .collection('serverTime')
-            .doc('now')
-            .get();
-        // null check so the app doesn't crash if the serverTime doc is missing or hasn't loaded yet
-        final serverTimestamp =
-            serverTimeSnap.data()?['currentServerTime'] as Timestamp?;
-        if (serverTimestamp == null) {
-          debugPrint("Server time not available, skipping daily reward check");
-          return;
-        }
-        final serverTime = serverTimestamp.toDate().toUtc();
-
-        final lastClaim = lastClaimTimestamp.toDate().toUtc();
-
-        final canClaim = serverTime.isAfter(
-          lastClaim.add(const Duration(hours: 23)),
+      // Backend calls for critical data (level, XP, daily reward status) that can't be manipulated client-side
+      // If the backend is unreachable, fall back to whatever Firestore has stored
+      try {
+        final progress = await _fetchProgress();
+        debugPrint('Backend progress response: $progress');
+        currentUserData?.level = progress['level'] ?? currentUserData?.level;
+        currentUserData?.expPoints =
+            progress['exp_points'] ?? currentUserData?.expPoints;
+        currentUserData?.canClaimDailyReward =
+            progress['can_claim_daily_reward'] ?? true;
+        // keep the notifier in sync so XP bar rebuilds immediately
+        expNotifier.value = currentUserData!.expPoints;
+      } catch (e) {
+        debugPrint(
+          'Backend getProgress failed, falling back to Firestore values: $e',
         );
-        currentUserData?.canClaimDailyReward = canClaim;
-        // Write back to Firestore so HomeScreen reads the correct value
-        await _privateUsers.doc(uid).set({
-          'canClaimDailyReward': canClaim,
-        }, SetOptions(merge: true));
+        // fall back to Firestore for level and XP if the backend is unreachable
+        if (publicDoc.exists && publicData?['level'] != null) {
+          currentUserData?.level = publicData?['level'];
+        } else {
+          _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
+        }
+        if (publicDoc.exists && publicData?['expPoints'] != null) {
+          currentUserData?.expPoints = publicData?['expPoints'];
+        } else {
+          _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
+        }
+        // fall back to a local cooldown check if the backend is unreachable
+        final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
+        if (lastClaimTimestamp == null) {
+          currentUserData?.canClaimDailyReward = true;
+        } else {
+          // not exploitable since the backend is unreachable, so the user can't claim rewards anyway
+          final lastClaim = lastClaimTimestamp.toDate().toUtc();
+          final now = DateTime.now().toUtc();
+          currentUserData?.canClaimDailyReward = now.isAfter(
+            lastClaim.add(const Duration(hours: 23)),
+          );
+        }
       }
     }
   }
 
-  // Returns the user's profile picture widget. Called when the user updates their profile picture.
+  // Calls the backend /get_progress endpoint to get the user's level, XP, and reward status
+  // Separated into its own method so it can be called on pull-to-refresh too
+  static Future<Map<String, dynamic>> _fetchProgress() async {
+    final response = await http.post(
+      Uri.parse('$_backendBaseUrl/get_progress'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': await _getIdToken()}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'getProgress failed: ${response.statusCode} ${response.body}',
+    );
+  }
+
+  // Returns the user's profile picture widget. Called when the user updates their profile picture
   Widget insertProfilePicture() {
     if (currentUserData?.pfpBase64 != null) {
       return Image.memory(
@@ -446,29 +462,38 @@ class UserDataManager {
     }
   }
 
-  Future<void> updateExpPoints(int expGained, {BuildContext? context}) async {
+  // Updates the user's XP by sending a verified event to the backend
+  // The backend checks the event actually happened in Firestore before awarding any XP
+  Future<void> updateExpPoints(
+    String event,
+    String eventId, {
+    BuildContext? context,
+  }) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final response = await http.post(
+        Uri.parse('$_backendBaseUrl/update_exp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': await _getIdToken(),
+          'event': event,
+          'event_id': eventId,
+        }),
+      );
 
-      // Case 1. The experience gained will lead to a level up
-      int newExp = expNotifier.value + expGained;
-      while (newExp >= experienceNeeded!) {
-        newExp -= experienceNeeded!;
-        currentUserData!.level += 1; // Increase level by 1 locally
+      if (response.statusCode != 200) {
+        throw Exception(
+          'updateExpPoints failed: ${response.statusCode} ${response.body}',
+        );
       }
-      // Case 2. Experience gained without leveling up handled by while loop above
 
-      // UPDATE LOCALLY
-      currentUserData!.expPoints = newExp;
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
 
-      // UPDATE ValueNotifier so UI rebuilds automatically
-      expNotifier.value = newExp;
-
-      // UPDATE TO FIRESTORE (public data)
-      await _publicUsers.doc(uid).set({
-        'level': currentUserData!.level,
-        'expPoints': currentUserData!.expPoints,
-      }, SetOptions(merge: true));
+      // only update locally if the backend actually awarded XP
+      if (result['new_level'] != null && result['new_exp'] != null) {
+        currentUserData!.level = result['new_level'];
+        currentUserData!.expPoints = result['new_exp'];
+        expNotifier.value = result['new_exp'];
+      }
     } catch (e) {
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -481,56 +506,44 @@ class UserDataManager {
     }
   }
 
-  // METHOD FOR CLAIMING THE DAILY REWARD AND UPDATING CANCLAIMDAILYREWARD APPROPRIATELY
+  // The backend validates the 23-hour cooldown and writes XP/level atomically in a transaction
+  // This prevents double-claiming even if the user taps the button twice rapidly
   Future<bool> claimDailyReward() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final privateDocRef = _privateUsers.doc(uid);
-
-    // Get the current lastDailyClaim from Firestore
-    final doc = await privateDocRef.get();
-    final data = doc.data();
-    final lastClaimTimestamp = data?['lastDailyClaim'] as Timestamp?;
-
-    // Check if 23 hours have passed since last claim
-    if (lastClaimTimestamp != null) {
-      final nextAllowedClaim = lastClaimTimestamp.toDate().toUtc().add(
-        const Duration(hours: 23),
+    try {
+      final response = await http.post(
+        Uri.parse('$_backendBaseUrl/claim_daily_reward'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': await _getIdToken()}),
       );
 
-      // Fetch server timestamp by writing and reading back
-      await FirebaseFirestore.instance.collection('serverTime').doc('now').set({
-        'currentServerTime': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      if (response.statusCode != 200) {
+        throw Exception(
+          'claimDailyReward failed: ${response.statusCode} ${response.body}',
+        );
+      }
 
-      final serverTimeSnap = await FirebaseFirestore.instance
-          .collection('serverTime')
-          .doc('now')
-          .get();
-      final serverTime =
-          (serverTimeSnap.data()?['currentServerTime'] as Timestamp)
-              .toDate()
-              .toUtc();
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
 
-      if (serverTime.isBefore(nextAllowedClaim)) {
+      if (!result['claimed']) {
+        // Cooldown not met, lock the button locally
         currentUserData!.canClaimDailyReward = false;
         return false; // Not enough time has passed
       }
+
+      // Update local state from the backend response
+      currentUserData!.level = result['new_level'];
+      currentUserData!.expPoints = result['new_exp'];
+      currentUserData!.canClaimDailyReward = false;
+      currentUserData!.lastDailyClaim = DateTime.now().toUtc();
+
+      // keep the notifier in sync so XP bar rebuilds immediately
+      expNotifier.value = result['new_exp'];
+
+      return true; // Successfully claimed
+    } catch (e) {
+      debugPrint('claimDailyReward backend error: $e');
+      return false;
     }
-
-    // Update Firestore first with server timestamp
-    await privateDocRef.set({
-      'canClaimDailyReward': false,
-      'lastDailyClaim': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    // Update local state after Firestore write
-    final updatedDoc = await privateDocRef.get();
-    final updatedData = updatedDoc.data();
-    currentUserData!.lastDailyClaim =
-        (updatedData?['lastDailyClaim'] as Timestamp).toDate().toUtc();
-    currentUserData!.canClaimDailyReward = false;
-
-    return true; // Successfully claimed
   }
 
   // Method for checking if a username already exists on the server
