@@ -1,3 +1,5 @@
+// Always‑changing version to force SW update
+const SW_VERSION = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
 // Take over immediately so flutter_service_worker.js can't win the scope
 self.addEventListener('install', () => self.skipWaiting()); // custom SW activates immediately
