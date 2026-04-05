@@ -1,3 +1,13 @@
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing...');
+  self.skipWaiting(); // activate immediately
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  self.clients.claim(); // take control of all clients immediately
+});
+
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js');
 
