@@ -71,23 +71,23 @@
   </script>
 
   <script>
-  // Returns true if the app is opened as a PWA
-  window.isPwa = function() {
-    var standalone = window.matchMedia('(display-mode: standalone)').matches
+    // Returns true if the app is opened as a PWA
+    window.isPwa = function () {
+      var standalone = window.matchMedia('(display-mode: standalone)').matches
         || window.navigator.standalone === true; // iOS support
-    return standalone;
-  }
+      return standalone;
+    }
 
-  // Returns true if the browser supports the native install prompt (Chrome/Edge)
-  window.supportsNativePrompt = function() {
-    return 'BeforeInstallPromptEvent' in window;
-  }
+    // Returns true if the browser supports the native install prompt (Chrome/Edge)
+    window.supportsNativePrompt = function () {
+      return 'BeforeInstallPromptEvent' in window;
+    }
 
-  // Returns true if the install prompt was captured (app is not yet installed)
-  window.hasInstallPrompt = function() {
-    return deferredPrompt != null;
-  }
-</script>
+    // Returns true if the install prompt was captured (app is not yet installed)
+    window.hasInstallPrompt = function () {
+      return deferredPrompt != null;
+    }
+  </script>
 
 </head>
 
@@ -97,10 +97,11 @@
 
   <script>
     window.addEventListener('load', function (ev) {
-      // Call load() ourselves to control the service worker URL
+      // Flutter registers flutter_service_worker.js for caching/updates
+      // firebase-messaging-sw.js is registered separately below so both SWs coexist
       _flutter.loader.load({
         serviceWorkerSettings: {
-          serviceWorkerUrl: 'firebase-messaging-sw.js', // notifications SW
+          serviceWorkerUrl: 'flutter_service_worker.js',
           timeout: 4000,
         },
         onEntrypointLoaded: async function (engineInitializer) {
@@ -125,14 +126,16 @@
 
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
+    // Register firebase-messaging-sw.js separately, which handles FCM only
+    // Flutter's default SW stays in control of caching/updates
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
         .then(function (registration) {
-          console.log('Service Worker registered with scope:', registration.scope);
+          console.log('FCM Service Worker registered with scope:', registration.scope);
           window._swRegistration = registration;
         })
         .catch(function (err) {
-          console.log('Service Worker registration failed:', err);
+          console.log('FCM Service Worker registration failed:', err);
         });
     }
 
@@ -186,42 +189,40 @@
 
   </script>
 
-<div id="update-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d2d2d; color:white; text-align:center; padding:16px; z-index:9999; font-family:sans-serif;">
-  A new version is available.
-  <button onclick="window.location.reload()" style="margin-left:12px; padding:8px 16px; background:white; color:#2d2d2d; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
-    Update
-  </button>
-</div>
+  <div id="update-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d2d2d; color:white; text-align:center; padding:16px; z-index:9999; font-family:sans-serif;">
+    A new version is available.
+    <button onclick="window.location.reload()" style="margin-left:12px; padding:8px 16px; background:white; color:#2d2d2d; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
+      Update
+    </button>
+  </div>
 
-<script>
-  // Only run if the browser supports service workers (always the case for PWAs)
-  if ('serviceWorker' in navigator) {
-    // Every time the user switches back to the tab, check if a new version of the app has been deployed
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        // Re-fetch the service worker file from the server and compare it to the cached version
-        // If the content differs (Flutter embeds a unique hash on every build), a new SW will install
-        navigator.serviceWorker.getRegistration().then((registration) => {
-          if (registration) registration.update();
-        });
-      }
-    });
+  <script>
+    if ('serviceWorker' in navigator) {
+      // Every time the user switches back to the tab, check if a new version of the app has been deployed
+      // Flutter's SW embeds a unique hash on every build, so if the file changed, a new SW will install
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          navigator.serviceWorker.getRegistration().then((registration) => {
+            if (registration) registration.update();
+          });
+        }
+      });
 
-    // Listen for a new SW being found and installed in the background
-    navigator.serviceWorker.getRegistration().then((registration) => {
-      if (!registration) return;
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          // New SW is installed and waiting to take over. The banner is shown only if there was already a controller (real update, not first install)
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            document.getElementById('update-banner').style.display = 'block';
-          }
+      // Listen for Flutter's SW finding an update
+      navigator.serviceWorker.getRegistration().then((registration) => {
+        if (!registration) return;
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            // Only show banner for real updates, not first install
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              document.getElementById('update-banner').style.display = 'block';
+            }
+          });
         });
       });
-    });
-  }
-</script>
+    }
+  </script>
 
 </body>
 

@@ -1,10 +1,3 @@
-// Always‑changing version to force SW update
-const SW_VERSION = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-
-// Take over immediately so flutter_service_worker.js can't win the scope
-self.addEventListener('install', () => self.skipWaiting()); // custom SW activates immediately
-self.addEventListener('activate', (e) => e.waitUntil(clients.claim())); // custom SW takes over all open tabs immediately
-
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js');
 
