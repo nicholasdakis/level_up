@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:level_up/utility/responsive.dart';
-import 'dart:convert';
 import '../globals.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart'; // needed for currentUser
+import '../utility/leaderboard/leaderboard_entry.dart';
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -54,15 +53,11 @@ class _LeaderboardState extends State<Leaderboard> {
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          // Obtain the users from Firestore in real-time
-          stream: FirebaseFirestore.instance
-              .collection('users-public')
-              .orderBy('level', descending: true)
-              .orderBy('expPoints', descending: true)
-              .snapshots(),
+        body: StreamBuilder<List<LeaderboardEntry>>(
+          // getLeaderboardAsStream returns the leaderboard as a list of LeaderboardEntry objects
+          stream: leaderboardService.getLeaderboardStream(),
           builder: (context, snapshot) {
-            // Check if the stream encountered an error (like a missing index)
+            // Check if the stream encountered an error
             if (snapshot.hasError) {
               return const Center(
                 child: Text(
@@ -73,20 +68,12 @@ class _LeaderboardState extends State<Leaderboard> {
             }
 
             // Wait until the users are loaded from the stream
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData ||
+                snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Map Firestore docs into a local users list
-            final leaderboardUsers = snapshot.data!.docs.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
-              data['uid'] = doc.id; // Store the UID as an additional field
-              // Decode base64 image once to improve performance
-              if (data['pfpBase64'] != null) {
-                data['pfpBytes'] = base64Decode(data['pfpBase64']);
-              }
-              return data;
-            }).toList();
+            final leaderboardUsers = snapshot.data!;
 
             if (leaderboardUsers.isEmpty) {
               return const Center(
@@ -101,11 +88,22 @@ class _LeaderboardState extends State<Leaderboard> {
               padding: EdgeInsets.symmetric(
                 vertical: Responsive.width(context, 20),
               ),
-              itemCount: leaderboardUsers.length,
+              itemCount:
+                  leaderboardUsers.length >
+                      100 // Only shows up to the top 100
+                  ? 100
+                  : leaderboardUsers.length,
               itemBuilder: (context, i) {
                 final user = leaderboardUsers[i];
-                final isCurrentUser = user['uid'] == currentUserId;
-                final level = user['level'] ?? 1;
+                final isCurrentUser = user.uid == currentUserId;
+                final level = user.level;
+                // Only show the user's username if it exists and is not the default username (their UID)
+                final username =
+                    (user.username == null || user.username == user.uid)
+                    ? "Unnamed"
+                    : user.username!;
+                final pfpBytes = user.pfpBytes;
+                final expPoints = user.expPoints ?? 0;
 
                 return Padding(
                   padding: EdgeInsets.symmetric(
@@ -143,15 +141,14 @@ class _LeaderboardState extends State<Leaderboard> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         SizedBox(
                           width: Responsive.width(context, 10),
                         ), // spacing between the rank and the profile picture
                         // Load the user's profile picture if it exists
-                        user['pfpBytes'] != null
+                        pfpBytes != null
                             ? Image.memory(
                                 // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
-                                user['pfpBytes'],
+                                pfpBytes,
                                 width: 40,
                                 height: 40,
                                 fit: BoxFit.cover,
@@ -162,16 +159,11 @@ class _LeaderboardState extends State<Leaderboard> {
                                 color: Colors.white,
                                 size: 40,
                               ),
-
                         SizedBox(
                           width: Responsive.width(context, 15),
                         ), // spacing between the profile picture and the username
                         Text(
-                          // Only show the user's username if it exists and is not the default username (their UID)
-                          user['username'] != user['uid'] &&
-                                  user['username'] != null
-                              ? user['username']
-                              : 'Unnamed',
+                          username,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: Responsive.font(context, 18),
@@ -179,7 +171,7 @@ class _LeaderboardState extends State<Leaderboard> {
                         ),
                         const Spacer(),
                         Text(
-                          "Level $level | ${user['expPoints'] ?? 0} / ${experienceNeededForLevel(level)}",
+                          "Level $level | $expPoints / ${experienceNeededForLevel(level)}",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: Responsive.font(context, 16),

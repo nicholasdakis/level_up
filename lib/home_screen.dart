@@ -16,6 +16,7 @@ import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
 import 'utility/fcm_service.dart';
+import 'utility/leaderboard/leaderboard_service.dart';
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -46,6 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Load user data from Firestore, then initialize FCM once data is ready
     initializeUser();
+
+    // Make sure a cached version of the leaderboard is populated if a user loses connection before ever hearing from the StreamBuilder in the Leaderboard tab
+    leaderboardService.prefetchLeaderboard();
 
     // Update the HomeScreen with the updated app color
     _appColorListener = () {
@@ -253,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 04.04",
+                                    "App version: Beta 04.05",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,

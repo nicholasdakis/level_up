@@ -729,3 +729,13 @@ Developmental progress by date is stored in this file.
 - This did not work, so just made a banner show up for the user to tap instead of relying on auto-refreshing
 - Added a unique identifier to the custom SW to force it to detect a change upon new pushes
 - Removed the banner entirely as could not find a way to make it work consistently and without issues
+
+## 2026-04-05
+- Made a LeaderboardEntry class to easily handle leaderboard data by converting Firestore documents into Dart objects
+- Made a fromFirestore factory constructor in LeaderboardEntry that parses a Firestore document and extracts its fields into a LeaderboardEntry object so that the default constructor is compatible with the data. The factory constructor also handles decoding the profile picture from base64 once on initialization
+- Made a LeaderboardService class with two methods:
+  - prefetchLeaderboard() does a one-time fetch on app startup to populate Firestore's local cache, so the leaderboard is available offline even if the user has never opened the tab
+  - getLeaderboardStream() returns a real-time stream of leaderboard data, automatically serving from Firestore's local cache if the user is offline
+- The StreamBuilder in leaderboard.dart calls getLeaderboardStream() and maps results using LeaderboardEntry objects
+- If the user loses connection, the leaderboard still loads from Firestore's local cache. prefetchLeaderboard() is called on app startup to ensure this cache is populated even if the user has never opened the leaderboard tab. If they did open it while online, the stream will have updated the cache with fresher data than the prefetch, so that will be shown instead
+- itemCount is capped at 100 to only show the top 100 users

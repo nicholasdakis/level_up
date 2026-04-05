@@ -4,6 +4,10 @@ import 'user/user_data.dart';
 import 'user/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
+import 'utility/leaderboard/leaderboard_service.dart';
+
+// Global leaderboard_service object
+final leaderboardService = LeaderboardService();
 
 ValueNotifier<int> expNotifier = ValueNotifier<int>(
   currentUserData?.expPoints ?? 0,
