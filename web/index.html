@@ -97,11 +97,11 @@
 
   <script>
     window.addEventListener('load', function (ev) {
-      // Flutter registers flutter_service_worker.js for caching/updates
-      // firebase-messaging-sw.js is registered separately below so both SWs coexist
+      // firebase-messaging-sw.js is used as Flutter's SW so both FCM and Flutter run under one SW
       _flutter.loader.load({
         serviceWorkerSettings: {
-          serviceWorkerUrl: 'flutter_service_worker.js',
+          serviceWorkerUrl: 'firebase-messaging-sw.js',
+          timeout: 4000,
         },
         onEntrypointLoaded: async function (engineInitializer) {
           const appRunner = await engineInitializer.initializeEngine();
@@ -126,7 +126,6 @@
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
     // Register firebase-messaging-sw.js separately, which handles FCM only
-    // Flutter's default SW stays in control of caching/updates
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
         .then(function (registration) {
@@ -186,58 +185,6 @@
       }
     };
 
-  </script>
-
-  <div id="update-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d2d2d; color:white; text-align:center; padding:16px; z-index:9999; font-family:sans-serif;">
-    A new version is available.
-    <button id="update-btn" style="margin-left:12px; padding:8px 16px; background:white; color:#2d2d2d; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
-      Update
-    </button>
-  </div>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      document.getElementById('update-btn').addEventListener('click', () => {
-        localStorage.setItem('appVersionSeen', localStorage.getItem('appVersionLatest'));
-        window.location.reload();
-      });
-
-      // Every time the user switches back to the tab, check if a new version of the app has been deployed
-      // Flutter's SW embeds a unique hash on every build, so if the file changed, a new SW will install
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.update();
-          });
-        }
-      });
-
-      // version.json (generated fresh on every flutter build web) is used to detect real deploys
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', async () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              try {
-                const res = await fetch('version.json?t=' + Date.now());
-                const { version } = await res.json();
-                const seenVersion = localStorage.getItem('appVersionSeen');
-                localStorage.setItem('appVersionLatest', version); // localStorage persists on app reloads and closes
-                // Only show banner if this version hasn't been seen before
-                if (seenVersion && seenVersion !== version) {
-                  document.getElementById('update-banner').style.display = 'block';
-                } else if (!seenVersion) {
-                  // First visit: store version silently and show no banner
-                  localStorage.setItem('appVersionSeen', version);
-                }
-              } catch (e) {
-                console.error('version.json fetch failed:', e);
-              }
-            }
-          });
-        });
-      });
-    }
   </script>
 
 </body>

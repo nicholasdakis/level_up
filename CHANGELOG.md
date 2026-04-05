@@ -728,4 +728,4 @@ Developmental progress by date is stored in this file.
 - Tried avoiding infinite reloads by using a sessionStorage flag to ensure the page only reloads once per service worker update, and resets the flag on page load for future updates
 - This did not work, so just made a banner show up for the user to tap instead of relying on auto-refreshing
 - Added a unique identifier to the custom SW to force it to detect a change upon new pushes
-- Realized absorbing Flutter's default SW is hacky and unnecessary, so let it coexist with the custom firebase-messaging-sw. Flutter's default SW has a unique hash stored into it each time flutter build web is ran, which means it will be unique on every push
+- Removed the banner entirely as could not find a way to make it work consistently and without issues
