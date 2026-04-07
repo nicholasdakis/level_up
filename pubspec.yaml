@@ -56,10 +56,9 @@ dependencies:
   # http requests
   http: ^1.1.0
 
-  # rate limiting
-  limit: ^1.0.9
+  # persistent on-device storage
+  shared_preferences: ^2.5.5
 
-  # using FatSecret's HTML attribution code
   url_launcher: ^6.3.0
 
   # changing profile picture

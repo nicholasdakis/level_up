@@ -777,3 +777,9 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed the Leaderboard tab header appearing shorter than the other screens
 - Fixed cursor showing a pointer when hovering the meal tab entries and in the Search and Barcode tab and not showing a pointer when hovering "Log Food" in the Barcode tab. This was done by using the MouseRegion widget to explicitly show the finger pointer / click pointer when appropriate
 - Made the Meal Type entries have the same size and font as the "Meal Type" text
+- Used the shared_preferences package to store recently logged foods by the user on their current device as this is convenient and does not require any Firestore reads / writes at all
+- Added a buildRecentFoodsSection method that creates an expandable dropdown where recent foods can be clicked to log them again
+- If no foods are logged, the dropdown doesn't show, and if there are foods logged, clicking displays each recent food as a clickable frosted card that acts as the "Log Food" button
+- Created a helper class for recent foods that initializes the shared_preferences object, has getter and setter methods, removes duplicates, and keeps only the most recent 30 entries
+- Implemented JSON serialization/deserialization so the list can be saved and loaded easily from shared preferences
+- Added an isLogging variable and timer that prevent accidentally using logFood twice in a row by accident (there is now a 3 second timer)

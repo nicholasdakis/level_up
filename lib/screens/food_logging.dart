@@ -11,6 +11,7 @@ import '../globals.dart';
 import '../utility/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../user/user_data_manager.dart';
+import '../utility/recent_foods_service.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -37,6 +38,7 @@ class _FoodLoggingState extends State<FoodLogging>
   bool userCanType = true;
   bool mealChosen = false;
   bool snackbarActive = false;
+  bool isLogging = false;
   String latestQuery = "";
   Timer? checkTimer;
   DateTime? lastInput;
@@ -88,6 +90,11 @@ class _FoodLoggingState extends State<FoodLogging>
       TextEditingController();
   String manualSelectedUnit = 'serving';
 
+  // Recent foods
+  final RecentFoodsService _recentFoodsService = RecentFoodsService();
+  List<Map<String, dynamic>> _recentFoods = [];
+  bool _recentFoodsExpanded = false;
+
   @override
   void initState() {
     super.initState();
@@ -96,6 +103,7 @@ class _FoodLoggingState extends State<FoodLogging>
       vsync: this,
     ); // vsync: this gives the TickerProvider
     _loadUserDataFuture = _loadUserDataAndInit();
+    _loadRecentFoods();
   }
 
   // Dispose to prevent memory leaks
@@ -173,6 +181,16 @@ class _FoodLoggingState extends State<FoodLogging>
           )
         : {}; // fallback
     loadFoodForDate(currentDate);
+  }
+
+  Future<void> _loadRecentFoods() async {
+    final recents = await _recentFoodsService.getRecentFoods();
+    if (mounted) setState(() => _recentFoods = recents);
+  }
+
+  Future<void> _saveToRecentFoods(Map<String, dynamic> food) async {
+    await _recentFoodsService.addRecentFood(food);
+    await _loadRecentFoods();
   }
 
   // Method that puts DateTime objects in the form that foodDataByDate expects
@@ -477,6 +495,10 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Future<void> logFood(Map<String, dynamic> foodObject) async {
+    if (isLogging) {
+      _showSnackbar("Please wait before logging again.");
+      return;
+    }
     if (mealType == null) {
       _showSnackbar("Please select a meal type.");
       return;
@@ -498,6 +520,10 @@ class _FoodLoggingState extends State<FoodLogging>
         foodObject['food_description'] ?? '',
       );
     }
+
+    setState(() => isLogging = true);
+
+    _saveToRecentFoods(foodObject);
 
     // Ensure this day's data exists and fallback to empty lists if not
     final dateKey = formatDateKey(currentDate);
@@ -538,7 +564,11 @@ class _FoodLoggingState extends State<FoodLogging>
         c.clear();
       }
       manualSelectedUnit = allowedUnits.first;
-      mealType = null;
+    });
+
+    // Timer that prevents Log Food from being used too frequently
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) setState(() => isLogging = false);
     });
   }
 
@@ -1113,6 +1143,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 ),
                 _buildManualField(manualNameController, "Food Name"),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
                       flex: 2, // gets 2/3 of the row space
@@ -1129,8 +1160,8 @@ class _FoodLoggingState extends State<FoodLogging>
                     Expanded(
                       flex: 1, // gets 1/3 of the row space
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(context, 4),
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 4),
                         ),
                         child: DropdownButton<String>(
                           isDense: true,
@@ -1284,27 +1315,135 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
+  Widget _buildRecentFoodsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Tappable header row to expand/collapse
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _recentFoodsExpanded = !_recentFoodsExpanded;
+            }),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 6),
+                horizontal: Responsive.width(context, 4),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.history,
+                    color: Colors.white54,
+                    size: Responsive.scale(context, 18),
+                  ),
+                  SizedBox(width: Responsive.width(context, 8)),
+                  Text(
+                    "Recent Foods",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      color: Colors.white54,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 6)),
+                  Icon(
+                    _recentFoodsExpanded
+                        ? Icons.expand_less
+                        : Icons.expand_more,
+                    color: Colors.white54,
+                    size: Responsive.scale(context, 20),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Expandable list of recent foods
+        if (_recentFoodsExpanded)
+          ...(_recentFoods.map((food) {
+            // Spread operator so the UI adds every recent food as its own individual widget
+            final name = food['food_name'] ?? '';
+            final calories =
+                food['calories'] ??
+                extractCalories(food['food_description'] ?? '');
+            return Padding(
+              padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  // Recent foods already have calories set, so logFood's
+                  // calorie extraction is a no op here
+                  onTap: () => logFood(Map<String, dynamic>.from(food)),
+                  child: frostedGlassCard(
+                    context,
+                    baseRadius: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                      vertical: Responsive.height(context, 10),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.add_circle_outline,
+                          color: appColorNotifier.value,
+                          size: Responsive.scale(context, 20),
+                        ),
+                        SizedBox(width: Responsive.width(context, 12)),
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 14),
+                              color: Colors.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          "$calories cal",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          })),
+        if (_recentFoodsExpanded)
+          SizedBox(height: Responsive.height(context, 6)),
+      ],
+    );
+  }
+
   Widget _buildAllMealSections() {
-    return MouseRegion(
-      cursor: SystemMouseCursors.basic,
-      child: Column(
-        children: [
-          _buildMealSection("Breakfast", breakfastFoods),
-          _buildMealSection("Lunch", lunchFoods),
-          _buildMealSection("Dinner", dinnerFoods),
-          _buildMealSection("Snacks", snacksFoods),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildMealSection("Breakfast", breakfastFoods),
+        _buildMealSection("Lunch", lunchFoods),
+        _buildMealSection("Dinner", dinnerFoods),
+        _buildMealSection("Snacks", snacksFoods),
+      ],
     );
   }
 
   Widget _buildMealTiles() {
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 16)),
-      children: [
-        _buildAllMealSections(),
-        SizedBox(height: Responsive.height(context, 20)),
-      ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.basic,
+      child: ListView(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 16),
+        ),
+        children: [
+          _buildAllMealSections(),
+          SizedBox(height: Responsive.height(context, 20)),
+        ],
+      ),
     );
   }
 
@@ -1608,38 +1747,25 @@ class _FoodLoggingState extends State<FoodLogging>
                   SizedBox(height: Responsive.height(context, 8)),
 
                   // Meal type dropdown and search field / log button
-                  Row(
-                    children: [
-                      // Meal Type chooser
-                      DropdownButton2<String>(
-                        isDense: true,
-                        dropdownStyleData: DropdownStyleData(
-                          decoration: BoxDecoration(
-                            color: appColorNotifier.value.withAlpha(128),
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 10),
-                            ),
-                          ),
-                          maxHeight: Responsive.height(context, 200),
-                        ),
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
+                  SizedBox(
+                    height: Responsive.height(context, 58),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Meal Type chooser
+                        DropdownButton2<String>(
+                          isDense: true,
+                          dropdownStyleData: DropdownStyleData(
+                            decoration: BoxDecoration(
+                              color: appColorNotifier.value.withAlpha(128),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 10),
                               ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: const Color.fromARGB(255, 0, 0, 0),
                             ),
-                          ],
-                        ),
-                        hint: Text(
-                          "Meal Type",
+                            maxHeight: Responsive.height(context, 200),
+                          ),
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 20),
+                            fontSize: Responsive.font(context, 15),
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -1652,34 +1778,55 @@ class _FoodLoggingState extends State<FoodLogging>
                               ),
                             ],
                           ),
-                        ),
-                        value: mealType,
-                        // Convert the strings to DropdownMenuItems
-                        items: ["Breakfast", "Lunch", "Dinner", "Snacks"]
-                            .map(
-                              (t) => DropdownMenuItem(
-                                value: t,
-                                child: Text(
-                                  t,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 20),
-                                    color: Colors.white,
+                          hint: Text(
+                            "Meal Type",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 20),
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(
+                                    Responsive.scale(context, 4),
+                                    Responsive.scale(context, 4),
+                                  ),
+                                  blurRadius: Responsive.scale(context, 10),
+                                  color: const Color.fromARGB(255, 0, 0, 0),
+                                ),
+                              ],
+                            ),
+                          ),
+                          value: mealType,
+                          // Convert the strings to DropdownMenuItems
+                          items: ["Breakfast", "Lunch", "Dinner", "Snacks"]
+                              .map(
+                                (t) => DropdownMenuItem(
+                                  value: t,
+                                  child: Text(
+                                    t,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 20),
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) => setState(() => mealType = value),
-                      ),
-                      SizedBox(width: Responsive.width(context, 25)),
-                      // Search field on the search tab, log button everywhere else
-                      _tabController.index == FoodTab.search
-                          ? buildSearchButton()
-                          : Expanded(child: buildLogFoodButton()),
-                    ],
+                              )
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => mealType = value),
+                        ),
+                        SizedBox(width: Responsive.width(context, 25)),
+                        // Search field on the search tab, log button everywhere else
+                        _tabController.index == FoodTab.search
+                            ? buildSearchButton()
+                            : Expanded(child: buildLogFoodButton()),
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: Responsive.height(context, 10)),
+
+                  // Recent foods collapsible section
+                  if (_recentFoods.isNotEmpty) _buildRecentFoodsSection(),
 
                   // Tab content area and meal tiles
                   Expanded(
