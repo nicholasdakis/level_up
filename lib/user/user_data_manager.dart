@@ -555,9 +555,6 @@ class UserDataManager {
   // This prevents double-claiming even if the user taps the button twice rapidly
   Future<int?> claimDailyReward() async {
     try {
-      // Store previous XP to calculate XP gained after claim
-      final previousExp = currentUserData!.expPoints;
-
       // Call backend to claim daily reward
       final response = await http.post(
         Uri.parse('$_backendBaseUrl/claim_daily_reward'),
@@ -588,8 +585,8 @@ class UserDataManager {
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = result['new_exp'];
 
-      // Return the XP gained (backend XP minus previous XP)
-      return result['new_exp'] - previousExp;
+      // Return the XP gained
+      return result['xp_gained'];
     } catch (e) {
       debugPrint('claimDailyReward backend error: $e');
       return null;

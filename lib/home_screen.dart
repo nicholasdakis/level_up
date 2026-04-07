@@ -257,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 04.06",
+                                    "App version: Beta 04.07",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,
