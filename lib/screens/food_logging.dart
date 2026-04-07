@@ -253,11 +253,8 @@ class _FoodLoggingState extends State<FoodLogging>
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim(); // remove extra spaces and lowercase the query
 
-    final url = Uri.parse(
-      'https://level-up-69vz.onrender.com/get_food/$query',
-    ); // search the food via the backend get_food method
     try {
-      final response = await http.get(url);
+      final response = await UserDataManager.searchFood(query);
 
       if (response.statusCode == 200) {
         if (latestQuery == query) {

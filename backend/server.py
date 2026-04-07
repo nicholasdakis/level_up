@@ -15,7 +15,8 @@ from backend.schemas import (
     DailyRewardResponse,
     ProgressResponse,
     UpdateUsernameRequest,
-    UpdateUsernameResponse
+    UpdateUsernameResponse,
+    SearchFoodRequest
 )
 from backend.auth import verify_token
 from datetime import timedelta, timezone, datetime
@@ -184,13 +185,30 @@ def ping():
 
 @app.route("/send_reminders")
 def trigger_reminders():
+    # Only the CRON-JOB can trigger the route
+    secret = request.args.get("key") or request.headers.get("X-Cron-Key")
+    expected = os.environ.get("CRON_SECRET")
+    if not expected or secret != expected:
+        return jsonify({"error": "Unauthorized"}), 401
     send_due_reminders()
     return jsonify({"message": "Reminders checked."}), 200
 
-@app.route("/get_food/<food_name>")
-def get_food(food_name):
+@app.route("/get_food", methods=["POST"])
+def get_food():
+    # Validate request body with the Pydantic schema
+    try:
+        body = SearchFoodRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Make sure the user is who they say they are
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
     # Normalize the food name to reduce redundant API calls
-    food_name = re.sub(r'\s+', ' ', food_name.lower()).strip()
+    food_name = re.sub(r'\s+', ' ', body.food_name.lower()).strip()
 
     if not token_manager.consume():
         # Retrieve the next reset time

@@ -29,6 +29,10 @@ class UpdateUsernameRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     username: str = Field(..., min_length=1, max_length=20)
 
+class SearchFoodRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    food_name: str = Field(..., min_length=1)
+
 # Response schemas --------------------
 
 class DailyRewardResponse(BaseModel):

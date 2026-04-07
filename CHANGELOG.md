@@ -750,3 +750,8 @@ Developmental progress by date is stored in this file.
 - Made the date in the Food Logging tab clickable, opening a calendar for choosing the date instead of only relying on changing dates one at a time
 - Reformatted the date in Food Logging (eg 2026-04-06 is now April 6, 2026)
 - Made the date in Food Logging hoverable to emphasize it can be clicked
+- Made a CRON-SECRET environmental variable
+- The send_reminders CRON job was accessible by anyone, but the CRON-SECRET ensures only the backend can call it
+- Updated the get_food route so only authenticated users can call it to prevent anybody, including non-users, from doing so
+- Did this by using the same validation used for critical game data (auth.py, schema.py, repository.py, services.py...)
+- Moved food search API call into UserDataManager.searchFood() to centralize backend requests

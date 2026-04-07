@@ -900,4 +900,14 @@ class UserDataManager {
       }
     }
   }
+
+  // Searches for food via the backend, which proxies to FatSecret API
+  static Future<http.Response> searchFood(String query) async {
+    final idToken = await _getIdToken();
+    return await http.post(
+      Uri.parse('$_backendBaseUrl/get_food'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': idToken, 'food_name': query}),
+    );
+  }
 }
