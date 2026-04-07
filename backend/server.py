@@ -332,7 +332,7 @@ def get_nearby_pois():
     query = OVERPASS_QUERY.format(
         lat=body.lat,
         lng=body.lng,
-        radius=1000, # scans 1000 meters within the user's location
+        radius=500, # scans 500 meters within the user's location
     )
 
     # Step 4: Send the query to the Overpass API
@@ -354,9 +354,9 @@ def get_nearby_pois():
     # Step 5: Parse the raw Overpass data into POI objects
     all_pois = parse_overpass_response(raw_data)
 
-    # Step 6: If there are more than 50 POIs found, a random subset of the 50 are shown
-    if len(all_pois) > 50:
-        all_pois = random.sample(all_pois, 50)
+    # Step 6: If there are more than 20 POIs found, a random subset of the 50 are shown
+    if len(all_pois) > 20:
+        all_pois = random.sample(all_pois, 20)
 
     # Step 7: Build and return the validated response
     response = NearbyPOIResponse(pois=all_pois)

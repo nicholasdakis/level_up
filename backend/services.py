@@ -124,9 +124,9 @@ class ProgressionService: # Service class to handle all progression-related busi
     
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP
     def check_in_poi(self, uid: str, poi_name: str, poi_lat: float, poi_lng: float, user_lat: float, user_lng: float):
-        # Step 1: Verify the user is actually close to the POI (within 200 meters using the haversine formula)
+        # Step 1: Verify the user is actually close to the POI (within 50 meters using the haversine formula)
         distance = self._haversine(user_lat, user_lng, poi_lat, poi_lng)
-        if distance > 200:
+        if distance > 50:
             return {
                 "success": False,
                 "xp_gained": 0,
