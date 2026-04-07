@@ -755,3 +755,4 @@ Developmental progress by date is stored in this file.
 - Updated the get_food route so only authenticated users can call it to prevent anybody, including non-users, from doing so
 - Did this by using the same validation used for critical game data (auth.py, schema.py, repository.py, services.py...)
 - Moved food search API call into UserDataManager.searchFood() to centralize backend requests
+- Moved the "Send Feedback' button to the Settings drawer

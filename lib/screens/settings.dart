@@ -8,6 +8,7 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/install_guide.dart';
 import '../authentication/auth_services.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'dart:js_interop';
 
 @JS('isPwa')
@@ -98,6 +99,41 @@ Widget buildSettingsDrawer(
             startOffset: Offset(-1, 0),
           ),
 
+          Material(
+            color: Colors.transparent,
+            child: ListTile(
+              leading: Icon(Icons.feedback_outlined, color: Colors.white),
+              title: textWithFont(
+                "Send Feedback",
+                context,
+                Responsive.font(context, 18),
+                color: Colors.white,
+                alignment: TextAlign.left,
+              ),
+              hoverColor: Colors.white.withAlpha(50),
+              onTap: () async {
+                Navigator.pop(context);
+                final Uri emailLaunchUri = Uri(
+                  scheme: 'mailto',
+                  path: 'n1ch0lasd4k1s@gmail.com',
+                  query: Uri.encodeFull('subject=Feedback for Level Up!'),
+                );
+                if (!await url_launcher.launchUrl(
+                  emailLaunchUri,
+                  mode: url_launcher.LaunchMode.externalApplication,
+                )) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Failed to open email app. Please manually send an email to n1ch0lasd4k1s@gmail.com.",
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+
           // Chromium browsers (Chrome/Edge): show native install prompt, or snackbar if already installed
           // Non-Chromium browsers (Safari/Firefox): always show install guide with manual instructions
           if (kIsWeb && !openedAsPwa)
@@ -152,7 +188,6 @@ Widget buildSettingsDrawer(
                 tooltip:
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
               ),
-
           Material(
             color: Colors.transparent,
             child: ListTile(

@@ -12,38 +12,6 @@ class AboutTheDeveloper extends StatefulWidget {
 }
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
-  // Visually a simpleCustomButton. Opens an email to the developer with the appropriate subject
-  Widget sendFeedbackButton(BuildContext context) {
-    return simpleCustomButton(
-      "Send Feedback",
-      48,
-      120,
-      400,
-      context,
-      baseColor: darkenColor(appColorNotifier.value, 0.025),
-      onPressed: () async {
-        final Uri emailLaunchUri = Uri(
-          scheme: 'mailto',
-          path: 'n1ch0lasd4k1s@gmail.com',
-          query: Uri.encodeFull('subject=Feedback for Level Up!'),
-        );
-        if (await launchUrl(
-          emailLaunchUri,
-          mode: LaunchMode.externalApplication,
-        )) {
-          // Launched successfully, nothing extra needed
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Failed to open email app. Please manually send an email to n1ch0lasd4k1s@gmail.com.",
-              ),
-            ),
-          );
-        }
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,13 +59,11 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
                         textWithCard(
-                          "Feel free to send feedback or donate using the buttons below:",
+                          "Feel free to donate using the button below:",
                           context,
                           Responsive.font(context, 50),
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
-                        // SEND FEEDBACK BUTTON
-                        sendFeedbackButton(context),
                         // PAYPAL DONATE BUTTON
                         Padding(
                           padding: EdgeInsets.all(
