@@ -1433,32 +1433,37 @@ class _FoodLoggingState extends State<FoodLogging>
                       horizontal: Responsive.width(context, 16),
                       vertical: Responsive.height(context, 10),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.add_circle_outline,
-                          color: appColorNotifier.value,
-                          size: Responsive.scale(context, 20),
-                        ),
-                        SizedBox(width: Responsive.width(context, 12)),
-                        Expanded(
-                          child: Text(
-                            name,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 14),
-                              color: Colors.white,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.add_circle_outline,
+                            color: appColorNotifier.value,
+                            size: Responsive.scale(context, 20),
                           ),
-                        ),
-                        // Recent food card info
-                        _buildMacroText(
-                          food,
-                          fontSize: 11,
-                          color: Colors.white54,
-                          compact: true,
-                        ),
-                      ],
+                          SizedBox(width: Responsive.width(context, 12)),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 14),
+                                color: Colors.white,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                          // Recent food card info
+                          _buildMacroText(
+                            food,
+                            fontSize: 11,
+                            color: Colors.white54,
+                            compact: true,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
