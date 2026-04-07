@@ -786,3 +786,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted the code that builds the macro text into buildMacroText() so that it can be reused in the recent foods cards
 - Edited the buildMacroText() text to also show a macro if it is 0 (e.g. show that a dressing has 0 protein)
 - Removed the calories variable because buildMacroText can already extract them
+- Replaced Expanded with Flexible for the Recent Foods cards so the name can take 1/3 of the card and the information can take 2/3

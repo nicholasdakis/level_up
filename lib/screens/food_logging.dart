@@ -1393,7 +1393,7 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
-                    "Recent Foods",
+                    "Recent logs on this device",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
                       color: Colors.white54,
@@ -1445,22 +1445,36 @@ class _FoodLoggingState extends State<FoodLogging>
                             size: Responsive.scale(context, 20),
                           ),
                           SizedBox(width: Responsive.width(context, 12)),
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 14),
-                                color: Colors.white,
+                          Flexible(
+                            flex: 1,
+                            fit: FlexFit.tight,
+                            child: Align(
+                              alignment:
+                                  Alignment.centerLeft, // name aligns left
+                              child: Text(
+                                name,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 14),
+                                  color: Colors.white,
+                                ),
+                                softWrap: true,
                               ),
-                              softWrap: true,
                             ),
                           ),
-                          // Recent food card info
-                          _buildMacroText(
-                            food,
-                            fontSize: 11,
-                            color: Colors.white54,
-                            compact: true,
+
+                          Flexible(
+                            flex: 2,
+                            fit: FlexFit.tight,
+                            child: Align(
+                              alignment:
+                                  Alignment.centerRight, // macros align right
+                              child: _buildMacroText(
+                                food,
+                                fontSize: 11,
+                                color: Colors.white54,
+                                compact: true,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -1835,7 +1849,13 @@ class _FoodLoggingState extends State<FoodLogging>
                   SizedBox(height: Responsive.height(context, 10)),
 
                   // Recent foods collapsible section
-                  if (_recentFoods.isNotEmpty) _buildRecentFoodsSection(),
+                  if (_recentFoods.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                      ),
+                      child: _buildRecentFoodsSection(),
+                    ),
 
                   // Tab content area and meal tiles
                   Expanded(
