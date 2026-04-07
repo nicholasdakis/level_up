@@ -772,3 +772,6 @@ Developmental progress by date is stored in this file.
 Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every tap to only resetting state when actually changing tabs
 - Added an isBeingDeleted parameter to updateFoodDataByDate to handle the "food logged" snackbar appearing when deleting a food
 - Made claimDailyReward directly return xp_gained from the backend instead of new-old xp, which would be negative if the user leveled up from the experience gained
+- Replaced the Leaderboard stream with a get() to avoid unnecessary Firestore reads
+- Added a refresh button for the leaderboard tab to replace the automatic updating
+- Fixed the Leaderboard tab header appearing shorter than the other screens

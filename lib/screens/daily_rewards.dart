@@ -8,13 +8,13 @@ import '../globals.dart';
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
     List<String> reminderMessages = [
-      "23 hours have passed, come claim your daily reward!"
-          "Come claim your daily reward!",
+      "23 hours have passed, come claim your daily reward!",
+      "Come claim your daily reward!",
       "Come claim your free daily XP!",
-      "Your free daily XP is waiting for you!"
-          "Don't lose your daily reward streak!",
-      "Come claim your free daily XP to get ahead on the leaderboard!"
-          "Don't forget to claim your free experience points!",
+      "Your free daily XP is waiting for you!",
+      "Don't lose your daily reward streak!",
+      "Come claim your free daily XP to get ahead on the leaderboard!",
+      "Don't forget to claim your free experience points!",
       "Ready to boost your level? Claim your reward now!",
       "Your daily XP is waiting! Don't miss out!",
       "Time to grab today's reward and level up!",

@@ -15,6 +15,7 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   // Cache for experience calculations
   final Map<int, int> _expCache = {};
+  late Future<List<LeaderboardEntry>> _leaderboardFuture;
 
   // Method to show the total experience needed for a specific user to reach their next level
   int experienceNeededForLevel(int level) {
@@ -31,6 +32,13 @@ class _LeaderboardState extends State<Leaderboard> {
   @override
   void initState() {
     super.initState();
+    _leaderboardFuture = leaderboardService.fetchLeaderboard();
+  }
+
+  void _refreshLeaderboard() {
+    setState(() {
+      _leaderboardFuture = leaderboardService.fetchLeaderboard();
+    });
   }
 
   @override
@@ -49,13 +57,19 @@ class _LeaderboardState extends State<Leaderboard> {
             0.025,
           ), // Header color
           centerTitle: true,
+          toolbarHeight: Responsive.buttonHeight(context, 120),
           title: createTitle("Leaderboard", context),
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _refreshLeaderboard,
+            ),
+          ],
         ),
-        body: StreamBuilder<List<LeaderboardEntry>>(
-          // getLeaderboardAsStream returns the leaderboard as a list of LeaderboardEntry objects
-          stream: leaderboardService.getLeaderboardStream(),
+        body: FutureBuilder<List<LeaderboardEntry>>(
+          future: _leaderboardFuture,
           builder: (context, snapshot) {
             // Check if the stream encountered an error
             if (snapshot.hasError) {
@@ -103,7 +117,7 @@ class _LeaderboardState extends State<Leaderboard> {
                     ? "Unnamed"
                     : user.username!;
                 final pfpBytes = user.pfpBytes;
-                final expPoints = user.expPoints ?? 0;
+                final expPoints = user.expPoints;
 
                 return Padding(
                   padding: EdgeInsets.symmetric(

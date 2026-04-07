@@ -16,7 +16,6 @@ import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
 import 'utility/fcm_service.dart';
-import 'utility/leaderboard/leaderboard_service.dart';
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {

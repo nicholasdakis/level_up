@@ -11,18 +11,16 @@ class LeaderboardService {
         .get();
   }
 
-  // Getter for the screen to read the live leaderboard data (for online use)
-  Stream<List<LeaderboardEntry>> getLeaderboardStream() {
-    return FirebaseFirestore.instance
+  // Fetches the leaderboard data
+  Future<List<LeaderboardEntry>> fetchLeaderboard() async {
+    final snapshot = await FirebaseFirestore.instance
         .collection('users-public')
         .orderBy('level', descending: true)
         .orderBy('expPoints', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          // Map Firestore documents to LeaderboardEntry objects
-          return snapshot.docs.map((doc) {
-            return LeaderboardEntry.fromFirestore(doc);
-          }).toList();
-        });
+        .get();
+    // Map Firestore documents to LeaderboardEntry objects
+    return snapshot.docs.map((doc) {
+      return LeaderboardEntry.fromFirestore(doc);
+    }).toList();
   }
 }
