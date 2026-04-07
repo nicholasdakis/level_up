@@ -116,7 +116,9 @@ class _LeaderboardState extends State<Leaderboard> {
                               35,
                             ) // Highlight current user with a light version of the app color
                           : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 8),
+                      ),
                     ),
                     child: Row(
                       children: [

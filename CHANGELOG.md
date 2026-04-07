@@ -747,3 +747,6 @@ Developmental progress by date is stored in this file.
 - Created a refreshToken method that gets a new fcmToken and adds it to the user's fcmTokens array, ensuring the user always has a valid fcmToken stored when they come back to the app after some time after not having fully closed it
 - Made an observer class _FcmLifecycleObserver that calls refreshToken() whenever the user comes back to the app
 - The observer is setup in the initialize() method of the fcm helper class
+- Made the date in the Food Logging tab clickable, opening a calendar for choosing the date instead of only relying on changing dates one at a time
+- Reformatted the date in Food Logging (eg 2026-04-06 is now April 6, 2026)
+- Made the date in Food Logging hoverable to emphasize it can be clicked

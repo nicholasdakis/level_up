@@ -522,6 +522,23 @@ class _FoodLoggingState extends State<FoodLogging>
     loadFoodForDate(currentDate);
   }
 
+  // Open a calendar picker to jump to a specific date
+  Future<void> pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2026),
+      lastDate: DateTime(2100),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+    );
+    if (picked != null) {
+      setState(() {
+        currentDate = picked;
+      });
+      loadFoodForDate(currentDate);
+    }
+  }
+
   // Log the selected food to the chosen meal type
   Future<void> logFood(Map<String, dynamic> foodObject) async {
     debugPrint('logFood called');
@@ -1345,12 +1362,24 @@ class _FoodLoggingState extends State<FoodLogging>
                         icon: Icon(Icons.arrow_left, color: Colors.white),
                         onPressed: () => changeDate(-1),
                       ),
-                      Text(
-                        "${currentDate.year.toString().padLeft(4, '0')}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 18),
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                      InkWell(
+                        onTap: pickDate,
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 12),
+                            vertical: Responsive.height(context, 6),
+                          ),
+                          child: Text(
+                            "${const ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 18),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       IconButton(
