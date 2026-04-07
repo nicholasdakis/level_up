@@ -1285,13 +1285,16 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Widget _buildAllMealSections() {
-    return Column(
-      children: [
-        _buildMealSection("Breakfast", breakfastFoods),
-        _buildMealSection("Lunch", lunchFoods),
-        _buildMealSection("Dinner", dinnerFoods),
-        _buildMealSection("Snacks", snacksFoods),
-      ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.basic,
+      child: Column(
+        children: [
+          _buildMealSection("Breakfast", breakfastFoods),
+          _buildMealSection("Lunch", lunchFoods),
+          _buildMealSection("Dinner", dinnerFoods),
+          _buildMealSection("Snacks", snacksFoods),
+        ],
+      ),
     );
   }
 
@@ -1654,7 +1657,16 @@ class _FoodLoggingState extends State<FoodLogging>
                         // Convert the strings to DropdownMenuItems
                         items: ["Breakfast", "Lunch", "Dinner", "Snacks"]
                             .map(
-                              (t) => DropdownMenuItem(value: t, child: Text(t)),
+                              (t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(
+                                  t,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 20),
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             )
                             .toList(),
                         onChanged: (value) => setState(() => mealType = value),

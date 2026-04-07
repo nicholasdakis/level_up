@@ -775,3 +775,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Replaced the Leaderboard stream with a get() to avoid unnecessary Firestore reads
 - Added a refresh button for the leaderboard tab to replace the automatic updating
 - Fixed the Leaderboard tab header appearing shorter than the other screens
+- Fixed cursor showing a pointer when hovering the meal tab entries and in the Search and Barcode tab and not showing a pointer when hovering "Log Food" in the Barcode tab. This was done by using the MouseRegion widget to explicitly show the finger pointer / click pointer when appropriate
+- Made the Meal Type entries have the same size and font as the "Meal Type" text

@@ -72,9 +72,11 @@ Widget frostedButton(
   BuildContext context, {
   required Function() onPressed,
 }) {
-  return GestureDetector(
-    onTap: () => onPressed(),
-    child: frostedGlassCard(
+  return MouseRegion(
+    cursor: SystemMouseCursors.click,
+    child: GestureDetector(
+      onTap: () => onPressed(),
+      child: frostedGlassCard(
       context,
       baseRadius: 14,
       padding: EdgeInsets.symmetric(
@@ -89,6 +91,7 @@ Widget frostedButton(
           color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
+      ),
       ),
     ),
   );
