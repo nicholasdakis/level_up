@@ -126,7 +126,9 @@ class FcmService {
       'FCM token refresh: ${deviceToken != null ? "obtained" : "NULL"}',
     );
 
-    if (deviceToken != null) {
+    if (deviceToken != null &&
+        (currentUserData == null ||
+            !currentUserData!.fcmTokens.contains(deviceToken))) {
       await userManager.addFcmToken(deviceToken);
     }
   }
