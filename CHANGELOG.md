@@ -756,3 +756,17 @@ Developmental progress by date is stored in this file.
 - Did this by using the same validation used for critical game data (auth.py, schema.py, repository.py, services.py...)
 - Moved food search API call into UserDataManager.searchFood() to centralize backend requests
 - Moved the "Send Feedback' button to the Settings drawer
+- Added serving size tracking to food logging so all three tabs now store and display the serving amount and unit alongside macros
+- Added a serving size row to the search and barcode tabs that lets users adjust the amount, with macros scaling automatically to match
+- Added a serving amount field to Manual tab and a unit dropdown including a custom unit option via a dialog
+- Barcode tab now calls _initServing() on a successful scan so the serving row is pre-populated with the product's per-100g data
+- Food cards in all meal sections now show the serving size and full macro breakdown (Protein, Carbs, Fat) instead of just calories
+- Moves snackbar logic into a reusable _showSnackbar() method instead of repeating the ScaffoldMessenger block everywhere
+- Added _previousTabIndex tracking so tab state only resets when actually switching tabs, not on every tap
+- Serving amount is now a required field on the manual tab before Log Food will proceed
+- Refactored logFood() to rebuild the food description with scaled macro values at log time for search and barcode entries
+- Moved around methods in Food Logging to organize
+- Replaced addMenuItem() method with inline .map() conversions
+- _decimalFormatter() was added as a shared input formatter instead of repeating the inline TextInputFormatter.withFunction on every manual field
+- _castFoodList() helper added to avoid repeating the same cast pattern in loadFoodForDate
+Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every tap to only resetting state when actually changing tabs

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:url_launcher/url_launcher.dart'; // FatSecret snippet code launch
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'dart:async'; // for using Timer
-import 'package:flutter/services.dart'; // for input validation on manual entry fields
-// Packages for handling food information through the server.py file
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// Class imports
 import '../globals.dart';
 import '../utility/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,214 +29,354 @@ class FoodLogging extends StatefulWidget {
 class _FoodLoggingState extends State<FoodLogging>
     with SingleTickerProviderStateMixin {
   // SingleTickerProviderStateMixin is needed for TabController
-  DropdownMenuItem<String> addMenuItem(String text) {
-    return DropdownMenuItem<String>(value: text, child: Text(text));
-  }
 
   // Hold selected food for updating the UI in real time
   Map<String, dynamic>? selectedFood;
+  String? mealType;
+  DateTime currentDate = DateTime.now();
+  bool userCanType = true;
+  bool mealChosen = false;
+  bool snackbarActive = false;
+  String latestQuery = "";
+  Timer? checkTimer;
+  DateTime? lastInput;
+  List<dynamic> foodList = [];
+  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
+  late Future<void> _loadUserDataFuture;
 
-  // Method to extract the calories from the food-description string
-  int extractCalories(String description) {
-    // Apple example: "Per 100g - Calories: 52kcal | Fat: 0.17g | Carbs: 13.81g | Protein: 0.26g"
-    final regex = RegExp(r'Calories:\s*(\d+)kcal', caseSensitive: false);
-    final match = regex.firstMatch(description);
-    if (match != null) {
-      return int.tryParse(match.group(1) ?? '') ?? 0;
+  // Tab
+  late TabController _tabController;
+  int _previousTabIndex = 0;
+
+  // Barcode
+  bool barcodeLoading = false;
+  Map<String, dynamic>? barcodeResult;
+  String? barcodeError;
+  bool scannerActive = false;
+
+  // Serving size
+  String selectedUnit = 'g';
+  double baseAmount = 1.0;
+  Map<String, double> baseMacros = {};
+  String displayDescription = '';
+
+  // Meal lists
+  List<Map<String, dynamic>> breakfastFoods = [];
+  List<Map<String, dynamic>> lunchFoods = [];
+  List<Map<String, dynamic>> dinnerFoods = [];
+  List<Map<String, dynamic>> snacksFoods = [];
+
+  static const List<String> allowedUnits = [
+    'g',
+    'oz',
+    'cup',
+    'tbsp',
+    'ml',
+    'serving',
+  ];
+
+  final TextEditingController searchController = TextEditingController();
+  final TextEditingController servingAmountController = TextEditingController();
+  final TextEditingController _customUnitController = TextEditingController();
+  final TextEditingController manualNameController = TextEditingController();
+  final TextEditingController manualCaloriesController =
+      TextEditingController();
+  final TextEditingController manualFatController = TextEditingController();
+  final TextEditingController manualCarbsController = TextEditingController();
+  final TextEditingController manualProteinController = TextEditingController();
+  final TextEditingController manualServingAmountController =
+      TextEditingController();
+  String manualSelectedUnit = 'serving';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+    ); // vsync: this gives the TickerProvider
+    _loadUserDataFuture = _loadUserDataAndInit();
+  }
+
+  // Dispose to prevent memory leaks
+  @override
+  void dispose() {
+    checkTimer?.cancel(); // clear the debouncer timer
+    searchController.dispose();
+    servingAmountController.dispose();
+    _customUnitController.dispose();
+    manualNameController.dispose();
+    manualCaloriesController.dispose();
+    manualFatController.dispose();
+    manualCarbsController.dispose();
+    manualProteinController.dispose();
+    manualServingAmountController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // Formats decimals with an optional limit of decimal points (2 if decimalPlaces isn't provided)
+  static TextInputFormatter _decimalFormatter({int decimalPlaces = 2}) {
+    return TextInputFormatter.withFunction((oldValue, newValue) {
+      if (newValue.text.isEmpty) return newValue;
+      return RegExp(
+            '^\\d{0,5}(\\.\\d{0,$decimalPlaces})?\$',
+          ).hasMatch(newValue.text)
+          ? newValue
+          : oldValue;
+    });
+  }
+
+  // Reusable Snackbar maker
+  void _showSnackbar(
+    String message, {
+    Duration duration = const Duration(seconds: 4),
+  }) {
+    if (snackbarActive) return;
+    snackbarActive = true;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.info, color: Colors.white),
+                SizedBox(width: Responsive.width(context, 10)),
+                Text(message),
+              ],
+            ),
+            duration: duration,
+          ),
+        )
+        .closed
+        .then((_) => snackbarActive = false);
+  }
+
+  Future<void> _loadUserDataAndInit() async {
+    // Skip reloading all user data if already loaded for this user to avoid unnecessary Firestore reads on every tab switch
+    if (currentUserData != null &&
+        currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
+      // Always refresh food data in case it was updated on another device
+      await userManager.loadFoodData(currentUserData!.uid);
+      _syncFoodData();
+      return;
     }
-    return 0;
+    // First time loading for this user
+    await userManager.loadUserData();
+    _syncFoodData();
+  }
+
+  // Method to populate foodDataByDate with the stored values of it in currentUserData
+  void _syncFoodData() {
+    foodDataByDate = currentUserData?.foodDataByDate != null
+        ? Map<String, Map<String, List<Map<String, dynamic>>>>.from(
+            currentUserData!.foodDataByDate,
+          )
+        : {}; // fallback
+    loadFoodForDate(currentDate);
+  }
+
+  // Method that puts DateTime objects in the form that foodDataByDate expects
+  String formatDateKey(DateTime date) {
+    return "${date.year.toString().padLeft(4, '0')}-"
+        "${date.month.toString().padLeft(2, '0')}-"
+        "${date.day.toString().padLeft(2, '0')}";
+  }
+
+  void loadFoodForDate(DateTime date) {
+    final dayData = foodDataByDate[formatDateKey(date)];
+    setState(() {
+      breakfastFoods = _castFoodList(dayData?['Breakfast']);
+      lunchFoods = _castFoodList(dayData?['Lunch']);
+      dinnerFoods = _castFoodList(dayData?['Dinner']);
+      snacksFoods = _castFoodList(dayData?['Snacks']);
+    });
+  }
+
+  // Make sure the food list is always a list of maps even when data is null
+  List<Map<String, dynamic>> _castFoodList(dynamic raw) =>
+      (raw as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+
+  void changeDate(int days) {
+    setState(() => currentDate = currentDate.add(Duration(days: days)));
+    loadFoodForDate(currentDate);
+  }
+
+  // Calendar pop-up for changing dates
+  Future<void> pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2026),
+      lastDate: DateTime(2100),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+    );
+    if (picked != null) {
+      setState(() => currentDate = picked);
+      loadFoodForDate(currentDate);
+    }
   }
 
   int getTotalCaloriesForDay() {
-    num total = 0;
+    int total = 0;
 
-    for (var item in breakfastFoods) {
-      total += num.tryParse(item['calories'].toString()) ?? 0;
+    // Go through each meal list and add calories
+    for (var food in breakfastFoods) {
+      total += int.tryParse(food['calories'].toString()) ?? 0;
     }
-    for (var item in lunchFoods) {
-      total += num.tryParse(item['calories'].toString()) ?? 0;
+
+    for (var food in lunchFoods) {
+      total += int.tryParse(food['calories'].toString()) ?? 0;
     }
-    for (var item in dinnerFoods) {
-      total += num.tryParse(item['calories'].toString()) ?? 0;
+
+    for (var food in dinnerFoods) {
+      total += int.tryParse(food['calories'].toString()) ?? 0;
     }
-    for (var item in snacksFoods) {
-      total += num.tryParse(item['calories'].toString()) ?? 0;
+
+    for (var food in snacksFoods) {
+      total += int.tryParse(food['calories'].toString()) ?? 0;
     }
-    return total.toInt();
+
+    return total;
   }
 
-  Future<void> launchWebsite(String websiteUrl) async {
-    final uri = Uri.parse(websiteUrl); // Store the url as a Uri
-    if (!await launchUrl(uri)) {
-      // If the website could not be launched
-      throw "Error: Could not open website.";
+  int extractCalories(String description) {
+    final match = RegExp(
+      r'Calories:\s*(\d+)kcal',
+      caseSensitive: false,
+    ).firstMatch(description);
+    return int.tryParse(match?.group(1) ?? '') ?? 0;
+  }
+
+  // Takes the "Per ..." from food_description and parses it into {amount, unit}
+  Map<String, dynamic> parseServing(String description) {
+    // Regular expression to find the amount and units
+    final perMatch = RegExp(
+      r'Per\s+(.+?)\s*-',
+    ).firstMatch(description); // food_description parses as "Per xxx -"
+    if (perMatch == null) {
+      return {'amount': 1.0, 'unit': 'serving'}; // fallback if none was found
     }
+
+    // token is the "xxx" part of "Per xxx"
+    final token = perMatch.group(1)!.trim();
+    // Regular expression to separate the amount and units in the serving size
+    final numUnitMatch = RegExp(
+      r'^(\d+(?:/\d+)?(?:\.\d+)?)\s*(.+)$',
+    ).firstMatch(token);
+    if (numUnitMatch != null) {
+      return {
+        'amount': _parseFraction(numUnitMatch.group(1)!),
+        'unit': numUnitMatch.group(2)!.trim(),
+      };
+    }
+    return {'amount': 1.0, 'unit': token}; // fallback
   }
 
-  Widget buildSearchButton() {
-    return Expanded(
-      child: TextField(
-        controller: searchController,
-        enabled: userCanType,
-        keyboardType: TextInputType.text,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, 17),
-          color: Colors.white,
-        ),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: "Search",
-          suffixIcon: Icon(Icons.search, color: Colors.white54),
-          contentPadding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 12),
-            horizontal: Responsive.width(context, 14),
-          ),
-          hintStyle: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 15),
-            color: Colors.white54,
-          ),
-        ),
-        onChanged: (value) {
-          lastInput = DateTime.now();
-          checkTimer?.cancel();
-          checkTimer = Timer(Duration(milliseconds: 750), () {
-            handleApiCall(lastInput, value);
-          });
-        },
-      ),
-    );
+  // Method that converts fractional serving sizes into a decimal
+  double _parseFraction(String value) {
+    if (value.contains('/')) {
+      final parts = value.split('/');
+      final denominator = double.tryParse(parts[1]) ?? 1;
+      if (denominator == 0) return 0;
+      return double.parse(
+        ((double.tryParse(parts[0]) ?? 0) / denominator).toStringAsFixed(2),
+      );
+    }
+    return double.tryParse(value) ?? 1.0; // fallback
   }
 
-  Widget buildLogFoodButton() {
-    return frostedButton(
-      "Log Food",
-      context,
-      onPressed: () async {
-        final tab = _tabController.index;
-        if (tab == FoodTab.search) {
-          if (mealType == null || !mealChosen) {
-            if (snackbarActive) return;
-            snackbarActive = true;
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.info, color: Colors.white),
-                        SizedBox(width: Responsive.width(context, 10)),
-                        Text("All fields must be filled."),
-                      ],
-                    ),
-                  ),
-                )
-                .closed
-                .then((_) {
-                  snackbarActive = false;
-                });
-            return;
-          }
-          if (selectedFood != null) {
-            await logFood(Map<String, dynamic>.from(selectedFood!));
-          }
-        } else if (tab == FoodTab.barcode) {
-          if (barcodeResult == null) {
-            if (snackbarActive) return;
-            snackbarActive = true;
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(Icons.info, color: Colors.white),
-                        SizedBox(width: Responsive.width(context, 10)),
-                        Text("Scan a barcode first."),
-                      ],
-                    ),
-                  ),
-                )
-                .closed
-                .then((_) {
-                  snackbarActive = false;
-                });
-            return;
-          }
-          await logFood(Map<String, dynamic>.from(barcodeResult!));
-        } else if (tab == FoodTab.manual) {
-          await handleManualEntry();
-        }
-      },
-    );
+  Map<String, double> extractMacros(String description) {
+    double extract(String label) {
+      final match = RegExp(
+        '$label:\\s*([\\d.]+)',
+        caseSensitive: false,
+      ).firstMatch(description);
+      return double.tryParse(match?.group(1) ?? '') ?? 0;
+    }
+
+    return {
+      'calories': extract('Calories'),
+      'fat': extract('Fat'),
+      'carbs': extract('Carbs'),
+      'protein': extract('Protein'),
+    };
   }
 
-  Widget buildAttribution(
-    String websiteUrl,
-    String displayText,
-    Color textColor,
+  // Method that automatically scales the nutritional information of food with serving size changes
+  Map<String, double> scaleFood(
+    Map<String, double> base,
+    double baseAmt,
+    double newAmt,
   ) {
-    return Container(
-      alignment: Alignment.center,
-      child: InkWell(
-        onTap: () async {
-          await launchWebsite(websiteUrl);
-        },
-        child: Column(
-          children: [
-            textWithFont(
-              displayText,
-              context,
-              Responsive.font(context, 16),
-              color: textColor,
-            ),
-          ],
-        ),
+    if (baseAmt == 0) return base;
+    final ratio = newAmt / baseAmt;
+    // in (k, v) k is the nutritional field (calories, protein...) and v is its value
+    return base.map(
+      (k, v) => MapEntry(k, double.parse((v * ratio).toStringAsFixed(2))),
+    );
+  }
+
+  void _initServing(String description) {
+    final parsed = parseServing(description);
+    baseAmount = parsed['amount'] as double;
+    selectedUnit = parsed['unit'] as String;
+    servingAmountController.text = baseAmount % 1 == 0
+        ? baseAmount.toInt().toString()
+        : baseAmount.toString();
+    baseMacros = extractMacros(description);
+    displayDescription = _buildDescription(
+      baseMacros,
+      baseAmount,
+      selectedUnit,
+    );
+  }
+
+  // Method to update the UI and values when the user edits the serving size
+  void _onServingChanged() {
+    final newAmount =
+        double.tryParse(servingAmountController.text) ?? baseAmount;
+    final scaled = scaleFood(baseMacros, baseAmount, newAmount);
+    setState(
+      () => displayDescription = _buildDescription(
+        scaled,
+        newAmount,
+        selectedUnit,
       ),
     );
   }
 
-  String latestQuery = "";
+  // Method so food info is all formatted like fatSecret's (originally that was the only tab in Food Logging so it was built with that in mind)
+  String _buildDescription(
+    Map<String, double> macros,
+    double amount,
+    String unit,
+  ) {
+    final amountStr = amount % 1 == 0
+        ? amount.toInt().toString()
+        : amount.toString();
+    return 'Per $amountStr$unit - Calories: ${macros['calories']!.round()}kcal'
+        ' | Fat: ${macros['fat']!.toStringAsFixed(2)}g'
+        ' | Carbs: ${macros['carbs']!.toStringAsFixed(2)}g'
+        ' | Protein: ${macros['protein']!.toStringAsFixed(2)}g';
+  }
 
-  // Method to format time to show user how long until tokens reset
+  // Method to format the time displayed to the user when the fatSecret API calls have been maxed out
   String formatDuration(String rawTime) {
-    // Split by dot then take the first section (to ignore the milliseconds section)
-    rawTime = rawTime.split('.')[0];
-    // to concatenate the string
-    StringBuffer sb = StringBuffer();
-    // split by section
-    List<String> parts = rawTime.split(':');
+    final parts = rawTime.split('.')[0].split(':');
+    final hours = int.parse(parts[0]);
+    final minutes = int.parse(parts[1]);
+    final seconds = int.parse(parts[2]);
 
-    // convert the segments to integers: eg "01" becomes 1
-    int hours = int.parse(parts[0]);
-    int minutes = int.parse(parts[1]);
-    int seconds = int.parse(parts[2]);
+    if (hours == 0 && minutes == 0 && seconds == 0) return "0 seconds";
 
-    // Case 1: All zeros
-    if (hours == 0 && minutes == 0 && seconds == 0) {
-      sb.write("0 seconds");
-      // There are hours
-    } else {
-      if (hours > 0) {
-        sb.write(
-          "$hours hour${hours == 1 ? '' : 's'}",
-        ); // add an s only if plural
-        // edge cases
-        if (minutes > 0 || seconds > 0) sb.write(", ");
-      }
-      // There are minutes
-      if (minutes > 0) {
-        sb.write(
-          "$minutes minute${minutes == 1 ? '' : 's'}",
-        ); // add an s only if plural
-        // edge case
-        if (seconds > 0) sb.write(", and ");
-      }
-      // There are seconds
-      if (seconds > 0) {
-        sb.write(
-          "$seconds second${seconds == 1 ? '' : 's'}",
-        ); // add an s only if plural
-      }
-    }
-    return sb.toString();
+    String plural(int n, String unit) => "$n $unit${n == 1 ? '' : 's'}";
+    final segments = <String>[
+      if (hours > 0) plural(hours, 'hour'),
+      if (minutes > 0) plural(minutes, 'minute'),
+      if (seconds > 0) plural(seconds, 'second'),
+    ];
+    if (segments.length == 1) return segments.first;
+    return '${segments.take(segments.length - 1).join(', ')}, and ${segments.last}';
   }
 
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
@@ -257,73 +394,37 @@ class _FoodLoggingState extends State<FoodLogging>
       final response = await UserDataManager.searchFood(query);
 
       if (response.statusCode == 200) {
-        if (latestQuery == query) {
-          final data = jsonDecode(response.body);
-
-          final foods = data['foods'];
-          if (foods != null && foods['food'] != null) {
-            setState(() {
-              foodList = List<dynamic>.from(foods['food']);
-            });
-          } else {
-            setState(() {
-              foodList = [];
-            });
-          }
-        }
-      } else if (!snackbarActive && response.statusCode == 429) {
-        snackbarActive = true;
-
-        // Handle errors
+        if (latestQuery != query) return;
+        final foods = jsonDecode(response.body)['foods'];
+        setState(() {
+          foodList = foods?['food'] != null
+              ? List<dynamic>.from(foods['food'])
+              : [];
+        });
+      } else if (response.statusCode == 429) {
+        // retrieve time left from the json file
         final errorData = jsonDecode(response.body);
-
-        // Token limit exceeded error
         if (errorData['error'] == "Token limit exceeded") {
-          // retrieve time left from the json file
-          String resetTimeStr = errorData['time_left'];
-          // format nicely for UX
-          String formattedTime = formatDuration(resetTimeStr);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "Daily search limit reached. The limit resets in $formattedTime.",
-                  ),
-                  duration: Duration(seconds: 5),
-                ),
-              )
-              .closed
-              .then((_) {
-                snackbarActive = false;
-              });
+          _showSnackbar(
+            "Daily search limit reached. The limit resets in ${formatDuration(errorData['time_left'])}.",
+            duration: Duration(seconds: 5),
+          );
         }
-        setState(() {
-          foodList = [];
-        });
+        setState(() => foodList = []);
       } else {
-        setState(() {
-          foodList = [];
-        });
+        setState(() => foodList = []);
       }
     } catch (error) {
       debugPrint("API call error: $error");
-      setState(() {
-        foodList = [];
-      });
+      setState(() => foodList = []);
       if (!isConnected) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Error searching for foods. Check your connection and try again.",
-            ),
-            duration: Duration(milliseconds: 1500),
-          ),
+        _showSnackbar(
+          "Error searching for foods. Check your connection and try again.",
         );
       }
     }
   }
 
-  // Barcode lookup via Open Food Facts
   Future<void> lookupBarcode(String barcode) async {
     setState(() {
       barcodeLoading = true;
@@ -332,29 +433,25 @@ class _FoodLoggingState extends State<FoodLogging>
     });
 
     try {
-      final url = Uri.parse(
-        'https://world.openfoodfacts.org/api/v2/product/$barcode.json',
+      final response = await http.get(
+        Uri.parse(
+          'https://world.openfoodfacts.org/api/v2/product/$barcode.json',
+        ),
       );
-      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 1) {
-          final product = data['product'];
-          final nutriments = product['nutriments'] ?? {};
-
-          // Build a description string matching FatSecret format
-          final calories = (nutriments['energy-kcal_100g'] ?? 0).round();
-          final fat = nutriments['fat_100g'] ?? 0;
-          final carbs = nutriments['carbohydrates_100g'] ?? 0;
-          final protein = nutriments['proteins_100g'] ?? 0;
-
+          final nutriments = data['product']['nutriments'] ?? {};
           final description =
-              'Per 100g - Calories: ${calories}kcal | Fat: ${fat}g | Carbs: ${carbs}g | Protein: ${protein}g';
-
+              'Per 100g - Calories: ${(nutriments['energy-kcal_100g'] ?? 0).round()}kcal'
+              ' | Fat: ${nutriments['fat_100g'] ?? 0}g'
+              ' | Carbs: ${nutriments['carbohydrates_100g'] ?? 0}g'
+              ' | Protein: ${nutriments['proteins_100g'] ?? 0}g';
+          _initServing(description);
           setState(() {
             barcodeResult = {
-              'food_name': product['product_name'] ?? 'Unknown Product',
+              'food_name': data['product']['product_name'] ?? 'Unknown Product',
               'food_description': description,
             };
             barcodeLoading = false;
@@ -379,277 +476,106 @@ class _FoodLoggingState extends State<FoodLogging>
     }
   }
 
-  final TextEditingController searchController =
-      TextEditingController(); // for reading the user's search input
-
-  // Whether the user is allowed to type in the search bar. This is disabled after a food is clicked on
-  bool userCanType = true;
-  // Whether the validity check can pass or not (Equal to !userCanType, simply created for readability)
-  bool mealChosen = false;
-
-  // Whether a snackbar is already opened
-  bool snackbarActive = false;
-
-  String? mealType;
-
-  DateTime currentDate = DateTime.now();
-
-  // Timer to prevent too many requests to the API too frequently
-  Timer? checkTimer;
-
-  // Variable to store the user's current time for Timer usage
-  DateTime? lastInput;
-
-  // The list that holds and displays the foods found from the user's search
-  List<dynamic> foodList = [];
-
-  // The lists that hold and display the foods and nutritional information the user selects based on the category of food
-  List<Map<String, dynamic>> breakfastFoods = [];
-  List<Map<String, dynamic>> lunchFoods = [];
-  List<Map<String, dynamic>> dinnerFoods = [];
-  List<Map<String, dynamic>> snacksFoods = [];
-
-  // Map to hold all food based on date
-  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
-
-  // Use Future to load and initialize user data asynchronously
-  late Future<void> _loadUserDataFuture;
-
-  // Tab controller for Search, Barcode, Manual Entry
-  late TabController _tabController;
-
-  // Barcode tab state
-  bool barcodeLoading = false;
-  Map<String, dynamic>? barcodeResult;
-  String? barcodeError;
-  bool scannerActive = false;
-
-  // Manual entry controllers
-  final TextEditingController manualNameController = TextEditingController();
-  final TextEditingController manualCaloriesController =
-      TextEditingController();
-  final TextEditingController manualFatController = TextEditingController();
-  final TextEditingController manualCarbsController = TextEditingController();
-  final TextEditingController manualProteinController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _loadUserDataFuture = _loadUserDataAndInit();
-  }
-
-  Future<void> _loadUserDataAndInit() async {
-    // Skip reloading all user data if already loaded for this user to avoid unnecessary Firestore reads on every tab switch
-    if (currentUserData != null &&
-        currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
-      // Always refresh food data in case it was updated on another device
-      await userManager.loadFoodData(currentUserData!.uid);
-      // Sync the local food map with the updated data from Firestore
-      if (currentUserData?.foodDataByDate != null) {
-        foodDataByDate =
-            Map<String, Map<String, List<Map<String, dynamic>>>>.from(
-              currentUserData!.foodDataByDate,
-            );
-      } else {
-        foodDataByDate = {};
-      }
-      loadFoodForDate(currentDate);
+  Future<void> logFood(Map<String, dynamic> foodObject) async {
+    if (mealType == null) {
+      _showSnackbar("Please select a meal type.");
       return;
     }
 
-    // First time loading for this user, so load all user data from Firestore and the backend
-    await userManager.loadUserData();
-    // Sync the local food map with the loaded data
-    if (currentUserData?.foodDataByDate != null) {
-      foodDataByDate =
-          Map<String, Map<String, List<Map<String, dynamic>>>>.from(
-            currentUserData!.foodDataByDate,
-          );
-    } else {
-      // no food data found
-      foodDataByDate = {};
+    // For search/barcode: rebuild description with scaled serving values
+    if (!foodObject.containsKey('calories') && baseMacros.isNotEmpty) {
+      final newAmount =
+          double.tryParse(servingAmountController.text) ?? baseAmount;
+      final scaled = scaleFood(baseMacros, baseAmount, newAmount);
+      foodObject['food_description'] = _buildDescription(
+        scaled,
+        newAmount,
+        selectedUnit,
+      );
+      foodObject['calories'] = scaled['calories']!.round();
+    } else if (!foodObject.containsKey('calories')) {
+      foodObject['calories'] = extractCalories(
+        foodObject['food_description'] ?? '',
+      );
     }
-    loadFoodForDate(currentDate);
-  }
 
-  // Method to format date
-  String formatDateKey(DateTime date) {
-    return "${date.year.toString().padLeft(4, '0')}-" // padLeft so date x < 10 appears as 0x
-        "${date.month.toString().padLeft(2, '0')}-"
-        "${date.day.toString().padLeft(2, '0')}";
-  }
-
-  // Method to show the correct foods based on date
-  void loadFoodForDate(DateTime date) {
-    final key = formatDateKey(date);
-    final dayData = foodDataByDate[key];
+    // Ensure this day's data exists and fallback to empty lists if not
+    final dateKey = formatDateKey(currentDate);
+    foodDataByDate.putIfAbsent(
+      dateKey,
+      () => {"Breakfast": [], "Lunch": [], "Dinner": [], "Snacks": []},
+    );
+    foodDataByDate[dateKey]![mealType!]!.add(foodObject);
+    await saveFoodData();
 
     setState(() {
-      breakfastFoods =
-          (dayData?['Breakfast'] as List<dynamic>?)
-              ?.cast<Map<String, dynamic>>() ??
-          [];
-      lunchFoods =
-          (dayData?['Lunch'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ??
-          [];
-      dinnerFoods =
-          (dayData?['Dinner'] as List<dynamic>?)
-              ?.cast<Map<String, dynamic>>() ??
-          [];
-      snacksFoods =
-          (dayData?['Snacks'] as List<dynamic>?)
-              ?.cast<Map<String, dynamic>>() ??
-          [];
+      loadFoodForDate(currentDate);
+      // Reset search state
+      userCanType = true;
+      mealChosen = false;
+      selectedFood = null;
+      searchController.clear();
+      foodList = [];
+      // Reset barcode state
+      barcodeResult = null;
+      barcodeError = null;
+      scannerActive = false;
+      // Reset serving state
+      servingAmountController.clear();
+      selectedUnit = 'g';
+      baseAmount = 1.0;
+      baseMacros = {};
+      displayDescription = '';
+      // Reset manual entry state
+      for (final c in [
+        manualNameController,
+        manualCaloriesController,
+        manualFatController,
+        manualCarbsController,
+        manualProteinController,
+        manualServingAmountController,
+      ]) {
+        c.clear();
+      }
+      manualSelectedUnit = allowedUnits.first;
+      mealType = null;
     });
   }
 
-  // Save foodDataByDate to persistent storage after changes
   Future<void> saveFoodData() async {
     if (currentUserData == null) return;
     currentUserData!.foodDataByDate = foodDataByDate;
     await userManager.updateFoodDataByDate(foodDataByDate, context: context);
   }
 
-  // Arrow-controlled method to change the date
-  void changeDate(int days) {
+  Future<void> _deleteFood(
+    String mealKey,
+    int idx,
+    List<Map<String, dynamic>> foods,
+  ) async {
     setState(() {
-      currentDate = currentDate.add(Duration(days: days));
+      foods.removeAt(idx);
+      final dateKey = formatDateKey(currentDate);
+      foodDataByDate[dateKey]![mealKey] = foods;
     });
-    loadFoodForDate(currentDate);
-  }
-
-  // Open a calendar picker to jump to a specific date
-  Future<void> pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: currentDate,
-      firstDate: DateTime(2026),
-      lastDate: DateTime(2100),
-      initialEntryMode: DatePickerEntryMode.calendarOnly,
-    );
-    if (picked != null) {
-      setState(() {
-        currentDate = picked;
-      });
-      loadFoodForDate(currentDate);
-    }
-  }
-
-  // Log the selected food to the chosen meal type
-  Future<void> logFood(Map<String, dynamic> foodObject) async {
-    debugPrint('logFood called');
-    debugPrint('mealType: $mealType');
-    debugPrint('foodObject: $foodObject');
-
-    if (mealType == null) {
-      if (snackbarActive) return;
-      snackbarActive = true;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.white),
-                  SizedBox(width: Responsive.width(context, 10)),
-                  Text("Please select a meal type."),
-                ],
-              ),
-            ),
-          )
-          .closed
-          .then((_) {
-            snackbarActive = false;
-          });
-      return;
-    }
-
-    // extract calories from API search / barcode scanning (not for manual as it is already set as a key in the foodObject)
-    if (!foodObject.containsKey('calories')) {
-      foodObject['calories'] = extractCalories(
-        foodObject['food_description'] ?? '',
-      );
-    }
-
-    // extract the key for the current date
-    final dateKey = formatDateKey(currentDate);
-
-    // create a map for the date if it does not exist
-    if (!foodDataByDate.containsKey(dateKey)) {
-      foodDataByDate[dateKey] = {
-        "Breakfast": [],
-        "Lunch": [],
-        "Dinner": [],
-        "Snacks": [],
-      };
-    }
-
-    foodDataByDate[dateKey]![mealType!]!.add(foodObject);
-
-    // update to firestore
     await saveFoodData();
-
-    setState(() {
-      loadFoodForDate(currentDate); // update locally by refreshing UI
-
-      // reset conditions for searching
-      userCanType = true;
-      mealChosen = false;
-      selectedFood = null;
-      searchController.clear();
-      foodList = [];
-
-      // Reset barcode tab state
-      barcodeResult = null;
-      barcodeError = null;
-      scannerActive = false;
-
-      // Reset manual entry state
-      manualNameController.clear();
-      manualCaloriesController.clear();
-      manualFatController.clear();
-      manualCarbsController.clear();
-      manualProteinController.clear();
-
-      mealType = null;
-    });
   }
 
-  // Handle logging from the manual entry tab
   Future<void> handleManualEntry() async {
     final name = manualNameController.text.trim();
-    final caloriesText = manualCaloriesController.text.trim();
-
-    if (name.isEmpty || caloriesText.isEmpty) {
-      if (snackbarActive) return;
-      snackbarActive = true;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.white),
-                  SizedBox(width: Responsive.width(context, 10)),
-                  Text("Food name and calories are required."),
-                ],
-              ),
-            ),
-          )
-          .closed
-          .then((_) {
-            snackbarActive = false;
-          });
+    if (name.isEmpty ||
+        manualCaloriesController.text.trim().isEmpty ||
+        manualServingAmountController.text.trim().isEmpty ||
+        manualSelectedUnit.isEmpty) {
+      _showSnackbar("Food name, calories, and serving size are required.");
       return;
     }
 
-    final calories =
-        int.tryParse(manualCaloriesController.text.trim()) ??
-        0; // calories is expected as an int because of logFood, but also as a string for the description
+    final calories = int.tryParse(manualCaloriesController.text.trim()) ?? 0;
     final fat = manualFatController.text.trim();
     final carbs = manualCarbsController.text.trim();
     final protein = manualProteinController.text.trim();
 
-    // Check if all optional fields are empty and warn the user
     if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
       showDialog(
         context: context,
@@ -693,33 +619,164 @@ class _FoodLoggingState extends State<FoodLogging>
     String carbs,
     String protein,
   ) async {
-    // Add together the non-empty parts to create a description string in the same format as the API results
+    final servingAmt = manualServingAmountController.text.trim();
+    final servingLabel = servingAmt.isNotEmpty
+        ? '$servingAmt$manualSelectedUnit'
+        : manualSelectedUnit;
+
     final parts = <String>['Calories: ${calories}kcal'];
     if (fat.isNotEmpty) parts.add('Fat: ${fat}g');
     if (carbs.isNotEmpty) parts.add('Carbs: ${carbs}g');
     if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
-    final description = 'Per serving - ${parts.join(' | ')}';
 
-    final foodObject = {
+    // Format manual entry like the other tabs
+    await logFood({
       'food_name': name,
-      'food_description': description,
+      'food_description': 'Per $servingLabel - ${parts.join(' | ')}',
       'calories': calories,
-    };
-
-    await logFood(foodObject);
+    });
   }
 
-  @override
-  void dispose() {
-    checkTimer?.cancel(); // cancel the timer to prevent callbacks after dispose
-    searchController.dispose();
-    _tabController.dispose();
-    manualNameController.dispose();
-    manualCaloriesController.dispose();
-    manualFatController.dispose();
-    manualCarbsController.dispose();
-    manualProteinController.dispose();
-    super.dispose();
+  Widget buildAttribution(String url, String text, Color color) {
+    return Container(
+      alignment: Alignment.center,
+      child: InkWell(
+        onTap: () async {
+          final uri = Uri.parse(url);
+          if (!await launchUrl(uri)) throw "Error: Could not open website.";
+        },
+        child: textWithFont(
+          text,
+          context,
+          Responsive.font(context, 16),
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget buildSearchButton() {
+    return Expanded(
+      child: TextField(
+        controller: searchController,
+        enabled: userCanType,
+        keyboardType: TextInputType.text,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 17),
+          color: Colors.white,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: "Search",
+          suffixIcon: Icon(Icons.search, color: Colors.white54),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 12),
+            horizontal: Responsive.width(context, 14),
+          ),
+          hintStyle: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 15),
+            color: Colors.white54,
+          ),
+        ),
+        // Debouncer timer to prevent unwanted API calls
+        onChanged: (value) {
+          lastInput = DateTime.now();
+          checkTimer?.cancel();
+          checkTimer = Timer(
+            Duration(milliseconds: 750),
+            () => handleApiCall(lastInput, value),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildLogFoodButton() {
+    return frostedButton(
+      "Log Food",
+      context,
+      onPressed: () async {
+        final tab = _tabController.index;
+        if (tab == FoodTab.search) {
+          if (mealType == null || !mealChosen) {
+            _showSnackbar("All fields must be filled.");
+            return;
+          }
+          if (selectedFood != null) {
+            await logFood(Map<String, dynamic>.from(selectedFood!));
+          }
+        } else if (tab == FoodTab.barcode) {
+          if (barcodeResult == null) {
+            _showSnackbar("Scan a barcode first.");
+            return;
+          }
+          await logFood(Map<String, dynamic>.from(barcodeResult!));
+        } else if (tab == FoodTab.manual) {
+          await handleManualEntry();
+        }
+      },
+    );
+  }
+
+  // Serving size row for search and barcode tabs
+  Widget _buildServingRow() {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 20),
+        vertical: Responsive.height(context, 8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "Serving: ",
+            style: GoogleFonts.manrope(
+              color: Colors.white70,
+              fontSize: Responsive.font(context, 14),
+            ),
+          ),
+          SizedBox(
+            width: Responsive.width(context, 60),
+            child: TextField(
+              controller: servingAmountController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [_decimalFormatter()],
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontSize: Responsive.font(context, 14),
+              ),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 6),
+                  vertical: Responsive.height(context, 8),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: lightenColor(appColorNotifier.value, 0.15),
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: lightenColor(appColorNotifier.value, 0.25),
+                  ),
+                ),
+              ),
+              onChanged: (_) => _onServingChanged(),
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 8)),
+          Text(
+            selectedUnit,
+            style: GoogleFonts.manrope(
+              color: Colors.white70,
+              fontSize: Responsive.font(context, 14),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Shared text field styling for the manual entry tab
@@ -735,16 +792,7 @@ class _FoodLoggingState extends State<FoodLogging>
         data: Theme.of(context).copyWith(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
-          textSelectionTheme: TextSelectionThemeData(
-            cursorColor: Colors.white,
-            selectionHandleColor: Colors.white,
-            selectionColor: const Color.fromARGB(
-              255,
-              83,
-              75,
-              75,
-            ).withAlpha(128),
-          ),
+          textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.white),
         ),
         child: TextField(
           controller: controller,
@@ -782,7 +830,8 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
-  // Build the Search tab content
+  // TAB CONTENT
+
   Widget _buildSearchTab() {
     return Column(
       children: [
@@ -791,25 +840,30 @@ class _FoodLoggingState extends State<FoodLogging>
           "Powered by fatsecret",
           Colors.blue,
         ),
-
         SizedBox(height: Responsive.height(context, 10)),
-
-        // Search Food input inside frosted glass
-        Center(
-          child: SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 20),
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 20),
+          ),
+          child: SizedBox(width: double.infinity, child: buildLogFoodButton()),
+        ),
+        if (selectedFood != null && foodList.isEmpty) ...[
+          // Spread operator to put the widgets in the list into the parent widget’s children list
+          _buildServingRow(),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 20),
+            ),
+            child: Text(
+              displayDescription,
+              style: TextStyle(
+                color: lightenColor(appColorNotifier.value, 0.2),
+                fontSize: Responsive.font(context, 13),
               ),
-              child: buildLogFoodButton(),
             ),
           ),
-        ),
-
+        ],
         SizedBox(height: Responsive.height(context, 10)),
-
-        // Search results
         if (foodList.isNotEmpty)
           Expanded(
             child: ListView.builder(
@@ -819,6 +873,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 return InkWell(
                   onTap: () {
                     FocusScope.of(context).unfocus();
+                    _initServing(food['food_description'] ?? '');
                     setState(() {
                       userCanType = false;
                       mealChosen = true;
@@ -850,26 +905,21 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
-  // Build the Barcode tab content
   Widget _buildBarcodeTab() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         buildAttribution(
           "https://openfoodfacts.org",
           "Powered by Open Food Facts",
           Colors.green,
         ),
-
         SizedBox(height: Responsive.height(context, 10)),
 
-        // Full width scan button when scanner is not active
+        // Scan button shown only when the scanner isn't active and there's no result or error yet
         if (!scannerActive && barcodeResult == null && barcodeError == null)
           GestureDetector(
-            onTap: () {
-              setState(() {
-                scannerActive = true;
-              });
-            },
+            onTap: () => setState(() => scannerActive = true),
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 10),
@@ -907,7 +957,6 @@ class _FoodLoggingState extends State<FoodLogging>
             ),
           ),
 
-        // Scanner view
         if (scannerActive)
           Expanded(
             child: ClipRRect(
@@ -917,18 +966,15 @@ class _FoodLoggingState extends State<FoodLogging>
               child: MobileScanner(
                 onDetect: (BarcodeCapture capture) {
                   final barcode = capture.barcodes.firstOrNull;
-                  if (barcode != null && barcode.rawValue != null) {
-                    setState(() {
-                      scannerActive = false;
-                    });
-                    lookupBarcode(barcode.rawValue!);
+                  if (barcode?.rawValue != null) {
+                    setState(() => scannerActive = false);
+                    lookupBarcode(barcode!.rawValue!);
                   }
                 },
               ),
             ),
           ),
 
-        // Loading indicator
         if (barcodeLoading)
           Padding(
             padding: EdgeInsets.symmetric(
@@ -953,6 +999,7 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
                 ),
                 SizedBox(height: Responsive.height(context, 10)),
+                // Option to retry scanning if an error occurs
                 frostedButton(
                   "Try Again",
                   context,
@@ -985,28 +1032,25 @@ class _FoodLoggingState extends State<FoodLogging>
                     ),
                   ),
                   subtitle: Text(
-                    barcodeResult!['food_description'] ?? '',
+                    displayDescription,
                     style: TextStyle(
                       color: lightenColor(appColorNotifier.value, 0.2),
                       fontSize: Responsive.font(context, 14),
                     ),
                   ),
                 ),
+                _buildServingRow(),
                 SizedBox(height: Responsive.height(context, 10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    frostedButton(
-                      "Scan Again",
-                      context,
-                      onPressed: () {
-                        setState(() {
-                          barcodeResult = null;
-                          scannerActive = true;
-                        });
-                      },
-                    ),
-                  ],
+                frostedButton(
+                  // Option to retry scanning on a successful scan
+                  "Scan Again",
+                  context,
+                  onPressed: () {
+                    setState(() {
+                      barcodeResult = null;
+                      scannerActive = true;
+                    });
+                  },
                 ),
               ],
             ),
@@ -1017,11 +1061,17 @@ class _FoodLoggingState extends State<FoodLogging>
 
   // Build the Manual Entry tab content, all fields inside one frosted glass card
   Widget _buildManualEntryTab() {
+    final macroFields = [
+      (manualProteinController, "Protein (g)"),
+      (manualCarbsController, "Carbs (g)"),
+      (manualFatController, "Fat (g)"),
+    ];
+
     return SingleChildScrollView(
+      // Entire Manual tab is scrollable
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header
           Padding(
             padding: EdgeInsets.only(
               top: Responsive.height(context, 16),
@@ -1058,21 +1108,148 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
                 ),
                 _buildManualField(manualNameController, "Food Name"),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2, // gets 2/3 of the row space
+                      child: _buildManualField(
+                        manualServingAmountController,
+                        "Serving Amount:",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [_decimalFormatter()],
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 12)),
+                    Expanded(
+                      flex: 1, // gets 1/3 of the row space
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(context, 4),
+                        ),
+                        child: DropdownButton<String>(
+                          isDense: true,
+                          focusColor: Colors.transparent,
+                          value: allowedUnits.contains(manualSelectedUnit)
+                              ? manualSelectedUnit
+                              : '__custom_active__',
+                          isExpanded: true,
+                          dropdownColor: darkenColor(
+                            appColorNotifier.value,
+                            0.05,
+                          ),
+                          style: GoogleFonts.manrope(
+                            color: Colors.white,
+                            fontSize: Responsive.font(context, 14),
+                          ),
+                          underline: Container(
+                            height: 1,
+                            color: lightenColor(appColorNotifier.value, 0.15),
+                          ),
+                          items: [
+                            if (!allowedUnits.contains(manualSelectedUnit))
+                              DropdownMenuItem(
+                                value: '__custom_active__',
+                                child: Text(manualSelectedUnit),
+                              ),
+                            ...allowedUnits.map(
+                              // Spread operator to loop over allowedUnits and create a DropdownMenuItem for each item
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            ),
+                            // Custom serving option for the Manual tab
+                            DropdownMenuItem(
+                              value: '__custom__',
+                              child: Text(
+                                "Custom...",
+                                style: GoogleFonts.manrope(
+                                  color: Colors.white54,
+                                  fontSize: Responsive.font(context, 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value == '__custom__') {
+                              _customUnitController.clear();
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: darkenColor(
+                                    appColorNotifier.value,
+                                    0.025,
+                                  ).withAlpha(220),
+                                  title: Text(
+                                    "Custom Unit",
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  content: TextField(
+                                    controller: _customUnitController,
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: "e.g. A slice, a can, a bag...",
+                                      hintStyle: GoogleFonts.manrope(
+                                        color: Colors.white38,
+                                      ),
+                                      enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white38,
+                                        ),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        "Cancel",
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        final custom = _customUnitController
+                                            .text
+                                            .trim();
+                                        if (custom.isNotEmpty) {
+                                          setState(
+                                            () => manualSelectedUnit = custom,
+                                          );
+                                        }
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        "OK",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else if (value != null &&
+                                value != '__custom_active__') {
+                              setState(() => manualSelectedUnit = value);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 _buildManualField(
                   manualCaloriesController,
                   "Calories (kcal)",
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      final text = newValue.text;
-
-                      if (text.isEmpty) return newValue;
-
-                      return RegExp(r'^\d{0,5}(\.\d{0,3})?$').hasMatch(text)
-                          ? newValue
-                          : oldValue;
-                    }),
-                  ], // only whole numbers
+                  inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
                 ),
                 SizedBox(height: Responsive.height(context, 16)),
                 Text(
@@ -1084,92 +1261,50 @@ class _FoodLoggingState extends State<FoodLogging>
                     letterSpacing: Responsive.scale(context, 1.4),
                   ),
                 ),
-                _buildManualField(
-                  manualProteinController,
-                  "Protein (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      final text = newValue.text;
-
-                      if (text.isEmpty) return newValue;
-
-                      return RegExp(r'^\d{0,5}(\.\d{0,3})?$').hasMatch(text)
-                          ? newValue
-                          : oldValue;
-                    }),
-                  ],
-                ),
-                _buildManualField(
-                  manualCarbsController,
-                  "Carbs (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      final text = newValue.text;
-
-                      if (text.isEmpty) return newValue;
-
-                      return RegExp(r'^\d{0,5}(\.\d{0,3})?$').hasMatch(text)
-                          ? newValue
-                          : oldValue;
-                    }),
-                  ],
-                ),
-                _buildManualField(
-                  manualFatController,
-                  "Fat (g)",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      final text = newValue.text;
-
-                      if (text.isEmpty) return newValue;
-
-                      return RegExp(r'^\d{0,5}(\.\d{0,3})?$').hasMatch(text)
-                          ? newValue
-                          : oldValue;
-                    }),
-                  ],
-                ),
+                for (final (controller, hint) in macroFields)
+                  _buildManualField(
+                    controller,
+                    hint,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
+                  ),
               ],
             ),
           ),
-          // Meal tiles inline so everything scrolls together
-          _buildMealSection("Breakfast", breakfastFoods),
-          _buildMealSection("Lunch", lunchFoods),
-          _buildMealSection("Dinner", dinnerFoods),
-          _buildMealSection("Snacks", snacksFoods),
+          _buildAllMealSections(),
           SizedBox(height: Responsive.height(context, 20)),
         ],
       ),
     );
   }
 
-  // Build the meal sections (shared across all tabs)
+  Widget _buildAllMealSections() {
+    return Column(
+      children: [
+        _buildMealSection("Breakfast", breakfastFoods),
+        _buildMealSection("Lunch", lunchFoods),
+        _buildMealSection("Dinner", dinnerFoods),
+        _buildMealSection("Snacks", snacksFoods),
+      ],
+    );
+  }
+
   Widget _buildMealTiles() {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 16)),
       children: [
-        // Breakfast
-        _buildMealSection("Breakfast", breakfastFoods),
-        // Lunch
-        _buildMealSection("Lunch", lunchFoods),
-        // Dinner
-        _buildMealSection("Dinner", dinnerFoods),
-        // Snacks
-        _buildMealSection("Snacks", snacksFoods),
+        _buildAllMealSections(),
         SizedBox(height: Responsive.height(context, 20)),
       ],
     );
   }
 
   Widget _buildMealSection(String title, List<Map<String, dynamic>> foods) {
-    final key = title;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header
         Padding(
           padding: EdgeInsets.only(
             top: Responsive.height(context, 16),
@@ -1182,11 +1317,10 @@ class _FoodLoggingState extends State<FoodLogging>
               fontSize: Responsive.font(context, 15),
               color: Colors.white38,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1.4,
+              letterSpacing: Responsive.font(context, 1),
             ),
           ),
         ),
-        // Food cards or empty state
         if (foods.isEmpty)
           Padding(
             padding: EdgeInsets.only(
@@ -1205,13 +1339,10 @@ class _FoodLoggingState extends State<FoodLogging>
           ...foods.asMap().entries.map((entry) {
             // spread operator to individually return each food card, as well as index for unique keys and deletion
             int idx = entry.key; // store index of food for deletion option
-            Map<String, dynamic> food = entry.value;
+            final food = entry.value;
             return Dismissible(
               // Dismissible widget so the food can be swiped to delete
-              key: ValueKey(
-                "${key.toLowerCase()}_$idx${food['food_name']}",
-              ), // unique key that combines the index and food name
-              // formatting of background when user swipes to delete a food
+              key: ValueKey("${title.toLowerCase()}_$idx${food['food_name']}"),
               background: Container(
                 decoration: BoxDecoration(
                   color: Colors.red,
@@ -1222,15 +1353,7 @@ class _FoodLoggingState extends State<FoodLogging>
                 child: Icon(Icons.delete, color: Colors.white),
               ),
               direction: DismissDirection.endToStart,
-              onDismissed: (direction) async {
-                setState(() {
-                  // when the user swipes to delete, remove the food and update to the server
-                  foods.removeAt(idx);
-                  final dateKey = formatDateKey(currentDate);
-                  foodDataByDate[dateKey]![key] = foods;
-                });
-                await saveFoodData();
-              },
+              onDismissed: (_) => _deleteFood(title, idx, foods),
               child: Padding(
                 padding: EdgeInsets.only(
                   bottom: Responsive.height(context, 10),
@@ -1263,13 +1386,52 @@ class _FoodLoggingState extends State<FoodLogging>
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 4)),
-                            // Display calories under food name
-                            Text(
-                              "${num.tryParse(food['calories'].toString()) ?? 0} kcal",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 12),
-                                color: Colors.white60,
-                              ),
+                            // Parse and display all macros present in the description
+                            Builder(
+                              builder: (context) {
+                                final macros = extractMacros(
+                                  food['food_description'] as String? ?? '',
+                                );
+                                final serving = parseServing(
+                                  food['food_description'] as String? ?? '',
+                                );
+                                final servingAmt = serving['amount'] as double;
+                                final servingUnit =
+                                    ' ${serving['unit'] as String}';
+                                final servingStr =
+                                    servingAmt % 1 ==
+                                        0 // Check if servingStr is a whole number or not
+                                    ? servingAmt.toInt().toString()
+                                    : servingAmt.toString();
+                                final cal =
+                                    num.tryParse(food['calories'].toString()) ??
+                                    0;
+                                final parts = <String>[
+                                  '$servingStr$servingUnit · $cal kcal',
+                                ];
+                                if (macros['protein']! > 0) {
+                                  parts.add(
+                                    'Protein: ${macros['protein']!.toStringAsFixed(1)}g',
+                                  );
+                                }
+                                if (macros['carbs']! > 0) {
+                                  parts.add(
+                                    'Carbs: ${macros['carbs']!.toStringAsFixed(1)}g',
+                                  );
+                                }
+                                if (macros['fat']! > 0) {
+                                  parts.add(
+                                    'Fat: ${macros['fat']!.toStringAsFixed(1)}g',
+                                  );
+                                }
+                                return Text(
+                                  parts.join(' - '),
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 12),
+                                    color: Colors.white60,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -1281,14 +1443,7 @@ class _FoodLoggingState extends State<FoodLogging>
                           color: Colors.redAccent,
                           size: Responsive.scale(context, 20),
                         ),
-                        onPressed: () async {
-                          setState(() {
-                            foods.removeAt(idx);
-                            final dateKey = formatDateKey(currentDate);
-                            foodDataByDate[dateKey]![key] = foods;
-                          });
-                          await saveFoodData();
-                        },
+                        onPressed: () => _deleteFood(title, idx, foods),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
@@ -1305,7 +1460,8 @@ class _FoodLoggingState extends State<FoodLogging>
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _loadUserDataFuture,
+      future:
+          _loadUserDataFuture, // same future instance across rebuilds, so the load only runs once
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Container(
@@ -1336,13 +1492,9 @@ class _FoodLoggingState extends State<FoodLogging>
           decoration: BoxDecoration(gradient: buildThemeGradient()),
           child: Scaffold(
             backgroundColor: Colors.transparent, // Body color
-            // Header box
             appBar: AppBar(
               scrolledUnderElevation: 0,
-              backgroundColor: darkenColor(
-                appColorNotifier.value,
-                0.025,
-              ), // Header color
+              backgroundColor: darkenColor(appColorNotifier.value, 0.025),
               centerTitle: true,
               toolbarHeight: Responsive.buttonHeight(context, 120),
               title: createTitle("Food Logging", context),
@@ -1351,7 +1503,7 @@ class _FoodLoggingState extends State<FoodLogging>
               padding: EdgeInsets.all(Responsive.width(context, 16)),
               child: Column(
                 children: [
-                  // date arrows and display
+                  // Date navigation
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -1386,10 +1538,10 @@ class _FoodLoggingState extends State<FoodLogging>
                     ],
                   ),
 
-                  // Display total calories text
+                  // Total calories for the day text
                   Text(
                     "Total Calories: ${getTotalCaloriesForDay()}",
-                    style: TextStyle(
+                    style: GoogleFonts.manrope(
                       color: Colors.white,
                       fontSize: Responsive.font(context, 20),
                       fontWeight: FontWeight.bold,
@@ -1401,7 +1553,28 @@ class _FoodLoggingState extends State<FoodLogging>
                   // Tab bar
                   TabBar(
                     controller: _tabController,
-                    onTap: (_) => setState(() {}),
+                    // Only reset state when actually switching to a different tab,
+                    // so a selected food survives navigating away and back
+                    onTap: (index) {
+                      if (index != _previousTabIndex) {
+                        setState(() {
+                          _previousTabIndex = index;
+                          foodList = [];
+                          servingAmountController.clear();
+                          selectedUnit = 'g';
+                          baseAmount = 1.0;
+                          baseMacros = {};
+                          displayDescription = '';
+                          selectedFood = null;
+                          userCanType = true;
+                          mealChosen = false;
+                          searchController.clear();
+                          barcodeResult = null;
+                          barcodeError = null;
+                          scannerActive = false;
+                        });
+                      }
+                    },
                     indicatorColor: Colors.white,
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.white54,
@@ -1427,11 +1600,12 @@ class _FoodLoggingState extends State<FoodLogging>
 
                   SizedBox(height: Responsive.height(context, 8)),
 
-                  // Horizontally lay out the next two buttons
+                  // Meal type dropdown and search field / log button
                   Row(
                     children: [
                       // Meal Type chooser
                       DropdownButton2<String>(
+                        isDense: true,
                         dropdownStyleData: DropdownStyleData(
                           decoration: BoxDecoration(
                             color: appColorNotifier.value.withAlpha(128),
@@ -1473,23 +1647,16 @@ class _FoodLoggingState extends State<FoodLogging>
                           ),
                         ),
                         value: mealType,
-                        items: [
-                          addMenuItem("Breakfast"),
-                          addMenuItem("Lunch"),
-                          addMenuItem("Dinner"),
-                          addMenuItem("Snacks"),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            mealType = value;
-                          });
-                        },
+                        // Convert the strings to DropdownMenuItems
+                        items: ["Breakfast", "Lunch", "Dinner", "Snacks"]
+                            .map(
+                              (t) => DropdownMenuItem(value: t, child: Text(t)),
+                            )
+                            .toList(),
+                        onChanged: (value) => setState(() => mealType = value),
                       ),
-
-                      // Separate the two buttons with some space
                       SizedBox(width: Responsive.width(context, 25)),
-
-                      // Search Button, which is replaced with the Log Food button when not on the Search tab
+                      // Search field on the search tab, log button everywhere else
                       _tabController.index == FoodTab.search
                           ? buildSearchButton()
                           : Expanded(child: buildLogFoodButton()),
@@ -1530,18 +1697,14 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
-  // Whether the current tab has active input taking up space
+  // Whether the current tab has active input that should take up the full content area (manual tab never does)
   bool _hasActiveInput() {
-    final tab = _tabController.index;
-    if (tab == FoodTab.search) return foodList.isNotEmpty;
-    if (tab == FoodTab.barcode) {
+    if (_tabController.index == FoodTab.search) return foodList.isNotEmpty;
+    if (_tabController.index == FoodTab.barcode) {
       return scannerActive ||
           barcodeLoading ||
           barcodeResult != null ||
           barcodeError != null;
-    }
-    if (tab == FoodTab.manual) {
-      return false; // manual tab doesn't have dynamic input that changes the layout, so we consider it to never have "active input" for layout purposes
     }
     return false;
   }
