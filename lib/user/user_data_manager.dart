@@ -850,6 +850,7 @@ class UserDataManager {
   Future<void> updateFoodDataByDate(
     Map<String, Map<String, List<Map<String, dynamic>>>> newFoodData, {
     BuildContext? context,
+    bool isBeingDeleted = false,
   }) async {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -869,12 +870,12 @@ class UserDataManager {
       }
 
       // Only show success snackbar if connected, otherwise the offline snackbar is shown in the catch block
+      final msg = isBeingDeleted
+          ? "Food deleted successfully."
+          : "Food logged successfully.";
       if (context != null && isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Food logged successfully."),
-            duration: Duration(milliseconds: 1500),
-          ),
+          SnackBar(content: Text(msg), duration: Duration(milliseconds: 1500)),
         );
       }
     } catch (e) {

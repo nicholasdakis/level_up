@@ -770,3 +770,4 @@ Developmental progress by date is stored in this file.
 - _decimalFormatter() was added as a shared input formatter instead of repeating the inline TextInputFormatter.withFunction on every manual field
 - _castFoodList() helper added to avoid repeating the same cast pattern in loadFoodForDate
 Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every tap to only resetting state when actually changing tabs
+- Added an isBeingDeleted parameter to updateFoodDataByDate to handle the "food logged" snackbar appearing when deleting a food

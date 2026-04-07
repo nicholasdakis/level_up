@@ -506,7 +506,7 @@ class _FoodLoggingState extends State<FoodLogging>
       () => {"Breakfast": [], "Lunch": [], "Dinner": [], "Snacks": []},
     );
     foodDataByDate[dateKey]![mealType!]!.add(foodObject);
-    await saveFoodData();
+    await saveFoodData("add");
 
     setState(() {
       loadFoodForDate(currentDate);
@@ -542,10 +542,14 @@ class _FoodLoggingState extends State<FoodLogging>
     });
   }
 
-  Future<void> saveFoodData() async {
+  Future<void> saveFoodData(String? addOrDelete) async {
     if (currentUserData == null) return;
     currentUserData!.foodDataByDate = foodDataByDate;
-    await userManager.updateFoodDataByDate(foodDataByDate, context: context);
+    await userManager.updateFoodDataByDate(
+      foodDataByDate,
+      context: context,
+      isBeingDeleted: addOrDelete == "delete",
+    );
   }
 
   Future<void> _deleteFood(
@@ -558,7 +562,7 @@ class _FoodLoggingState extends State<FoodLogging>
       final dateKey = formatDateKey(currentDate);
       foodDataByDate[dateKey]![mealKey] = foods;
     });
-    await saveFoodData();
+    await saveFoodData("delete");
   }
 
   Future<void> handleManualEntry() async {
