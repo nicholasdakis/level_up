@@ -739,3 +739,11 @@ Developmental progress by date is stored in this file.
 - The StreamBuilder in leaderboard.dart calls getLeaderboardStream() and maps results using LeaderboardEntry objects
 - If the user loses connection, the leaderboard still loads from Firestore's local cache. prefetchLeaderboard() is called on app startup to ensure this cache is populated even if the user has never opened the leaderboard tab. If they did open it while online, the stream will have updated the cache with fresher data than the prefetch, so that will be shown instead
 - itemCount is capped at 100 to only show the top 100 users
+
+## 2026-04-06
+- Realized that since the initialize method only runs on app startup, an fcmToken is only initialized during initial app opening. This explained an issue I was facing with reminders not working when I'd set one after returning to the app after having it minimized for a while
+- Since reminders are sent to fcmTokens stored at the time of the send and not at the time the reminder is made, the fix is to refresh the user's fcmTokens if they ever come back to the app and delete the old one
+- The backend already deleted invalid fcm tokens in the send_due_reminders method, so no changes were needed for this
+- Created a refreshToken method that gets a new fcmToken and adds it to the user's fcmTokens array, ensuring the user always has a valid fcmToken stored when they come back to the app after some time after not having fully closed it
+- Made an observer class _FcmLifecycleObserver that calls refreshToken() whenever the user comes back to the app
+- The observer is setup in the initialize() method of the fcm helper class

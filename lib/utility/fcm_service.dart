@@ -82,8 +82,16 @@ class FcmService {
 
     // Update the token in Firestore if Firebase rotates it (e.g. after reinstall)
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      // if Firebase rotates the token while the app is active, add the new one
       if (newToken.isNotEmpty) await userManager.addFcmToken(newToken);
     });
+
+    if (kIsWeb) {
+      final observer = _FcmLifecycleObserver();
+      WidgetsBinding.instance.addObserver(
+        observer,
+      ); // observer on Web so that it automatically calls refreshToken() on resuming the app
+    }
 
     // Show a browser notification for foreground messages on web
     // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
@@ -97,5 +105,39 @@ class FcmService {
         web_fcm.showJsNotification(title, body);
       }
     });
+  }
+
+  // Re-fetches the FCM token and updates Firestore if it changed
+  // Called when the web tab regains visibility after being suspended
+  static Future<void> refreshToken() async {
+    const vapidKey =
+        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
+
+    String? deviceToken;
+    try {
+      deviceToken = await web_fcm
+          .getWebFcmToken(vapidKey)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+    } catch (e) {
+      deviceToken = null;
+    }
+
+    debugPrint(
+      'FCM token refresh: ${deviceToken != null ? "obtained" : "NULL"}',
+    );
+
+    if (deviceToken != null) {
+      await userManager.addFcmToken(deviceToken);
+    }
+  }
+}
+
+// Watches for app resume events on web and re-fetches the FCM token
+class _FcmLifecycleObserver extends WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      FcmService.refreshToken();
+    }
   }
 }
