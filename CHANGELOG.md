@@ -771,6 +771,8 @@ Developmental progress by date is stored in this file.
 - _castFoodList() helper added to avoid repeating the same cast pattern in loadFoodForDate
 Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every tap to only resetting state when actually changing tabs
 - Added an isBeingDeleted parameter to updateFoodDataByDate to handle the "food logged" snackbar appearing when deleting a food
+
+## 2026-04-07
 - Made claimDailyReward directly return xp_gained from the backend instead of new-old xp, which would be negative if the user leveled up from the experience gained
 - Replaced the Leaderboard stream with a get() to avoid unnecessary Firestore reads
 - Added a refresh button for the leaderboard tab to replace the automatic updating
@@ -787,3 +789,22 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Edited the buildMacroText() text to also show a macro if it is 0 (e.g. show that a dressing has 0 protein)
 - Removed the calories variable because buildMacroText can already extract them
 - Replaced Expanded with Flexible for the Recent Foods cards so the name can take 1/3 of the card and the information can take 2/3
+- Added a /get_nearby_pois backend route that takes the user's coordinates and queries the Overpass API (via a private.coffee mirror) for nearby amenities, leisure spots, shops, and tourism nodes within 500 meters
+- Created an Overpass QL query template that searches for nodes with amenity, leisure, shop, or tourism tags near the user's location
+- Added a parse_overpass_response method that filters out unnamed nodes and extracts the name, lat/lng, and category (amenity/leisure/shop/tourism) from each Overpass element into POIItem objects
+- If more than 20 named POIs are found, a random sample of 20 is returned to keep the list manageable
+- Added a /check_in_poi backend route that lets users check in to a POI for XP, with server-side proximity verification using the haversine formula (the user must be within 50 meters)
+- The check-in route enforces a 24-hour cooldown per POI using a poi-visits subcollection under each user's private document in Firestore
+- Added a record_poi_visit_transaction method in the repository that atomically records the visit timestamp, checks the 24-hour cooldown, and updates the user's XP and level inside a single Firestore transaction to prevent race conditions
+- Created Pydantic schemas for NearbyPOIRequest, NearbyPOIResponse, POIItem, CheckInPOIRequest, and CheckInPOIResponse to validate all POI-related request and response data
+- Added a _haversine method to the service layer for the necessary haversine formula (checks spherical distance between 2 points)
+- Created a POI model class on the Flutter side with fromJson/toJson for parsing backend responses and caching to SharedPreferences
+- Created a POIService class that handles fetching POIs from the backend, caching them locally with SharedPreferences, and only re-fetching when the user moves more than 500 meters from the last cached location
+- POIService also handles check-in requests, tracking visited POIs locally with timestamps, cleaning up visit records older than 24 hours, and finding the closest unvisited POI within check-in range
+- Nearby Experience Spots now shows actual nearby spots instead of placeholder text
+- Each POI in the list shows a visited/unvisited indicator, and visited POIs are dimmed
+- Added a confetti celebration that plays on successful check-in, and the check-in button briefly shows the XP gained before resetting
+- Fixed a bug where calling mapController.moveTo() before the OSM map controller was initialized caused a LateInitializationError that silently prevented POIs from loading
+- Moved the moveTo call into the mapIsReady callback so it only runs after the map controller is fully initialized, and also called _addPOIMarkers there to handle any markers that loaded before the map was ready
+- Added an iconForCategory method to make markers match what the POI actually is rather than using a generic marker
+- Tried to use Future.wait to load POI markers in parallel instead of using a for loop to do so sequentially, but reverted because it caused iconForCategory to always fallback to default markers

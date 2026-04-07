@@ -15,11 +15,11 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 // Base URL for the backend hosted on Render. All backend requests go to this URL
-const String _backendBaseUrl = 'https://level-up-69vz.onrender.com';
+const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
 
 // Gets a fresh Firebase ID token, a JWT, to authenticate requests with the backend
 // Firebase caches this automatically so it only re-fetches when close to expiry (1hr)
-Future<String> _getIdToken() async {
+Future<String> getIdToken() async {
   final token = await FirebaseAuth.instance.currentUser?.getIdToken().timeout(
     Duration(seconds: 2),
   );
@@ -256,10 +256,10 @@ class UserDataManager {
   // Calls the backend /get_progress endpoint to get the user's level, XP, and reward status
   // Separated into its own method so it can be called on pull-to-refresh too
   static Future<Map<String, dynamic>> _fetchProgress() async {
-    final token = await _getIdToken();
+    final token = await getIdToken();
     final response = await http
         .post(
-          Uri.parse('$_backendBaseUrl/get_progress'),
+          Uri.parse('$backendBaseUrl/get_progress'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_token': token}),
         )
@@ -516,10 +516,10 @@ class UserDataManager {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_backendBaseUrl/update_exp'),
+        Uri.parse('$backendBaseUrl/update_exp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'id_token': await _getIdToken(),
+          'id_token': await getIdToken(),
           'event': event,
           'event_id': eventId,
         }),
@@ -557,9 +557,9 @@ class UserDataManager {
     try {
       // Call backend to claim daily reward
       final response = await http.post(
-        Uri.parse('$_backendBaseUrl/claim_daily_reward'),
+        Uri.parse('$backendBaseUrl/claim_daily_reward'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': await _getIdToken()}),
+        body: jsonEncode({'id_token': await getIdToken()}),
       );
 
       if (response.statusCode != 200) {
@@ -603,10 +603,10 @@ class UserDataManager {
       // Call the backend to check uniqueness and update the username atomically
       final response = await http
           .post(
-            Uri.parse('$_backendBaseUrl/update_username'),
+            Uri.parse('$backendBaseUrl/update_username'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
-              'id_token': await _getIdToken(),
+              'id_token': await getIdToken(),
               'username': updatedUsername,
             }),
           )
@@ -901,9 +901,9 @@ class UserDataManager {
 
   // Searches for food via the backend, which proxies to FatSecret API
   static Future<http.Response> searchFood(String query) async {
-    final idToken = await _getIdToken();
+    final idToken = await getIdToken();
     return await http.post(
-      Uri.parse('$_backendBaseUrl/get_food'),
+      Uri.parse('$backendBaseUrl/get_food'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'id_token': idToken, 'food_name': query}),
     );
