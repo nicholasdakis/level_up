@@ -110,10 +110,9 @@ class _RemindersState extends State<Reminders> {
       final loadedReminders = <ReminderData>[];
       final remindersToDelete = <ReminderData>[];
 
+      // Iterate over all the reminders and separate future vs expired reminders
       for (final doc in querySnapshot.docs) {
         final data = doc.data();
-
-        // Defensive parsing with null check & try-catch
         DateTime? reminderTime;
         try {
           if (data['dateTime'] == null) continue; // skip null dates
@@ -131,10 +130,12 @@ class _RemindersState extends State<Reminders> {
         );
 
         if (reminderTime.isAfter(now)) {
+          // The reminder has not happened yet
           loadedReminders.add(reminderData);
+          // The reminder has happened and the grace period has passed, so it should be deleted
+          // reminderTime.isBefore(cleanupThreshold) is for reminders that have already happened
+          // and are older than 1 minute
         } else if (reminderTime.isBefore(cleanupThreshold)) {
-          // Only delete reminders that are >1 min past due, so the backend
-          // has time to send the notification before we clean them up
           remindersToDelete.add(reminderData);
         }
       }

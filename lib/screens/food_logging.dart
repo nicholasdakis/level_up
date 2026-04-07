@@ -378,6 +378,59 @@ class _FoodLoggingState extends State<FoodLogging>
         ' | Protein: ${macros['protein']!.toStringAsFixed(2)}g';
   }
 
+  // Build a macro summary text from a food's food_description
+  Widget _buildMacroText(
+    Map<String, dynamic> food, {
+    double fontSize = 12,
+    Color color = Colors.white60,
+    bool includeServing = true,
+    bool compact = false,
+  }) {
+    final macros = extractMacros(food['food_description'] as String? ?? '');
+    final parts = <String>[];
+    if (includeServing) {
+      final serving = parseServing(food['food_description'] as String? ?? '');
+      final servingAmt = serving['amount'] as double;
+      final servingUnit = ' ${serving['unit'] as String}';
+      final servingStr =
+          servingAmt % 1 ==
+              0 // Check if servingStr is a whole number or not
+          ? servingAmt.toInt().toString()
+          : servingAmt.toString();
+      final cal = num.tryParse(food['calories'].toString()) ?? 0;
+      parts.add('$servingStr$servingUnit · $cal kcal');
+    }
+    if (macros['protein']! >= 0) {
+      parts.add(
+        compact
+            ? 'P: ${macros['protein']!.toStringAsFixed(1)}g'
+            : 'Protein: ${macros['protein']!.toStringAsFixed(1)}g',
+      );
+    }
+    if (macros['carbs']! >= 0) {
+      parts.add(
+        compact
+            ? 'C: ${macros['carbs']!.toStringAsFixed(1)}g'
+            : 'Carbs: ${macros['carbs']!.toStringAsFixed(1)}g',
+      );
+    }
+    if (macros['fat']! >= 0) {
+      parts.add(
+        compact
+            ? 'F: ${macros['fat']!.toStringAsFixed(1)}g'
+            : 'Fat: ${macros['fat']!.toStringAsFixed(1)}g',
+      );
+    }
+    if (parts.isEmpty) return SizedBox.shrink();
+    return Text(
+      parts.join(' - '),
+      style: GoogleFonts.manrope(
+        fontSize: Responsive.font(context, fontSize),
+        color: color,
+      ),
+    );
+  }
+
   // Method to format the time displayed to the user when the fatSecret API calls have been maxed out
   String formatDuration(String rawTime) {
     final parts = rawTime.split('.')[0].split(':');
@@ -1365,9 +1418,6 @@ class _FoodLoggingState extends State<FoodLogging>
           ...(_recentFoods.map((food) {
             // Spread operator so the UI adds every recent food as its own individual widget
             final name = food['food_name'] ?? '';
-            final calories =
-                food['calories'] ??
-                extractCalories(food['food_description'] ?? '');
             return Padding(
               padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
               child: MouseRegion(
@@ -1401,12 +1451,12 @@ class _FoodLoggingState extends State<FoodLogging>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          "$calories cal",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 13),
-                            color: Colors.white54,
-                          ),
+                        // Recent food card info
+                        _buildMacroText(
+                          food,
+                          fontSize: 11,
+                          color: Colors.white54,
+                          compact: true,
                         ),
                       ],
                     ),
@@ -1532,53 +1582,7 @@ class _FoodLoggingState extends State<FoodLogging>
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 4)),
-                            // Parse and display all macros present in the description
-                            Builder(
-                              builder: (context) {
-                                final macros = extractMacros(
-                                  food['food_description'] as String? ?? '',
-                                );
-                                final serving = parseServing(
-                                  food['food_description'] as String? ?? '',
-                                );
-                                final servingAmt = serving['amount'] as double;
-                                final servingUnit =
-                                    ' ${serving['unit'] as String}';
-                                final servingStr =
-                                    servingAmt % 1 ==
-                                        0 // Check if servingStr is a whole number or not
-                                    ? servingAmt.toInt().toString()
-                                    : servingAmt.toString();
-                                final cal =
-                                    num.tryParse(food['calories'].toString()) ??
-                                    0;
-                                final parts = <String>[
-                                  '$servingStr$servingUnit · $cal kcal',
-                                ];
-                                if (macros['protein']! > 0) {
-                                  parts.add(
-                                    'Protein: ${macros['protein']!.toStringAsFixed(1)}g',
-                                  );
-                                }
-                                if (macros['carbs']! > 0) {
-                                  parts.add(
-                                    'Carbs: ${macros['carbs']!.toStringAsFixed(1)}g',
-                                  );
-                                }
-                                if (macros['fat']! > 0) {
-                                  parts.add(
-                                    'Fat: ${macros['fat']!.toStringAsFixed(1)}g',
-                                  );
-                                }
-                                return Text(
-                                  parts.join(' - '),
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 12),
-                                    color: Colors.white60,
-                                  ),
-                                );
-                              },
-                            ),
+                            _buildMacroText(food),
                           ],
                         ),
                       ),

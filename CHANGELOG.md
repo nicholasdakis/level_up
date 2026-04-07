@@ -782,4 +782,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - If no foods are logged, the dropdown doesn't show, and if there are foods logged, clicking displays each recent food as a clickable frosted card that acts as the "Log Food" button
 - Created a helper class for recent foods that initializes the shared_preferences object, has getter and setter methods, removes duplicates, and keeps only the most recent 30 entries
 - Implemented JSON serialization/deserialization so the list can be saved and loaded easily from shared preferences
-- Added an isLogging variable and timer that prevent accidentally using logFood twice in a row by accident (there is now a 3 second timer)
+- Added an isLogging variable and timer that prevent accidentally using logFood twice in a row by accident (there is now a 5 second timer)
+- Extracted the code that builds the macro text into buildMacroText() so that it can be reused in the recent foods cards
+- Edited the buildMacroText() text to also show a macro if it is 0 (e.g. show that a dressing has 0 protein)
+- Removed the calories variable because buildMacroText can already extract them
