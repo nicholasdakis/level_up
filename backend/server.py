@@ -16,7 +16,12 @@ from backend.schemas import (
     ProgressResponse,
     UpdateUsernameRequest,
     UpdateUsernameResponse,
-    SearchFoodRequest
+    SearchFoodRequest,
+    NearbyPOIRequest,
+    NearbyPOIResponse,
+    POIItem,
+    CheckInPOIRequest,
+    CheckInPOIResponse
 )
 from backend.auth import verify_token
 from datetime import timedelta, timezone, datetime
@@ -27,6 +32,7 @@ from pydantic import ValidationError
 import firebase_admin
 import json
 import re
+import random
 
 # Get the environmental variables from Render
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -261,6 +267,129 @@ def get_food():
     except requests.RequestException as e:
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
+
+# Overpass API endpoint (coffee.pro mirror, unlimited calls)
+OVERPASS_URL = "https://overpass.private.coffee/api/interpreter"
+
+# Overpass QL query template for fetching general POIs near a location
+# {lat}, {lng}, {radius} are filled in at request time
+OVERPASS_QUERY = """
+[out:json][timeout:10];
+(
+  node["amenity"](around:{radius},{lat},{lng});
+  node["leisure"](around:{radius},{lat},{lng});
+  node["shop"](around:{radius},{lat},{lng});
+  node["tourism"](around:{radius},{lat},{lng});
+);
+out body;
+"""
+
+# Method to turn the Overpass JSON into POIItem objects for the useful fields
+def parse_overpass_response(data):
+    pois = []
+    elements = data.get("elements", []) # Overpass returns results in an "elements" array
+
+    for element in elements:
+        tags = element.get("tags", {}) # tags hold metadata like name, amenity type
+        name = tags.get("name") # to skip unnamed nodes
+
+        if not name:
+            continue
+
+        # Figure out the node's category by going through all categories
+        category = (
+            tags.get("amenity") or
+            tags.get("leisure") or
+            tags.get("shop") or
+            tags.get("tourism") or
+            "other" # fallback
+        )
+
+        pois.append(POIItem(
+            name=name,
+            lat=element["lat"], # Overpass always includes lat/lon for nodes
+            lng=element["lon"], # self-note: Overpass uses "lon" for longtitude
+            category=category,
+        ))
+
+    return pois
+
+@app.route("/get_nearby_pois", methods=["POST"])
+def get_nearby_pois():
+    # Step 1: Validate request body with the Pydantic schema
+    try:
+        body = NearbyPOIRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Make sure the user is who they say they are
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: Build the Overpass query by filling in the user's coordinates
+    query = OVERPASS_QUERY.format(
+        lat=body.lat,
+        lng=body.lng,
+        radius=1000, # scans 1000 meters within the user's location
+    )
+
+    # Step 4: Send the query to the Overpass API
+    try:
+        overpass_response = requests.post(
+            OVERPASS_URL,
+            data={"data": query}, # Overpass expects the query in a "data" form field
+            timeout=15, # slightly longer than the Overpass query timeout of 10s
+        )
+
+        if overpass_response.status_code != 200:
+            return jsonify({"error": "Overpass API error", "status_code": overpass_response.status_code}), 502
+
+        raw_data = overpass_response.json() # parse the JSON response from Overpass
+
+    except requests.RequestException as e:
+        return jsonify({"error": f"Failed to reach Overpass API: {str(e)}"}), 502
+
+    # Step 5: Parse the raw Overpass data into POI objects
+    all_pois = parse_overpass_response(raw_data)
+
+    # Step 6: If there are more than 50 POIs found, a random subset of the 50 are shown
+    if len(all_pois) > 50:
+        all_pois = random.sample(all_pois, 50)
+
+    # Step 7: Build and return the validated response
+    response = NearbyPOIResponse(pois=all_pois)
+    return jsonify(response.model_dump()), 200
+
+@app.route("/check_in_poi", methods=["POST"])
+def check_in_poi():
+    # Step 1: Validate request body with the Pydantic schema
+    try:
+        body = CheckInPOIRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Make sure the user is who they say they are
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: Run the check-in through the service layer
+    result = progression_service.check_in_poi(
+        uid,
+        body.poi_name,
+        body.poi_lat,
+        body.poi_lng,
+        body.user_lat,
+        body.user_lng,
+    )
+
+    # Step 4: Build and return the validated response
+    response = CheckInPOIResponse(**result)
+    status = 200 if result["success"] else 409 # 409 = conflict
+    return jsonify(response.model_dump()), status
 
 @app.route("/update_username", methods=["POST"]) # POST because the route is for modifying data
 def update_username():

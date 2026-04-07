@@ -33,6 +33,21 @@ class SearchFoodRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     food_name: str = Field(..., min_length=1)
 
+class NearbyPOIRequest(BaseModel):
+    # Sent by Flutter when the user opens the Explore screen and needs nearby points of interest
+    id_token: str = Field(..., min_length=1)
+    lat: float = Field(..., ge=-90, le=90, description="User's latitude") # ge/le constrain to valid coordinate range
+    lng: float = Field(..., ge=-180, le=180, description="User's longitude") # same for longitude
+
+class CheckInPOIRequest(BaseModel):
+    # Sent by Flutter when the user taps the Check In button near a POI
+    id_token: str = Field(..., min_length=1)
+    poi_name: str = Field(..., min_length=1) # name of the POI the user wants to check into
+    poi_lat: float = Field(..., ge=-90, le=90) # latitude of the POI
+    poi_lng: float = Field(..., ge=-180, le=180) # longitude of the POI
+    user_lat: float = Field(..., ge=-90, le=90) # user's current latitude (verified server-side)
+    user_lng: float = Field(..., ge=-180, le=180) # user's current longitude
+
 # Response schemas --------------------
 
 class DailyRewardResponse(BaseModel):
@@ -60,3 +75,22 @@ class UpdateExpResponse(BaseModel):
 class UpdateUsernameResponse(BaseModel):
     success: bool
     error: str | None = None
+
+class POIItem(BaseModel):
+    # A single point of interest returned from Overpass
+    name: str # display name of the place (e.g. "Starbucks")
+    lat: float # latitude of the POI
+    lng: float # longitude of the POI
+    category: str # the OSM tag category (e.g. "cafe", "park", "gym")
+
+class NearbyPOIResponse(BaseModel):
+    # The full response containing a list of nearby POIs
+    pois: list[POIItem] = [] # list of POI items, empty by default if none found
+
+class CheckInPOIResponse(BaseModel):
+    # What is returned after a check-in attempt
+    success: bool # true if the check-in went through
+    xp_gained: int = 0 # how much XP was awarded
+    new_level: int = 1 # user's level after XP is applied
+    new_exp: int = 0 # user's XP after the award
+    error: str | None = None # reason for failure if success is false

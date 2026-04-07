@@ -108,6 +108,59 @@ class UserRepository:
         transaction = self._db.transaction()
         return _run(transaction)
 
+    # Method to check when a user last visited a specific POI
+    def get_poi_last_visit(self, uid: str, poi_name: str):
+        # Each user has a poi-visits subcollection under their users-private doc
+        # The document ID is the POI name, and it stores the last visit timestamp
+        doc = self._private.document(uid).collection('poi-visits').document(poi_name).get()
+        if not doc.exists:
+            return None # never visited this POI
+        return doc.to_dict().get('last_visit') # return the Firestore timestamp
+
+    # Atomically record the visit, update XP, and set a 24 hour cooldown for that poi
+    def record_poi_visit_transaction(self, uid: str, poi_name: str, new_level: int, new_exp: int):
+        public_ref = self._public.document(uid)
+        visit_ref = self._private.document(uid).collection('poi-visits').document(poi_name)
+
+        @firestore.transactional
+        def _run(transaction):
+            # Step 1: Read the visit doc inside the transaction to prevent race conditions
+            visit_snap = visit_ref.get(transaction=transaction)
+            visit_data = visit_snap.to_dict() if visit_snap.exists else {}
+
+            # Step 2: Check the 24-hour cooldown
+            last_visit = visit_data.get('last_visit')
+            now = datetime.now(timezone.utc)
+
+            if last_visit is not None:
+                # Convert Firestore timestamp to datetime if needed
+                if hasattr(last_visit, 'timestamp'):
+                    last_visit_dt = datetime.fromtimestamp(last_visit.timestamp(), tz=timezone.utc)
+                else:
+                    last_visit_dt = last_visit
+
+                seconds_since = (now - last_visit_dt).total_seconds()
+                if seconds_since < 86400: # 24 hours
+                    return {
+                        "success": False,
+                        "error": "Already visited in the last 24 hours",
+                        "seconds_remaining": int(86400 - seconds_since),
+                    }
+
+            # Step 3: Write the visit timestamp and update XP atomically
+            transaction.set(visit_ref, {'last_visit': now}) # record the visit time
+            transaction.set(
+                public_ref,
+                {'level': new_level, 'expPoints': new_exp},
+                merge=True, # merge=True to only update level and XP without overwriting other fields
+            )
+
+            return {"success": True}
+
+        # Execute the transaction (Firestore retries on conflict)
+        transaction = self._db.transaction()
+        return _run(transaction)
+
     def initialize_user_if_new(self, uid: str):
         # Creates default public/private docs for a first-time user
 

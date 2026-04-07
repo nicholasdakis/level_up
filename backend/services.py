@@ -2,7 +2,7 @@
 # Doesn't touch Firestore directly, it only acts through repository.py and returns the results for the route in the end
 
 import random
-from math import pow
+from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 
 from backend.repository import UserRepository
@@ -122,6 +122,71 @@ class ProgressionService: # Service class to handle all progression-related busi
             "seconds_remaining": 0,
         }
     
+    # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP
+    def check_in_poi(self, uid: str, poi_name: str, poi_lat: float, poi_lng: float, user_lat: float, user_lng: float):
+        # Step 1: Verify the user is actually close to the POI (within 200 meters using the haversine formula)
+        distance = self._haversine(user_lat, user_lng, poi_lat, poi_lng)
+        if distance > 200:
+            return {
+                "success": False,
+                "xp_gained": 0,
+                "new_level": 1,
+                "new_exp": 0,
+                "error": "Too far from this spot",
+            }
+
+        # Step 2: Get the user's current level and XP
+        public = self._repo.get_public_user(uid)
+        if public is None:
+            self._repo.initialize_user_if_new(uid)
+            public = {"level": 1, "expPoints": 0}
+
+        current_level = public.get("level", 1)
+        current_exp = public.get("expPoints", 0)
+
+        # Step 3: Calculate XP reward for checking in (the higher the level, the higher the small bonus
+        xp_gained = 100 + random.randint(0, max(current_level, 0))
+
+        # Step 4: Calculate the new level and XP after applying the reward
+        new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
+
+        # Step 5: Atomically record the visit and update XP (also checks 24h cooldown inside the transaction)
+        result = self._repo.record_poi_visit_transaction(uid, poi_name, new_level, new_exp)
+
+        if not result["success"]:
+            return {
+                "success": False,
+                "xp_gained": 0,
+                "new_level": current_level,
+                "new_exp": current_exp,
+                "error": result.get("error", "Check-in failed"),
+            }
+
+        # Step 6: Successful check-in
+        return {
+            "success": True,
+            "xp_gained": xp_gained,
+            "new_level": new_level,
+            "new_exp": new_exp,
+            "error": None,
+        }
+
+    # The haversine formula finds the shortest path between two points (lat1, lng1 and lat2, lng2) on a sphere (Earth)
+    def _haversine(self, lat1: float, lng1: float, lat2: float, lng2: float):
+        earth_radius = 6371000 # Earth's radius in meters
+        d_lat = radians(lat2 - lat1) # change / difference in latitude, converted to radians because the formula assumes radians
+        d_lng = radians(lng2 - lng1) # change / difference in longitude, converted to radians because the formula assumes radians
+        lat1 = radians(lat1)
+        lat2 = radians(lat2)
+        # The formula is d = R * c, where R = earth_radius and c is:
+        a = (
+            sin(d_lat / 2) ** 2 +
+            cos(lat1) * cos(lat2) *
+            sin(d_lng / 2) ** 2
+        )
+        c = 2 * atan2(sqrt(a), sqrt(1 - a)) # convert angular distance to radians
+        return earth_radius * c # multiply by Earth's radius to get meters
+
     def update_exp(self, uid: str, event: str, event_id: str):
 
         # Self-note: Make sure the events it checks are only handled by the backend and can't be written solely by the client
