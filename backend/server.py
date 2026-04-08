@@ -351,16 +351,15 @@ def get_nearby_pois():
 
     for url in OVERPASS_URLS:
         try:
-            overpass_response = requests.post(
-                url,
-                data={"data": query}, # Overpass expects the query in a "data" form field
-                timeout=15,
-            )
+            overpass_response = requests.post(url, data={"data": query}, timeout=15) # Overpass expects the query in a "data" form field
             if overpass_response.status_code == 200:
                 break
+            else: # Responses other than 200
+                latest_error = f"HTTP {overpass_response.status_code}: {overpass_response.text}"
+                overpass_response = None
         except requests.RequestException as e:
             latest_error = e
-            continue
+            overpass_response = None
 
     if overpass_response is None or overpass_response.status_code != 200:
         print(f"Overpass API error: {latest_error}")
