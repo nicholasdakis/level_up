@@ -814,3 +814,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 ## 2026-04-08
 - Added a limit of 100 results from the overpass query so the random subset of 20 still feels random without having to obtain a huge amount of POIs
 - Added gunicorn.conf.py to stop Render from timing out gunicorn workers after 30 seconds by increasing the timeout to 60 seconds
+- Added a fallback URL for the API request so if the first one times out, it tries the other URL instead of retrying with the same one
+- Instead of retrying once, it retries as long as there are more fallback URLs to use for the search

@@ -278,8 +278,8 @@ def get_food():
         token_manager.refund()  # Give back token on network error
         return jsonify({"error": str(e)}), 500
 
-# Overpass API endpoint (coffee.pro mirror, unlimited calls)
-OVERPASS_URL = "https://overpass.private.coffee/api/interpreter"
+# Overpass API endpoints
+OVERPASS_URLS = ["https://overpass.private.coffee/api/interpreter","https://overpass-api.de/api/interpreter"]
 
 # Overpass QL query template for fetching general POIs near a location
 # {lat}, {lng}, {radius} are filled in at request time
@@ -348,13 +348,13 @@ def get_nearby_pois():
     # Step 4: Send the query to the Overpass API, retry once if it fails
     overpass_response = None
     latest_error = None
-    
-    for attempt in range(2):
+
+    for url in range(OVERPASS_URLS):
         try:
             overpass_response = requests.post(
-                OVERPASS_URL,
+                OVERPASS_URLS[url],
                 data={"data": query}, # Overpass expects the query in a "data" form field
-                timeout=10,
+                timeout=15,
             )
             if overpass_response.status_code == 200:
                 break
