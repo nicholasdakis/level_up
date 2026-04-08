@@ -279,12 +279,12 @@ def get_food():
         return jsonify({"error": str(e)}), 500
 
 # Overpass API endpoints
-OVERPASS_URLS = ["https://overpass.private.coffee/api/interpreter","https://overpass-api.de/api/interpreter"]
+OVERPASS_URLS = ["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter"]
 
 # Overpass QL query template for fetching general POIs near a location
 # {lat}, {lng}, {radius} are filled in at request time
 OVERPASS_QUERY = """
-[out:json][timeout:5];
+[out:json][timeout:20];
 (
   node["amenity"](around:{radius},{lat},{lng});
   node["leisure"](around:{radius},{lat},{lng});
@@ -351,7 +351,7 @@ def get_nearby_pois():
 
     for url in OVERPASS_URLS:
         try:
-            overpass_response = requests.post(url, data={"data": query}, timeout=15) # Overpass expects the query in a "data" form field
+            overpass_response = requests.post(url, data={"data": query}, timeout=25) # Overpass expects the query in a "data" form field
             if overpass_response.status_code == 200:
                 break
             else: # Responses other than 200
