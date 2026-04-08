@@ -349,10 +349,10 @@ def get_nearby_pois():
     overpass_response = None
     latest_error = None
 
-    for url in range(OVERPASS_URLS):
+    for url in OVERPASS_URLS:
         try:
             overpass_response = requests.post(
-                OVERPASS_URLS[url],
+                url,
                 data={"data": query}, # Overpass expects the query in a "data" form field
                 timeout=15,
             )
