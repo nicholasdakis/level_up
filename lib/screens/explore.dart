@@ -20,13 +20,14 @@ class Explore extends StatefulWidget {
 class _ExploreState extends State<Explore> with OSMMixinObserver {
   GeoPoint? userLocation;
   bool cardIsOpen = false;
+  double _cardOpacity = 0;
   List<POI> nearbyPOIs = []; // the list of POIs to display
   bool loadingPOIs = false; // true while fetching POIs
   String? poiError; // error message if fetching POIs fails
   final POIService _poiService =
       POIService(); // service for fetching and caching POIs
-
   POI? nearestPOI; // the closest unvisited POI within check-in range
+  POI? _tappedPOI; // POI whose tooltip is currently showing on the map
   bool checkingIn = false; // whether a check-in request is in progress
   int?
   xpAwarded; // XP gained from the last check-in (shown briefly in the button)
@@ -322,17 +323,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                     ),
                     // Remove the _ from POIs (e.g. fast_food becomes fast food), split them, capitalize the first word, then merge back together
                     Text(
-                      poi.category
-                          .replaceAll('_', ' ')
-                          .split(' ')
-                          .map(
-                            (word) =>
-                                word[0].toUpperCase() +
-                                word.substring(
-                                  1,
-                                ), // capitalize the first letter then concatinate it with the rest of the string
-                          )
-                          .join(' '),
+                      poi.displayCategory, // capitalize the first letter then concatinate it with the rest of the string
                     ),
                   ],
                 ),
@@ -369,6 +360,25 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
           // THE MAP
           OSMFlutter(
             controller: mapController,
+            onGeoPointClicked: (geoPoint) {
+              for (final poi in nearbyPOIs) {
+                if (poi.lat == geoPoint.latitude &&
+                    poi.lng == geoPoint.longitude) {
+                  setState(() {
+                    _tappedPOI = poi;
+                    _cardOpacity = 1; // fade in
+                  });
+
+                  final tapped = poi;
+                  Future.delayed(const Duration(seconds: 2), () {
+                    if (mounted && _tappedPOI == tapped) {
+                      setState(() => _cardOpacity = 0); // fade out
+                    }
+                  });
+                  return;
+                }
+              }
+            },
             osmOption: OSMOption(
               userTrackingOption: UserTrackingOption(
                 enableTracking: true,
@@ -385,7 +395,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                     // User marker
                     Icons.location_pin,
                     color: darkenColor(Colors.red, 0.1),
-                    size: Responsive.width(context, 45),
+                    size: Responsive.width(context, 35),
                   ),
                 ),
                 directionArrowMarker: MarkerIcon(
@@ -685,9 +695,85 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                               fontSize: Responsive.width(context, 16),
                               fontWeight: FontWeight.bold,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // POI TOOLTIP (shown when the user taps a marker)
+          if (_tappedPOI != null)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                opacity: _cardOpacity,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: Responsive.height(
+                      context,
+                      nearestPOI != null ? 100 : 40,
+                    ),
+                  ),
+                  child: PointerInterceptor(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _cardOpacity = 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 16),
+                          vertical: Responsive.height(context, 10),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(210),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(80),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _iconForCategory(_tappedPOI!.category),
+                              color: Colors.white,
+                              size: Responsive.width(context, 22),
+                            ),
+                            SizedBox(width: Responsive.width(context, 8)),
+                            Flexible(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _tappedPOI!.name,
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                      fontSize: Responsive.width(context, 16),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                  Text(
+                                    _tappedPOI!.displayCategory,
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white70,
+                                      fontSize: Responsive.width(context, 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

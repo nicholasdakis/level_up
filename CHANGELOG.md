@@ -817,3 +817,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added a fallback URL for the API request so if the first one times out, it tries the other URL instead of retrying with the same one
 - Instead of retrying once, it retries as long as there are more fallback URLs to use for the search
 - Made the retry consider HTTP errors too instead of only RequestException so that it tries the next URL regardless of the error
+- Added onGeoPointClicked to track when a user clicks a marker on the map which displays a card providing the POI's name and info
+- Extracted the display category logic for the card as a displayCategory() method to reuse for when the user taps a marker
+- Used AnimatedOpacity to make the card fade out instead of just disappearing
