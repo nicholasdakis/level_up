@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import '../firebase_options.dart';
+import '../../firebase_options.dart';
 import 'notification_service.dart';
-import '../globals.dart';
+import '../../globals.dart';
 
 // Conditional imports to handle the web interop correctly across platforms
 import 'web_fcm_token_stub.dart'

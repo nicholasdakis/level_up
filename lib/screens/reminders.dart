@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import '../globals.dart';
 import '../user/reminder_data.dart';
 import '../utility/responsive.dart';
-import '../utility/notification_service.dart';
+import '../utility/fcm/notification_service.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});

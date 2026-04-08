@@ -15,7 +15,7 @@ import 'screens/daily_rewards.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
-import 'utility/fcm_service.dart';
+import 'utility/fcm/fcm_service.dart';
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 04.07",
+                                    "App version: Beta 04.08",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,
