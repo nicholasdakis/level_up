@@ -335,24 +335,25 @@ def get_nearby_pois():
         radius=500, # scans 500 meters within the user's location
     )
 
-    # Step 4: Send the query to the Overpass API
-    try:
-        overpass_response = requests.post(
-            OVERPASS_URL,
-            data={"data": query}, # Overpass expects the query in a "data" form field
-            timeout=15, # slightly longer than the Overpass query timeout of 10s
-        )
+    # Step 4: Send the query to the Overpass API, retry once if it fails
+    overpass_response = None
+    for attempt in range(2):
+        try:
+            overpass_response = requests.post(
+                OVERPASS_URL,
+                data={"data": query}, # Overpass expects the query in a "data" form field
+                timeout=20,
+            )
+            if overpass_response.status_code == 200:
+                break
+        except requests.RequestException:
+            continue
 
-        if overpass_response.status_code != 200:
-            return jsonify({"error": "Overpass API error", "status_code": overpass_response.status_code}), 502
-
-        raw_data = overpass_response.json() # parse the JSON response from Overpass
-
-    except requests.RequestException as e:
-        return jsonify({"error": f"Failed to reach Overpass API: {str(e)}"}), 502
+    if overpass_response is None or overpass_response.status_code != 200:
+        return jsonify({"error": "Overpass API unavailable, try again later"}), 503
 
     # Step 5: Parse the raw Overpass data into POI objects
-    all_pois = parse_overpass_response(raw_data)
+    all_pois = parse_overpass_response(overpass_response.json())
 
     # Step 6: If there are more than 20 POIs found, a random subset of the 50 are shown
     if len(all_pois) > 20:
