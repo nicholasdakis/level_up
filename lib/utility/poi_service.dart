@@ -16,7 +16,7 @@ class POIService {
       'visited_pois'; // map of POI names to their last visit timestamp
 
   // How far the user must move (in meters) before fresh POIs are fetched
-  static const double _refreshDistance = 500;
+  static const double _refreshDistance = 250;
 
   // SharedPreferencesAsync instance for persistent local storage
   final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
@@ -46,8 +46,9 @@ class POIService {
     // Get the location of the last fetch
     final cachedLat = await _prefs.getDouble(_cachedLatKey);
     final cachedLng = await _prefs.getDouble(_cachedLngKey);
-    if (cachedLat == null || cachedLng == null)
+    if (cachedLat == null || cachedLng == null) {
       return null; // no cached location
+    }
 
     // Calculate how far the user has moved since the last fetch
     final distance = haversine(lat, lng, cachedLat, cachedLng);

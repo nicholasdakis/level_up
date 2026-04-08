@@ -810,3 +810,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Tried to use Future.wait to load POI markers in parallel instead of using a for loop to do so sequentially, but reverted because it caused iconForCategory to always fallback to default markers
 - Added an add_cors_method that runs after every request so CORS headers are also added to unsuccessful requests
 - Sanitized poi-visits document names because Firestore doesn't allow all characters (eg "/") in a document's name
+
+## 2026-04-08
+- Added a limit of 100 results from the overpass query so the random subset of 20 still feels random without having to obtain a huge amount of POIs

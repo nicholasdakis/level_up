@@ -284,14 +284,14 @@ OVERPASS_URL = "https://overpass.private.coffee/api/interpreter"
 # Overpass QL query template for fetching general POIs near a location
 # {lat}, {lng}, {radius} are filled in at request time
 OVERPASS_QUERY = """
-[out:json][timeout:10];
+[out:json][timeout:5];
 (
   node["amenity"](around:{radius},{lat},{lng});
   node["leisure"](around:{radius},{lat},{lng});
   node["shop"](around:{radius},{lat},{lng});
   node["tourism"](around:{radius},{lat},{lng});
 );
-out body;
+out body 100;
 """
 
 # Method to turn the Overpass JSON into POIItem objects for the useful fields
@@ -347,25 +347,29 @@ def get_nearby_pois():
 
     # Step 4: Send the query to the Overpass API, retry once if it fails
     overpass_response = None
+    latest_error = None
+    
     for attempt in range(2):
         try:
             overpass_response = requests.post(
                 OVERPASS_URL,
                 data={"data": query}, # Overpass expects the query in a "data" form field
-                timeout=20,
+                timeout=10,
             )
             if overpass_response.status_code == 200:
                 break
-        except requests.RequestException:
+        except requests.RequestException as e:
+            latest_error = e
             continue
 
     if overpass_response is None or overpass_response.status_code != 200:
+        print(f"Overpass API error: {latest_error}")
         return jsonify({"error": "Overpass API unavailable, try again later"}), 503
 
     # Step 5: Parse the raw Overpass data into POI objects
     all_pois = parse_overpass_response(overpass_response.json())
 
-    # Step 6: If there are more than 20 POIs found, a random subset of the 50 are shown
+    # Step 6: If there are more than 20 POIs found, a random subset of the 20 are shown
     if len(all_pois) > 20:
         all_pois = random.sample(all_pois, 20)
 
