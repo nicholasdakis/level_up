@@ -809,3 +809,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added an iconForCategory method to make markers match what the POI actually is rather than using a generic marker
 - Tried to use Future.wait to load POI markers in parallel instead of using a for loop to do so sequentially, but reverted because it caused iconForCategory to always fallback to default markers
 - Added an add_cors_method that runs after every request so CORS headers are also added to unsuccessful requests
+- Sanitized poi-visits document names because Firestore doesn't allow all characters (eg "/") in a document's name

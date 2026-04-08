@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from google.cloud import firestore
-
+import re
 
 class UserRepository:
     # Repository class to handle all Firestore operations related to user data
@@ -12,6 +12,10 @@ class UserRepository:
         self._db = db
         self._public = db.collection("users-public")
         self._private = db.collection("users-private")
+    
+    def _sanitize_poi_id(self, poi_name: str) -> str:
+        # Replace any character that isn't a letter, number, hyphen, or underscore with an underscore as Firestore Document IDs don't allow special characters
+        return re.sub(r'[^a-zA-Z0-9_-]', '_', poi_name)[:500]
 
     # Read operations
 
@@ -112,15 +116,17 @@ class UserRepository:
     def get_poi_last_visit(self, uid: str, poi_name: str):
         # Each user has a poi-visits subcollection under their users-private doc
         # The document ID is the POI name, and it stores the last visit timestamp
-        doc = self._private.document(uid).collection('poi-visits').document(poi_name).get()
+        safe_name = self._sanitize_poi_id(poi_name)
+        doc = self._private.document(uid).collection('poi-visits').document(safe_name).get()
         if not doc.exists:
             return None # never visited this POI
         return doc.to_dict().get('last_visit') # return the Firestore timestamp
 
     # Atomically record the visit, update XP, and set a 24 hour cooldown for that poi
     def record_poi_visit_transaction(self, uid: str, poi_name: str, new_level: int, new_exp: int):
+        safe_name = self._sanitize_poi_id(poi_name)
         public_ref = self._public.document(uid)
-        visit_ref = self._private.document(uid).collection('poi-visits').document(poi_name)
+        visit_ref = self._private.document(uid).collection('poi-visits').document(safe_name)
 
         @firestore.transactional
         def _run(transaction):
