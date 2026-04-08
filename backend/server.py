@@ -47,7 +47,9 @@ CORS(app) # allow requests from desktop device browsers
 @app.after_request # runs after every request
 # This method adds CORS headers even when responses are unsuccessful to prevent CORS errors when trying to debug
 def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = 'https://nicholasdakis.github.io'
+    origin = request.headers.get('Origin')
+    if origin == 'https://nicholasdakis.github.io' or (origin and origin.startswith('http://localhost')):
+        response.headers['Access-Control-Allow-Origin'] = origin
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
