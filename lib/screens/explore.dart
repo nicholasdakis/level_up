@@ -23,11 +23,13 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   double _cardOpacity = 0;
   List<POI> nearbyPOIs = []; // the list of POIs to display
   bool loadingPOIs = false; // true while fetching POIs
+  bool fillingCache = false; // true while background fill is in progress
   String? poiError; // error message if fetching POIs fails
   final POIService _poiService =
       POIService(); // service for fetching and caching POIs
   POI? nearestPOI; // the closest unvisited POI within check-in range
   POI? _tappedPOI; // POI whose tooltip is currently showing on the map
+  final Set<String> _markedPOIs = {}; // track POIs that already have markers
   bool checkingIn = false; // whether a check-in request is in progress
   int?
   xpAwarded; // XP gained from the last check-in (shown briefly in the button)
@@ -105,14 +107,31 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     });
 
     try {
-      // getNearbyPOIs checks the cache first, only hits backend if needed
-      final pois = await _poiService.getNearbyPOIs(lat, lng);
+      // getNearbyPOIs checks the cache first and uses the backend if the cache is not filled
+      final pois = await _poiService.getNearbyPOIs(
+        lat,
+        lng,
+        onFillStart: () {
+          if (!mounted) return;
+          setState(() => fillingCache = true);
+        },
+        onSupplement: (filled) {
+          if (!mounted) return;
+          setState(() {
+            nearbyPOIs = filled; // update the list with new POIs
+            fillingCache = false;
+          });
+          _addPOIMarkers(); // place markers for the new POIs on the map
+          _updateNearestPOI(); // re-check if a new POI is now closest
+        },
+      );
 
       if (!mounted) return;
 
       setState(() {
         nearbyPOIs = pois; // update the list
         loadingPOIs = false;
+        fillingCache = false;
       });
 
       // Add markers to the map for each POI
@@ -210,6 +229,8 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   // Place markers on the map for each POI
   Future<void> _addPOIMarkers() async {
     for (final poi in nearbyPOIs) {
+      final key = '${poi.lat},${poi.lng}';
+      if (_markedPOIs.contains(key)) continue; // already has a marker
       try {
         await mapController.addMarker(
           GeoPoint(latitude: poi.lat, longitude: poi.lng),
@@ -223,6 +244,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             ),
           ),
         );
+        _markedPOIs.add(key);
       } catch (_) {
         // skip markers that fail to add (e.g. duplicate positions)
       }
@@ -585,16 +607,75 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                                               300,
                                             ), // cap height so it doesn't fill the screen
                                           ),
-                                          child: ListView.builder(
-                                            shrinkWrap:
-                                                true, // only take as much space as needed
-                                            padding: EdgeInsets.zero,
-                                            itemCount: nearbyPOIs.length,
-                                            itemBuilder: (context, index) {
-                                              return _poiTile(
-                                                nearbyPOIs[index],
-                                              );
-                                            },
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: ListView.builder(
+                                                  shrinkWrap:
+                                                      true, // only take as much space as needed
+                                                  padding: EdgeInsets.zero,
+                                                  itemCount: nearbyPOIs.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                        return _poiTile(
+                                                          nearbyPOIs[index],
+                                                        );
+                                                      },
+                                                ),
+                                              ),
+                                              // Show a small loading indicator while the cache is being filled
+                                              if (fillingCache)
+                                                Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: Responsive.height(
+                                                      context,
+                                                      8,
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: Responsive.width(
+                                                          context,
+                                                          14,
+                                                        ),
+                                                        height:
+                                                            Responsive.width(
+                                                              context,
+                                                              14,
+                                                            ),
+                                                        child:
+                                                            const CircularProgressIndicator(
+                                                              color: Colors
+                                                                  .white38,
+                                                              strokeWidth: 2,
+                                                            ),
+                                                      ),
+                                                      SizedBox(
+                                                        width: Responsive.width(
+                                                          context,
+                                                          8,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        "Finding more spots...",
+                                                        style: GoogleFonts.manrope(
+                                                          color: Colors.white38,
+                                                          fontSize:
+                                                              Responsive.width(
+                                                                context,
+                                                                13,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
                                           ),
                                         ),
                                     ] else

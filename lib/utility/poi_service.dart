@@ -22,11 +22,31 @@ class POIService {
   final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
 
   // Fetch nearby POIs, using the cache if the user hasn't moved far
-  Future<List<POI>> getNearbyPOIs(double lat, double lng) async {
+  // If the cache is not full, a background fetch fills in the rest
+  Future<List<POI>> getNearbyPOIs(
+    double lat,
+    double lng, {
+    void Function(List<POI>)?
+    onSupplement, // callback function for updating the UI
+    void Function()? onFillStart, // called when a background fill begins
+  }) async {
     // Check if a valid cache exists for this area
     final cached = await _getCachedPOIs(lat, lng);
     if (cached != null) {
-      return cached; // cache is still valid, no need to hit the backend
+      // Cache is valid but not filled
+      if (onSupplement != null) {
+        onFillStart?.call(); // notify the UI that a fill is starting
+        _fillCache(lat, lng, cached)
+            .then((filled) {
+              onSupplement(
+                filled ?? cached,
+              ); // send the result back to the callback function
+            })
+            .catchError((_) {
+              onSupplement(cached); // clear the filling indicator on error
+            });
+      }
+      return cached;
     }
 
     // Cache is stale or empty, fetch fresh data from the backend
@@ -35,7 +55,44 @@ class POIService {
     // Save the fresh results and the fetch location
     await _cachePOIs(fresh, lat, lng);
 
+    // if (fresh.length > 5) return fresh.sublist(0, 5); // line for testing unfilled cache
+
     return fresh;
+  }
+
+  // Method to fill the cache with backend POIs if the cache is not filled already
+  // Returns null if nothing new was added
+  Future<List<POI>?> _fillCache(
+    double lat,
+    double lng,
+    List<POI> cached,
+  ) async {
+    final fresh = await _fetchFromBackend(lat, lng);
+
+    // Cache already has as many as the backend would return
+    if (cached.length >= fresh.length) return null;
+
+    // Start with cached POIs, then add all fresh ones
+    final combined = List<POI>.from(cached);
+    combined.addAll(fresh);
+
+    // Remove duplicates using name and rounded coordinates (in case two places with a similar location share a name)
+    final seen = <String>{};
+    final result = <POI>[];
+    for (final poi in combined) {
+      final key =
+          '${poi.name},${poi.lat.toStringAsFixed(5)},${poi.lng.toStringAsFixed(5)}';
+      if (!seen.contains(key)) {
+        seen.add(key);
+        result.add(poi);
+      }
+    }
+
+    // Nothing new was added
+    if (result.length == cached.length) return null;
+
+    await _cachePOIs(result, lat, lng);
+    return result;
   }
 
   // Check if cached POIs exist and if the user is still close enough to use them

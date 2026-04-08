@@ -820,3 +820,11 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added onGeoPointClicked to track when a user clicks a marker on the map which displays a card providing the POI's name and info
 - Extracted the display category logic for the card as a displayCategory() method to reuse for when the user taps a marker
 - Used AnimatedOpacity to make the card fade out instead of just disappearing
+- Tested the Explore tab with low Wifi and realized that if it only loads 2 POIs, it will never try to reach the maximum later because it will see the 2 as a valid cache
+- Added a _fillCache method that runs in the background after returning cached POIs to check if more POIs are available from the backend and fills the cache if so
+- Added an onSupplement callback so the UI updates when the background fill finds more POIs, including re-adding markers and re-checking the nearest POI
+- Added a "Finding more spots..." loading indicator at the bottom of the Nearby Experience Spots card that shows while the cache is being filled
+- Added an onFillStart callback so the "Finding more spots..." indicator only shows when a background fill is actually happening
+- Fixed duplicate POIs appearing in the list after a cache fill by deduplicating using name and rounded coordinates
+- Fixed the "Finding more spots..." indicator staying visible forever when the Overpass API timed out by calling onSupplement in the catchError handler
+- Tracked which POIs already have markers on the map using a Set to prevent duplicate markers from stacking when _addPOIMarkers is called multiple times
