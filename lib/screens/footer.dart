@@ -106,43 +106,37 @@ class _FooterState extends State<Footer> {
       );
     }
 
-    Widget buildFooterFillableExpBar(double progressWidth) {
-      return Positioned(
-        top: Responsive.height(context, 4),
-        left: Responsive.width(context, 10),
-        child: Container(
-          height: Responsive.height(context, 16),
-          width: progressWidth,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
-          ),
-        ),
-      );
-    }
-
-    Widget buildFooterLightGrayExpBar(double fullWidth) {
-      return Positioned(
-        top: Responsive.height(context, 4),
-        left: Responsive.width(context, 10),
-        child: Container(
-          height: Responsive.height(context, 16),
-          width: fullWidth - Responsive.width(context, 20),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 175, 169, 169),
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
-          ),
-        ),
-      );
-    }
-
-    Widget buildFooterOuterExpBar(double fullWidth) {
+    Widget buildExpBar(double fullWidth, double progressWidth) {
+      final barRadius = BorderRadius.circular(Responsive.scale(context, 10));
+      final borderWidth = Responsive.scale(context, 4);
+      // Black outer border of the exp bar
       return Container(
         height: Responsive.height(context, 25),
         width: fullWidth,
+        padding: EdgeInsets.all(borderWidth),
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+          borderRadius: barRadius,
+        ),
+        // Clips the inner contents to a rounded shape that fits inside the border
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Responsive.scale(context, 10) - borderWidth,
+          ),
+          child: Stack(
+            children: [
+              // Gray unfilled portion of the exp bar
+              Container(color: const Color.fromARGB(255, 175, 169, 169)),
+              // Blue filled portion representing the user's current exp progress
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: progressWidth,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -224,9 +218,7 @@ class _FooterState extends State<Footer> {
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              buildFooterOuterExpBar(fullWidth),
-                              buildFooterLightGrayExpBar(fullWidth),
-                              buildFooterFillableExpBar(progressWidth),
+                              buildExpBar(fullWidth, progressWidth),
                               buildFooterExperienceText(exp),
                             ],
                           ),

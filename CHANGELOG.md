@@ -831,3 +831,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Reverted the separate time and date choosing format on desktop because using the showDatePicker to select a time felt too precise and annoying
 - Moved the placeholder reminder message to init instead of build so that it does not generate a new message on every input change / screen size change
 - Made the date picker show up in the middle of the screen
+- Removed the three separate exp bar builder methods (buildFooterOuterExpBar, buildFooterLightGrayExpBar, buildFooterFillableExpBar) and replaced them with a single buildExpBar method
+- Used padding on a black Container instead of Border.all to create the border, so the inner content area lines up cleanly
+- Added a ClipRRect inside the black container to clip both the gray background and blue fill to the same rounded shape, preventing the blue from peeking under the gray
