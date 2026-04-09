@@ -30,6 +30,7 @@ class _RemindersState extends State<Reminders> {
   final TextEditingController remindersController =
       TextEditingController(); // Input text for reminder message
   String reminder = "";
+  String placeholderMessage = "";
   DateTime dateTime =
       DateTime.now(); // Stores the selected date and time for reminder
 
@@ -39,6 +40,7 @@ class _RemindersState extends State<Reminders> {
   @override
   void initState() {
     super.initState();
+    placeholderMessage = getReminderMessage();
     _loadReminders(); // Load reminders when the widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (currentUserData?.notificationsEnabled == false) {
@@ -288,85 +290,39 @@ class _RemindersState extends State<Reminders> {
     DateTime dateTime,
     Function(DateTime) onPicked,
   ) async {
-    if (kIsWeb && Responsive.isDesktop(context)) {
-      // Desktop uses a Material pickers
-      final pickedDate = await showDatePicker(
-        context: context,
-        firstDate: DateTime.now(),
-        lastDate: DateTime(2100),
-        initialEntryMode: DatePickerEntryMode
-            .calendarOnly, // prevent users from editing text directly
-      );
-
-      if (pickedDate != null) {
-        final pickedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.fromDateTime(dateTime),
-          initialEntryMode: TimePickerEntryMode
-              .dialOnly, // prevent users from editing text directly
-          builder: (context, child) => Theme(
-            // Give the picker a custom theme that matches the user's app color
-            data: ThemeData.dark().copyWith(
-              colorScheme: ColorScheme.dark(
-                primary: appColorNotifier.value,
-                onPrimary: Colors.white,
-                secondary: appColorNotifier.value,
-                onSecondary: Colors.white,
-                tertiary: appColorNotifier.value,
-                onTertiary: Colors.white,
-                surface: darkenColor(appColorNotifier.value, 0.1).withAlpha(75),
-                onSurface: Colors.white,
-              ),
-            ),
-            child: child!,
-          ),
-        );
-
-        if (pickedTime != null) {
-          onPicked(
-            DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            ),
-          );
-        }
-      }
-    } else {
-      // Mobile or mobile web shows the Cupertino picker (feels natural on mobile but not on desktop)
-      showCupertinoModalPopup(
-        context: context,
-        builder: (_) => SizedBox(
-          height: Responsive.height(context, 350),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(128, 37, 37, 37),
-              borderRadius: BorderRadius.circular(
-                Responsive.height(context, 30),
-              ),
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: CupertinoDatePicker(
-                    initialDateTime: dateTime,
-                    mode: CupertinoDatePickerMode.dateAndTime,
-                    use24hFormat: true,
-                    onDateTimeChanged: (newDate) => onPicked(newDate),
-                  ),
-                ),
-                CupertinoButton(
-                  child: Text("Confirm"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
+    final picker = SizedBox(
+      height: Responsive.height(context, 300),
+      width: Responsive.width(context, 333),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(128, 37, 37, 37),
+          borderRadius: BorderRadius.circular(Responsive.height(context, 30)),
         ),
-      );
-    }
+        child: Column(
+          children: [
+            Expanded(
+              child: CupertinoDatePicker(
+                initialDateTime: dateTime,
+                mode: CupertinoDatePickerMode.dateAndTime,
+                use24hFormat: false,
+                onDateTimeChanged: (newDate) => onPicked(newDate),
+              ),
+            ),
+            CupertinoButton(
+              child: Text("Confirm"),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    showDialog(
+      context: context,
+      builder: (_) => Center(
+        child: Material(color: Colors.transparent, child: picker),
+      ),
+    );
   }
 
   // Snackbar helper method
@@ -571,7 +527,7 @@ class _RemindersState extends State<Reminders> {
                             ),
                             decoration: InputDecoration(
                               hintText:
-                                  "Set a reminder: (E.g. ${getReminderMessage()})",
+                                  "Set a reminder: (E.g. $placeholderMessage)",
                               hintStyle: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 14),
                                 color: Colors.white38,

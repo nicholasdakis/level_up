@@ -828,3 +828,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed duplicate POIs appearing in the list after a cache fill by deduplicating using name and rounded coordinates
 - Fixed the "Finding more spots..." indicator staying visible forever when the Overpass API timed out by calling onSupplement in the catchError handler
 - Tracked which POIs already have markers on the map using a Set to prevent duplicate markers from stacking when _addPOIMarkers is called multiple times
+- Reverted the separate time and date choosing format on desktop because using the showDatePicker to select a time felt too precise and annoying
+- Moved the placeholder reminder message to init instead of build so that it does not generate a new message on every input change / screen size change
+- Made the date picker show up in the middle of the screen
