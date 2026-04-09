@@ -843,3 +843,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted the shadowing of text into a global helper method textDropShadow
 - Created a shared_preferences folder with a SharedPrefsService wrapper class and SharedPreferencesKey constants to centralize all SharedPreferences logic and keys in one file
 - Updated RecentFoodsService and POIService to use the new wrapper instead of accessing SharedPreferences directly
+- Added shared_preferences implementation to Calorie Calculator so when the user presses "Get Results" with all fields filled, the data is stored in their device's storage
+- Added an initState to Calorie Calculator to load the stored data if it exists
+- Initially converted all the parameters to strings in setCalorieCalculatorData and then to Map<String, dynamic> but reverted after realizing this wasn't needed due to the dynamic type

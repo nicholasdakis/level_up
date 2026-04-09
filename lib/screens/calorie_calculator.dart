@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'calorie_calculator_buttons/results.dart';
 import '../globals.dart';
 import '/utility/responsive.dart';
+import '/utility/shared_preferences/shared_prefs_async.dart';
 
 class CalorieCalculator extends StatefulWidget {
   const CalorieCalculator({super.key});
@@ -42,6 +43,59 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   bool resultsSnackbarActive =
       false; // flag so only one snackbar shows at a time
 
+  // Centralized cache wrapper for SharedPreferences
+  final SharedPrefsService _prefs = SharedPrefsService();
+
+  // Method to store the user's chosen values to their shared preferences
+  Future<void> saveCalculatorDataToPrefs() async {
+    Map<String, dynamic> data = {
+      'units': units,
+      'equation': equation,
+      'sex': sex,
+      'age': age,
+      'weight': weight,
+      'heightCm': heightCm,
+      'heightInches': heightInches,
+      'goal': goal,
+      'activityLevel': activityLevel,
+    };
+
+    // Store to device storage
+    await _prefs.setJsonMap(SharedPreferencesKey.calorieCalculatorData, data);
+  }
+
+  // Method to load the user's stored calorie calculator data
+  Future<Map<String, dynamic>> loadCalculatorDataFromPrefs() async {
+    return await _prefs.getJsonMap(SharedPreferencesKey.calorieCalculatorData);
+  }
+
+  // Method to update the variables with the stored ones
+  void applyCalculatorData(Map<String, dynamic> data) {
+    units = data['units'];
+    currentUnits = data['units'];
+    previousUnits = data['units'];
+    equation = data['equation'];
+    sex = data['sex'];
+    age = data['age'];
+    weight = (data['weight'] as num?)?.toDouble();
+    heightCm = data['heightCm'];
+    heightInches = data['heightInches'];
+    goal = data['goal'];
+    activityLevel = data['activityLevel'];
+  }
+
+  // Method called on initialization that gets the stored data if it exists and updates the class variables with them
+  Future<void> restoreCalculatorDataFromPrefs() async {
+    Map<String, dynamic> mappedData = await loadCalculatorDataFromPrefs();
+    if (mappedData.isNotEmpty) {
+      // Update the UI with the stored values
+      setState(() {
+        applyCalculatorData(mappedData);
+        weightController.text = weight?.toString() ?? '';
+      });
+    }
+  }
+
   // Method to prevent values outside of the dropdown button upon conversion
   int keepValueInRange(int val, int min, int max) {
     if (val < min) return min;
@@ -76,7 +130,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             SizedBox.shrink(), // remove default underline since container handles it
         dropdownStyleData: DropdownStyleData(
           decoration: BoxDecoration(
-            color: appColorNotifier.value.withAlpha(128), // match the app's theme color
+            color: appColorNotifier.value.withAlpha(
+              128,
+            ), // match the app's theme color
             borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
           ),
           maxHeight: Responsive.height(
@@ -102,6 +158,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         onChanged: onChanged,
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    restoreCalculatorDataFromPrefs(); // separate method as async can't directly be used in initState
   }
 
   @override
@@ -471,6 +533,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                 });
                             return;
                           }
+                          // NO EARLY RETURN SO THE TAP WAS SUCCESSFUL
+
+                          // Store the results to the user's device
+                          saveCalculatorDataToPrefs();
+
                           Navigator.push(
                             context,
                             PageRouteBuilder(
