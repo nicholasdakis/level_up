@@ -41,7 +41,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   late final MapController mapController = MapController.withUserPosition(
     trackUserLocation: const UserTrackingOption(
       enableTracking: true, // follows user automatically
-      unFollowUser: false,
+      unFollowUser: true,
     ),
   );
 
@@ -404,7 +404,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             osmOption: OSMOption(
               userTrackingOption: UserTrackingOption(
                 enableTracking: true,
-                unFollowUser: false,
+                unFollowUser: true,
               ),
               zoomOption: ZoomOption(
                 initZoom: 15,
@@ -854,6 +854,40 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Re-center user button
+          if (userLocation != null)
+            // Same logic as the back button, smoothly moves the button down on mobile if the user opens the experience cards widget
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300), // animation speed
+              curve: Curves.easeInOut, // smooth curve
+              top: Responsive.isDesktop(context)
+                  ? Responsive.height(context, 10)
+                  : Responsive.height(context, 130 + backButtonMobileOffset),
+              right: Responsive.width(context, 10),
+              child: PointerInterceptor(
+                child: GestureDetector(
+                  onTap: () => mapController.moveTo(userLocation!),
+                  child: Container(
+                    padding: EdgeInsets.all(Responsive.width(context, 20)),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(200),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Tooltip(
+                      message: "My Location",
+                      child: Transform.rotate(
+                        angle: 0.75,
+                        child: Icon(
+                          Icons.navigation_rounded,
+                          color: Colors.white,
                         ),
                       ),
                     ),

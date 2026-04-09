@@ -7,7 +7,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/app_logo.png"
+  image_path: "assets/app_logo_transparent_bg.png"
   remove_alpha_ios: true
 
 # The following defines the version and build number for your application.

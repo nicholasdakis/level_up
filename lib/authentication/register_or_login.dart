@@ -50,7 +50,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
               // App logo
               SizedBox(
                 height: Responsive.buttonHeight(context, 240),
-                child: Image.asset("assets/app_logo.png", fit: BoxFit.contain),
+                child: Image.asset(
+                  "assets/app_logo_transparent_bg.png",
+                  fit: BoxFit.contain,
+                ),
               ),
               SizedBox(height: Responsive.padding(context, 20)),
               // Enter Email field

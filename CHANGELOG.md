@@ -846,3 +846,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added shared_preferences implementation to Calorie Calculator so when the user presses "Get Results" with all fields filled, the data is stored in their device's storage
 - Added an initState to Calorie Calculator to load the stored data if it exists
 - Initially converted all the parameters to strings in setCalorieCalculatorData and then to Map<String, dynamic> but reverted after realizing this wasn't needed due to the dynamic type
+- Stopped the map from auto-centering on the user when they move
+- Added a button to recenter the camera to the user's location
