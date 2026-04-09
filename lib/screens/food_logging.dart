@@ -1779,32 +1779,14 @@ class _FoodLoggingState extends State<FoodLogging>
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 15),
                             color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(
-                                  Responsive.scale(context, 4),
-                                  Responsive.scale(context, 4),
-                                ),
-                                blurRadius: Responsive.scale(context, 10),
-                                color: const Color.fromARGB(255, 0, 0, 0),
-                              ),
-                            ],
+                            shadows: [textDropShadow(context)],
                           ),
                           hint: Text(
                             "Meal Type",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 20),
                               color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  offset: Offset(
-                                    Responsive.scale(context, 4),
-                                    Responsive.scale(context, 4),
-                                  ),
-                                  blurRadius: Responsive.scale(context, 10),
-                                  color: const Color.fromARGB(255, 0, 0, 0),
-                                ),
-                              ],
+                              shadows: [textDropShadow(context)],
                             ),
                           ),
                           value: mealType,

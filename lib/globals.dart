@@ -22,6 +22,16 @@ UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
+
+// Text drop shadow used across the app
+Shadow textDropShadow(BuildContext context) {
+  return Shadow(
+    offset: Offset(Responsive.scale(context, 4), Responsive.scale(context, 4)),
+    blurRadius: Responsive.scale(context, 10),
+    color: const Color.fromARGB(255, 0, 0, 0),
+  );
+}
+
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(
   String text,
@@ -38,16 +48,7 @@ Widget textWithFont(
       style: GoogleFonts.manrope(
         fontSize: Responsive.font(context, baseFontSize),
         color: color ?? Colors.white,
-        shadows: [
-          Shadow(
-            offset: Offset(
-              Responsive.scale(context, 4),
-              Responsive.scale(context, 4),
-            ),
-            blurRadius: Responsive.scale(context, 10),
-            color: const Color.fromARGB(255, 0, 0, 0),
-          ),
-        ],
+        shadows: [textDropShadow(context)],
         decoration: decoration ?? TextDecoration.none,
       ),
     ),
@@ -77,21 +78,21 @@ Widget frostedButton(
     child: GestureDetector(
       onTap: () => onPressed(),
       child: frostedGlassCard(
-      context,
-      baseRadius: 14,
-      padding: EdgeInsets.symmetric(
-        vertical: Responsive.height(context, 15),
-        horizontal: Responsive.width(context, 24),
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, 18),
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
+        context,
+        baseRadius: 14,
+        padding: EdgeInsets.symmetric(
+          vertical: Responsive.height(context, 15),
+          horizontal: Responsive.width(context, 24),
         ),
-      ),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 18),
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     ),
   );
@@ -124,16 +125,7 @@ Widget createTitle(String text, BuildContext context) {
       style: GoogleFonts.dangrek(
         fontSize: Responsive.font(context, 40),
         color: Colors.white,
-        shadows: [
-          Shadow(
-            offset: Offset(
-              Responsive.scale(context, 4),
-              Responsive.scale(context, 4),
-            ),
-            blurRadius: Responsive.scale(context, 10),
-            color: const Color.fromARGB(255, 0, 0, 0),
-          ),
-        ],
+        shadows: [textDropShadow(context)],
       ),
     ),
   );
@@ -152,16 +144,7 @@ Widget textWithCard(String text, BuildContext context, double baseFontSize) {
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, baseFontSize),
           color: Colors.white,
-          shadows: [
-            Shadow(
-              offset: Offset(
-                Responsive.scale(context, 4),
-                Responsive.scale(context, 4),
-              ),
-              blurRadius: Responsive.scale(context, 10),
-              color: const Color.fromARGB(255, 0, 0, 0),
-            ),
-          ],
+          shadows: [textDropShadow(context)],
         ),
       ),
     ),
@@ -263,6 +246,61 @@ Widget buttonText(String text, BuildContext context, double baseFontSize) {
   );
 }
 
+// FROSTED GLASS BUTTON SHELL shared by customButton and simpleCustomButton
+// Builds the frosted backdrop, border, shadow, and InkWell ripple
+Widget _frostedButtonShell(
+  BuildContext context, {
+  required Color color,
+  required VoidCallback onTap,
+  required Widget child,
+}) {
+  final radius = BorderRadius.circular(Responsive.scale(context, 30));
+  return ClipRRect(
+    borderRadius: radius,
+    child: Stack(
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: Responsive.scale(context, 15),
+            sigmaY: Responsive.scale(context, 15),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.35), // translucent color
+              borderRadius: radius,
+              border: Border.all(
+                color: color.withValues(alpha: 0.55), // border alpha
+                width: Responsive.scale(context, 1.5), // border width scaled
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25), // shadow alpha
+                  offset: Offset(
+                    0,
+                    Responsive.scale(context, 4), // shadow y-offset
+                  ),
+                  blurRadius: Responsive.scale(context, 10), // shadow blur
+                  spreadRadius: Responsive.scale(context, 1), // shadow spread
+                ),
+              ],
+            ),
+          ),
+        ),
+        Material(
+          color: Colors.transparent, // keep material transparent
+          child: InkWell(
+            borderRadius: radius, // ripple matches button shape
+            onTap: onTap,
+            splashColor: color.withValues(alpha: 0.1), // splash color
+            highlightColor: color.withValues(alpha: 0.05), // highlight color
+            child: Center(child: child),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 // CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
 Widget customButton(
   String text,
@@ -280,62 +318,17 @@ Widget customButton(
   return SizedBox(
     height: Responsive.buttonHeight(context, baseHeight),
     width: Responsive.scale(context, baseWidth),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
-      child: Stack(
-        children: [
-          BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: Responsive.scale(context, 15),
-              sigmaY: Responsive.scale(context, 15),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 30),
-                ),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.55),
-                  width: Responsive.scale(context, 1.5),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    offset: Offset(0, Responsive.scale(context, 4)),
-                    blurRadius: Responsive.scale(context, 10),
-                    spreadRadius: Responsive.scale(context, 1),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 30),
-              ),
-              onTap:
-                  onPressed ??
-                  () {
-                    if (destination != null) {
-                      changeToScreen(context, destination);
-                    }
-                  },
-              splashColor: color.withValues(alpha: 0.1),
-              highlightColor: color.withValues(alpha: 0.05),
-              child: Center(
-                child: buttonText(
-                  text,
-                  context,
-                  baseFontSize,
-                ), // Scale inside text
-              ),
-            ),
-          ),
-        ],
-      ),
+    child: _frostedButtonShell(
+      context,
+      color: color,
+      onTap:
+          onPressed ??
+          () {
+            if (destination != null) {
+              changeToScreen(context, destination);
+            }
+          },
+      child: buttonText(text, context, baseFontSize),
     ),
   );
 }
@@ -354,76 +347,14 @@ Widget simpleCustomButton(
       baseColor ??
       currentUserData!.appColor; // app theme is the user's chosen theme
 
-  // set sizes based on screen context like customButton
-  final double buttonHeight = Responsive.buttonHeight(context, baseHeight);
-  final double buttonWidth = Responsive.scale(context, baseWidth);
-  final double fontSize = Responsive.font(context, baseFontSize);
-
   return SizedBox(
-    height: buttonHeight, // scale like customButton
-    width: buttonWidth,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Responsive.scale(
-          context,
-          30,
-        ), // rounded corners scale like customButton
-      ),
-      child: Stack(
-        children: [
-          BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: Responsive.scale(context, 15), // blur like customButton
-              sigmaY: Responsive.scale(context, 15), // blur like customButton
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.35), // translucent color
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 30), // border radius same as clip
-                ),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.55), // border alpha
-                  width: Responsive.scale(context, 1.5), // border width scaled
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25), // shadow alpha
-                    offset: Offset(
-                      0,
-                      Responsive.scale(context, 4), // shadow y-offset
-                    ),
-                    blurRadius: Responsive.scale(context, 10), // shadow blur
-                    spreadRadius: Responsive.scale(context, 1), // shadow spread
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Material(
-            color: Colors.transparent, // keep material transparent
-            child: InkWell(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 30), // ripple matches button shape
-              ),
-              onTap: onPressed, // user tap
-              splashColor: color.withValues(
-                alpha: 0.1,
-              ), // splash color like customButton
-              highlightColor: color.withValues(
-                alpha: 0.05,
-              ), // highlight color like customButton
-              child: Center(
-                child: buttonText(
-                  text,
-                  context,
-                  fontSize,
-                ), // use calculated fontSize
-              ),
-            ),
-          ),
-        ],
-      ),
+    height: Responsive.buttonHeight(context, baseHeight),
+    width: Responsive.scale(context, baseWidth),
+    child: _frostedButtonShell(
+      context,
+      color: color,
+      onTap: onPressed,
+      child: buttonText(text, context, Responsive.font(context, baseFontSize)),
     ),
   );
 }
@@ -454,11 +385,14 @@ void changeToScreen(
 }
 
 // Section header label used across the app (e.g. "OVERVIEW", "NOTES", "REMINDER DETAILS")
-Widget sectionHeader(String text, BuildContext context, {double baseFontSize = 11, EdgeInsetsGeometry? padding}) {
+Widget sectionHeader(
+  String text,
+  BuildContext context, {
+  double baseFontSize = 11,
+  EdgeInsetsGeometry? padding,
+}) {
   return Padding(
-    padding: padding ?? EdgeInsets.only(
-      bottom: Responsive.height(context, 12),
-    ),
+    padding: padding ?? EdgeInsets.only(bottom: Responsive.height(context, 12)),
     child: Text(
       text,
       style: GoogleFonts.manrope(

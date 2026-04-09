@@ -15,7 +15,7 @@ class AboutTheDeveloper extends StatefulWidget {
 List<String> overviewItems = [
   "My name is Nicholas Dakis, and I am a Computer Science student at Queens College.",
   "I created Level Up! to learn Flutter and build something useful that people would enjoy using.",
-  "It's an app where I had full control over the vision and could make it as good as possible.",
+  "It's an app where I had full control over the vision and wanted to emphasize making the app as enjoyable and user-friendly as possible.",
 ];
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
@@ -121,7 +121,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       child: Column(
                         children: [
                           for (int i = 0; i < overviewItems.length; i++) ...[
-                            if (i > 0) SizedBox(height: Responsive.height(context, 10)),
+                            if (i > 0)
+                              SizedBox(height: Responsive.height(context, 10)),
                             frostedGlassCard(
                               context,
                               baseRadius: 14,
@@ -177,56 +178,56 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                     // DONATE SECTION
                     sectionHeader("DONATE", context, baseFontSize: 15),
                     frostedGlassCard(
-                        context,
-                        baseRadius: 20,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 20),
-                          vertical: Responsive.height(context, 16),
-                        ),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: frostedGlassCard(
-                                context,
-                                baseRadius: 14,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 12),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Feel free to donate using the button below:",
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 18),
-                                      color: Colors.white38,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: Responsive.height(context, 16)),
-                            Center(
-                              child: InkWell(
-                                onTap: () => launchUrl(
-                                  Uri.parse(
-                                    "https://www.paypal.com/donate/?business=UR3VZ962M4F4N&item_name=Support+the+developer+of+Level+Up%21&currency_code=USD",
-                                  ),
-                                  mode: LaunchMode.externalApplication,
-                                ),
-                                child: SvgPicture.network(
-                                  "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
-                                  width: Responsive.width(context, 200),
-                                  placeholderBuilder: (context) =>
-                                      CircularProgressIndicator(), // if image fails to load
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      context,
+                      baseRadius: 20,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                        vertical: Responsive.height(context, 16),
                       ),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: frostedGlassCard(
+                              context,
+                              baseRadius: 14,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 16),
+                                vertical: Responsive.height(context, 12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Feel free to donate using the button below:",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 18),
+                                    color: Colors.white38,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 16)),
+                          Center(
+                            child: InkWell(
+                              onTap: () => launchUrl(
+                                Uri.parse(
+                                  "https://www.paypal.com/donate/?business=UR3VZ962M4F4N&item_name=Support+the+developer+of+Level+Up%21&currency_code=USD",
+                                ),
+                                mode: LaunchMode.externalApplication,
+                              ),
+                              child: SvgPicture.network(
+                                "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+                                width: Responsive.width(context, 200),
+                                placeholderBuilder: (context) =>
+                                    CircularProgressIndicator(), // if image fails to load
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

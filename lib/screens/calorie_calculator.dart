@@ -87,32 +87,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         style: GoogleFonts.manrope(
           fontSize: fontSize ?? Responsive.font(context, 15),
           color: Colors.white,
-          shadows: [
-            Shadow(
-              offset: Offset(
-                Responsive.scale(context, 4),
-                Responsive.scale(context, 4),
-              ),
-              blurRadius: Responsive.scale(context, 10),
-              color: Colors.black,
-            ),
-          ],
+          shadows: [textDropShadow(context)],
         ),
         hint: Text(
           hint,
           style: GoogleFonts.manrope(
             fontSize: fontSize ?? Responsive.font(context, 15),
             color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(
-                  Responsive.scale(context, 4),
-                  Responsive.scale(context, 4),
-                ),
-                blurRadius: Responsive.scale(context, 10),
-                color: Colors.black,
-              ),
-            ],
+            shadows: [textDropShadow(context)],
           ),
         ),
         value: value,
@@ -284,16 +266,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         // style of the input text
                         fontSize: Responsive.font(context, 15),
                         color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(
-                              Responsive.scale(context, 4),
-                              Responsive.scale(context, 4),
-                            ),
-                            blurRadius: Responsive.scale(context, 10),
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ],
+                        shadows: [textDropShadow(context)],
                       ),
                       decoration: InputDecoration(
                         enabledBorder: UnderlineInputBorder(
@@ -327,16 +300,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         hintStyle: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       onChanged: (inputWeight) {
@@ -428,16 +392,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         style: GoogleFonts.roboto(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white.withAlpha(128),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       Text(
@@ -445,16 +400,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         style: GoogleFonts.roboto(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white.withAlpha(128),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       Text(
@@ -462,16 +408,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         style: GoogleFonts.roboto(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white.withAlpha(128),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       Text(
@@ -479,16 +416,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         style: GoogleFonts.roboto(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white.withAlpha(128),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       Text(
@@ -496,16 +424,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         style: GoogleFonts.roboto(
                           fontSize: Responsive.font(context, 15),
                           color: Colors.white.withAlpha(128),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(
-                                Responsive.scale(context, 4),
-                                Responsive.scale(context, 4),
-                              ),
-                              blurRadius: Responsive.scale(context, 10),
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                          shadows: [textDropShadow(context)],
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 30)),

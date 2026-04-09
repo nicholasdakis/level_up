@@ -839,3 +839,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Updated the UI of the About The Developer tab with widgets like frostedGlassCard that other updated UIs of classes now use
 - Added clickable links to GitHub and LinkedIn to the Developer tab
 - Moved buildSectionHeader into globals.dart as many classes were using the same code without calling the method itself
+- Extracted the repeated code from customButton and simpleCustomButton into frostedButtonShell
+- Extracted the shadowing of text into a global helper method textDropShadow
