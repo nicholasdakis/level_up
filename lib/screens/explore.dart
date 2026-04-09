@@ -122,7 +122,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             fillingCache = false;
           });
           _addPOIMarkers(); // place markers for the new POIs on the map
-          _updateNearestPOI(); // re-check if a new POI is now closest
+          _refreshClosestCheckinPOI(); // re-check if a new POI is now closest
         },
       );
 
@@ -138,7 +138,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
       _addPOIMarkers();
 
       // Check if the user is close enough to any POI to check in
-      _updateNearestPOI();
+      _refreshClosestCheckinPOI();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -148,14 +148,14 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     }
   }
 
-  Future<void> _updateNearestPOI() async {
+  Future<void> _refreshClosestCheckinPOI() async {
     if (userLocation == null) return;
 
     final closest = await _poiService.getClosestCheckInPOI(
       nearbyPOIs,
       userLocation!.latitude,
       userLocation!.longitude,
-      50, // 50 meters max check-in distance
+      30, // 30 meters max check-in distance
     );
 
     if (!mounted) return;
@@ -201,7 +201,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
         setState(() => xpAwarded = null);
 
         // Re-check nearest POI since this one is now visited
-        _updateNearestPOI();
+        _refreshClosestCheckinPOI();
       } else {
         // Check-in failed (cooldown or too far)
         setState(() => checkingIn = false);
