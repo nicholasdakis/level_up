@@ -5,12 +5,12 @@ class RecentFoodsService {
   static const int _maxRecent = 30;
 
   // Centralized cache wrapper for SharedPreferences
-  final SharedPrefsService _cache = SharedPrefsService();
+  final SharedPrefsService _prefs = SharedPrefsService();
 
   // Load the recent foods from local storage as a list of maps that represents each food
   Future<List<Map<String, dynamic>>> getRecentFoods() async {
     // Call the service method that gets the json list, converts it to Dart, and then maps it to a List<Map<String, dynamic>>
-    return await _cache.getJsonList(SharedPreferencesKey.recentFoods);
+    return await _prefs.getJsonList(SharedPreferencesKey.recentFoods);
   }
 
   // Add a new food to the recent foods list
@@ -31,7 +31,7 @@ class RecentFoodsService {
       recents.removeRange(_maxRecent, recents.length);
     } // if list exceeds the max size, remove the oldest entries from the end
 
-    await _cache.setJsonList(SharedPreferencesKey.recentFoods, recents);
+    await _prefs.setJsonList(SharedPreferencesKey.recentFoods, recents);
     // save the updated list back to SharedPreferences as a JSON string
   }
 }

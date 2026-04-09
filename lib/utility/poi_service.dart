@@ -10,7 +10,7 @@ class POIService {
   static const double _refreshDistance = 250;
 
   // Centralized cache wrapper for SharedPreferences
-  final SharedPrefsService _cache = SharedPrefsService();
+  final SharedPrefsService _prefs = SharedPrefsService();
 
   // Fetch nearby POIs, using the cache if the user hasn't moved far
   // If the cache is not full, a background fetch fills in the rest
@@ -44,7 +44,7 @@ class POIService {
     final fresh = await _fetchFromBackend(lat, lng);
 
     // Save the fresh results and the fetch location
-    await _cachePOIs(fresh, lat, lng);
+    await _prefsPOIs(fresh, lat, lng);
 
     // if (fresh.length > 5) return fresh.sublist(0, 5); // line for testing unfilled cache
 
@@ -82,20 +82,20 @@ class POIService {
     // Nothing new was added
     if (result.length == cached.length) return null;
 
-    await _cachePOIs(result, lat, lng);
+    await _prefsPOIs(result, lat, lng);
     return result;
   }
 
   // Check if cached POIs exist and if the user is still close enough to use them
   Future<List<POI>?> _getCachedPOIs(double lat, double lng) async {
-    final raw = await _cache.getString(
+    final raw = await _prefs.getString(
       SharedPreferencesKey.cachedPois,
     ); // get the cached JSON string
     if (raw == null) return null; // no cache exists yet
 
     // Get the location of the last fetch
-    final cachedLat = await _cache.getDouble(SharedPreferencesKey.cachedPoiLat);
-    final cachedLng = await _cache.getDouble(SharedPreferencesKey.cachedPoiLng);
+    final cachedLat = await _prefs.getDouble(SharedPreferencesKey.cachedPoiLat);
+    final cachedLng = await _prefs.getDouble(SharedPreferencesKey.cachedPoiLng);
     if (cachedLat == null || cachedLng == null) {
       return null; // no cached location
     }
@@ -114,17 +114,17 @@ class POIService {
   }
 
   // Save POIs and the fetch location to SharedPreferences
-  Future<void> _cachePOIs(List<POI> pois, double lat, double lng) async {
+  Future<void> _prefsPOIs(List<POI> pois, double lat, double lng) async {
     // Convert the list of POIs to JSON and store it
     final jsonList = pois.map((poi) => poi.toJson()).toList();
-    await _cache.setString(
+    await _prefs.setString(
       SharedPreferencesKey.cachedPois,
       jsonEncode(jsonList),
     );
 
     // Store the fetch location so distance can be compared later
-    await _cache.setDouble(SharedPreferencesKey.cachedPoiLat, lat);
-    await _cache.setDouble(SharedPreferencesKey.cachedPoiLng, lng);
+    await _prefs.setDouble(SharedPreferencesKey.cachedPoiLat, lat);
+    await _prefs.setDouble(SharedPreferencesKey.cachedPoiLng, lng);
   }
 
   // Call the backend endpoint to get POIs from Overpass
@@ -244,7 +244,7 @@ class POIService {
     final visited = await _getVisitedMap(); // load the current visited map
     visited[poiName] = DateTime.now()
         .millisecondsSinceEpoch; // store current time as milliseconds
-    await _cache.setString(
+    await _prefs.setString(
       SharedPreferencesKey.visitedPois,
       jsonEncode(visited),
     ); // save back to storage
@@ -265,7 +265,7 @@ class POIService {
   // Load the visited POIs map from SharedPreferences
   // Returns a map of POI name to the timestamp (in milliseconds) of the last visit
   Future<Map<String, int>> _getVisitedMap() async {
-    final raw = await _cache.getString(SharedPreferencesKey.visitedPois);
+    final raw = await _prefs.getString(SharedPreferencesKey.visitedPois);
     if (raw == null) return {}; // no visits recorded yet
 
     // Decode the JSON string into a Map<String, dynamic> then cast values to int
@@ -281,7 +281,7 @@ class POIService {
 
     // Remove entries where the visit was more than 24 hours ago
     visited.removeWhere((name, timestamp) => (now - timestamp) > oneDayMs);
-    await _cache.setString(
+    await _prefs.setString(
       SharedPreferencesKey.visitedPois,
       jsonEncode(visited),
     ); // save the cleaned map
