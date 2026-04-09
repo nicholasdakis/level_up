@@ -392,7 +392,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                   });
 
                   final tapped = poi;
-                  Future.delayed(const Duration(seconds: 2), () {
+                  Future.delayed(const Duration(seconds: 1), () {
                     if (mounted && _tappedPOI == tapped) {
                       setState(() => _cardOpacity = 0); // fade out
                     }

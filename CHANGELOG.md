@@ -848,3 +848,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Initially converted all the parameters to strings in setCalorieCalculatorData and then to Map<String, dynamic> but reverted after realizing this wasn't needed due to the dynamic type
 - Stopped the map from auto-centering on the user when they move
 - Added a button to recenter the camera to the user's location
+- Wrapped the Browser Notifications dialog in PointerInterceptor to make it clickable while on the Explore tab
