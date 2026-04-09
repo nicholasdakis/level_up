@@ -283,6 +283,8 @@ OVERPASS_URLS = ["https://overpass-api.de/api/interpreter","https://overpass.pri
 
 # Overpass QL query template for fetching general POIs near a location
 # {lat}, {lng}, {radius} are filled in at request time
+# Each tag key (amenity, leisure, shop, tourism) produces category values
+# used by POIIcons.fromCategory on the client side
 OVERPASS_QUERY = """
 [out:json][timeout:20];
 (
@@ -297,6 +299,7 @@ out body 100;
 # Method to turn the Overpass JSON into POIItem objects for the useful fields
 def parse_overpass_response(data):
     pois = []
+    seen_locations = set()
     elements = data.get("elements", []) # Overpass returns results in an "elements" array
 
     for element in elements:
@@ -315,10 +318,19 @@ def parse_overpass_response(data):
             "other" # fallback
         )
 
+        lat = element["lat"] # Overpass always includes lat/lon for nodes
+        lng = element["lon"] # self-note: Overpass uses "lon" for longtitude
+
+        # Round to 5 decimal places (1.1m) to prevent duplicate elements returned by Overpass
+        location_key = f"{round(lat, 5)},{round(lng, 5)}"
+        if location_key in seen_locations:
+            continue
+        seen_locations.add(location_key)
+
         pois.append(POIItem(
             name=name,
-            lat=element["lat"], # Overpass always includes lat/lon for nodes
-            lng=element["lon"], # self-note: Overpass uses "lon" for longtitude
+            lat=lat,
+            lng=lng,
             category=category,
         ))
 

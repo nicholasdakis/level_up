@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'poi.dart';
-import 'shared_preferences/shared_prefs_async.dart';
-import '../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
+import '../shared_preferences/shared_prefs_async.dart';
+import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
 
 class POIService {
   // How far the user must move (in meters) before fresh POIs are fetched

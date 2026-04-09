@@ -6,8 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
-import '../utility/poi.dart';
-import '../utility/poi_service.dart';
+import '../utility/poi/poi.dart';
+import '../utility/poi/poi_icons.dart';
+import '../utility/poi/poi_service.dart';
 
 class Explore extends StatefulWidget {
   const Explore({super.key});
@@ -142,7 +143,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        poiError = 'Could not load nearby spots';
+        poiError = 'Failed to load locations, please try again shortly.';
         loadingPOIs = false;
       });
     }
@@ -231,68 +232,25 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     for (final poi in nearbyPOIs) {
       final key = '${poi.lat},${poi.lng}';
       if (_markedPOIs.contains(key)) continue; // already has a marker
+      _markedPOIs.add(
+        key,
+      ); // add to set before the await to prevent possible race conditions
       try {
         await mapController.addMarker(
           GeoPoint(latitude: poi.lat, longitude: poi.lng),
           markerIcon: MarkerIcon(
             icon: Icon(
-              _iconForCategory(
+              POIIcons.fromCategory(
                 poi.category,
               ), // picks an icon based on the POI type
-              color: darkenColor(Colors.blueAccent, 0.2).withAlpha(150),
+              color: darkenColor(Colors.blueAccent, 0.2),
               size: Responsive.width(context, 35),
             ),
           ),
         );
-        _markedPOIs.add(key);
       } catch (_) {
         // skip markers that fail to add (e.g. duplicate positions)
       }
-    }
-  }
-
-  // Method that returns an icon based on the POI category
-  IconData _iconForCategory(String category) {
-    switch (category) {
-      case 'restaurant':
-      case 'fast_food':
-      case 'cafe':
-      case 'bar':
-      case 'pub':
-        return Icons.restaurant;
-      case 'fitness_centre':
-      case 'sports_centre':
-      case 'gym':
-        return Icons.fitness_center;
-      case 'park':
-      case 'garden':
-      case 'playground':
-        return Icons.park;
-      case 'supermarket':
-      case 'convenience':
-      case 'bakery':
-        return Icons.shopping_cart;
-      case 'pharmacy':
-      case 'hospital':
-      case 'clinic':
-      case 'doctors':
-        return Icons.local_hospital;
-      case 'school':
-      case 'university':
-      case 'college':
-      case 'library':
-        return Icons.school;
-      case 'hotel':
-      case 'hostel':
-      case 'guest_house':
-        return Icons.hotel;
-      case 'museum':
-      case 'gallery':
-      case 'theatre':
-      case 'cinema':
-        return Icons.museum;
-      default:
-        return Icons.place; // generic pin for everything else
     }
   }
 
@@ -323,7 +281,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             children: [
               // Category icon
               Icon(
-                _iconForCategory(poi.category),
+                POIIcons.fromCategory(poi.category),
                 color: visited
                     ? Colors.white38
                     : Colors.white, // dim if already visited
@@ -354,7 +312,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
               if (visited)
                 Icon(
                   Icons.check_circle,
-                  color: Colors.green.withAlpha(150),
+                  color: Colors.green,
                   size: Responsive.width(context, 20),
                 )
               else
@@ -824,7 +782,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _iconForCategory(_tappedPOI!.category),
+                              POIIcons.fromCategory(_tappedPOI!.category),
                               color: Colors.white,
                               size: Responsive.width(context, 22),
                             ),

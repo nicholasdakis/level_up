@@ -849,3 +849,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Stopped the map from auto-centering on the user when they move
 - Added a button to recenter the camera to the user's location
 - Wrapped the Browser Notifications dialog in PointerInterceptor to make it clickable while on the Explore tab
+- Moved markedPOIs.add before the await to prevent race conditions where 2 markers were trying to be placed before being added to the set
+- Realized the API was sometimes treating the same place as two different locations, so added a seen_locations set to the backend to skip duplicate locations
+- Added more POI-specific icons
+- Extracted the poi icons switch case into its own poi_icons class to freely make it as long as needed without clogging up explore.dart
+- Moved poi-related code into a new poi folder
