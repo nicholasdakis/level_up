@@ -453,6 +453,24 @@ void changeToScreen(
   );
 }
 
+// Section header label used across the app (e.g. "OVERVIEW", "NOTES", "REMINDER DETAILS")
+Widget sectionHeader(String text, BuildContext context, {double baseFontSize = 11, EdgeInsetsGeometry? padding}) {
+  return Padding(
+    padding: padding ?? EdgeInsets.only(
+      bottom: Responsive.height(context, 12),
+    ),
+    child: Text(
+      text,
+      style: GoogleFonts.manrope(
+        fontSize: Responsive.font(context, baseFontSize),
+        color: Colors.white38,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.4,
+      ),
+    ),
+  );
+}
+
 // FROSTED GLASS CARD used across the app (reminders, preferences, etc.)
 // ClipRRect clips the blur to the card's rounded corners,
 // BackdropFilter blurs whatever is behind the card,

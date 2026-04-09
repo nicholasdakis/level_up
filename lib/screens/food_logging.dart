@@ -1159,22 +1159,11 @@ class _FoodLoggingState extends State<FoodLogging>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.only(
-              top: Responsive.height(context, 16),
-              bottom: Responsive.height(context, 12),
-              left: Responsive.width(context, 4),
-            ),
-            child: Text(
-              "ENTER FOOD INFORMATION",
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 15),
-                color: Colors.white38,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.4,
-              ),
-            ),
-          ),
+          sectionHeader("ENTER FOOD INFORMATION", context, baseFontSize: 15, padding: EdgeInsets.only(
+            top: Responsive.height(context, 16),
+            bottom: Responsive.height(context, 12),
+            left: Responsive.width(context, 4),
+          )),
           frostedGlassCard(
             context,
             baseRadius: 20,

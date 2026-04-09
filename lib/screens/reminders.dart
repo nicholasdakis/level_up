@@ -508,6 +508,7 @@ class _RemindersState extends State<Reminders> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    sectionHeader("REMINDER DETAILS", context),
                     frostedGlassCard(
                       context,
                       padding: EdgeInsets.all(Responsive.scale(context, 20)),
@@ -643,20 +644,7 @@ class _RemindersState extends State<Reminders> {
                     SizedBox(height: Responsive.height(context, 28)),
 
                     // --- Section header ---
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 12),
-                      ),
-                      child: Text(
-                        "UPCOMING REMINDERS",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 11),
-                          color: Colors.white38,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.4,
-                        ),
-                      ),
-                    ),
+                    sectionHeader("UPCOMING REMINDERS", context),
 
                     // Reminder list or empty state
                     reminders.isEmpty
@@ -696,21 +684,10 @@ class _RemindersState extends State<Reminders> {
                     if (kIsWeb) ...[
                       SizedBox(height: Responsive.height(context, 28)),
                       // Section header
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
-                          left: Responsive.width(context, 4),
-                        ),
-                        child: Text(
-                          "NOTES",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: Colors.white38,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      ),
+                      sectionHeader("NOTES", context, padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      )),
                       frostedGlassCard(
                         context,
                         padding: EdgeInsets.all(Responsive.scale(context, 18)),

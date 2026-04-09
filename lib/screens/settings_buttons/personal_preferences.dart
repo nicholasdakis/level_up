@@ -354,24 +354,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
-  // Section header label (e.g. "APPEARANCE", "PROFILE", "NOTIFICATIONS")
-  Widget buildSectionHeader(String title) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: Responsive.height(context, 10),
-        left: Responsive.width(context, 4),
-      ),
-      child: Text(
-        title,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, 11),
-          color: Colors.white38,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.4,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +388,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Appearance section
-                buildSectionHeader("APPEARANCE"),
+                sectionHeader("APPEARANCE", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
                 frostedGlassCard(
                   context,
                   child: Column(
@@ -425,7 +407,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 SizedBox(height: Responsive.height(context, 28)),
 
                 // Profile section
-                buildSectionHeader("PROFILE"),
+                sectionHeader("PROFILE", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
                 frostedGlassCard(
                   context,
                   child: Column(
@@ -457,7 +439,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 SizedBox(height: Responsive.height(context, 28)),
 
                 // Notifications section
-                buildSectionHeader("NOTIFICATIONS"),
+                sectionHeader("NOTIFICATIONS", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
                 frostedGlassCard(
                   context,
                   child: Column(

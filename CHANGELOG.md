@@ -834,3 +834,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Removed the three separate exp bar builder methods (buildFooterOuterExpBar, buildFooterLightGrayExpBar, buildFooterFillableExpBar) and replaced them with a single buildExpBar method
 - Used padding on a black Container instead of Border.all to create the border, so the inner content area lines up cleanly
 - Added a ClipRRect inside the black container to clip both the gray background and blue fill to the same rounded shape, preventing the blue from peeking under the gray
+
+## 2026-04-09
+- Updated the UI of the About The Developer tab with widgets like frostedGlassCard that other updated UIs of classes now use
+- Added clickable links to GitHub and LinkedIn to the Developer tab
+- Moved buildSectionHeader into globals.dart as many classes were using the same code without calling the method itself
