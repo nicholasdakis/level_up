@@ -1,26 +1,16 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'shared_preferences/shared_prefs_async.dart';
 
 class RecentFoodsService {
-  // Key used to store the recent foods list in SharedPreferences
-  static const String _key = 'recent_foods';
   // Maximum number of recent foods to store
   static const int _maxRecent = 30;
 
-  // SharedPreferencesAsync instance to access persistent local storage
-  final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
+  // Centralized cache wrapper for SharedPreferences
+  final SharedPrefsService _cache = SharedPrefsService();
 
   // Load the recent foods from local storage as a list of maps that represents each food
   Future<List<Map<String, dynamic>>> getRecentFoods() async {
-    final raw = await _prefs.getString(
-      _key,
-    ); // retrieve JSON string from storage
-    if (raw == null) return []; // if nothing stored yet, return empty list
-    final List<dynamic> decoded = jsonDecode(
-      raw,
-    ); // decode JSON into a dynamic list
-    return decoded.cast<Map<String, dynamic>>();
-    // cast dynamic list to List<Map<String, dynamic>> for type safety
+    // Call the service method that gets the json list, converts it to Dart, and then maps it to a List<Map<String, dynamic>>
+    return await _cache.getJsonList(SharedPreferencesKey.recentFoods);
   }
 
   // Add a new food to the recent foods list
@@ -41,7 +31,7 @@ class RecentFoodsService {
       recents.removeRange(_maxRecent, recents.length);
     } // if list exceeds the max size, remove the oldest entries from the end
 
-    await _prefs.setString(_key, jsonEncode(recents));
+    await _cache.setJsonList(SharedPreferencesKey.recentFoods, recents);
     // save the updated list back to SharedPreferences as a JSON string
   }
 }

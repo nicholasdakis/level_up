@@ -841,3 +841,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Moved buildSectionHeader into globals.dart as many classes were using the same code without calling the method itself
 - Extracted the repeated code from customButton and simpleCustomButton into frostedButtonShell
 - Extracted the shadowing of text into a global helper method textDropShadow
+- Created a shared_preferences folder with a SharedPrefsService wrapper class and SharedPreferencesKey constants to centralize all SharedPreferences logic and keys in one file
+- Updated RecentFoodsService and POIService to use the new wrapper instead of accessing SharedPreferences directly

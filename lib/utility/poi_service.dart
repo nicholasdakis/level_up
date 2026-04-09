@@ -1,25 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'poi.dart';
+import 'shared_preferences/shared_prefs_async.dart';
 import '../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
 
 class POIService {
-  // SharedPreferences keys for storing cached data
-  static const String _poisKey = 'cached_pois'; // the cached list of POIs
-  static const String _cachedLatKey =
-      'cached_poi_lat'; // latitude of the last fetch location
-  static const String _cachedLngKey =
-      'cached_poi_lng'; // longitude of the last fetch location
-  static const String _visitedKey =
-      'visited_pois'; // map of POI names to their last visit timestamp
-
   // How far the user must move (in meters) before fresh POIs are fetched
   static const double _refreshDistance = 250;
 
-  // SharedPreferencesAsync instance for persistent local storage
-  final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
+  // Centralized cache wrapper for SharedPreferences
+  final SharedPrefsService _cache = SharedPrefsService();
 
   // Fetch nearby POIs, using the cache if the user hasn't moved far
   // If the cache is not full, a background fetch fills in the rest
@@ -97,12 +88,14 @@ class POIService {
 
   // Check if cached POIs exist and if the user is still close enough to use them
   Future<List<POI>?> _getCachedPOIs(double lat, double lng) async {
-    final raw = await _prefs.getString(_poisKey); // get the cached JSON string
+    final raw = await _cache.getString(
+      SharedPreferencesKey.cachedPois,
+    ); // get the cached JSON string
     if (raw == null) return null; // no cache exists yet
 
     // Get the location of the last fetch
-    final cachedLat = await _prefs.getDouble(_cachedLatKey);
-    final cachedLng = await _prefs.getDouble(_cachedLngKey);
+    final cachedLat = await _cache.getDouble(SharedPreferencesKey.cachedPoiLat);
+    final cachedLng = await _cache.getDouble(SharedPreferencesKey.cachedPoiLng);
     if (cachedLat == null || cachedLng == null) {
       return null; // no cached location
     }
@@ -124,11 +117,14 @@ class POIService {
   Future<void> _cachePOIs(List<POI> pois, double lat, double lng) async {
     // Convert the list of POIs to JSON and store it
     final jsonList = pois.map((poi) => poi.toJson()).toList();
-    await _prefs.setString(_poisKey, jsonEncode(jsonList));
+    await _cache.setString(
+      SharedPreferencesKey.cachedPois,
+      jsonEncode(jsonList),
+    );
 
     // Store the fetch location so distance can be compared later
-    await _prefs.setDouble(_cachedLatKey, lat);
-    await _prefs.setDouble(_cachedLngKey, lng);
+    await _cache.setDouble(SharedPreferencesKey.cachedPoiLat, lat);
+    await _cache.setDouble(SharedPreferencesKey.cachedPoiLng, lng);
   }
 
   // Call the backend endpoint to get POIs from Overpass
@@ -248,8 +244,8 @@ class POIService {
     final visited = await _getVisitedMap(); // load the current visited map
     visited[poiName] = DateTime.now()
         .millisecondsSinceEpoch; // store current time as milliseconds
-    await _prefs.setString(
-      _visitedKey,
+    await _cache.setString(
+      SharedPreferencesKey.visitedPois,
       jsonEncode(visited),
     ); // save back to storage
   }
@@ -269,7 +265,7 @@ class POIService {
   // Load the visited POIs map from SharedPreferences
   // Returns a map of POI name to the timestamp (in milliseconds) of the last visit
   Future<Map<String, int>> _getVisitedMap() async {
-    final raw = await _prefs.getString(_visitedKey);
+    final raw = await _cache.getString(SharedPreferencesKey.visitedPois);
     if (raw == null) return {}; // no visits recorded yet
 
     // Decode the JSON string into a Map<String, dynamic> then cast values to int
@@ -285,8 +281,8 @@ class POIService {
 
     // Remove entries where the visit was more than 24 hours ago
     visited.removeWhere((name, timestamp) => (now - timestamp) > oneDayMs);
-    await _prefs.setString(
-      _visitedKey,
+    await _cache.setString(
+      SharedPreferencesKey.visitedPois,
       jsonEncode(visited),
     ); // save the cleaned map
   }
