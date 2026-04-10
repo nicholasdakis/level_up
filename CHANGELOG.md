@@ -879,3 +879,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted timestamp, datetime -> utc datetime conversion into a to_utc_datetime method as many classes in the backend folder used that same repeated code
 - Added logger to auth.py to record the real error internally to the server while returning a generic message to the client, preventing sensitive info leakage
 - Edited the to_utc_datetime method to handle fallback cases
+- Made a redis_cache.py file that links the Redis DB with the URL and TOKEN in Render
+- Added a TTL constant for cached foods of 30 days so that data stays fresh
+- Wired the caching to the /get_food route so that it first checks the cache, and if not in the cache it uses the API and adds to the cache
+- Added cache_hits and cache_misses as keys in the cache to measure the long-term implications of the cache
+- Wrapped the cache search in get_food in a try except block so that if the read fails it falls back to the API instead of crashing

@@ -32,6 +32,10 @@ import json
 import re
 import random
 from backend.utils import to_utc_datetime
+from backend.redis_cache import FOOD_CACHE_TTL, redis
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Get the environmental variables from Render
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -225,6 +229,20 @@ def get_food():
     # Normalize the food name to reduce redundant API calls
     food_name = re.sub(r'\s+', ' ', body.food_name.lower()).strip()
 
+    # First, check the cache
+    try:
+        if redis.exists(food_name):
+            redis.incr("cache_hits")
+
+            # Return the cached food as a json like expected
+            cached = redis.get(food_name)
+            return jsonify(json.loads(cached))
+    except Exception as e: # If the redis read fails, the error messages print and the code continues with the API call
+        logger.warning(f"[Redis Error]: {e}") # Real error message logged to server
+        print("Redis error, falling back to the API search.") # Generic error message for user
+        
+    
+    # Not in cache, so use the fatSecret API
     if not token_manager.consume():
         # Retrieve the next reset time
         reset_time = get_next_reset_time()
@@ -263,12 +281,18 @@ def get_food():
             headers=headers,
             data=data
         )
+
         # Refund the token if the FatSecret API call fails
         if api_response.status_code != 200:
             token_manager.refund()  # Give back token on API failure
             return jsonify({"error": "FatSecret API error", "status_code": api_response.status_code}), 500
         # FatSecret may return XML if the request is malformed
         try:
+            # Add the response into the cache
+            redis.setex(food_name, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
+            redis.incr("cache_misses")
+
+            # Return the jsonified response from the API
             return jsonify(api_response.json())
         except ValueError:
             token_manager.refund()  # Give back token on invalid JSON
