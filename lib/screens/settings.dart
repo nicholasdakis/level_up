@@ -8,7 +8,6 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/install_guide.dart';
 import '../authentication/auth_services.dart';
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'dart:js_interop';
 
 @JS('isPwa')
@@ -113,23 +112,11 @@ Widget buildSettingsDrawer(
               hoverColor: Colors.white.withAlpha(50),
               onTap: () async {
                 Navigator.pop(context);
-                final Uri emailLaunchUri = Uri(
-                  scheme: 'mailto',
-                  path: 'n1ch0lasd4k1s@gmail.com',
-                  query: Uri.encodeFull('subject=Feedback for Level Up!'),
+                sendEmail(
+                  context,
+                  "n1ch0lasd4k1s@gmail.com",
+                  "Feedback for Level up!",
                 );
-                if (!await url_launcher.launchUrl(
-                  emailLaunchUri,
-                  mode: url_launcher.LaunchMode.externalApplication,
-                )) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "Failed to open email app. Please manually send an email to n1ch0lasd4k1s@gmail.com.",
-                      ),
-                    ),
-                  );
-                }
               },
             ),
           ),

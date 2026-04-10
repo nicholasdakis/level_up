@@ -270,7 +270,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-        splashColor: appColorNotifier.value.withAlpha(30),
+        splashColor: appColorNotifier.value.withAlpha(100),
         highlightColor: appColorNotifier.value.withAlpha(15),
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -354,7 +354,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     // Color swatch preview for the theme color row
@@ -388,7 +387,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Appearance section
-                sectionHeader("APPEARANCE", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
+                sectionHeader(
+                  "APPEARANCE",
+                  context,
+                  padding: EdgeInsets.only(
+                    bottom: Responsive.height(context, 10),
+                    left: Responsive.width(context, 4),
+                  ),
+                ),
                 frostedGlassCard(
                   context,
                   child: Column(
@@ -407,7 +413,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 SizedBox(height: Responsive.height(context, 28)),
 
                 // Profile section
-                sectionHeader("PROFILE", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
+                sectionHeader(
+                  "PROFILE",
+                  context,
+                  padding: EdgeInsets.only(
+                    bottom: Responsive.height(context, 10),
+                    left: Responsive.width(context, 4),
+                  ),
+                ),
                 frostedGlassCard(
                   context,
                   child: Column(
@@ -439,7 +452,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 SizedBox(height: Responsive.height(context, 28)),
 
                 // Notifications section
-                sectionHeader("NOTIFICATIONS", context, padding: EdgeInsets.only(bottom: Responsive.height(context, 10), left: Responsive.width(context, 4))),
+                sectionHeader(
+                  "NOTIFICATIONS",
+                  context,
+                  padding: EdgeInsets.only(
+                    bottom: Responsive.height(context, 10),
+                    left: Responsive.width(context, 4),
+                  ),
+                ),
                 frostedGlassCard(
                   context,
                   child: Column(

@@ -5,6 +5,7 @@ import 'user/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
 import 'utility/leaderboard/leaderboard_service.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -30,6 +31,31 @@ Shadow textDropShadow(BuildContext context) {
     blurRadius: Responsive.scale(context, 10),
     color: const Color.fromARGB(255, 0, 0, 0),
   );
+}
+
+// Method that externally opens an email with a path and subject
+Future<void> sendEmail(
+  BuildContext context,
+  String email,
+  String subject,
+) async {
+  final Uri emailLaunchUri = Uri(
+    scheme: 'mailto',
+    path: email,
+    query: Uri.encodeFull('subject=$subject'),
+  );
+  if (!await url_launcher.launchUrl(
+    emailLaunchUri,
+    mode: url_launcher.LaunchMode.externalApplication,
+  )) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Failed to open email app. Please manually send an email to n1ch0lasd4k1s@gmail.com.",
+        ),
+      ),
+    );
+  }
 }
 
 // CREATE TEXT WITH THE MAIN APP FONT
@@ -291,7 +317,7 @@ Widget _frostedButtonShell(
           child: InkWell(
             borderRadius: radius, // ripple matches button shape
             onTap: onTap,
-            splashColor: color.withValues(alpha: 0.1), // splash color
+            splashColor: appColorNotifier.value.withAlpha(100),
             highlightColor: color.withValues(alpha: 0.05), // highlight color
             child: Center(child: child),
           ),

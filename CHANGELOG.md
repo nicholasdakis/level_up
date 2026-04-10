@@ -858,3 +858,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made a mapReady variable so that markers are only added when the map is ready
 - Decoupled _addPOIMarkers from the userLocation check in mapIsReady so it fires even if GPS hasn't returned yet. Defensive fix for edge cases where GPS returns before the map initializes
 - Instead of doing nothing in the catch block of addPOIMarkers, it now removes the key from markedPOIs so it can be retried. Before, if addMarker failed (e.g. the map was still settling), the key stayed in the set permanently, so that marker was skipped on every future call and never appeared on the map. Now a failed marker gets a second chance when _addPOIMarkers runs again from the onSupplement callback
+- Adding padding to the buttons and widgets in the Explore tab so they line up on mobile
+- Added a Send Feedback heading and button back to the About The Developer tab for convenience
+- Added splashColor with alpha to all instances of InkWell to make ripple effect more subtle

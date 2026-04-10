@@ -728,6 +728,7 @@ class _FoodLoggingState extends State<FoodLogging>
     return Container(
       alignment: Alignment.center,
       child: InkWell(
+        splashColor: appColorNotifier.value.withAlpha(100),
         onTap: () async {
           final uri = Uri.parse(url);
           if (!await launchUrl(uri)) throw "Error: Could not open website.";
@@ -958,6 +959,7 @@ class _FoodLoggingState extends State<FoodLogging>
               itemBuilder: (context, index) {
                 final food = foodList[index];
                 return InkWell(
+                  splashColor: appColorNotifier.value.withAlpha(100),
                   onTap: () {
                     FocusScope.of(context).unfocus();
                     _initServing(food['food_description'] ?? '');
@@ -1159,11 +1161,16 @@ class _FoodLoggingState extends State<FoodLogging>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          sectionHeader("ENTER FOOD INFORMATION", context, baseFontSize: 15, padding: EdgeInsets.only(
-            top: Responsive.height(context, 16),
-            bottom: Responsive.height(context, 12),
-            left: Responsive.width(context, 4),
-          )),
+          sectionHeader(
+            "ENTER FOOD INFORMATION",
+            context,
+            baseFontSize: 15,
+            padding: EdgeInsets.only(
+              top: Responsive.height(context, 16),
+              bottom: Responsive.height(context, 12),
+              left: Responsive.width(context, 4),
+            ),
+          ),
           frostedGlassCard(
             context,
             baseRadius: 20,
@@ -1670,6 +1677,7 @@ class _FoodLoggingState extends State<FoodLogging>
                         onPressed: () => changeDate(-1),
                       ),
                       InkWell(
+                        splashColor: appColorNotifier.value.withAlpha(100),
                         onTap: pickDate,
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),

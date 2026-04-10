@@ -36,6 +36,7 @@ class _FooterState extends State<Footer> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
+            splashColor: appColorNotifier.value.withAlpha(100),
             onTap: () {
               Navigator.push(
                 context,
@@ -105,10 +106,7 @@ class _FooterState extends State<Footer> {
         height: Responsive.height(context, 25),
         width: fullWidth,
         padding: EdgeInsets.all(borderWidth),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: barRadius,
-        ),
+        decoration: BoxDecoration(color: Colors.black, borderRadius: barRadius),
         // Clips the inner contents to a rounded shape that fits inside the border
         child: ClipRRect(
           borderRadius: BorderRadius.circular(
@@ -121,10 +119,7 @@ class _FooterState extends State<Footer> {
               // Blue filled portion representing the user's current exp progress
               Align(
                 alignment: Alignment.centerLeft,
-                child: Container(
-                  width: progressWidth,
-                  color: Colors.blue,
-                ),
+                child: Container(width: progressWidth, color: Colors.blue),
               ),
             ],
           ),

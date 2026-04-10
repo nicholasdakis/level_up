@@ -25,7 +25,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
     required String label,
     required String url,
   }) {
-    return GestureDetector(
+    return InkWell(
+      splashColor: appColorNotifier.value.withAlpha(100),
       onTap: () =>
           launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
       child: frostedGlassCard(
@@ -149,6 +150,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
 
                     // CONNECT WITH ME SECTION
                     sectionHeader("CONNECT WITH ME", context, baseFontSize: 15),
+                    // Outer card
                     frostedGlassCard(
                       context,
                       baseRadius: 20,
@@ -158,16 +160,116 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       ),
                       child: Column(
                         children: [
+                          // LinkedIn card
                           _socialLink(
                             assetPath: 'assets/linkedin_logo.png',
                             label: 'LinkedIn',
                             url: 'https://www.linkedin.com/in/nicholasdakis',
                           ),
-                          SizedBox(height: Responsive.height(context, 14)),
+
+                          SizedBox(
+                            height: Responsive.height(context, 14), // spacing
+                          ),
+
+                          // GitHub card
                           _socialLink(
                             assetPath: 'assets/github_logo.png',
                             label: 'GitHub',
                             url: 'https://github.com/nicholasdakis',
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 30)),
+
+                    // SEND FEEDBACK SECTION
+                    sectionHeader("SEND FEEDBACK", context, baseFontSize: 15),
+                    // Outer card
+                    frostedGlassCard(
+                      context,
+                      baseRadius: 20,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                        vertical: Responsive.height(context, 16),
+                      ),
+                      child: Column(
+                        children: [
+                          // Inner text card
+                          SizedBox(
+                            width: double.infinity,
+                            child: frostedGlassCard(
+                              context,
+                              baseRadius: 14,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 16),
+                                vertical: Responsive.height(context, 12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Feel free to send feedback or suggestions to improve Level Up!",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 18),
+                                    color: Colors.white38,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(
+                            height: Responsive.height(context, 14), // spacing
+                          ),
+
+                          // Send an email card
+                          InkWell(
+                            splashColor: appColorNotifier.value.withAlpha(100),
+                            onTap: () {
+                              sendEmail(
+                                context,
+                                "n1ch0lasd4k1s@gmail.com",
+                                "Feedback for Level up!",
+                              );
+                            },
+                            child: frostedGlassCard(
+                              context,
+                              baseRadius: 14,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 16),
+                                vertical: Responsive.height(context, 12),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 8),
+                                    ),
+                                    child: Icon(Icons.mail),
+                                  ),
+
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      "Send an email",
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 18),
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.white38,
+                                    size: Responsive.width(context, 22),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -211,6 +313,9 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           SizedBox(height: Responsive.height(context, 16)),
                           Center(
                             child: InkWell(
+                              splashColor: appColorNotifier.value.withAlpha(
+                                100,
+                              ),
                               onTap: () => launchUrl(
                                 Uri.parse(
                                   "https://www.paypal.com/donate/?business=UR3VZ962M4F4N&item_name=Support+the+developer+of+Level+Up%21&currency_code=USD",
