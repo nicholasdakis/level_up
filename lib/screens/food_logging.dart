@@ -1187,7 +1187,6 @@ class _FoodLoggingState extends State<FoodLogging>
                     fontSize: Responsive.font(context, 15),
                     color: Colors.white38,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: Responsive.scale(context, 1.4),
                   ),
                 ),
                 _buildManualField(manualNameController, "Food Name"),
@@ -1342,7 +1341,6 @@ class _FoodLoggingState extends State<FoodLogging>
                     fontSize: Responsive.font(context, 15),
                     color: Colors.white38,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: Responsive.scale(context, 1.4),
                   ),
                 ),
                 for (final (controller, hint) in macroFields)
@@ -1528,7 +1526,6 @@ class _FoodLoggingState extends State<FoodLogging>
               fontSize: Responsive.font(context, 15),
               color: Colors.white38,
               fontWeight: FontWeight.w700,
-              letterSpacing: Responsive.font(context, 1),
             ),
           ),
         ),
