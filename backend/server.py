@@ -228,14 +228,15 @@ def get_food():
 
     # Normalize the food name to reduce redundant API calls
     food_name = re.sub(r'\s+', ' ', body.food_name.lower()).strip()
+    cache_key = f"food:{food_name}"
 
     # First, check the cache
     try:
-        if redis.exists(food_name):
+        if redis.exists(cache_key):
             redis.incr("cache_hits")
 
             # Return the cached food as a json like expected
-            cached = redis.get(food_name)
+            cached = redis.get(cache_key)
             return jsonify(json.loads(cached))
     except Exception as e: # If the redis read fails, the error messages print and the code continues with the API call
         logger.warning(f"[Redis Error]: {e}") # Real error message logged to server
@@ -289,7 +290,7 @@ def get_food():
         # FatSecret may return XML if the request is malformed
         try:
             # Add the response into the cache
-            redis.setex(food_name, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
+            redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
             redis.incr("cache_misses")
 
             # Return the jsonified response from the API
