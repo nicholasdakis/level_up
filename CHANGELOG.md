@@ -854,3 +854,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added more POI-specific icons
 - Extracted the poi icons switch case into its own poi_icons class to freely make it as long as needed without clogging up explore.dart
 - Moved poi-related code into a new poi folder
+- Replaced the O(n) switch statement in POIIcons with a const Map for O(1) lookup instead of walking through cases so that adding more markers stays efficient

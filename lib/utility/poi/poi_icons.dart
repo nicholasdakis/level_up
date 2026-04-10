@@ -2,89 +2,64 @@ import 'package:flutter/material.dart';
 
 // Returns a Material icon based on the POI category string
 class POIIcons {
+  static const Map<String, IconData> _categoryIcons = {
+    'restaurant': Icons.restaurant,
+    'fast_food': Icons.restaurant,
+    'cafe': Icons.restaurant,
+    'bar': Icons.restaurant,
+    'pub': Icons.restaurant,
+    'deli': Icons.restaurant,
+    'fitness_centre': Icons.fitness_center,
+    'sports_centre': Icons.fitness_center,
+    'gym': Icons.fitness_center,
+    'park': Icons.park,
+    'garden': Icons.park,
+    'playground': Icons.park,
+    'supermarket': Icons.shopping_cart,
+    'convenience': Icons.shopping_cart,
+    'bakery': Icons.shopping_cart,
+    'greengrocer': Icons.shopping_cart,
+    'pharmacy': Icons.medication_liquid,
+    'hospital': Icons.medication_liquid,
+    'clinic': Icons.medication_liquid,
+    'doctors': Icons.medication_liquid,
+    'dentist': Icons.medication_liquid,
+    'optician': Icons.medication_liquid,
+    'school': Icons.school,
+    'university': Icons.school,
+    'college': Icons.school,
+    'library': Icons.school,
+    'driving_school': Icons.school,
+    'hotel': Icons.hotel,
+    'hostel': Icons.hotel,
+    'guest_house': Icons.hotel,
+    'museum': Icons.museum,
+    'gallery': Icons.museum,
+    'theatre': Icons.museum,
+    'cinema': Icons.museum,
+    'weapons': Icons.dangerous_outlined,
+    'musical_instrument': Icons.music_note,
+    'taxi': Icons.local_taxi,
+    'police': Icons.local_police,
+    'parking': Icons.local_parking,
+    'bank': Icons.attach_money_outlined,
+    'atm': Icons.attach_money_outlined,
+    'fuel': Icons.local_gas_station,
+    'gift': Icons.card_giftcard,
+    'toilets': Icons.wc_rounded,
+    'artwork': Icons.brush,
+    'books': Icons.book,
+    'recycling': Icons.recycling,
+    'information': Icons.info_rounded,
+    'ice_cream': Icons.icecream,
+    'car_repair': Icons.car_repair,
+    'dry_cleaning': Icons.dry_cleaning,
+    'post_office': Icons.local_post_office,
+    'post_box': Icons.local_post_office,
+    'laundry': Icons.local_laundry_service,
+  };
+
   static IconData fromCategory(String category) {
-    switch (category) {
-      case 'restaurant':
-      case 'fast_food':
-      case 'cafe':
-      case 'bar':
-      case 'pub':
-      case 'deli':
-        return Icons.restaurant;
-      case 'fitness_centre':
-      case 'sports_centre':
-      case 'gym':
-        return Icons.fitness_center;
-      case 'park':
-      case 'garden':
-      case 'playground':
-        return Icons.park;
-      case 'supermarket':
-      case 'convenience':
-      case 'bakery':
-      case 'greengrocer':
-        return Icons.shopping_cart;
-      case 'pharmacy':
-      case 'hospital':
-      case 'clinic':
-      case 'doctors':
-      case 'dentist':
-      case 'optician':
-        return Icons.medication_liquid;
-      case 'school':
-      case 'university':
-      case 'college':
-      case 'library':
-      case 'driving_school':
-        return Icons.school;
-      case 'hotel':
-      case 'hostel':
-      case 'guest_house':
-        return Icons.hotel;
-      case 'museum':
-      case 'gallery':
-      case 'theatre':
-      case 'cinema':
-        return Icons.museum;
-      case 'weapons':
-        return Icons.dangerous_outlined;
-      case 'musical_instrument':
-        return Icons.music_note;
-      case 'taxi':
-        return Icons.local_taxi;
-      case 'police':
-        return Icons.local_police;
-      case 'parking':
-        return Icons.local_parking;
-      case 'bank':
-      case 'atm':
-        return Icons.attach_money_outlined;
-      case 'fuel':
-        return Icons.local_gas_station;
-      case 'gift':
-        return Icons.card_giftcard;
-      case 'toilets':
-        return Icons.wc_rounded;
-      case 'artwork':
-        return Icons.brush;
-      case 'books':
-        return Icons.book;
-      case 'recycling':
-        return Icons.recycling;
-      case 'information':
-        return Icons.info_rounded;
-      case 'ice_cream':
-        return Icons.icecream;
-      case 'car_repair':
-        return Icons.car_repair;
-      case 'dry_cleaning':
-        return Icons.dry_cleaning;
-      case 'post_office':
-        return Icons.local_post_office;
-      case 'laundry':
-        return Icons.local_laundry_service;
-      default:
-        return Icons.place; // generic pin for everything else
-    }
+    return _categoryIcons[category] ?? Icons.place; // generic pin for everything else
   }
 }

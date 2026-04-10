@@ -230,7 +230,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   // Place markers on the map for each POI
   Future<void> _addPOIMarkers() async {
     for (final poi in nearbyPOIs) {
-      final key = '${poi.lat},${poi.lng}';
+      final key = '${poi.lat.toStringAsFixed(6)},${poi.lng.toStringAsFixed(6)}';
       if (_markedPOIs.contains(key)) continue; // already has a marker
       _markedPOIs.add(
         key,
