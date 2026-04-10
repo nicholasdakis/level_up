@@ -861,3 +861,15 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Adding padding to the buttons and widgets in the Explore tab so they line up on mobile
 - Added a Send Feedback heading and button back to the About The Developer tab for convenience
 - Added splashColor with alpha to all instances of InkWell to make ripple effect more subtle
+- Extracted arbitrary scaling values into constants in responsive.dart (base screen width/height, tablet/desktop scale factors, breakpoints, font clamps)
+- Replaced hardcoded desktop detection logic with a ScreenType enum (mobile, tablet, desktop) for clearer and more scalable device classification
+- Added screenType() as a single source of truth for determining device type instead of repeating ratio-based checks across methods
+- Added helper boolean methods (isMobile, isTablet, isDesktop) for cleaner and more readable UI condition checks
+- Centralized screen size handling into _safeSize() to avoid repeated MediaQuery calls and prevent invalid/zero-size edge cases
+- Added unified scaling using _scaleValue() so all scaling logic flows through one method instead of being duplicated per method
+- Clamped screen height to 90% like was already the case for width
+- Added min/max font size clamps to prevent text from becoming too small or too large
+- Reverted font() and buttonHeight() to return the base value on mobile instead of proportionally scaling, which was making them too large
+- Edited the Explore tab offset for mobile to not apply to tablet screens
+- Moved the padding in the Explore screen to wrap the nearby experience spots card with the back and recenter buttons on mobile without applying padding to the map itself, now containing the buttons neatly
+- Renamed backButtonMobileOffset for clarity
