@@ -20,6 +20,7 @@ class POIIcons {
     'bakery': Icons.shopping_cart,
     'greengrocer': Icons.shopping_cart,
     'pharmacy': Icons.medication_liquid,
+    'chemist': Icons.medication_liquid,
     'hospital': Icons.medication_liquid,
     'clinic': Icons.medication_liquid,
     'doctors': Icons.medication_liquid,
@@ -60,6 +61,7 @@ class POIIcons {
   };
 
   static IconData fromCategory(String category) {
-    return _categoryIcons[category] ?? Icons.place; // generic pin for everything else
+    return _categoryIcons[category] ??
+        Icons.place; // generic pin for everything else
   }
 }

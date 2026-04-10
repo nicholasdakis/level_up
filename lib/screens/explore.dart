@@ -31,6 +31,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   POI? nearestPOI; // the closest unvisited POI within check-in range
   POI? _tappedPOI; // POI whose tooltip is currently showing on the map
   final Set<String> _markedPOIs = {}; // track POIs that already have markers
+  bool _mapReady = false; // true once the map is fully initialized
   bool checkingIn = false; // whether a check-in request is in progress
   int?
   xpAwarded; // XP gained from the last check-in (shown briefly in the button)
@@ -229,6 +230,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
 
   // Place markers on the map for each POI
   Future<void> _addPOIMarkers() async {
+    if (!_mapReady) return; // don't attempt markers before the map is initialized
     for (final poi in nearbyPOIs) {
       final key = '${poi.lat.toStringAsFixed(6)},${poi.lng.toStringAsFixed(6)}';
       if (_markedPOIs.contains(key)) continue; // already has a marker
@@ -249,7 +251,7 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
           ),
         );
       } catch (_) {
-        // skip markers that fail to add (e.g. duplicate positions)
+        _markedPOIs.remove(key); // allow retry on next _addPOIMarkers call
       }
     }
   }
@@ -257,8 +259,11 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   // called automatically by map controller when the map is fully initialized
   @override
   Future<void> mapIsReady(bool isReady) async {
-    if (isReady && userLocation != null) {
-      await mapController.moveTo(userLocation!);
+    _mapReady = isReady;
+    if (isReady) {
+      if (userLocation != null) {
+        await mapController.moveTo(userLocation!);
+      }
       _addPOIMarkers(); // add any markers that loaded before the map was ready
     }
   }

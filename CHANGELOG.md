@@ -855,3 +855,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted the poi icons switch case into its own poi_icons class to freely make it as long as needed without clogging up explore.dart
 - Moved poi-related code into a new poi folder
 - Replaced the O(n) switch statement in POIIcons with a const Map for O(1) lookup instead of walking through cases so that adding more markers stays efficient
+- Made a mapReady variable so that markers are only added when the map is ready
+- Decoupled _addPOIMarkers from the userLocation check in mapIsReady so it fires even if GPS hasn't returned yet. Defensive fix for edge cases where GPS returns before the map initializes
+- Instead of doing nothing in the catch block of addPOIMarkers, it now removes the key from markedPOIs so it can be retried. Before, if addMarker failed (e.g. the map was still settling), the key stayed in the set permanently, so that marker was skipped on every future call and never appeared on the map. Now a failed marker gets a second chance when _addPOIMarkers runs again from the onSupplement callback
