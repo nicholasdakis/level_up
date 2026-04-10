@@ -4,7 +4,7 @@
 import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
-from utils import to_utc_datetime
+from backend.utils import to_utc_datetime
 from backend.repository import UserRepository
 
 def experience_needed(level: int):
@@ -65,7 +65,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         if last_claim is not None:
             last_claim_dt = to_utc_datetime(last_claim)
             seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
-            
+
             # 23 hours = 82800 seconds
             can_claim = seconds_since >= 82800
 

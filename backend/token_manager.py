@@ -3,7 +3,7 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime, timedelta, timezone
-from utils import to_utc_datetime
+from backend.utils import to_utc_datetime
 
 # maximum tokens allowed per 24 hours
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
