@@ -3,6 +3,7 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime, timedelta, timezone
+from utils import to_utc_datetime
 
 # maximum tokens allowed per 24 hours
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
@@ -20,7 +21,7 @@ class TokenManager:
     def __init__(self, collection="rate_limits", document="food_logging"):
         # reference to the Firestore document managing tokens
         self.doc_ref = db.collection(collection).document(document)
-        
+
     def consume(self, amount=1):
         try:
             @firestore.transactional  # atomically update tokens
@@ -39,19 +40,9 @@ class TokenManager:
                 data = snapshot.to_dict()
                 current_tokens = data.get("current_tokens", MAX_TOKENS)
                 last_refill_time = data.get("last_refill_time")
-                
-                # convert Firestore timestamp to datetime if necessary
-                if last_refill_time:
-                    if hasattr(last_refill_time, 'to_datetime'):
-                        last_refill_dt = last_refill_time.to_datetime().replace(tzinfo=timezone.utc)
-                    elif hasattr(last_refill_time, 'timestamp'):
-                        last_refill_dt = datetime.fromtimestamp(last_refill_time.timestamp(), timezone.utc)
-                    elif isinstance(last_refill_time, datetime):
-                        last_refill_dt = last_refill_time.replace(tzinfo=timezone.utc)
-                    else:
-                        last_refill_dt = now
-                else:
-                    last_refill_dt = now
+
+                # convert Firestore timestamp to UTC datetime
+                last_refill_dt = to_utc_datetime(last_refill_time, fallback=now)
                 
                 # check if 24 hours passed since last refill and reset tokens if so
                 if (now - last_refill_dt) >= timedelta(days=1):

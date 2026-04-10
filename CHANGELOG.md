@@ -873,3 +873,9 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Edited the Explore tab offset for mobile to not apply to tablet screens
 - Moved the padding in the Explore screen to wrap the nearby experience spots card with the back and recenter buttons on mobile without applying padding to the map itself, now containing the buttons neatly
 - Renamed backButtonMobileOffset for clarity
+
+## 2026-04-10
+- Deleted get_poi_last_visit because record_poi_visit_transaction already handles reading last_visit and is also more secure because it is transactional
+- Extracted timestamp, datetime -> utc datetime conversion into a to_utc_datetime method as many classes in the backend folder used that same repeated code
+- Added logger to auth.py to record the real error internally to the server while returning a generic message to the client, preventing sensitive info leakage
+- Edited the to_utc_datetime method to handle fallback cases

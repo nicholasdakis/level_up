@@ -1,5 +1,3 @@
-from unittest import result
-
 from flask import Flask, jsonify, request
 import os
 import requests
@@ -33,6 +31,7 @@ import firebase_admin
 import json
 import re
 import random
+from backend.utils import to_utc_datetime
 
 # Get the environmental variables from Render
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -177,7 +176,7 @@ def get_next_reset_time():
     if not last_refill_time:
         return None
     # Timestamp to datetime conversion (handles Firestore Timestamp)
-    last_refill_dt = last_refill_time.to_datetime() if hasattr(last_refill_time, 'to_datetime') else last_refill_time
+    last_refill_dt = to_utc_datetime(last_refill_time)
     # reset time is 1 day after the last refill
     reset_time = last_refill_dt + timedelta(days=1)
     return reset_time

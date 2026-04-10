@@ -4,7 +4,7 @@
 import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
-
+from utils import to_utc_datetime
 from backend.repository import UserRepository
 
 def experience_needed(level: int):
@@ -63,16 +63,9 @@ class ProgressionService: # Service class to handle all progression-related busi
         can_claim = True
         last_claim = private.get("lastDailyClaim") if private else None
         if last_claim is not None:
-            # if else to safely handle both Firestore Timestamp and Python datetime formats, depending on how the data was stored
-            if hasattr(last_claim, "timestamp"):
-                last_claim_dt = datetime.fromtimestamp(
-                    last_claim.timestamp(), tz=timezone.utc
-                )
-            else:
-                last_claim_dt = last_claim
-            seconds_since = (
-                datetime.now(timezone.utc) - last_claim_dt
-            ).total_seconds()
+            last_claim_dt = to_utc_datetime(last_claim)
+            seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
+            
             # 23 hours = 82800 seconds
             can_claim = seconds_since >= 82800
 

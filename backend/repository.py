@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 from google.cloud import firestore
 import re
+from backend.utils import to_utc_datetime
 
 class UserRepository:
     # Repository class to handle all Firestore operations related to user data
@@ -67,14 +68,10 @@ class UserRepository:
 
             if last_claim is not None:
                 # Convert the Firestore timestamp to datetime
-                if hasattr(last_claim, "timestamp"):
-                    last_claim_dt = datetime.fromtimestamp(
-                        last_claim.timestamp(), tz=timezone.utc
-                    )
-                else:
-                    last_claim_dt = last_claim
+                last_claim_dt = to_utc_datetime(last_claim)
 
                 seconds_since_claim = (now - last_claim_dt).total_seconds() 
+
                 if seconds_since_claim < 82800: # 23 hours = 82800 seconds (the cooldown for claiming)
                     # Not enough time has passed
                     return {
@@ -112,16 +109,6 @@ class UserRepository:
         transaction = self._db.transaction()
         return _run(transaction)
 
-    # Method to check when a user last visited a specific POI
-    def get_poi_last_visit(self, uid: str, poi_name: str):
-        # Each user has a poi-visits subcollection under their users-private doc
-        # The document ID is the POI name, and it stores the last visit timestamp
-        safe_name = self._sanitize_poi_id(poi_name)
-        doc = self._private.document(uid).collection('poi-visits').document(safe_name).get()
-        if not doc.exists:
-            return None # never visited this POI
-        return doc.to_dict().get('last_visit') # return the Firestore timestamp
-
     # Atomically record the visit, update XP, and set a 24 hour cooldown for that poi
     def record_poi_visit_transaction(self, uid: str, poi_name: str, new_level: int, new_exp: int):
         safe_name = self._sanitize_poi_id(poi_name)
@@ -140,11 +127,8 @@ class UserRepository:
 
             if last_visit is not None:
                 # Convert Firestore timestamp to datetime if needed
-                if hasattr(last_visit, 'timestamp'):
-                    last_visit_dt = datetime.fromtimestamp(last_visit.timestamp(), tz=timezone.utc)
-                else:
-                    last_visit_dt = last_visit
-
+                last_visit_dt = to_utc_datetime(last_visit)
+            
                 seconds_since = (now - last_visit_dt).total_seconds()
                 if seconds_since < 86400: # 24 hours
                     return {

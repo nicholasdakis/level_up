@@ -1,5 +1,8 @@
 # Authentication Layer: verifies that incoming requests are from real, authenticated users
 from firebase_admin import auth
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Method to verify the JWT and return the user's UID
 def verify_token(id_token: str) -> str:
@@ -10,4 +13,5 @@ def verify_token(id_token: str) -> str:
         return decoded["uid"]
 
     except Exception as e:
-        raise ValueError(f"Invalid Firebase ID token: {e}")
+        logger.warning(f"Token verification failed: {e}") # Real error message logged to server
+        raise ValueError("Invalid or expired token") # Generic error message logged to user
