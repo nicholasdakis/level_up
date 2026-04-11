@@ -34,6 +34,7 @@ import random
 from backend.utils import to_utc_datetime
 from backend.redis_cache import FOOD_CACHE_TTL, redis
 import logging
+from redis.exceptions import LockNotOwnedError, LockError
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +213,35 @@ def trigger_reminders():
     send_due_reminders()
     return jsonify({"message": "Reminders checked."}), 200
 
+# Helper method for get_food
+def call_fatsecret(food_name: str, timeout: int):
+    access_token = get_access_token()
+    if not access_token:
+        token_manager.refund()
+        raise RuntimeError("Failed to get access token")
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    data = {
+        "method": "foods.search",
+        "search_expression": food_name,
+        "format": "json"
+    }
+
+    try:
+        api_response = requests.post(
+            "https://platform.fatsecret.com/rest/server.api",
+            headers=headers,
+            data=data,
+            timeout=timeout
+        )
+        if api_response.status_code != 200:
+            token_manager.refund()
+            raise RuntimeError(f"FatSecret API error: {api_response.status_code}")
+        return api_response
+    except requests.RequestException as e:
+        token_manager.refund()
+        raise RuntimeError(str(e))
+
 @app.route("/get_food", methods=["POST"])
 def get_food():
     # Validate request body with the Pydantic schema
@@ -232,75 +262,71 @@ def get_food():
 
     # First, check the cache
     try:
-        if redis.exists(cache_key):
+        cached = redis.get(cache_key)
+        if cached:
             redis.incr("cache_hits")
-
-            # Return the cached food as a json like expected
-            cached = redis.get(cache_key)
+            # Return the cached food as a json as expected
             return jsonify(json.loads(cached))
-    except Exception as e: # If the redis read fails, the error messages print and the code continues with the API call
+
+    except Exception as e: # Prints exception and continues with the API call as fallback
         logger.warning(f"[Redis Error]: {e}") # Real error message logged to server
         print("Redis error, falling back to the API search.") # Generic error message for user
-        
     
-    # Not in cache, so use the fatSecret API
-    if not token_manager.consume():
-        # Retrieve the next reset time
-        reset_time = get_next_reset_time()
-        if reset_time is None:
-            return jsonify({
-                "error": "Token limit exceeded",
-                "message": "No reset time available"
-            }), 500
-        
-        # Calculate time until next reset
-        time_left = reset_time - datetime.now(timezone.utc)
-        return jsonify({
-            "error": "Token limit exceeded",
-            "next_reset_time": reset_time.isoformat(),
-            "time_left": str(time_left)  # Converted to string for JSON serializable
-        }), 429
-    
-    # Continue if tokens are available
-    # Get the FatSecret access token, refunding the consumed token if it fails
-    access_token = get_access_token()
-    if not access_token:
-        token_manager.refund()
-        return jsonify({"error": "Failed to get access token"}), 500
-    
-    # FatSecret REST API expects form-encoded data
-    headers = {"Authorization": f"Bearer {access_token}"}
-    data = {
-        "method": "foods.search",
-        "search_expression": food_name,
-        "format": "json"
-    }
-
+    # Lock to prevent race conditions and redundant API calls
+    # The timeout is to prevent the lock from being stuck if the server crashes
+    # The blocking_timeout is to prevent a pileup of many workers from waiting for the lock, instead giving an error
+    lock_timeout_seconds = 10
     try:
-        api_response = requests.post(
-            "https://platform.fatsecret.com/rest/server.api",
-            headers=headers,
-            data=data
-        )
+        with redis.lock(f"lock:food:{food_name}", timeout=lock_timeout_seconds, blocking_timeout=5): # The locks are per-key so only one worker for that exact food query can call the API at a time
+            # Re-check cache after acquiring the lock because another worker may have
+            # already populated it while this request was waiting on the lock
+            try:
+                cached = redis.get(cache_key)
+                if cached:
+                    redis.incr("cache_hits")
+                    return jsonify(json.loads(cached))
+            except Exception as e:
+                logger.warning(f"[Redis Error]: {e}")
 
-        # Refund the token if the FatSecret API call fails
-        if api_response.status_code != 200:
-            token_manager.refund()  # Give back token on API failure
-            return jsonify({"error": "FatSecret API error", "status_code": api_response.status_code}), 500
-        # FatSecret may return XML if the request is malformed
-        try:
-            # Add the response into the cache
-            redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
-            redis.incr("cache_misses")
+            # Not in cache and lock is active, so use the fatSecret API
+            if not token_manager.consume():
+                # Retrieve the next reset time
+                reset_time = get_next_reset_time()
+                if reset_time is None:
+                    return jsonify({
+                        "error": "Token limit exceeded",
+                        "message": "No reset time available"
+                    }), 500
+            
+                # Calculate time until next reset
+                time_left = reset_time - datetime.now(timezone.utc)
+                return jsonify({
+                    "error": "Token limit exceeded",
+                    "next_reset_time": reset_time.isoformat(),
+                    "time_left": str(time_left)  # Converted to string for JSON serializable
+                }), 429
+        
+            # Call FatSecret API if tokens are available, refunding tokens upon failure
+            try:
+                api_response = call_fatsecret(food_name, lock_timeout_seconds - 1)
+            except RuntimeError as e:
+                return jsonify({"error": str(e)}), 500
 
-            # Return the jsonified response from the API
-            return jsonify(api_response.json())
-        except ValueError:
-            token_manager.refund()  # Give back token on invalid JSON
-            return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text})
-    except requests.RequestException as e:
-        token_manager.refund()  # Give back token on network error
-        return jsonify({"error": str(e)}), 500
+            try:
+                # Add the response into the cache
+                redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
+                redis.incr("cache_misses")
+
+                # Return the jsonified response from the API
+                return jsonify(api_response.json())
+            except ValueError:
+                token_manager.refund()  # Give back token on invalid JSON
+                return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text})
+
+    except (LockNotOwnedError, LockError):
+        return jsonify({"error": "Server busy, try again"}), 503
+    except Exception:
+        return jsonify({"error": "Internal server error"}), 500
 
 # Overpass API endpoints
 OVERPASS_URLS = ["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter"]

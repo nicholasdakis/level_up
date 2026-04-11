@@ -7,4 +7,4 @@ flask-cors
 apscheduler
 firebase-admin
 pydantic
-upstash-redis
+redis

@@ -886,3 +886,10 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added cache_hits and cache_misses as keys in the cache to measure the long-term implications of the cache
 - Wrapped the cache search in get_food in a try except block so that if the read fails it falls back to the API instead of crashing
 - Added "food:" next to cache keys to clearly separate the cache_hits and cache_misses keys
+- Replaced upstash-redis with redis import as upstash-redis does not support lock()
+- Added a lock to /get_food before calling the API to prevent the possible race condition where two users search for the same food at the same time
+- Now if 2+ workers try to get the food at the same time they must wait for the lock to be free, and the cache is re-checked after the lock is acquired in case the food was added to the cache by a previous worker
+- Added a timeout to the API request slightly shorter than the lock's timeout to prevent the case where the API could be very slow and free the lock before the operation had finished
+- Added a blocking_timeout that automatically stops the worker from trying if they have been waiting for the lock for too long (to prevent a pileup of workers)
+- Extracted the Fatsecret API calling portion into its own method to make the get_food method less dense
+- Replaced if redis.exists redis.get with just doing redis.get and using it if it is not None to prevent 2 reads instead of 1
