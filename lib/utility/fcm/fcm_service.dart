@@ -14,7 +14,12 @@ import 'web_fcm_token_stub.dart'
 // Handles FCM messages received while the app is in the background or terminated
 // Re-initializes Firebase since background isolates don't share state with the main app
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Only initialize if not already initialized
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   debugPrint(
     'onBackgroundMessage: ${message.messageId} | ${message.data.toString()}',
   );
