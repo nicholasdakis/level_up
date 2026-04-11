@@ -894,3 +894,10 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted the Fatsecret API calling portion into its own method to make the get_food method less dense
 - Replaced if redis.exists redis.get with just doing redis.get and using it if it is not None to prevent 2 reads instead of 1
 - Made the brand name visible for searching foods with search / barcode
+
+## 2026-04-11
+- Made the await calls in loadUserData(), load reminders, fetch progress, and load food data, run in parallel instead of sequentially, saving about 200ms on app startups
+- Realized the bigger issue was loading the user documents
+- Fixed by setting persistenceEnabled to true, which is false by default on Web
+- This allows Firestore to cache the user's data and also allows for offline usage of data which automatically synchronizes when the user goes back online
+- Now Firestore serves the data from its cache and only updates if there was a change, speeding up load times

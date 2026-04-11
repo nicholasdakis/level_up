@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'authentication/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import '../globals.dart';
 
@@ -11,13 +12,19 @@ Future<void> main() async {
   // Initialize PWA install prompt so users can install the app from the settings drawer
   // try-catch because the pwa_install package crashes in dev mode (flutter run doesn't serve manifest.json)
   try {
-    PWAInstall().setup(installCallback: () {
-      debugPrint('App installed as PWA');
-    });
+    PWAInstall().setup(
+      installCallback: () {
+        debugPrint('App installed as PWA');
+      },
+    );
   } catch (e) {
     debugPrint('PWA install setup skipped: $e');
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Enable Firestore disk cache so subsequent reads are served locally instead of from the network
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: false,
+  );
   runApp(const MyApp());
 }
 

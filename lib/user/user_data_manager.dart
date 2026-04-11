@@ -73,11 +73,17 @@ class UserDataManager {
 
   // Loads the user's non-critical information from Firebase if it exists (critical data is loaded by the backend)
   Future<void> loadUserData() async {
+    final stopwatch = Stopwatch()..start();
     // Initialize the connectivity stream to know the user's connectivity state
     initConnectivity();
+    debugPrint(
+      'initConnectivity happened at ${stopwatch.elapsedMilliseconds}ms',
+    );
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    debugPrint('Setting uid happened at ${stopwatch.elapsedMilliseconds}ms');
     // if the user is logged in
+
     if (uid != null) {
       // Initialize currentUserData if it's null or has the wrong UID
       if (currentUserData == null || currentUserData!.uid != uid) {
@@ -96,22 +102,35 @@ class UserDataManager {
           fcmTokens: [],
         );
       }
+      debugPrint(
+        'initializing currentuserdata happened at ${stopwatch.elapsedMilliseconds}ms',
+      );
 
-      // Load the user's data from both the public and private collections (critical fields are later overwritten by the backend code)
+      // Load the user's data in parallel (critical fields are later overwritten by the backend code)
       final results = await Future.wait([
         // Run in parallel instead of sequentially to load faster
         _publicUsers.doc(uid).get(),
         _privateUsers.doc(uid).get(),
       ]);
+      debugPrint(
+        'Future.wait on the public and private documents happened at ${stopwatch.elapsedMilliseconds}ms',
+      );
+
+      // The data as DocumentSnapshot
       final publicDoc = results[0];
       final privateDoc = results[1];
 
+      // The data as Map<String, dynamic>
       final publicData = publicDoc.data();
       final privateData = privateDoc.data();
 
+      // If the loads failed, there is nothing for the method to work with
+      if (!publicDoc.exists && !privateDoc.exists) {
+        return; // nothing to work with
+      }
+
       // NOTE: else statements are for newly-added fields to be compatible with existent users
 
-      // --- PUBLIC FIELDS ---
       // if the user has a stored profile picture in Base64, load that profile picture
       if (publicDoc.exists && publicData?['pfpBase64'] != null) {
         currentUserData?.pfpBase64 = publicData?['pfpBase64'];
@@ -126,7 +145,6 @@ class UserDataManager {
         _publicUsers.doc(uid).set({'username': uid}, SetOptions(merge: true));
       }
 
-      // --- PRIVATE FIELDS ---
       // load the last claiming date if it exists
       if (privateDoc.exists && privateData?['lastDailyClaim'] != null) {
         // Convert to Timestamp so Firestore understands (Firestore stores dates as Timestamp, not DateTime)
@@ -176,57 +194,96 @@ class UserDataManager {
         ); // default app theme color
       }
 
-      // --- FOOD DATA (subcollection) ---
-      // if the user has stored food data, load it (stored as a map of date strings to meal maps, where each meal map is a map of meal types to lists of food entries)
+      // Await operations run in parallel
+      await Future.wait([
+        _loadFoodDataSafely(uid),
+        _loadRemindersSafely(uid),
+        _fetchProgressSafely(
+          publicDoc,
+          privateDoc,
+          publicData,
+          privateData,
+          uid,
+        ),
+      ]);
+    }
+    stopwatch.stop();
+    debugPrint('loadUserData took ${stopwatch.elapsedMilliseconds}ms');
+  }
+
+  // Method to safely call loadFoodData
+  Future<void> _loadFoodDataSafely(String uid) async {
+    final stopwatch = Stopwatch()..start();
+    try {
       await loadFoodData(uid);
+    } catch (e) {
+      // The data never gets overwritten if the method fails, so it uses the default empty value given in loadUserData()
+      debugPrint("Loading food failed.");
+    }
+    stopwatch.stop();
+    debugPrint('Food Data took ${stopwatch.elapsedMilliseconds}ms');
+  }
 
-      // Load the list of reminders
-      try {
-        currentUserData?.reminders = await loadRemindersFromFirestore(
-          currentUserData!.uid,
-        );
-      } catch (e) {
-        debugPrint('Error loading reminders: $e');
-        currentUserData?.reminders = [];
+  // Method to safely load reminders from Firestore
+  Future<void> _loadRemindersSafely(String uid) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      currentUserData?.reminders = await loadRemindersFromFirestore(
+        currentUserData!.uid,
+      );
+    } catch (e) {
+      debugPrint('Error loading reminders: $e');
+      currentUserData?.reminders = [];
+    }
+    stopwatch.stop();
+    debugPrint('Reminders took ${stopwatch.elapsedMilliseconds}ms');
+  }
+
+  // Method to safely load the user's data from Firestore using the backend. If the backend is unreachable, fall back to what Firestore had stored
+  Future<void> _fetchProgressSafely(
+    DocumentSnapshot publicDoc,
+    DocumentSnapshot privateDoc,
+    Map<String, dynamic>? publicData,
+    Map<String, dynamic>? privateData,
+    String uid,
+  ) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final progress = await _fetchProgress();
+      currentUserData?.level = progress['level'] ?? currentUserData?.level;
+      currentUserData?.expPoints =
+          progress['exp_points'] ?? currentUserData?.expPoints;
+      currentUserData?.canClaimDailyReward =
+          progress['can_claim_daily_reward'] ?? true;
+      // keep the notifier in sync so XP bar rebuilds immediately
+      expNotifier.value = currentUserData!.expPoints;
+    } catch (e) {
+      // fall back to Firestore for level and XP if the backend is unreachable
+      if (publicDoc.exists && publicData?['level'] != null) {
+        currentUserData?.level = publicData?['level'];
+      } else {
+        _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
       }
-
-      // Backend calls for critical data (level, XP, daily reward status) that can't be manipulated client-side
-      // If the backend is unreachable, fall back to whatever Firestore has stored
-      try {
-        final progress = await _fetchProgress();
-        currentUserData?.level = progress['level'] ?? currentUserData?.level;
-        currentUserData?.expPoints =
-            progress['exp_points'] ?? currentUserData?.expPoints;
-        currentUserData?.canClaimDailyReward =
-            progress['can_claim_daily_reward'] ?? true;
-        // keep the notifier in sync so XP bar rebuilds immediately
-        expNotifier.value = currentUserData!.expPoints;
-      } catch (e) {
-        // fall back to Firestore for level and XP if the backend is unreachable
-        if (publicDoc.exists && publicData?['level'] != null) {
-          currentUserData?.level = publicData?['level'];
-        } else {
-          _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
-        }
-        if (publicDoc.exists && publicData?['expPoints'] != null) {
-          currentUserData?.expPoints = publicData?['expPoints'];
-        } else {
-          _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
-        }
-        // fall back to a local cooldown check if the backend is unreachable
-        final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
-        if (lastClaimTimestamp == null) {
-          currentUserData?.canClaimDailyReward = true;
-        } else {
-          // not exploitable since the backend is unreachable, so the user can't claim rewards anyway
-          final lastClaim = lastClaimTimestamp.toDate().toUtc();
-          final now = DateTime.now().toUtc();
-          currentUserData?.canClaimDailyReward = now.isAfter(
-            lastClaim.add(const Duration(hours: 23)),
-          );
-        }
+      if (publicDoc.exists && publicData?['expPoints'] != null) {
+        currentUserData?.expPoints = publicData?['expPoints'];
+      } else {
+        _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
+      }
+      // fall back to a local cooldown check if the backend is unreachable
+      final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
+      if (lastClaimTimestamp == null) {
+        currentUserData?.canClaimDailyReward = true;
+      } else {
+        // not exploitable since the backend is unreachable, so the user can't claim rewards anyway
+        final lastClaim = lastClaimTimestamp.toDate().toUtc();
+        final now = DateTime.now().toUtc();
+        currentUserData?.canClaimDailyReward = now.isAfter(
+          lastClaim.add(const Duration(hours: 23)),
+        );
       }
     }
+    stopwatch.stop();
+    debugPrint('fetch progress took ${stopwatch.elapsedMilliseconds}ms');
   }
 
   // Loads the user's food log from Firestore, called on initial load and on Food Logging tab switch to keep data fresh across devices
