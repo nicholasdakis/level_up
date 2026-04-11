@@ -123,7 +123,9 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             nearbyPOIs = filled; // update the list with new POIs
             fillingCache = false;
           });
-          _addPOIMarkers(); // place markers for the new POIs on the map
+          if (_mapReady) {
+            _addPOIMarkers(); // place markers for the new POIs on the map
+          }
           _refreshClosestCheckinPOI(); // re-check if a new POI is now closest
         },
       );
