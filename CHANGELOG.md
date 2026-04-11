@@ -893,3 +893,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added a blocking_timeout that automatically stops the worker from trying if they have been waiting for the lock for too long (to prevent a pileup of workers)
 - Extracted the Fatsecret API calling portion into its own method to make the get_food method less dense
 - Replaced if redis.exists redis.get with just doing redis.get and using it if it is not None to prevent 2 reads instead of 1
+- Made the brand name visible for searching foods with search / barcode

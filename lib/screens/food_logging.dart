@@ -477,7 +477,7 @@ class _FoodLoggingState extends State<FoodLogging>
         final errorData = jsonDecode(response.body);
         if (errorData['error'] == "Token limit exceeded") {
           _showSnackbar(
-            "Daily search limit reached. The limit resets in ${formatDuration(errorData['time_left'])}.",
+            "Daily search limit reached, try another tab. The limit resets in ${formatDuration(errorData['time_left'])}.",
             duration: Duration(seconds: 5),
           );
         }
@@ -523,6 +523,7 @@ class _FoodLoggingState extends State<FoodLogging>
           setState(() {
             barcodeResult = {
               'food_name': data['product']['product_name'] ?? 'Unknown Product',
+              'brand_name': data['product']['brands'],
               'food_description': description,
             };
             barcodeLoading = false;
@@ -976,7 +977,9 @@ class _FoodLoggingState extends State<FoodLogging>
                   },
                   child: ListTile(
                     title: Text(
-                      food['food_name'] ?? '',
+                      food['brand_name'] != null
+                          ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
+                          : (food['food_name'] ?? ''),
                       style: GoogleFonts.manrope(color: Colors.white),
                     ),
                     subtitle: Text(
@@ -1586,7 +1589,9 @@ class _FoodLoggingState extends State<FoodLogging>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              food['food_name'] ?? '',
+                              food['brand_name'] != null
+                                  ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
+                                  : (food['food_name'] ?? ''),
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 15),
                                 color: Colors.white,
