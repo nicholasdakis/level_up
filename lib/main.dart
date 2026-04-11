@@ -21,10 +21,6 @@ Future<void> main() async {
     debugPrint('PWA install setup skipped: $e');
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Enable Firestore disk cache so subsequent reads are served locally instead of from the network
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: false,
-  );
   runApp(const MyApp());
 }
 

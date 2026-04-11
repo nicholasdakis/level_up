@@ -32,6 +32,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore-compat.js"></script>
 
   <!-- JS required by the pwa_install package, must be in <head> so it loads before Dart -->
 
@@ -121,6 +122,12 @@
       storageBucket: "level-up-a3181.firebasestorage.app",
       messagingSenderId: "722650087969",
       appId: "1:722650087969:web:2b812c5bb0a2c30bc8d960"
+    });
+
+    // Enable Firestore disk cache (default = false for web) so subsequent reads are served locally instead of from the network
+    firebase.firestore().enablePersistence()
+      .catch(function(err) {
+        console.log('Persistence failed:', err);
     });
 
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
