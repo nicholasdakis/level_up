@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'utility/responsive.dart';
 import 'utility/leaderboard/leaderboard_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:url_launcher/url_launcher.dart';
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -30,6 +31,57 @@ Shadow textDropShadow(BuildContext context) {
     offset: Offset(Responsive.scale(context, 4), Responsive.scale(context, 4)),
     blurRadius: Responsive.scale(context, 10),
     color: const Color.fromARGB(255, 0, 0, 0),
+  );
+}
+
+// Tappable social link card with a logo and label
+Widget socialLink({
+  required String assetPath,
+  required String label,
+  required String url,
+  required BuildContext context,
+}) {
+  return InkWell(
+    splashColor: appColorNotifier.value.withAlpha(100),
+    onTap: () =>
+        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+    child: frostedGlassCard(
+      context,
+      baseRadius: 14,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 12),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+            child: Image.asset(
+              assetPath,
+              width: Responsive.width(context, 36),
+              height: Responsive.width(context, 36),
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 12)),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 18),
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: Colors.white38,
+            size: Responsive.width(context, 22),
+          ),
+        ],
+      ),
+    ),
   );
 }
 

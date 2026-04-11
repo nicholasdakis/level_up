@@ -19,56 +19,6 @@ List<String> overviewItems = [
 ];
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
-  // Tappable social link card with a logo and label
-  Widget _socialLink({
-    required String assetPath,
-    required String label,
-    required String url,
-  }) {
-    return InkWell(
-      splashColor: appColorNotifier.value.withAlpha(100),
-      onTap: () =>
-          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-      child: frostedGlassCard(
-        context,
-        baseRadius: 14,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 16),
-          vertical: Responsive.height(context, 12),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
-              child: Image.asset(
-                assetPath,
-                width: Responsive.width(context, 36),
-                height: Responsive.width(context, 36),
-                filterQuality: FilterQuality.high,
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 12)),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 18),
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.white38,
-              size: Responsive.width(context, 22),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -161,10 +111,11 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       child: Column(
                         children: [
                           // LinkedIn card
-                          _socialLink(
+                          socialLink(
                             assetPath: 'assets/linkedin_logo.png',
                             label: 'LinkedIn',
                             url: 'https://www.linkedin.com/in/nicholasdakis',
+                            context: context,
                           ),
 
                           SizedBox(
@@ -172,10 +123,11 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           ),
 
                           // GitHub card
-                          _socialLink(
+                          socialLink(
                             assetPath: 'assets/github_logo.png',
                             label: 'GitHub',
                             url: 'https://github.com/nicholasdakis',
+                            context: context,
                           ),
                         ],
                       ),

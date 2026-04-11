@@ -901,3 +901,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed by setting persistenceEnabled to true, which is false by default on Web
 - This allows Firestore to cache the user's data and also allows for offline usage of data which automatically synchronizes when the user goes back online
 - Now Firestore serves the data from its cache and only updates if there was a change, speeding up load times
+- Added content to the InstallGuide screen with instructions for installing Level Up! as a PWA
+- Covers Chromium-based browsers (recommended), iPhone (Safari), and other browsers (e.g. Firefox)
+- Added _buildStep() to render numbered instruction steps
+- Added _buildSection() to render a frosted glass card with an icon, title, subtitle, steps, and optional extras
+- Moved socialLink() to globals and used it in the InstallGuide to add an example of a PWA extension
