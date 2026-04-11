@@ -27,6 +27,7 @@ class _RemindersState extends State<Reminders> {
 
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
+  bool _dateTimePicked = false;
   final TextEditingController remindersController =
       TextEditingController(); // Input text for reminder message
   String reminder = "";
@@ -292,7 +293,7 @@ class _RemindersState extends State<Reminders> {
   ) async {
     final picker = SizedBox(
       height: Responsive.height(context, 300),
-      width: Responsive.width(context, 333),
+      width: Responsive.width(context, 400),
       child: Container(
         decoration: BoxDecoration(
           color: const Color.fromARGB(128, 37, 37, 37),
@@ -349,9 +350,16 @@ class _RemindersState extends State<Reminders> {
   // Method that saves a new reminder to Firestore
   Future<void> _setReminder() async {
     if (isLoading) return;
-    // validation check: reminder message cannot be empty
+
+    // Validation check: reminder message cannot be empty
     if (remindersController.text.isEmpty) {
       _showSnackbar("All fields must be filled.", isError: true);
+      return;
+    }
+
+    // Validation check: A time must be picked
+    if (!_dateTimePicked) {
+      _showSnackbar("A reminder time must be chosen.", isError: true);
       return;
     }
 
@@ -393,6 +401,7 @@ class _RemindersState extends State<Reminders> {
       // Confirmation snackbar
       _showSnackbar("Reminder set successfully!");
       remindersController.clear();
+      setState(() => _dateTimePicked = false);
       await _loadReminders(); // Show the new reminder in the list upon successful save
     } catch (e) {
       debugPrint("Error in _setReminder: $e");
@@ -555,7 +564,10 @@ class _RemindersState extends State<Reminders> {
                             onTap: () => pickDateTime(
                               context,
                               dateTime,
-                              (newDate) => setState(() => dateTime = newDate),
+                              (newDate) => setState(() {
+                                dateTime = newDate;
+                                _dateTimePicked = true;
+                              }),
                             ),
                             child: Container(
                               padding: EdgeInsets.symmetric(
@@ -578,14 +590,18 @@ class _RemindersState extends State<Reminders> {
                                   SizedBox(
                                     width: Responsive.width(context, 10),
                                   ),
-                                  Text(
-                                    _formatDateTime(dateTime),
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 14),
-                                      color: Colors.white70,
+                                  Expanded(
+                                    child: Text(
+                                      !_dateTimePicked
+                                          ? "Enter a reminder time"
+                                          : _formatDateTime(dateTime),
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 15),
+                                        color: Colors.white38,
+                                      ),
                                     ),
                                   ),
-                                  const Spacer(),
+
                                   Icon(
                                     Icons.chevron_right,
                                     color: Colors.white38,
@@ -684,10 +700,14 @@ class _RemindersState extends State<Reminders> {
                     if (kIsWeb) ...[
                       SizedBox(height: Responsive.height(context, 28)),
                       // Section header
-                      sectionHeader("NOTES", context, padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
-                      )),
+                      sectionHeader(
+                        "NOTES",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
+                      ),
                       frostedGlassCard(
                         context,
                         padding: EdgeInsets.all(Responsive.scale(context, 18)),

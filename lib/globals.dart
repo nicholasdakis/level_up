@@ -6,7 +6,6 @@ import 'dart:ui';
 import 'utility/responsive.dart';
 import 'utility/leaderboard/leaderboard_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
-import 'package:url_launcher/url_launcher.dart';
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -43,8 +42,10 @@ Widget socialLink({
 }) {
   return InkWell(
     splashColor: appColorNotifier.value.withAlpha(100),
-    onTap: () =>
-        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+    onTap: () => url_launcher.launchUrl(
+      Uri.parse(url),
+      mode: url_launcher.LaunchMode.externalApplication,
+    ),
     child: frostedGlassCard(
       context,
       baseRadius: 14,
@@ -499,7 +500,10 @@ Widget frostedGlassCard(
   return ClipRRect(
     borderRadius: cardRadius,
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // blur intensity
+      filter: ImageFilter.blur(
+        sigmaX: Responsive.scale(context, 12),
+        sigmaY: Responsive.scale(context, 12),
+      ), // blur intensity
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withAlpha(18), // translucent white fill

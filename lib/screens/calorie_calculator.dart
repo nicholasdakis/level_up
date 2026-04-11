@@ -163,7 +163,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   @override
   void initState() {
     super.initState();
-    restoreCalculatorDataFromPrefs(); // separate method as async can't directly be used in initState
+    restoreCalculatorDataFromPrefs().catchError((e) {
+      debugPrint('Failed to restore calculator data ${e.runtimeType}');
+    });
   }
 
   @override
@@ -192,7 +194,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(Responsive.width(context, 50)),
+            padding: EdgeInsets.all(Responsive.padding(context, 50)),
             child: SizedBox(
               width: double.infinity,
               child: Column(

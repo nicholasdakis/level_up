@@ -906,3 +906,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added _buildStep() to render numbered instruction steps
 - Added _buildSection() to render a frosted glass card with an icon, title, subtitle, steps, and optional extras
 - Moved socialLink() to globals and used it in the InstallGuide to add an example of a PWA extension
+- Made restoreCalculatorDataFromPrefs() catch possible errors
+- Fixed frostedGlassCard using hard-coded values for blurring
+- Made the reminder time input show "Enter a time" if no time is picked instead of defaulting to the user's current time

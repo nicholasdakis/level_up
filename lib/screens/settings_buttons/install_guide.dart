@@ -270,7 +270,7 @@ class InstallGuide extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.all(Responsive.padding(context, 8.0)),
                       child: Text(
-                        "For example, Firefox users may want to try:",
+                        "For example, Firefox users may consider:",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 13),
                           color: Colors.white38,
