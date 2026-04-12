@@ -1,7 +1,19 @@
-from flask import Flask, jsonify, request
 import os
+import re
+import json
+import random
+import logging
 import requests
+from datetime import timedelta, timezone, datetime
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from pydantic import ValidationError
+from google.cloud import firestore
+from google.oauth2 import service_account
+from firebase_admin import messaging
+import firebase_admin
+from supabase import create_client, Client
+from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
 from backend.repository import UserRepository
 from backend.services import ProgressionService
@@ -22,19 +34,8 @@ from backend.schemas import (
     CheckInPOIResponse
 )
 from backend.auth import verify_token
-from datetime import timedelta, timezone, datetime
-from google.cloud import firestore
-from google.oauth2 import service_account
-from firebase_admin import messaging
-from pydantic import ValidationError
-import firebase_admin
-import json
-import re
-import random
 from backend.utils import to_utc_datetime
 from backend.redis_cache import FOOD_CACHE_TTL, redis
-import logging
-from redis.exceptions import LockNotOwnedError, LockError
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +69,13 @@ credentials_info = json.loads(cred_json)
 # Create Credentials object
 credentials = service_account.Credentials.from_service_account_info(credentials_info)
 
-# Create Firestore client with explicit credentials
+# To be deleted after migration: Create Firestore client with explicit credentials
 db = firestore.Client(credentials=credentials)
 
-# Initialize the repository and service layers, passing the Firestore client to the repository so it can read/write data
-user_repo = UserRepository(db)
+# Set up Supabase
+supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
+# Initialize the repository and service layers, passing Supabase to the repository so it can read / write data
+user_repo = UserRepository(db, supabase_client)
 progression_service = ProgressionService(user_repo)
 
 def send_due_reminders():

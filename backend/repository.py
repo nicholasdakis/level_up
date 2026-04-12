@@ -1,18 +1,19 @@
-# Repository Layer: the only place in the backend that reads/writes Firestore, so DB logic is only in this class and can be easily swapped if ever needed
+# Repository Layer: the only place in the backend that reads/writes Supabase, so DB logic is only in this class and can be easily swapped if ever needed
 
 from datetime import datetime, timezone
 from google.cloud import firestore
+from supabase import Client
 import re
 from backend.utils import to_utc_datetime
 
 class UserRepository:
     # Repository class to handle all Firestore operations related to user data
 
-    def __init__(self, db: firestore.Client):
-        # Store the Firestore client passed in from server.py
+    def __init__(self, db: firestore.Client, supabase: Client):
         self._db = db
         self._public = db.collection("users-public")
         self._private = db.collection("users-private")
+        self._supabase = supabase
     
     def _sanitize_poi_id(self, poi_name: str) -> str:
         # Replace any character that isn't a letter, number, hyphen, or underscore with an underscore as Firestore Document IDs don't allow special characters

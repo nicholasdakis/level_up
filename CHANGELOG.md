@@ -929,3 +929,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Removed PointerInterceptor because flutter_osm_plugin rendered the map in a native platform view, which caused Flutter widgets drawn on top of it to not receive touch events properly. flutter_map is pure Flutter so touch events work normally without it
 - Added attribution to OSM (flutter_osm automatically adds it on the map but flutter_map doesn't)
 - Added a currentZoom variable so that the recenter button doesn't change the user's zoom as .move explicitly requires zoom level to be passed
+- Added supabase imports and initialization for migrating from Firestore to Postgres
+- This was easy because of the separated backend classes, only repository.py (the class which directly reads / writes the DB) needs to be updated
