@@ -1,14 +1,17 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:latlong2/latlong.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
 import '../utility/poi/poi.dart';
 import '../utility/poi/poi_icons.dart';
 import '../utility/poi/poi_service.dart';
+import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 
 class Explore extends StatefulWidget {
   const Explore({super.key});
@@ -17,40 +20,31 @@ class Explore extends StatefulWidget {
   State<Explore> createState() => _ExploreState();
 }
 
-// "with OSMMixinObserver" to listen for map ready events
-class _ExploreState extends State<Explore> with OSMMixinObserver {
-  GeoPoint? userLocation;
+class _ExploreState extends State<Explore> {
+  LatLng? userLocation;
   bool cardIsOpen = false;
-  double _cardOpacity = 0;
-  List<POI> nearbyPOIs = []; // the list of POIs to display
+  double _cardOpacity = 0; // for the fade-out
   bool loadingPOIs = false; // true while fetching POIs
   bool fillingCache = false; // true while background fill is in progress
-  String? poiError; // error message if fetching POIs fails
-  final POIService _poiService =
-      POIService(); // service for fetching and caching POIs
-  POI? nearestPOI; // the closest unvisited POI within check-in range
-  POI? _tappedPOI; // POI whose tooltip is currently showing on the map
-  final Set<String> _markedPOIs = {}; // track POIs that already have markers
-  bool _mapReady = false; // true once the map is fully initialized
   bool checkingIn = false; // whether a check-in request is in progress
   int?
   xpAwarded; // XP gained from the last check-in (shown briefly in the button)
-
-  // Confetti controller for the check-in celebration
-  late ConfettiController _confettiController;
-
-  // Track user location
-  late final MapController mapController = MapController.withUserPosition(
-    trackUserLocation: const UserTrackingOption(
-      enableTracking: true, // follows user automatically
-      unFollowUser: true,
-    ),
-  );
+  String? poiError; // error message if fetching POIs fails
+  List<POI> nearbyPOIs = []; // the list of POIs to display
+  POI? nearestPOI; // the closest unvisited POI within check-in range
+  POI? _tappedPOI; // POI whose tooltip is currently showing on the map
+  StreamSubscription<Position>?
+  _positionStream; // keep track of current coordinates for POI refreshing
+  late ConfettiController
+  _confettiController; // confetti controller for the check-in celebration
+  final POIService _poiService =
+      POIService(); // service for fetching and caching POIs
+  final MapController _mapController = MapController();
+  double _currentZoom = 15;
 
   @override
   void initState() {
     super.initState();
-    mapController.addObserver(this); // listen to map events
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
@@ -62,6 +56,8 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
   @override
   void dispose() {
     _confettiController.dispose(); // clean up the confetti controller
+    _mapController.dispose();
+    _positionStream?.cancel();
     super.dispose();
   }
 
@@ -91,14 +87,28 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
 
     setState(() {
       // update user's current position
-      userLocation = GeoPoint(
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
+      userLocation = LatLng(position.latitude, position.longitude);
     });
+
+    _mapController.move(userLocation!, 15); // zoom level of 15
 
     // Fetch nearby POIs
     _loadPOIs(position.latitude, position.longitude);
+
+    // start listening for position changes after permissions confirmed
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 250,
+          ),
+        ).listen((position) {
+          if (!mounted) return;
+          setState(() {
+            userLocation = LatLng(position.latitude, position.longitude);
+          });
+          _loadPOIs(position.latitude, position.longitude);
+        });
   }
 
   // Fetch POIs from the backend (or cache) and update the UI
@@ -123,9 +133,6 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
             nearbyPOIs = filled; // update the list with new POIs
             fillingCache = false;
           });
-          if (_mapReady) {
-            _addPOIMarkers(); // place markers for the new POIs on the map
-          }
           _refreshClosestCheckinPOI(); // re-check if a new POI is now closest
         },
       );
@@ -137,9 +144,6 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
         loadingPOIs = false;
         fillingCache = false;
       });
-
-      // Add markers to the map for each POI
-      _addPOIMarkers();
 
       // Check if the user is close enough to any POI to check in
       _refreshClosestCheckinPOI();
@@ -230,48 +234,6 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     }
   }
 
-  // Place markers on the map for each POI
-  Future<void> _addPOIMarkers() async {
-    if (!_mapReady) {
-      return; // don't attempt markers before the map is initialized
-    }
-    for (final poi in nearbyPOIs) {
-      final key = '${poi.lat.toStringAsFixed(6)},${poi.lng.toStringAsFixed(6)}';
-      if (_markedPOIs.contains(key)) continue; // already has a marker
-      _markedPOIs.add(
-        key,
-      ); // add to set before the await to prevent possible race conditions
-      try {
-        await mapController.addMarker(
-          GeoPoint(latitude: poi.lat, longitude: poi.lng),
-          markerIcon: MarkerIcon(
-            icon: Icon(
-              POIIcons.fromCategory(
-                poi.category,
-              ), // picks an icon based on the POI type
-              color: darkenColor(Colors.blueAccent, 0.2),
-              size: Responsive.width(context, 35),
-            ),
-          ),
-        );
-      } catch (_) {
-        _markedPOIs.remove(key); // allow retry on next _addPOIMarkers call
-      }
-    }
-  }
-
-  // called automatically by map controller when the map is fully initialized
-  @override
-  Future<void> mapIsReady(bool isReady) async {
-    _mapReady = isReady;
-    if (isReady) {
-      if (userLocation != null) {
-        await mapController.moveTo(userLocation!);
-      }
-      _addPOIMarkers(); // process any POIs that arrived while the map was loading
-    }
-  }
-
   // Build a single POI row in the card
   Widget _poiTile(POI poi) {
     return FutureBuilder<bool>(
@@ -337,6 +299,39 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
     );
   }
 
+  // Build markers for all nearby POIs
+  List<Marker> _buildMarkers() {
+    // Map every POI into a a Marker
+    return nearbyPOIs.map((poi) {
+      return Marker(
+        point: LatLng(poi.lat, poi.lng),
+        width: Responsive.width(context, 40),
+        height: Responsive.width(context, 40),
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _tappedPOI = poi;
+              _cardOpacity = 1; // fade in
+            });
+
+            final tapped = poi;
+            Future.delayed(const Duration(seconds: 3), () {
+              if (mounted && _tappedPOI == tapped) {
+                setState(() => _cardOpacity = 0); // fade out
+              }
+            });
+          },
+          // Add the marker's icon
+          child: Icon(
+            POIIcons.fromCategory(poi.category),
+            color: darkenColor(Colors.blueAccent, 0.2),
+            size: Responsive.width(context, 35),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     double cardOpenMobileOffset = cardIsOpen
@@ -347,55 +342,52 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
       body: Stack(
         children: [
           // THE MAP
-          OSMFlutter(
-            controller: mapController,
-            onGeoPointClicked: (geoPoint) {
-              for (final poi in nearbyPOIs) {
-                if (poi.lat == geoPoint.latitude &&
-                    poi.lng == geoPoint.longitude) {
-                  setState(() {
-                    _tappedPOI = poi;
-                    _cardOpacity = 1; // fade in
-                  });
-
-                  final tapped = poi;
-                  Future.delayed(const Duration(seconds: 1), () {
-                    if (mounted && _tappedPOI == tapped) {
-                      setState(() => _cardOpacity = 0); // fade out
-                    }
-                  });
-                  return;
-                }
-              }
-            },
-            osmOption: OSMOption(
-              userTrackingOption: UserTrackingOption(
-                enableTracking: true,
-                unFollowUser: true,
-              ),
-              zoomOption: ZoomOption(
-                initZoom: 15,
-                minZoomLevel: 2,
-                maxZoomLevel: 19,
-              ),
-              userLocationMarker: UserLocationMaker(
-                personMarker: MarkerIcon(
-                  icon: Icon(
-                    // User marker
-                    Icons.location_pin,
-                    color: darkenColor(Colors.red, 0.1),
-                    size: Responsive.width(context, 35),
-                  ),
-                ),
-                directionArrowMarker: MarkerIcon(
-                  icon: Icon(
-                    Icons.double_arrow,
-                    size: Responsive.width(context, 50),
-                  ),
-                ),
-              ),
-              roadConfiguration: RoadOption(roadColor: Colors.yellowAccent),
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: userLocation ?? const LatLng(0, 0),
+              initialZoom: 15,
+              minZoom: 2,
+              maxZoom: 19,
+              // Store the user's zoom level
+              onPositionChanged: (position, hasGesture) {
+                if (hasGesture) _currentZoom = position.zoom;
+              },
             ),
+            children: [
+              // Tile URL
+              TileLayer(
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                userAgentPackageName: "com.yourname.levelup",
+              ),
+
+              // Attribution
+              RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution(
+                    'OpenStreetMap contributors',
+                    onTap: () => launchUrl(
+                      Uri.parse('https://openstreetmap.org/copyright'),
+                    ),
+                  ),
+                ],
+              ),
+
+              // User location layer
+              CurrentLocationLayer(
+                style: LocationMarkerStyle(
+                  marker: DefaultLocationMarker(
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  markerSize: Size(35, 35),
+                  showAccuracyCircle: false,
+                  showHeadingSector: false,
+                ),
+              ),
+
+              // POI markers layer
+              MarkerLayer(markers: _buildMarkers()),
+            ],
           ),
 
           // Loading screen while getting user's coordinates
@@ -441,289 +433,259 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                             130 + cardOpenMobileOffset,
                           ), // prevent back button from being covered on mobile
                     left: 0,
-                    child: PointerInterceptor(
-                      // PointerInterceptor so the back button can be clicked
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.width(context, 20),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(200),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Tooltip(
-                            message: "Back",
-                            child: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                            ),
-                          ),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.width(context, 20)),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(200),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Tooltip(
+                          message: "Back",
+                          child: Icon(Icons.arrow_back, color: Colors.white),
                         ),
                       ),
                     ),
                   ),
-
                   // THE "NEARBY EXPERIENCE SPOTS" CARD
                   Align(
                     alignment: Alignment.topCenter, // center the widget
-                    child: PointerInterceptor(
-                      // PointerInterceptor so the widget can be clicked
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(
-                            () => cardIsOpen = !cardIsOpen,
-                          ); // toggle open/close
-                        },
-                        child: ConstrainedBox(
-                          // keeps width consistent without taking full screen
-                          constraints: BoxConstraints(
-                            maxWidth: Responsive.width(
-                              context,
-                              400,
-                            ), // widget width
-                          ),
-                          child: SizedBox(
-                            width: double
-                                .infinity, // fill available width so edges align with buttons
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 313),
-                              curve: Curves.easeInOut,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(200),
-                                borderRadius: BorderRadius.circular(20),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(
+                          () => cardIsOpen = !cardIsOpen,
+                        ); // toggle open/close
+                      },
+                      child: ConstrainedBox(
+                        // keeps width consistent without taking full screen
+                        constraints: BoxConstraints(
+                          maxWidth: Responsive.width(context, 400),
+                        ),
+                        child: SizedBox(
+                          width: double
+                              .infinity, // fill available width so edges align with buttons
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 313),
+                            curve: Curves.easeInOut,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(200),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(
+                                Responsive.width(context, 10),
                               ),
-                              child: Padding(
-                                padding: EdgeInsets.all(
-                                  Responsive.width(context, 10),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize
-                                      .min, // So widget doesn't take the height of the whole screen
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            "Nearby Experience Spots",
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.width(
-                                                context,
-                                                25,
-                                              ),
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: Responsive.width(
+                              child: Column(
+                                mainAxisSize: MainAxisSize
+                                    .min, // So widget doesn't take the height of the whole screen
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "Nearby Experience Spots",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.width(
                                               context,
-                                              10,
+                                              25,
                                             ),
-                                          ),
-                                          Icon(
-                                            cardIsOpen
-                                                ? Icons.keyboard_arrow_up
-                                                : Icons.keyboard_arrow_down,
                                             color: Colors.white,
                                           ),
+                                        ),
+                                        SizedBox(
+                                          width: Responsive.width(context, 10),
+                                        ),
+                                        Icon(
+                                          cardIsOpen
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          color: Colors.white,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ClipRect(
+                                    child: AnimatedSize(
+                                      duration: const Duration(
+                                        milliseconds: 313,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Spread operator to add the text into the Column with one if statement
+                                          if (cardIsOpen) ...[
+                                            SizedBox(
+                                              height: Responsive.height(
+                                                context,
+                                                10,
+                                              ),
+                                            ),
+                                            // Show loading spinner while fetching
+                                            if (loadingPOIs)
+                                              Padding(
+                                                padding: EdgeInsets.all(
+                                                  Responsive.width(context, 20),
+                                                ),
+                                                child: const Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                      ),
+                                                ),
+                                              )
+                                            // Show error message if fetching failed
+                                            else if (poiError != null)
+                                              Padding(
+                                                padding: EdgeInsets.all(
+                                                  Responsive.width(context, 10),
+                                                ),
+                                                child: Text(
+                                                  poiError!,
+                                                  style: GoogleFonts.manrope(
+                                                    color: Colors.redAccent,
+                                                    fontSize: Responsive.width(
+                                                      context,
+                                                      14,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            // Show message if no POIs found
+                                            else if (nearbyPOIs.isEmpty)
+                                              Padding(
+                                                padding: EdgeInsets.all(
+                                                  Responsive.width(context, 10),
+                                                ),
+                                                child: Text(
+                                                  "No spots found nearby",
+                                                  style: GoogleFonts.manrope(
+                                                    color: Colors.white70,
+                                                    fontSize: Responsive.width(
+                                                      context,
+                                                      14,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            // Show the list of POIs in a scrollable container
+                                            else
+                                              ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxHeight: Responsive.height(
+                                                    context,
+                                                    300,
+                                                  ), // cap height so it doesn't fill the screen
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Flexible(
+                                                      child: ListView.builder(
+                                                        shrinkWrap:
+                                                            true, // only take as much space as needed
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        itemCount:
+                                                            nearbyPOIs.length,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                              return _poiTile(
+                                                                nearbyPOIs[index],
+                                                              );
+                                                            },
+                                                      ),
+                                                    ),
+                                                    // Show a small loading indicator while the cache is being filled
+                                                    if (fillingCache)
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsets.symmetric(
+                                                              vertical:
+                                                                  Responsive.height(
+                                                                    context,
+                                                                    8,
+                                                                  ),
+                                                            ),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            SizedBox(
+                                                              width:
+                                                                  Responsive.width(
+                                                                    context,
+                                                                    14,
+                                                                  ),
+                                                              height:
+                                                                  Responsive.width(
+                                                                    context,
+                                                                    14,
+                                                                  ),
+                                                              child:
+                                                                  const CircularProgressIndicator(
+                                                                    color: Colors
+                                                                        .white38,
+                                                                    strokeWidth:
+                                                                        2,
+                                                                  ),
+                                                            ),
+                                                            SizedBox(
+                                                              width:
+                                                                  Responsive.width(
+                                                                    context,
+                                                                    8,
+                                                                  ),
+                                                            ),
+                                                            Text(
+                                                              "Finding more spots...",
+                                                              style: GoogleFonts.manrope(
+                                                                color: Colors
+                                                                    .white38,
+                                                                fontSize:
+                                                                    Responsive.width(
+                                                                      context,
+                                                                      13,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                          ] else
+                                            SizedBox(
+                                              height: Responsive.height(
+                                                context,
+                                                30,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  loadingPOIs
+                                                      ? "Loading spots..."
+                                                      : "Tap to view spots",
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: Responsive.width(
+                                                      context,
+                                                      15,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),
-
-                                    ClipRect(
-                                      child: AnimatedSize(
-                                        duration: const Duration(
-                                          milliseconds: 313,
-                                        ),
-                                        curve: Curves.easeInOut,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Spread operator to add the text into the Column with one if statement
-                                            if (cardIsOpen) ...[
-                                              SizedBox(
-                                                height: Responsive.height(
-                                                  context,
-                                                  10,
-                                                ),
-                                              ),
-                                              // Show loading spinner while fetching
-                                              if (loadingPOIs)
-                                                Padding(
-                                                  padding: EdgeInsets.all(
-                                                    Responsive.width(
-                                                      context,
-                                                      20,
-                                                    ),
-                                                  ),
-                                                  child: const Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: Colors.white,
-                                                        ),
-                                                  ),
-                                                )
-                                              // Show error message if fetching failed
-                                              else if (poiError != null)
-                                                Padding(
-                                                  padding: EdgeInsets.all(
-                                                    Responsive.width(
-                                                      context,
-                                                      10,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    poiError!,
-                                                    style: GoogleFonts.manrope(
-                                                      color: Colors.redAccent,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            14,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                )
-                                              // Show message if no POIs found
-                                              else if (nearbyPOIs.isEmpty)
-                                                Padding(
-                                                  padding: EdgeInsets.all(
-                                                    Responsive.width(
-                                                      context,
-                                                      10,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    "No spots found nearby",
-                                                    style: GoogleFonts.manrope(
-                                                      color: Colors.white70,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            14,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                )
-                                              // Show the list of POIs in a scrollable container
-                                              else
-                                                ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxHeight: Responsive.height(
-                                                      context,
-                                                      300,
-                                                    ), // cap height so it doesn't fill the screen
-                                                  ),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Flexible(
-                                                        child: ListView.builder(
-                                                          shrinkWrap:
-                                                              true, // only take as much space as needed
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          itemCount:
-                                                              nearbyPOIs.length,
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                                return _poiTile(
-                                                                  nearbyPOIs[index],
-                                                                );
-                                                              },
-                                                        ),
-                                                      ),
-                                                      // Show a small loading indicator while the cache is being filled
-                                                      if (fillingCache)
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsets.symmetric(
-                                                                vertical:
-                                                                    Responsive.height(
-                                                                      context,
-                                                                      8,
-                                                                    ),
-                                                              ),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              SizedBox(
-                                                                width:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      14,
-                                                                    ),
-                                                                height:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      14,
-                                                                    ),
-                                                                child: const CircularProgressIndicator(
-                                                                  color: Colors
-                                                                      .white38,
-                                                                  strokeWidth:
-                                                                      2,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                width:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      8,
-                                                                    ),
-                                                              ),
-                                                              Text(
-                                                                "Finding more spots...",
-                                                                style: GoogleFonts.manrope(
-                                                                  color: Colors
-                                                                      .white38,
-                                                                  fontSize:
-                                                                      Responsive.width(
-                                                                        context,
-                                                                        13,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ] else
-                                              SizedBox(
-                                                height: Responsive.height(
-                                                  context,
-                                                  30,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    loadingPOIs
-                                                        ? "Loading spots..."
-                                                        : "Tap to view spots",
-                                                    style: TextStyle(
-                                                      color: Colors.white70,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            15,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -731,7 +693,6 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                       ),
                     ),
                   ),
-
                   // CHECK-IN BUTTON (only visible when near an unvisited POI)
                   if (nearestPOI != null)
                     Align(
@@ -740,56 +701,57 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 40),
                         ),
-                        child: PointerInterceptor(
-                          child: GestureDetector(
-                            onTap: checkingIn
-                                ? null
-                                : _handleCheckIn, // disable while checking in
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 24),
-                                vertical: Responsive.height(context, 14),
-                              ),
-                              decoration: BoxDecoration(
-                                // Green when XP was just awarded, blue otherwise
-                                color: xpAwarded != null
-                                    ? Colors.green.withAlpha(220)
-                                    : Colors.blue.withAlpha(220),
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withAlpha(100),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize
-                                    .min, // only as wide as its content
-                                children: [
-                                  // Show a spinner while checking in, a check icon after success, or location icon normally
-                                  if (checkingIn)
-                                    SizedBox(
-                                      width: Responsive.width(context, 20),
-                                      height: Responsive.width(context, 20),
-                                      child: const CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  else
-                                    Icon(
-                                      xpAwarded != null
-                                          ? Icons.check_circle
-                                          : Icons.location_on,
+
+                        child: GestureDetector(
+                          onTap: checkingIn
+                              ? null
+                              : _handleCheckIn, // disable while checking in
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 24),
+                              vertical: Responsive.height(context, 14),
+                            ),
+                            decoration: BoxDecoration(
+                              // Green when XP was just awarded, blue otherwise
+                              color: xpAwarded != null
+                                  ? Colors.green.withAlpha(220)
+                                  : Colors.blue.withAlpha(220),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(100),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize
+                                  .min, // only as wide as its content
+                              children: [
+                                // Show a spinner while checking in, a check icon after success, or location icon normally
+                                if (checkingIn)
+                                  SizedBox(
+                                    width: Responsive.width(context, 20),
+                                    height: Responsive.width(context, 20),
+                                    child: const CircularProgressIndicator(
                                       color: Colors.white,
-                                      size: Responsive.width(context, 22),
+                                      strokeWidth: 2,
                                     ),
-                                  SizedBox(width: Responsive.width(context, 8)),
-                                  // Show "+" XP after success, or the POI name normally
-                                  Text(
+                                  )
+                                else
+                                  Icon(
+                                    xpAwarded != null
+                                        ? Icons.check_circle
+                                        : Icons.location_on,
+                                    color: Colors.white,
+                                    size: Responsive.width(context, 22),
+                                  ),
+                                SizedBox(width: Responsive.width(context, 8)),
+                                // Show "+" XP after success, or the POI name normally
+                                Flexible(
+                                  child: Text(
                                     xpAwarded != null
                                         ? "+$xpAwarded XP!"
                                         : "Check in: ${nearestPOI!.name}",
@@ -800,8 +762,8 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                                     ),
                                     softWrap: true,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -823,71 +785,66 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                               nearestPOI != null ? 100 : 40,
                             ),
                           ),
-                          child: PointerInterceptor(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _cardOpacity = 0),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 10),
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(210),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withAlpha(80),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      POIIcons.fromCategory(
-                                        _tappedPOI!.category,
-                                      ),
-                                      color: Colors.white,
-                                      size: Responsive.width(context, 22),
-                                    ),
-                                    SizedBox(
-                                      width: Responsive.width(context, 8),
-                                    ),
-                                    Flexible(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _tappedPOI!.name,
-                                            style: GoogleFonts.manrope(
-                                              color: Colors.white,
-                                              fontSize: Responsive.width(
-                                                context,
-                                                16,
-                                              ),
-                                              fontWeight: FontWeight.bold,
+
+                          child: GestureDetector(
+                            onTap: () => setState(() => _cardOpacity = 0),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 16),
+                                vertical: Responsive.height(context, 10),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(210),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(80),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    POIIcons.fromCategory(_tappedPOI!.category),
+                                    color: Colors.white,
+                                    size: Responsive.width(context, 22),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 8)),
+                                  Flexible(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _tappedPOI!.name,
+                                          style: GoogleFonts.manrope(
+                                            color: Colors.white,
+                                            fontSize: Responsive.width(
+                                              context,
+                                              16,
                                             ),
-                                            softWrap: true,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          Text(
-                                            _tappedPOI!.displayCategory,
-                                            style: GoogleFonts.manrope(
-                                              color: Colors.white70,
-                                              fontSize: Responsive.width(
-                                                context,
-                                                13,
-                                              ),
+                                          softWrap: true,
+                                        ),
+                                        Text(
+                                          _tappedPOI!.displayCategory,
+                                          style: GoogleFonts.manrope(
+                                            color: Colors.white70,
+                                            fontSize: Responsive.width(
+                                              context,
+                                              13,
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -910,27 +867,27 @@ class _ExploreState extends State<Explore> with OSMMixinObserver {
                           : Responsive.height(
                               context,
                               130 + cardOpenMobileOffset,
-                            ), // prevent back button from being covered on mobile
+                            ), // prevent button from being covered on mobile
                       right: 0,
-                      child: PointerInterceptor(
-                        child: GestureDetector(
-                          onTap: () => mapController.moveTo(userLocation!),
-                          child: Container(
-                            padding: EdgeInsets.all(
-                              Responsive.width(context, 20),
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(200),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Tooltip(
-                              message: "Recenter",
-                              child: Transform.rotate(
-                                angle: 0.75,
-                                child: Icon(
-                                  Icons.navigation_rounded,
-                                  color: Colors.white,
-                                ),
+
+                      child: GestureDetector(
+                        onTap: () =>
+                            _mapController.move(userLocation!, _currentZoom),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.width(context, 20),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(200),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Tooltip(
+                            message: "Recenter",
+                            child: Transform.rotate(
+                              angle: 0.75,
+                              child: const Icon(
+                                Icons.navigation_rounded,
+                                color: Colors.white,
                               ),
                             ),
                           ),

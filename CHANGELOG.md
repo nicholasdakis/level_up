@@ -909,3 +909,23 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made restoreCalculatorDataFromPrefs() catch possible errors
 - Fixed frostedGlassCard using hard-coded values for blurring
 - Made the reminder time input show "Enter a time" if no time is picked instead of defaulting to the user's current time
+
+## 2026-04-12
+- Migrated the Explore screen's map from flutter_osm_plugin to flutter_map and flutter_map_location_marker because flutter_osm_plugin required async marker placement and a map-ready callback, making the code more complex than needed. flutter_map renders markers as standard Flutter widgets so they rebuild automatically with setState()
+- Replaced GeoPoint with LatLng from latlong2 for coordinates throughout the class
+- Replaced MapController.withUserPosition() with a plain MapController, since flutter_map handles location tracking via CurrentLocationLayer instead
+- Removed OSMMixinObserver from the state class and its associated mapIsReady() override as flutter_map doesn't require a ready callback since markers are just Flutter widgets rendered directly in the build tree
+- Removed the _mapReady and _markedPOIs state variables, which were only needed to guard against placing markers before OSM was initialized. flutter_map renders markers as Flutter widgets in the build tree so they're always in sync with state
+- Added _buildMarkers() to build the POI marker list as a standard Flutter widget tree, replacing the async _addPOIMarkers() method that imperatively called mapController.addMarker() for each POI
+- Removed the _addPOIMarkers() calls from _loadPOIs() and onSupplement since markers now rebuild automatically with setState()
+- Markers are now Flutter widgets that rebuild with setState() so they are always in sync with the POI list which should remove race conditions when trying to set the accurate marker icon on the map
+- Moved map camera to user's location immediately after getting position with _mapController.move() instead of doing it in mapIsReady()
+- Switched tile layer to OSM explicitly via tile.openstreetmap.org with userAgentPackageName set
+- Changed user location marker look
+- Extended the POI tooltip auto-dismiss delay from 1 second to 3 seconds
+- Added a _positionStream that listens to the user's position while the Explore screen is open, firing _loadPOIs() every 250m to match POIService's _refreshDistance. Before, only the initial position was fetched so the POI list and check-in button never updated as the user moved during a session
+- Added _positionStream?.cancel() to dispose() so the stream stops when leaving the screen
+- Wrapped check-in button text in Flexible to fix pixel overflow on long POI names
+- Removed PointerInterceptor because flutter_osm_plugin rendered the map in a native platform view, which caused Flutter widgets drawn on top of it to not receive touch events properly. flutter_map is pure Flutter so touch events work normally without it
+- Added attribution to OSM (flutter_osm automatically adds it on the map but flutter_map doesn't)
+- Added a currentZoom variable so that the recenter button doesn't change the user's zoom as .move explicitly requires zoom level to be passed

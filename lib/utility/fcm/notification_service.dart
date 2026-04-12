@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'dart:js_interop';
 import '../../globals.dart';
 import '../responsive.dart';
@@ -41,8 +40,7 @@ Future<String?> requestNotificationAndToken() async {
 void showBrowserBlockedDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (context) => PointerInterceptor(
-      child: AlertDialog(
+    builder: (context) => AlertDialog(
         backgroundColor: appColorNotifier.value.withAlpha(150),
         title: Text(
           'Browser Notifications are Disabled',
@@ -90,6 +88,5 @@ void showBrowserBlockedDialog(BuildContext context) {
           ),
         ],
       ),
-    ),
   );
 }
