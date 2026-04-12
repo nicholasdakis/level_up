@@ -358,19 +358,27 @@ class _ExploreState extends State<Explore> {
               // Tile URL
               TileLayer(
                 urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: "com.yourname.levelup",
+                userAgentPackageName:
+                    "com.nicholasdakis.levelup (contact: n1ch0lasd4k1s@gmail.com)",
               ),
 
               // Attribution
-              RichAttributionWidget(
-                attributions: [
-                  TextSourceAttribution(
-                    'OpenStreetMap contributors',
-                    onTap: () => launchUrl(
-                      Uri.parse('https://openstreetmap.org/copyright'),
+              Padding(
+                padding: EdgeInsets.only(
+                  right: Responsive.width(context, 12),
+                  bottom: Responsive.height(context, 12),
+                ),
+                child: RichAttributionWidget(
+                  showFlutterMapAttribution: false,
+                  attributions: [
+                    TextSourceAttribution(
+                      'OpenStreetMap contributors',
+                      onTap: () => launchUrl(
+                        Uri.parse('https://openstreetmap.org/copyright'),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // User location layer
