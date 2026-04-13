@@ -102,40 +102,40 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION consume_tokens(p_id TEXT, p_amount INT, p_max_tokens INT)
 RETURNS BOOLEAN AS $$
 DECLARE
-    current_tokens INT;
-    last_refill_dt TIMESTAMPTZ;
-    now_dt TIMESTAMPTZ := NOW();
+    v_current_tokens INT;
+    v_last_refill TIMESTAMPTZ;
+    v_now TIMESTAMPTZ := NOW();
 BEGIN
     -- lock the row for this document so no other transaction can read/write it at the same time
     SELECT current_tokens, last_refill_time
-    INTO current_tokens, last_refill_dt
+    INTO v_current_tokens, v_last_refill
     FROM rate_limits WHERE id = p_id FOR UPDATE;
 
     IF NOT FOUND THEN
         -- row doesn't exist yet, so this is first time setup
         -- insert with tokens already decremented by the requested amount
         INSERT INTO rate_limits (id, current_tokens, last_refill_time)
-        VALUES (p_id, p_max_tokens - p_amount, now_dt);
+        VALUES (p_id, p_max_tokens - p_amount, v_now);
         RETURN TRUE;
     END IF;
 
     -- check if 24 hours have passed since the last refill
     -- if so, reset tokens back to max and update the refill timestamp
-    IF (now_dt - last_refill_dt) >= INTERVAL '1 day' THEN
-        current_tokens := p_max_tokens;
-        last_refill_dt := now_dt;
+    IF (v_now - v_last_refill) >= INTERVAL '1 day' THEN
+        v_current_tokens := p_max_tokens;
+        v_last_refill := v_now;
     END IF;
 
     -- not enough tokens to consume, return false without modifying anything
-    IF current_tokens < p_amount THEN
+    IF v_current_tokens < p_amount THEN
         RETURN FALSE;
     END IF;
 
     -- enough tokens available, so deduct the requested amount and write back
     -- last_refill_time is also written back in case it was just reset above
     UPDATE rate_limits
-    SET current_tokens = current_tokens - p_amount,
-        last_refill_time = last_refill_dt
+    SET current_tokens = v_current_tokens - p_amount,
+        last_refill_time = v_last_refill
     WHERE id = p_id;
 
     RETURN TRUE;
@@ -149,10 +149,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION refund_tokens(p_id TEXT, p_amount INT, p_max_tokens INT)
 RETURNS BOOLEAN AS $$
 DECLARE
-    current_tokens INT;
+    v_current_tokens INT;
 BEGIN
     -- lock the row so no other transaction can modify it at the same time
-    SELECT current_tokens INTO current_tokens
+    SELECT current_tokens INTO v_current_tokens
     FROM rate_limits WHERE id = p_id FOR UPDATE;
 
     -- cannot refund if the row doesn't exist yet
@@ -162,7 +162,7 @@ BEGIN
 
     -- add the tokens back, but cap at max to prevent exceeding the limit
     UPDATE rate_limits
-    SET current_tokens = LEAST(current_tokens + p_amount, p_max_tokens)
+    SET current_tokens = LEAST(v_current_tokens + p_amount, p_max_tokens)
     WHERE id = p_id;
 
     RETURN TRUE;

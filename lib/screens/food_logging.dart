@@ -586,7 +586,7 @@ class _FoodLoggingState extends State<FoodLogging>
       () => {"Breakfast": [], "Lunch": [], "Dinner": [], "Snacks": []},
     );
     foodDataByDate[dateKey]![mealType!]!.add(foodObject);
-    await saveFoodData("add");
+    saveFoodData("add"); // save in background so the UI updates instantly
 
     setState(() {
       loadFoodForDate(currentDate);
