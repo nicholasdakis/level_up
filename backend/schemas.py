@@ -4,19 +4,6 @@ from pydantic import BaseModel, Field
 
 
 # ==============================================================================
-# Food model (defined first because it is used in both request and response schemas)
-# ==============================================================================
-
-class FoodItem(BaseModel):
-    food_id: str
-    calories: int
-    food_url: str | None = None
-    food_name: str
-    food_type: str | None = None
-    brand_name: str | None = None
-    food_description: str | None = None
-
-# ==============================================================================
 # Request schemas
 # ==============================================================================
 
@@ -90,10 +77,10 @@ class RemoveFcmTokenRequest(BaseModel):
 class UpsertFoodLogRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     date: str = Field(..., min_length=1)  # e.g. "2025-04-13"
-    breakfast: list[FoodItem] = Field(default_factory=list)
-    lunch: list[FoodItem] = Field(default_factory=list)
-    dinner: list[FoodItem] = Field(default_factory=list)
-    snack: list[FoodItem] = Field(default_factory=list)
+    breakfast: list = Field(default_factory=list)
+    lunch: list = Field(default_factory=list)
+    dinner: list = Field(default_factory=list)
+    snack: list = Field(default_factory=list)
 
 class GetLeaderboardRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
@@ -190,7 +177,7 @@ class GetUserDataResponse(BaseModel):
     fcm_tokens: list[str] = []
     notifications_enabled: bool = True
     last_daily_claim: str | None = None  # ISO string
-    food_logs: list[FoodItem] = Field(default_factory=list)
+    food_logs: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
 
 class SimpleSuccessResponse(BaseModel):
