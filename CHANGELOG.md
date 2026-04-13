@@ -960,3 +960,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Replaced the loadFoodData() call in food_logging.dart with refreshUserData() to keep food data fresh across devices on tab switch
 - Changed app_color column type from TEXT to BIGINT since ARGB color values from Flutter's toARGB32() can exceed INTEGER's 32-bit limit, and TEXT has no type safety
 - Updated offline snackbars to be accurate as they no longer automatically sync when the user goes online (that was Firestore-specific)
+- Migrated leaderboard from Firestore to Postgres by adding a /get_leaderboard backend route, repository method, service method, and request/response schemas
+- Replaced LeaderboardEntry.fromFirestore() with LeaderboardEntry.fromJson() since the leaderboard data now comes from the backend instead of Firestore directly
+- Updated field names in LeaderboardEntry from camelCase (expPoints, pfpBase64) to snake_case (exp_points, pfp_base64) to match the Postgres column names returned by the backend
+- Removed prefetchLeaderboard() from LeaderboardService since it only existed to warm Firestore's local cache, which no longer applies
+- Replaced the Firestore query in LeaderboardService.fetchLeaderboard() with an HTTP POST to /get_leaderboard

@@ -47,9 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load user data from Firestore, then initialize FCM once data is ready
     initializeUser();
 
-    // Make sure a cached version of the leaderboard is populated if a user loses connection before ever hearing from the StreamBuilder in the Leaderboard tab
-    leaderboardService.prefetchLeaderboard();
-
     // Update the HomeScreen with the updated app color
     _appColorListener = () {
       if (mounted) setState(() {});

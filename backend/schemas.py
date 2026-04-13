@@ -79,6 +79,9 @@ class UpsertFoodLogRequest(BaseModel):
     dinner: list = []
     snack: list = []
 
+class GetLeaderboardRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+
 # Response schemas --------------------
 
 class DailyRewardResponse(BaseModel):
@@ -144,3 +147,15 @@ class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
     success: bool
     error: str | None = None
+
+class LeaderboardUserEntry(BaseModel):
+    # A single user entry in the leaderboard response
+    uid: str
+    username: str | None = None
+    level: int = 1
+    exp_points: int = 0
+    pfp_base64: str | None = None
+
+class GetLeaderboardResponse(BaseModel):
+    # The full leaderboard response containing a list of user entries sorted by level and XP
+    users: list[LeaderboardUserEntry] = []

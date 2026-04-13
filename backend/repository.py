@@ -26,6 +26,11 @@ class UserRepository:
         if not result.data:
             return None
         return result.data[0].get("fcm_tokens") or []
+    
+    def get_leaderboard(self):
+        # Fetches all users ordered by level and XP descending for the leaderboard
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).execute()
+        return result.data
 
     # Write operations (non-atomic)
 

@@ -1,26 +1,26 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'leaderboard_entry.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../user/user_data_manager.dart';
 
 class LeaderboardService {
-  // Prefetches leaderboard on app start to populate Firestore's local cache (for offline compatibility)
-  void prefetchLeaderboard() {
-    FirebaseFirestore.instance
-        .collection('users-public')
-        .orderBy('level', descending: true)
-        .orderBy('expPoints', descending: true)
-        .get();
-  }
-
-  // Fetches the leaderboard data
+  // Fetches the leaderboard data from the backend
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users-public')
-        .orderBy('level', descending: true)
-        .orderBy('expPoints', descending: true)
-        .get();
-    // Map Firestore documents to LeaderboardEntry objects
-    return snapshot.docs.map((doc) {
-      return LeaderboardEntry.fromFirestore(doc);
-    }).toList();
+    final token = await getIdToken();
+    final response = await http.post(
+      Uri.parse('$backendBaseUrl/get_leaderboard'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': token}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'fetchLeaderboard failed: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    final List<dynamic> data = jsonDecode(response.body)['users'];
+    // Map backend response to LeaderboardEntry objects
+    return data.map((entry) => LeaderboardEntry.fromJson(entry)).toList();
   }
 }

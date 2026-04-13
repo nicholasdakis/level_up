@@ -243,6 +243,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Returns all reminders for a user
         return self._repo.get_reminders(uid)
 
+    def get_leaderboard(self):
+        # Returns all users sorted by level and XP for the leaderboard
+        return self._repo.get_leaderboard()
+
     def update_exp(self, uid: str, event: str, event_id: str):
 
         # Self-note: Make sure the events it checks are only handled by the backend and can't be written solely by the client

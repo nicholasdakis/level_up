@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LeaderboardEntry {
   final String uid;
@@ -17,17 +16,16 @@ class LeaderboardEntry {
     this.pfpBytes,
   });
 
-  // Factory constructor parses the Firestore document into a LeaderboardEntry by extracting and
+  // Factory constructor parses the backend response into a LeaderboardEntry by extracting and
   // converting its fields, then passing them to the main constructor
-  factory LeaderboardEntry.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> data) {
     return LeaderboardEntry(
-      uid: doc.id,
+      uid: data['uid'],
       username: data['username'],
       level: data['level'] ?? 1,
-      expPoints: data['expPoints'] ?? 0,
-      pfpBytes: data['pfpBase64'] != null
-          ? base64Decode(data['pfpBase64'])
+      expPoints: data['exp_points'] ?? 0,
+      pfpBytes: data['pfp_base64'] != null
+          ? base64Decode(data['pfp_base64'])
           : null, // pfp decodes once on initialization
     );
   }

@@ -39,7 +39,10 @@ from backend.schemas import (
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogRequest,
-    SimpleSuccessResponse
+    SimpleSuccessResponse,
+    GetLeaderboardRequest,
+    GetLeaderboardResponse,
+    LeaderboardUserEntry
 )
 from backend.auth import verify_token
 from backend.utils import to_utc_datetime
@@ -663,6 +666,25 @@ def upsert_food_log():
         uid, body.date, body.breakfast, body.lunch, body.dinner, body.snack
     )
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/get_leaderboard", methods=["POST"]) # POST because the id_token is sent in the request body
+def get_leaderboard():
+    # Method that returns all users sorted by level and XP descending for the leaderboard
+    try:
+        body = GetLeaderboardRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    result = progression_service.get_leaderboard()
+    response = GetLeaderboardResponse(
+        users=[LeaderboardUserEntry(**entry) for entry in result]
+    )
+    return jsonify(response.model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)
