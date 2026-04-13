@@ -983,3 +983,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Typed the meal fields in UpsertFoodLogRequest with list[FoodItem] instead of bare lists
 - Added a FoodItem schema to define the shape of a food entry consistently
 - Reorganized schemas.py so shared models (FoodItem, POIItem, LeaderboardUserEntry, ReminderItem) are defined before the response schemas that reference them, and grouped sections with clear headers
+- Updated daily_rewards to use the /set_reminders route instead of directly writing Firestore

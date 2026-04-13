@@ -1,9 +1,11 @@
 import 'dart:math';
+import 'dart:convert';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import '../globals.dart';
+import '../user/user_data_manager.dart';
 
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
@@ -27,24 +29,24 @@ class DailyRewardDialog {
     return reminderMessages[randomIndex];
   }
 
-  // Schedules a reminder notification 23 hours after claiming, using the same firestore-based reminder system that the Reminders screen uses
+  // Schedules a reminder notification 23 hours after claiming via the backend
   Future<void> setDailyRewardNotification() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    final token = await FirebaseAuth.instance.currentUser!.getIdToken();
 
     final scheduledTime = DateTime.now().add(const Duration(hours: 23));
     final id =
         DateTime.now().millisecondsSinceEpoch; // unique ID for the reminder
 
-    await FirebaseFirestore.instance
-        .collection('users-private')
-        .doc(uid)
-        .collection('reminders')
-        .add({
-          'message': randomRewardReminderMessage(),
-          'dateTime': scheduledTime.toUtc().toIso8601String(),
-          'notificationId': id,
-        });
+    await http.post(
+      Uri.parse('$backendBaseUrl/set_reminder'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'id_token': token,
+        'message': randomRewardReminderMessage(),
+        'scheduled_at': scheduledTime.toUtc().toIso8601String(),
+        'notification_id': id,
+      }),
+    );
   }
 
   Future<void> showDailyRewardDialog(
