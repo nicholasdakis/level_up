@@ -30,7 +30,16 @@ from backend.schemas import (
     NearbyPOIResponse,
     POIItem,
     CheckInPOIRequest,
-    CheckInPOIResponse
+    CheckInPOIResponse,
+    GetUserDataRequest,
+    GetUserDataResponse,
+    UpdatePfpRequest,
+    UpdateAppColorRequest,
+    UpdateNotificationsRequest,
+    AddFcmTokenRequest,
+    RemoveFcmTokenRequest,
+    UpsertFoodLogRequest,
+    SimpleSuccessResponse
 )
 from backend.auth import verify_token
 from backend.utils import to_utc_datetime
@@ -492,7 +501,7 @@ def claim_daily_reward():
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
 
 
-@app.route("/get_progress", methods=["POST"]) # POST because the route is for modifying data
+@app.route("/get_progress", methods=["POST"]) # POST because the id_token is sent in the request body
 def get_progress():
     # Step 1: Make sure the reponse matches the schema
     try:
@@ -533,6 +542,127 @@ def update_exp():
     # Step 4: Return validated response
     response = UpdateExpResponse(**result)
     return jsonify(response.model_dump()), 200
+
+@app.route("/get_user_data", methods=["POST"])
+def get_user_data():
+    # Method that returns all user data in a single call
+    try:
+        body = GetUserDataRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    result = progression_service.get_user_data(uid)
+    response = GetUserDataResponse(**result)
+    return jsonify(response.model_dump()), 200
+
+
+@app.route("/update_pfp", methods=["POST"])
+def update_pfp():
+    # Method that updates the user's profile picture, stored as a Base64 string
+    try:
+        body = UpdatePfpRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.update_pfp(uid, body.pfp_base64)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+
+@app.route("/update_app_color", methods=["POST"])
+def update_app_color():
+    # Method that updates the user's app theme color, stored as an ARGB integer
+    try:
+        body = UpdateAppColorRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.update_app_color(uid, body.app_color)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+
+@app.route("/update_notifications", methods=["POST"])
+def update_notifications():
+    # Method that updates whether the user has notifications enabled
+    try:
+        body = UpdateNotificationsRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.update_notifications_enabled(uid, body.enabled)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+
+@app.route("/add_fcm_token", methods=["POST"])
+def add_fcm_token():
+    # Method that adds an FCM token to the user's token list for push notifications, ignoring duplicates
+    try:
+        body = AddFcmTokenRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.add_fcm_token(uid, body.token)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+
+@app.route("/remove_fcm_token", methods=["POST"])
+def remove_fcm_token():
+    # Method that removes an FCM token from the user's token list, called on logout
+    try:
+        body = RemoveFcmTokenRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.remove_fcm_token(uid, body.token)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+
+@app.route("/upsert_food_log", methods=["POST"])
+def upsert_food_log():
+    # Method that inserts or updates a food log entry for a specific date
+    try:
+        body = UpsertFoodLogRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.upsert_food_log(
+        uid, body.date, body.breakfast, body.lunch, body.dinner, body.snack
+    )
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

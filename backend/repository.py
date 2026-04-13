@@ -73,6 +73,49 @@ class UserRepository:
             ignore_duplicates=True
         ).execute()
 
+    # Methods for the full user data load
+
+    def get_food_logs(self, uid: str):
+        # Fetches all food log rows for a user
+        result = self._supabase.table("food_logs").select("*").eq("uid", uid).execute()
+        return result.data
+
+    def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
+        # Upserts a single date's food log (insert or update based on the (uid, date) primary key)
+        self._supabase.table("food_logs").upsert({
+            "uid": uid,
+            "date": date,
+            "breakfast": breakfast,
+            "lunch": lunch,
+            "dinner": dinner,
+            "snack": snack,
+        }).execute()
+
+    def get_reminders(self, uid: str):
+        # Fetches all reminders for a user
+        result = self._supabase.table("reminders").select("*").eq("uid", uid).execute()
+        return result.data
+
+    def add_fcm_token(self, uid: str, token: str):
+        # Appends a token to the fcm_tokens array if not already present
+        user = self.get_user(uid)
+        if user is None:
+            return
+        tokens = user.get("fcm_tokens") or []
+        if token not in tokens:
+            tokens.append(token)
+            self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
+
+    def remove_fcm_token(self, uid: str, token: str):
+        # Removes a token from the fcm_tokens array
+        user = self.get_user(uid)
+        if user is None:
+            return
+        tokens = user.get("fcm_tokens") or []
+        if token in tokens:
+            tokens.remove(token)
+            self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
+
 
 class ReminderRepository:
     # Repository class to handle all Postgres operations related to reminders

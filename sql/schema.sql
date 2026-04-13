@@ -18,7 +18,7 @@ CREATE TABLE users (
     level INTEGER,
     pfp_base64 TEXT,
     username CITEXT UNIQUE,
-    app_color TEXT,
+    app_color BIGINT,
     can_claim_daily_reward BOOLEAN,
     fcm_tokens TEXT[],
     last_daily_claim TIMESTAMPTZ,
@@ -47,6 +47,6 @@ CREATE TABLE reminders (
 CREATE TABLE poi_visits (
     uid TEXT REFERENCES users(uid),
     poi_name TEXT,
-    last_visit TIMESTAMPTZ
+    last_visit TIMESTAMPTZ,
     PRIMARY KEY (uid, poi_name)
 );

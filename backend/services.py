@@ -178,6 +178,71 @@ class ProgressionService: # Service class to handle all progression-related busi
         c = 2 * atan2(sqrt(a), sqrt(1 - a)) # convert angular distance to radians
         return earth_radius * c # multiply by Earth's radius to get meters
 
+    def get_user_data(self, uid: str):
+        # Returns all user fields plus food logs and reminders in one call
+        user = self._repo.get_user(uid)
+        if user is None:
+            self._repo.initialize_user_if_new(uid)
+            user = self._repo.get_user(uid)
+
+        # Determine daily reward eligibility
+        can_claim = True
+        last_claim = user.get("last_daily_claim")
+        if last_claim is not None:
+            last_claim_dt = to_utc_datetime(last_claim)
+            seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
+            can_claim = seconds_since >= 82800
+
+        food_logs = self._repo.get_food_logs(uid)
+        reminders = self._repo.get_reminders(uid)
+
+        return {
+            "level": user.get("level", 1),
+            "exp_points": user.get("exp_points", 0),
+            "exp_needed": experience_needed(user.get("level", 1)),
+            "can_claim_daily_reward": can_claim,
+            "pfp_base64": user.get("pfp_base64"),
+            "username": user.get("username") or uid,
+            "app_color": user.get("app_color"),
+            "fcm_tokens": user.get("fcm_tokens") or [],
+            "notifications_enabled": user.get("notifications_enabled", True),
+            "last_daily_claim": user.get("last_daily_claim"),
+            "food_logs": food_logs,
+            "reminders": reminders,
+        }
+
+    def update_pfp(self, uid: str, pfp_base64: str):
+        # Updates the user's profile picture
+        self._repo.set_user_data(uid, {"pfp_base64": pfp_base64})
+
+    def update_app_color(self, uid: str, app_color: str):
+        # Updates the user's app theme color (stored as a string)
+        self._repo.set_user_data(uid, {"app_color": app_color})
+
+    def update_notifications_enabled(self, uid: str, enabled: bool):
+        # Updates the user's notification preference
+        self._repo.set_user_data(uid, {"notifications_enabled": enabled})
+
+    def add_fcm_token(self, uid: str, token: str):
+        # Adds an FCM token to the user's list
+        self._repo.add_fcm_token(uid, token)
+
+    def remove_fcm_token(self, uid: str, token: str):
+        # Removes an FCM token from the user's list
+        self._repo.remove_fcm_token(uid, token)
+
+    def get_food_logs(self, uid: str):
+        # Returns all food logs for a user
+        return self._repo.get_food_logs(uid)
+
+    def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
+        # Upserts a food log for a specific date
+        self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)
+
+    def get_reminders(self, uid: str):
+        # Returns all reminders for a user
+        return self._repo.get_reminders(uid)
+
     def update_exp(self, uid: str, event: str, event_id: str):
 
         # Self-note: Make sure the events it checks are only handled by the backend and can't be written solely by the client

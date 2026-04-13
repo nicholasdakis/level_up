@@ -948,3 +948,15 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Noticed server.py talked to the database directly for some operations (e.g getting fcm_tokens), so extracted the logic into methods and moved it into repository.py for consistency (as all direct reads / writes to the db happen via repository.py)
 - UserRepository was handling all db operations, so added RemindersRepository and RateLimitRepository to separate the responsibilities
 - Added reminder_repo and rate_limit_repo objects to server.py and updated everything calling user_repo's methods to use the corresponding reminder_repo / rate_limit_repo class methods instead
+- loadUserData() still directly read user settings and app data from Firestore. Since Firestore is being replaced with Postgres which requires a backend intermediary, added routes, schemas, and service methods so the client reads and writes this data through the backend instead
+- Added /get_user_data route to return all user data in a single call, replacing the parallel Firestore reads in loadUserData()
+- Added /update_pfp, /update_app_color, /update_notifications, /add_fcm_token, /remove_fcm_token, and /upsert_food_log routes to replace the remaining direct Firestore writes in user_data_manager.dart
+- Added corresponding request and response schemas in schemas.py for each new route, and added a reusable SimpleSuccessResponse schema for routes that only need to confirm success
+- Replaced loadUserData() in user_data_manager.dart with a single /get_user_data backend call via _fetchUserDataSafely(), removing the parallel Firestore reads entirely
+- Removed loadFoodData(), loadRemindersFromFirestore(), _loadFoodDataSafely(), and _loadRemindersSafely() from user_data_manager.dart since food logs and reminders are now returned by /get_user_data
+- Replaced all remaining direct Firestore writes in user_data_manager.dart (profile picture, app color, notifications, FCM tokens, food logs) with calls to their corresponding backend routes
+- Removed all Firestore collection references and cloud_firestore imports from user_data_manager.dart since nothing uses Firestore directly anymore
+- Added refreshUserData() as a public wrapper around _fetchUserDataSafely() so the Food Logging tab can refresh all user data on tab switch without exposing the internal method
+- Replaced the loadFoodData() call in food_logging.dart with refreshUserData() to keep food data fresh across devices on tab switch
+- Changed app_color column type from TEXT to BIGINT since ARGB color values from Flutter's toARGB32() can exceed INTEGER's 32-bit limit, and TEXT has no type safety
+- Updated offline snackbars to be accurate as they no longer automatically sync when the user goes online (that was Firestore-specific)

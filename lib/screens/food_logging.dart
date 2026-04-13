@@ -160,11 +160,11 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Future<void> _loadUserDataAndInit() async {
-    // Skip reloading all user data if already loaded for this user to avoid unnecessary Firestore reads on every tab switch
+    // Skip reloading all user data if already loaded for this user to avoid unnecessary backend reads on every tab switch
     if (currentUserData != null &&
         currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
       // Always refresh food data in case it was updated on another device
-      await userManager.loadFoodData(currentUserData!.uid);
+      await userManager.refreshUserData();
       _syncFoodData();
       return;
     }

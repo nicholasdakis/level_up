@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
 import 'user_data.dart';
@@ -38,13 +37,6 @@ void initConnectivity() {
 }
 
 class UserDataManager {
-  // Firestore collection references
-  // Currently still used for non-critical data, like reminders, settings, app theme, etc.
-  static CollectionReference<Map<String, dynamic>> get _publicUsers =>
-      FirebaseFirestore.instance.collection('users-public');
-  static CollectionReference<Map<String, dynamic>> get _privateUsers =>
-      FirebaseFirestore.instance.collection('users-private');
-
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
   // Kept here so the XP bar can render instantly
   int? get experienceNeeded {
@@ -57,21 +49,7 @@ class UserDataManager {
     return (exp / 10).round() * 10;
   }
 
-  // Load the user's "reminders" collection from Firestore
-  Future<List<ReminderData>> loadRemindersFromFirestore(String uid) async {
-    final remindersSnapshot = await _privateUsers
-        .doc(uid)
-        .collection('reminders')
-        .get();
-    // empty list if non-existent
-    if (remindersSnapshot.docs.isEmpty) return [];
-
-    return remindersSnapshot.docs
-        .map((doc) => ReminderData.fromMap(doc.data()))
-        .toList();
-  }
-
-  // Loads the user's non-critical information from Firebase if it exists (critical data is loaded by the backend)
+  // Loads all user data from the backend in a single call
   Future<void> loadUserData() async {
     final stopwatch = Stopwatch()..start();
     // Initialize the connectivity stream to know the user's connectivity state
@@ -82,10 +60,9 @@ class UserDataManager {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     debugPrint('Setting uid happened at ${stopwatch.elapsedMilliseconds}ms');
-    // if the user is logged in
 
     if (uid != null) {
-      // Initialize currentUserData if it's null or has the wrong UID
+      // Initialize currentUserData if it's null or has the wrong UID (safety guard that gets overwritten)
       if (currentUserData == null || currentUserData!.uid != uid) {
         currentUserData = UserData(
           uid: uid,
@@ -106,213 +83,107 @@ class UserDataManager {
         'initializing currentuserdata happened at ${stopwatch.elapsedMilliseconds}ms',
       );
 
-      // Load the user's data in parallel (critical fields are later overwritten by the backend code)
-      final results = await Future.wait([
-        // Run in parallel instead of sequentially to load faster
-        _publicUsers.doc(uid).get(),
-        _privateUsers.doc(uid).get(),
-      ]);
-      debugPrint(
-        'Future.wait on the public and private documents happened at ${stopwatch.elapsedMilliseconds}ms',
-      );
-
-      // The data as DocumentSnapshot
-      final publicDoc = results[0];
-      final privateDoc = results[1];
-
-      // The data as Map<String, dynamic>
-      final publicData = publicDoc.data();
-      final privateData = privateDoc.data();
-
-      // If the loads failed, there is nothing for the method to work with
-      if (!publicDoc.exists && !privateDoc.exists) {
-        return; // nothing to work with
-      }
-
-      // NOTE: else statements are for newly-added fields to be compatible with existent users
-
-      // if the user has a stored profile picture in Base64, load that profile picture
-      if (publicDoc.exists && publicData?['pfpBase64'] != null) {
-        currentUserData?.pfpBase64 = publicData?['pfpBase64'];
-      } else {
-        _publicUsers.doc(uid).set({'pfpBase64': null}, SetOptions(merge: true));
-      }
-
-      // if the user has a stored username, load it
-      if (publicDoc.exists && publicData?['username'] != null) {
-        currentUserData?.username = publicData?['username'];
-      } else {
-        _publicUsers.doc(uid).set({'username': uid}, SetOptions(merge: true));
-      }
-
-      // load the last claiming date if it exists
-      if (privateDoc.exists && privateData?['lastDailyClaim'] != null) {
-        // Convert to Timestamp so Firestore understands (Firestore stores dates as Timestamp, not DateTime)
-        final timestamp = privateData?['lastDailyClaim'] as Timestamp?;
-        currentUserData?.lastDailyClaim = timestamp?.toDate();
-      } else {
-        currentUserData?.lastDailyClaim = null;
-        await _privateUsers.doc(uid).set({
-          'lastDailyClaim': null,
-        }, SetOptions(merge: true));
-      }
-
-      // if the user has stored fcmTokens, load them
-      if (privateDoc.exists && privateData?['fcmTokens'] != null) {
-        List<dynamic> tokensFromFirestore = privateData?['fcmTokens'];
-        currentUserData?.fcmTokens = tokensFromFirestore
-            .map((token) => token.toString())
-            .toList();
-      } else {
-        _privateUsers.doc(uid).set({'fcmTokens': []}, SetOptions(merge: true));
-      }
-
-      // if the user has a stored notificationsEnabled, load it
-      if (privateDoc.exists && privateData?['notificationsEnabled'] != null) {
-        currentUserData?.notificationsEnabled =
-            privateData?['notificationsEnabled'];
-      } else {
-        currentUserData?.notificationsEnabled = true;
-        _privateUsers.doc(uid).set({
-          'notificationsEnabled': true,
-        }, SetOptions(merge: true));
-      }
-
-      // if the user has a stored app theme color, load it
-      if (privateDoc.exists && privateData?['appColor'] != null) {
-        final int storedColor = privateData?['appColor'];
-        currentUserData?.appColor = Color(storedColor);
-        // update ValueNotifier with the stored value so HomeScreen is correct on initialization
-        appColorNotifier.value = currentUserData!.appColor;
-      } else {
-        // default theme color
-        currentUserData?.appColor = const Color.fromARGB(
-          255,
-          45,
-          45,
-          45,
-        ); // default app theme color
-      }
-
-      // Await operations run in parallel
-      await Future.wait([
-        _loadFoodDataSafely(uid),
-        _loadRemindersSafely(uid),
-        _fetchProgressSafely(
-          publicDoc,
-          privateDoc,
-          publicData,
-          privateData,
-          uid,
-        ),
-      ]);
+      await _fetchUserDataSafely();
     }
     stopwatch.stop();
     debugPrint('loadUserData took ${stopwatch.elapsedMilliseconds}ms');
   }
 
-  // Method to safely call loadFoodData
-  Future<void> _loadFoodDataSafely(String uid) async {
+  // Calls the backend /get_user_data endpoint to load all user fields at once, with no fallback since Firestore is no longer the source of truth
+  Future<void> _fetchUserDataSafely() async {
     final stopwatch = Stopwatch()..start();
     try {
-      await loadFoodData(uid);
-    } catch (e) {
-      // The data never gets overwritten if the method fails, so it uses the default empty value given in loadUserData()
-      debugPrint("Loading food failed.");
-    }
-    stopwatch.stop();
-    debugPrint('Food Data took ${stopwatch.elapsedMilliseconds}ms');
-  }
+      final token = await getIdToken();
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/get_user_data'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id_token': token}),
+          )
+          .timeout(Duration(seconds: 5));
 
-  // Method to safely load reminders from Firestore
-  Future<void> _loadRemindersSafely(String uid) async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      currentUserData?.reminders = await loadRemindersFromFirestore(
-        currentUserData!.uid,
-      );
-    } catch (e) {
-      debugPrint('Error loading reminders: $e');
-      currentUserData?.reminders = [];
-    }
-    stopwatch.stop();
-    debugPrint('Reminders took ${stopwatch.elapsedMilliseconds}ms');
-  }
+      if (response.statusCode != 200) {
+        throw Exception(
+          'get_user_data failed: ${response.statusCode} ${response.body}',
+        );
+      }
 
-  // Method to safely load the user's data from Firestore using the backend. If the backend is unreachable, fall back to what Firestore had stored
-  Future<void> _fetchProgressSafely(
-    DocumentSnapshot publicDoc,
-    DocumentSnapshot privateDoc,
-    Map<String, dynamic>? publicData,
-    Map<String, dynamic>? privateData,
-    String uid,
-  ) async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      final progress = await _fetchProgress();
-      currentUserData?.level = progress['level'] ?? currentUserData?.level;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      // Map the backend response fields to currentUserData
+      currentUserData?.level = data['level'] ?? currentUserData?.level;
       currentUserData?.expPoints =
-          progress['exp_points'] ?? currentUserData?.expPoints;
+          data['exp_points'] ?? currentUserData?.expPoints;
       currentUserData?.canClaimDailyReward =
-          progress['can_claim_daily_reward'] ?? true;
+          data['can_claim_daily_reward'] ?? true;
+      currentUserData?.pfpBase64 = data['pfp_base64'];
+      currentUserData?.username = data['username'] ?? currentUserData?.uid;
+      currentUserData?.notificationsEnabled =
+          data['notifications_enabled'] ?? true;
+      currentUserData?.fcmTokens =
+          (data['fcm_tokens'] as List<dynamic>?)
+              ?.map((t) => t.toString())
+              .toList() ??
+          [];
+
+      // Convert app_color int to Flutter Color if present
+      if (data['app_color'] != null) {
+        currentUserData?.appColor = Color(data['app_color'] as int);
+        // update ValueNotifier with the stored value so HomeScreen is correct on initialization
+        appColorNotifier.value = currentUserData!.appColor;
+      }
+
+      // Convert last_daily_claim ISO string to DateTime if present
+      if (data['last_daily_claim'] != null) {
+        currentUserData?.lastDailyClaim = DateTime.parse(
+          data['last_daily_claim'],
+        );
+      }
+
+      // Map food logs from the backend response into the local foodDataByDate format
+      if (data['food_logs'] != null) {
+        final Map<String, Map<String, List<Map<String, dynamic>>>> foodData =
+            {};
+        for (final row in (data['food_logs'] as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          final dateKey = map['date'] as String;
+          foodData[dateKey] = {
+            'breakfast': _parseMealList(map['breakfast']),
+            'lunch': _parseMealList(map['lunch']),
+            'dinner': _parseMealList(map['dinner']),
+            'snack': _parseMealList(map['snack']),
+          };
+        }
+        currentUserData?.foodDataByDate = foodData;
+      }
+
+      // Map reminders from the backend response into ReminderData objects
+      if (data['reminders'] != null) {
+        currentUserData?.reminders = (data['reminders'] as List<dynamic>)
+            .map((r) => ReminderData.fromMap(r as Map<String, dynamic>))
+            .toList();
+      }
+
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
     } catch (e) {
-      // fall back to Firestore for level and XP if the backend is unreachable
-      if (publicDoc.exists && publicData?['level'] != null) {
-        currentUserData?.level = publicData?['level'];
-      } else {
-        _publicUsers.doc(uid).set({'level': 1}, SetOptions(merge: true));
-      }
-      if (publicDoc.exists && publicData?['expPoints'] != null) {
-        currentUserData?.expPoints = publicData?['expPoints'];
-      } else {
-        _publicUsers.doc(uid).set({'expPoints': 0}, SetOptions(merge: true));
-      }
-      // fall back to a local cooldown check if the backend is unreachable
-      final lastClaimTimestamp = privateData?['lastDailyClaim'] as Timestamp?;
-      if (lastClaimTimestamp == null) {
-        currentUserData?.canClaimDailyReward = true;
-      } else {
-        // not exploitable since the backend is unreachable, so the user can't claim rewards anyway
-        final lastClaim = lastClaimTimestamp.toDate().toUtc();
-        final now = DateTime.now().toUtc();
-        currentUserData?.canClaimDailyReward = now.isAfter(
-          lastClaim.add(const Duration(hours: 23)),
-        );
-      }
+      debugPrint('Error loading user data: $e');
     }
     stopwatch.stop();
-    debugPrint('fetch progress took ${stopwatch.elapsedMilliseconds}ms');
+    debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');
   }
 
-  // Loads the user's food log from Firestore, called on initial load and on Food Logging tab switch to keep data fresh across devices
-  Future<void> loadFoodData(String uid) async {
-    final foodLogSnapshot = await _privateUsers
-        .doc(uid)
-        .collection('foodLog')
-        .get();
-    if (foodLogSnapshot.docs.isNotEmpty) {
-      final Map<String, Map<String, List<Map<String, dynamic>>>> foodData = {};
-      for (final dateDoc in foodLogSnapshot.docs) {
-        final dateKey = dateDoc.id;
-        final mealMap = dateDoc.data();
-        foodData[dateKey] = mealMap.map((mealType, foods) {
-          final foodList = (foods as List<dynamic>)
-              .map((item) => Map<String, dynamic>.from(item as Map))
-              .toList();
-          return MapEntry(mealType, foodList);
-        });
-      }
-      currentUserData?.foodDataByDate = foodData;
-    } else {
-      currentUserData?.foodDataByDate = {};
-    }
+  // Helper to safely parse a meal list from the backend response
+  List<Map<String, dynamic>> _parseMealList(dynamic meal) {
+    if (meal == null) return [];
+    return (meal as List<dynamic>)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
   }
 
   // Calls the backend /get_progress endpoint to get the user's level, XP, and reward status
-  // Separated into its own method so it can be called on pull-to-refresh too
-  static Future<Map<String, dynamic>> _fetchProgress() async {
+  // Separated into its own method so it can be called on pull-to-refresh and the leaderboard
+  static Future<Map<String, dynamic>> fetchProgress() async {
     final token = await getIdToken();
     final response = await http
         .post(
@@ -345,8 +216,7 @@ class UserDataManager {
 
   Future<Uint8List> webCompressIfNeed(Uint8List image) async {
     const int maxFileSize =
-        750 *
-        1024; // max limit for base64 images to be stored in Firebase freely
+        750 * 1024; // max limit for base64 images to be stored in Postgres
 
     // No compression needed
     if (image.lengthInBytes <= maxFileSize) {
@@ -363,8 +233,7 @@ class UserDataManager {
 
   Future<Uint8List> mobileCompressIfNeed(File file) async {
     const int maxFileSize =
-        750 *
-        1024; // max limit for base64 images to be stored in Firebase freely
+        750 * 1024; // max limit for base64 images to be stored in Postgres
 
     // Read bytes from the file
     Uint8List bytes = await file.readAsBytes();
@@ -387,7 +256,7 @@ class UserDataManager {
     bool isWeb = false,
     Uint8List? webBytes, // The optional parameters are only used for web
   }) async {
-    // 750 KB size limit in bytes (To meet the 1 MB Firebase limit when converted to base64)
+    // 750 KB size limit in bytes (To meet the 1 MB Postgres limit when converted to base64)
     const int maxFileSize = 750 * 1024; // 768000 bytes
 
     // Handle Web
@@ -503,12 +372,24 @@ class UserDataManager {
         // Mobile
         base64String = base64Encode(await mobileCompressIfNeed(file!));
       }
-      // Save Base64 string to users-public
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      await _publicUsers
-          .doc(uid)
-          .set({'pfpBase64': base64String}, SetOptions(merge: true))
+
+      // Send the Base64 string to the backend to store in Postgres
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/update_pfp'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await getIdToken(),
+              'pfp_base64': base64String,
+            }),
+          )
           .timeout(Duration(seconds: 2));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_pfp failed: ${response.statusCode} ${response.body}',
+        );
+      }
 
       // Update currentUserData with the complete stored variables with the updated profile picture
       currentUserData = UserData(
@@ -535,13 +416,11 @@ class UserDataManager {
       // Call callback when the UI must rebuild
       onProfileUpdated?.call();
     } catch (e) {
-      // Default snackbar for if the user is offline (the write fails but adds it to the cache)
+      // No connection so the update cannot be completed
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Profile picture updated locally. Changes will sync when connection is restored.",
-            ),
+            content: Text("No connection. Please try again when online."),
             duration: Duration(milliseconds: 1500),
           ),
         );
@@ -565,7 +444,7 @@ class UserDataManager {
   }
 
   // Updates the user's XP by sending a verified event to the backend
-  // The backend checks the event actually happened in Firestore before awarding any XP
+  // The backend checks the event actually happened in Postgres before awarding any XP
   Future<void> updateExpPoints(
     String event,
     String eventId, {
@@ -727,56 +606,64 @@ class UserDataManager {
     }
   }
 
-  // Method to initialize FCM token on app startup and add it to Firestore if not already present, ensuring no duplicates
+  // Method to initialize FCM token on app startup and add it to Postgres if not already present, ensuring no duplicates
   Future<void> initializeFcmToken(String deviceToken) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
       if (currentUserData != null &&
           !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await _privateUsers.doc(uid).update({
-        'fcmTokens': FieldValue.arrayUnion([deviceToken]),
-      });
+      await http.post(
+        Uri.parse('$backendBaseUrl/add_fcm_token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': await getIdToken(),
+          'token': deviceToken,
+        }),
+      );
     } catch (e) {
       debugPrint("Error initializing FCM token: $e");
     }
   }
 
-  // Adds this device's FCM token to Firestore (called on token refresh)
+  // Adds this device's FCM token to Postgres (called on token refresh)
   Future<void> addFcmToken(String deviceToken) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       // Update local list if not already present
       if (currentUserData != null &&
           !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await _privateUsers.doc(uid).update({
-        'fcmTokens': FieldValue.arrayUnion([deviceToken]),
-      });
+      await http.post(
+        Uri.parse('$backendBaseUrl/add_fcm_token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': await getIdToken(),
+          'token': deviceToken,
+        }),
+      );
     } catch (e) {
       debugPrint("Error adding FCM token: $e");
     }
   }
 
-  // Removes this device's FCM token from Firestore (called on logout)
+  // Removes this device's FCM token from Postgres (called on logout)
   Future<void> removeFcmToken(String deviceToken) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       // Remove token from local list
       currentUserData!.fcmTokens.remove(deviceToken);
 
-      // Remove token from Firestore array safely
-      await _privateUsers.doc(uid).update({
-        'fcmTokens': FieldValue.arrayRemove([deviceToken]),
-      });
+      await http.post(
+        Uri.parse('$backendBaseUrl/remove_fcm_token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': await getIdToken(),
+          'token': deviceToken,
+        }),
+      );
     } catch (e) {
       debugPrint("Error removing FCM token: $e");
     }
@@ -788,12 +675,25 @@ class UserDataManager {
     BuildContext context,
   ) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
+      // Update locally so the UI reflects the change immediately
       currentUserData!.notificationsEnabled = enabled;
-      await _privateUsers
-          .doc(uid)
-          .update({'notificationsEnabled': enabled})
+
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/update_notifications'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await getIdToken(),
+              'enabled': enabled,
+            }),
+          )
           .timeout(Duration(seconds: 2));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_notifications failed: ${response.statusCode} ${response.body}',
+        );
+      }
 
       // Default confirmation snackbar
       ScaffoldMessenger.of(context).showSnackBar(
@@ -803,18 +703,17 @@ class UserDataManager {
         ),
       );
     } catch (e) {
-      // No connection, so show the local confirmation snackbar
+      // No connection so the update cannot be completed
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Notification preferences updated locally. Changes will sync when connection is restored.",
-            ),
+            content: Text("No connection. Please try again when online."),
             duration: Duration(milliseconds: 1500),
           ),
         );
         return;
       }
+
       String message;
 
       if (e is TimeoutException) {
@@ -835,8 +734,6 @@ class UserDataManager {
   // Method for updating the app theme color and storing it
   Future<void> updateAppColor(Color newColor, BuildContext context) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       // Update locally
       currentUserData!.appColor = newColor;
 
@@ -849,35 +746,39 @@ class UserDataManager {
         isDefaultColor = true;
       }
 
-      // Update users-private (if offline, it is added to cache)
-      await _privateUsers
-          .doc(uid)
-          .set({'appColor': argbInt}, SetOptions(merge: true))
-          .timeout(
-            Duration(seconds: 2),
-          ); // if it doesn't load instantly, there is likely an error, so stop trying quickly
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/update_app_color'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await getIdToken(),
+              'app_color': argbInt,
+            }),
+          )
+          .timeout(Duration(seconds: 2));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_app_color failed: ${response.statusCode} ${response.body}',
+        );
+      }
 
       // Default confirmation snackbar
-      if (isConnected) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              // conditionally mention whether it was updated to a custom color or reset
-              isDefaultColor ? "Theme color reset!" : "Theme color updated!",
-            ),
-            duration: Duration(milliseconds: 1500),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            // conditionally mention whether it was updated to a custom color or reset
+            isDefaultColor ? "Theme color reset!" : "Theme color updated!",
           ),
-        );
-        // Error snackbar
-      }
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
     } catch (e) {
-      // No connection, so show the local confirmation snackbar
+      // No connection so the update cannot be completed
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Theme color updated locally. Changes will sync when connection is restored.",
-            ),
+            content: Text("No connection. Please try again when online."),
             duration: Duration(milliseconds: 1500),
           ),
         );
@@ -907,40 +808,52 @@ class UserDataManager {
     bool isBeingDeleted = false,
   }) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-
       // Update locally so the UI reflects the change immediately
       currentUserData?.foodDataByDate = newFoodData;
 
-      // Write each date as its own document in the foodLog subcollection
-      final foodLogCol = _privateUsers.doc(uid).collection('foodLog');
-
+      // Write each date as its own row in Postgres via the backend
       for (final entry in newFoodData.entries) {
-        // Timeout so it doesn't hang indefinitely if there is no connection
-        await foodLogCol
-            .doc(entry.key)
-            .set(entry.value)
+        final dateKey = entry.key;
+        final meals = entry.value;
+
+        final response = await http
+            .post(
+              Uri.parse('$backendBaseUrl/upsert_food_log'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'id_token': await getIdToken(),
+                'date': dateKey,
+                'breakfast': meals['breakfast'] ?? [],
+                'lunch': meals['lunch'] ?? [],
+                'dinner': meals['dinner'] ?? [],
+                'snack': meals['snack'] ?? [],
+              }),
+            )
             .timeout(Duration(seconds: 2));
+
+        if (response.statusCode != 200) {
+          throw Exception(
+            'upsert_food_log failed: ${response.statusCode} ${response.body}',
+          );
+        }
       }
 
-      // Only show success snackbar if connected, otherwise the offline snackbar is shown in the catch block
+      // Only show success snackbar if connected, otherwise the error snackbar is shown in the catch block
       final msg = isBeingDeleted
           ? "Food deleted successfully."
           : "Food logged successfully.";
-      if (context != null && isConnected) {
+      if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg), duration: Duration(milliseconds: 1500)),
         );
       }
     } catch (e) {
       if (context != null) {
-        // No connection, so the write was added to Firestore's cache and will sync when connection is restored
+        // No connection so the update cannot be completed
         if (!isConnected) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Food logged locally. Changes will sync when connection is restored.",
-              ),
+            SnackBar(
+              content: Text("No connection. Please try again when online."),
               duration: Duration(milliseconds: 1500),
             ),
           );
@@ -964,5 +877,10 @@ class UserDataManager {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'id_token': idToken, 'food_name': query}),
     );
+  }
+
+  // Refreshes all user data from the backend, called on Food Logging tab switch to keep data fresh across devices
+  Future<void> refreshUserData() async {
+    await _fetchUserDataSafely();
   }
 }

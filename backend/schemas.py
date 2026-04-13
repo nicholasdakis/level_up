@@ -48,6 +48,37 @@ class CheckInPOIRequest(BaseModel):
     user_lat: float = Field(..., ge=-90, le=90) # user's current latitude (verified server-side)
     user_lng: float = Field(..., ge=-180, le=180) # user's current longitude
 
+class GetUserDataRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+
+class UpdatePfpRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    pfp_base64: str = Field(..., min_length=1)
+
+class UpdateAppColorRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    app_color: int  # stored as ARGB bigint, matching Flutter's Color.toARGB32()
+
+class UpdateNotificationsRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    enabled: bool
+
+class AddFcmTokenRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    token: str = Field(..., min_length=1)
+
+class RemoveFcmTokenRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    token: str = Field(..., min_length=1)
+
+class UpsertFoodLogRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    date: str = Field(..., min_length=1)  # e.g. "2025-04-13"
+    breakfast: list = []
+    lunch: list = []
+    dinner: list = []
+    snack: list = []
+
 # Response schemas --------------------
 
 class DailyRewardResponse(BaseModel):
@@ -61,7 +92,7 @@ class DailyRewardResponse(BaseModel):
 
 class ProgressResponse(BaseModel):
     # What is returned when Flutter requests the user's current progress (level, XP, and reward status)
-    # Read by the client to display the XP bar, level, and whether the daily reward button should be enabled, without giving direct Firestore read access to sensitive fields
+    # Read by the client to display the XP bar, level, and whether the daily reward button should be enabled, without giving direct Postgres read access to sensitive fields
     level: int = 1
     exp_points: int = 0
     exp_needed: int = 100
@@ -94,3 +125,22 @@ class CheckInPOIResponse(BaseModel):
     new_level: int = 1 # user's level after XP is applied
     new_exp: int = 0 # user's XP after the award
     error: str | None = None # reason for failure if success is false
+
+class GetUserDataResponse(BaseModel):
+    level: int = 1
+    exp_points: int = 0
+    exp_needed: int = 100
+    can_claim_daily_reward: bool = True
+    pfp_base64: str | None = None
+    username: str
+    app_color: int | None = None
+    fcm_tokens: list[str] = []
+    notifications_enabled: bool = True
+    last_daily_claim: str | None = None  # ISO string
+    food_logs: list = []
+    reminders: list = []
+
+class SimpleSuccessResponse(BaseModel):
+    # Reusable for routes that just need to confirm success
+    success: bool
+    error: str | None = None
