@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
 import '../user/reminder_data.dart';
 import '../utility/responsive.dart';
 import '../utility/fcm/notification_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../user/user_data_manager.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -42,7 +44,7 @@ class _RemindersState extends State<Reminders> {
   void initState() {
     super.initState();
     placeholderMessage = getReminderMessage();
-    _loadReminders(); // Load reminders when the widget initializes
+    _loadRemindersFromServer(); // Load reminders when the widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (currentUserData?.notificationsEnabled == false) {
         _showNotificationsDisabledDialog(); // prompt user to enable notifications
@@ -83,91 +85,37 @@ class _RemindersState extends State<Reminders> {
     );
   }
 
-  // Loads reminders from Firestore and removes past ones
-  Future<void> _loadReminders() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
+  Future<void> _loadRemindersFromServer() async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users-private')
-          .doc(uid)
-          .collection('reminders')
-          .get();
+      final result = await _loadReminders();
 
-      // If no documents, clear reminders and exit early
-      if (querySnapshot.docs.isEmpty) {
-        if (mounted) {
-          setState(() {
-            reminders = [];
-          });
-        }
-        currentUserData?.reminders = [];
-        return; // no reminders to process
-      }
+      if (!mounted) return;
 
-      final now = DateTime.now();
-      // The backend checks for due reminders every 1 minute, so give it time
-      // to send the notification before cleaning up past-due reminders
-      final cleanupThreshold = now.subtract(const Duration(minutes: 1));
-      final loadedReminders = <ReminderData>[];
-      final remindersToDelete = <ReminderData>[];
-
-      // Iterate over all the reminders and separate future vs expired reminders
-      for (final doc in querySnapshot.docs) {
-        final data = doc.data();
-        DateTime? reminderTime;
-        try {
-          if (data['dateTime'] == null) continue; // skip null dates
-          reminderTime = DateTime.parse(data['dateTime']).toLocal();
-        } catch (_) {
-          continue; // skip invalid date strings
-        }
-
-        final notificationId = data['notificationId'] ?? 0;
-
-        final reminderData = ReminderData(
-          message: data['message'] ?? '',
-          dateTime: reminderTime,
-          notificationId: notificationId,
-        );
-
-        if (reminderTime.isAfter(now)) {
-          // The reminder has not happened yet
-          loadedReminders.add(reminderData);
-          // The reminder has happened and the grace period has passed, so it should be deleted
-          // reminderTime.isBefore(cleanupThreshold) is for reminders that have already happened
-          // and are older than 1 minute
-        } else if (reminderTime.isBefore(cleanupThreshold)) {
-          remindersToDelete.add(reminderData);
-        }
-      }
-
-      // Delete stale reminders the backend has already had time to process
-      for (final reminder in remindersToDelete) {
-        await _deleteReminder(reminder);
-      }
-
-      // Sort by date in ascending order
-      loadedReminders.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-
-      if (mounted) {
-        setState(() {
-          reminders = loadedReminders; // update the list
-        });
-      }
-
-      currentUserData?.reminders = List.from(loadedReminders);
+      setState(() {
+        reminders = result;
+      });
     } catch (e) {
-      debugPrint("Error loading reminders: $e");
-      if (mounted) {
-        // reset reminders in the case of an error being caught
-        setState(() {
-          reminders = [];
-        });
-      }
-      currentUserData?.reminders = [];
+      debugPrint("Failed to load reminders: $e");
     }
+  }
+
+  // Loads reminders from the Supabase Postgres db and removes past ones
+  Future<List<ReminderData>> _loadReminders() async {
+    final token = await FirebaseAuth.instance.currentUser!.getIdToken();
+
+    final response = await http.post(
+      Uri.parse('$backendBaseUrl/get_reminders'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': token}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('getReminders failed: ${response.body}');
+    }
+
+    final List data = jsonDecode(response.body)['reminders'];
+
+    return data.map((r) => ReminderData.fromJson(r)).toList();
   }
 
   // Method to generate a few random reminder messages for the placeholder text using grammar rules to make them more natural and less repetitive
@@ -247,38 +195,29 @@ class _RemindersState extends State<Reminders> {
     return parts.join(" ") + punct;
   }
 
-  // Method that deletes a reminder from Firestore
+  // Method that deletes a reminder from the Supabase Postgres db
   Future<void> _deleteReminder(ReminderData reminder) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid; // Get current user ID
-    if (uid == null) return; // Exit if no user logged in
+    final token = await FirebaseAuth.instance.currentUser!.getIdToken();
 
     try {
-      // Find the reminder documents with matching notification ID
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users-private')
-          .doc(uid)
-          .collection('reminders')
-          .where('notificationId', isEqualTo: reminder.notificationId)
-          .get();
+      final response = await http.post(
+        Uri.parse('$backendBaseUrl/delete_reminder'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': token, 'reminder_id': reminder.id}),
+      );
 
-      // Delete all matching documents from Firestore
-      for (var doc in querySnapshot.docs) {
-        await doc.reference.delete(); // Remove from database
+      if (response.statusCode != 200) {
+        _showSnackbar("Failed to delete reminder", isError: true);
+        return;
       }
 
-      // Update local state by removing the deleted reminder
       final updatedReminders = reminders
-          .where((r) => r.notificationId != reminder.notificationId)
+          .where((r) => r.id != reminder.id)
           .toList();
 
-      // Refresh the UI
       if (mounted) {
-        setState(() {
-          reminders = updatedReminders; // Update local list
-        });
+        setState(() => reminders = updatedReminders);
       }
-
-      // Update global user data
       currentUserData?.reminders = List.from(updatedReminders);
     } catch (e) {
       debugPrint("Error deleting reminder: $e");
@@ -347,17 +286,15 @@ class _RemindersState extends State<Reminders> {
         .then((_) => snackbarActive = false);
   }
 
-  // Method that saves a new reminder to Firestore
+  // Method that saves a new reminder to the Supabase Postgres db
   Future<void> _setReminder() async {
     if (isLoading) return;
 
-    // Validation check: reminder message cannot be empty
     if (remindersController.text.isEmpty) {
       _showSnackbar("All fields must be filled.", isError: true);
       return;
     }
 
-    // Validation check: A time must be picked
     if (!_dateTimePicked) {
       _showSnackbar("A reminder time must be chosen.", isError: true);
       return;
@@ -371,9 +308,7 @@ class _RemindersState extends State<Reminders> {
       dateTime.minute,
     );
 
-    // validation check: reminder message can't be a past date
-    final now = DateTime.now();
-    if (pickedTime.isBefore(now)) {
+    if (pickedTime.isBefore(DateTime.now())) {
       _showSnackbar("Reminders must be in the future!", isError: true);
       return;
     }
@@ -381,28 +316,29 @@ class _RemindersState extends State<Reminders> {
     setState(() => isLoading = true);
 
     try {
-      debugPrint("Generating reminder ID...");
+      final token = await FirebaseAuth.instance.currentUser!.getIdToken();
       final id = DateTime.now().millisecondsSinceEpoch;
-      debugPrint("ID generated: $id");
 
-      // Save reminder to Firestore
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        await FirebaseFirestore.instance
-            .collection('users-private')
-            .doc(uid)
-            .collection('reminders')
-            .add({
-              'message': remindersController.text,
-              'dateTime': pickedTime.toUtc().toIso8601String(),
-              'notificationId': id,
-            });
+      final response = await http.post(
+        Uri.parse('$backendBaseUrl/set_reminder'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id_token': token,
+          'message': remindersController.text,
+          'scheduled_at': pickedTime.toUtc().toIso8601String(),
+          'notification_id': id,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        _showSnackbar("Failed to set reminder", isError: true);
+        return;
       }
-      // Confirmation snackbar
+
       _showSnackbar("Reminder set successfully!");
       remindersController.clear();
       setState(() => _dateTimePicked = false);
-      await _loadReminders(); // Show the new reminder in the list upon successful save
+      await _loadRemindersFromServer();
     } catch (e) {
       debugPrint("Error in _setReminder: $e");
       _showSnackbar("Failed to set reminder: ${e.toString()}", isError: true);
@@ -469,7 +405,7 @@ class _RemindersState extends State<Reminders> {
                   ),
                   SizedBox(height: Responsive.height(context, 4)),
                   Text(
-                    _formatDateTime(reminder.dateTime),
+                    _formatDateTime(reminder.scheduledAt),
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 12),
                       color: Colors.white60,

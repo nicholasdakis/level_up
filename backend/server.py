@@ -42,7 +42,12 @@ from backend.schemas import (
     SimpleSuccessResponse,
     GetLeaderboardRequest,
     GetLeaderboardResponse,
-    LeaderboardUserEntry
+    LeaderboardUserEntry,
+    GetRemindersRequest,
+    SetReminderRequest,
+    ReminderItem,
+    GetRemindersResponse,
+    DeleteReminderRequest
 )
 from backend.auth import verify_token
 from backend.utils import to_utc_datetime
@@ -62,7 +67,7 @@ supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("
 user_repo = UserRepository(supabase_client)
 reminder_repo = ReminderRepository(supabase_client)
 rate_limit_repo = RateLimitRepository(supabase_client)
-progression_service = ProgressionService(user_repo)
+progression_service = ProgressionService(user_repo, reminder_repo)
 
 # TokenManager reads/writes rate_limits via Supabase Postgres
 token_manager = TokenManager(supabase_client)
@@ -685,6 +690,74 @@ def get_leaderboard():
         users=[LeaderboardUserEntry(**entry) for entry in result]
     )
     return jsonify(response.model_dump()), 200
+
+@app.route("/set_reminder", methods=["POST"])  # Endpoint to create a new reminder
+def set_reminder():
+    try:
+        # Parse JSON body into Pydantic schema (ensures correct types/fields)
+        body = SetReminderRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        # If validation fails, return 400 with error details
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        # Verify Firebase ID token and extract UID
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        # If token is invalid/expired, reject request
+        return jsonify({"error": str(e)}), 401
+
+    # Pass validated, trusted data into business logic
+    progression_service.set_reminder(
+        uid=uid,
+        message=body.message,
+        scheduled_at=body.scheduled_at,
+        notification_id=body.notification_id,
+    )
+
+    return jsonify({"success": True}), 200
+
+@app.route("/get_reminders", methods=["POST"])  # Endpoint to get the user's reminders
+def get_reminders():
+    try:
+        # Parse JSON body into Pydantic schema (ensures correct types/fields)
+        body = GetRemindersRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        # If validation fails, return 400 with error details
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        # Verify Firebase ID token and extract UID
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        # If token is invalid/expired, reject request
+        return jsonify({"error": str(e)}), 401
+
+    # fetch from service
+    result = progression_service.get_reminders(uid=uid)
+
+    # map DB rows → Pydantic models
+    reminders = [ReminderItem(**r) for r in result]
+    
+    response = GetRemindersResponse(reminders=reminders)
+
+    # Return all reminders
+    return jsonify(response.model_dump()), 200
+
+@app.route("/delete_reminder", methods=["POST"])
+def delete_reminder():
+    try:
+        body = DeleteReminderRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    progression_service.delete_reminder(uid, body.reminder_id)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

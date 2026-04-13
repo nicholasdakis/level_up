@@ -160,7 +160,7 @@ class UserDataManager {
       // Map reminders from the backend response into ReminderData objects
       if (data['reminders'] != null) {
         currentUserData?.reminders = (data['reminders'] as List<dynamic>)
-            .map((r) => ReminderData.fromMap(r as Map<String, dynamic>))
+            .map((r) => ReminderData.fromJson(r))
             .toList();
       }
 

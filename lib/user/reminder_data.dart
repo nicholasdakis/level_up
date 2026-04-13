@@ -1,30 +1,27 @@
 class ReminderData {
-  final String message;
-  final DateTime dateTime;
-  final int notificationId;
+  final String id; // unique identifier for the reminder
+  final String message; // the reminder text shown to the user
+  final DateTime scheduledAt; // when the reminder is scheduled to fire
+  final int notificationId; // local notification ID used to cancel/update it
+  final bool claimed; // whether the user has already acted on this reminder
 
-  // Create a ReminderData instance with required fields
   ReminderData({
+    required this.id,
     required this.message,
-    required this.dateTime,
+    required this.scheduledAt,
     required this.notificationId,
+    required this.claimed,
   });
 
-  // Convert this ReminderData object to a Map for saving to Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'message': message,
-      'dateTime': dateTime
-          .toIso8601String(), // store as ISO string for compatibility
-      'notificationId': notificationId,
-    };
+  factory ReminderData.fromJson(Map<String, dynamic> json) {
+    return ReminderData(
+      id: json['id'],
+      message: json['message'],
+      scheduledAt: DateTime.parse(
+        json['scheduled_at'],
+      ), // ISO string from backend
+      notificationId: json['notification_id'],
+      claimed: json['claimed'],
+    );
   }
-
-  // Creates a ReminderData object from a Map retrieved from Firestore
-  ReminderData.fromMap(Map<String, dynamic> map)
-    : message = map['message'] ?? '',
-      dateTime = DateTime.parse(
-        map['dateTime'],
-      ), // parse ISO string back to DateTime
-      notificationId = map['notificationId'] ?? 0;
 }

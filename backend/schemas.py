@@ -2,21 +2,37 @@
 # Incoming JSON is parsed into these models before any business logic, and if the data doesn't match, the request is rejected with a clear error message
 from pydantic import BaseModel, Field
 
-# Request schemas --------------
+
+# ==============================================================================
+# Food model (defined first because it is used in both request and response schemas)
+# ==============================================================================
+
+class FoodItem(BaseModel):
+    food_id: str
+    calories: int
+    food_url: str | None = None
+    food_name: str
+    food_type: str | None = None
+    brand_name: str | None = None
+    food_description: str | None = None
+
+# ==============================================================================
+# Request schemas
+# ==============================================================================
 
 class ClaimDailyRewardRequest(BaseModel):
     # Sent by Flutter when the user tries to claim their daily reward
     id_token: str = Field(
         ...,  # ... means the token is required
-        min_length=1, # token can't be empty
+        min_length=1,  # token can't be empty
         description="Firebase Auth ID token for verifying the user's identity",
     )
 
 class GetProgressRequest(BaseModel):
     # Sent by Flutter when it wants to fetch the user's current XP, level, and reward status (on app startup)
     id_token: str = Field(
-        ..., # required
-        min_length=1, # non-empty
+        ...,  # required
+        min_length=1,  # non-empty
         description="Firebase Auth ID token for verifying the user's identity",
     )
 
@@ -36,17 +52,17 @@ class SearchFoodRequest(BaseModel):
 class NearbyPOIRequest(BaseModel):
     # Sent by Flutter when the user opens the Explore screen and needs nearby points of interest
     id_token: str = Field(..., min_length=1)
-    lat: float = Field(..., ge=-90, le=90, description="User's latitude") # ge/le constrain to valid coordinate range
-    lng: float = Field(..., ge=-180, le=180, description="User's longitude") # same for longitude
+    lat: float = Field(..., ge=-90, le=90, description="User's latitude")    # ge/le constrain to valid coordinate range
+    lng: float = Field(..., ge=-180, le=180, description="User's longitude")  # same for longitude
 
 class CheckInPOIRequest(BaseModel):
     # Sent by Flutter when the user taps the Check In button near a POI
     id_token: str = Field(..., min_length=1)
-    poi_name: str = Field(..., min_length=1) # name of the POI the user wants to check into
-    poi_lat: float = Field(..., ge=-90, le=90) # latitude of the POI
-    poi_lng: float = Field(..., ge=-180, le=180) # longitude of the POI
-    user_lat: float = Field(..., ge=-90, le=90) # user's current latitude (verified server-side)
-    user_lng: float = Field(..., ge=-180, le=180) # user's current longitude
+    poi_name: str = Field(..., min_length=1)          # name of the POI the user wants to check into
+    poi_lat: float = Field(..., ge=-90, le=90)        # latitude of the POI
+    poi_lng: float = Field(..., ge=-180, le=180)      # longitude of the POI
+    user_lat: float = Field(..., ge=-90, le=90)       # user's current latitude (verified server-side)
+    user_lng: float = Field(..., ge=-180, le=180)     # user's current longitude
 
 class GetUserDataRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
@@ -74,28 +90,69 @@ class RemoveFcmTokenRequest(BaseModel):
 class UpsertFoodLogRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     date: str = Field(..., min_length=1)  # e.g. "2025-04-13"
-    breakfast: list = []
-    lunch: list = []
-    dinner: list = []
-    snack: list = []
+    breakfast: list[FoodItem] = Field(default_factory=list)
+    lunch: list[FoodItem] = Field(default_factory=list)
+    dinner: list[FoodItem] = Field(default_factory=list)
+    snack: list[FoodItem] = Field(default_factory=list)
 
 class GetLeaderboardRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
 
-# Response schemas --------------------
+class GetRemindersRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+
+class SetReminderRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1)
+    scheduled_at: str = Field(..., min_length=1)
+    notification_id: int
+
+class DeleteReminderRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    reminder_id: str = Field(..., min_length=1)
+
+# ==============================================================================
+# Shared / nested models  (defined before any response that references them)
+# ==============================================================================
+
+class POIItem(BaseModel):
+    # A single point of interest returned from Overpass
+    name: str      # display name of the place (e.g. "Starbucks")
+    lat: float     # latitude of the POI
+    lng: float     # longitude of the POI
+    category: str  # the OSM tag category (e.g. "cafe", "park", "gym")
+
+class LeaderboardUserEntry(BaseModel):
+    # A single user entry in the leaderboard response
+    uid: str
+    username: str | None = None
+    level: int = 1
+    exp_points: int = 0
+    pfp_base64: str | None = None
+
+class ReminderItem(BaseModel):
+    id: str
+    message: str
+    scheduled_at: str
+    notification_id: int
+    claimed: bool
+
+# ==============================================================================
+# Response schemas
+# ==============================================================================
 
 class DailyRewardResponse(BaseModel):
     # What is returned when the user tries to claim a daily reward
-    claimed: bool # true if successfully claimed
+    claimed: bool  # true if successfully claimed
     xp_gained: int = 0
     new_level: int = 1
     new_exp: int = 0
     seconds_remaining: int = 0
 
-
 class ProgressResponse(BaseModel):
     # What is returned when Flutter requests the user's current progress (level, XP, and reward status)
-    # Read by the client to display the XP bar, level, and whether the daily reward button should be enabled, without giving direct Postgres read access to sensitive fields
+    # Read by the client to display the XP bar, level, and whether the daily reward button should be enabled,
+    # without giving direct Postgres read access to sensitive fields
     level: int = 1
     exp_points: int = 0
     exp_needed: int = 100
@@ -110,24 +167,17 @@ class UpdateUsernameResponse(BaseModel):
     success: bool
     error: str | None = None
 
-class POIItem(BaseModel):
-    # A single point of interest returned from Overpass
-    name: str # display name of the place (e.g. "Starbucks")
-    lat: float # latitude of the POI
-    lng: float # longitude of the POI
-    category: str # the OSM tag category (e.g. "cafe", "park", "gym")
-
 class NearbyPOIResponse(BaseModel):
     # The full response containing a list of nearby POIs
-    pois: list[POIItem] = [] # list of POI items, empty by default if none found
+    pois: list[POIItem] = []  # list of POI items, empty by default if none found
 
 class CheckInPOIResponse(BaseModel):
     # What is returned after a check-in attempt
-    success: bool # true if the check-in went through
-    xp_gained: int = 0 # how much XP was awarded
-    new_level: int = 1 # user's level after XP is applied
-    new_exp: int = 0 # user's XP after the award
-    error: str | None = None # reason for failure if success is false
+    success: bool       # true if the check-in went through
+    xp_gained: int = 0  # how much XP was awarded
+    new_level: int = 1  # user's level after XP is applied
+    new_exp: int = 0    # user's XP after the award
+    error: str | None = None  # reason for failure if success is false
 
 class GetUserDataResponse(BaseModel):
     level: int = 1
@@ -140,22 +190,17 @@ class GetUserDataResponse(BaseModel):
     fcm_tokens: list[str] = []
     notifications_enabled: bool = True
     last_daily_claim: str | None = None  # ISO string
-    food_logs: list = []
-    reminders: list = []
+    food_logs: list[FoodItem] = Field(default_factory=list)
+    reminders: list[ReminderItem] = Field(default_factory=list)
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
     success: bool
     error: str | None = None
 
-class LeaderboardUserEntry(BaseModel):
-    # A single user entry in the leaderboard response
-    uid: str
-    username: str | None = None
-    level: int = 1
-    exp_points: int = 0
-    pfp_base64: str | None = None
-
 class GetLeaderboardResponse(BaseModel):
     # The full leaderboard response containing a list of user entries sorted by level and XP
     users: list[LeaderboardUserEntry] = []
+
+class GetRemindersResponse(BaseModel):
+    reminders: list[ReminderItem] = []

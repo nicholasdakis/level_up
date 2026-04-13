@@ -965,3 +965,21 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Updated field names in LeaderboardEntry from camelCase (expPoints, pfpBase64) to snake_case (exp_points, pfp_base64) to match the Postgres column names returned by the backend
 - Removed prefetchLeaderboard() from LeaderboardService since it only existed to warm Firestore's local cache, which no longer applies
 - Replaced the Firestore query in LeaderboardService.fetchLeaderboard() with an HTTP POST to /get_leaderboard
+- Migrated Reminders getting, setting, and deleting from Firestore to Postgres
+- Made schemas for the get/set/delete requests, the get response, and a schema for ReminderItem to define the shape of a single reminder consistently everywhere
+- Added /set_reminder, /get_reminders, and /delete_reminder routes
+- Made set_reminder and delete_reminder methods in service.py and repository.py (get_reminders methods were already made, just unused)
+- delete_reminder in services.py verifies the reminder belongs to the requesting user before deleting, preventing users from deleting each other's reminders
+- Moved get_reminders from UserRepository to ReminderRepository so all reminder DB operations live in the same class
+- Fixed get_due_reminders to query the correct column name (scheduled_at instead of time)
+- ProgressionService now takes reminder_repo as a second constructor argument so it can delegate reminder operations to ReminderRepository instead of going through UserRepository
+- Updated reminder_data.dart to match the schema.py shape of a ReminderItem (id, message, scheduled_at, notification_id, claimed), replaced fromMap with fromJson, and removed toMap() since it was only used for Firestore writes
+- Replaced all direct Firestore calls in reminders.dart with HTTP requests to /set_reminder, /get_reminders, and /delete_reminder
+- Replaced the cloud_firestore import in reminders.dart with http, dart:convert, and user_data_manager imports
+- Updated reminders.dart to use reminder.scheduledAt instead of reminder.dateTime to match the renamed field
+- Removed the client-side stale reminder cleanup logic from reminders.dart since expired reminder cleanup is now handled by the backend's scheduled task
+- Updated user_data_manager.dart to use ReminderData.fromJson instead of fromMap
+- Typed the food_logs and reminders fields in GetUserDataResponse with FoodItem and ReminderItem models instead of bare lists
+- Typed the meal fields in UpsertFoodLogRequest with list[FoodItem] instead of bare lists
+- Added a FoodItem schema to define the shape of a food entry consistently
+- Reorganized schemas.py so shared models (FoodItem, POIItem, LeaderboardUserEntry, ReminderItem) are defined before the response schemas that reference them, and grouped sections with clear headers

@@ -5,7 +5,7 @@ import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
-from backend.repository import UserRepository
+from backend.repository import UserRepository, ReminderRepository
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -30,11 +30,11 @@ def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
 
     return new_level, new_exp
 
-
 class ProgressionService: # Service class to handle all progression-related business logic, called by server.py after authentication and validation
-    def __init__(self, repo: UserRepository):
+    def __init__(self, repo: UserRepository, reminder_repo: ReminderRepository):
         # Store the repository so all methods can access the Supabase Postgres DB through it
         self._repo = repo
+        self._reminder_repo = reminder_repo
 
     def update_username(self, uid: str, username: str):
         if self._repo.username_exists(uid, username):
@@ -194,7 +194,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             can_claim = seconds_since >= 82800
 
         food_logs = self._repo.get_food_logs(uid)
-        reminders = self._repo.get_reminders(uid)
+        reminders = self._reminder_repo.get_reminders(uid)
 
         return {
             "level": user.get("level", 1),
@@ -241,7 +241,22 @@ class ProgressionService: # Service class to handle all progression-related busi
 
     def get_reminders(self, uid: str):
         # Returns all reminders for a user
-        return self._repo.get_reminders(uid)
+        return self._reminder_repo.get_reminders(uid)
+
+    def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int):
+        return self._reminder_repo.set_reminder(
+            uid=uid,
+            message=message,
+            scheduled_at=scheduled_at,
+            notification_id=notification_id,
+        )
+
+    def delete_reminder(self, uid: str, reminder_id: str):
+        # Verify the reminder belongs to this user before deleting
+        reminders = self._reminder_repo.get_reminders(uid)
+        if not any(r["id"] == reminder_id for r in reminders):
+            return False
+        return self._reminder_repo.delete_reminder(reminder_id)
 
     def get_leaderboard(self):
         # Returns all users sorted by level and XP for the leaderboard
