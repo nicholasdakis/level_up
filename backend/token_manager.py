@@ -1,96 +1,38 @@
 import os
-import json
-import firebase_admin
-from firebase_admin import credentials, firestore
+from supabase import Client
 from datetime import datetime, timedelta, timezone
 from backend.utils import to_utc_datetime
 
 # maximum tokens allowed per 24 hours
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 
-# initialize firebase_admin if not already initialized
-if not firebase_admin._apps:
-    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT")
-    cred = credentials.Certificate(json.loads(service_account_json))
-    firebase_admin.initialize_app(cred)
-
-# create firestore client for database operations
-db = firestore.client()
-
 class TokenManager:
-    def __init__(self, collection="rate_limits", document="food_logging"):
-        # reference to the Firestore document managing tokens
-        self.doc_ref = db.collection(collection).document(document)
+    def __init__(self, supabase: Client, document="food_logging"):
+        # reference to the Postgres row managing tokens
+        self.supabase = supabase
+        self.document = document
 
     def consume(self, amount=1):
         try:
-            @firestore.transactional  # atomically update tokens
-            def update_tokens(transaction):
-                snapshot = self.doc_ref.get(transaction=transaction)
-                now = datetime.now(timezone.utc)  # current UTC time so time is not dependent on user's device
-                
-                if not snapshot.exists:
-                    # first time setup
-                    transaction.set(self.doc_ref, {
-                        "current_tokens": MAX_TOKENS - amount,
-                        "last_refill_time": now
-                    })
-                    return True
-                
-                data = snapshot.to_dict()
-                current_tokens = data.get("current_tokens", MAX_TOKENS)
-                last_refill_time = data.get("last_refill_time")
-
-                # convert Firestore timestamp to UTC datetime
-                last_refill_dt = to_utc_datetime(last_refill_time, fallback=now)
-                
-                # check if 24 hours passed since last refill and reset tokens if so
-                if (now - last_refill_dt) >= timedelta(days=1):
-                    current_tokens = MAX_TOKENS
-                    last_refill_dt = now
-                
-                # not enough tokens to consume
-                if current_tokens < amount:
-                    return False
-                
-                # consume the requested amount of tokens
-                new_token_count = current_tokens - amount
-                transaction.update(self.doc_ref, {
-                    "current_tokens": new_token_count,
-                    "last_refill_time": last_refill_dt
-                })
-                return True
-            
-            transaction = db.transaction()  # create a Firestore transaction
-            return update_tokens(transaction)
-            
+            result = self.supabase.rpc("consume_tokens", {
+                "p_id": self.document,
+                "p_amount": amount,
+                "p_max_tokens": MAX_TOKENS
+            }).execute()
+            return result.data  # the RPC returns true/false
         except Exception as e:
             # return False if any error occurs
             return False
-        
+
     # refund token when a search fails
     def refund(self, amount=1):
         try:
-            @firestore.transactional  # ensure atomic update for refund
-            def refund_tokens(transaction):
-                snapshot = self.doc_ref.get(transaction=transaction)
-                
-                if not snapshot.exists:
-                    # cannot refund if document doesn't exist
-                    return False
-                    
-                data = snapshot.to_dict()
-                current_tokens = data.get("current_tokens", 0)
-                new_tokens = min(current_tokens + amount, MAX_TOKENS)  # prevent exceeding max
-                
-                transaction.update(self.doc_ref, {
-                    "current_tokens": new_tokens
-                })
-                return True
-            
-            transaction = db.transaction()  # create Firestore transaction
-            return refund_tokens(transaction)
-            
+            result = self.supabase.rpc("refund_tokens", {
+                "p_id": self.document,
+                "p_amount": amount,
+                "p_max_tokens": MAX_TOKENS
+            }).execute()
+            return result.data  # the RPC returns true/false
         except Exception as e:
             # return False if error occurs during refund
             return False
@@ -98,15 +40,13 @@ class TokenManager:
     # check if there are any tokens left
     def has_tokens(self):
         try:
-            doc = self.doc_ref.get()
-            if not doc.exists:
-                # treat as having tokens if document not created yet
+            result = self.supabase.table("rate_limits").select("current_tokens").eq("id", self.document).execute()
+            if not result.data:
+                # treat as having tokens if row not created yet
                 return True
-                
-            data = doc.to_dict()
-            current_tokens = data.get("current_tokens", MAX_TOKENS)
+
+            current_tokens = result.data[0].get("current_tokens", MAX_TOKENS)
             return current_tokens > 0
-            
         except Exception as e:
             # return False if error occurs during check
             return False

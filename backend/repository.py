@@ -1,165 +1,104 @@
-# Repository Layer: the only place in the backend that reads/writes Supabase, so DB logic is only in this class and can be easily swapped if ever needed
+# Repository Layer: the only place in the backend that reads/writes Supabase, so DB logic is only in these classes and can be easily swapped if ever needed
 
-from datetime import datetime, timezone
-from google.cloud import firestore
 from supabase import Client
-import re
-from backend.utils import to_utc_datetime
 
 class UserRepository:
-    # Repository class to handle all Firestore operations related to user data
+    # Repository class to handle all Postgres operations related to user data
 
-    def __init__(self, db: firestore.Client, supabase: Client):
-        self._db = db
-        self._public = db.collection("users-public")
-        self._private = db.collection("users-private")
+    def __init__(self, supabase: Client):
         self._supabase = supabase
-    
-    def _sanitize_poi_id(self, poi_name: str) -> str:
-        # Replace any character that isn't a letter, number, hyphen, or underscore with an underscore as Firestore Document IDs don't allow special characters
-        return re.sub(r'[^a-zA-Z0-9_-]', '_', poi_name)[:500]
 
     # Read operations
 
     def username_exists(self, uid: str, username: str):
-        docs = self._public.where("username", "==", username.lower()).stream() # See if the proposed username is in the users-public document
-        for doc in docs: # If it is, it can only be written by that same user. This allows changing capitalization of the same username (e.g. john to John)
-            if doc.id != uid:
-                return True
-        return False
+        # Check if the proposed username is taken by another user (case-insensitive because username is a CITEXT), ignoring the user themselves
+        result = self._supabase.table("users").select("uid").eq("username", username).neq("uid", uid).execute()
+        return len(result.data) > 0
 
-    def get_public_user(self, uid: str):
-        # Fetches the user's user-public document if it exists
-        doc = self._public.document(uid).get()
-        return doc.to_dict() if doc.exists else None
+    def get_user(self, uid: str):
+        # Fetches the user's row from the users table
+        result = self._supabase.table("users").select("*").eq("uid", uid).execute()
+        return result.data[0] if result.data else None
 
-    def get_private_user(self, uid: str):
-        # Fetches the user's user-private document if it exists
-        doc = self._private.document(uid).get()
-        return doc.to_dict() if doc.exists else None
+    def get_user_fcm_tokens(self, uid: str):
+        # Fetches only the fcm_tokens array for a given user
+        result = self._supabase.table("users").select("fcm_tokens").eq("uid", uid).execute()
+        if not result.data:
+            return None
+        return result.data[0].get("fcm_tokens") or []
 
     # Write operations (non-atomic)
 
-    def set_public_fields(self, uid: str, data: dict):
-        self._public.document(uid).set(data, merge=True) # merge=True so only the passed in fields are updated
+    # Method to update the user's data
+    def set_user_data(self, uid: str, data: dict):
+        self._supabase.table("users").update(data).eq("uid", uid).execute()
 
-    def set_private_fields(self, uid: str, data: dict):
-        self._private.document(uid).set(data, merge=True) # merge=True so only the passed in fields are updated
+    def update_fcm_tokens(self, uid: str, tokens: list):
+        # Overwrites the user's fcm_tokens list
+        self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
 
     # Atomic instructions
 
-    def claim_daily_reward_transaction(
-        self, uid: str, new_level: int, new_exp: int
-    ):
-        # Method to atomically claim the daily reward, update XP/level, and set cooldown
-        # Forces Firestore to retry if the user's document changes mid-transaction, guaranteeing it is atomic
-
-        public_ref = self._public.document(uid)
-        private_ref = self._private.document(uid)
-
-        @firestore.transactional
-        def _run(transaction):
-            # Step 1: Read both docs inside the transaction to make sure they don't change
-            private_snap = private_ref.get(transaction=transaction)
-            private_data = private_snap.to_dict() if private_snap.exists else {}
-
-            # Step 2: Check the 23-hour cooldown server-side
-            last_claim = private_data.get("lastDailyClaim")
-            now = datetime.now(timezone.utc)
-
-            if last_claim is not None:
-                # Convert the Firestore timestamp to datetime
-                last_claim_dt = to_utc_datetime(last_claim)
-
-                seconds_since_claim = (now - last_claim_dt).total_seconds() 
-
-                if seconds_since_claim < 82800: # 23 hours = 82800 seconds (the cooldown for claiming)
-                    # Not enough time has passed
-                    return {
-                        "claimed": False,
-                        "reason": "cooldown",
-                        "seconds_remaining": int(82800 - seconds_since_claim),
-                    }
-
-            # Step 3: Write the new state atomically
-            # Update the variables in the users-public collection
-            transaction.set(
-                public_ref,
-                {"level": new_level, "expPoints": new_exp},
-                merge=True,
-            )
-
-            # Update the variables in the users-private collection
-            transaction.set(
-                private_ref,
-                {
-                    "lastDailyClaim": now,
-                    "canClaimDailyReward": False,
-                },
-                merge=True,
-            )
-
-            return {
-                "claimed": True,
-                "new_level": new_level,
-                "new_exp": new_exp,
-                "claimed_at": now.isoformat(),
-            }
-
-        # Execute the transaction (Firestore retries automatically on conflict)
-        transaction = self._db.transaction()
-        return _run(transaction)
+    def claim_daily_reward_transaction(self, uid: str, new_level: int, new_exp: int):
+        # Call the Supabase RPC to ensure the operation is done atomically
+        result = self._supabase.rpc("claim_daily_reward", {
+            "p_uid": uid,
+            "p_new_level": new_level,
+            "p_new_exp": new_exp
+        }).execute()
+        return result.data
 
     # Atomically record the visit, update XP, and set a 24 hour cooldown for that poi
     def record_poi_visit_transaction(self, uid: str, poi_name: str, new_level: int, new_exp: int):
-        safe_name = self._sanitize_poi_id(poi_name)
-        public_ref = self._public.document(uid)
-        visit_ref = self._private.document(uid).collection('poi-visits').document(safe_name)
-
-        @firestore.transactional
-        def _run(transaction):
-            # Step 1: Read the visit doc inside the transaction to prevent race conditions
-            visit_snap = visit_ref.get(transaction=transaction)
-            visit_data = visit_snap.to_dict() if visit_snap.exists else {}
-
-            # Step 2: Check the 24-hour cooldown
-            last_visit = visit_data.get('last_visit')
-            now = datetime.now(timezone.utc)
-
-            if last_visit is not None:
-                # Convert Firestore timestamp to datetime if needed
-                last_visit_dt = to_utc_datetime(last_visit)
-            
-                seconds_since = (now - last_visit_dt).total_seconds()
-                if seconds_since < 86400: # 24 hours
-                    return {
-                        "success": False,
-                        "error": "Already visited in the last 24 hours",
-                        "seconds_remaining": int(86400 - seconds_since),
-                    }
-
-            # Step 3: Write the visit timestamp and update XP atomically
-            transaction.set(visit_ref, {'last_visit': now}) # record the visit time
-            transaction.set(
-                public_ref,
-                {'level': new_level, 'expPoints': new_exp},
-                merge=True, # merge=True to only update level and XP without overwriting other fields
-            )
-
-            return {"success": True}
-
-        # Execute the transaction (Firestore retries on conflict)
-        transaction = self._db.transaction()
-        return _run(transaction)
+        # Call the record_poi_visit Postgres function via RPC to handle the operation atomically, which also handles the 24-hour cooldown
+        result = self._supabase.rpc("record_poi_visit", {
+            "p_uid": uid,
+            "p_poi_name": poi_name,
+            "p_new_level": new_level,
+            "p_new_exp": new_exp
+        }).execute()
+        return result.data
 
     def initialize_user_if_new(self, uid: str):
-        # Creates default public/private docs for a first-time user
+        # Insert a default row for a first-time user, but do nothing if they already exist
+        self._supabase.table("users").upsert(
+            {
+                "uid": uid,
+                "level": 1,
+                "exp_points": 0,
+                "last_daily_claim": None,
+                "can_claim_daily_reward": True
+            },
+            on_conflict="uid",  # If a row with this uid already exists, do nothing
+            ignore_duplicates=True
+        ).execute()
 
-        self._public.document(uid).set(
-            {"level": 1, "expPoints": 0},
-            merge=True, # merge=True means if the doc already exists, it won't overwrite it, just add any missing fields
-        ) 
-        self._private.document(uid).set(
-            {"lastDailyClaim": None, "canClaimDailyReward": True},
-            merge=True, # same merge logic as above, so if the user already has a doc, it won't overwrite their existing claim time or cooldown status
-        )
+
+class ReminderRepository:
+    # Repository class to handle all Postgres operations related to reminders
+
+    def __init__(self, supabase: Client):
+        self._supabase = supabase
+
+    def get_due_reminders(self, now_iso: str):
+        # Fetches all reminders where the scheduled time has passed
+        return self._supabase.table("reminders").select("*").lte("time", now_iso).execute().data
+
+    def delete_reminder(self, reminder_id: str):
+        # Atomically claims a reminder by deleting it; returns True if this instance claimed it
+        result = self._supabase.table("reminders").delete().eq("id", reminder_id).execute()
+        return bool(result.data)
+
+
+class RateLimitRepository:
+    # Repository class to handle all Postgres operations related to rate limits
+
+    def __init__(self, supabase: Client):
+        self._supabase = supabase
+
+    def get_last_refill_time(self, limit_id: str):
+        # Fetches the last_refill_time for a given rate_limit row
+        result = self._supabase.table("rate_limits").select("last_refill_time").eq("id", limit_id).execute()
+        if not result.data:
+            return None
+        return result.data[0].get("last_refill_time")

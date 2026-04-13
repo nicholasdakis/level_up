@@ -8,14 +8,13 @@ from datetime import timedelta, timezone, datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydantic import ValidationError
-from google.cloud import firestore
-from google.oauth2 import service_account
 from firebase_admin import messaging
 import firebase_admin
+from firebase_admin import credentials as firebase_credentials
 from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
-from backend.repository import UserRepository
+from backend.repository import UserRepository, ReminderRepository, RateLimitRepository
 from backend.services import ProgressionService
 from backend.schemas import (
     ClaimDailyRewardRequest,
@@ -44,7 +43,22 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 
-token_manager = TokenManager()
+# Set up Supabase
+supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
+
+# Initialize the repository and service layers, passing Supabase to each repository so it can read / write data
+user_repo = UserRepository(supabase_client)
+reminder_repo = ReminderRepository(supabase_client)
+rate_limit_repo = RateLimitRepository(supabase_client)
+progression_service = ProgressionService(user_repo)
+
+# TokenManager reads/writes rate_limits via Supabase Postgres
+token_manager = TokenManager(supabase_client)
+
+# Initialize Firebase Admin SDK for FCM (for notifications)
+if not firebase_admin._apps:
+    firebase_cred = firebase_credentials.Certificate(json.loads(os.environ.get("FIREBASE_SERVICE_ACCOUNT")))
+    firebase_admin.initialize_app(firebase_cred)
 
 app = Flask(__name__)
 CORS(app) # allow requests from desktop device browsers
@@ -59,85 +73,47 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
 
-# Initialize Firestore client
-# Load credentials JSON string from env var
-cred_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-
-# Parse JSON string into a dict
-credentials_info = json.loads(cred_json)
-
-# Create Credentials object
-credentials = service_account.Credentials.from_service_account_info(credentials_info)
-
-# To be deleted after migration: Create Firestore client with explicit credentials
-db = firestore.Client(credentials=credentials)
-
-# Set up Supabase
-supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
-# Initialize the repository and service layers, passing Supabase to the repository so it can read / write data
-user_repo = UserRepository(db, supabase_client)
-progression_service = ProgressionService(user_repo)
 
 def send_due_reminders():
     try:
         now_dt = datetime.now(timezone.utc)
-        # Format to match Flutter's toUtc().toIso8601String() output (e.g. 2026-03-30T15:00:00.000Z)
-        now = now_dt.strftime('%Y-%m-%dT%H:%M:%S.') + f'{now_dt.microsecond // 1000:03d}Z'
-        print(f'[reminders] Checking for due reminders at {now}')
+        print(f'[reminders] Checking for due reminders at {now_dt.isoformat()}')
 
-        # collection_group queries the reminders subcollection across all users at once
-        # Requires a Firestore composite index on reminders.dateTime (collection group ASC)
-        due_reminders = db.collection_group('reminders').where('dateTime', '<=', now).stream()
+        # Query the reminders table for all rows where the time is due (i.e. time <= now)
+        due_reminders = reminder_repo.get_due_reminders(now_dt.isoformat())
 
         count = 0
-        for doc in due_reminders:
-            # Atomically claim the reminder, so skip if another instance already claimed it
-            @firestore.transactional
-            def claim(transaction, doc_ref):
-                snapshot = doc_ref.get(transaction=transaction)
-                if not snapshot.exists or snapshot.to_dict().get('processing'):
-                    return False
-                transaction.update(doc_ref, {'processing': True})
-                return True
+        for reminder in due_reminders:
+            reminder_id = reminder["id"]
+            uid = reminder["uid"]
 
-            transaction = db.transaction()
-            try:
-                claimed = claim(transaction, doc.reference)
-            except Exception as e:
-                print(f'[reminders] Failed to claim reminder {doc.id}: {e}')
-                continue
-
-            if not claimed:
-                print(f'[reminders] Reminder {doc.id} already claimed by another instance, skipping')
+            # Atomically claim the reminder by deleting it, so skip if another instance already claimed it
+            if not reminder_repo.delete_reminder(reminder_id):
+                # Another instance already deleted/claimed this reminder, skip it
+                print(f'[reminders] Reminder {reminder_id} already claimed by another instance, skipping')
                 continue
 
             count += 1
-            data = doc.to_dict()
 
-            # Extract the user's UID from the document path: users-private/{uid}/reminders/{docId}
-            uid = doc.reference.parent.parent.id
-
-            # Get the user's private document to retrieve their FCM tokens
-            user_doc = db.collection('users-private').document(uid).get()
-            if not user_doc.exists:
-                doc.reference.delete()  # user no longer exists, clean up the reminder
+            # Get the user's FCM tokens from the users table
+            fcm_tokens = user_repo.get_user_fcm_tokens(uid)
+            if fcm_tokens is None:
+                # User no longer exists, reminder already deleted above so just move on
                 continue
 
-            # Get the user's FCM tokens. if empty or missing, the user has no devices to notify
-            fcm_tokens = user_doc.to_dict().get('fcmTokens', [])
+            # If empty, the user has no devices to notify
             if not fcm_tokens:
-                doc.reference.delete()
                 continue
 
             # Send a notification + data payload so browsers show it even when minimized
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(
                     title="Level Up! Reminder",
-                    body=data.get('message', 'You have a reminder!')
+                    body=reminder.get('message', 'You have a reminder!')
                 ),
                 data={
-                    'body': data.get('message', 'You have a reminder!'),
-                    'reminderId': doc.id
+                    'body': reminder.get('message', 'You have a reminder!'),
+                    'reminderId': reminder_id
                 },
                 tokens=fcm_tokens,
             )
@@ -156,14 +132,10 @@ def send_due_reminders():
                             'invalid-registration-token',
                         ):
                             invalid_tokens.append(fcm_tokens[i])
-                # Remove invalid tokens from Firestore as to not keep trying to send to them
+                # Remove invalid tokens from the users table to not keep trying to send to them
                 if invalid_tokens:
-                    db.collection('users-private').document(uid).update({
-                        'fcmTokens': firestore.ArrayRemove(invalid_tokens)
-                    })
-
-            # Delete the reminder after sending so it does not fire again
-            doc.reference.delete()
+                    updated_tokens = [t for t in fcm_tokens if t not in invalid_tokens]
+                    user_repo.update_fcm_tokens(uid, updated_tokens)
 
         if count == 0:
             print(f'[reminders] No due reminders found')
@@ -173,17 +145,11 @@ def send_due_reminders():
 
 
 def get_next_reset_time():
-    # Get the document reference for rate limit tracking
-    doc_ref = db.collection('rate_limits').document('food_logging')
-    doc = doc_ref.get()
-    if not doc.exists:
-        return None  # If doc doesn't exist, no reset time available
-    data = doc.to_dict()
-    last_refill_time = data.get("last_refill_time")
-    # no reset time, return None
+    # Get the rate_limits row for food_logging from Postgres
+    last_refill_time = rate_limit_repo.get_last_refill_time("food_logging")
     if not last_refill_time:
         return None
-    # Timestamp to datetime conversion (handles Firestore Timestamp)
+    # Timestamp to datetime conversion
     last_refill_dt = to_utc_datetime(last_refill_time)
     # reset time is 1 day after the last refill
     reset_time = last_refill_dt + timedelta(days=1)
@@ -484,7 +450,7 @@ def update_username():
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
 
-    # Step 3: # The service calculates if the update is valid, and the repository (in the service) reads Firestore atomically
+    # Step 3: The service calculates if the update is valid, and the repository (in the service) reads Postgres atomically
     result = progression_service.update_username(uid, body.username) # Returns a dict, and update_username is successful if the uniqueness check passes
 
     # Step 4: Build the expected response schema
@@ -511,7 +477,7 @@ def claim_daily_reward():
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
 
-    # Step 3: # The service calculates XP and level-ups, and the repository (in the service) writes to Firestore atomically
+    # Step 3: The service calculates XP and level-ups, and the repository (in the service) writes to Postgres atomically
     result = progression_service.claim_daily_reward(uid)
 
     # Step 4: Build the expected response schema

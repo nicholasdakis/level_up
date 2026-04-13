@@ -1,0 +1,170 @@
+-- claim_daily_reward: Atomically checks the 23-hour cooldown and claims the daily reward
+CREATE OR REPLACE FUNCTION claim_daily_reward(
+    p_uid TEXT,        -- The user's ID
+    p_new_level INTEGER, -- The new level to set after claiming
+    p_new_exp INTEGER    -- The new XP to set after claiming
+)
+RETURNS JSONB AS $$ -- Returns a JSON object with the result so Python can read it easily
+DECLARE
+    v_last_claim TIMESTAMPTZ; -- When the user last claimed their daily reward
+    v_seconds_since_claim FLOAT; -- How many seconds have passed since the last claim
+    v_now TIMESTAMPTZ := NOW(); -- Capture the current time in UTC once so it's consistent throughout the function
+BEGIN
+    -- Lock the row with FOR UPDATE so no other request can read or write this user's row until the function finishes
+    SELECT last_daily_claim INTO v_last_claim
+    FROM users WHERE uid = p_uid FOR UPDATE;
+
+    -- Only check the cooldown if the user has claimed before
+    IF v_last_claim IS NOT NULL THEN
+        -- Calculate how many seconds have passed since their last claim
+        v_seconds_since_claim := EXTRACT(EPOCH FROM (v_now - v_last_claim));
+
+        -- 82800 seconds = 23 hours
+        IF v_seconds_since_claim < 82800 THEN
+            -- Not enough time has passed, return how many seconds they still need to wait
+            RETURN jsonb_build_object(
+                'claimed', false,
+                'reason', 'cooldown',
+                'seconds_remaining', (82800 - v_seconds_since_claim)::INTEGER
+            );
+        END IF;
+    END IF;
+
+    -- All fields are updated in a single UPDATE so they are never partially applied.
+    -- e.g. level can never update without exp_points also updating
+    UPDATE users SET
+        level = p_new_level,
+        exp_points = p_new_exp,
+        last_daily_claim = v_now,      -- Record when they claimed so the cooldown starts now
+        can_claim_daily_reward = false  -- Prevent claiming again until the scheduler resets this
+    WHERE uid = p_uid;
+
+    -- Return success with the new state so Python doesn't need to do another fetch
+    RETURN jsonb_build_object(
+        'claimed', true,
+        'new_level', p_new_level,
+        'new_exp', p_new_exp,
+        'claimed_at', v_now
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- record_poi_visit: Atomically checks the 24-hour cooldown for a POI visit and updates XP/level
+CREATE OR REPLACE FUNCTION record_poi_visit(
+    p_uid TEXT,          -- The user's ID
+    p_poi_name TEXT,     -- The name of the POI being visited
+    p_new_level INTEGER, -- The new level to set after visiting
+    p_new_exp INTEGER    -- The new XP to set after visiting
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_last_visit TIMESTAMPTZ; -- When the user last visited this POI
+    v_seconds_since FLOAT;    -- How many seconds have passed since the last visit
+    v_now TIMESTAMPTZ := NOW(); -- Capture current time once in UTC for consistency
+BEGIN
+    -- Lock the row for this user and POI combo to prevent race conditions
+    -- If no row exists yet (first visit), nothing is locked which is fine
+    SELECT last_visit INTO v_last_visit
+    FROM poi_visits WHERE uid = p_uid AND poi_name = p_poi_name FOR UPDATE;
+
+    -- Only check cooldown if they've visited this POI before
+    IF v_last_visit IS NOT NULL THEN
+        -- Extract the time into seconds
+        v_seconds_since := EXTRACT(EPOCH FROM (v_now - v_last_visit));
+
+        -- 86400 seconds = 24 hours
+        IF v_seconds_since < 86400 THEN
+            RETURN jsonb_build_object(
+                'success', false,
+                'error', 'Already visited in the last 24 hours',
+                'seconds_remaining', (86400 - v_seconds_since)::INTEGER
+            );
+        END IF;
+    END IF;
+
+    -- Upsert the visit timestamp (insert if first visit, update if returning)
+    INSERT INTO poi_visits (uid, poi_name, last_visit)
+    VALUES (p_uid, p_poi_name, v_now)
+    ON CONFLICT (uid, poi_name) DO UPDATE SET last_visit = v_now;
+
+    -- Update the user's XP and level atomically in the same transaction
+    UPDATE users SET
+        level = p_new_level,
+        exp_points = p_new_exp
+    WHERE uid = p_uid;
+
+    RETURN jsonb_build_object('success', true);
+END;
+$$ LANGUAGE plpgsql;
+
+-- consume_tokens: atomically consumes tokens from the rate_limits table
+-- returns TRUE if tokens were consumed, FALSE if there weren't enough
+CREATE OR REPLACE FUNCTION consume_tokens(p_id TEXT, p_amount INT, p_max_tokens INT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    current_tokens INT;
+    last_refill_dt TIMESTAMPTZ;
+    now_dt TIMESTAMPTZ := NOW();
+BEGIN
+    -- lock the row for this document so no other transaction can read/write it at the same time
+    SELECT current_tokens, last_refill_time
+    INTO current_tokens, last_refill_dt
+    FROM rate_limits WHERE id = p_id FOR UPDATE;
+
+    IF NOT FOUND THEN
+        -- row doesn't exist yet, so this is first time setup
+        -- insert with tokens already decremented by the requested amount
+        INSERT INTO rate_limits (id, current_tokens, last_refill_time)
+        VALUES (p_id, p_max_tokens - p_amount, now_dt);
+        RETURN TRUE;
+    END IF;
+
+    -- check if 24 hours have passed since the last refill
+    -- if so, reset tokens back to max and update the refill timestamp
+    IF (now_dt - last_refill_dt) >= INTERVAL '1 day' THEN
+        current_tokens := p_max_tokens;
+        last_refill_dt := now_dt;
+    END IF;
+
+    -- not enough tokens to consume, return false without modifying anything
+    IF current_tokens < p_amount THEN
+        RETURN FALSE;
+    END IF;
+
+    -- enough tokens available, so deduct the requested amount and write back
+    -- last_refill_time is also written back in case it was just reset above
+    UPDATE rate_limits
+    SET current_tokens = current_tokens - p_amount,
+        last_refill_time = last_refill_dt
+    WHERE id = p_id;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- refund_tokens: atomically refunds tokens back to the rate_limits table
+-- called when a search fails so the token isn't wasted
+-- returns TRUE if the refund succeeded, FALSE if the row didn't exist
+CREATE OR REPLACE FUNCTION refund_tokens(p_id TEXT, p_amount INT, p_max_tokens INT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    current_tokens INT;
+BEGIN
+    -- lock the row so no other transaction can modify it at the same time
+    SELECT current_tokens INTO current_tokens
+    FROM rate_limits WHERE id = p_id FOR UPDATE;
+
+    -- cannot refund if the row doesn't exist yet
+    IF NOT FOUND THEN
+        RETURN FALSE;
+    END IF;
+
+    -- add the tokens back, but cap at max to prevent exceeding the limit
+    UPDATE rate_limits
+    SET current_tokens = LEAST(current_tokens + p_amount, p_max_tokens)
+    WHERE id = p_id;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;

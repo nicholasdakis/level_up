@@ -1,5 +1,5 @@
 # Service Layer: Contains business logic for progression, XP calculation, and cooldowns, etc
-# Doesn't touch Firestore directly, it only acts through repository.py and returns the results for the route in the end
+# Doesn't touch the Supabase Postgres DB directly, it only acts through repository.py and returns the results for the route in the end
 
 import random
 from math import pow, radians, sin, cos, sqrt, atan2
@@ -33,35 +33,33 @@ def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
 
 class ProgressionService: # Service class to handle all progression-related business logic, called by server.py after authentication and validation
     def __init__(self, repo: UserRepository):
-        # Store the repository so all methods can access Firestore through it
+        # Store the repository so all methods can access the Supabase Postgres DB through it
         self._repo = repo
 
     def update_username(self, uid: str, username: str):
         if self._repo.username_exists(uid, username):
             return {"success": False, "error": "Username taken"} # Reads via the repository class and returns early without ever writing the update
-        
-        self._repo.set_public_fields(uid, {"username": username}) # Successful, so write via the repository class
+        # Not atomic, but username is marked as UNIQUE so the same username write is impossible
+        self._repo.set_user_data(uid, {"username": username}) # Successful, so write via the repository class
         return {"success": True}
 
     def get_progress(self, uid: str):
         # Gets a user's current progression state
-        
-        # Get both public and private data to determine level, XP, and reward cooldown status
-        public = self._repo.get_public_user(uid) # the users-public document (level, xp, etc)
-        private = self._repo.get_private_user(uid) # the users-private document (last claim time, etc)
 
-        # Fallback for users with no Firestore document
-        if public is None:
+        # Get the user's data to determine level, XP, and reward cooldown status
+        user = self._repo.get_user(uid)
+
+        # Fallback for users with no row yet
+        if user is None:
             self._repo.initialize_user_if_new(uid)
-            public = {"level": 1, "expPoints": 0}
-            private = {"lastDailyClaim": None, "canClaimDailyReward": True}
+            user = {"level": 1, "exp_points": 0, "last_daily_claim": None, "can_claim_daily_reward": True}
 
-        level = public.get("level", 1) # default to level 1 if missing
-        exp = public.get("expPoints", 0) # default to 0 XP if missing
+        level = user.get("level", 1) # default to level 1 if missing
+        exp = user.get("exp_points", 0) # default to 0 XP if missing
 
         # Determine if the user can claim (23-hour cooldown)
         can_claim = True
-        last_claim = private.get("lastDailyClaim") if private else None
+        last_claim = user.get("last_daily_claim")
         if last_claim is not None:
             last_claim_dt = to_utc_datetime(last_claim)
             seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
@@ -80,14 +78,14 @@ class ProgressionService: # Service class to handle all progression-related busi
     def claim_daily_reward(self, uid: str):
         # Processes a daily reward claim attempt, applying cooldown checks, XP calculation, and level-ups
         # Step 1: Get current state
-        public = self._repo.get_public_user(uid)
-        if public is None:
-            # Fallback if users somehow claims before initialization
+        user = self._repo.get_user(uid)
+        if user is None:
+            # Fallback if user somehow claims before initialization
             self._repo.initialize_user_if_new(uid)
-            public = {"level": 1, "expPoints": 0}
+            user = {"level": 1, "exp_points": 0}
 
-        current_level = public.get("level", 1) # default to level 1 if missing
-        current_exp = public.get("expPoints", 0) #  default to 0 XP if missing
+        current_level = user.get("level", 1) # default to level 1 if missing
+        current_exp = user.get("exp_points", 0) # default to 0 XP if missing
 
         # Step 2: Calculate XP reward and apply level-ups based on the current state of the user
         xp_gained = calculate_daily_reward_xp(current_level)
@@ -129,15 +127,15 @@ class ProgressionService: # Service class to handle all progression-related busi
             }
 
         # Step 2: Get the user's current level and XP
-        public = self._repo.get_public_user(uid)
-        if public is None:
+        user = self._repo.get_user(uid)
+        if user is None:
             self._repo.initialize_user_if_new(uid)
-            public = {"level": 1, "expPoints": 0}
+            user = {"level": 1, "exp_points": 0}
 
-        current_level = public.get("level", 1)
-        current_exp = public.get("expPoints", 0)
+        current_level = user.get("level", 1)
+        current_exp = user.get("exp_points", 0)
 
-        # Step 3: Calculate XP reward for checking in (the higher the level, the higher the small bonus
+        # Step 3: Calculate XP reward for checking in (the higher the level, the higher the small bonus)
         xp_gained = 100 + random.randint(0, max(current_level, 0))
 
         # Step 4: Calculate the new level and XP after applying the reward
@@ -184,12 +182,12 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # Self-note: Make sure the events it checks are only handled by the backend and can't be written solely by the client
 
-         # check which event triggered the XP gain and verify it actually happened
+        # check which event triggered the XP gain and verify it actually happened
         xp_gained = 0
 
-        # xp is granted based on verifying the event actually happened by checking Firestore for the relevant data
+        # xp is granted based on verifying the event actually happened by checking the Supabase Postgres DB for the relevant data
         if event == "event1":
-            pass  # TODO: verify workout exists in Firestore and award XP
+            pass  # TODO: verify workout exists in the Supabase Postgres DB and award XP
         elif event == "event2":
             pass  # TODO: verify badge exists and hasn't already awarded XP
         elif event == "event3":

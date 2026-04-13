@@ -930,4 +930,21 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added attribution to OSM (flutter_osm automatically adds it on the map but flutter_map doesn't)
 - Added a currentZoom variable so that the recenter button doesn't change the user's zoom as .move explicitly requires zoom level to be passed
 - Added supabase imports and initialization for migrating from Firestore to Postgres
-- This was easy because of the separated backend classes, only repository.py (the class which directly reads / writes the DB) needs to be updated
+- Added a schema.sql file for documentation purposes
+- Migrated user data from Firestore to Supabase
+- Deleted sanitize_poi_id because Postgres allows the raw name to be stored
+
+## 2026-04-13
+- Added the UNIQUE constraint to the username field so duplicates are handled on the DB-level
+- Used the CITEXT extension so that the uniqueness of usernames is handled on a case-insensitive basis (eg so Nick and nick are not treated as separate usernames)
+- Migrated the repository.py methods that use Firestore to query from Supabase Postgres instead
+- Made a functions.sql file to document RPCs made
+- Supabase postgres doesn't support transactions like Firestore does, so making functions with "FOR UPDATE" (the row level lock) is the solution for migrating the atomic operations
+- All atomic methods in repository.py now call their corresponding RPC methods to ensure the methods remain atomic
+- Updated the service.py code to properly refer to the updated methods because some were merged into one (users_public and users_private into users) and names now use snake case
+- Migrated send_due_reminders and get_next_reset_time in server.py to use Postgres instead of Firestore
+- Migrated token_manager.py to use Postgres instead of Firestore
+- Made a RPC method for update_tokens and refund_tokens in token_manager.py to ensure it stays atomic
+- Noticed server.py talked to the database directly for some operations (e.g getting fcm_tokens), so extracted the logic into methods and moved it into repository.py for consistency (as all direct reads / writes to the db happen via repository.py)
+- UserRepository was handling all db operations, so added RemindersRepository and RateLimitRepository to separate the responsibilities
+- Added reminder_repo and rate_limit_repo objects to server.py and updated everything calling user_repo's methods to use the corresponding reminder_repo / rate_limit_repo class methods instead
