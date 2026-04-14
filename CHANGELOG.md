@@ -1001,3 +1001,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Deleted the claimed column from reminders because it unnecessarily adds complexity and was not wired up with anything yet anyway
 - Fixed daily reward never showing for users migrated from Firestore. Their last_daily_claim was stored as a string, but to_utc_datetime() had no string handler, so it fell back to returning the current time, making the cooldown always appear unmet
 - Removed the firestore-specific code in to_utc_datetime()
+- Added achievement_progress and achievement_claims tables to schema.sql for the badges system
+- achievement_progress tracks how far a user is in each achievement category (e.g. progress = 12 for "level"). For simple one-time badges, progress is just treated 0 or 1 for unclaimed or claimed
+- achievement_claims records which specific tiers a user already collected rewards for (e.g. tier 5 and tier 10 of "level"). This prevents double claiming and lets tiered achievements unlock independently
+- Two tables instead of one because a single claimed/unclaimed boolean can't represent multiple tiers within one achievement
+- Added inline comments to all tables and columns in schema.sql
