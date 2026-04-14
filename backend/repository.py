@@ -133,7 +133,7 @@ class ReminderRepository:
                 "message": message,
                 "scheduled_at": scheduled_at,
                 "notification_id": notification_id,
-                "claimed": False  # not processed yet
+                "claimed": False  # automatically added
             })
             .execute()
         )

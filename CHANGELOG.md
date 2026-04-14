@@ -992,3 +992,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed food logging not saving: meal keys were inconsistent between Flutter (capitalized) and the backend (lowercase), so reads/writes mapped to the wrong keys and resulted in empty lists
 - Standardized all meal keys to lowercase ("breakfast", "lunch", "dinner", "snacks") across food_logging.dart and user_data_manager.dart so they match the backend's column names
 - Changed the meal dropdown to store lowercase values internally while still displaying capitalized labels to the user
+
+## 2026-04-14
+- Fixed /set_reminder route returning error code 500 due to mismatches with the actual table in Postgres
+- Fixed by renaming the "time" column to "scheduled_at", adding the missing "claimed" column, and also added a default value for the id to make sure it is never null (safety fallback) by using Postgres gen_random_uuid()
+- Updated the schema.sql reference to reflect the changes

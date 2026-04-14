@@ -331,7 +331,10 @@ class _RemindersState extends State<Reminders> {
       );
 
       if (response.statusCode != 200) {
-        _showSnackbar("Failed to set reminder", isError: true);
+        _showSnackbar(
+          "Failed to set reminder: Status code ${response.statusCode}",
+          isError: true,
+        );
         return;
       }
 

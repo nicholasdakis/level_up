@@ -37,11 +37,12 @@ CREATE TABLE food_logs (
 );
 
 CREATE TABLE reminders (
-    id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
     uid TEXT REFERENCES users(uid),
-    time TIMESTAMPTZ,
+    scheduled_at TIMESTAMPTZ,
     message TEXT,
-    notification_id BIGINT
+    notification_id BIGINT,
+    claimed BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE poi_visits (
