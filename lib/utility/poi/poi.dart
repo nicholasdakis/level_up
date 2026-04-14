@@ -23,7 +23,8 @@ class POI {
   factory POI.fromJson(Map<String, dynamic> json) {
     return POI(
       name: json['name'] as String,
-      lat: (json['lat'] as num).toDouble(), // num.toDouble() handles both int and double from JSON
+      lat: (json['lat'] as num)
+          .toDouble(), // num.toDouble() handles both int and double from JSON
       lng: (json['lng'] as num).toDouble(),
       category: json['category'] as String,
     );
@@ -31,11 +32,6 @@ class POI {
 
   // Convert a POI to a JSON map (used when saving to SharedPreferences cache)
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'lat': lat,
-      'lng': lng,
-      'category': category,
-    };
+    return {'name': name, 'lat': lat, 'lng': lng, 'category': category};
   }
 }

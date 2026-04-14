@@ -1808,26 +1808,33 @@ class _FoodLoggingState extends State<FoodLogging>
                             ),
                           ),
                           value: mealType,
-                          // Convert the strings to DropdownMenuItems
-                          items: [
-                                {"value": "breakfast", "label": "Breakfast"},
-                                {"value": "lunch", "label": "Lunch"},
-                                {"value": "dinner", "label": "Dinner"},
-                                {"value": "snacks", "label": "Snacks"},
-                              ]
-                              .map(
-                                (t) => DropdownMenuItem(
-                                  value: t["value"],
-                                  child: Text(
-                                    t["label"]!,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 20),
-                                      color: Colors.white,
+                          // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
+                          items:
+                              [
+                                    {
+                                      "value": "breakfast",
+                                      "label": "Breakfast",
+                                    },
+                                    {"value": "lunch", "label": "Lunch"},
+                                    {"value": "dinner", "label": "Dinner"},
+                                    {"value": "snacks", "label": "Snacks"},
+                                  ]
+                                  .map(
+                                    (t) => DropdownMenuItem(
+                                      value: t["value"], // "breakfast"
+                                      child: Text(
+                                        t["label"]!, // "Breakfast"
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            20,
+                                          ),
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                                  )
+                                  .toList(),
                           onChanged: (value) =>
                               setState(() => mealType = value),
                         ),

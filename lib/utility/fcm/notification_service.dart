@@ -41,52 +41,52 @@ void showBrowserBlockedDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-        backgroundColor: appColorNotifier.value.withAlpha(150),
-        title: Text(
-          'Browser Notifications are Disabled',
-          style: TextStyle(
-            fontSize: Responsive.font(context, 20),
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
+      backgroundColor: appColorNotifier.value.withAlpha(150),
+      title: Text(
+        'Browser Notifications are Disabled',
+        style: TextStyle(
+          fontSize: Responsive.font(context, 20),
+          fontWeight: FontWeight.bold,
         ),
-        content: Text(
-          'In-app notifications are enabled, but your browser is blocking them.\n\n'
-          'Click "Enable" to request notification permissions from your browser.',
-          style: TextStyle(fontSize: Responsive.font(context, 15)),
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(fontSize: Responsive.font(context, 16)),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop(); // close dialog first
-
-              final token = await requestNotificationAndToken();
-              if (token != null) {
-                await userManager.initializeFcmToken(token);
-                debugPrint('FCM token obtained after enable button');
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Browser is still blocking notifications.'),
-                  ),
-                );
-              }
-            },
-            child: Text(
-              'Enable',
-              style: TextStyle(fontSize: Responsive.font(context, 16)),
-            ),
-          ),
-        ],
+        textAlign: TextAlign.center,
       ),
+      content: Text(
+        'In-app notifications are enabled, but your browser is blocking them.\n\n'
+        'Click "Enable" to request notification permissions from your browser.',
+        style: TextStyle(fontSize: Responsive.font(context, 15)),
+        textAlign: TextAlign.center,
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context).pop(); // close dialog first
+
+            final token = await requestNotificationAndToken();
+            if (token != null) {
+              await userManager.initializeFcmToken(token);
+              debugPrint('FCM token obtained after enable button');
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Browser is still blocking notifications.'),
+                ),
+              );
+            }
+          },
+          child: Text(
+            'Enable',
+            style: TextStyle(fontSize: Responsive.font(context, 16)),
+          ),
+        ),
+      ],
+    ),
   );
 }
