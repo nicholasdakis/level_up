@@ -999,3 +999,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Updated the schema.sql reference to reflect the changes
 - Fixed the reminder itself showing it was set in UTC in the reminder card even though the backend sends the reminder at the correct chosen user time
 - Deleted the claimed column from reminders because it unnecessarily adds complexity and was not wired up with anything yet anyway
+- Fixed daily reward never showing for users migrated from Firestore. Their last_daily_claim was stored as a string, but to_utc_datetime() had no string handler, so it fell back to returning the current time, making the cooldown always appear unmet
+- Removed the firestore-specific code in to_utc_datetime()
