@@ -988,3 +988,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed an ambiguity in consume_tokens and refund_tokens that prevented the methods from running correctly
 - Made saveFoodData only send the current day's food instead of the entire foodDataByDate object to only send 1 http request instead of 1 for each day of foods logged
 - Updated the README to add a link to the GitHub Wiki and to mention the newer app features
+- saveFoodData crashing due to a bug showed that isLogging doesn't have any sort of timeout, which makes it permanently true => permanently shows the "please wait" snackbar
+- Fixed food logging not saving: meal keys were inconsistent between Flutter (capitalized) and the backend (lowercase), so reads/writes mapped to the wrong keys and resulted in empty lists
+- Standardized all meal keys to lowercase ("breakfast", "lunch", "dinner", "snacks") across food_logging.dart and user_data_manager.dart so they match the backend's column names
+- Changed the meal dropdown to store lowercase values internally while still displaying capitalized labels to the user

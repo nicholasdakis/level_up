@@ -203,10 +203,10 @@ class _FoodLoggingState extends State<FoodLogging>
   void loadFoodForDate(DateTime date) {
     final dayData = foodDataByDate[formatDateKey(date)];
     setState(() {
-      breakfastFoods = _castFoodList(dayData?['Breakfast']);
-      lunchFoods = _castFoodList(dayData?['Lunch']);
-      dinnerFoods = _castFoodList(dayData?['Dinner']);
-      snacksFoods = _castFoodList(dayData?['Snacks']);
+      breakfastFoods = _castFoodList(dayData?['breakfast']);
+      lunchFoods = _castFoodList(dayData?['lunch']);
+      dinnerFoods = _castFoodList(dayData?['dinner']);
+      snacksFoods = _castFoodList(dayData?['snacks']);
     });
   }
 
@@ -583,10 +583,15 @@ class _FoodLoggingState extends State<FoodLogging>
     final dateKey = formatDateKey(currentDate);
     foodDataByDate.putIfAbsent(
       dateKey,
-      () => {"Breakfast": [], "Lunch": [], "Dinner": [], "Snacks": []},
+      () => {"breakfast": [], "lunch": [], "dinner": [], "snacks": []},
     );
     foodDataByDate[dateKey]![mealType!]!.add(foodObject);
-    await saveFoodData("add");
+
+    try {
+      await saveFoodData("add");
+    } catch (e) {
+      debugPrint("Error saving food data: $e");
+    }
 
     setState(() {
       loadFoodForDate(currentDate);
@@ -1493,10 +1498,10 @@ class _FoodLoggingState extends State<FoodLogging>
   Widget _buildAllMealSections() {
     return Column(
       children: [
-        _buildMealSection("Breakfast", breakfastFoods),
-        _buildMealSection("Lunch", lunchFoods),
-        _buildMealSection("Dinner", dinnerFoods),
-        _buildMealSection("Snacks", snacksFoods),
+        _buildMealSection("breakfast", breakfastFoods),
+        _buildMealSection("lunch", lunchFoods),
+        _buildMealSection("dinner", dinnerFoods),
+        _buildMealSection("snacks", snacksFoods),
       ],
     );
   }
@@ -1804,12 +1809,17 @@ class _FoodLoggingState extends State<FoodLogging>
                           ),
                           value: mealType,
                           // Convert the strings to DropdownMenuItems
-                          items: ["Breakfast", "Lunch", "Dinner", "Snacks"]
+                          items: [
+                                {"value": "breakfast", "label": "Breakfast"},
+                                {"value": "lunch", "label": "Lunch"},
+                                {"value": "dinner", "label": "Dinner"},
+                                {"value": "snacks", "label": "Snacks"},
+                              ]
                               .map(
                                 (t) => DropdownMenuItem(
-                                  value: t,
+                                  value: t["value"],
                                   child: Text(
-                                    t,
+                                    t["label"]!,
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 20),
                                       color: Colors.white,

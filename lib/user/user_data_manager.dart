@@ -151,7 +151,7 @@ class UserDataManager {
             'breakfast': _parseMealList(map['breakfast']),
             'lunch': _parseMealList(map['lunch']),
             'dinner': _parseMealList(map['dinner']),
-            'snack': _parseMealList(map['snack']),
+            'snacks': _parseMealList(map['snack']),
           };
         }
         currentUserData?.foodDataByDate = foodData;
@@ -826,7 +826,7 @@ class UserDataManager {
                 'breakfast': meals['breakfast'] ?? [],
                 'lunch': meals['lunch'] ?? [],
                 'dinner': meals['dinner'] ?? [],
-                'snack': meals['snack'] ?? [],
+                'snack': meals['snacks'] ?? [],
               }),
             )
             .timeout(Duration(seconds: 2));
