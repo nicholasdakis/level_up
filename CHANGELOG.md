@@ -1006,3 +1006,9 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - achievement_claims records which specific tiers a user already collected rewards for (e.g. tier 5 and tier 10 of "level"). This prevents double claiming and lets tiered achievements unlock independently
 - Two tables instead of one because a single claimed/unclaimed boolean can't represent multiple tiers within one achievement
 - Added inline comments to all tables and columns in schema.sql
+- Built out the Badges screen UI with frosted glass cards, replacing the placeholder
+- Made an AchievementDef class used for each achievement
+- Achievements are grouped into tabbed sections (Progression, Explore, Tabs, Food, Reminders, Personalization, Meta) using DefaultTabController so users can swipe between categories instead of scrolling
+- Each achievement card shows an icon, name, description, progress bar, and tier chips with locked/claimable/claimed states
+- Achievement definitions (names, icons, tiers, descriptions) live in Flutter code, not the database
+- Added a cooldown guard on tier claiming to prevent double taps
