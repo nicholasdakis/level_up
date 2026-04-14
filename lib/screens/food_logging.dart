@@ -586,7 +586,7 @@ class _FoodLoggingState extends State<FoodLogging>
       () => {"Breakfast": [], "Lunch": [], "Dinner": [], "Snacks": []},
     );
     foodDataByDate[dateKey]![mealType!]!.add(foodObject);
-    saveFoodData("add"); // save in background so the UI updates instantly
+    await saveFoodData("add");
 
     setState(() {
       loadFoodForDate(currentDate);
@@ -629,8 +629,11 @@ class _FoodLoggingState extends State<FoodLogging>
   Future<void> saveFoodData(String? addOrDelete) async {
     if (currentUserData == null) return;
     currentUserData!.foodDataByDate = foodDataByDate;
+    // Only sends the current date's data
+    final dateKey = formatDateKey(currentDate);
+    final currentDateData = {dateKey: foodDataByDate[dateKey]!};
     await userManager.updateFoodDataByDate(
-      foodDataByDate,
+      currentDateData,
       context: context,
       isBeingDeleted: addOrDelete == "delete",
     );

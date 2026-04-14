@@ -986,4 +986,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Updated daily_rewards to use the /set_reminders route instead of directly writing Firestore
 - Reverted the FoodItem schema because food searches don't always return every field
 - Fixed an ambiguity in consume_tokens and refund_tokens that prevented the methods from running correctly
-- Removed the await before saveFoodData so logFood doesn't wait for it before refreshing the UI
+- Made saveFoodData only send the current day's food instead of the entire foodDataByDate object to only send 1 http request instead of 1 for each day of foods logged
