@@ -50,3 +50,14 @@ CREATE TABLE poi_visits (
     last_visit TIMESTAMPTZ,
     PRIMARY KEY (uid, poi_name)
 );
+
+-- Stores processed responses so retried requests return the same result instead of re-executing
+CREATE TABLE idempotency_keys (
+    key TEXT,                          -- client-generated unique key (e.g. UUID) per request
+    uid TEXT REFERENCES users(uid),    -- scoped to the user so keys can't cross accounts
+    endpoint TEXT,                     -- which route was called (e.g. "claim_daily_reward")
+    response JSONB,                    -- the exact JSON response returned the first time
+    created_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ,
+    PRIMARY KEY (uid, key)
+);
