@@ -43,8 +43,7 @@ CREATE TABLE reminders (
     uid TEXT REFERENCES users(uid),    -- the user who created the reminder
     scheduled_at TIMESTAMPTZ,          -- when the notification should be sent
     message TEXT,                      -- the notification message body
-    notification_id BIGINT,            -- client-side notification ID for cancellation
-    claimed BOOLEAN NOT NULL DEFAULT FALSE -- whether the reminder has been sent
+    notification_id BIGINT             -- client-side notification ID for cancellation
 );
 
 -- Tracks the last time a user visited each point of interest for the 24-hour cooldown
