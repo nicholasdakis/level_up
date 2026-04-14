@@ -19,7 +19,7 @@ class ReminderData {
       message: json['message'],
       scheduledAt: DateTime.parse(
         json['scheduled_at'],
-      ), // ISO string from backend
+      ).toLocal(), // ISO string from backend, converted to local time
       notificationId: json['notification_id'],
       claimed: json['claimed'],
     );
