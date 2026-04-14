@@ -997,4 +997,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed /set_reminder route returning error code 500 due to mismatches with the actual table in Postgres
 - Fixed by renaming the "time" column to "scheduled_at", adding the missing "claimed" column, and also added a default value for the id to make sure it is never null (safety fallback) by using Postgres gen_random_uuid()
 - Updated the schema.sql reference to reflect the changes
-- Fixed the reminder itself being set in UTC, even though the frontend shows the user's actual time
+- Fixed the reminder itself showing it was set in UTC in the reminder card even though the backend sends the reminder at the correct chosen user time
+- Deleted the claimed column from reminders because it unnecessarily adds complexity and was not wired up with anything yet anyway

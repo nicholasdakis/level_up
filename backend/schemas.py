@@ -122,7 +122,6 @@ class ReminderItem(BaseModel):
     message: str
     scheduled_at: str
     notification_id: int
-    claimed: bool
 
 # ==============================================================================
 # Response schemas
