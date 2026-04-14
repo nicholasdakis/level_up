@@ -1124,7 +1124,9 @@ class _FoodLoggingState extends State<FoodLogging>
               children: [
                 ListTile(
                   title: Text(
-                    barcodeResult!['food_name'] ?? '',
+                    barcodeResult!['brand_name'] != null
+                        ? '${barcodeResult!['brand_name']} · ${barcodeResult!['food_name'] ?? ''}'
+                        : (barcodeResult!['food_name'] ?? ''),
                     style: GoogleFonts.manrope(
                       color: Colors.white,
                       fontSize: Responsive.font(context, 18),
