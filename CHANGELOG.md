@@ -987,3 +987,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Reverted the FoodItem schema because food searches don't always return every field
 - Fixed an ambiguity in consume_tokens and refund_tokens that prevented the methods from running correctly
 - Made saveFoodData only send the current day's food instead of the entire foodDataByDate object to only send 1 http request instead of 1 for each day of foods logged
+- Updated the README to add a link to the GitHub Wiki and to mention the newer app features
