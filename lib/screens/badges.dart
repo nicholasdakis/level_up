@@ -63,28 +63,28 @@ const List<AchievementDef> achievementDefs = [
   // Progression
   AchievementDef(
     id: "level",
-    name: "Level Up!",
+    name: "Level Up",
     description: "Reach the specified level",
     icon: Icons.arrow_upward,
-    tiers: [5, 10, 25, 50, 100],
+    tiers: [3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
     unit: "levels",
     section: "PROGRESSION",
   ),
   AchievementDef(
     id: "daily_claims",
-    name: "Daily Claimer",
-    description: "Claim your daily reward",
+    name: "Daily Claims",
+    description: "Claim your daily reward the specified number of times",
     icon: Icons.calendar_today,
-    tiers: [1, 7, 30],
+    tiers: [1, 7, 30, 100, 365],
     unit: "claims",
     section: "PROGRESSION",
   ),
   AchievementDef(
     id: "daily_consecutive",
     name: "On a Roll",
-    description: "Claim the daily reward the specified consecutive days",
+    description: "Claim your daily reward for the specified consecutive days",
     icon: Icons.local_fire_department,
-    tiers: [5, 10, 15, 20, 25, 30],
+    tiers: [2, 5, 10, 15, 20, 25, 30],
     unit: "consecutive days",
     section: "PROGRESSION",
   ),
@@ -92,25 +92,26 @@ const List<AchievementDef> achievementDefs = [
   // Explore
   AchievementDef(
     id: "poi_visits",
-    name: "Explorer",
+    name: "Just Checking In",
     description: "Check in at the specified number of POIs",
     icon: Icons.explore,
-    tiers: [1, 5, 10, 25],
+    tiers: [1, 5, 10, 15, 20, 25, 50, 75, 100, 150, 200],
     unit: "visits",
     section: "EXPLORE",
   ),
   AchievementDef(
     id: "poi_categories",
     name: "Category Collector",
-    description: "Check in at POIs from the specified number of categories",
+    description:
+        "Check in at POIs from the specified number of unique categories",
     icon: Icons.category,
-    tiers: [5, 10, 15, 20],
+    tiers: [5, 10, 15, 20, 25, 30],
     unit: "different categories",
     section: "EXPLORE",
   ),
   AchievementDef(
     id: "poi_regular",
-    name: "Regular",
+    name: "The Usual",
     description: "Check in at the same POI 5 times",
     icon: Icons.repeat,
     tiers: [5],
@@ -121,7 +122,7 @@ const List<AchievementDef> achievementDefs = [
   // Tabs
   AchievementDef(
     id: "open_food_logging",
-    name: "Hungry?",
+    name: "Write That Down!",
     description: "Open the Food Logging tab",
     icon: Icons.restaurant_menu,
     tiers: [1],
@@ -139,7 +140,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "open_reminders",
-    name: "On Time",
+    name: "Always On Time",
     description: "Open the Reminders tab",
     icon: Icons.alarm,
     tiers: [1],
@@ -149,7 +150,7 @@ const List<AchievementDef> achievementDefs = [
   AchievementDef(
     id: "open_badges",
     name: "Badge Hunter",
-    description: "Open the Badges tab",
+    description: "Open the Badges tab (this one!)",
     icon: Icons.emoji_events,
     tiers: [1],
     unit: "open",
@@ -157,7 +158,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "open_leaderboard",
-    name: "Competitive",
+    name: "Bring It On",
     description: "Open the Leaderboard tab",
     icon: Icons.leaderboard,
     tiers: [1],
@@ -177,8 +178,8 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "food_recent",
-    name: "Creature of Habit",
-    description: "Log a food from the Recent section",
+    name: "Shortcut",
+    description: "Log a food from the Recent Logs section",
     icon: Icons.history,
     tiers: [1],
     unit: "recent log used",
@@ -186,7 +187,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "food_full_day",
-    name: "Full Course",
+    name: "Full Course Meal",
     description: "Log breakfast, lunch, and dinner in one day",
     icon: Icons.dinner_dining,
     tiers: [1],
@@ -204,7 +205,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "food_manual",
-    name: "Manual Entry",
+    name: "My Way",
     description: "Log a food using manual entry",
     icon: Icons.edit,
     tiers: [1],
@@ -231,7 +232,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "calorie_calculator",
-    name: "Calorie Calculator",
+    name: "Goal Reacher",
     description: "Use the calorie calculator",
     icon: Icons.calculate,
     tiers: [1],
@@ -242,7 +243,7 @@ const List<AchievementDef> achievementDefs = [
   // Reminders
   AchievementDef(
     id: "set_reminder",
-    name: "Reminder Set",
+    name: "Reminder Setter",
     description: "Set a reminder",
     icon: Icons.notifications_active,
     tiers: [1],
@@ -251,7 +252,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "delete_reminder",
-    name: "Nevermind",
+    name: "Honestly, Nevermind",
     description: "Delete a reminder",
     icon: Icons.delete_outline,
     tiers: [1],
@@ -280,7 +281,7 @@ const List<AchievementDef> achievementDefs = [
   // Personalization
   AchievementDef(
     id: "set_username",
-    name: "Named",
+    name: "Only One Of Me",
     description: "Set your username",
     icon: Icons.badge,
     tiers: [1],
@@ -298,7 +299,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "change_app_color",
-    name: "Fresh Coat",
+    name: "Fresh Coat Of Paint",
     description: "Change your app color",
     icon: Icons.palette,
     tiers: [1],
@@ -307,7 +308,7 @@ const List<AchievementDef> achievementDefs = [
   ),
   AchievementDef(
     id: "send_feedback",
-    name: "Voice Heard",
+    name: "The Critic",
     description: "Send feedback using the feedback button",
     icon: Icons.feedback,
     tiers: [1],
@@ -317,7 +318,7 @@ const List<AchievementDef> achievementDefs = [
   AchievementDef(
     id: "switch_imperial",
     name: "Freedom Units",
-    description: "Switch your units to imperial",
+    description: "Switch your units to imperial in the Calorie Calculator tab",
     icon: Icons.straighten,
     tiers: [1],
     unit: "switched to imperial",

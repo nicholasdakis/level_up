@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "App version: Beta 04.14",
+                                    "App version: Beta 04.15",
                                     style: TextStyle(
                                       color: darkenColor(
                                         appColorNotifier.value,
@@ -273,8 +273,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   750,
                                   context,
                                   onPressed: () {
-                                    trackTrivialAchievement("calorie_calculator");
-                                    changeToScreen(context, CalorieCalculator());
+                                    trackTrivialAchievement(
+                                      "calorie_calculator",
+                                    );
+                                    changeToScreen(
+                                      context,
+                                      CalorieCalculator(),
+                                    );
                                   },
                                 ),
                                 SizedBox(
@@ -288,7 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   750,
                                   context,
                                   onPressed: () {
-                                    trackTrivialAchievement("open_food_logging");
+                                    trackTrivialAchievement(
+                                      "open_food_logging",
+                                    );
                                     changeToScreen(context, FoodLogging());
                                   },
                                 ),
