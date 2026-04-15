@@ -23,9 +23,7 @@ CREATE TABLE users (
     can_claim_daily_reward BOOLEAN,    -- whether the user can claim their daily reward
     fcm_tokens TEXT[],                 -- Firebase Cloud Messaging tokens for push notifications
     last_daily_claim TIMESTAMPTZ,      -- when the user last claimed their daily reward
-    notifications_enabled BOOLEAN,     -- whether the user has push notifications turned on
-    daily_streak INTEGER DEFAULT 0,    -- current consecutive daily reward claims
-    highest_daily_streak INTEGER DEFAULT 0 -- all-time best consecutive daily reward claims
+    notifications_enabled BOOLEAN     -- whether the user has push notifications turned on
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
@@ -85,4 +83,14 @@ CREATE TABLE achievement_claims (
     claimed_at TIMESTAMPTZ NOT NULL,   -- when the user claimed the reward
     PRIMARY KEY (uid, achievement_id, tier), -- one row per user per achievement per tier
     FOREIGN KEY (uid, achievement_id) REFERENCES achievement_progress(uid, achievement_id) -- must have a progress row first
+);
+
+-- Table to store streaks and highest_streaks for different stats per-user
+CREATE TABLE streaks (
+    uid TEXT REFERENCES users(uid),
+    streak_type TEXT,
+    streak INTEGER DEFAULT 0,
+    highest_streak INTEGER DEFAULT 0,
+    last_date DATE DEFAULT '1970-01-01', -- the most recent date that advanced the streak
+    PRIMARY KEY (uid, streak_type) -- one row per user per streak type
 );
