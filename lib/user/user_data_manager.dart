@@ -26,6 +26,20 @@ Future<String> getIdToken() async {
   return token;
 }
 
+// Fires and forgets a trivial achievement increment to the backend
+void trackTrivialAchievement(String achievementId) async {
+  try {
+    final token = await getIdToken();
+    await http.post(
+      Uri.parse('$backendBaseUrl/claim_trivial_achievement'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': token, 'achievement_id': achievementId}),
+    ).timeout(const Duration(seconds: 5));
+  } catch (e) {
+    debugPrint('Failed to track trivial achievement $achievementId: $e');
+  }
+}
+
 // Online connectivity checker
 bool isConnected = true;
 

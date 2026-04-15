@@ -1,6 +1,7 @@
 # Repository Layer: the only place in the backend that reads/writes Supabase, so DB logic is only in these classes and can be easily swapped if ever needed
 
 from supabase import Client
+from backend.valid_achievements import VALID_ACHIEVEMENT_IDS
 
 class UserRepository:
     # Repository class to handle all Postgres operations related to user data
@@ -133,6 +134,8 @@ class AchievementRepository: # Repository class to handle all Postgres operation
         return result.data
     
     def upsert_achievement_progress(self, uid: str, achievement_id: str, increment_amount: int):
+        if achievement_id not in VALID_ACHIEVEMENT_IDS:
+            raise ValueError(f"Unknown achievement: {achievement_id}")
         # Call the RPC method which atomically updates and returns the new progress amount
         result = self._supabase.rpc("upsert_achievement_progress", {
             "p_uid": uid,

@@ -8,6 +8,7 @@ import 'settings_buttons/personal_preferences.dart';
 import 'settings_buttons/about_the_developer.dart';
 import 'settings_buttons/install_guide.dart';
 import '../authentication/auth_services.dart';
+import '../user/user_data_manager.dart' show trackTrivialAchievement;
 import 'dart:js_interop';
 
 @JS('isPwa')
@@ -112,6 +113,7 @@ Widget buildSettingsDrawer(
               hoverColor: Colors.white.withAlpha(50),
               onTap: () async {
                 Navigator.pop(context);
+                trackTrivialAchievement("send_feedback");
                 sendEmail(
                   context,
                   "n1ch0lasd4k1s@gmail.com",

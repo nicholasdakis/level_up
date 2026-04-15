@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../user/user_data_manager.dart' show trackTrivialAchievement;
 
 class AboutTheDeveloper extends StatefulWidget {
   const AboutTheDeveloper({super.key});
@@ -179,6 +180,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           InkWell(
                             splashColor: appColorNotifier.value.withAlpha(100),
                             onTap: () {
+                              trackTrivialAchievement("send_feedback");
                               sendEmail(
                                 context,
                                 "n1ch0lasd4k1s@gmail.com",

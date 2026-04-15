@@ -801,6 +801,7 @@ class _FoodLoggingState extends State<FoodLogging>
           }
           if (selectedFood != null) {
             await logFood(Map<String, dynamic>.from(selectedFood!));
+            trackTrivialAchievement("food_search");
           }
         } else if (tab == FoodTab.barcode) {
           if (barcodeResult == null) {
@@ -808,8 +809,10 @@ class _FoodLoggingState extends State<FoodLogging>
             return;
           }
           await logFood(Map<String, dynamic>.from(barcodeResult!));
+          trackTrivialAchievement("food_barcode");
         } else if (tab == FoodTab.manual) {
           await handleManualEntry();
+          trackTrivialAchievement("food_manual");
         }
       },
     );
@@ -1432,7 +1435,10 @@ class _FoodLoggingState extends State<FoodLogging>
                 child: GestureDetector(
                   // Recent foods already have calories set, so logFood's
                   // calorie extraction is a no op here
-                  onTap: () => logFood(Map<String, dynamic>.from(food)),
+                  onTap: () {
+                    logFood(Map<String, dynamic>.from(food));
+                    trackTrivialAchievement("food_recent");
+                  },
                   child: frostedGlassCard(
                     context,
                     baseRadius: 12,

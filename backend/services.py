@@ -6,6 +6,7 @@ from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
+from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -39,6 +40,9 @@ class ProgressionService: # Service class to handle all progression-related busi
 
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails
+        if achievement_id not in SERVER_ACHIEVEMENT_IDS:
+            print(f"[achievements] Rejected unknown server achievement: {achievement_id}")
+            return
         try:
             self._achievement_repo.upsert_achievement_progress(uid, achievement_id, 1)
         except Exception as e:
@@ -48,8 +52,14 @@ class ProgressionService: # Service class to handle all progression-related busi
         if self._repo.username_exists(uid, username):
             return {"success": False, "error": "Username taken"} # Reads via the repository class and returns early without ever writing the update
         # Not atomic, but username is marked as UNIQUE so the same username write is impossible
+        # Check if the user already has a real username (not their uid) before writing
+        user = self._repo.get_user(uid)
+        had_username = user and user.get("username") and user["username"] != uid
+
         self._repo.set_user_data(uid, {"username": username}) # Successful, so write via the repository class
         self._track_achievement(uid, "set_username")
+        if had_username:
+            self._track_achievement(uid, "change_username")
         return {"success": True}
 
     def get_progress(self, uid: str):
@@ -236,6 +246,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Updates the user's app theme color (stored as a string)
         self._repo.set_user_data(uid, {"app_color": app_color})
         self._track_achievement(uid, "change_app_color")
+        self._track_achievement(uid, "color_indecisive")
 
     def update_notifications_enabled(self, uid: str, enabled: bool):
         # Updates the user's notification preference

@@ -52,9 +52,11 @@ from backend.schemas import (
     GetAchievementsResponse,
     AchievementProgressEntry,
     AchievementClaimEntry,
-    ClaimAchievementRequest
+    ClaimAchievementRequest,
+    ClaimTrivialAchievementRequest
 )
 from backend.auth import verify_token
+from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS
 from backend.utils import to_utc_datetime
 from backend.redis_cache import FOOD_CACHE_TTL, redis
 
@@ -814,6 +816,25 @@ def claim_achievement():
     # Step 4: Build and return the validated response
     response = SimpleSuccessResponse(success=True)
     return jsonify(response.model_dump()), 200
+
+@app.route("/claim_trivial_achievement", methods=["POST"])
+def claim_trivial_achievement():
+    # Restricted route that only accepts low-stakes achievement IDs the client can trigger directly
+    try:
+        body = ClaimTrivialAchievementRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    if body.achievement_id not in TRIVIAL_ACHIEVEMENT_IDS:
+        return jsonify({"error": "Achievement not allowed via this route"}), 403
+
+    progression_service._track_achievement(uid, body.achievement_id)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

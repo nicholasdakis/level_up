@@ -107,6 +107,10 @@ class ClaimAchievementRequest(BaseModel):
     achievement_id: str = Field(..., min_length=1)
     tier: int
 
+class ClaimTrivialAchievementRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    achievement_id: str = Field(..., min_length=1)
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================

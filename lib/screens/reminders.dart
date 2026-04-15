@@ -342,6 +342,15 @@ class _RemindersState extends State<Reminders> {
       remindersController.clear();
       setState(() => _dateTimePicked = false);
       await _loadRemindersFromServer();
+
+      // Track future_reminder if the reminder is 1+ month out
+      if (pickedTime.isAfter(DateTime.now().add(const Duration(days: 30)))) {
+        trackTrivialAchievement("future_reminder");
+      }
+      // Track active_reminders if the user now has 5+ active reminders
+      if (reminders.length >= 5) {
+        trackTrivialAchievement("active_reminders");
+      }
     } catch (e) {
       debugPrint("Error in _setReminder: $e");
       _showSnackbar("Failed to set reminder: ${e.toString()}", isError: true);

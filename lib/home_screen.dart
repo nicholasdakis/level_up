@@ -16,6 +16,7 @@ import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings_buttons/personal_preferences.dart';
 import 'utility/fcm/fcm_service.dart';
+import 'user/user_data_manager.dart' show trackTrivialAchievement;
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
@@ -271,7 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: CalorieCalculator(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("calorie_calculator");
+                                    changeToScreen(context, CalorieCalculator());
+                                  },
                                 ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -283,7 +287,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: FoodLogging(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("open_food_logging");
+                                    changeToScreen(context, FoodLogging());
+                                  },
                                 ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -294,7 +301,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: Explore(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("open_explore");
+                                    changeToScreen(context, Explore());
+                                  },
                                 ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -306,7 +316,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: Reminders(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("open_reminders");
+                                    changeToScreen(context, Reminders());
+                                  },
                                 ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -318,7 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: Badges(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("open_badges");
+                                    changeToScreen(context, Badges());
+                                  },
                                 ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -330,7 +346,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   160,
                                   750,
                                   context,
-                                  destination: Leaderboard(),
+                                  onPressed: () {
+                                    trackTrivialAchievement("open_leaderboard");
+                                    changeToScreen(context, Leaderboard());
+                                  },
                                 ),
                               ],
                             ),

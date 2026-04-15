@@ -6,6 +6,7 @@ import 'calorie_calculator_buttons/results.dart';
 import '../globals.dart';
 import '/utility/responsive.dart';
 import '/utility/shared_preferences/shared_prefs_async.dart';
+import '../user/user_data_manager.dart' show trackTrivialAchievement;
 
 class CalorieCalculator extends StatefulWidget {
   const CalorieCalculator({super.key});
@@ -222,6 +223,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         previousUnits = currentUnits;
                         currentUnits = value;
                         units = value;
+
+                        if (value == "Imperial") {
+                          trackTrivialAchievement("switch_imperial");
+                        }
 
                         // HEIGHT CONVERSION
                         if (heightInches != null && value == "Metric") {
