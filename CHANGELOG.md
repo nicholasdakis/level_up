@@ -1025,3 +1025,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made a /claim_achievement route which calls claim_achievement() in the service layer which called claim_achievement() in the repository layer which called claim_achievement, the RPC method which atomically carries out the operation
 - Made a fetchAchievements method that calls the /get_achievements route and populates progress[] and claimedTiers[]
 - Made claimTier call /claim_achievement
+- Made valid_achievements.py which contains a list of all valid achievement ids to prevent the client from sending junk achievement ids to be stored in the DB
+- Added the check to upsert_achievement_progress to reject an achievement_id not in the list

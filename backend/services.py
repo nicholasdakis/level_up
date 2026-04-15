@@ -5,6 +5,7 @@ import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
+from backend.valid_achievements import VALID_ACHIEVEMENT_IDS
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 
 def experience_needed(level: int):
@@ -293,6 +294,8 @@ class ProgressionService: # Service class to handle all progression-related busi
         }
     
     def upsert_achievement_progress(self, uid: str, achievement_id: str, increment_amount: int):
+        if achievement_id not in VALID_ACHIEVEMENT_IDS:
+            raise ValueError(f"Unknown achievement: {achievement_id}")
         return self._achievement_repo.upsert_achievement_progress(uid, achievement_id, increment_amount)
     
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
