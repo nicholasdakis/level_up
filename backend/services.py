@@ -5,7 +5,6 @@ import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
-from backend.valid_achievements import VALID_ACHIEVEMENT_IDS
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 
 def experience_needed(level: int):
@@ -38,11 +37,19 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._reminder_repo = reminder_repo
         self._achievement_repo = achievement_repo
 
+    def _track_achievement(self, uid: str, achievement_id: str):
+        # Silently increments achievement progress by 1, never breaking the caller if it fails
+        try:
+            self._achievement_repo.upsert_achievement_progress(uid, achievement_id, 1)
+        except Exception as e:
+            print(f"[achievements] Failed to track {achievement_id} for {uid}: {e}")
+
     def update_username(self, uid: str, username: str):
         if self._repo.username_exists(uid, username):
             return {"success": False, "error": "Username taken"} # Reads via the repository class and returns early without ever writing the update
         # Not atomic, but username is marked as UNIQUE so the same username write is impossible
         self._repo.set_user_data(uid, {"username": username}) # Successful, so write via the repository class
+        self._track_achievement(uid, "set_username")
         return {"success": True}
 
     def get_progress(self, uid: str):
@@ -106,6 +113,11 @@ class ProgressionService: # Service class to handle all progression-related busi
                 "seconds_remaining": result.get("seconds_remaining", 0),
             }
 
+        # Track achievements for the successful claim
+        self._track_achievement(uid, "daily_claims")
+        if new_level > current_level:
+            self._track_achievement(uid, "level")
+
         # Successful return with the new progression state
         return {
             "claimed": True,
@@ -156,6 +168,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             }
 
         # Step 6: Successful check-in
+        self._track_achievement(uid, "poi_visits")
+
         return {
             "success": True,
             "xp_gained": xp_gained,
@@ -216,10 +230,12 @@ class ProgressionService: # Service class to handle all progression-related busi
     def update_pfp(self, uid: str, pfp_base64: str):
         # Updates the user's profile picture
         self._repo.set_user_data(uid, {"pfp_base64": pfp_base64})
+        self._track_achievement(uid, "set_pfp")
 
     def update_app_color(self, uid: str, app_color: str):
         # Updates the user's app theme color (stored as a string)
         self._repo.set_user_data(uid, {"app_color": app_color})
+        self._track_achievement(uid, "change_app_color")
 
     def update_notifications_enabled(self, uid: str, enabled: bool):
         # Updates the user's notification preference
@@ -240,25 +256,31 @@ class ProgressionService: # Service class to handle all progression-related busi
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
         # Upserts a food log for a specific date
         self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)
+        self._track_achievement(uid, "food_logs")
 
     def get_reminders(self, uid: str):
         # Returns all reminders for a user
         return self._reminder_repo.get_reminders(uid)
 
     def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int):
-        return self._reminder_repo.set_reminder(
+        result = self._reminder_repo.set_reminder(
             uid=uid,
             message=message,
             scheduled_at=scheduled_at,
             notification_id=notification_id,
         )
+        self._track_achievement(uid, "set_reminder")
+        return result
 
     def delete_reminder(self, uid: str, reminder_id: str):
         # Verify the reminder belongs to this user before deleting
         reminders = self._reminder_repo.get_reminders(uid)
         if not any(r["id"] == reminder_id for r in reminders):
             return False
-        return self._reminder_repo.delete_reminder(reminder_id)
+        deleted = self._reminder_repo.delete_reminder(reminder_id)
+        if deleted:
+            self._track_achievement(uid, "delete_reminder")
+        return deleted
 
     def get_leaderboard(self):
         # Returns all users sorted by level and XP for the leaderboard
@@ -293,10 +315,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "claims": claims,
         }
     
-    def upsert_achievement_progress(self, uid: str, achievement_id: str):
-        if achievement_id not in VALID_ACHIEVEMENT_IDS:
-            raise ValueError(f"Unknown achievement: {achievement_id}")
-        return self._achievement_repo.upsert_achievement_progress(uid, achievement_id, 1)
-    
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
-        return self._achievement_repo.claim_achievement(uid, achievement_id, tier)
+        result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
+        self._track_achievement(uid, "total_achievements")
+        return result

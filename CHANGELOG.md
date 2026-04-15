@@ -1031,3 +1031,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Hardcoded increment amount to 1 in the service layer so the client can't send fake progress amounts
 - Removed UpsertAchievementProgressRequest and UpsertAchievementProgressResponse schemas since they are no longer needed
 - Removed increment_amount parameter from ProgressionService.upsert_achievement_progress, it now always increments by 1
+- Added _track_achievement helper in ProgressionService that silently increments progress by 1, wrapped in try/except so it never breaks the caller
+- Wired up server-side achievement tracking as side effects of real actions: daily_claims and level in claim_daily_reward, poi_visits in check_in_poi, food_logs in upsert_food_log, set_reminder in set_reminder, delete_reminder in delete_reminder, set_username in update_username, set_pfp in update_pfp, change_app_color in update_app_color, total_achievements in claim_achievement
