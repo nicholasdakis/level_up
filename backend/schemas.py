@@ -98,6 +98,10 @@ class DeleteReminderRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     reminder_id: str = Field(..., min_length=1)
 
+class GetAchievementsRequest(BaseModel):
+    # Sent by Flutter when the badges screen opens to fetch all achievement data
+    id_token: str = Field(..., min_length=1)
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================
@@ -122,6 +126,17 @@ class ReminderItem(BaseModel):
     message: str
     scheduled_at: str
     notification_id: int
+
+class AchievementProgressEntry(BaseModel):
+    # A single achievement's progress for the user
+    achievement_id: str
+    progress: int
+
+class AchievementClaimEntry(BaseModel):
+    # A single claimed tier for an achievement
+    achievement_id: str
+    tier: int
+    claimed_at: str
 
 # ==============================================================================
 # Response schemas
@@ -190,3 +205,8 @@ class GetLeaderboardResponse(BaseModel):
 
 class GetRemindersResponse(BaseModel):
     reminders: list[ReminderItem] = []
+
+class GetAchievementsResponse(BaseModel):
+    # Both progress and claims returned together so the badges screen has everything in one call
+    progress: list[AchievementProgressEntry] = []
+    claims: list[AchievementClaimEntry] = []

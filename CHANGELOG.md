@@ -1012,3 +1012,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Each achievement card shows an icon, name, description, progress bar, and tier chips with locked/claimable/claimed states
 - Achievement definitions (names, icons, tiers, descriptions) live in Flutter code, not the database
 - Added a cooldown guard on tier claiming to prevent double taps
+- Added AchievementRepository with get_achievement_progress and get_achievement_claims methods to read from the achievement tables
+- Added get_achievements to ProgressionService which fetches both progress and claims in one call through the repository layer: get_achievents() in services.py calls repository.py's get_achivement_claims and get_achievement_progress and stores it in progress and claim variables
+- Added GetAchievementsRequest, GetAchievementsResponse, AchievementProgressEntry, and AchievementClaimEntry schemas
+- Added /get_achievements route that validates the JWT then returns all achievement progress and claims for the user
+- ProgressionService now takes achievement_repo as a third constructor argument alongside user_repo and reminder_repo

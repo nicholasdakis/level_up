@@ -14,7 +14,7 @@ from firebase_admin import credentials as firebase_credentials
 from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
-from backend.repository import UserRepository, ReminderRepository, RateLimitRepository
+from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
 from backend.services import ProgressionService
 from backend.schemas import (
     ClaimDailyRewardRequest,
@@ -47,7 +47,11 @@ from backend.schemas import (
     SetReminderRequest,
     ReminderItem,
     GetRemindersResponse,
-    DeleteReminderRequest
+    DeleteReminderRequest,
+    GetAchievementsRequest,
+    GetAchievementsResponse,
+    AchievementProgressEntry,
+    AchievementClaimEntry,
 )
 from backend.auth import verify_token
 from backend.utils import to_utc_datetime
@@ -67,7 +71,8 @@ supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("
 user_repo = UserRepository(supabase_client)
 reminder_repo = ReminderRepository(supabase_client)
 rate_limit_repo = RateLimitRepository(supabase_client)
-progression_service = ProgressionService(user_repo, reminder_repo)
+achievement_repo = AchievementRepository(supabase_client)
+progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
 
 # TokenManager reads/writes rate_limits via Supabase Postgres
 token_manager = TokenManager(supabase_client)
@@ -758,6 +763,30 @@ def delete_reminder():
 
     progression_service.delete_reminder(uid, body.reminder_id)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/get_achievements", methods=["POST"])  # POST because the id_token is sent in the request body
+def get_achievements():
+    # Step 1: Validate request body with the Pydantic schema
+    try:
+        body = GetAchievementsRequest(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return jsonify({"error": "Invalid request", "details": str(e)}), 400
+
+    # Step 2: Verify the user's JWT
+    try:
+        uid = verify_token(body.id_token)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Step 3: Fetch all progress and claims through the service layer
+    result = progression_service.get_achievements(uid)
+
+    # Step 4: Build and return the validated response
+    response = GetAchievementsResponse(
+        progress=[AchievementProgressEntry(**p) for p in result["progress"]],
+        claims=[AchievementClaimEntry(**c) for c in result["claims"]],
+    )
+    return jsonify(response.model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

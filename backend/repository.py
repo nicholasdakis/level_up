@@ -117,6 +117,22 @@ class UserRepository:
             self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
 
 
+class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
+
+    def __init__(self, supabase: Client):
+        self._supabase = supabase
+
+    def get_achievement_progress(self, uid: str):
+        # Fetches all achievement progress rows for a user
+        result = self._supabase.table("achievement_progress").select("achievement_id, progress").eq("uid", uid).execute()
+        return result.data
+
+    def get_achievement_claims(self, uid: str):
+        # Fetches all claimed tiers for a user
+        result = self._supabase.table("achievement_claims").select("achievement_id, tier, claimed_at").eq("uid", uid).execute()
+        return result.data
+
+
 class ReminderRepository:
     # Repository class to handle all Postgres operations related to reminders
 

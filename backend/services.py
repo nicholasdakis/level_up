@@ -5,7 +5,7 @@ import random
 from math import pow, radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
-from backend.repository import UserRepository, ReminderRepository
+from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -31,10 +31,11 @@ def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
     return new_level, new_exp
 
 class ProgressionService: # Service class to handle all progression-related business logic, called by server.py after authentication and validation
-    def __init__(self, repo: UserRepository, reminder_repo: ReminderRepository):
-        # Store the repository so all methods can access the Supabase Postgres DB through it
+    def __init__(self, repo: UserRepository, reminder_repo: ReminderRepository, achievement_repo: AchievementRepository):
+        # Store the repositories so all methods can access the Supabase Postgres DB through them
         self._repo = repo
         self._reminder_repo = reminder_repo
+        self._achievement_repo = achievement_repo
 
     def update_username(self, uid: str, username: str):
         if self._repo.username_exists(uid, username):
@@ -281,3 +282,12 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # no XP awarded yet since events are not implemented
         return {"new_level": None, "new_exp": None, "error": "Event not implemented yet"}
+
+    def get_achievements(self, uid: str):
+        # Fetches all achievement progress and claims for a user in one call
+        progress = self._achievement_repo.get_achievement_progress(uid)
+        claims = self._achievement_repo.get_achievement_claims(uid)
+        return {
+            "progress": progress,
+            "claims": claims,
+        }
