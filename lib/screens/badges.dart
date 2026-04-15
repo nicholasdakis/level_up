@@ -541,11 +541,18 @@ class _BadgesState extends State<Badges> {
       }
     }
 
-    final allComplete = currentProgress >= def.tiers.last;
+    // Only show "All tiers complete!" after the user has actually claimed every tier
+    bool allClaimed = true;
+    for (final t in def.tiers) {
+      if (claimedTiers[def.id] == null || !claimedTiers[def.id]!.contains(t)) {
+        allClaimed = false;
+        break;
+      }
+    }
 
     // Fill the bar fully if all tiers are done, otherwise show partial progress
     double progressFraction = 1.0;
-    if (!allComplete) {
+    if (!allClaimed) {
       progressFraction = currentProgress / nextTier;
     }
 
@@ -589,7 +596,7 @@ class _BadgesState extends State<Badges> {
                       ),
                       SizedBox(height: Responsive.height(context, 2)),
                       Text(
-                        allComplete
+                        allClaimed
                             ? "All tiers complete!"
                             : "$currentProgress / $nextTier ${def.unit}",
                         style: GoogleFonts.manrope(
