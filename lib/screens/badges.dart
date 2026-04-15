@@ -2,6 +2,9 @@ import "package:flutter/material.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
 import "/utility/responsive.dart";
+import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -360,12 +363,55 @@ class Badges extends StatefulWidget {
 }
 
 class _BadgesState extends State<Badges> {
-  // Will be populated from the backend later
+  // Populated from the backend on init
   final Map<String, int> progress = {};
   final Map<String, Set<int>> claimedTiers = {};
 
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAchievements();
+  }
+
+  // Fetches all achievement progress and claimed tiers from the backend
+  Future<void> _fetchAchievements() async {
+    try {
+      final token = await getIdToken();
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/get_achievements'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id_token': token}),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'get_achievements failed: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        // Populate progress map from the progress list
+        for (final entry in data['progress']) {
+          progress[entry['achievement_id']] = entry['progress'];
+        }
+
+        // Populate claimedTiers map from the claims list
+        for (final claim in data['claims']) {
+          claimedTiers[claim['achievement_id']] ??= {};
+          claimedTiers[claim['achievement_id']]!.add(claim['tier']);
+        }
+      });
+    } catch (e) {
+      debugPrint('Failed to fetch achievements: $e');
+    }
+  }
 
   // Returns a unique key for a specific achievement + tier combo
   String _claimKey(String achievementId, int tier) {
@@ -381,12 +427,34 @@ class _BadgesState extends State<Badges> {
 
     _claimingInProgress.add(key);
 
-    // Placeholder for backend claim call
-    setState(() {
-      // Initialize the set for this achievement if it doesn't exist yet
-      claimedTiers[def.id] ??= {};
-      claimedTiers[def.id]!.add(tier);
-    });
+    try {
+      final token = await getIdToken();
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/claim_achievement'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': token,
+              'achievement_id': def.id,
+              'tier': tier,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'claim_achievement failed: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      // Only update UI if the backend confirmed the claim
+      setState(() {
+        claimedTiers[def.id] ??= {};
+        claimedTiers[def.id]!.add(tier);
+      });
+    } catch (e) {
+      debugPrint('Failed to claim tier: $e');
+    }
 
     // Cooldown before allowing another claim attempt
     await Future.delayed(const Duration(seconds: 2));
@@ -603,9 +671,7 @@ class _BadgesState extends State<Badges> {
                 fontSize: Responsive.font(context, 13),
                 fontWeight: FontWeight.w500,
               ),
-              tabs: [
-                for (final label in tabLabels) Tab(text: label),
-              ],
+              tabs: [for (final label in tabLabels) Tab(text: label)],
             ),
           ),
           body: TabBarView(
