@@ -239,9 +239,9 @@ DECLARE
     v_current_streak INTEGER;
     v_new_streak INTEGER;
 BEGIN
-    -- Try to read the existing streak row
+    -- Lock the streak row so no other transaction can update it at the same time
     SELECT last_date, streak INTO v_last_date, v_current_streak
-    FROM streaks WHERE uid = p_uid AND streak_type = 'food_streak';
+    FROM streaks WHERE uid = p_uid AND streak_type = 'food_streak' FOR UPDATE;
 
     IF FOUND THEN
         IF v_today = v_last_date THEN
@@ -280,8 +280,8 @@ CREATE OR REPLACE FUNCTION claim_achievement (
 RETURNS void as $$
 DECLARE v_progress INTEGER; -- To store the user's progress cell for this achievement
 BEGIN
-    -- store the user's progress cell for this achievement into v_progress
-    SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id;
+    -- Lock the progress row so no other transaction can claim at the same time
+    SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id FOR UPDATE;
     -- make sure progress >= tier to ensure the claim is eligible but has not occurred
     IF v_progress >= p_tier THEN
     -- valid, so carry out the claim

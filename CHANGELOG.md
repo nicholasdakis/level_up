@@ -1061,3 +1061,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added update_food_streak repository method
 - After a food log upsert, the service now computes the food streak and sets the food_streak achievement progress
 - Updated claim_daily_reward to also write last_date when upserting the daily_claim_streak streak
+- Added row locking to claim_achievement and update_food_streak RPC functions to make them truly atomic. Now it is impossible for two concurrent calls to read the same row at once before one of them writes
