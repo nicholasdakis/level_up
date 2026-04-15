@@ -141,6 +141,17 @@ class AchievementRepository: # Repository class to handle all Postgres operation
         }).execute()
         return {"achievement_id": achievement_id, "new_progress_amount": result.data}
 
+    def claim_achievement(self, uid: str, achievement_id: str, tier: int):
+        # Call the RPC method which atomically checks the claim is valid and claims the achievement
+        try:
+            self._supabase.rpc("claim_achievement", {
+            "p_uid": uid,
+            "p_achievement_id": achievement_id,
+            "p_tier": tier,
+            }).execute()
+        except Exception as e:
+            raise ValueError(str(e))
+
 class ReminderRepository:
     # Repository class to handle all Postgres operations related to reminders
 

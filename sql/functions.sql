@@ -188,3 +188,29 @@ BEGIN
     RETURN (SELECT progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id);
 END;
 $$ LANGUAGE plpgsql;
+
+-- claim_achievement: atomically claims the achievement by creating a row for the specified achievement in achievement_claims table
+-- if the row creation is successful, it means the achievement was not added before and was now added and thus claimed.
+-- if the row creation is unsuccessful, it means the achievement is already claimed, so it won't be claimed again
+CREATE OR REPLACE FUNCTION claim_achievement (
+    p_uid TEXT,                 -- the user's ID
+    p_achievement_id TEXT,      -- the achievement category
+    p_tier INTEGER              -- the tier being claimed
+)
+RETURNS void as $$
+DECLARE v_progress INTEGER; -- To store the user's progress cell for this achievement
+BEGIN
+    -- store the user's progress cell for this achievement into v_progress
+    SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id;
+    -- make sure progress >= tier to ensure the claim is eligible but has not occurred
+    IF v_progress >= p_tier THEN
+    -- valid, so carry out the claim
+    INSERT INTO achievement_claims (uid, achievement_id, tier, claimed_at)
+    VALUES (p_uid, p_achievement_id, p_tier, NOW())
+    ON CONFLICT (uid, achievement_id, tier)
+    DO NOTHING; -- If the achievement is already claimed, the row already exists, so return
+    ELSE
+        RAISE EXCEPTION 'Progress not met';
+    END IF;
+END
+$$ LANGUAGE plpgsql;

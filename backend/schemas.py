@@ -106,6 +106,12 @@ class UpsertAchievementProgressRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     achievement_id: str = Field(..., min_length=1)
     increment_amount: int
+
+class ClaimAchievementRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    achievement_id: str = Field(..., min_length=1)
+    tier: int
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================
