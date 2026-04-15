@@ -102,6 +102,10 @@ class GetAchievementsRequest(BaseModel):
     # Sent by Flutter when the badges screen opens to fetch all achievement data
     id_token: str = Field(..., min_length=1)
 
+class UpsertAchievementProgressRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+    achievement_id: str = Field(..., min_length=1)
+    increment_amount: int
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================
@@ -210,3 +214,7 @@ class GetAchievementsResponse(BaseModel):
     # Both progress and claims returned together so the badges screen has everything in one call
     progress: list[AchievementProgressEntry] = []
     claims: list[AchievementClaimEntry] = []
+
+class UpsertAchievementProgressResponse(BaseModel):
+    achievement_id: str = Field(..., min_length=1)
+    new_progress_amount: int

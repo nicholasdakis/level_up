@@ -168,3 +168,23 @@ BEGIN
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- upsert_achievement_progress: atomically updates the user's achievement_progress row for
+-- the specified achievement. if the row already exists, it adds onto its progress value, and
+-- if it is a fresh row, the increment amount is its new progress value
+CREATE OR REPLACE FUNCTION upsert_achievement_progress (
+    p_uid TEXT,                  -- the user's ID
+    p_achievement_id TEXT,       -- the achievement category (e.g. 'poi_visits', 'food_streak')
+    p_increment_amount INTEGER   -- how much to add to the current progress
+)
+RETURNS INTEGER AS $$
+BEGIN
+    -- Insert a new progress row if one doesn't exist yet,
+    -- or add to the existing progress if it does (no read needed, fully atomic)
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, p_achievement_id, p_increment_amount)
+    ON CONFLICT (uid, achievement_id)
+    DO UPDATE SET progress = achievement_progress.progress + p_increment_amount;
+    RETURN (SELECT progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id);
+END;
+$$ LANGUAGE plpgsql;

@@ -131,7 +131,15 @@ class AchievementRepository: # Repository class to handle all Postgres operation
         # Fetches all claimed tiers for a user
         result = self._supabase.table("achievement_claims").select("achievement_id, tier, claimed_at").eq("uid", uid).execute()
         return result.data
-
+    
+    def upsert_achievement_progress(self, uid: str, achievement_id: str, increment_amount: int):
+        # Call the RPC method which atomically updates and returns the new progress amount
+        result = self._supabase.rpc("upsert_achievement_progress", {
+            "p_uid": uid,
+            "p_achievement_id": achievement_id,
+            "p_increment_amount": increment_amount,
+        }).execute()
+        return {"achievement_id": achievement_id, "new_progress_amount": result.data}
 
 class ReminderRepository:
     # Repository class to handle all Postgres operations related to reminders

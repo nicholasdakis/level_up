@@ -291,3 +291,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "progress": progress,
             "claims": claims,
         }
+    
+    def upsert_achievement_progress(self, uid: str, achievement_id: str, increment_amount: int):
+        return self._achievement_repo.upsert_achievement_progress(uid, achievement_id, increment_amount)

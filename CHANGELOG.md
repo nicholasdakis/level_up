@@ -1017,3 +1017,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added GetAchievementsRequest, GetAchievementsResponse, AchievementProgressEntry, and AchievementClaimEntry schemas
 - Added /get_achievements route that validates the JWT then returns all achievement progress and claims for the user
 - ProgressionService now takes achievement_repo as a third constructor argument alongside user_repo and reminder_repo
+- Made an upsert_achievement_progress RPC method to atomically update the user's achievement progress. The method returns the new progress amount
+- Added the corresponding schemas for requesting / responding to UpsertAchievementProgress
+- Added the /upsert_achievement_progress route and the corresponding method in services.py which calls the same-named method in repository.py which directly calls the RPC method to get the result atomically
