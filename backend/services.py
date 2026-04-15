@@ -131,9 +131,9 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Set the consecutive-day streak progress to the exact value from the DB
         daily_streak = result.get("daily_streak", 1)
         try:
-            self._achievement_repo.set_achievement_progress(uid, "daily_consecutive", daily_streak)
+            self._achievement_repo.set_achievement_progress(uid, "daily_claim_streak", daily_streak)
         except Exception as e:
-            print(f"[achievements] Failed to set daily_consecutive for {uid}: {e}")
+            print(f"[achievements] Failed to set daily_claim_streak for {uid}: {e}")
 
         # Successful return with the new progression state
         return {
@@ -275,6 +275,13 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Upserts a food log for a specific date
         self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)
         self._track_achievement(uid, "food_logs")
+
+        # Update the food logging streak and sync it to achievement progress
+        try:
+            food_streak = self._repo.update_food_streak(uid)
+            self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)
+        except Exception as e:
+            print(f"[achievements] Failed to update food_streak for {uid}: {e}")
 
     def get_reminders(self, uid: str):
         # Returns all reminders for a user

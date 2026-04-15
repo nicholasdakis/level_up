@@ -1046,9 +1046,18 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Moved the verify JWT token logic in each route into its own helper method to reduce repeated code
 - The method returns the uid and error message (if there is an error). If uid is not needed, python's _ was used as the return statement to show it is not needed
 - Added daily_streak and highest_daily_streak columns to the users table
-- Moved daily_consecutive from trivial to server-side achievement IDs
+- Moved daily_claim_streak from trivial to server-side achievement IDs
 - Updated claim_daily_reward SQL function to compute and update the streak atomically (continues if claimed within 48 hours, resets to 1 otherwise)
 - highest_daily_streak updates itself via GREATEST so it never goes down
-- Added set_achievement_progress SQL function for setting progress to an exact value instead of incrementing (needed because streaks can reset)
+- Added a set_achievement_progress SQL function for setting progress to an exact value instead of incrementing (needed because streaks can reset)
 - Added set_achievement_progress repository method
-- After a successful daily claim, the service now sets the daily_consecutive achievement progress to the streak value from the DB
+- After a successful daily claim, the service now sets the daily_claim_streak achievement progress to the streak value from the DB
+- Made a streak table that uses streak_type so that there isn't a need to make 2 new columns every time a new streak type is added
+- Deleted the streak columns from the users table
+- Updated claim_daily_reward SQL function to read/write streaks from the streaks table instead of users columns
+- Added last_date column to the streaks table so each streak tracks which date last advanced it (defaults to 1970-01-01 so it is never NULL)
+- Moved food_streak from trivial to server-side achievement IDs
+- Added update_food_streak SQL function that uses CURRENT_DATE and last_date to track real-world consecutive logging days (continue, reset, or skip if already logged today)
+- Added update_food_streak repository method
+- After a food log upsert, the service now computes the food streak and sets the food_streak achievement progress
+- Updated claim_daily_reward to also write last_date when upserting the daily_claim_streak streak

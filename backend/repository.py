@@ -97,6 +97,13 @@ class UserRepository:
             "snack": snack,
         }).execute()
 
+    def update_food_streak(self, uid: str):
+        # Calls the update_food_streak RPC to compute and update the food logging streak
+        result = self._supabase.rpc("update_food_streak", {
+            "p_uid": uid,
+        }).execute()
+        return result.data
+
     def add_fcm_token(self, uid: str, token: str):
         # Appends a token to the fcm_tokens array if not already present
         user = self.get_user(uid)

@@ -35,7 +35,10 @@ BEGIN
     -- Otherwise they missed a day and it resets to 1.
     -- 172800 seconds = 48 hours
     IF v_last_claim IS NOT NULL AND EXTRACT(EPOCH FROM (v_now - v_last_claim)) < 172800 THEN
-        SELECT daily_streak + 1 INTO v_new_streak FROM users WHERE uid = p_uid;
+        SELECT streak + 1 INTO v_new_streak FROM streaks WHERE uid = p_uid AND streak_type = 'daily_claim_streak';
+        IF NOT FOUND THEN
+            v_new_streak := 1;
+        END IF;
     ELSE
         v_new_streak := 1;
     END IF;
@@ -46,10 +49,14 @@ BEGIN
         level = p_new_level,
         exp_points = p_new_exp,
         last_daily_claim = v_now,      -- Record when they claimed so the cooldown starts now
-        can_claim_daily_reward = false, -- Prevent claiming again until the scheduler resets this
-        daily_streak = v_new_streak,
-        highest_daily_streak = GREATEST(highest_daily_streak, v_new_streak)
+        can_claim_daily_reward = false  -- Prevent claiming again until the scheduler resets this
     WHERE uid = p_uid;
+
+    -- Update the streak in the streaks table
+    INSERT INTO streaks (uid, streak_type, streak, highest_streak, last_date)
+    VALUES (p_uid, 'daily_claim_streak', v_new_streak, v_new_streak, v_now::DATE)
+    ON CONFLICT (uid, streak_type)
+    DO UPDATE SET streak = v_new_streak, highest_streak = GREATEST(streaks.highest_streak, v_new_streak), last_date = v_now::DATE;
 
     -- Return success with the new state so Python doesn't need to do another fetch
     RETURN jsonb_build_object(
@@ -207,7 +214,7 @@ $$ LANGUAGE plpgsql;
 -- can go down (e.g. a streak resets to 1 when the user misses a day)
 CREATE OR REPLACE FUNCTION set_achievement_progress (
     p_uid TEXT,                  -- the user's ID
-    p_achievement_id TEXT,       -- the achievement category (e.g. 'daily_consecutive')
+    p_achievement_id TEXT,       -- the achievement category (e.g. 'daily_claim_streak')
     p_value INTEGER              -- the exact progress value to set
 )
 RETURNS INTEGER AS $$
@@ -217,6 +224,48 @@ BEGIN
     ON CONFLICT (uid, achievement_id)
     DO UPDATE SET progress = p_value;
     RETURN p_value;
+END;
+$$ LANGUAGE plpgsql;
+
+-- update_food_streak: computes the food logging streak using today's real date, not the date on the food log
+-- Called from Python after a food log upsert. Returns the new streak value
+CREATE OR REPLACE FUNCTION update_food_streak(
+    p_uid TEXT         -- the user's ID
+)
+RETURNS INTEGER AS $$
+DECLARE
+    v_today DATE := CURRENT_DATE;
+    v_last_date DATE;
+    v_current_streak INTEGER;
+    v_new_streak INTEGER;
+BEGIN
+    -- Try to read the existing streak row
+    SELECT last_date, streak INTO v_last_date, v_current_streak
+    FROM streaks WHERE uid = p_uid AND streak_type = 'food_streak';
+
+    IF FOUND THEN
+        IF v_today = v_last_date THEN
+            -- Already logged today, no change
+            RETURN v_current_streak;
+        ELSIF v_today = v_last_date + 1 THEN
+            -- Consecutive day, continue the streak
+            v_new_streak := v_current_streak + 1;
+        ELSE
+            -- Gap in dates, reset
+            v_new_streak := 1;
+        END IF;
+    ELSE
+        -- No streak row yet, start at 1
+        v_new_streak := 1;
+    END IF;
+
+    -- Upsert the streak row with today as last_date
+    INSERT INTO streaks (uid, streak_type, streak, highest_streak, last_date)
+    VALUES (p_uid, 'food_streak', v_new_streak, v_new_streak, v_today)
+    ON CONFLICT (uid, streak_type)
+    DO UPDATE SET streak = v_new_streak, highest_streak = GREATEST(streaks.highest_streak, v_new_streak), last_date = v_today;
+
+    RETURN v_new_streak;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -80,7 +80,7 @@ const List<AchievementDef> achievementDefs = [
     section: "PROGRESSION",
   ),
   AchievementDef(
-    id: "daily_consecutive",
+    id: "daily_claim_streak",
     name: "On a Roll",
     description: "Claim your daily reward for the specified consecutive days",
     icon: Icons.local_fire_department,
