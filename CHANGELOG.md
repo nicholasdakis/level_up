@@ -1041,3 +1041,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Wired up trivial achievement tracking on the client side: open_food_logging, open_explore, open_reminders, open_badges, open_leaderboard and calorie_calculator in home_screen.dart; food_search, food_barcode, food_manual, food_recent in food_logging.dart; future_reminder and active_reminders in reminders.dart; send_feedback in settings.dart and about_the_developer.dart; switch_imperial in calorie_calculator.dart
 - Added confetti upon claiming an achievement the same way daily rewards handles it (wrapping the class in a Stack and adding the already created badges confetti on top)
 - Changed the allComplete method to allClaimed so that the UI doesn't show text that is only meant to show after the achievement is claimed
+
+## 2026-04-15
+- Moved the verify JWT token logic in each route into its own helper method to reduce repeated code
+- The method returns the uid and error message (if there is an error). If uid is not needed, python's _ was used as the return statement to show it is not needed

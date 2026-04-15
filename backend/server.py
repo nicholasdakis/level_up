@@ -98,6 +98,12 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
 
+# Helper method for verifying the user's JWT token
+def _try_verify_token(id_token: str):
+    try:
+        return verify_token(id_token), None  # (uid, no error)
+    except ValueError as e:
+        return None, (jsonify({"error": str(e)}), 401)  # (no uid, 401 error response)
 
 def send_due_reminders():
     try:
@@ -244,11 +250,10 @@ def get_food():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    # Make sure the user is who they say they are
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    # Verify the user's token (uid unused as search is not user-specific)
+    _, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Normalize the food name to reduce redundant API calls
     food_name = re.sub(r'\s+', ' ', body.food_name.lower()).strip()
@@ -388,11 +393,10 @@ def get_nearby_pois():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    # Step 2: Make sure the user is who they say they are
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    # Step 2: Verify the user's token (uid unused as POI search is not user-specific)
+    _, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: Build the Overpass query by filling in the user's coordinates
     query = OVERPASS_QUERY.format(
@@ -441,10 +445,9 @@ def check_in_poi():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Make sure the user is who they say they are
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: Run the check-in through the service layer
     result = progression_service.check_in_poi(
@@ -470,10 +473,9 @@ def update_username():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Make sure the user is who they say they are by verifying the JWT
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: The service calculates if the update is valid, and the repository (in the service) reads Postgres atomically
     result = progression_service.update_username(uid, body.username) # Returns a dict, and update_username is successful if the uniqueness check passes
@@ -497,10 +499,9 @@ def claim_daily_reward():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Make sure the user is who they say they are by verifying the JWT
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: The service calculates XP and level-ups, and the repository (in the service) writes to Postgres atomically
     result = progression_service.claim_daily_reward(uid)
@@ -526,10 +527,9 @@ def get_progress():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Verify the user is who they say they are
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: Fetch the user's current state through the service layer
     result = progression_service.get_progress(uid)
@@ -547,10 +547,9 @@ def update_exp():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Verify the user is who they say they are
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: Run XP update through the service layer
     result = progression_service.update_exp(uid, body.event, body.event_id)
@@ -567,10 +566,9 @@ def get_user_data():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     result = progression_service.get_user_data(uid)
     response = GetUserDataResponse(**result)
@@ -585,10 +583,9 @@ def update_pfp():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.update_pfp(uid, body.pfp_base64)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -602,10 +599,9 @@ def update_app_color():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.update_app_color(uid, body.app_color)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -619,10 +615,9 @@ def update_notifications():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.update_notifications_enabled(uid, body.enabled)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -636,10 +631,9 @@ def add_fcm_token():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.add_fcm_token(uid, body.token)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -653,10 +647,9 @@ def remove_fcm_token():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.remove_fcm_token(uid, body.token)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -670,10 +663,9 @@ def upsert_food_log():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.upsert_food_log(
         uid, body.date, body.breakfast, body.lunch, body.dinner, body.snack
@@ -687,11 +679,10 @@ def get_leaderboard():
         body = GetLeaderboardRequest(**request.get_json(force=True))
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    # Verify the user is who they say they are
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     result = progression_service.get_leaderboard()
     response = GetLeaderboardResponse(
@@ -708,12 +699,10 @@ def set_reminder():
         # If validation fails, return 400 with error details
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        # Verify Firebase ID token and extract UID
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        # If token is invalid/expired, reject request
-        return jsonify({"error": str(e)}), 401
+    # Verify Firebase ID token and extract UID
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Pass validated, trusted data into business logic
     progression_service.set_reminder(
@@ -734,12 +723,10 @@ def get_reminders():
         # If validation fails, return 400 with error details
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        # Verify Firebase ID token and extract UID
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        # If token is invalid/expired, reject request
-        return jsonify({"error": str(e)}), 401
+    # Verify Firebase ID token and extract UID
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # fetch from service
     result = progression_service.get_reminders(uid=uid)
@@ -759,10 +746,9 @@ def delete_reminder():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     progression_service.delete_reminder(uid, body.reminder_id)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
@@ -776,10 +762,9 @@ def get_achievements():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Verify the user's JWT
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     # Step 3: Fetch all progress and claims through the service layer
     result = progression_service.get_achievements(uid)
@@ -802,11 +787,10 @@ def claim_achievement():
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
     # Step 2: Verify the user's JWT
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
-    
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
+
     # Step 3: Call the method and get the new progress response
     try:
         result = progression_service.claim_achievement(uid, body.achievement_id, body.tier)
@@ -825,10 +809,9 @@ def claim_trivial_achievement():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return err
 
     if body.achievement_id not in TRIVIAL_ACHIEVEMENT_IDS:
         return jsonify({"error": "Achievement not allowed via this route"}), 403
