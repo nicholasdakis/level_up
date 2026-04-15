@@ -34,5 +34,7 @@ void confettiControllerinit() {
   dailyRewardConfettiController = ConfettiController(
     duration: Duration(milliseconds: 300),
   );
-  badgesConfettiController = ConfettiController(duration: Duration(seconds: 3));
+  badgesConfettiController = ConfettiController(
+    duration: Duration(milliseconds: 500),
+  );
 }

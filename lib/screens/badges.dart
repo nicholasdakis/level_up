@@ -5,6 +5,7 @@ import "/utility/responsive.dart";
 import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '/utility/confetti.dart';
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -452,6 +453,7 @@ class _BadgesState extends State<Badges> {
         claimedTiers[def.id] ??= {};
         claimedTiers[def.id]!.add(tier);
       });
+      badgesConfettiController.play();
     } catch (e) {
       debugPrint('Failed to claim tier: $e');
     }
@@ -674,24 +676,32 @@ class _BadgesState extends State<Badges> {
               tabs: [for (final label in tabLabels) Tab(text: label)],
             ),
           ),
-          body: TabBarView(
+          body: Stack(
             children: [
-              for (final section in tabSections)
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 50),
-                      vertical: Responsive.height(context, 24),
+              TabBarView(
+                children: [
+                  for (final section in tabSections)
+                    SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 50),
+                          vertical: Responsive.height(context, 24),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ..._buildCardsForSection(section),
+                            SizedBox(height: Responsive.height(context, 40)),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ..._buildCardsForSection(section),
-                        SizedBox(height: Responsive.height(context, 40)),
-                      ],
-                    ),
-                  ),
-                ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: buildDailyRewardConfetti(badgesConfettiController),
+              ),
             ],
           ),
         ),
