@@ -128,6 +128,13 @@ class ProgressionService: # Service class to handle all progression-related busi
         if new_level > current_level:
             self._track_achievement(uid, "level")
 
+        # Set the consecutive-day streak progress to the exact value from the DB
+        daily_streak = result.get("daily_streak", 1)
+        try:
+            self._achievement_repo.set_achievement_progress(uid, "daily_consecutive", daily_streak)
+        except Exception as e:
+            print(f"[achievements] Failed to set daily_consecutive for {uid}: {e}")
+
         # Successful return with the new progression state
         return {
             "claimed": True,

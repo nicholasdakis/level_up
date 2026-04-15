@@ -9,6 +9,7 @@ DECLARE
     v_last_claim TIMESTAMPTZ; -- When the user last claimed their daily reward
     v_seconds_since_claim FLOAT; -- How many seconds have passed since the last claim
     v_now TIMESTAMPTZ := NOW(); -- Capture the current time in UTC once so it's consistent throughout the function
+    v_new_streak INTEGER; -- The updated consecutive-day streak after this claim
 BEGIN
     -- Lock the row with FOR UPDATE so no other request can read or write this user's row until the function finishes
     SELECT last_daily_claim INTO v_last_claim
@@ -30,13 +31,24 @@ BEGIN
         END IF;
     END IF;
 
+    -- Compute the new streak: if they claimed within the last 48 hours, keep the streak going.
+    -- Otherwise they missed a day and it resets to 1.
+    -- 172800 seconds = 48 hours
+    IF v_last_claim IS NOT NULL AND EXTRACT(EPOCH FROM (v_now - v_last_claim)) < 172800 THEN
+        SELECT daily_streak + 1 INTO v_new_streak FROM users WHERE uid = p_uid;
+    ELSE
+        v_new_streak := 1;
+    END IF;
+
     -- All fields are updated in a single UPDATE so they are never partially applied.
     -- e.g. level can never update without exp_points also updating
     UPDATE users SET
         level = p_new_level,
         exp_points = p_new_exp,
         last_daily_claim = v_now,      -- Record when they claimed so the cooldown starts now
-        can_claim_daily_reward = false  -- Prevent claiming again until the scheduler resets this
+        can_claim_daily_reward = false, -- Prevent claiming again until the scheduler resets this
+        daily_streak = v_new_streak,
+        highest_daily_streak = GREATEST(highest_daily_streak, v_new_streak)
     WHERE uid = p_uid;
 
     -- Return success with the new state so Python doesn't need to do another fetch
@@ -44,7 +56,8 @@ BEGIN
         'claimed', true,
         'new_level', p_new_level,
         'new_exp', p_new_exp,
-        'claimed_at', v_now
+        'claimed_at', v_now,
+        'daily_streak', v_new_streak
     );
 END;
 $$ LANGUAGE plpgsql;
@@ -186,6 +199,24 @@ BEGIN
     ON CONFLICT (uid, achievement_id)
     DO UPDATE SET progress = achievement_progress.progress + p_increment_amount;
     RETURN (SELECT progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id);
+END;
+$$ LANGUAGE plpgsql;
+
+-- set_achievement_progress: like upsert_achievement_progress but sets the progress to an
+-- exact value instead of incrementing. used for achievements like streaks where the value
+-- can go down (e.g. a streak resets to 1 when the user misses a day)
+CREATE OR REPLACE FUNCTION set_achievement_progress (
+    p_uid TEXT,                  -- the user's ID
+    p_achievement_id TEXT,       -- the achievement category (e.g. 'daily_consecutive')
+    p_value INTEGER              -- the exact progress value to set
+)
+RETURNS INTEGER AS $$
+BEGIN
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, p_achievement_id, p_value)
+    ON CONFLICT (uid, achievement_id)
+    DO UPDATE SET progress = p_value;
+    RETURN p_value;
 END;
 $$ LANGUAGE plpgsql;
 

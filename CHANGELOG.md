@@ -1045,3 +1045,10 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 ## 2026-04-15
 - Moved the verify JWT token logic in each route into its own helper method to reduce repeated code
 - The method returns the uid and error message (if there is an error). If uid is not needed, python's _ was used as the return statement to show it is not needed
+- Added daily_streak and highest_daily_streak columns to the users table
+- Moved daily_consecutive from trivial to server-side achievement IDs
+- Updated claim_daily_reward SQL function to compute and update the streak atomically (continues if claimed within 48 hours, resets to 1 otherwise)
+- highest_daily_streak updates itself via GREATEST so it never goes down
+- Added set_achievement_progress SQL function for setting progress to an exact value instead of incrementing (needed because streaks can reset)
+- Added set_achievement_progress repository method
+- After a successful daily claim, the service now sets the daily_consecutive achievement progress to the streak value from the DB

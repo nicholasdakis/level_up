@@ -144,6 +144,17 @@ class AchievementRepository: # Repository class to handle all Postgres operation
         }).execute()
         return {"achievement_id": achievement_id, "new_progress_amount": result.data}
 
+    def set_achievement_progress(self, uid: str, achievement_id: str, value: int):
+        if achievement_id not in VALID_ACHIEVEMENT_IDS:
+            raise ValueError(f"Unknown achievement: {achievement_id}")
+        # Sets progress to an exact value instead of incrementing (used for streaks)
+        result = self._supabase.rpc("set_achievement_progress", {
+            "p_uid": uid,
+            "p_achievement_id": achievement_id,
+            "p_value": value,
+        }).execute()
+        return {"achievement_id": achievement_id, "new_progress_amount": result.data}
+
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
         # Call the RPC method which atomically checks the claim is valid and claims the achievement
         try:

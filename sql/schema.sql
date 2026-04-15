@@ -23,7 +23,9 @@ CREATE TABLE users (
     can_claim_daily_reward BOOLEAN,    -- whether the user can claim their daily reward
     fcm_tokens TEXT[],                 -- Firebase Cloud Messaging tokens for push notifications
     last_daily_claim TIMESTAMPTZ,      -- when the user last claimed their daily reward
-    notifications_enabled BOOLEAN      -- whether the user has push notifications turned on
+    notifications_enabled BOOLEAN,     -- whether the user has push notifications turned on
+    daily_streak INTEGER DEFAULT 0,    -- current consecutive daily reward claims
+    highest_daily_streak INTEGER DEFAULT 0 -- all-time best consecutive daily reward claims
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
