@@ -293,10 +293,10 @@ class ProgressionService: # Service class to handle all progression-related busi
             "claims": claims,
         }
     
-    def upsert_achievement_progress(self, uid: str, achievement_id: str, increment_amount: int):
+    def upsert_achievement_progress(self, uid: str, achievement_id: str):
         if achievement_id not in VALID_ACHIEVEMENT_IDS:
             raise ValueError(f"Unknown achievement: {achievement_id}")
-        return self._achievement_repo.upsert_achievement_progress(uid, achievement_id, increment_amount)
+        return self._achievement_repo.upsert_achievement_progress(uid, achievement_id, 1)
     
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
         return self._achievement_repo.claim_achievement(uid, achievement_id, tier)

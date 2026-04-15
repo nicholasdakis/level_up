@@ -1027,3 +1027,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made claimTier call /claim_achievement
 - Made valid_achievements.py which contains a list of all valid achievement ids to prevent the client from sending junk achievement ids to be stored in the DB
 - Added the check to upsert_achievement_progress to reject an achievement_id not in the list
+- Removed the public /upsert_achievement_progress route to prevent clients from directly calling it, achievement progress will now only be incremented server-side as a side effect of real validated actions (e.g., logging food, checking in at a POI)
+- Hardcoded increment amount to 1 in the service layer so the client can't send fake progress amounts
+- Removed UpsertAchievementProgressRequest and UpsertAchievementProgressResponse schemas since they are no longer needed
+- Removed increment_amount parameter from ProgressionService.upsert_achievement_progress, it now always increments by 1

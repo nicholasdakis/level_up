@@ -52,8 +52,6 @@ from backend.schemas import (
     GetAchievementsResponse,
     AchievementProgressEntry,
     AchievementClaimEntry,
-    UpsertAchievementProgressResponse,
-    UpsertAchievementProgressRequest,
     ClaimAchievementRequest
 )
 from backend.auth import verify_token
@@ -791,30 +789,6 @@ def get_achievements():
     )
     return jsonify(response.model_dump()), 200
 
-@app.route("/upsert_achievement_progress", methods=["POST"]) # POST because the id_token is sent in the request body
-def upsert_achievement_progress():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = UpsertAchievementProgressRequest(
-            **request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user's JWT
-    try:
-        uid = verify_token(body.id_token)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
-    
-    # Step 3: Call the method and get the new progress response
-    result = progression_service.upsert_achievement_progress(uid, body.achievement_id, body.increment_amount)
-
-    # Step 4: Build and return the validated response
-    response = UpsertAchievementProgressResponse(
-        achievement_id = result["achievement_id"],
-        new_progress_amount = result["new_progress_amount"],
-    )
-    return jsonify(response.model_dump()), 200
 
 @app.route("/claim_achievement", methods=["POST"]) # POST because the id_token is sent in the request body
 def claim_achievement():
