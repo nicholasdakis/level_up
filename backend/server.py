@@ -833,7 +833,7 @@ def claim_trivial_achievement():
     if body.achievement_id not in TRIVIAL_ACHIEVEMENT_IDS:
         return jsonify({"error": "Achievement not allowed via this route"}), 403
 
-    progression_service._track_achievement(uid, body.achievement_id)
+    achievement_repo.upsert_achievement_progress(uid, body.achievement_id, 1)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 if __name__ == "__main__": # Only run when the application starts
