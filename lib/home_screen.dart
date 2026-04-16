@@ -134,9 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Show loading if user data not loaded yet
     return Skeletonizer(
       enabled: isLoading,
-      effect: PulseEffect(
-        from: lightenColor(appColorNotifier.value, 0.1),
-        to: lightenColor(appColorNotifier.value, 0.3),
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColorNotifier.value, 0.3),
+        highlightColor: lightenColor(appColorNotifier.value, 0.1),
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(

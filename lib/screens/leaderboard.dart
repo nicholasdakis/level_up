@@ -114,9 +114,9 @@ class _LeaderboardState extends State<Leaderboard> {
             return Skeletonizer(
               enabled:
                   isLoading, // shows bone placeholders while loading, passes through normally when done
-              effect: PulseEffect(
-                from: lightenColor(appColorNotifier.value, 0.1),
-                to: lightenColor(appColorNotifier.value, 0.3),
+              effect: ShimmerEffect(
+                baseColor: lightenColor(appColorNotifier.value, 0.3),
+                highlightColor: lightenColor(appColorNotifier.value, 0.1),
                 duration: const Duration(milliseconds: 1200),
               ),
               child: ListView.builder(
