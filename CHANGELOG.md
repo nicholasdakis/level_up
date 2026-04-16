@@ -1076,9 +1076,16 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 
 ## 2026-04-16
 - Added the skeletonizer package to modernize the UI for loading. The plan is to use this package instead of showing a circular loading indicator
-- Added a list of skeletonEntries with fake user data to Leaderboard tab that is used as the placeholder while the real data is laoding
+- Added a list of skeletonEntries with fake user data to Leaderboard tab that is used as the placeholder while the real data is loading
 - Added an isLoading method to Leaderboard tab to determine whether to show the fake data or real data
 - Added skeletonizer to the Food Logging tab. No fake data was needed because the Widget tree already renders before the food is obtained
 - Added skeletonizer to Home Screen (same logic as above)
 - Made fake POIs as placeholders to replace the circular loading icon with the skeletonizer package when loading nearby spots in Explore tab
 - Moved the fcm token initialization to happen after isLoading = false so that Home Screen isn't still "loading" when the user's data is ready
+- Each leaderboard entry is now wrapped in a frostedGlassCard to match the updated UI of other screens
+- Made _rankColor helper method which stores the rank colors
+- Added a _rankMedal helper method to now store a trophy next to the top 3 users
+- Made a _profilePicture helper method to make the profile picture circular
+- Made _buildUserCard which builds each entry with its rank, medal, pfp, username, level, xp amount, and progress bar
+- used LinearProgressIndicator for showing the XP progress toward the next level
+- Made the user's level appaer below their name

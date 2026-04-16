@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
 import 'dart:math';
-import 'package:firebase_auth/firebase_auth.dart'; // needed for currentUser
+import 'package:firebase_auth/firebase_auth.dart';
 import '../utility/leaderboard/leaderboard_entry.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -52,6 +53,150 @@ class _LeaderboardState extends State<Leaderboard> {
     setState(() {
       _leaderboardFuture = leaderboardService.fetchLeaderboard();
     });
+  }
+
+  // Rank color for the top 3 users, white for everyone else
+  Color _rankColor(int index) {
+    if (index == 0) return Colors.yellow;
+    if (index == 1) return Colors.grey;
+    if (index == 2) return const Color(0xFFCD7F32);
+    return Colors.white;
+  }
+
+  // Medal icon for the top 3 users
+  Widget? _rankMedal(int index) {
+    if (index > 2) return null;
+    return Icon(
+      Icons.emoji_events,
+      color: _rankColor(index),
+      size: Responsive.scale(context, 18),
+    );
+  }
+
+  // Circular profile picture, or a default person icon if none exists
+  Widget _profilePicture(LeaderboardEntry user) {
+    final size = Responsive.scale(context, 40);
+    if (user.pfpBytes != null) {
+      return ClipOval(
+        child: Image.memory(
+          // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
+          user.pfpBytes!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return Icon(Icons.person, color: Colors.white, size: size);
+  }
+
+  // Single leaderboard entry card
+  Widget _buildUserCard(LeaderboardEntry user, int index, bool isCurrentUser) {
+    // Only show the user's username if it exists and is not the default username (their UID)
+    final username = (user.username == null || user.username == user.uid)
+        ? "Unnamed"
+        : user.username!;
+    final expNeeded = experienceNeededForLevel(user.level);
+    // XP progress toward next level (0.0 to 1.0)
+    final progressFraction = (user.expPoints / expNeeded).clamp(0.0, 1.0);
+
+    // The frosted glass card for this leaderboard entry
+    final Widget card = frostedGlassCard(
+      context,
+      baseRadius: 16,
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 16),
+          vertical: Responsive.height(context, 12),
+        ),
+        // Current user gets a tinted background
+        decoration: BoxDecoration(
+          color: isCurrentUser
+              ? lightenColor(appColorNotifier.value, 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // Rank number
+                SizedBox(
+                  width: Responsive.width(context, 32),
+                  child: Text(
+                    "#${index + 1}",
+                    style: GoogleFonts.manrope(
+                      color: _rankColor(index),
+                      fontSize: Responsive.font(context, 16),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Medal icon for top 3
+                if (_rankMedal(index) != null) ...[
+                  _rankMedal(index)!,
+                  SizedBox(width: Responsive.width(context, 8)),
+                ],
+                // Profile picture
+                _profilePicture(user),
+                SizedBox(width: Responsive.width(context, 12)),
+                // Username and level
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        username,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 15),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 2)),
+                      Text(
+                        "Level ${user.level}",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white60,
+                          fontSize: Responsive.font(context, 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // XP display
+                Text(
+                  "${user.expPoints} / $expNeeded",
+                  style: GoogleFonts.manrope(
+                    color: Colors.white38,
+                    fontSize: Responsive.font(context, 12),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Responsive.height(context, 10)),
+            // XP progress bar toward next level
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+              child: LinearProgressIndicator(
+                value: progressFraction,
+                minHeight: Responsive.height(context, 5),
+                backgroundColor: Colors.white.withAlpha(20),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  appColorNotifier.value,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
+      child: card,
+    );
   }
 
   @override
@@ -121,7 +266,8 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(
-                  vertical: Responsive.width(context, 20),
+                  horizontal: Responsive.width(context, 50),
+                  vertical: Responsive.height(context, 24),
                 ),
                 itemCount:
                     leaderboardUsers.length >
@@ -131,99 +277,7 @@ class _LeaderboardState extends State<Leaderboard> {
                 itemBuilder: (context, i) {
                   final user = leaderboardUsers[i];
                   final isCurrentUser = user.uid == currentUserId;
-                  final level = user.level;
-                  // Only show the user's username if it exists and is not the default username (their UID)
-                  final username =
-                      (user.username == null || user.username == user.uid)
-                      ? "Unnamed"
-                      : user.username!;
-                  final pfpBytes = user.pfpBytes;
-                  final expPoints = user.expPoints;
-
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.width(context, 20),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isCurrentUser
-                            ? lightenColor(
-                                appColorNotifier.value,
-                                0.2,
-                              ).withAlpha(
-                                35,
-                              ) // Highlight current user with a light version of the app color
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 8),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: Responsive.width(context, 10),
-                          ), // spacing on the left side of the row
-                          Text(
-                            "#${i + 1}",
-                            style: TextStyle(
-                              color: i == 0
-                                  ? Colors
-                                        .yellow // #1 Gets yellow text
-                                  : i == 1
-                                  ? Colors
-                                        .grey // #2 Gets grey text
-                                  : i ==
-                                        2 // #3 Gets bronze text
-                                  ? const Color(0xFFCD7F32)
-                                  // All other users receive white text
-                                  : Colors.white,
-                              fontSize: Responsive.font(context, 18),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(
-                            width: Responsive.width(context, 10),
-                          ), // spacing between the rank and the profile picture
-                          // Load the user's profile picture if it exists
-                          pfpBytes != null
-                              ? Image.memory(
-                                  // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
-                                  pfpBytes,
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                )
-                              // Otherwise, load the default icon avatar
-                              : const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 40,
-                                ),
-                          SizedBox(
-                            width: Responsive.width(context, 15),
-                          ), // spacing between the profile picture and the username
-                          Text(
-                            username,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: Responsive.font(context, 18),
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            "Level $level | $expPoints / ${experienceNeededForLevel(level)}",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: Responsive.font(context, 16),
-                            ),
-                          ),
-                          SizedBox(
-                            width: Responsive.width(context, 10),
-                          ), // spacing on the right side of the row
-                        ],
-                      ),
-                    ),
-                  );
+                  return _buildUserCard(user, i, isCurrentUser);
                 },
               ),
             );
