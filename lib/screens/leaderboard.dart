@@ -220,9 +220,12 @@ class _LeaderboardState extends State<Leaderboard> {
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
           actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: _refreshLeaderboard,
+            Padding(
+              padding: EdgeInsets.all(Responsive.padding(context, 8)),
+              child: IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: _refreshLeaderboard,
+              ),
             ),
           ],
         ),
@@ -266,7 +269,7 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 50),
+                  horizontal: Responsive.width(context, 15),
                   vertical: Responsive.height(context, 24),
                 ),
                 itemCount:
