@@ -1081,3 +1081,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added skeletonizer to the Food Logging tab. No fake data was needed because the Widget tree already renders before the food is obtained
 - Added skeletonizer to Home Screen (same logic as above)
 - Made fake POIs as placeholders to replace the circular loading icon with the skeletonizer package when loading nearby spots in Explore tab
+- Moved the fcm token initialization to happen after isLoading = false so that Home Screen isn't still "loading" when the user's data is ready

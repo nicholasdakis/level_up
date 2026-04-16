@@ -103,9 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
     expNotifier.value = currentUserData?.expPoints ?? 0;
     debugPrint('XP loaded: ${currentUserData?.expPoints}');
 
-    // Initialize FCM after user data is loaded so currentUserData is fully populated before token registration
-    if (mounted) await FcmService.initialize(context);
-
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (canClaimDailyReward()) buildDailyRewardDialog();
@@ -121,6 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }); // rebuild UI with loaded stats
       }
     });
+
+    // Initialize FCM in the background so it doesn't block the UI from rendering
+    if (mounted) FcmService.initialize(context);
   }
 
   bool isLoading = true; // for the skeletonizer
