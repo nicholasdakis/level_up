@@ -743,7 +743,7 @@ class _FoodLoggingState extends State<FoodLogging>
 
   Widget buildAttribution(String url, String text, Color color) {
     return Container(
-      alignment: Alignment.topLeft,
+      alignment: Alignment.center,
       child: InkWell(
         splashColor: appColorNotifier.value.withAlpha(100),
         onTap: () async {
@@ -753,7 +753,7 @@ class _FoodLoggingState extends State<FoodLogging>
         child: textWithFont(
           text,
           context,
-          Responsive.font(context, 20),
+          Responsive.font(context, 15),
           color: color,
         ),
       ),
@@ -943,12 +943,6 @@ class _FoodLoggingState extends State<FoodLogging>
   Widget _buildSearchTab() {
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
-          ),
-          child: SizedBox(width: double.infinity, child: buildLogFoodButton()),
-        ),
         if (selectedFood != null && foodList.isEmpty) ...[
           // Spread operator to put the widgets in the list into the parent widget’s children list
           _buildServingRow(),
@@ -1404,7 +1398,7 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
-                    "Recent logs on this device",
+                    "RECENT LOGS",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 18),
                       color: Colors.white54,
@@ -1810,6 +1804,36 @@ class _FoodLoggingState extends State<FoodLogging>
 
                   SizedBox(height: Responsive.height(context, 8)),
 
+                  // Attribution text above the meal type row
+                  if (_tabController.index ==
+                      FoodTab.search) // Search tab attribution
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: Responsive.width(context, 20),
+                        right: Responsive.width(context, 20),
+                        bottom: Responsive.height(context, 6),
+                      ),
+                      child: buildAttribution(
+                        "https://www.fatsecret.com",
+                        "Powered by fatsecret",
+                        Colors.blue,
+                      ),
+                    ),
+                  if (_tabController.index ==
+                      FoodTab.barcode) // Barcode tab attribution
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: Responsive.width(context, 20),
+                        right: Responsive.width(context, 20),
+                        bottom: Responsive.height(context, 6),
+                      ),
+                      child: buildAttribution(
+                        "https://openfoodfacts.org",
+                        "Powered by Open Food Facts",
+                        Colors.green,
+                      ),
+                    ),
+
                   // Meal type dropdown and search field / log button
                   SizedBox(
                     height: Responsive.height(context, 58),
@@ -1883,27 +1907,15 @@ class _FoodLoggingState extends State<FoodLogging>
 
                   SizedBox(height: Responsive.height(context, 10)),
 
-                  // Attribution text above the recent foods so it doesn't shift when recent foods expands
+                  // Log Food button for the search tab
                   if (_tabController.index == FoodTab.search)
                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: Responsive.width(context, 20),
                       ),
-                      child: buildAttribution(
-                        "https://www.fatsecret.com",
-                        "Powered by fatsecret",
-                        Colors.blue,
-                      ),
-                    ),
-                  if (_tabController.index == FoodTab.barcode)
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 20),
-                      ),
-                      child: buildAttribution(
-                        "https://openfoodfacts.org",
-                        "Powered by Open Food Facts",
-                        Colors.green,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: buildLogFoodButton(),
                       ),
                     ),
 
@@ -1938,26 +1950,26 @@ class _FoodLoggingState extends State<FoodLogging>
                               }
                             : null,
                         child: Column(
-                      children: [
-                        if (_hasActiveInput()) // Meal tiles shouldn't show
-                          Expanded(
-                            child: _tabController.index == FoodTab.search
-                                ? _buildSearchTab()
-                                : _buildBarcodeTab(),
-                          )
-                        else if (_tabController.index == FoodTab.manual)
-                          Expanded(child: _buildManualEntryTab())
-                        else ...[
-                          // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
-                          if (_tabController.index == FoodTab.search)
-                            _buildSearchTab()
-                          else if (_tabController.index == FoodTab.barcode)
-                            _buildBarcodeTab(),
-                          Expanded(child: _buildMealTiles()),
-                        ],
-                      ],
-                    ),
-                    ),
+                          children: [
+                            if (_hasActiveInput()) // Meal tiles shouldn't show
+                              Expanded(
+                                child: _tabController.index == FoodTab.search
+                                    ? _buildSearchTab()
+                                    : _buildBarcodeTab(),
+                              )
+                            else if (_tabController.index == FoodTab.manual)
+                              Expanded(child: _buildManualEntryTab())
+                            else ...[
+                              // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
+                              if (_tabController.index == FoodTab.search)
+                                _buildSearchTab()
+                              else if (_tabController.index == FoodTab.barcode)
+                                _buildBarcodeTab(),
+                              Expanded(child: _buildMealTiles()),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
