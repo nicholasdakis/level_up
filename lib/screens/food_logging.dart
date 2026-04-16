@@ -743,7 +743,7 @@ class _FoodLoggingState extends State<FoodLogging>
 
   Widget buildAttribution(String url, String text, Color color) {
     return Container(
-      alignment: Alignment.center,
+      alignment: Alignment.topLeft,
       child: InkWell(
         splashColor: appColorNotifier.value.withAlpha(100),
         onTap: () async {
@@ -753,7 +753,7 @@ class _FoodLoggingState extends State<FoodLogging>
         child: textWithFont(
           text,
           context,
-          Responsive.font(context, 16),
+          Responsive.font(context, 20),
           color: color,
         ),
       ),
@@ -943,12 +943,6 @@ class _FoodLoggingState extends State<FoodLogging>
   Widget _buildSearchTab() {
     return Column(
       children: [
-        buildAttribution(
-          "https://www.fatsecret.com",
-          "Powered by fatsecret",
-          Colors.blue,
-        ),
-        SizedBox(height: Responsive.height(context, 10)),
         Padding(
           padding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 20),
@@ -1020,13 +1014,6 @@ class _FoodLoggingState extends State<FoodLogging>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildAttribution(
-          "https://openfoodfacts.org",
-          "Powered by Open Food Facts",
-          Colors.green,
-        ),
-        SizedBox(height: Responsive.height(context, 10)),
-
         // Scan button shown only when the scanner isn't active and there's no result or error yet
         if (!scannerActive && barcodeResult == null && barcodeError == null)
           GestureDetector(
@@ -1405,7 +1392,7 @@ class _FoodLoggingState extends State<FoodLogging>
             },
             child: Padding(
               padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 6),
+                vertical: Responsive.height(context, 12),
                 horizontal: Responsive.width(context, 4),
               ),
               child: Row(
@@ -1413,13 +1400,13 @@ class _FoodLoggingState extends State<FoodLogging>
                   Icon(
                     Icons.history,
                     color: Colors.white54,
-                    size: Responsive.scale(context, 18),
+                    size: Responsive.scale(context, 22),
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
                     "Recent logs on this device",
                     style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 15),
+                      fontSize: Responsive.font(context, 18),
                       color: Colors.white54,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1430,7 +1417,7 @@ class _FoodLoggingState extends State<FoodLogging>
                         ? Icons.expand_less
                         : Icons.expand_more,
                     color: Colors.white54,
-                    size: Responsive.scale(context, 20),
+                    size: Responsive.scale(context, 24),
                   ),
                 ],
               ),
@@ -1849,7 +1836,7 @@ class _FoodLoggingState extends State<FoodLogging>
                           hint: Text(
                             "Meal Type",
                             style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 20),
+                              fontSize: Responsive.font(context, 16),
                               color: Colors.white,
                               shadows: [textDropShadow(context)],
                             ),
@@ -1874,7 +1861,7 @@ class _FoodLoggingState extends State<FoodLogging>
                                         style: GoogleFonts.manrope(
                                           fontSize: Responsive.font(
                                             context,
-                                            20,
+                                            16,
                                           ),
                                           color: Colors.white,
                                         ),
@@ -1895,6 +1882,30 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
 
                   SizedBox(height: Responsive.height(context, 10)),
+
+                  // Attribution text above the recent foods so it doesn't shift when recent foods expands
+                  if (_tabController.index == FoodTab.search)
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                      ),
+                      child: buildAttribution(
+                        "https://www.fatsecret.com",
+                        "Powered by fatsecret",
+                        Colors.blue,
+                      ),
+                    ),
+                  if (_tabController.index == FoodTab.barcode)
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                      ),
+                      child: buildAttribution(
+                        "https://openfoodfacts.org",
+                        "Powered by Open Food Facts",
+                        Colors.green,
+                      ),
+                    ),
 
                   // Recent foods collapsible section
                   if (_recentFoods.isNotEmpty)

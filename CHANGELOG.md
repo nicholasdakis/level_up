@@ -1066,3 +1066,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - The controller uses .forward() to expand the section and .reverse() to collapse it. Instead of items appearing or disappearing instantly, the widget smoothly changes its height over time, so the list gradually reveals or hides from top to bottom instead of instantly disappaering when the tab is collapsed
 - Switched from SingleTickerProviderStateMixin to TickerProviderStateMixin because the new AnimationController needs its own ticker alongside the TabController's
 - Wrapped the recent foods list in a ConstrainedBox with a max height and SingleChildScrollView to make the tab scrollable and prevent pixel overflow errors
+- Moved the attribution text out of the buildSearchTab and buildBarcodeTab methods and moving them to the body's main column (above the recent foods section) so that expanding the recent foods tab did not push it down
+- Edited textDropShadow to make the shadows of text more subtle

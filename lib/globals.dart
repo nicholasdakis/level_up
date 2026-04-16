@@ -29,7 +29,7 @@ Shadow textDropShadow(BuildContext context) {
   return Shadow(
     offset: Offset(Responsive.scale(context, 4), Responsive.scale(context, 4)),
     blurRadius: Responsive.scale(context, 10),
-    color: const Color.fromARGB(255, 0, 0, 0),
+    color: const Color.fromARGB(100, 0, 0, 0),
   );
 }
 
