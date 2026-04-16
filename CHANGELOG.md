@@ -1079,3 +1079,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added a list of skeletonEntries with fake user data to Leaderboard tab that is used as the placeholder while the real data is laoding
 - Added an isLoading method to Leaderboard tab to determine whether to show the fake data or real data
 - Added skeletonizer to the Food Logging tab. No fake data was needed because the Widget tree already renders before the food is obtained
+- Added skeletonizer to Home Screen (same logic as above)
