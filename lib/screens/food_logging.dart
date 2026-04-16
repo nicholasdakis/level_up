@@ -1918,7 +1918,26 @@ class _FoodLoggingState extends State<FoodLogging>
 
                   // Tab content area and meal tiles
                   Expanded(
-                    child: Column(
+                    child: NotificationListener<ScrollNotification>(
+                      // Collapse recent foods when the user scrolls the content area below
+                      onNotification: (notification) {
+                        if (_recentFoodsExpanded &&
+                            notification is ScrollStartNotification) {
+                          setState(() => _recentFoodsExpanded = false);
+                          _recentFoodsAnim.reverse();
+                        }
+                        return false;
+                      },
+                      child: GestureDetector(
+                        // Collapse recent foods when the user taps the content area below
+                        behavior: HitTestBehavior.translucent,
+                        onTap: _recentFoodsExpanded
+                            ? () {
+                                setState(() => _recentFoodsExpanded = false);
+                                _recentFoodsAnim.reverse();
+                              }
+                            : null,
+                        child: Column(
                       children: [
                         if (_hasActiveInput()) // Meal tiles shouldn't show
                           Expanded(
@@ -1937,6 +1956,8 @@ class _FoodLoggingState extends State<FoodLogging>
                           Expanded(child: _buildMealTiles()),
                         ],
                       ],
+                    ),
+                    ),
                     ),
                   ),
                 ],
