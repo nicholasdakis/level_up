@@ -12,6 +12,7 @@ import '../utility/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../user/user_data_manager.dart';
 import '../utility/recent_foods_service.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -1700,30 +1701,7 @@ class _FoodLoggingState extends State<FoodLogging>
       future:
           _loadUserDataFuture, // same future instance across rebuilds, so the load only runs once
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Container(
-            decoration: BoxDecoration(gradient: buildThemeGradient()),
-            child: Scaffold(
-              backgroundColor: Colors.transparent, // Body color
-              body: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: Responsive.height(context, 24)),
-                    Text(
-                      "Loading food data, please wait...",
-                      style: TextStyle(
-                        fontSize: Responsive.font(context, 20),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
+        final isLoading = snapshot.connectionState != ConnectionState.done;
 
         return Container(
           decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -1738,275 +1716,284 @@ class _FoodLoggingState extends State<FoodLogging>
             ),
             body: Padding(
               padding: EdgeInsets.all(Responsive.width(context, 16)),
-              child: Column(
-                children: [
-                  // Date navigation
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_left, color: Colors.white),
-                        onPressed: () => changeDate(-1),
-                      ),
-                      InkWell(
-                        splashColor: appColorNotifier.value.withAlpha(100),
-                        onTap: pickDate,
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 8),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 12),
-                            vertical: Responsive.height(context, 6),
-                          ),
-                          child: Text(
-                            "${const ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 18),
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.arrow_right, color: Colors.white),
-                        onPressed: () => changeDate(1),
-                      ),
-                    ],
-                  ),
-
-                  // Total calories for the day text
-                  Text(
-                    "Total Calories: ${getTotalCaloriesForDay()}",
-                    style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 20),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  SizedBox(height: Responsive.height(context, 8)),
-
-                  // Tab bar
-                  TabBar(
-                    controller: _tabController,
-                    // Only reset state when actually switching to a different tab,
-                    // so a selected food survives navigating away and back
-                    onTap: (index) {
-                      if (index != _previousTabIndex) {
-                        setState(() {
-                          _previousTabIndex = index;
-                          foodList = [];
-                          servingAmountController.clear();
-                          selectedUnit = 'g';
-                          baseAmount = 1.0;
-                          baseMacros = {};
-                          displayDescription = '';
-                          selectedFood = null;
-                          userCanType = true;
-                          mealChosen = false;
-                          searchController.clear();
-                          barcodeResult = null;
-                          barcodeError = null;
-                          scannerActive = false;
-                        });
-                      }
-                    },
-                    indicatorColor: Colors.white,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white54,
-                    labelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(
-                        context,
-                        20,
-                      ), // label gets bigger on the selected tab
-                      fontWeight: FontWeight.bold,
-                    ),
-                    unselectedLabelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(
-                        context,
-                        15,
-                      ), // unselected tab label size
-                    ),
-                    tabs: const [
-                      Tab(text: "Search"),
-                      Tab(text: "Barcode"),
-                      Tab(text: "Manual"),
-                    ],
-                  ),
-
-                  SizedBox(height: Responsive.height(context, 8)),
-
-                  // Attribution text above the meal type row
-                  if (_tabController.index ==
-                      FoodTab.search) // Search tab attribution
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: Responsive.width(context, 20),
-                        right: Responsive.width(context, 20),
-                        bottom: Responsive.height(context, 6),
-                      ),
-                      child: buildAttribution(
-                        "https://www.fatsecret.com",
-                        "Powered by fatsecret",
-                        Colors.blue,
-                      ),
-                    ),
-                  if (_tabController.index ==
-                      FoodTab.barcode) // Barcode tab attribution
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: Responsive.width(context, 20),
-                        right: Responsive.width(context, 20),
-                        bottom: Responsive.height(context, 6),
-                      ),
-                      child: buildAttribution(
-                        "https://openfoodfacts.org",
-                        "Powered by Open Food Facts",
-                        Colors.green,
-                      ),
-                    ),
-
-                  // Meal type dropdown and search field / log button
-                  SizedBox(
-                    height: Responsive.height(context, 58),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+              child: Skeletonizer(
+                enabled: isLoading, // shows bone placeholders while loading, passes through normally when done
+                effect: PulseEffect(
+                  from: lightenColor(appColorNotifier.value, 0.1),
+                  to: lightenColor(appColorNotifier.value, 0.3),
+                  duration: const Duration(milliseconds: 1200),
+                ),
+                child: Column(
+                  children: [
+                    // Date navigation
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Meal Type chooser
-                        DropdownButton2<String>(
-                          isDense: true,
-                          dropdownStyleData: DropdownStyleData(
-                            decoration: BoxDecoration(
-                              color: appColorNotifier.value.withAlpha(128),
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 10),
+                        IconButton(
+                          icon: Icon(Icons.arrow_left, color: Colors.white),
+                          onPressed: () => changeDate(-1),
+                        ),
+                        InkWell(
+                          splashColor: appColorNotifier.value.withAlpha(100),
+                          onTap: pickDate,
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 8),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 12),
+                              vertical: Responsive.height(context, 6),
+                            ),
+                            child: Text(
+                              "${const ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 18),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            maxHeight: Responsive.height(context, 200),
                           ),
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            color: Colors.white,
-                            shadows: [textDropShadow(context)],
-                          ),
-                          hint: Text(
-                            "Meal Type",
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.arrow_right, color: Colors.white),
+                          onPressed: () => changeDate(1),
+                        ),
+                      ],
+                    ),
+
+                    // Total calories for the day text
+                    Text(
+                      "Total Calories: ${getTotalCaloriesForDay()}",
+                      style: GoogleFonts.manrope(
+                        color: Colors.white,
+                        fontSize: Responsive.font(context, 20),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 8)),
+
+                    // Tab bar
+                    TabBar(
+                      controller: _tabController,
+                      // Only reset state when actually switching to a different tab,
+                      // so a selected food survives navigating away and back
+                      onTap: (index) {
+                        if (index != _previousTabIndex) {
+                          setState(() {
+                            _previousTabIndex = index;
+                            foodList = [];
+                            servingAmountController.clear();
+                            selectedUnit = 'g';
+                            baseAmount = 1.0;
+                            baseMacros = {};
+                            displayDescription = '';
+                            selectedFood = null;
+                            userCanType = true;
+                            mealChosen = false;
+                            searchController.clear();
+                            barcodeResult = null;
+                            barcodeError = null;
+                            scannerActive = false;
+                          });
+                        }
+                      },
+                      indicatorColor: Colors.white,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white54,
+                      labelStyle: GoogleFonts.manrope(
+                        fontSize: Responsive.font(
+                          context,
+                          20,
+                        ), // label gets bigger on the selected tab
+                        fontWeight: FontWeight.bold,
+                      ),
+                      unselectedLabelStyle: GoogleFonts.manrope(
+                        fontSize: Responsive.font(
+                          context,
+                          15,
+                        ), // unselected tab label size
+                      ),
+                      tabs: const [
+                        Tab(text: "Search"),
+                        Tab(text: "Barcode"),
+                        Tab(text: "Manual"),
+                      ],
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 8)),
+
+                    // Attribution text above the meal type row
+                    if (_tabController.index ==
+                        FoodTab.search) // Search tab attribution
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: Responsive.width(context, 20),
+                          right: Responsive.width(context, 20),
+                          bottom: Responsive.height(context, 6),
+                        ),
+                        child: buildAttribution(
+                          "https://www.fatsecret.com",
+                          "Powered by fatsecret",
+                          Colors.blue,
+                        ),
+                      ),
+                    if (_tabController.index ==
+                        FoodTab.barcode) // Barcode tab attribution
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: Responsive.width(context, 20),
+                          right: Responsive.width(context, 20),
+                          bottom: Responsive.height(context, 6),
+                        ),
+                        child: buildAttribution(
+                          "https://openfoodfacts.org",
+                          "Powered by Open Food Facts",
+                          Colors.green,
+                        ),
+                      ),
+
+                    // Meal type dropdown and search field / log button
+                    SizedBox(
+                      height: Responsive.height(context, 58),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Meal Type chooser
+                          DropdownButton2<String>(
+                            isDense: true,
+                            dropdownStyleData: DropdownStyleData(
+                              decoration: BoxDecoration(
+                                color: appColorNotifier.value.withAlpha(128),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 10),
+                                ),
+                              ),
+                              maxHeight: Responsive.height(context, 200),
+                            ),
                             style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 16),
+                              fontSize: Responsive.font(context, 15),
                               color: Colors.white,
                               shadows: [textDropShadow(context)],
                             ),
-                          ),
-                          value: mealType,
-                          // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
-                          items:
-                              [
-                                    {
-                                      "value": "breakfast",
-                                      "label": "Breakfast",
-                                    },
-                                    {"value": "lunch", "label": "Lunch"},
-                                    {"value": "dinner", "label": "Dinner"},
-                                    {"value": "snacks", "label": "Snacks"},
-                                  ]
-                                  .map(
-                                    (t) => DropdownMenuItem(
-                                      value: t["value"], // "breakfast"
-                                      child: Text(
-                                        t["label"]!, // "Breakfast"
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            16,
+                            hint: Text(
+                              "Meal Type",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 16),
+                                color: Colors.white,
+                                shadows: [textDropShadow(context)],
+                              ),
+                            ),
+                            value: mealType,
+                            // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
+                            items:
+                                [
+                                      {
+                                        "value": "breakfast",
+                                        "label": "Breakfast",
+                                      },
+                                      {"value": "lunch", "label": "Lunch"},
+                                      {"value": "dinner", "label": "Dinner"},
+                                      {"value": "snacks", "label": "Snacks"},
+                                    ]
+                                    .map(
+                                      (t) => DropdownMenuItem(
+                                        value: t["value"], // "breakfast"
+                                        child: Text(
+                                          t["label"]!, // "Breakfast"
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              16,
+                                            ),
+                                            color: Colors.white,
                                           ),
-                                          color: Colors.white,
                                         ),
                                       ),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) =>
-                              setState(() => mealType = value),
+                                    )
+                                    .toList(),
+                            onChanged: (value) =>
+                                setState(() => mealType = value),
+                          ),
+                          SizedBox(width: Responsive.width(context, 25)),
+                          // Search field on the search tab, log button everywhere else
+                          _tabController.index == FoodTab.search
+                              ? buildSearchButton()
+                              : Expanded(child: buildLogFoodButton()),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 10)),
+
+                    // Log Food button for the search tab
+                    if (_tabController.index == FoodTab.search)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 20),
                         ),
-                        SizedBox(width: Responsive.width(context, 25)),
-                        // Search field on the search tab, log button everywhere else
-                        _tabController.index == FoodTab.search
-                            ? buildSearchButton()
-                            : Expanded(child: buildLogFoodButton()),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(height: Responsive.height(context, 10)),
-
-                  // Log Food button for the search tab
-                  if (_tabController.index == FoodTab.search)
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: buildLogFoodButton(),
+                        ),
                       ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: buildLogFoodButton(),
-                      ),
-                    ),
 
-                  // Recent foods collapsible section
-                  if (_recentFoods.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 20),
+                    // Recent foods collapsible section
+                    if (_recentFoods.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 20),
+                        ),
+                        child: _buildRecentFoodsSection(),
                       ),
-                      child: _buildRecentFoodsSection(),
-                    ),
 
-                  // Tab content area and meal tiles
-                  Expanded(
-                    child: NotificationListener<ScrollNotification>(
-                      // Collapse recent foods when the user scrolls the content area below
-                      onNotification: (notification) {
-                        if (_recentFoodsExpanded &&
-                            notification is ScrollStartNotification) {
-                          setState(() => _recentFoodsExpanded = false);
-                          _recentFoodsAnim.reverse();
-                        }
-                        return false;
-                      },
-                      child: GestureDetector(
-                        // Collapse recent foods when the user taps the content area below
-                        behavior: HitTestBehavior.translucent,
-                        onTap: _recentFoodsExpanded
-                            ? () {
-                                setState(() => _recentFoodsExpanded = false);
-                                _recentFoodsAnim.reverse();
-                              }
-                            : null,
-                        child: Column(
-                          children: [
-                            if (_hasActiveInput()) // Meal tiles shouldn't show
-                              Expanded(
-                                child: _tabController.index == FoodTab.search
-                                    ? _buildSearchTab()
-                                    : _buildBarcodeTab(),
-                              )
-                            else if (_tabController.index == FoodTab.manual)
-                              Expanded(child: _buildManualEntryTab())
-                            else ...[
-                              // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
-                              if (_tabController.index == FoodTab.search)
-                                _buildSearchTab()
-                              else if (_tabController.index == FoodTab.barcode)
-                                _buildBarcodeTab(),
-                              Expanded(child: _buildMealTiles()),
+                    // Tab content area and meal tiles
+                    Expanded(
+                      child: NotificationListener<ScrollNotification>(
+                        // Collapse recent foods when the user scrolls the content area below
+                        onNotification: (notification) {
+                          if (_recentFoodsExpanded &&
+                              notification is ScrollStartNotification) {
+                            setState(() => _recentFoodsExpanded = false);
+                            _recentFoodsAnim.reverse();
+                          }
+                          return false;
+                        },
+                        child: GestureDetector(
+                          // Collapse recent foods when the user taps the content area below
+                          behavior: HitTestBehavior.translucent,
+                          onTap: _recentFoodsExpanded
+                              ? () {
+                                  setState(() => _recentFoodsExpanded = false);
+                                  _recentFoodsAnim.reverse();
+                                }
+                              : null,
+                          child: Column(
+                            children: [
+                              if (_hasActiveInput()) // Meal tiles shouldn't show
+                                Expanded(
+                                  child: _tabController.index == FoodTab.search
+                                      ? _buildSearchTab()
+                                      : _buildBarcodeTab(),
+                                )
+                              else if (_tabController.index == FoodTab.manual)
+                                Expanded(child: _buildManualEntryTab())
+                              else ...[
+                                // Spread operator to conditionally include the tab content only when there's no active input, allowing meal tiles to take up remaining space
+                                if (_tabController.index == FoodTab.search)
+                                  _buildSearchTab()
+                                else if (_tabController.index ==
+                                    FoodTab.barcode)
+                                  _buildBarcodeTab(),
+                                Expanded(child: _buildMealTiles()),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
