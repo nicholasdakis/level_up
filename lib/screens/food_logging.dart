@@ -1481,7 +1481,9 @@ class _FoodLoggingState extends State<FoodLogging>
                                     child: Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        food['food_name'] ?? '',
+                                        food['brand_name'] != null
+                                            ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
+                                            : (food['food_name'] ?? ''),
                                         style: GoogleFonts.manrope(
                                           fontSize: Responsive.font(
                                             context,

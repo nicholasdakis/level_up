@@ -1071,3 +1071,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added a NotificationListener to listen to user scrolls, and a GestureDetector to detect user clicks, to automatically collapse the recent logs tab if the user scrolls / clicks on their logged foods under it, improving UX
 - Moved the attribution text higher up to prevent misclicking when trying to press "Recent logs"
 - Moved the "Log Food" button in the Search tab above the recent logs on this device to be consistent with the other tabs and prevent expanding the widget pushing the "Log Food" button
+- Made the recent food entries also show the brand name if it exists
