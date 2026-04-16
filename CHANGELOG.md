@@ -1062,3 +1062,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - After a food log upsert, the service now computes the food streak and sets the food_streak achievement progress
 - Updated claim_daily_reward to also write last_date when upserting the daily_claim_streak streak
 - Added row locking to claim_achievement and update_food_streak RPC functions to make them truly atomic. Now it is impossible for two concurrent calls to read the same row at once before one of them writes
+- The recent foods section now opens and closes using SizeTransition with an AnimationController
+- The controller uses .forward() to expand the section and .reverse() to collapse it. Instead of items appearing or disappearing instantly, the widget smoothly changes its height over time, so the list gradually reveals or hides from top to bottom instead of instantly disappaering when the tab is collapsed
+- Switched from SingleTickerProviderStateMixin to TickerProviderStateMixin because the new AnimationController needs its own ticker alongside the TabController's
+- Wrapped the recent foods list in a ConstrainedBox with a max height and SingleChildScrollView to make the tab scrollable and prevent pixel overflow errors

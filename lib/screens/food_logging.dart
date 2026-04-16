@@ -28,8 +28,8 @@ class FoodLogging extends StatefulWidget {
 }
 
 class _FoodLoggingState extends State<FoodLogging>
-    with SingleTickerProviderStateMixin {
-  // SingleTickerProviderStateMixin is needed for TabController
+    with TickerProviderStateMixin {
+  // 2 tickers: one for TabController and one for AnimatedSize
 
   // Hold selected food for updating the UI in real time
   Map<String, dynamic>? selectedFood;
@@ -94,6 +94,8 @@ class _FoodLoggingState extends State<FoodLogging>
   final RecentFoodsService _recentFoodsService = RecentFoodsService();
   List<Map<String, dynamic>> _recentFoods = [];
   bool _recentFoodsExpanded = false;
+  // Controls the expand/collapse animation for the recent foods section
+  late AnimationController _recentFoodsAnim;
 
   @override
   void initState() {
@@ -102,6 +104,11 @@ class _FoodLoggingState extends State<FoodLogging>
       length: 3,
       vsync: this,
     ); // vsync: this gives the TickerProvider
+    // vsync: this gives AnimationController a ticker from TickerProviderStateMixin
+    _recentFoodsAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     _loadUserDataFuture = _loadUserDataAndInit();
     _loadRecentFoods();
   }
@@ -120,6 +127,7 @@ class _FoodLoggingState extends State<FoodLogging>
     manualProteinController.dispose();
     manualServingAmountController.dispose();
     _tabController.dispose();
+    _recentFoodsAnim.dispose();
     super.dispose();
   }
 
@@ -1386,9 +1394,15 @@ class _FoodLoggingState extends State<FoodLogging>
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
-            onTap: () => setState(() {
-              _recentFoodsExpanded = !_recentFoodsExpanded;
-            }),
+            onTap: () {
+              setState(() => _recentFoodsExpanded = !_recentFoodsExpanded);
+              // forward() plays 0->1 (expand), reverse() plays 1->0 (collapse)
+              if (_recentFoodsExpanded) {
+                _recentFoodsAnim.forward();
+              } else {
+                _recentFoodsAnim.reverse();
+              }
+            },
             child: Padding(
               padding: EdgeInsets.symmetric(
                 vertical: Responsive.height(context, 6),
@@ -1423,82 +1437,107 @@ class _FoodLoggingState extends State<FoodLogging>
             ),
           ),
         ),
-        // Expandable list of recent foods
-        if (_recentFoodsExpanded)
-          ...(_recentFoods.map((food) {
-            // Spread operator so the UI adds every recent food as its own individual widget
-            final name = food['food_name'] ?? '';
-            return Padding(
-              padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  // Recent foods already have calories set, so logFood's
-                  // calorie extraction is a no op here
-                  onTap: () {
-                    logFood(Map<String, dynamic>.from(food));
-                    trackTrivialAchievement("food_recent");
-                  },
-                  child: frostedGlassCard(
-                    context,
-                    baseRadius: 12,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 16),
-                      vertical: Responsive.height(context, 10),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 16),
+        // SizeTransition scales the visible portion of its child
+        // based on _recentFoodsAnim (0.0 = fully collapsed, 1.0 = fully
+        // expanded). The child is always built at full size, and
+        // SizeTransition clips it so during collapse the cards slide
+        // behind the header like a curtain instead of disappearing first
+        SizeTransition(
+          sizeFactor: CurvedAnimation(
+            parent: _recentFoodsAnim,
+            curve: Curves.easeInOut,
+          ),
+          // axisAlignment -1.0 means the content is pinned to the top,
+          // so it reveals downward when expanding and hides upward
+          // when collapsing
+          axisAlignment: -1.0,
+          child: ConstrainedBox(
+            // Cap the max height so the list can't push tab content off screen
+            constraints: BoxConstraints(
+              maxHeight: Responsive.height(context, 200),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (final food in _recentFoods)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 6),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.add_circle_outline,
-                            color: appColorNotifier.value,
-                            size: Responsive.scale(context, 20),
-                          ),
-                          SizedBox(width: Responsive.width(context, 12)),
-                          Flexible(
-                            flex: 1,
-                            fit: FlexFit.tight,
-                            child: Align(
-                              alignment:
-                                  Alignment.centerLeft, // name aligns left
-                              child: Text(
-                                name,
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 14),
-                                  color: Colors.white,
-                                ),
-                                softWrap: true,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          // Recent foods already have calories set, so logFood's
+                          // calorie extraction is a no op here
+                          onTap: () {
+                            logFood(Map<String, dynamic>.from(food));
+                            trackTrivialAchievement("food_recent");
+                          },
+                          child: frostedGlassCard(
+                            context,
+                            baseRadius: 12,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 16),
+                              vertical: Responsive.height(context, 10),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_outline,
+                                    color: appColorNotifier.value,
+                                    size: Responsive.scale(context, 20),
+                                  ),
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
+                                  Flexible(
+                                    flex: 1,
+                                    fit: FlexFit.tight,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        food['food_name'] ?? '',
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            14,
+                                          ),
+                                          color: Colors.white,
+                                        ),
+                                        softWrap: true,
+                                      ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    flex: 2,
+                                    fit: FlexFit.tight,
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: _buildMacroText(
+                                        food,
+                                        fontSize: 11,
+                                        color: Colors.white54,
+                                        compact: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-
-                          Flexible(
-                            flex: 2,
-                            fit: FlexFit.tight,
-                            child: Align(
-                              alignment:
-                                  Alignment.centerRight, // macros align right
-                              child: _buildMacroText(
-                                food,
-                                fontSize: 11,
-                                color: Colors.white54,
-                                compact: true,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                ],
               ),
-            );
-          })),
-        if (_recentFoodsExpanded)
-          SizedBox(height: Responsive.height(context, 6)),
+            ),
+          ),
+        ),
       ],
     );
   }
