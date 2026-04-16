@@ -1072,3 +1072,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Moved the attribution text higher up to prevent misclicking when trying to press "Recent logs"
 - Moved the "Log Food" button in the Search tab above the recent logs on this device to be consistent with the other tabs and prevent expanding the widget pushing the "Log Food" button
 - Made the recent food entries also show the brand name if it exists
+- Added a confirmation snackbar when trying to delete a logged food. For the swipe-to-delete, this was done by changing the onDismissed() to the built-in confirmDelete() method

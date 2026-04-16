@@ -146,7 +146,7 @@ class _FoodLoggingState extends State<FoodLogging>
   // Reusable Snackbar maker
   void _showSnackbar(
     String message, {
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(milliseconds: 500),
   }) {
     if (snackbarActive) return;
     snackbarActive = true;
@@ -657,6 +657,34 @@ class _FoodLoggingState extends State<FoodLogging>
     int idx,
     List<Map<String, dynamic>> foods,
   ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ).withAlpha(100),
+        title: Text(
+          "Delete food?",
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        content: Text(
+          "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
+          style: GoogleFonts.manrope(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel", style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Delete", style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
     setState(() {
       foods.removeAt(idx);
       final dateKey = formatDateKey(currentDate);
@@ -1398,11 +1426,11 @@ class _FoodLoggingState extends State<FoodLogging>
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
-                    "RECENT LOGS",
+                    "RECENT FOODS",
                     style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 18),
-                      color: Colors.white54,
-                      fontWeight: FontWeight.w600,
+                      fontSize: Responsive.font(context, 20),
+                      color: Colors.white38,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   SizedBox(width: Responsive.width(context, 6)),
@@ -1602,7 +1630,11 @@ class _FoodLoggingState extends State<FoodLogging>
                 child: Icon(Icons.delete, color: Colors.white),
               ),
               direction: DismissDirection.endToStart,
-              onDismissed: (_) => _deleteFood(title, idx, foods),
+              confirmDismiss: (_) async {
+                await _deleteFood(title, idx, foods);
+                // Always return false since _deleteFood handles removal via setState
+                return false;
+              },
               child: Padding(
                 padding: EdgeInsets.only(
                   bottom: Responsive.height(context, 10),
