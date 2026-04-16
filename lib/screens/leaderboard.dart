@@ -4,6 +4,7 @@ import '../globals.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart'; // needed for currentUser
 import '../utility/leaderboard/leaderboard_entry.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -16,6 +17,18 @@ class _LeaderboardState extends State<Leaderboard> {
   // Cache for experience calculations
   final Map<int, int> _expCache = {};
   late Future<List<LeaderboardEntry>> _leaderboardFuture;
+
+  // Fake entries for the skeleton loading placeholder
+  static final List<LeaderboardEntry> _skeletonEntries = List.generate(
+    20,
+    // Mock data for each fake user
+    (i) => LeaderboardEntry(
+      uid: 'skeleton_$i',
+      username: BoneMock.name,
+      level: 1,
+      expPoints: 0,
+    ),
+  );
 
   // Method to show the total experience needed for a specific user to reach their next level
   int experienceNeededForLevel(int level) {
@@ -81,15 +94,15 @@ class _LeaderboardState extends State<Leaderboard> {
               );
             }
 
-            // Wait until the users are loaded from the stream
-            if (!snapshot.hasData ||
-                snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            // Uses the skeleton entries while loading and real data once loaded
+            final isLoading =
+                !snapshot.hasData ||
+                snapshot.connectionState == ConnectionState.waiting;
+            final leaderboardUsers = isLoading
+                ? _skeletonEntries
+                : snapshot.data!;
 
-            final leaderboardUsers = snapshot.data!;
-
-            if (leaderboardUsers.isEmpty) {
+            if (!isLoading && leaderboardUsers.isEmpty) {
               return const Center(
                 child: Text(
                   "No users found",
@@ -98,109 +111,121 @@ class _LeaderboardState extends State<Leaderboard> {
               );
             }
 
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.width(context, 20),
+            return Skeletonizer(
+              enabled:
+                  isLoading, // shows bone placeholders while loading, passes through normally when done
+              effect: PulseEffect(
+                from: lightenColor(appColorNotifier.value, 0.1),
+                to: lightenColor(appColorNotifier.value, 0.3),
+                duration: const Duration(milliseconds: 1200),
               ),
-              itemCount:
-                  leaderboardUsers.length >
-                      100 // Only shows up to the top 100
-                  ? 100
-                  : leaderboardUsers.length,
-              itemBuilder: (context, i) {
-                final user = leaderboardUsers[i];
-                final isCurrentUser = user.uid == currentUserId;
-                final level = user.level;
-                // Only show the user's username if it exists and is not the default username (their UID)
-                final username =
-                    (user.username == null || user.username == user.uid)
-                    ? "Unnamed"
-                    : user.username!;
-                final pfpBytes = user.pfpBytes;
-                final expPoints = user.expPoints;
+              child: ListView.builder(
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.width(context, 20),
+                ),
+                itemCount:
+                    leaderboardUsers.length >
+                        100 // Only shows up to the top 100
+                    ? 100
+                    : leaderboardUsers.length,
+                itemBuilder: (context, i) {
+                  final user = leaderboardUsers[i];
+                  final isCurrentUser = user.uid == currentUserId;
+                  final level = user.level;
+                  // Only show the user's username if it exists and is not the default username (their UID)
+                  final username =
+                      (user.username == null || user.username == user.uid)
+                      ? "Unnamed"
+                      : user.username!;
+                  final pfpBytes = user.pfpBytes;
+                  final expPoints = user.expPoints;
 
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: Responsive.width(context, 20),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isCurrentUser
-                          ? lightenColor(appColorNotifier.value, 0.2).withAlpha(
-                              35,
-                            ) // Highlight current user with a light version of the app color
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 8),
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.width(context, 20),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isCurrentUser
+                            ? lightenColor(
+                                appColorNotifier.value,
+                                0.2,
+                              ).withAlpha(
+                                35,
+                              ) // Highlight current user with a light version of the app color
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: Responsive.width(context, 10),
+                          ), // spacing on the left side of the row
+                          Text(
+                            "#${i + 1}",
+                            style: TextStyle(
+                              color: i == 0
+                                  ? Colors
+                                        .yellow // #1 Gets yellow text
+                                  : i == 1
+                                  ? Colors
+                                        .grey // #2 Gets grey text
+                                  : i ==
+                                        2 // #3 Gets bronze text
+                                  ? const Color(0xFFCD7F32)
+                                  // All other users receive white text
+                                  : Colors.white,
+                              fontSize: Responsive.font(context, 18),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(
+                            width: Responsive.width(context, 10),
+                          ), // spacing between the rank and the profile picture
+                          // Load the user's profile picture if it exists
+                          pfpBytes != null
+                              ? Image.memory(
+                                  // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
+                                  pfpBytes,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                )
+                              // Otherwise, load the default icon avatar
+                              : const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
+                          SizedBox(
+                            width: Responsive.width(context, 15),
+                          ), // spacing between the profile picture and the username
+                          Text(
+                            username,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.font(context, 18),
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            "Level $level | $expPoints / ${experienceNeededForLevel(level)}",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: Responsive.font(context, 16),
+                            ),
+                          ),
+                          SizedBox(
+                            width: Responsive.width(context, 10),
+                          ), // spacing on the right side of the row
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: Responsive.width(context, 10),
-                        ), // spacing on the left side of the row
-                        Text(
-                          "#${i + 1}",
-                          style: TextStyle(
-                            color: i == 0
-                                ? Colors
-                                      .yellow // #1 Gets yellow text
-                                : i == 1
-                                ? Colors
-                                      .grey // #2 Gets grey text
-                                : i ==
-                                      2 // #3 Gets bronze text
-                                ? const Color(0xFFCD7F32)
-                                // All other users receive white text
-                                : Colors.white,
-                            fontSize: Responsive.font(context, 18),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(
-                          width: Responsive.width(context, 10),
-                        ), // spacing between the rank and the profile picture
-                        // Load the user's profile picture if it exists
-                        pfpBytes != null
-                            ? Image.memory(
-                                // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
-                                pfpBytes,
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              )
-                            // Otherwise, load the default icon avatar
-                            : const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                        SizedBox(
-                          width: Responsive.width(context, 15),
-                        ), // spacing between the profile picture and the username
-                        Text(
-                          username,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Responsive.font(context, 18),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          "Level $level | $expPoints / ${experienceNeededForLevel(level)}",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Responsive.font(context, 16),
-                          ),
-                        ),
-                        SizedBox(
-                          width: Responsive.width(context, 10),
-                        ), // spacing on the right side of the row
-                      ],
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           },
         ),
