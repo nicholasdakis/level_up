@@ -11,6 +11,7 @@ import '../utility/poi/poi.dart';
 import '../utility/poi/poi_icons.dart';
 import '../utility/poi/poi_service.dart';
 import 'dart:async';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Explore extends StatefulWidget {
@@ -532,17 +533,96 @@ class _ExploreState extends State<Explore> {
                                                 10,
                                               ),
                                             ),
-                                            // Show loading spinner while fetching
+                                            // Show skeleton placeholder tiles while POIs are being fetched
                                             if (loadingPOIs)
-                                              Padding(
-                                                padding: EdgeInsets.all(
-                                                  Responsive.width(context, 20),
+                                              Skeletonizer(
+                                                enabled: true,
+                                                // Subtle white shimmer to blend with the dark card background
+                                                effect: ShimmerEffect(
+                                                  baseColor: Colors.white
+                                                      .withAlpha(30),
+                                                  highlightColor: Colors.white
+                                                      .withAlpha(15),
+                                                  duration: const Duration(
+                                                    milliseconds: 1200,
+                                                  ),
                                                 ),
-                                                child: const Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        color: Colors.white,
+                                                // 4 fake POI rows for Skeletonizer
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: List.generate(
+                                                    4,
+                                                    (_) => Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            vertical:
+                                                                Responsive.height(
+                                                                  context,
+                                                                  4,
+                                                                ),
+                                                          ),
+                                                      child: Row(
+                                                        children: [
+                                                          // Placeholder category icon
+                                                          Icon(
+                                                            Icons.place,
+                                                            color: Colors.white,
+                                                            size:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  20,
+                                                                ),
+                                                          ),
+                                                          SizedBox(
+                                                            width:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                // Placeholder POI name
+                                                                Text(
+                                                                  "Loading spot name",
+                                                                  style: GoogleFonts.manrope(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        Responsive.width(
+                                                                          context,
+                                                                          16,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                                // Placeholder category label
+                                                                Text(
+                                                                  "Category",
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          // Placeholder visit status icon
+                                                          Icon(
+                                                            Icons
+                                                                .circle_outlined,
+                                                            color:
+                                                                Colors.white38,
+                                                            size:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  20,
+                                                                ),
+                                                          ),
+                                                        ],
                                                       ),
+                                                    ),
+                                                  ),
                                                 ),
                                               )
                                             // Show error message if fetching failed
