@@ -15,15 +15,16 @@ CREATE EXTENSION IF NOT EXISTS citext;
 -- Core user table combining all user data into one row per user
 CREATE TABLE users (
     uid TEXT PRIMARY KEY,              -- Firebase Auth UID
-    exp_points INTEGER,                -- current XP within the user's level
-    level INTEGER,                     -- current level
+
+    exp_points INTEGER NOT NULL DEFAULT 0,   -- current XP within the user's level
+    level INTEGER NOT NULL DEFAULT 1,        -- current level
     pfp_base64 TEXT,                   -- profile picture stored as a Base64-encoded string
-    username CITEXT UNIQUE,            -- display name, case-insensitive unique
+    username CITEXT UNIQUE NOT NULL,   -- display name, case-insensitive unique
     app_color BIGINT,                  -- Flutter Color value stored as an integer
-    can_claim_daily_reward BOOLEAN,    -- whether the user can claim their daily reward
-    fcm_tokens TEXT[],                 -- Firebase Cloud Messaging tokens for push notifications
-    last_daily_claim TIMESTAMPTZ,      -- when the user last claimed their daily reward
-    notifications_enabled BOOLEAN     -- whether the user has push notifications turned on
+    can_claim_daily_reward BOOLEAN NOT NULL DEFAULT true,  -- whether the user can claim their daily reward
+    fcm_tokens TEXT[] NOT NULL DEFAULT '{}', -- Firebase Cloud Messaging tokens for push notifications
+    last_daily_claim TIMESTAMPTZ,     -- when the user last claimed their daily reward
+    notifications_enabled BOOLEAN NOT NULL DEFAULT true   -- whether the user has push notifications turned on
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
