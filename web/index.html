@@ -182,6 +182,22 @@
       }
     });
 
+    // If the app was hidden for more than 30 min, force a reload on return so the renderer re-initializes
+    (function () {
+      var hiddenAt = null;
+      var RELOAD_AFTER_MS = 30 * 60 * 1000; // 30 mins in ms
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+          hiddenAt = Date.now();
+        } else if (document.visibilityState === 'visible') {
+          if (hiddenAt != null && Date.now() - hiddenAt > RELOAD_AFTER_MS) {
+            window.location.reload();
+          }
+          hiddenAt = null;
+        }
+      });
+    })();
+
     // Called from Dart via JS interop to request notification permissions from the browser
     window.jsRequestPermission = async function () {
       try {
