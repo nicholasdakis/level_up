@@ -1197,6 +1197,9 @@ class _FoodLoggingState extends State<FoodLogging>
 
     return SingleChildScrollView(
       // Entire Manual tab is scrollable
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1878,11 +1881,15 @@ class _FoodLoggingState extends State<FoodLogging>
                       ),
 
                     // Meal type dropdown and search field / log button
-                    SizedBox(
-                      height: Responsive.height(context, 58),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                      ),
+                      child: SizedBox(
+                        height: Responsive.height(context, 58),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                           // Meal Type chooser
                           DropdownButton2<String>(
                             isDense: true,
@@ -1945,6 +1952,7 @@ class _FoodLoggingState extends State<FoodLogging>
                               ? buildSearchButton()
                               : Expanded(child: buildLogFoodButton()),
                         ],
+                        ),
                       ),
                     ),
 

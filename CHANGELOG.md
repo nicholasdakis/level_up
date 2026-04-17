@@ -1094,3 +1094,8 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 ## 2026-04-17
 - Fixed rank number overflowing to the next line for double-digit ranks
 - Made the spacing between rank number, rank medal, and pfp equal for Top 3
+- Fixed spacing between the recent foods expanded widget and the "Scan barcode" button
+- Made scan barcode's button have the same padding as the other widgets for consistency
+- Used ShaderMask to fade out the expanded recent foods tab instead of it cutting off abruptly
+- Added a visibilitychange listener in index.html that reloads the PWA if it was hidden for more than 30 minutes to fix the iOS PWA getting stuck on a white screen when the app was backgrounded for a while
+- Made the padding in all Food Logging tabs consistent
