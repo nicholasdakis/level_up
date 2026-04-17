@@ -1090,3 +1090,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - used LinearProgressIndicator for showing the XP progress toward the next level
 - Made the user's level appaer below their name
 - Added pyproject.toml to make the backend folder installable as a python import to be able to run tests consistently from the root
+
+## 2026-04-17
+- Fixed rank number overflowing to the next line for double-digit ranks
+- Made the spacing between rank number, rank medal, and pfp equal for Top 3

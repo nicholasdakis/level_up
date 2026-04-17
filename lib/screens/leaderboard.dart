@@ -121,25 +121,44 @@ class _LeaderboardState extends State<Leaderboard> {
           children: [
             Row(
               children: [
-                // Rank number
-                SizedBox(
-                  width: Responsive.width(context, 32),
-                  child: Text(
-                    "#${index + 1}",
-                    style: GoogleFonts.manrope(
-                      color: _rankColor(index),
-                      fontSize: Responsive.font(context, 16),
-                      fontWeight: FontWeight.bold,
+                // Top 3: rank gets a centered medal and their pfp in a fixed-width group
+                if (_rankMedal(index) != null)
+                  SizedBox(
+                    width: Responsive.width(context, 125),
+                    child: Row(
+                      children: [
+                        Text(
+                          "#${index + 1}",
+                          maxLines: 1,
+                          style: GoogleFonts.manrope(
+                            color: _rankColor(index),
+                            fontSize: Responsive.font(context, 16),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        _rankMedal(index)!,
+                        const Spacer(),
+                        _profilePicture(user),
+                      ],
+                    ),
+                  )
+                // Non-top 3: Rank and pfp with a smaller gap
+                else ...[
+                  SizedBox(
+                    width: Responsive.width(context, 45),
+                    child: Text(
+                      "#${index + 1}",
+                      maxLines: 1,
+                      style: GoogleFonts.manrope(
+                        color: _rankColor(index),
+                        fontSize: Responsive.font(context, 16),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                // Medal icon for top 3
-                if (_rankMedal(index) != null) ...[
-                  _rankMedal(index)!,
-                  SizedBox(width: Responsive.width(context, 8)),
+                  _profilePicture(user),
                 ],
-                // Profile picture
-                _profilePicture(user),
                 SizedBox(width: Responsive.width(context, 12)),
                 // Username and level
                 Expanded(

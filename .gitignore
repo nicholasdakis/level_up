@@ -57,4 +57,12 @@ ios/Runner/AppDelegate.swift
 # web index
 web\index.html
 
-
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
