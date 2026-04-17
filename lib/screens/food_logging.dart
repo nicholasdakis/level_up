@@ -1043,7 +1043,8 @@ class _FoodLoggingState extends State<FoodLogging>
             onTap: () => setState(() => scannerActive = true),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 10),
+                horizontal: Responsive.width(context, 20),
+                vertical: Responsive.height(context, 16),
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -1053,13 +1054,17 @@ class _FoodLoggingState extends State<FoodLogging>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(height: Responsive.height(context, 10)),
-                      Text(
-                        "Scan Barcode",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 24),
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: Responsive.height(context, 8),
+                        ),
+                        child: Text(
+                          "Scan Barcode",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 24),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 8)),
