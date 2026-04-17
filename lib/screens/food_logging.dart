@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../user/user_data_manager.dart';
 import '../utility/recent_foods_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import '../utility/voice_search_service.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -91,6 +92,9 @@ class _FoodLoggingState extends State<FoodLogging>
       TextEditingController();
   String manualSelectedUnit = 'serving';
 
+  // Voice search
+  final VoiceSearchService _voiceSearch = VoiceSearchService();
+
   // Recent foods
   final RecentFoodsService _recentFoodsService = RecentFoodsService();
   List<Map<String, dynamic>> _recentFoods = [];
@@ -112,12 +116,44 @@ class _FoodLoggingState extends State<FoodLogging>
     );
     _loadUserDataFuture = _loadUserDataAndInit();
     _loadRecentFoods();
+    _voiceSearch.init(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  // Helper method with the 750ms debouncer before calling the API
+  void _scheduleSearch(String value) {
+    lastInput = DateTime.now();
+    checkTimer?.cancel();
+    checkTimer = Timer(
+      Duration(milliseconds: 750),
+      () => handleApiCall(lastInput, value),
+    );
+  }
+
+  // Method that enables the microphone for listening to the user's input when the
+  // microphone is pressed
+  Future<void> _toggleListening() async {
+    if (!_voiceSearch.isAvailable) {
+      _showSnackbar("Voice search isn't available on this device.");
+      return;
+    }
+    await _voiceSearch.toggle((text) {
+      searchController.text = text;
+      searchController.selection = TextSelection.fromPosition(
+        TextPosition(offset: searchController.text.length),
+      );
+      // Only calls the API when the user has finished talking
+      _scheduleSearch(text);
+    });
   }
 
   // Dispose to prevent memory leaks
   @override
   void dispose() {
     checkTimer?.cancel(); // clear the debouncer timer
+    // stop speech engine first so its final-timeout can't write to disposed controllers
+    _voiceSearch.cancel();
     searchController.dispose();
     servingAmountController.dispose();
     _customUnitController.dispose();
@@ -461,7 +497,6 @@ class _FoodLoggingState extends State<FoodLogging>
 
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
   void handleApiCall(DateTime? dateTime, String query) async {
-    latestQuery = query;
     if (query.isEmpty) return;
 
     // Normalize the query to reduce API calls
@@ -469,6 +504,9 @@ class _FoodLoggingState extends State<FoodLogging>
         .toLowerCase()
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim(); // remove extra spaces and lowercase the query
+
+    // Race condition guard in case the user changes their query
+    latestQuery = query;
 
     try {
       final response = await UserDataManager.searchFood(query);
@@ -802,7 +840,16 @@ class _FoodLoggingState extends State<FoodLogging>
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "Search",
-          suffixIcon: Icon(Icons.search, color: Colors.white54),
+          suffixIcon: IconButton(
+            icon: Icon(
+              // Red microphone icon when actively listening
+              _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
+              color: _voiceSearch.isListening
+                  ? Colors.redAccent
+                  : Colors.white54,
+            ),
+            onPressed: userCanType ? _toggleListening : null,
+          ),
           contentPadding: EdgeInsets.symmetric(
             vertical: Responsive.height(context, 12),
             horizontal: Responsive.width(context, 14),
@@ -813,14 +860,7 @@ class _FoodLoggingState extends State<FoodLogging>
           ),
         ),
         // Debouncer timer to prevent unwanted API calls
-        onChanged: (value) {
-          lastInput = DateTime.now();
-          checkTimer?.cancel();
-          checkTimer = Timer(
-            Duration(milliseconds: 750),
-            () => handleApiCall(lastInput, value),
-          );
-        },
+        onChanged: _scheduleSearch,
       ),
     );
   }
@@ -1197,9 +1237,7 @@ class _FoodLoggingState extends State<FoodLogging>
 
     return SingleChildScrollView(
       // Entire Manual tab is scrollable
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 20),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1880,6 +1918,33 @@ class _FoodLoggingState extends State<FoodLogging>
                         ),
                       ),
 
+                    if (_tabController.index ==
+                        FoodTab.manual) // Manual tab attribution
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: Responsive.width(context, 20),
+                          right: Responsive.width(context, 20),
+                          bottom: Responsive.height(context, 6),
+                        ),
+                        child: Builder(
+                          builder: (context) {
+                            final username = currentUserData?.username;
+                            final hasUsername =
+                                username != null &&
+                                username != currentUserData?.uid;
+                            final label = hasUsername
+                                ? "Powered by $username"
+                                : "Powered by you";
+                            return textWithFont(
+                              label,
+                              context,
+                              Responsive.font(context, 15),
+                              color: Colors.yellow,
+                            );
+                          },
+                        ),
+                      ),
+
                     // Meal type dropdown and search field / log button
                     Padding(
                       padding: EdgeInsets.symmetric(
@@ -1890,68 +1955,68 @@ class _FoodLoggingState extends State<FoodLogging>
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                          // Meal Type chooser
-                          DropdownButton2<String>(
-                            isDense: true,
-                            dropdownStyleData: DropdownStyleData(
-                              decoration: BoxDecoration(
-                                color: appColorNotifier.value.withAlpha(128),
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 10),
+                            // Meal Type chooser
+                            DropdownButton2<String>(
+                              isDense: true,
+                              dropdownStyleData: DropdownStyleData(
+                                decoration: BoxDecoration(
+                                  color: appColorNotifier.value.withAlpha(128),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 10),
+                                  ),
                                 ),
+                                maxHeight: Responsive.height(context, 200),
                               ),
-                              maxHeight: Responsive.height(context, 200),
-                            ),
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 15),
-                              color: Colors.white,
-                              shadows: [textDropShadow(context)],
-                            ),
-                            hint: Text(
-                              "Meal Type",
                               style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 16),
+                                fontSize: Responsive.font(context, 15),
                                 color: Colors.white,
                                 shadows: [textDropShadow(context)],
                               ),
-                            ),
-                            value: mealType,
-                            // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
-                            items:
-                                [
-                                      {
-                                        "value": "breakfast",
-                                        "label": "Breakfast",
-                                      },
-                                      {"value": "lunch", "label": "Lunch"},
-                                      {"value": "dinner", "label": "Dinner"},
-                                      {"value": "snacks", "label": "Snacks"},
-                                    ]
-                                    .map(
-                                      (t) => DropdownMenuItem(
-                                        value: t["value"], // "breakfast"
-                                        child: Text(
-                                          t["label"]!, // "Breakfast"
-                                          style: GoogleFonts.manrope(
-                                            fontSize: Responsive.font(
-                                              context,
-                                              16,
+                              hint: Text(
+                                "Meal Type",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 16),
+                                  color: Colors.white,
+                                  shadows: [textDropShadow(context)],
+                                ),
+                              ),
+                              value: mealType,
+                              // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
+                              items:
+                                  [
+                                        {
+                                          "value": "breakfast",
+                                          "label": "Breakfast",
+                                        },
+                                        {"value": "lunch", "label": "Lunch"},
+                                        {"value": "dinner", "label": "Dinner"},
+                                        {"value": "snacks", "label": "Snacks"},
+                                      ]
+                                      .map(
+                                        (t) => DropdownMenuItem(
+                                          value: t["value"], // "breakfast"
+                                          child: Text(
+                                            t["label"]!, // "Breakfast"
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                context,
+                                                16,
+                                              ),
+                                              color: Colors.white,
                                             ),
-                                            color: Colors.white,
                                           ),
                                         ),
-                                      ),
-                                    )
-                                    .toList(),
-                            onChanged: (value) =>
-                                setState(() => mealType = value),
-                          ),
-                          SizedBox(width: Responsive.width(context, 25)),
-                          // Search field on the search tab, log button everywhere else
-                          _tabController.index == FoodTab.search
-                              ? buildSearchButton()
-                              : Expanded(child: buildLogFoodButton()),
-                        ],
+                                      )
+                                      .toList(),
+                              onChanged: (value) =>
+                                  setState(() => mealType = value),
+                            ),
+                            SizedBox(width: Responsive.width(context, 25)),
+                            // Search field on the search tab, log button everywhere else
+                            _tabController.index == FoodTab.search
+                                ? buildSearchButton()
+                                : Expanded(child: buildLogFoodButton()),
+                          ],
                         ),
                       ),
                     ),

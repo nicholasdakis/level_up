@@ -1099,3 +1099,10 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Used ShaderMask to fade out the expanded recent foods tab instead of it cutting off abruptly
 - Added a visibilitychange listener in index.html that reloads the PWA if it was hidden for more than 30 minutes to fix the iOS PWA getting stuck on a white screen when the app was backgrounded for a while
 - Made the padding in all Food Logging tabs consistent
+- Added an isDark variable to frostedButtonShell to conditionally assign the level of darkening / shading etc to the buttons. Now lighter color themes make the buttons look much less washed out, as before they looked grayish
+- Used the speech_to_text package to allow speech to text usage for searching foods
+- Replaced the magnifying glass icon in the Search bar with a microphone icon that is clickable to start listening to the microphone
+- Added the appropriate microphone permissions to the Info.plist and AndroidManifest files
+- Fixed a bug in handleApiCall which never searched if the user searched a capitalized word. The race condition guard latestQuery was stored as the raw input, so the check between latestQuery and the normalized version of the query would always return before the api was called due to if (latestQuery != query) return. Fixed by moving latestQuery asisgnment after query was normalized
+- Extracted the debouncer logic into a helper method _scheduleSearch
+- Added "powered by (username)" to the manual tab for consistency with the other tabs

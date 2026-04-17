@@ -41,6 +41,12 @@
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Camera permissions are required to update your profile picture.</string>
 
+    <!-- Microphone and speech recognition for voice search -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone access is used so you can search for foods by voice.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Speech recognition is used to convert your voice into a food search query.</string>
+
     <!-- Location permissions -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Your location is needed to show your position on the map</string>
