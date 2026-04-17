@@ -1089,3 +1089,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made _buildUserCard which builds each entry with its rank, medal, pfp, username, level, xp amount, and progress bar
 - used LinearProgressIndicator for showing the XP progress toward the next level
 - Made the user's level appaer below their name
+- Added pyproject.toml to make the backend folder installable as a python import to be able to run tests consistently from the root

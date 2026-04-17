@@ -1,0 +1,45 @@
+[project]
+name = "level-up-backend"
+version = "0.1.0"
+
+description = "Backend for the level_up Flutter app"
+
+requires-python = ">=3.11"
+
+# Libraries the backend needs
+dependencies = [
+    "flask>=2.3",
+    "requests>=2.31",
+    "gunicorn>=25.0",
+    "firebase-admin>=7.3",
+    "flask-cors>=6.0",
+    "apscheduler>=3.11",
+    "pydantic>=2.12",
+    "redis>=7.0",
+    "supabase>=2.28",
+    "python-dotenv>=1.0",
+    "websockets>=13.0",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest",        # testing framework
+    "pytest-mock",   # mocking dependencies in tests
+    "pytest-cov",    # coverage reports
+]
+
+
+[build-system]
+requires = ["setuptools>=61"]
+
+# Tells Python to use setuptools to be able to build the project as a library
+build-backend = "setuptools.build_meta"
+
+# Add the backend folder as an importable package
+[tool.setuptools.packages.find]
+include = ["backend*"]
+
+# The backend tests folder
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
