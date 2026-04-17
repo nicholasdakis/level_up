@@ -1106,3 +1106,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed a bug in handleApiCall which never searched if the user searched a capitalized word. The race condition guard latestQuery was stored as the raw input, so the check between latestQuery and the normalized version of the query would always return before the api was called due to if (latestQuery != query) return. Fixed by moving latestQuery asisgnment after query was normalized
 - Extracted the debouncer logic into a helper method _scheduleSearch
 - Added "powered by (username)" to the manual tab for consistency with the other tabs
+- Moved the pure calculation methods in food logging to a helper file to make food_logging.dart shorter

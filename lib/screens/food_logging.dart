@@ -14,6 +14,7 @@ import '../user/user_data_manager.dart';
 import '../utility/recent_foods_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../utility/voice_search_service.dart';
+import '../utility/food_logging_helper.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -238,26 +239,15 @@ class _FoodLoggingState extends State<FoodLogging>
     await _loadRecentFoods();
   }
 
-  // Method that puts DateTime objects in the form that foodDataByDate expects
-  String formatDateKey(DateTime date) {
-    return "${date.year.toString().padLeft(4, '0')}-"
-        "${date.month.toString().padLeft(2, '0')}-"
-        "${date.day.toString().padLeft(2, '0')}";
-  }
-
   void loadFoodForDate(DateTime date) {
-    final dayData = foodDataByDate[formatDateKey(date)];
+    final dayData = foodDataByDate[FoodLoggingHelper.formatDateKey(date)];
     setState(() {
-      breakfastFoods = _castFoodList(dayData?['breakfast']);
-      lunchFoods = _castFoodList(dayData?['lunch']);
-      dinnerFoods = _castFoodList(dayData?['dinner']);
-      snacksFoods = _castFoodList(dayData?['snacks']);
+      breakfastFoods = FoodLoggingHelper.castFoodList(dayData?['breakfast']);
+      lunchFoods = FoodLoggingHelper.castFoodList(dayData?['lunch']);
+      dinnerFoods = FoodLoggingHelper.castFoodList(dayData?['dinner']);
+      snacksFoods = FoodLoggingHelper.castFoodList(dayData?['snacks']);
     });
   }
-
-  // Make sure the food list is always a list of maps even when data is null
-  List<Map<String, dynamic>> _castFoodList(dynamic raw) =>
-      (raw as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
   void changeDate(int days) {
     setState(() => currentDate = currentDate.add(Duration(days: days)));
@@ -302,92 +292,15 @@ class _FoodLoggingState extends State<FoodLogging>
     return total;
   }
 
-  int extractCalories(String description) {
-    final match = RegExp(
-      r'Calories:\s*(\d+)kcal',
-      caseSensitive: false,
-    ).firstMatch(description);
-    return int.tryParse(match?.group(1) ?? '') ?? 0;
-  }
-
-  // Takes the "Per ..." from food_description and parses it into {amount, unit}
-  Map<String, dynamic> parseServing(String description) {
-    // Regular expression to find the amount and units
-    final perMatch = RegExp(
-      r'Per\s+(.+?)\s*-',
-    ).firstMatch(description); // food_description parses as "Per xxx -"
-    if (perMatch == null) {
-      return {'amount': 1.0, 'unit': 'serving'}; // fallback if none was found
-    }
-
-    // token is the "xxx" part of "Per xxx"
-    final token = perMatch.group(1)!.trim();
-    // Regular expression to separate the amount and units in the serving size
-    final numUnitMatch = RegExp(
-      r'^(\d+(?:/\d+)?(?:\.\d+)?)\s*(.+)$',
-    ).firstMatch(token);
-    if (numUnitMatch != null) {
-      return {
-        'amount': _parseFraction(numUnitMatch.group(1)!),
-        'unit': numUnitMatch.group(2)!.trim(),
-      };
-    }
-    return {'amount': 1.0, 'unit': token}; // fallback
-  }
-
-  // Method that converts fractional serving sizes into a decimal
-  double _parseFraction(String value) {
-    if (value.contains('/')) {
-      final parts = value.split('/');
-      final denominator = double.tryParse(parts[1]) ?? 1;
-      if (denominator == 0) return 0;
-      return double.parse(
-        ((double.tryParse(parts[0]) ?? 0) / denominator).toStringAsFixed(2),
-      );
-    }
-    return double.tryParse(value) ?? 1.0; // fallback
-  }
-
-  Map<String, double> extractMacros(String description) {
-    double extract(String label) {
-      final match = RegExp(
-        '$label:\\s*([\\d.]+)',
-        caseSensitive: false,
-      ).firstMatch(description);
-      return double.tryParse(match?.group(1) ?? '') ?? 0;
-    }
-
-    return {
-      'calories': extract('Calories'),
-      'fat': extract('Fat'),
-      'carbs': extract('Carbs'),
-      'protein': extract('Protein'),
-    };
-  }
-
-  // Method that automatically scales the nutritional information of food with serving size changes
-  Map<String, double> scaleFood(
-    Map<String, double> base,
-    double baseAmt,
-    double newAmt,
-  ) {
-    if (baseAmt == 0) return base;
-    final ratio = newAmt / baseAmt;
-    // in (k, v) k is the nutritional field (calories, protein...) and v is its value
-    return base.map(
-      (k, v) => MapEntry(k, double.parse((v * ratio).toStringAsFixed(2))),
-    );
-  }
-
   void _initServing(String description) {
-    final parsed = parseServing(description);
+    final parsed = FoodLoggingHelper.parseServing(description);
     baseAmount = parsed['amount'] as double;
     selectedUnit = parsed['unit'] as String;
     servingAmountController.text = baseAmount % 1 == 0
         ? baseAmount.toInt().toString()
         : baseAmount.toString();
-    baseMacros = extractMacros(description);
-    displayDescription = _buildDescription(
+    baseMacros = FoodLoggingHelper.extractMacros(description);
+    displayDescription = FoodLoggingHelper.buildDescription(
       baseMacros,
       baseAmount,
       selectedUnit,
@@ -398,29 +311,18 @@ class _FoodLoggingState extends State<FoodLogging>
   void _onServingChanged() {
     final newAmount =
         double.tryParse(servingAmountController.text) ?? baseAmount;
-    final scaled = scaleFood(baseMacros, baseAmount, newAmount);
+    final scaled = FoodLoggingHelper.scaleFood(
+      baseMacros,
+      baseAmount,
+      newAmount,
+    );
     setState(
-      () => displayDescription = _buildDescription(
+      () => displayDescription = FoodLoggingHelper.buildDescription(
         scaled,
         newAmount,
         selectedUnit,
       ),
     );
-  }
-
-  // Method so food info is all formatted like fatSecret's (originally that was the only tab in Food Logging so it was built with that in mind)
-  String _buildDescription(
-    Map<String, double> macros,
-    double amount,
-    String unit,
-  ) {
-    final amountStr = amount % 1 == 0
-        ? amount.toInt().toString()
-        : amount.toString();
-    return 'Per $amountStr$unit - Calories: ${macros['calories']!.round()}kcal'
-        ' | Fat: ${macros['fat']!.toStringAsFixed(2)}g'
-        ' | Carbs: ${macros['carbs']!.toStringAsFixed(2)}g'
-        ' | Protein: ${macros['protein']!.toStringAsFixed(2)}g';
   }
 
   // Build a macro summary text from a food's food_description
@@ -431,10 +333,14 @@ class _FoodLoggingState extends State<FoodLogging>
     bool includeServing = true,
     bool compact = false,
   }) {
-    final macros = extractMacros(food['food_description'] as String? ?? '');
+    final macros = FoodLoggingHelper.extractMacros(
+      food['food_description'] as String? ?? '',
+    );
     final parts = <String>[];
     if (includeServing) {
-      final serving = parseServing(food['food_description'] as String? ?? '');
+      final serving = FoodLoggingHelper.parseServing(
+        food['food_description'] as String? ?? '',
+      );
       final servingAmt = serving['amount'] as double;
       final servingUnit = ' ${serving['unit'] as String}';
       final servingStr =
@@ -476,25 +382,6 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
-  // Method to format the time displayed to the user when the fatSecret API calls have been maxed out
-  String formatDuration(String rawTime) {
-    final parts = rawTime.split('.')[0].split(':');
-    final hours = int.parse(parts[0]);
-    final minutes = int.parse(parts[1]);
-    final seconds = int.parse(parts[2]);
-
-    if (hours == 0 && minutes == 0 && seconds == 0) return "0 seconds";
-
-    String plural(int n, String unit) => "$n $unit${n == 1 ? '' : 's'}";
-    final segments = <String>[
-      if (hours > 0) plural(hours, 'hour'),
-      if (minutes > 0) plural(minutes, 'minute'),
-      if (seconds > 0) plural(seconds, 'second'),
-    ];
-    if (segments.length == 1) return segments.first;
-    return '${segments.take(segments.length - 1).join(', ')}, and ${segments.last}';
-  }
-
   // Function that calls the API to search the user's input after the timer has gone to 0 (to avoid making too many requests)
   void handleApiCall(DateTime? dateTime, String query) async {
     if (query.isEmpty) return;
@@ -524,7 +411,7 @@ class _FoodLoggingState extends State<FoodLogging>
         final errorData = jsonDecode(response.body);
         if (errorData['error'] == "Token limit exceeded") {
           _showSnackbar(
-            "Daily search limit reached, try another tab. The limit resets in ${formatDuration(errorData['time_left'])}.",
+            "Daily search limit reached, try another tab. The limit resets in ${FoodLoggingHelper.formatDuration(errorData['time_left'])}.",
             duration: Duration(seconds: 5),
           );
         }
@@ -609,15 +496,19 @@ class _FoodLoggingState extends State<FoodLogging>
     if (!foodObject.containsKey('calories') && baseMacros.isNotEmpty) {
       final newAmount =
           double.tryParse(servingAmountController.text) ?? baseAmount;
-      final scaled = scaleFood(baseMacros, baseAmount, newAmount);
-      foodObject['food_description'] = _buildDescription(
+      final scaled = FoodLoggingHelper.scaleFood(
+        baseMacros,
+        baseAmount,
+        newAmount,
+      );
+      foodObject['food_description'] = FoodLoggingHelper.buildDescription(
         scaled,
         newAmount,
         selectedUnit,
       );
       foodObject['calories'] = scaled['calories']!.round();
     } else if (!foodObject.containsKey('calories')) {
-      foodObject['calories'] = extractCalories(
+      foodObject['calories'] = FoodLoggingHelper.extractCalories(
         foodObject['food_description'] ?? '',
       );
     }
@@ -627,7 +518,7 @@ class _FoodLoggingState extends State<FoodLogging>
     _saveToRecentFoods(foodObject);
 
     // Ensure this day's data exists and fallback to empty lists if not
-    final dateKey = formatDateKey(currentDate);
+    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     foodDataByDate.putIfAbsent(
       dateKey,
       () => {"breakfast": [], "lunch": [], "dinner": [], "snacks": []},
@@ -682,7 +573,7 @@ class _FoodLoggingState extends State<FoodLogging>
     if (currentUserData == null) return;
     currentUserData!.foodDataByDate = foodDataByDate;
     // Only sends the current date's data
-    final dateKey = formatDateKey(currentDate);
+    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final currentDateData = {dateKey: foodDataByDate[dateKey]!};
     await userManager.updateFoodDataByDate(
       currentDateData,
@@ -726,7 +617,7 @@ class _FoodLoggingState extends State<FoodLogging>
     if (confirmed != true) return;
     setState(() {
       foods.removeAt(idx);
-      final dateKey = formatDateKey(currentDate);
+      final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
       foodDataByDate[dateKey]![mealKey] = foods;
     });
     await saveFoodData("delete");
@@ -1933,13 +1824,13 @@ class _FoodLoggingState extends State<FoodLogging>
                                 username != null &&
                                 username != currentUserData?.uid;
                             final label = hasUsername
-                                ? "Powered by $username"
-                                : "Powered by you";
+                                ? "Powered by $username!"
+                                : "Powered by you!";
                             return textWithFont(
                               label,
                               context,
                               Responsive.font(context, 15),
-                              color: Colors.yellow,
+                              color: lightenColor(appColorNotifier.value, 0.5),
                             );
                           },
                         ),
