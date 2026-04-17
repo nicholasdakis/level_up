@@ -1471,86 +1471,104 @@ class _FoodLoggingState extends State<FoodLogging>
             constraints: BoxConstraints(
               maxHeight: Responsive.height(context, 200),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  for (final food in _recentFoods)
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 6),
-                      ),
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          // Recent foods already have calories set, so logFood's
-                          // calorie extraction is a no op here
-                          onTap: () {
-                            logFood(Map<String, dynamic>.from(food));
-                            trackTrivialAchievement("food_recent");
-                          },
-                          child: frostedGlassCard(
-                            context,
-                            baseRadius: 12,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.width(context, 16),
-                              vertical: Responsive.height(context, 10),
-                            ),
-                            child: Padding(
+            // ShaderMask fades the bottom of the scroll area to transparent
+            child: ShaderMask(
+              shaderCallback: (bounds) =>
+                  const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black,
+                      Colors.black,
+                      Colors.transparent,
+                    ], // black just means visible, and fades out at the bottom
+                    stops: [0.0, 0.85, 1.0],
+                  ).createShader(
+                    bounds,
+                  ), // sizes the gradient to the widget (SingleChildScrollView)
+              blendMode: BlendMode
+                  .dstIn, // keeps SingleChildScrollView where shader is opaque, hides it where transparent
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (final food in _recentFoods)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 6),
+                        ),
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            // Recent foods already have calories set, so logFood's
+                            // calorie extraction is a no op here
+                            onTap: () {
+                              logFood(Map<String, dynamic>.from(food));
+                              trackTrivialAchievement("food_recent");
+                            },
+                            child: frostedGlassCard(
+                              context,
+                              baseRadius: 12,
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 16),
+                                vertical: Responsive.height(context, 10),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.add_circle_outline,
-                                    color: appColorNotifier.value,
-                                    size: Responsive.scale(context, 20),
-                                  ),
-                                  SizedBox(
-                                    width: Responsive.width(context, 12),
-                                  ),
-                                  Flexible(
-                                    flex: 1,
-                                    fit: FlexFit.tight,
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        food['brand_name'] != null
-                                            ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
-                                            : (food['food_name'] ?? ''),
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            14,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.add_circle_outline,
+                                      color: appColorNotifier.value,
+                                      size: Responsive.scale(context, 20),
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 12),
+                                    ),
+                                    Flexible(
+                                      flex: 1,
+                                      fit: FlexFit.tight,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          food['brand_name'] != null
+                                              ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
+                                              : (food['food_name'] ?? ''),
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              14,
+                                            ),
+                                            color: Colors.white,
                                           ),
-                                          color: Colors.white,
+                                          softWrap: true,
                                         ),
-                                        softWrap: true,
                                       ),
                                     ),
-                                  ),
-                                  Flexible(
-                                    flex: 2,
-                                    fit: FlexFit.tight,
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: _buildMacroText(
-                                        food,
-                                        fontSize: 11,
-                                        color: Colors.white54,
-                                        compact: true,
+                                    Flexible(
+                                      flex: 2,
+                                      fit: FlexFit.tight,
+                                      child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: _buildMacroText(
+                                          food,
+                                          fontSize: 11,
+                                          color: Colors.white54,
+                                          compact: true,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                ],
+                    SizedBox(height: Responsive.height(context, 6)),
+                  ],
+                ),
               ),
             ),
           ),
