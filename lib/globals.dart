@@ -334,44 +334,79 @@ Widget _frostedButtonShell(
   required Widget child,
 }) {
   final radius = BorderRadius.circular(Responsive.scale(context, 30));
+
+  final luminance = color.computeLuminance();
+  final isDarkBg = luminance < 0.5;
+
+  // Controls subtle depth of base color without destroying identity
+  final darkenAmount = isDarkBg ? 0.075 : 0.1;
+
+  // Controls glass visibility; higher on light backgrounds to prevent washed-out look
+  final fillAlpha = isDarkBg ? 0.16 : 0.30;
+
+  // Controls edge definition; slightly stronger on light backgrounds for separation
+  final borderAlpha = isDarkBg ? 0.18 : 0.30;
+
+  // Controls elevation; reduced on dark backgrounds to avoid heavy floating effect
+  final shadowAlpha = isDarkBg ? 0.08 : 0.14;
+
   return ClipRRect(
     borderRadius: radius,
     child: Stack(
       children: [
         BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: Responsive.scale(context, 15),
-            sigmaY: Responsive.scale(context, 15),
+            sigmaX: Responsive.scale(
+              context,
+              10,
+            ), // blur softens background bleed through glass
+            sigmaY: Responsive.scale(context, 10),
           ),
           child: Container(
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.35), // translucent color
+              color: darkenColor(
+                color,
+                darkenAmount,
+              ).withValues(alpha: fillAlpha),
+
               borderRadius: radius,
+
               border: Border.all(
-                color: color.withValues(alpha: 0.55), // border alpha
+                color: color.withValues(
+                  alpha: borderAlpha,
+                ), // defines edge separation from background
                 width: Responsive.scale(context, 1.5), // border width scaled
               ),
+
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25), // shadow alpha
+                  color: Colors.black.withValues(
+                    alpha: shadowAlpha,
+                  ), // depth under glass surface
                   offset: Offset(
                     0,
-                    Responsive.scale(context, 4), // shadow y-offset
-                  ),
-                  blurRadius: Responsive.scale(context, 10), // shadow blur
-                  spreadRadius: Responsive.scale(context, 1), // shadow spread
+                    Responsive.scale(context, 4),
+                  ), // vertical lift illusion
+                  blurRadius: Responsive.scale(
+                    context,
+                    16,
+                  ), // softens shadow spread for realism
+                  spreadRadius: 0,
                 ),
               ],
             ),
           ),
         ),
+
         Material(
-          color: Colors.transparent, // keep material transparent
+          color: Colors.transparent, // keeps ripple overlay non-intrusive
           child: InkWell(
-            borderRadius: radius, // ripple matches button shape
+            borderRadius: radius, // ensures ripple matches pill shape exactly
             onTap: onTap,
-            splashColor: appColorNotifier.value.withAlpha(100),
-            highlightColor: color.withValues(alpha: 0.05), // highlight color
+            splashColor: color.withAlpha(60), // subtle interaction feedback
+            highlightColor: color.withValues(
+              alpha: 0.06,
+            ), // minimal pressed-state tint
             child: Center(child: child),
           ),
         ),
