@@ -1110,3 +1110,16 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Realized a bug in initializing new users: initialize_user_if_new did not contain all user variables and the DB itself did not default values to non-null values, causing bugs for new users as the Pydantic schema rejected before hitting the DB
 - Edited initialize_user_if_new to only send the uid and username == uid. The DB automatically defaults to the remaining fields
 - Users with no username AND a daily reward to be claimed now see the set-username dialog, and then the daily reward dialog after the username dialog is dismissed. Previously both fired simultaneously, and a frame-scheduling bug meant the daily reward dialog wouldn't appear at all until the user interacted with the screen
+
+## 2026-04-18
+- Modernized the Register/Login screen with a new layout, animations, and design
+- Replaced the two equal-weight Register and Login buttons with a single segmented button toggle at the top of the form
+- Added an ambient animated background made of two soft RadialGradient glow orbs that drift along sine curves using an AnimationController on an 18 second loop, giving the screen motion even when the user is idle
+- Added staggered entrance animations. The logo and title, the form, and the social auth section each fade and slide into place at different intervals over a 900ms AnimationController
+- Replaced the default Material underline text fields with filled rounded fields that have leading mail and lock icons, a subtle enabled border, and a thicker brighter border when focused
+- Added a Privacy Policy and Terms of Service agreement checkbox that appears only in Sign Up mode
+- Sign Up is blocked with an error message until the box is checked
+- Forgot Password only shows in the Sign Up tab
+- Made the screen fill the full vertical height of the device using LayoutBuilder, ConstrainedBox with minHeight equal to the available space, IntrinsicHeight, and Spacers between the top, middle, and bottom sections
+- Replaced the red error paragraph under the buttons with a conditional message that only renders when there is something to show
+- Removed the old AppBar from the Register/Login screen
