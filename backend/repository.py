@@ -70,10 +70,7 @@ class UserRepository:
         self._supabase.table("users").upsert(
             {
                 "uid": uid,
-                "level": 1,
-                "exp_points": 0,
-                "last_daily_claim": None,
-                "can_claim_daily_reward": True
+                "username": uid, # username defaults to UID
             },
             on_conflict="uid",  # If a row with this uid already exists, do nothing
             ignore_duplicates=True
