@@ -105,12 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (canClaimDailyReward()) buildDailyRewardDialog();
-
       // Give users without a username a dialog box to choose one
       if (currentUserData!.username == currentUserData!.uid) {
         await promptUsernameDialog(context);
       }
+
+      if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
 
       if (mounted) {
         setState(() {

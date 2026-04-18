@@ -59,50 +59,50 @@ class DailyRewardDialog {
     // If claim failed or cooldown not met, do nothing
     if (xpAwarded == null) return;
 
-    // Show claim Dialog after have the backend XP is fetched
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: appColorNotifier.value.withAlpha(200),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            "Daily Reward!",
-            style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Display XP awarded from backend
-              Text(
-                "You gained $xpAwarded XP!",
-                style: TextStyle(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            Center(
-              child: TextButton(
-                // just a visual button; the claiming is already done
-                child: Text("CLAIM", style: TextStyle(color: Colors.white)),
-                onPressed: () => Navigator.pop(context),
-              ),
+    if (!context.mounted) return;
+
+    // Show claim Dialog after the backend XP is fetched
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: appColorNotifier.value.withAlpha(200),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          "Daily Reward!",
+          style: TextStyle(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Display XP awarded from backend
+            Text(
+              "You gained $xpAwarded XP!",
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-      ).then((_) async {
-        // Set a reminder 23 hours from now
-        if (currentUserData!.notificationsEnabled) {
-          await setDailyRewardNotification();
-        }
-        // Show the confetti celebration
-        controller.play();
-      });
-    });
+        actions: [
+          Center(
+            child: TextButton(
+              // just a visual button; the claiming is already done
+              child: Text("CLAIM", style: TextStyle(color: Colors.white)),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Set a reminder 23 hours from now
+    if (currentUserData!.notificationsEnabled) {
+      await setDailyRewardNotification();
+    }
+    // Show the confetti celebration
+    controller.play();
   }
 }

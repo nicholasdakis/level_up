@@ -1108,4 +1108,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added "powered by (username)" to the manual tab for consistency with the other tabs
 - Moved the pure calculation methods in food logging to a helper file to make food_logging.dart shorter
 - Realized a bug in initializing new users: initialize_user_if_new did not contain all user variables and the DB itself did not default values to non-null values, causing bugs for new users as the Pydantic schema rejected before hitting the DB
-- Edited initialize_user_if_new to only send the uid as the DB automatically retreives the remaining data needed instead of manually doing so
+- Edited initialize_user_if_new to only send the uid and username == uid. The DB automatically defaults to the remaining fields
+- Users with no username AND a daily reward to be claimed now see the set-username dialog, and then the daily reward dialog after the username dialog is dismissed. Previously both fired simultaneously, and a frame-scheduling bug meant the daily reward dialog wouldn't appear at all until the user interacted with the screen
