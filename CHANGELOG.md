@@ -1123,3 +1123,11 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made the screen fill the full vertical height of the device using LayoutBuilder, ConstrainedBox with minHeight equal to the available space, IntrinsicHeight, and Spacers between the top, middle, and bottom sections
 - Replaced the red error paragraph under the buttons with a conditional message that only renders when there is something to show
 - Removed the old AppBar from the Register/Login screen
+- Used the same staggered logic in the Home Screen to make the buttons fade in smoothly. Made a buildStaggered helper method and wrapped the buttons in the method, showing one button after the other
+- Made a buildPlaceholder method that is used when loading the home screen so that the skeletonizer can still show the buttons loading like before
+- Added AnimationController to footer.dart so that the XP bar gradually fills to the user's current XP instead of instantly showing it
+- Added initState() to footer.dart that sets up the animation with a begin of 0 so the bar fills from empty on first load
+- Added dispose() to footer.dart to clean up the AnimationController and avoid memory leaks
+- Wrapped the XP bar in an AnimatedBuilder so it rebuilds every frame of the animation
+- Used a ValueListenableBuilder to trigger a new tween animation whenever the XP value changes
+- Made progressWidth animate based on _animatedExp.value with how much xp has been filled in at that point

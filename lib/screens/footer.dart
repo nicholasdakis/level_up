@@ -22,7 +22,37 @@ class Footer extends StatefulWidget {
   State<Footer> createState() => _FooterState();
 }
 
-class _FooterState extends State<Footer> {
+class _FooterState extends State<Footer> with SingleTickerProviderStateMixin {
+  // Animation controller for the xp bar filling
+  late AnimationController _animController;
+  // Animated value that smoothly animates from old xp to new xp
+  late Animation<double> _animatedExp;
+  // Tracks the last known XP so we know where to animate from
+  int _previousExp = 0;
+
+  @override
+  void initState() {
+    // Animation time
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    // Start with 0 so the bar animates in from empty when real XP loads
+    _animatedExp = Tween<double>(
+      begin: 0,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _previousExp = 0;
+  }
+
+  @override
+  void dispose() {
+    // Always dispose the controller to avoid memory leaks
+    _animController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(
@@ -179,39 +209,75 @@ class _FooterState extends State<Footer> {
             Container(
               width:
                   screenWidth *
-                  0.8, // EXP bar + profile picture container scales with screen width
+                  0.8, // EXP bar and profile picture container scales with screen width
               child: ValueListenableBuilder<int>(
                 valueListenable: expNotifier, // reactive XP value
                 builder: (context, exp, child) {
+                  // Animate on an xp change
+                  if (exp != _previousExp) {
+                    _animatedExp =
+                        Tween<double>(
+                          begin: _previousExp.toDouble(),
+                          end: exp.toDouble(),
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _animController,
+                            curve: Curves.easeOut,
+                          ),
+                        );
+                    _animController.forward(
+                      from: 0,
+                    ); // always restart from the top
+                    _previousExp =
+                        exp; // stored so next change animates from here
+                  }
+
                   final fullWidth =
                       (screenWidth * 0.8) -
                       Responsive.scale(
                         context,
                         80,
                       ); // leave space for profile picture
-                  final progressWidth =
-                      fullWidth * (exp / (userManager.experienceNeeded ?? 1));
 
-                  // Footer components
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // SizedBox to force parent Stack hit-test area to 72px to match footer pfp
-                      SizedBox(
-                        height: Responsive.scale(context, 72),
-                        width: fullWidth, // constrain to leave space for pfp
-                        child: Center(
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              buildExpBar(fullWidth, progressWidth),
-                              buildFooterExperienceText(exp),
-                            ],
+                  // AnimatedBuilder rebuilds every frame of the animation
+                  return AnimatedBuilder(
+                    animation: _animatedExp,
+                    builder: (context, child) {
+                      // progressWidth shrinks/grows smoothly as _animatedExp ticks
+                      final progressWidth =
+                          fullWidth *
+                          (_animatedExp.value /
+                              (userManager.experienceNeeded ?? 1));
+
+                      // Footer components
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          // SizedBox to force parent Stack hit-test area to 72px to match footer pfp
+                          SizedBox(
+                            height: Responsive.scale(context, 72),
+                            width:
+                                fullWidth, // constrain to leave space for pfp
+                            child: Center(
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  buildExpBar(fullWidth, progressWidth),
+                                  // Round the animated value so the counter ticks in whole numbers
+                                  buildFooterExperienceText(
+                                    _animatedExp.value.round(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      buildFooterPfpSection(context, buildFooterLevelText()),
-                    ],
+                          buildFooterPfpSection(
+                            context,
+                            buildFooterLevelText(),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

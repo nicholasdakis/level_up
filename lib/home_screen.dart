@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
     // Controller for the staggered button entrance animation
     entranceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
     );
   }
 
