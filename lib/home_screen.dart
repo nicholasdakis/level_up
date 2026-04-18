@@ -38,9 +38,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   late VoidCallback _appColorListener;
+
+  // Controller that fades and slides each button into place one after the other
+  late final AnimationController entranceController;
 
   @override
   void initState() {
@@ -57,6 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Initialize confetti controllers
     confettiControllerinit();
+
+    // Controller for the staggered button entrance animation
+    entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
   }
 
   // To prevent memory leaks
@@ -65,7 +75,13 @@ class _HomeScreenState extends State<HomeScreen> {
     appColorNotifier.removeListener(_appColorListener);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
+    entranceController.dispose();
     super.dispose();
+  }
+
+  // Method so the skeletonizer works for the buttons before they fade and slide in
+  Widget buildPlaceholderButton() {
+    return customButton("Placeholder", 48, 160, 750, context, onPressed: () {});
   }
 
   Future<void> promptUsernameDialog(BuildContext context) async {
@@ -116,6 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           isLoading = false;
         }); // rebuild UI with loaded stats
+
+        // Start the staggered button entrance animation once data is ready
+        entranceController.forward();
       }
     });
 
@@ -124,6 +143,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool isLoading = true; // for the skeletonizer
+
+  // Helper that fades and slides a child into place using a portion of the entrance timeline
+  Widget buildStaggered(double start, double end, Widget child) {
+    // Make a curve that only runs between start and end out of the full 0.0 to 1.0 timeline
+    final curve = CurvedAnimation(
+      parent: entranceController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
+
+    // Slide the child up from slightly below its final position
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(curve);
+
+    return FadeTransition(
+      opacity: curve,
+      child: SlideTransition(position: slide, child: child),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -272,102 +311,155 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ),
-
                                   // CALORIE CALCULATOR BUTTON
-                                  customButton(
-                                    "Calorie Calculator",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement(
-                                        "calorie_calculator",
-                                      );
-                                      changeToScreen(
-                                        context,
-                                        CalorieCalculator(),
-                                      );
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.0,
+                                          0.5,
+                                          customButton(
+                                            "Calorie Calculator",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "calorie_calculator",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                CalorieCalculator(),
+                                              );
+                                            },
+                                          ),
+                                        ),
                                   SizedBox(
                                     height: Responsive.height(context, 12),
                                   ), // Space between buttons
                                   // FOOD LOGGING TAB
-                                  customButton(
-                                    "Food Logging",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement(
-                                        "open_food_logging",
-                                      );
-                                      changeToScreen(context, FoodLogging());
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.1,
+                                          0.6,
+                                          customButton(
+                                            "Food Logging",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_food_logging",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                FoodLogging(),
+                                              );
+                                            },
+                                          ),
+                                        ),
                                   SizedBox(
                                     height: Responsive.height(context, 12),
                                   ), // Space between buttons
-                                  customButton(
-                                    "Explore",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement("open_explore");
-                                      changeToScreen(context, Explore());
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.2,
+                                          0.7,
+                                          customButton(
+                                            "Explore",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_explore",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Explore(),
+                                              );
+                                            },
+                                          ),
+                                        ),
                                   SizedBox(
                                     height: Responsive.height(context, 12),
                                   ), // Space between buttons
                                   // REMINDERS TAB
-                                  customButton(
-                                    "Reminders",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement("open_reminders");
-                                      changeToScreen(context, Reminders());
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.3,
+                                          0.8,
+                                          customButton(
+                                            "Reminders",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_reminders",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Reminders(),
+                                              );
+                                            },
+                                          ),
+                                        ),
                                   SizedBox(
                                     height: Responsive.height(context, 12),
                                   ), // Space between buttons
                                   // BADGES TAB
-                                  customButton(
-                                    "Badges",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement("open_badges");
-                                      changeToScreen(context, Badges());
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.4,
+                                          0.9,
+                                          customButton(
+                                            "Badges",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_badges",
+                                              );
+                                              changeToScreen(context, Badges());
+                                            },
+                                          ),
+                                        ),
                                   SizedBox(
                                     height: Responsive.height(context, 12),
                                   ), // Space between buttons
                                   // LEADERBOARD TAB
-                                  customButton(
-                                    "Leaderboard",
-                                    48,
-                                    160,
-                                    750,
-                                    context,
-                                    onPressed: () {
-                                      trackTrivialAchievement(
-                                        "open_leaderboard",
-                                      );
-                                      changeToScreen(context, Leaderboard());
-                                    },
-                                  ),
+                                  isLoading
+                                      ? buildPlaceholderButton()
+                                      : buildStaggered(
+                                          0.5,
+                                          1,
+                                          customButton(
+                                            "Leaderboard",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_leaderboard",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Leaderboard(),
+                                              );
+                                            },
+                                          ),
+                                        ),
                                 ],
                               ),
                             ),
