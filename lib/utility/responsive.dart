@@ -41,7 +41,7 @@ class Responsive {
 
   // Returns the screen size safely with a fallback if the size is somehow <= 0
   static Size _safeSize(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     if (size.width <= 0 || size.height <= 0) {
       return const Size(_baseScreenWidth, _baseScreenHeight);
     }

@@ -55,9 +55,9 @@ class _FooterState extends State<Footer> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(
+    double screenWidth = MediaQuery.sizeOf(
       context,
-    ).size.width; // Make widgets the size of the user's personal screen size
+    ).width; // Make widgets the size of the user's personal screen size
 
     Widget buildFooterClickablePfp(BuildContext context) {
       return SizedBox(

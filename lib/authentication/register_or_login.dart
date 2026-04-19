@@ -67,7 +67,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     return AnimatedBuilder(
       animation: bgController, // repeats every frame so the animation updates
       builder: (context, _) {
-        final size = MediaQuery.of(context).size;
+        final size = MediaQuery.sizeOf(context);
         final t =
             bgController.value *
             2 *
@@ -728,7 +728,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
             child: SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height,
+                  minHeight: MediaQuery.sizeOf(context).height,
                 ),
                 // IntrinsicHeight gives the inner Column a bounded height so Spacer works
                 child: IntrinsicHeight(
