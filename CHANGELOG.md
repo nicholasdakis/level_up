@@ -1134,3 +1134,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 
 ## 2026-04-19
 - Removed serviceWorkerSettings from the _flutter.loader.load call in web/index.html so Flutter no longer attaches its controllerchange listener that reloaded the page when firebase-messaging-sw.js claimed it on iOS PWA launch
+- Added iOS-specific swipe-back gesture for exiting specific tabs because currently it causes the PWA to completely refresh

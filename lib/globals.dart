@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'user/user_data.dart';
@@ -479,6 +480,13 @@ void changeToScreen(
   Widget destination, {
   Offset? startOffset = const Offset(0, 1),
 }) {
+  // iOS gets its native horizontal slide gesture
+  if (Theme.of(context).platform == TargetPlatform.iOS) {
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => destination));
+    return;
+  }
+
+  // other platforms
   Navigator.push(
     context,
     PageRouteBuilder(
