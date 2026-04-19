@@ -398,9 +398,8 @@ def get_nearby_pois():
     if err:
         return err
 
-    # Step 3: Reject the request if the user has moved too fast
-    # as the returned data will be meaningless since the request is based
-    # on the location the user was initally at when making the request
+    # Step 3: Reject the request if the user has moved too fast too quickly
+    # in comparison to their previous POI request
     if progression_service.is_moving_too_fast_for_poi(uid, body.lat, body.lng):
         return jsonify({
             "error": "Moving too far too quickly. Please try again.",

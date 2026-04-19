@@ -140,6 +140,25 @@ class _ExploreState extends State<Explore> {
 
       if (!mounted) return;
 
+      // If the user moved far enough during the backend request, the POIs will be stale, so reject them
+      // Treated as the same error as the moving too quickly backend check
+      if (userLocation != null) {
+        final movedMeters = _poiService.haversine(
+          lat,
+          lng,
+          userLocation!.latitude,
+          userLocation!.longitude,
+        );
+        if (movedMeters > 250) {
+          setState(() {
+            poiError = 'Moving too far too quickly. Please try again.';
+            loadingPOIs = false;
+            fillingCache = false;
+          });
+          return;
+        }
+      }
+
       setState(() {
         nearbyPOIs = pois; // update the list
         loadingPOIs = false;
