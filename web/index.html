@@ -98,12 +98,7 @@
 
   <script>
     window.addEventListener('load', function (ev) {
-      // firebase-messaging-sw.js is used as Flutter's SW so both FCM and Flutter run under one SW
       _flutter.loader.load({
-        serviceWorkerSettings: {
-          serviceWorkerUrl: 'firebase-messaging-sw.js',
-          timeout: 4000,
-        },
         onEntrypointLoaded: async function (engineInitializer) {
           const appRunner = await engineInitializer.initializeEngine();
           await appRunner.runApp();

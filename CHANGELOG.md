@@ -1131,3 +1131,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Wrapped the XP bar in an AnimatedBuilder so it rebuilds every frame of the animation
 - Used a ValueListenableBuilder to trigger a new tween animation whenever the XP value changes
 - Made progressWidth animate based on _animatedExp.value with how much xp has been filled in at that point
+
+## 2026-04-19
+- Removed serviceWorkerSettings from the _flutter.loader.load call in web/index.html so Flutter no longer attaches its controllerchange listener that reloaded the page when firebase-messaging-sw.js claimed it on iOS PWA launch
