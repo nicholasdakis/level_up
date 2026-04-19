@@ -1137,3 +1137,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added iOS-specific swipe-back gesture for exiting specific tabs because currently it causes the PWA to completely refresh
 - Made all methods that used MediaQuery.of(context).size use MediaQuery.sizeOf(context) instead to avoid rebuilding due to non-size-related screen changes (eg opening a keyboard on mobile)
 - Removed the IntrinsicHeight wrapping to see if it would fix the Registration page bug on mobile
+- Did not fix (but kept anyway due to IntrinsicHeight performance issues)
+- Changed the auth_gate to be Stateful to cache the stream in initState to prevent Firebase focus events from remounting the register screen on mobile

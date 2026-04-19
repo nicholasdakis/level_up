@@ -716,8 +716,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, // to prevent the keyboard on mobile from causing a rebuild
       backgroundColor: const Color(0xFF141318),
       // Stack layers the animated background behind the scrollable form content
       body: Stack(
