@@ -5,6 +5,9 @@ import 'poi.dart';
 import '../shared_preferences/shared_prefs_async.dart';
 import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
 
+// Error code thrown when the backend rejects a POI fetch because the user is moving too fast
+const String movingTooFastCode = 'moving_too_fast';
+
 class POIService {
   // How far the user must move (in meters) before fresh POIs are fetched
   static const double _refreshDistance = 250;
@@ -141,6 +144,14 @@ class POIService {
         .timeout(
           const Duration(seconds: 20),
         ); // longer timeout since Overpass can be slow
+
+    // Backend flagged this request as too fast between fetches
+    if (response.statusCode == 429) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (data['code'] == movingTooFastCode) {
+        throw Exception(movingTooFastCode);
+      }
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch POIs: ${response.statusCode}');

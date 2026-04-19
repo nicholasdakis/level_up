@@ -150,9 +150,14 @@ class _ExploreState extends State<Explore> {
       _refreshClosestCheckinPOI();
     } catch (e) {
       if (!mounted) return;
+      // Match the known code from the service layer to show a tailored error message
+      final isMovingTooFast = e.toString().contains(movingTooFastCode);
       setState(() {
-        poiError = 'Failed to load locations, please try again shortly.';
+        poiError = isMovingTooFast
+            ? 'Moving too far too quickly. Please try again.'
+            : 'Failed to load locations, please try again shortly.';
         loadingPOIs = false;
+        fillingCache = false;
       });
     }
   }

@@ -17,6 +17,9 @@ def calculate_daily_reward_xp(level: int):
     # Calculate how much XP a daily reward gives, based on the formula in daily_rewards.dart
     return 25 * level + 2 * random.randint(1, level)
 
+# Threshold for if a user is moving too fast during a POI request
+_POI_SPEED_THRESHOLD_MPS = 12.0
+
 def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
     # Calculate the user's new level and XP after gaining XP, applying the level-up logic from user_data_manager.dart
     new_exp = current_exp + xp_gained
@@ -37,6 +40,34 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._repo = repo
         self._reminder_repo = reminder_repo
         self._achievement_repo = achievement_repo
+        # Per-user in-memory dictionary of the last POI fetch location and time for estimating if they have moved too fast between two requests
+        self._last_poi_fetch: dict[str, tuple[float, float, datetime]] = {}
+
+def is_moving_too_fast_for_poi(self, uid: str, lat: float, lng: float):
+
+    now = datetime.now(timezone.utc)
+    # Get the user's previous POI location and time if it exists
+    prev = self._last_poi_fetch.get(uid)
+
+    too_fast = False
+
+    # Only runs if there is a previous location
+    if prev is not None:
+        prev_lat, prev_lng, prev_ts = prev
+
+        elapsed = (now - prev_ts).total_seconds()
+
+        if elapsed > 0:
+            distance_moved = self._haversine(prev_lat, prev_lng, lat, lng)
+            speed = distance_moved / elapsed
+            # Check if speed exceeds threshold (likely impossible movement)
+            too_fast = speed > _POI_SPEED_THRESHOLD_MPS
+
+    # Update stored position for next comparison
+    self._last_poi_fetch[uid] = (lat, lng, now)
+
+    # Return whether movement was suspiciously fast
+    return too_fast
 
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails

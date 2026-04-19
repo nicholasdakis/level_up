@@ -393,19 +393,28 @@ def get_nearby_pois():
     except (ValidationError, TypeError) as e:
         return jsonify({"error": "Invalid request", "details": str(e)}), 400
 
-    # Step 2: Verify the user's token (uid unused as POI search is not user-specific)
-    _, err = _try_verify_token(body.id_token)
+    # Step 2: Verify the user's token. The uid is needed to estimate how fast the user is moving
+    uid, err = _try_verify_token(body.id_token)
     if err:
         return err
 
-    # Step 3: Build the Overpass query by filling in the user's coordinates
+    # Step 3: Reject the request if the user has moved too fast
+    # as the returned data will be meaningless since the request is based
+    # on the location the user was initally at when making the request
+    if progression_service.is_moving_too_fast_for_poi(uid, body.lat, body.lng):
+        return jsonify({
+            "error": "Moving too far too quickly. Please try again.",
+            "code": "moving_too_fast",
+        }), 429
+
+    # Step 4: Build the Overpass query by filling in the user's coordinates
     query = OVERPASS_QUERY.format(
         lat=body.lat,
         lng=body.lng,
         radius=500, # scans 500 meters within the user's location
     )
 
-    # Step 4: Send the query to the Overpass API, retry once if it fails
+    # Step 5: Send the query to the Overpass API, retry once if it fails
     overpass_response = None
     latest_error = None
 
@@ -425,14 +434,14 @@ def get_nearby_pois():
         print(f"Overpass API error: {latest_error}")
         return jsonify({"error": "Overpass API unavailable, try again later"}), 503
 
-    # Step 5: Parse the raw Overpass data into POI objects
+    # Step 6: Parse the raw Overpass data into POI objects
     all_pois = parse_overpass_response(overpass_response.json())
 
-    # Step 6: If there are more than 20 POIs found, a random subset of the 20 are shown
+    # Step 7: If there are more than 20 POIs found, a random subset of the 20 are shown
     if len(all_pois) > 20:
         all_pois = random.sample(all_pois, 20)
 
-    # Step 7: Build and return the validated response
+    # Step 8: Build and return the validated response
     response = NearbyPOIResponse(pois=all_pois)
     return jsonify(response.model_dump()), 200
 

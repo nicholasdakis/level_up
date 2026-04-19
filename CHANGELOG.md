@@ -1140,3 +1140,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Did not fix (but kept anyway due to IntrinsicHeight performance issues)
 - Changed the auth_gate to be Stateful to cache the stream in initState to prevent Firebase focus events from remounting the register screen on mobile
 - Moved appColorNotifer to home screen so that it sets right before the shimmer turns off to prevent the skeletonizer from appearing twice on app initialization
+- Added an in-memory dictionary _last_poi_fetch for storing time and location of the latest POI fetch to compare it on subsequent POI fetches to make sure the user is not moving impossibly fast
+- Made an is_moving_too_fast_for_poi method that ends the request early if the user is moving too fast
+- Added a specific error code for this condition which is caught by the frontend to show said message to the user
