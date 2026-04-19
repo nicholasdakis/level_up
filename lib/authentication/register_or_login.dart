@@ -716,6 +716,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          false, // to prevent the keyboard on mobile from causing a rebuild
       backgroundColor: const Color(0xFF141318),
       // Stack layers the animated background behind the scrollable form content
       body: Stack(
@@ -723,53 +725,49 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           // Builds the glow orbs
           Positioned.fill(child: buildAnimatedBackground()),
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height,
+                ),
+                // IntrinsicHeight gives the inner Column a bounded height so Spacer works
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.padding(context, 24),
+                      vertical: Responsive.padding(context, 16),
                     ),
-                    // IntrinsicHeight gives the inner Column a bounded height so Spacer works
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.padding(context, 24),
-                          vertical: Responsive.padding(context, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: Responsive.padding(context, 24)),
+                        // Top section fades in first
+                        buildStaggered(
+                          start: 0.0,
+                          end: 0.55,
+                          child: buildTopSection(),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(height: Responsive.padding(context, 24)),
-                            // Top section fades in first
-                            buildStaggered(
-                              start: 0.0,
-                              end: 0.55,
-                              child: buildTopSection(),
-                            ),
-                            // Pushes the form toward the vertical center
-                            const Spacer(),
-                            // Middle section fades in shortly after the top
-                            buildStaggered(
-                              start: 0.2,
-                              end: 0.8,
-                              child: buildMiddleSection(),
-                            ),
-                            // Pushes the social auth and error message to the bottom of the screen
-                            const Spacer(),
-                            // Bottom section fades in last
-                            buildStaggered(
-                              start: 0.45,
-                              end: 1.0,
-                              child: buildBottomSection(),
-                            ),
-                          ],
+                        // Pushes the form toward the vertical center
+                        const Spacer(),
+                        // Middle section fades in shortly after the top
+                        buildStaggered(
+                          start: 0.2,
+                          end: 0.8,
+                          child: buildMiddleSection(),
                         ),
-                      ),
+                        // Pushes the social auth and error message to the bottom of the screen
+                        const Spacer(),
+                        // Bottom section fades in last
+                        buildStaggered(
+                          start: 0.45,
+                          end: 1.0,
+                          child: buildBottomSection(),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
         ],

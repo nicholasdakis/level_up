@@ -1135,3 +1135,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 ## 2026-04-19
 - Removed serviceWorkerSettings from the _flutter.loader.load call in web/index.html so Flutter no longer attaches its controllerchange listener that reloaded the page when firebase-messaging-sw.js claimed it on iOS PWA launch
 - Added iOS-specific swipe-back gesture for exiting specific tabs because currently it causes the PWA to completely refresh
+- Disabled keyboard auto-resizing the screen on the Registration tab as it would make it impossible to type in details to login on mobile devices
+- Removed the LayoutBuilder wrap as it would refresh the whole screen trying to rebuild the new constraint after the keyboard opens on mobile
