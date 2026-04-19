@@ -730,41 +730,37 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                 constraints: BoxConstraints(
                   minHeight: MediaQuery.sizeOf(context).height,
                 ),
-                // IntrinsicHeight gives the inner Column a bounded height so Spacer works
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.padding(context, 24),
-                      vertical: Responsive.padding(context, 16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(height: Responsive.padding(context, 24)),
-                        // Top section fades in first
-                        buildStaggered(
-                          start: 0.0,
-                          end: 0.55,
-                          child: buildTopSection(),
-                        ),
-                        // Pushes the form toward the vertical center
-                        const Spacer(),
-                        // Middle section fades in shortly after the top
-                        buildStaggered(
-                          start: 0.2,
-                          end: 0.8,
-                          child: buildMiddleSection(),
-                        ),
-                        // Pushes the social auth and error message to the bottom of the screen
-                        const Spacer(),
-                        // Bottom section fades in last
-                        buildStaggered(
-                          start: 0.45,
-                          end: 1.0,
-                          child: buildBottomSection(),
-                        ),
-                      ],
-                    ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.padding(context, 24),
+                    vertical: Responsive.padding(context, 16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment
+                        .spaceBetween, // spreads the three sections evenly across the screen
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      SizedBox(height: Responsive.padding(context, 24)),
+                      // Top section fades in first
+                      buildStaggered(
+                        start: 0.0,
+                        end: 0.55,
+                        child: buildTopSection(),
+                      ),
+                      // Middle section fades in shortly after the top
+                      buildStaggered(
+                        start: 0.2,
+                        end: 0.8,
+                        child: buildMiddleSection(),
+                      ),
+                      // Bottom section fades in last
+                      buildStaggered(
+                        start: 0.45,
+                        end: 1.0,
+                        child: buildBottomSection(),
+                      ),
+                    ],
                   ),
                 ),
               ),
