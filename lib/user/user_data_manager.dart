@@ -30,11 +30,16 @@ Future<String> getIdToken() async {
 void trackTrivialAchievement(String achievementId) async {
   try {
     final token = await getIdToken();
-    await http.post(
-      Uri.parse('$backendBaseUrl/claim_trivial_achievement'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': token, 'achievement_id': achievementId}),
-    ).timeout(const Duration(seconds: 5));
+    await http
+        .post(
+          Uri.parse('$backendBaseUrl/claim_trivial_achievement'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'id_token': token,
+            'achievement_id': achievementId,
+          }),
+        )
+        .timeout(const Duration(seconds: 5));
   } catch (e) {
     debugPrint('Failed to track trivial achievement $achievementId: $e');
   }
@@ -141,10 +146,10 @@ class UserDataManager {
           [];
 
       // Convert app_color int to Flutter Color if present
+      // appColorNotifier is not updated here on purpose. It is done in Home Screen
+      // right before the skeletonizer to prevent a re-rendering
       if (data['app_color'] != null) {
         currentUserData?.appColor = Color(data['app_color'] as int);
-        // update ValueNotifier with the stored value so HomeScreen is correct on initialization
-        appColorNotifier.value = currentUserData!.appColor;
       }
 
       // Convert last_daily_claim ISO string to DateTime if present

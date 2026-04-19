@@ -129,6 +129,11 @@ class _HomeScreenState extends State<HomeScreen>
       if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
 
       if (mounted) {
+        // Sync the theme color right before the skeleton turns off. Updating it earlier
+        // would rebuild the ShimmerEffect and restart the shimmer animation mid load
+        if (currentUserData != null) {
+          appColorNotifier.value = currentUserData!.appColor;
+        }
         setState(() {
           isLoading = false;
         }); // rebuild UI with loaded stats

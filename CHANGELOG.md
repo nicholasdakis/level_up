@@ -1139,3 +1139,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Removed the IntrinsicHeight wrapping to see if it would fix the Registration page bug on mobile
 - Did not fix (but kept anyway due to IntrinsicHeight performance issues)
 - Changed the auth_gate to be Stateful to cache the stream in initState to prevent Firebase focus events from remounting the register screen on mobile
+- Moved appColorNotifer to home screen so that it sets right before the shimmer turns off to prevent the skeletonizer from appearing twice on app initialization
