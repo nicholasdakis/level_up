@@ -1147,5 +1147,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 
 ## 2026-04-20
 - Removed the self.claim from the custom SW as the custom SW already takes over with getWebFcmToken's serviceWorkerRegistration field
-- Added --pwa-strategy=none to the web build to prevent Flutter's generated service worker from causing a double page load on every visit
+- Added --pwa-strategy=none to the web build to prevent Flutter's generated service worker from causing a double page load on every visit. According to the Flutter Docs the Flutter SW is deprecated, and this avoids creating it at all
 - Fixed FCM token removal on sign out, which now uses JS interop on web (to avoid a 404 from Firebase trying to register the SW at the wrong scope) and getToken() on mobile, removing only the current device's token
+- Unregistered old Flutter-generated service workers to prevent them from serving stale cached assets alongside the current bootstrap
