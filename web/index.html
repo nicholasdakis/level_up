@@ -93,6 +93,21 @@
 </head>
 
 <body>
+  <!-- Unregister old Flutter-generated service workers to prevent them from
+       serving stale cached assets alongside the current bootstrap -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (var reg of registrations) {
+          var url = (reg.active || reg.installing || reg.waiting)?.scriptURL || '';
+          if (!url.includes('firebase-messaging-sw')) {
+            reg.unregister();
+          }
+        }
+      });
+    }
+  </script>
+
   <!-- Load Flutter bootstrap (defines _flutter.loader, does NOT auto-call load()) -->
   <script src="flutter_bootstrap.js" defer></script>
 
