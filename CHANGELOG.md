@@ -1144,3 +1144,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made an is_moving_too_fast_for_poi method that ends the request early if the user is moving too fast
 - Added a specific error code for this condition which is caught by the frontend to show said message to the user
 - Added a client-side check that shows the same error as the moving too fast backend check if the user has moved too far from where they were during the request to fetch the POIs. This is purely for UX as otherwise no POIs would load with no explanation
+
+## 2026-04-20
+- Removed the self.claim from the custom SW as the custom SW already takes over with getWebFcmToken's serviceWorkerRegistration field
