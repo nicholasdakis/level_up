@@ -50,7 +50,7 @@ jobs:
 
       # Step 5: Build the web app
       - name: Build Flutter web
-        run: flutter build web --release --base-href "/level_up/" 
+        run: flutter build web --release --base-href "/level_up/" --pwa-strategy=none
 
       # Step 6: Upload the build artifact for GitHub Pages
       - name: Upload build for Pages
