@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
+import '../utility/fcm/web_fcm_token_stub.dart'
+    if (dart.library.js_interop) '../utility/fcm/web_fcm_token_web.dart'
+    as web_fcm;
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
 
@@ -14,9 +17,12 @@ class AuthService {
       firebaseAuth.authStateChanges(); // to see if user is connected
 
   Future<void> signOut() async {
-    // Remove the FCM token from the user's Firestore document to stop notifications
+    // Remove only this device's FCM token so notifications stop on this device
     try {
-      final deviceToken = await FirebaseMessaging.instance.getToken();
+      const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
+      final deviceToken = kIsWeb
+          ? await web_fcm.getWebFcmToken(vapidKey)
+          : await FirebaseMessaging.instance.getToken();
       if (deviceToken != null) {
         await userManager.removeFcmToken(deviceToken);
       }
