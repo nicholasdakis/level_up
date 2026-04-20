@@ -43,31 +43,31 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Per-user in-memory dictionary of the last POI fetch location and time for estimating if they have moved too fast between two requests
         self._last_poi_fetch: dict[str, tuple[float, float, datetime]] = {}
 
-def is_moving_too_fast_for_poi(self, uid: str, lat: float, lng: float):
+    def is_moving_too_fast_for_poi(self, uid: str, lat: float, lng: float):
 
-    now = datetime.now(timezone.utc)
-    # Get the user's previous POI location and time if it exists
-    prev = self._last_poi_fetch.get(uid)
+        now = datetime.now(timezone.utc)
+        # Get the user's previous POI location and time if it exists
+        prev = self._last_poi_fetch.get(uid)
 
-    too_fast = False
+        too_fast = False
 
-    # Only runs if there is a previous location
-    if prev is not None:
-        prev_lat, prev_lng, prev_ts = prev
+        # Only runs if there is a previous location
+        if prev is not None:
+            prev_lat, prev_lng, prev_ts = prev
 
-        elapsed = (now - prev_ts).total_seconds()
+            elapsed = (now - prev_ts).total_seconds()
 
-        if elapsed > 0:
-            distance_moved = self._haversine(prev_lat, prev_lng, lat, lng)
-            speed = distance_moved / elapsed
-            # Check if speed exceeds threshold (likely impossible movement)
-            too_fast = speed > _POI_SPEED_THRESHOLD_MPS
+            if elapsed > 0:
+                distance_moved = self._haversine(prev_lat, prev_lng, lat, lng)
+                speed = distance_moved / elapsed
+                # Check if speed exceeds threshold (likely impossible movement)
+                too_fast = speed > _POI_SPEED_THRESHOLD_MPS
 
-    # Update stored position for next comparison
-    self._last_poi_fetch[uid] = (lat, lng, now)
+        # Update stored position for next comparison
+        self._last_poi_fetch[uid] = (lat, lng, now)
 
-    # Return whether movement was suspiciously fast
-    return too_fast
+        # Return whether movement was suspiciously fast
+        return too_fast
 
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails
