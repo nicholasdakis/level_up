@@ -1156,3 +1156,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added icons near the text in each button on the home screen
 - Changed the style of the current app version text
 - Added the flutter_animate package to remove the boilerplate code from adding animations without the package and to make animations easier to add in the future
+- Made the same changes to the Register or Login page
+- Added the staggered animation into the Leaderboard tab. Made a set to hold the cards that have already shown the animation so that the animation only happens once per card
+- Only the first 10 spots get the animation to prevent it from occurring as the user scrolls down

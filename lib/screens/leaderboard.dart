@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../utility/leaderboard/leaderboard_entry.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -17,6 +18,8 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   // Cache for experience calculations
   final Map<int, int> _expCache = {};
+  // Tracks which card indices have already played their entrance animation
+  final Set<int> _animatedIndices = {};
   late Future<List<LeaderboardEntry>> _leaderboardFuture;
 
   // Fake entries for the skeleton loading placeholder
@@ -306,7 +309,25 @@ class _LeaderboardState extends State<Leaderboard> {
                 itemBuilder: (context, i) {
                   final user = leaderboardUsers[i];
                   final isCurrentUser = user.uid == currentUserId;
-                  return _buildUserCard(user, i, isCurrentUser);
+                  final card = _buildUserCard(user, i, isCurrentUser);
+                  // Only the first 10 spots get the animation
+                  if (isLoading || i >= 10 || _animatedIndices.contains(i)) {
+                    return card;
+                  }
+                  _animatedIndices.add(
+                    i,
+                  ); // make sure to add a card that hasn't been animated so it is not reanimated
+                  return card // card animation for each card's first appearance
+                      .animate()
+                      .fadeIn(
+                        delay: (i * 50).clamp(0, 400).ms,
+                        duration: 300.ms,
+                      )
+                      .slideY(
+                        begin: 0.08,
+                        duration: 300.ms,
+                        curve: Curves.easeOut,
+                      );
                 },
               ),
             );
