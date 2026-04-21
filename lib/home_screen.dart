@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Give users without a username a dialog box to choose one
-      if (currentUserData!.username == currentUserData!.uid) {
+      if (currentUserData!.username != null && currentUserData!.username == currentUserData!.uid) {
         await promptUsernameDialog(context);
       }
 

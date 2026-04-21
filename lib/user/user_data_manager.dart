@@ -187,6 +187,7 @@ class UserDataManager {
       expNotifier.value = currentUserData!.expPoints;
     } catch (e) {
       debugPrint('Error loading user data: $e');
+      currentUserData?.username = null; // signals fetch failed so username dialog is not shown
     }
     stopwatch.stop();
     debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');
