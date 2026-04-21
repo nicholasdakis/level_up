@@ -269,6 +269,21 @@ class _FoodLoggingState extends State<FoodLogging>
     }
   }
 
+  // Method for granting the full course meal achievement
+  void checkFullDayBadge() {
+    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final dayData = foodDataByDate[dateKey];
+
+    final breakfast = (dayData?['breakfast'] ?? []).isNotEmpty;
+    final lunch = (dayData?['lunch'] ?? []).isNotEmpty;
+    final dinner = (dayData?['dinner'] ?? []).isNotEmpty;
+    final snacks = (dayData?['snacks'] ?? []).isNotEmpty;
+
+    if (breakfast && lunch && dinner && snacks) {
+      trackTrivialAchievement("food_full_day");
+    }
+  }
+
   int getTotalCaloriesForDay() {
     int total = 0;
 
@@ -525,6 +540,8 @@ class _FoodLoggingState extends State<FoodLogging>
     );
     foodDataByDate[dateKey]![mealType!]!.add(foodObject);
 
+    checkFullDayBadge(); // gives the user the full course meal achievement if it can be earned
+
     try {
       await saveFoodData("add");
     } catch (e) {
@@ -564,7 +581,7 @@ class _FoodLoggingState extends State<FoodLogging>
     });
 
     // Timer that prevents Log Food from being used too frequently
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) setState(() => isLogging = false);
     });
   }

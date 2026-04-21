@@ -188,10 +188,11 @@ const List<AchievementDef> achievementDefs = [
   AchievementDef(
     id: "food_full_day",
     name: "Full Course Meal",
-    description: "Log breakfast, lunch, and dinner in one day",
+    description:
+        "Log breakfast, lunch, dinner, and snack foods in the same day",
     icon: Icons.dinner_dining,
     tiers: [1],
-    unit: "day with all 3 meals logged",
+    unit: "day with all meals logged",
     section: "FOOD",
   ),
   AchievementDef(

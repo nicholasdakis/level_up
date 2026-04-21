@@ -1177,3 +1177,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Changed the xp formula in the backend to match dart exactly
 - Made the achievement progress for level set the user's level as the progress instead of using track_achievement because level might go up by more than 1 and the current logic didn't work for existing users
 - Added level achievement logic to check_in_poi in case the user levels up from checking in
+- Wired the Full Course Meal achievement so it is now functional
+- Edited the requirements for the Full Course Meal achievement to also require a snack food
