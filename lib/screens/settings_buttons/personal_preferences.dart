@@ -108,12 +108,15 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   bool notificationsEnabled =
       currentUserData?.notificationsEnabled ??
       true; // tracks the notification toggle state
+  bool _cropLoading = false;
 
   Future pickProfileImage() async {
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
     if (!mounted || returnedImage == null) return; // stop if user canceled
+
+    setState(() => _cropLoading = true);
 
     try {
       Uint8List? imageBytes;
@@ -154,6 +157,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _cropLoading = false);
     }
   }
 
@@ -384,157 +389,181 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
             ),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 50),
-              vertical: Responsive.height(context, 24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Appearance section
-                sectionHeader(
-                  "APPEARANCE",
-                  context,
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 10),
-                    left: Responsive.width(context, 4),
-                  ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 50),
+                  vertical: Responsive.height(context, 24),
                 ),
-                frostedGlassCard(
-                  context,
-                  child: Column(
-                    children: [
-                      buildPreferenceRow(
-                        icon: Icons.palette_outlined,
-                        label: "App Theme Color",
-                        subtitle: "Customize your app's color scheme",
-                        trailing: colorPreview,
-                        onTap: showColorPickerDialog,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Appearance section
+                    sectionHeader(
+                      "APPEARANCE",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
                       ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: Responsive.height(context, 28)),
-
-                // Profile section
-                sectionHeader(
-                  "PROFILE",
-                  context,
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 10),
-                    left: Responsive.width(context, 4),
-                  ),
-                ),
-                frostedGlassCard(
-                  context,
-                  child: Column(
-                    children: [
-                      buildPreferenceRow(
-                        icon: Icons.camera_alt_outlined,
-                        label: "Profile Picture",
-                        subtitle: "Update your profile picture",
-                        onTap: pickProfileImage,
-                      ),
-                      buildDivider(),
-                      buildPreferenceRow(
-                        icon: Icons.person_outline,
-                        label: "Username",
-                        subtitle:
-                            currentUserData?.username != currentUserData?.uid
-                            ? "Current username: ${currentUserData?.username}"
-                            : "Set a display name",
-                        onTap: () => showUsernameDialogBox(
-                          context,
-                          "Update your username",
-                          usernameController,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: Responsive.height(context, 28)),
-
-                // Notifications section
-                sectionHeader(
-                  "NOTIFICATIONS",
-                  context,
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 10),
-                    left: Responsive.width(context, 4),
-                  ),
-                ),
-                frostedGlassCard(
-                  context,
-                  child: Column(
-                    children: [
-                      buildPreferenceRow(
-                        icon: notificationsEnabled
-                            ? Icons.notifications_active_outlined
-                            : Icons.notifications_off_outlined,
-                        label: "Push Notifications",
-                        subtitle: notificationsEnabled ? "Enabled" : "Disabled",
-                        // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
-                        trailing: Switch.adaptive(
-                          value: notificationsEnabled,
-                          activeThumbColor:
-                              appColorNotifier.value ==
-                                  const Color.fromARGB(255, 45, 45, 45)
-                              ? Colors.white70
-                              : lightenColor(appColorNotifier.value, 0.2),
-                          activeTrackColor: appColorNotifier.value.withAlpha(
-                            100,
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: Icons.palette_outlined,
+                            label: "App Theme Color",
+                            subtitle: "Customize your app's color scheme",
+                            trailing: colorPreview,
+                            onTap: showColorPickerDialog,
                           ),
-                          inactiveThumbColor: Colors.white38,
-                          inactiveTrackColor: Colors.white.withAlpha(20),
-                          onChanged: (value) async {
-                            setState(() {
-                              notificationsEnabled = value;
-                            });
-                            // Save the preference to Firestore and locally
-                            await userManager.updateNotificationsEnabled(
-                              value,
-                              context,
-                            );
-                            currentUserData!.notificationsEnabled = value;
+                        ],
+                      ),
+                    ),
 
-                            // If enabling on web, also request browser permission and get FCM token
-                            if (value && kIsWeb) {
-                              final token = await requestNotificationAndToken();
-                              if (token != null) {
-                                await userManager.addFcmToken(token);
-                              } else if (mounted) {
-                                showBrowserBlockedDialog(
+                    SizedBox(height: Responsive.height(context, 28)),
+
+                    // Profile section
+                    sectionHeader(
+                      "PROFILE",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      ),
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: Icons.camera_alt_outlined,
+                            label: "Profile Picture",
+                            subtitle: "Update your profile picture",
+                            onTap: pickProfileImage,
+                          ),
+                          buildDivider(),
+                          buildPreferenceRow(
+                            icon: Icons.person_outline,
+                            label: "Username",
+                            subtitle:
+                                currentUserData?.username !=
+                                    currentUserData?.uid
+                                ? "Current username: ${currentUserData?.username}"
+                                : "Set a display name",
+                            onTap: () => showUsernameDialogBox(
+                              context,
+                              "Update your username",
+                              usernameController,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 28)),
+
+                    // Notifications section
+                    sectionHeader(
+                      "NOTIFICATIONS",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      ),
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: notificationsEnabled
+                                ? Icons.notifications_active_outlined
+                                : Icons.notifications_off_outlined,
+                            label: "Push Notifications",
+                            subtitle: notificationsEnabled
+                                ? "Enabled"
+                                : "Disabled",
+                            // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
+                            trailing: Switch.adaptive(
+                              value: notificationsEnabled,
+                              activeThumbColor:
+                                  appColorNotifier.value ==
+                                      const Color.fromARGB(255, 45, 45, 45)
+                                  ? Colors.white70
+                                  : lightenColor(appColorNotifier.value, 0.2),
+                              activeTrackColor: appColorNotifier.value
+                                  .withAlpha(100),
+                              inactiveThumbColor: Colors.white38,
+                              inactiveTrackColor: Colors.white.withAlpha(20),
+                              onChanged: (value) async {
+                                setState(() {
+                                  notificationsEnabled = value;
+                                });
+                                // Save the preference to Firestore and locally
+                                await userManager.updateNotificationsEnabled(
+                                  value,
                                   context,
-                                ); // browser is blocking notifications
-                              }
-                            }
-                          },
-                        ),
+                                );
+                                currentUserData!.notificationsEnabled = value;
+
+                                // If enabling on web, also request browser permission and get FCM token
+                                if (value && kIsWeb) {
+                                  final token =
+                                      await requestNotificationAndToken();
+                                  if (token != null) {
+                                    await userManager.addFcmToken(token);
+                                  } else if (mounted) {
+                                    showBrowserBlockedDialog(
+                                      context,
+                                    ); // browser is blocking notifications
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 24)),
+
+                    // Hint text about profile pictures
+                    Text(
+                      "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 20),
+                        color: Colors.white24,
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 40)),
+                  ],
+                ),
+              ),
+            ),
+            if (_cropLoading)
+              Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: Colors.white),
+                      SizedBox(height: Responsive.height(context, 16)),
+                      Text(
+                        "Preparing image editor...",
+                        style: TextStyle(color: Colors.white),
                       ),
                     ],
                   ),
                 ),
-
-                SizedBox(height: Responsive.height(context, 24)),
-
-                // Hint text about profile pictures
-                Text(
-                  "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 20),
-                    color: Colors.white24,
-                  ),
-                ),
-
-                SizedBox(height: Responsive.height(context, 40)),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );

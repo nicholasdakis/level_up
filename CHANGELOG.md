@@ -1167,3 +1167,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made a buildActionTile helper method for drawer items that don't navigate to different screens
 - Made the username == null on a slow backend request to prevent prompting the user for their username when the backend is taking a while to load
 - Fixed reminders not appearing initially in the Reminders tab by initially showing the cached version and then updating in the background
+- Added a flag to show a loading indicator before opening the cropper so that the user knows their profile picture update did not fail
