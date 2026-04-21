@@ -1165,3 +1165,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Changed some icons in the Settings drawer
 - Added a divider to separate the Log Out button in the Settings drawer
 - Made a buildActionTile helper method for drawer items that don't navigate to different screens
+- Made the username == null on a slow backend request to prevent prompting the user for their username when the backend is taking a while to load
+- Fixed reminders not appearing initially in the Reminders tab by initially showing the cached version and then updating in the background

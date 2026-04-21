@@ -43,8 +43,9 @@ class _RemindersState extends State<Reminders> {
   @override
   void initState() {
     super.initState();
+    reminders = List.from(currentUserData?.reminders ?? []); // show cached data instantly
     placeholderMessage = getReminderMessage();
-    _loadRemindersFromServer(); // Load reminders when the widget initializes
+    _loadRemindersFromServer(); // refresh from server in the background
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (currentUserData?.notificationsEnabled == false) {
         _showNotificationsDisabledDialog(); // prompt user to enable notifications
