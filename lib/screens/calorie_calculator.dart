@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dropdown_button2/dropdown_button2.dart'; // more customizable dropdown button (specifically, always open downward and round borders)
 import 'package:flutter/services.dart';
 import 'calorie_calculator_buttons/results.dart';
 import '../globals.dart';
@@ -97,67 +96,226 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     }
   }
 
-  // Method to prevent values outside of the dropdown button upon conversion
+  // Method to prevent values outside of the valid range upon conversion
   int keepValueInRange(int val, int min, int max) {
     if (val < min) return min;
     if (val > max) return max;
     return val;
   }
 
-  /// Helper method to reduce repetition of DropdownButton2 widgets.
-  /// Takes the hint text, current value, list of items, and onChanged callback.
-  Widget buildDropdown<T>({
-    // generic type <T> to use different values for the same method
-    required String hint,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required void Function(T?) onChanged,
-    double? fontSize,
+  // Helper to build a two-option segmented toggle for binary choices
+  Widget buildSegmentedToggle<T>({
+    required String label,
+    required T? selectedValue,
+    required List<({T value, String label, IconData? icon})> options,
+    required void Function(T) onChanged,
   }) {
-    // Wrapped in a consistent full-width bottom-bordered container to match weight field
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey,
-            width: Responsive.scale(context, 0.25),
-          ),
-        ),
-      ),
-      child: DropdownButton2<T>(
-        isExpanded: true, // fill the full width of the container
-        underline:
-            SizedBox.shrink(), // remove default underline since container handles it
-        dropdownStyleData: DropdownStyleData(
-          decoration: BoxDecoration(
-            color: appColorNotifier.value.withAlpha(
-              128,
-            ), // match the app's theme color
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
-          ),
-          maxHeight: Responsive.height(
-            context,
-            200,
-          ), // adds a scrollbar if needed (if larger than 200px)
-        ),
-        style: GoogleFonts.manrope(
-          fontSize: fontSize ?? Responsive.font(context, 15),
-          color: Colors.white,
-          shadows: [textDropShadow(context)],
-        ),
-        hint: Text(
-          hint,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
           style: GoogleFonts.manrope(
-            fontSize: fontSize ?? Responsive.font(context, 15),
-            color: Colors.white,
-            shadows: [textDropShadow(context)],
+            fontSize: Responsive.font(context, 12),
+            color: Colors.white54,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
           ),
         ),
-        value: value,
-        items: items,
-        onChanged: onChanged,
-      ),
+        SizedBox(height: Responsive.height(context, 8)),
+        Row(
+          children: options.map((opt) {
+            final isSelected = selectedValue == opt.value;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => onChanged(opt.value),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: EdgeInsets.only(
+                    right: opt != options.last
+                        ? Responsive.width(context, 8)
+                        : 0,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? appColorNotifier.value.withAlpha(200)
+                        : Colors.white.withAlpha(18),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    border: Border.all(
+                      color: isSelected
+                          ? appColorNotifier.value
+                          : Colors.white.withAlpha(30),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (opt.icon != null) ...[
+                        Icon(
+                          opt.icon,
+                          size: Responsive.scale(context, 15),
+                          color: isSelected ? Colors.white : Colors.white54,
+                        ),
+                        SizedBox(width: Responsive.width(context, 6)),
+                      ],
+                      Text(
+                        opt.label,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // Helper to build a slider row with a label and live value readout
+  Widget buildSliderField({
+    required String label,
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required String Function(double) valueLabel,
+    required void Function(double) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                color: Colors.white54,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.8,
+              ),
+            ),
+            // Pill that shows the current slider value next to the label
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 10),
+                vertical: Responsive.height(context, 4),
+              ),
+              decoration: BoxDecoration(
+                color: appColorNotifier.value.withAlpha(60),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ),
+              ),
+              child: Text(
+                valueLabel(value),
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: appColorNotifier.value,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: appColorNotifier.value,
+            inactiveTrackColor: Colors.white.withAlpha(30),
+            thumbColor: appColorNotifier.value,
+            overlayColor: appColorNotifier.value.withAlpha(40),
+            trackHeight: Responsive.scale(context, 3),
+            thumbShape: RoundSliderThumbShape(
+              enabledThumbRadius: Responsive.scale(context, 10),
+            ),
+          ),
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: divisions,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper to build a multi-option pill selector for choices with more than two options
+  Widget buildPillSelector<T>({
+    required String label,
+    required T? selectedValue,
+    required List<({T value, String label})> options,
+    required void Function(T) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 12),
+            color: Colors.white54,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 8)),
+        Wrap(
+          spacing: Responsive.width(context, 8),
+          runSpacing: Responsive.height(context, 8),
+          children: options.map((opt) {
+            final isSelected = selectedValue == opt.value;
+            return GestureDetector(
+              onTap: () => onChanged(opt.value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 16),
+                  vertical: Responsive.height(context, 10),
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? appColorNotifier.value.withAlpha(200)
+                      : Colors.white.withAlpha(18),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 30),
+                  ),
+                  border: Border.all(
+                    color: isSelected
+                        ? appColorNotifier.value
+                        : Colors.white.withAlpha(30),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  opt.label,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? Colors.white : Colors.white54,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -171,26 +329,24 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
 
   @override
   Widget build(BuildContext context) {
-    // preventing an error by setting the dropdownvalue to null instead of "MetricDefault"
-    String? dropdownValue;
-    if (units == "MetricDefault") {
-      dropdownValue = null;
-    } else {
-      dropdownValue = units;
-    }
+    // Determine whether in metric or imperial mode. MetricDefault counts as metric
+    final bool isMetric = units == "Metric" || units == "MetricDefault";
+
+    // Safe fallbacks so sliders always have a valid position before the user picks a value
+    final double ageSliderValue = (age ?? 25).toDouble().clamp(13, 100);
+    final double heightSliderValue = isMetric
+        ? (heightCm ?? 170).toDouble().clamp(100, 275)
+        : (heightInches ?? 68).toDouble().clamp(36, 107);
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
-        backgroundColor: Colors.transparent, // Body color
+        backgroundColor: Colors.transparent,
         // Header box
         appBar: AppBar(
-          backgroundColor: darkenColor(
-            appColorNotifier.value,
-            0.025,
-          ), // Header color
+          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(context, 120),
+          toolbarHeight: Responsive.height(context, 100),
           title: createTitle("Calculator", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),
@@ -202,410 +358,514 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(Responsive.padding(context, 50)),
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // CHOOSE YOUR UNITS BUTTON
-                  buildDropdown<String>(
-                    hint: "Choose your units",
-                    value: dropdownValue,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Metric',
-                        child: Text('Metric (default)'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Imperial',
-                        child: Text('Imperial'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      // when the user selects their units
-                      setState(() {
-                        if (value == currentUnits) return;
-
-                        previousUnits = currentUnits;
-                        currentUnits = value;
-                        units = value;
-
-                        if (value == "Imperial") {
-                          trackTrivialAchievement("switch_imperial");
-                        }
-
-                        // HEIGHT CONVERSION
-                        if (heightInches != null && value == "Metric") {
-                          int converted = (heightInches! * 2.54).round();
-                          heightCm = keepValueInRange(converted, 100, 275);
-                          heightInches = null;
-                        } else if (heightCm != null && value == "Imperial") {
-                          int converted = (heightCm! / 2.54).round();
-                          heightInches = keepValueInRange(converted, 36, 107);
-                          heightCm = null;
-                        }
-
-                        // WEIGHT CONVERSION
-                        if (weight != null) {
-                          if (previousUnits == "Imperial" &&
-                              currentUnits == "Metric") {
-                            weight = weight! / 2.205;
-                          } else if ((previousUnits == "Metric" &&
-                                  currentUnits == "Imperial") ||
-                              (previousUnits == "MetricDefault" &&
-                                  currentUnits == "Imperial")) {
-                            weight = weight! * 2.205;
-                          }
-                          weightController.text = weight!.toStringAsFixed(2);
-                        }
-                      });
-                    },
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // SELECT CALORIE EQUATION FORMULA
-                  buildDropdown<String>(
-                    hint: "Select Calorie Equation",
-                    value: equation,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Harris-Benedict',
-                        child: Text('Harris-Benedict'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Mifflin-St Jeor',
-                        child: Text('Mifflin-St Jeor'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => equation = value),
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // CHOOSE YOUR SEX BUTTON
-                  buildDropdown<String>(
-                    hint: "Choose your sex",
-                    value: sex,
-                    items: [
-                      DropdownMenuItem(value: 'Male', child: Text('Male')),
-                      DropdownMenuItem(value: 'Female', child: Text('Female')),
-                    ],
-                    onChanged: (value) => setState(() => sex = value),
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // CHOOSE YOUR AGE BUTTON
-                  buildDropdown<int>(
-                    hint: "Choose your age",
-                    value: age,
-                    items: [
-                      for (int i = 13; i <= 122; i++)
-                        DropdownMenuItem(value: i, child: Text("$i")),
-                    ],
-                    onChanged: (value) => setState(() => age = value),
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // ENTER YOUR WEIGHT INPUT - full width to match dropdowns
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      // Theme to remove the purple when interacting with the input weight
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      textSelectionTheme: TextSelectionThemeData(
-                        cursorColor: Colors.white,
-                        selectionHandleColor: Colors.white,
-                        selectionColor: const Color.fromARGB(
-                          255,
-                          83,
-                          75,
-                          75,
-                        ).withAlpha(128),
-                      ),
-                    ),
-                    child: TextField(
-                      controller: weightController,
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: false,
-                      ),
-                      inputFormatters: [
-                        TextInputFormatter.withFunction((oldValue, newValue) {
-                          // Allow empty
-                          if (newValue.text.isEmpty) return newValue;
-                          // Check: max 3 digits before decimal, optional decimal, max 3 digits after
-                          final valid = RegExp(
-                            r'^\d{0,3}(\.\d{0,3})?$',
-                          ).hasMatch(newValue.text);
-                          return valid
-                              ? newValue
-                              : oldValue; // reject if invalid, keep old value
-                        }),
-                      ],
-                      style: GoogleFonts.manrope(
-                        // style of the input text
-                        fontSize: Responsive.font(context, 15),
-                        color: Colors.white,
-                        shadows: [textDropShadow(context)],
-                      ),
-                      decoration: InputDecoration(
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: Responsive.scale(context, 0.25),
-                          ),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: Responsive.scale(context, 0.25),
-                          ),
-                        ),
-                        hintText:
-                            (units == "MetricDefault" || units == "Metric")
-                            ? "Enter your weight in kg"
-                            : "Enter your weight in lbs",
-                        // Suffix text to specify the weight's units
-                        suffixText: weightController.text.isNotEmpty
-                            ? (currentUnits == 'Metric' ||
-                                      currentUnits == 'MetricDefault'
-                                  ? 'kg'
-                                  : 'lbs')
-                            : null,
-                        suffixStyle: TextStyle(color: Colors.white),
-                        contentPadding: EdgeInsets.only(
-                          top: Responsive.height(context, 13),
-                          left: Responsive.width(context, 6),
-                        ),
-                        hintStyle: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white,
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      onChanged: (inputWeight) {
-                        setState(() {
-                          weight = double.tryParse(inputWeight);
-                        });
-                      },
-                    ),
-                  ),
-                  // CHOOSE YOUR HEIGHT BUTTON
-                  buildDropdown<int>(
-                    hint: "Choose your height",
-                    value: units == "Metric" || units == "MetricDefault"
-                        ? heightCm
-                        : heightInches,
-                    items: [
-                      if (units == "Metric" || units == "MetricDefault")
-                        for (int i = 100; i <= 275; i++)
-                          DropdownMenuItem(value: i, child: Text("$i cm"))
-                      else if (units == "Imperial")
-                        for (int j = 3; j < 9; j++)
-                          for (int k = 0; k < 12; k++)
-                            DropdownMenuItem(
-                              value: j * 12 + k,
-                              child: Text("$j'$k''"),
-                            ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        if (units == "Metric" || units == "MetricDefault") {
-                          heightCm = value;
-                        } else {
-                          heightInches = value;
-                        }
-                      });
-                    },
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // CHOOSE YOUR GOAL BUTTON
-                  buildDropdown<String>(
-                    hint: "Choose your calorie goal",
-                    value: goal,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Gain Weight',
-                        child: Text('Gain Weight'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Lose Weight',
-                        child: Text('Lose Weight'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Maintain Weight',
-                        child: Text('Maintain Weight'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => goal = value),
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  // CHOOSE YOUR ACTIVITY LEVEL BUTTON
-                  buildDropdown<String>(
-                    hint: "Choose your activity level",
-                    value: activityLevel,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'Sedentary',
-                        child: Text('Sedentary'),
-                      ),
-                      DropdownMenuItem(value: 'Light', child: Text('Light')),
-                      DropdownMenuItem(
-                        value: 'Moderate',
-                        child: Text('Moderate'),
-                      ),
-                      DropdownMenuItem(value: 'Active', child: Text('Active')),
-                      DropdownMenuItem(
-                        value: 'Very Active',
-                        child: Text('Very Active'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => activityLevel = value),
-                    fontSize: Responsive.font(context, 15),
-                  ),
-                  SizedBox(height: Responsive.height(context, 5)),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // align left
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 50),
+              vertical: Responsive.height(context, 24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // SECTION: BASIC INFO
+                sectionHeader("BASIC INFO", context),
+                frostedGlassCard(
+                  context,
+                  padding: EdgeInsets.all(Responsive.scale(context, 20)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        "• Sedentary = Low or no exercise.",
-                        style: GoogleFonts.roboto(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white.withAlpha(128),
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      Text(
-                        "• Light = Light exercise 1-3 days per week.",
-                        style: GoogleFonts.roboto(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white.withAlpha(128),
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      Text(
-                        "• Moderate = Moderate exercise 3-5 days per week.",
-                        style: GoogleFonts.roboto(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white.withAlpha(128),
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      Text(
-                        "• Active = Hard exercise 6-7 days per week.",
-                        style: GoogleFonts.roboto(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white.withAlpha(128),
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      Text(
-                        "• Very Active = Very hard exercise or physical job 6-7 days per week.\n",
-                        style: GoogleFonts.roboto(
-                          fontSize: Responsive.font(context, 15),
-                          color: Colors.white.withAlpha(128),
-                          shadows: [textDropShadow(context)],
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 30)),
-                      // Results button
-                      customButton(
-                        "Get Results",
-                        24,
-                        80,
-                        375,
-                        context,
-                        onPressed: () {
-                          // validity checks
-                          if (units == null ||
-                              equation == null ||
-                              sex == null ||
-                              age == null ||
-                              weight == null ||
-                              (heightCm == null && heightInches == null) ||
-                              goal == null ||
-                              activityLevel == null) {
-                            if (resultsSnackbarActive == true) {
-                              return; // a snackBar is already opened
+                      // CHOOSE YOUR UNITS TOGGLE BUTTON
+                      buildSegmentedToggle<String>(
+                        label: "UNITS",
+                        selectedValue: units == "MetricDefault" ? null : units,
+                        options: [
+                          (
+                            value: 'Metric',
+                            label: 'Metric (kg / cm)',
+                            icon: null,
+                          ),
+                          (
+                            value: 'Imperial',
+                            label: 'Imperial (lbs / in)',
+                            icon: null,
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == currentUnits) return;
+
+                            previousUnits = currentUnits;
+                            currentUnits = value;
+                            units = value;
+
+                            if (value == "Imperial") {
+                              trackTrivialAchievement("switch_imperial");
                             }
-                            resultsSnackbarActive = true;
-                            // Let the user know that not all fields are filled out.
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(
-                                  SnackBar(
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.info, color: Colors.white),
-                                        SizedBox(
-                                          width: Responsive.width(context, 10),
-                                        ),
-                                        Text("All fields must be filled."),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                                .closed
-                                .then((_) {
-                                  resultsSnackbarActive =
-                                      false; // reset the flag (prevent many snackbars from stacking)
-                                });
-                            return;
-                          }
-                          // NO EARLY RETURN SO THE TAP WAS SUCCESSFUL
 
-                          // Store the results to the user's device
-                          saveCalculatorDataToPrefs();
+                            // HEIGHT CONVERSION
+                            if (heightInches != null && value == "Metric") {
+                              int converted = (heightInches! * 2.54).round();
+                              heightCm = keepValueInRange(converted, 100, 275);
+                              heightInches = null;
+                            } else if (heightCm != null &&
+                                value == "Imperial") {
+                              int converted = (heightCm! / 2.54).round();
+                              heightInches = keepValueInRange(
+                                converted,
+                                36,
+                                107,
+                              );
+                              heightCm = null;
+                            }
 
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              // Animation when switching screen
-                              pageBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) => Results(
-                                    // pass in variables to the same-named variables in Results
-                                    units: units ?? "0",
-                                    goal: goal ?? "0",
-                                    activityLevel: activityLevel ?? "0",
-                                    equation: equation ?? "0",
-                                    age: age ?? 0,
-                                    sex: sex ?? "0",
-                                    heightCm: heightCm ?? 0,
-                                    heightInches: heightInches ?? 0,
-                                    weight: weight ?? 0,
-                                  ),
-                              transitionDuration: Duration(milliseconds: 400),
-                              transitionsBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    const start = Offset(0.0, 1.0);
-                                    const finish = Offset.zero;
-                                    final tween = Tween(
-                                      begin: start,
-                                      end: finish,
-                                    ).chain(CurveTween(curve: Curves.easeIn));
-                                    final offsetAnimation = animation.drive(
-                                      tween,
-                                    );
-                                    return SlideTransition(
-                                      position: offsetAnimation,
-                                      child: child,
-                                    );
-                                  },
-                            ),
-                          );
+                            // WEIGHT CONVERSION
+                            if (weight != null) {
+                              if (previousUnits == "Imperial" &&
+                                  currentUnits == "Metric") {
+                                weight = weight! / 2.205;
+                              } else if ((previousUnits == "Metric" &&
+                                      currentUnits == "Imperial") ||
+                                  (previousUnits == "MetricDefault" &&
+                                      currentUnits == "Imperial")) {
+                                weight = weight! * 2.205;
+                              }
+                              weightController.text = weight!.toStringAsFixed(
+                                2,
+                              );
+                            }
+                          });
                         },
                       ),
+
+                      SizedBox(height: Responsive.height(context, 22)),
+
+                      // SELECT CALORIE EQUATION FORMULA
+                      buildSegmentedToggle<String>(
+                        label: "EQUATION",
+                        selectedValue: equation,
+                        options: [
+                          (
+                            value: 'Harris-Benedict',
+                            label: 'Harris-Benedict',
+                            icon: null,
+                          ),
+                          (
+                            value: 'Mifflin-St Jeor',
+                            label: 'Mifflin-St Jeor',
+                            icon: null,
+                          ),
+                        ],
+                        onChanged: (value) => setState(() => equation = value),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 22)),
+
+                      // CHOOSE YOUR SEX TOGGLE BUTTON
+                      buildSegmentedToggle<String>(
+                        label: "SEX",
+                        selectedValue: sex,
+                        options: [
+                          (value: 'Male', label: 'Male', icon: Icons.male),
+                          (
+                            value: 'Female',
+                            label: 'Female',
+                            icon: Icons.female,
+                          ),
+                        ],
+                        onChanged: (value) => setState(() => sex = value),
+                      ),
                     ],
+                  ),
+                ),
+
+                SizedBox(height: Responsive.height(context, 24)),
+
+                // SECTION: MEASUREMENTS
+                sectionHeader("MEASUREMENTS", context),
+                frostedGlassCard(
+                  context,
+                  padding: EdgeInsets.all(Responsive.scale(context, 20)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // CHOOSE YOUR AGE SLIDER
+                      buildSliderField(
+                        label: "AGE",
+                        value: ageSliderValue,
+                        min: 13,
+                        max: 100,
+                        divisions: 87,
+                        valueLabel: (v) => "${v.round()} yrs",
+                        onChanged: (value) =>
+                            setState(() => age = value.round()),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 8)),
+
+                      // CHOOSE YOUR HEIGHT SLIDER, range and display format adjusts based on units
+                      buildSliderField(
+                        label: "HEIGHT",
+                        value: heightSliderValue,
+                        min: isMetric ? 100 : 36,
+                        max: isMetric ? 275 : 107,
+                        divisions: isMetric ? 175 : 71,
+                        valueLabel: (v) {
+                          if (isMetric) return "${v.round()} cm";
+                          // Convert total inches to feet and inches for display
+                          final totalInches = v.round();
+                          final feet = totalInches ~/ 12;
+                          final inches = totalInches % 12;
+                          return "$feet'$inches\"";
+                        },
+                        onChanged: (value) {
+                          setState(() {
+                            if (isMetric) {
+                              heightCm = value.round();
+                            } else {
+                              heightInches = value.round();
+                            }
+                          });
+                        },
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 16)),
+
+                      // ENTER YOUR WEIGHT INPUT, full width, hint and suffix update based on units
+                      Text(
+                        "WEIGHT",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 12),
+                          color: Colors.white54,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 8)),
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          // Remove the purple highlight when interacting with the weight input
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          textSelectionTheme: TextSelectionThemeData(
+                            cursorColor: Colors.white,
+                            selectionHandleColor: Colors.white,
+                            selectionColor: const Color.fromARGB(
+                              255,
+                              83,
+                              75,
+                              75,
+                            ).withAlpha(128),
+                          ),
+                        ),
+                        child: TextField(
+                          controller: weightController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: false,
+                          ),
+                          inputFormatters: [
+                            TextInputFormatter.withFunction((
+                              oldValue,
+                              newValue,
+                            ) {
+                              // Allow empty
+                              if (newValue.text.isEmpty) return newValue;
+                              // Check: max 3 digits before decimal, optional decimal, max 3 digits after
+                              final valid = RegExp(
+                                r'^\d{0,3}(\.\d{0,3})?$',
+                              ).hasMatch(newValue.text);
+                              return valid
+                                  ? newValue
+                                  : oldValue; // reject if invalid, keep old value
+                            }),
+                          ],
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 15),
+                            color: Colors.white,
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withAlpha(12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 12),
+                              ),
+                              borderSide: BorderSide.none,
+                            ),
+                            hintText: isMetric
+                                ? "Enter your weight in kg"
+                                : "Enter your weight in lbs",
+                            // Suffix text to specify the weight's units
+                            suffixText: weightController.text.isNotEmpty
+                                ? (currentUnits == 'Metric' ||
+                                          currentUnits == 'MetricDefault'
+                                      ? 'kg'
+                                      : 'lbs')
+                                : null,
+                            suffixStyle: GoogleFonts.manrope(
+                              color: Colors.white70,
+                              fontSize: Responsive.font(context, 14),
+                            ),
+                            hintStyle: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 14),
+                              color: Colors.white38,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 16),
+                              vertical: Responsive.height(context, 14),
+                            ),
+                          ),
+                          onChanged: (inputWeight) {
+                            setState(() {
+                              weight = double.tryParse(inputWeight);
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: Responsive.height(context, 24)),
+
+                // SECTION: GOAL AND ACTIVITY
+                sectionHeader("GOAL & ACTIVITY", context),
+                frostedGlassCard(
+                  context,
+                  padding: EdgeInsets.all(Responsive.scale(context, 20)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // CHOOSE YOUR CALORIE GOAL
+                      buildPillSelector<String>(
+                        label: "CALORIE GOAL",
+                        selectedValue: goal,
+                        options: [
+                          (value: 'Lose Weight', label: 'Lose Weight'),
+                          (value: 'Maintain Weight', label: 'Maintain Weight'),
+                          (value: 'Gain Weight', label: 'Gain Weight'),
+                        ],
+                        onChanged: (value) => setState(() => goal = value),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 22)),
+
+                      // CHOOSE YOUR ACTIVITY LEVEL
+                      buildPillSelector<String>(
+                        label: "ACTIVITY LEVEL",
+                        selectedValue: activityLevel,
+                        options: [
+                          (value: 'Sedentary', label: 'Sedentary'),
+                          (value: 'Light', label: 'Light'),
+                          (value: 'Moderate', label: 'Moderate'),
+                          (value: 'Active', label: 'Active'),
+                          (value: 'Very Active', label: 'Very Active'),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => activityLevel = value),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: Responsive.height(context, 16)),
+
+                // Activity level descriptions so the user knows what each option means
+                sectionHeader("ACTIVITY INFO", context),
+                frostedGlassCard(
+                  context,
+                  padding: EdgeInsets.all(Responsive.scale(context, 16)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildActivityRow(
+                        Icons.weekend_outlined,
+                        "Sedentary",
+                        "Low or no exercise.",
+                      ),
+                      _buildActivityRow(
+                        Icons.directions_walk,
+                        "Light",
+                        "Light exercise 1–3 days per week.",
+                      ),
+                      _buildActivityRow(
+                        Icons.directions_bike,
+                        "Moderate",
+                        "Moderate exercise 3–5 days per week.",
+                      ),
+                      _buildActivityRow(
+                        Icons.fitness_center,
+                        "Active",
+                        "Hard exercise 6–7 days per week.",
+                      ),
+                      _buildActivityRow(
+                        Icons.bolt,
+                        "Very Active",
+                        "Very hard exercise or physical job 6–7 days per week.",
+                        isLast: true,
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: Responsive.height(context, 28)),
+
+                // RESULTS BUTTON
+                SizedBox(
+                  height: Responsive.height(context, 54),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Validity checks — all fields must be filled
+                      if (units == null ||
+                          equation == null ||
+                          sex == null ||
+                          age == null ||
+                          weight == null ||
+                          (heightCm == null && heightInches == null) ||
+                          goal == null ||
+                          activityLevel == null) {
+                        if (resultsSnackbarActive == true) {
+                          return; // a snackbar is already opened
+                        }
+                        resultsSnackbarActive = true;
+                        // Let the user know that not all fields are filled out
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.info, color: Colors.white),
+                                    SizedBox(
+                                      width: Responsive.width(context, 10),
+                                    ),
+                                    const Text("All fields must be filled."),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .closed
+                            .then((_) {
+                              resultsSnackbarActive =
+                                  false; // reset the flag (prevent many snackbars from stacking)
+                            });
+                        return;
+                      }
+                      // NO EARLY RETURN SO THE TAP WAS SUCCESSFUL
+
+                      // Store the results to the user's device
+                      saveCalculatorDataToPrefs();
+
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          // Animation when switching screen
+                          pageBuilder:
+                              (
+                                context,
+                                animation,
+                                secondaryAnimation,
+                              ) => Results(
+                                // Pass in variables to the same-named variables in Results
+                                units: units ?? "0",
+                                goal: goal ?? "0",
+                                activityLevel: activityLevel ?? "0",
+                                equation: equation ?? "0",
+                                age: age ?? 0,
+                                sex: sex ?? "0",
+                                heightCm: heightCm ?? 0,
+                                heightInches: heightInches ?? 0,
+                                weight: weight ?? 0,
+                              ),
+                          transitionDuration: const Duration(milliseconds: 400),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                                const start = Offset(0.0, 1.0);
+                                const finish = Offset.zero;
+                                final tween = Tween(
+                                  begin: start,
+                                  end: finish,
+                                ).chain(CurveTween(curve: Curves.easeIn));
+                                final offsetAnimation = animation.drive(tween);
+                                return SlideTransition(
+                                  position: offsetAnimation,
+                                  child: child,
+                                );
+                              },
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appColorNotifier.value,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 14),
+                        ),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      "Get Results",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 16),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: Responsive.height(context, 40)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Builds a single activity level description row with an icon, bold label, and description
+  Widget _buildActivityRow(
+    IconData icon,
+    String level,
+    String description, {
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: isLast ? 0 : Responsive.height(context, 10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: Responsive.scale(context, 16),
+            color: Colors.white38,
+          ),
+          SizedBox(width: Responsive.width(context, 10)),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: "$level — ",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white60,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text: description,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white38,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

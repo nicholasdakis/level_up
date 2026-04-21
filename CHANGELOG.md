@@ -1172,3 +1172,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 ## 2026-04-21
 - Edited addFcmToken to now take an oldToken parameter and remove it to prevent dead tokens from accumulating
 - Before this, tokens were only being cleared when a reminder was sent with send_due_reminders, so old tokens could accumulate for a while in the mean time
+- Moderenized the Calorie Calculator UI to look like the other tabs
+- Replaced the dropdown buttons with sliders and buttons to feel more polished and convenient
