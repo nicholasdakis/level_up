@@ -66,9 +66,7 @@ class DailyRewardDialog {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: appColorNotifier.value.withAlpha(200),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "Daily Reward!",
           style: TextStyle(color: Colors.white),
@@ -97,6 +95,9 @@ class DailyRewardDialog {
         ],
       ),
     );
+
+    // Update XP bar now that the dialog has been dismissed
+    expNotifier.value = currentUserData!.expPoints;
 
     // Set a reminder 23 hours from now
     if (currentUserData!.notificationsEnabled) {

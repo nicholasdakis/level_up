@@ -537,9 +537,6 @@ class UserDataManager {
       currentUserData!.canClaimDailyReward = false;
       currentUserData!.lastDailyClaim = DateTime.now().toUtc();
 
-      // keep the notifier in sync so XP bar rebuilds immediately
-      expNotifier.value = result['new_exp'];
-
       // Return the XP gained
       return result['xp_gained'];
     } catch (e) {

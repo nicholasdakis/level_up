@@ -310,8 +310,8 @@ class _LeaderboardState extends State<Leaderboard> {
                   final user = leaderboardUsers[i];
                   final isCurrentUser = user.uid == currentUserId;
                   final card = _buildUserCard(user, i, isCurrentUser);
-                  // Only the first 10 spots get the animation
-                  if (isLoading || i >= 10 || _animatedIndices.contains(i)) {
+                  // Only the first 20 spots get the animation
+                  if (isLoading || i >= 20 || _animatedIndices.contains(i)) {
                     return card;
                   }
                   _animatedIndices.add(
