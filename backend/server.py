@@ -15,7 +15,7 @@ from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
 from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
-from backend.services import ProgressionService
+from backend.services import ProgressionService, FoodService, POIService
 from backend.schemas import (
     ClaimDailyRewardRequest,
     GetProgressRequest,
@@ -70,15 +70,18 @@ MAX_TOKENS = int(os.getenv("MAX_TOKENS", "5000"))
 # Set up Supabase
 supabase_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
 
+# TokenManager reads/writes rate_limits via Supabase Postgres
+token_manager = TokenManager(supabase_client)
+
 # Initialize the repository and service layers, passing Supabase to each repository so it can read / write data
 user_repo = UserRepository(supabase_client)
 reminder_repo = ReminderRepository(supabase_client)
 rate_limit_repo = RateLimitRepository(supabase_client)
 achievement_repo = AchievementRepository(supabase_client)
-progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
 
-# TokenManager reads/writes rate_limits via Supabase Postgres
-token_manager = TokenManager(supabase_client)
+progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
+food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET)
+poi_service = POIService()
 
 # Initialize Firebase Admin SDK for FCM (for notifications)
 if not firebase_admin._apps:
@@ -188,29 +191,6 @@ def send_due_reminders():
     except Exception as e:
         print(f'Error sending reminders: {e}')
 
-
-def get_next_reset_time():
-    # Get the rate_limits row for food_logging from Postgres
-    last_refill_time = rate_limit_repo.get_last_refill_time("food_logging")
-    if not last_refill_time:
-        return None
-    # Timestamp to datetime conversion
-    last_refill_dt = to_utc_datetime(last_refill_time)
-    # reset time is 1 day after the last refill
-    reset_time = last_refill_dt + timedelta(days=1)
-    return reset_time
-
-def get_access_token():
-    """Request an access token from FatSecret"""
-    token_url = "https://oauth.fatsecret.com/connect/token"
-    data = {"grant_type": "client_credentials", "scope": "basic"}
-    try:
-        response = requests.post(token_url, data=data, auth=(CLIENT_ID, CLIENT_SECRET))
-        response.raise_for_status()
-        return response.json().get("access_token")
-    except requests.RequestException as e:
-        return None
-
 @app.route("/ping")
 def ping():
     return jsonify({
@@ -226,35 +206,6 @@ def trigger_reminders():
         return jsonify({"error": "Unauthorized"}), 401
     send_due_reminders()
     return jsonify({"message": "Reminders checked."}), 200
-
-# Helper method for get_food
-def call_fatsecret(food_name: str, timeout: int):
-    access_token = get_access_token()
-    if not access_token:
-        token_manager.refund()
-        raise RuntimeError("Failed to get access token")
-
-    headers = {"Authorization": f"Bearer {access_token}"}
-    data = {
-        "method": "foods.search",
-        "search_expression": food_name,
-        "format": "json"
-    }
-
-    try:
-        api_response = requests.post(
-            "https://platform.fatsecret.com/rest/server.api",
-            headers=headers,
-            data=data,
-            timeout=timeout
-        )
-        if api_response.status_code != 200:
-            token_manager.refund()
-            raise RuntimeError(f"FatSecret API error: {api_response.status_code}")
-        return api_response
-    except requests.RequestException as e:
-        token_manager.refund()
-        raise RuntimeError(str(e))
 
 @app.route("/get_food", methods=["POST"])
 def get_food():
@@ -298,7 +249,7 @@ def get_food():
             # Not in cache and lock is active, so use the fatSecret API
             if not token_manager.consume():
                 # Retrieve the next reset time
-                reset_time = get_next_reset_time()
+                reset_time = food_service.get_next_reset_time()
                 if reset_time is None:
                     return jsonify({
                         "error": "Token limit exceeded",
@@ -315,7 +266,7 @@ def get_food():
         
             # Call FatSecret API if tokens are available, refunding tokens upon failure
             try:
-                api_response = call_fatsecret(food_name, lock_timeout_seconds - 1)
+                api_response = food_service.call_fatsecret(food_name, lock_timeout_seconds - 1)
             except RuntimeError as e:
                 return jsonify({"error": str(e)}), 500
 
@@ -335,64 +286,6 @@ def get_food():
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
 
-# Overpass API endpoints
-OVERPASS_URLS = ["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter"]
-
-# Overpass QL query template for fetching general POIs near a location
-# {lat}, {lng}, {radius} are filled in at request time
-# Each tag key (amenity, leisure, shop, tourism) produces category values
-# used by POIIcons.fromCategory on the client side
-OVERPASS_QUERY = """
-[out:json][timeout:20];
-(
-  node["amenity"](around:{radius},{lat},{lng});
-  node["leisure"](around:{radius},{lat},{lng});
-  node["shop"](around:{radius},{lat},{lng});
-  node["tourism"](around:{radius},{lat},{lng});
-);
-out body 100;
-"""
-
-# Method to turn the Overpass JSON into POIItem objects for the useful fields
-def parse_overpass_response(data):
-    pois = []
-    seen_locations = set()
-    elements = data.get("elements", []) # Overpass returns results in an "elements" array
-
-    for element in elements:
-        tags = element.get("tags", {}) # tags hold metadata like name, amenity type
-        name = tags.get("name") # to skip unnamed nodes
-
-        if not name:
-            continue
-
-        # Figure out the node's category by going through all categories
-        category = (
-            tags.get("amenity") or
-            tags.get("leisure") or
-            tags.get("shop") or
-            tags.get("tourism") or
-            "other" # fallback
-        )
-
-        lat = element["lat"] # Overpass always includes lat/lon for nodes
-        lng = element["lon"] # self-note: Overpass uses "lon" for longtitude
-
-        # Round to 5 decimal places (1.1m) to prevent duplicate elements returned by Overpass
-        location_key = f"{round(lat, 5)},{round(lng, 5)}"
-        if location_key in seen_locations:
-            continue
-        seen_locations.add(location_key)
-
-        pois.append(POIItem(
-            name=name,
-            lat=lat,
-            lng=lng,
-            category=category,
-        ))
-
-    return pois
-
 @app.route("/get_nearby_pois", methods=["POST"])
 def get_nearby_pois():
     # Step 1: Validate request body and verify the user's identity
@@ -408,41 +301,19 @@ def get_nearby_pois():
             "code": "moving_too_fast",
         }), 429
 
-    # Step 3: Build the Overpass query by filling in the user's coordinates
-    query = OVERPASS_QUERY.format(
-        lat=body.lat,
-        lng=body.lng,
-        radius=500, # scans 500 meters within the user's location
-    )
-
-    # Step 4: Send the query to the Overpass API, retry once if it fails
-    overpass_response = None
-    latest_error = None
-
-    for url in OVERPASS_URLS:
-        try:
-            overpass_response = requests.post(url, data={"data": query}, timeout=25) # Overpass expects the query in a "data" form field
-            if overpass_response.status_code == 200:
-                break
-            else: # Responses other than 200
-                latest_error = f"HTTP {overpass_response.status_code}: {overpass_response.text}"
-                overpass_response = None
-        except requests.RequestException as e:
-            latest_error = e
-            overpass_response = None
-
-    if overpass_response is None or overpass_response.status_code != 200:
-        print(f"Overpass API error: {latest_error}")
+    # Step 3: Fetch POIs from the Overpass API
+    data = poi_service.fetch_pois(body.lat, body.lng)
+    if data is None:
         return jsonify({"error": "Overpass API unavailable, try again later"}), 503
 
-    # Step 5: Parse the raw Overpass data into POI objects
-    all_pois = parse_overpass_response(overpass_response.json())
+    # Step 4: Parse the raw Overpass data into POI objects
+    all_pois = poi_service.parse_overpass_response(data)
 
-    # Step 6: If there are more than 20 POIs found, a random subset of the 20 are shown
+    # Step 5: If there are more than 20 POIs found, a random subset of the 20 are shown
     if len(all_pois) > 20:
         all_pois = random.sample(all_pois, 20)
 
-    # Step 7: Build and return the validated response
+    # Step 6: Build and return the validated response
     response = NearbyPOIResponse(pois=all_pois)
     return jsonify(response.model_dump()), 200
 

@@ -1181,3 +1181,5 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Edited the requirements for the Full Course Meal achievement to also require a snack food
 - Added a _parse_and_auth method to server.py to reduce repeated code of schema parsing in every route
 - Extracted repeated logic for checking if the user can claim a daily reward into a helper method in services.py
+- Added FoodService and POIService classes to services.py to move the code from server.py into them
+- server.py now uses the code through the new classes instead of directly in server.py
