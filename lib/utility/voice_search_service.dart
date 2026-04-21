@@ -85,8 +85,8 @@ class VoiceSearchService {
         onText(text);
       },
       listenOptions: SpeechListenOptions(partialResults: true),
-      // auto stop after 2s of silence
-      pauseFor: const Duration(seconds: 2),
+      // auto stop after 8s of silence
+      pauseFor: const Duration(seconds: 8),
       // hard cap on total listen duration
       listenFor: const Duration(seconds: 15),
     );
