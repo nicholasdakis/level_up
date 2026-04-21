@@ -10,8 +10,9 @@ from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
-    raw = 100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)
-    return round(round(raw) / 10) * 10
+    raw = 100 * (1.25 ** (level - 0.5)) * 1.05 + (level * 10)
+    exp = round(raw)
+    return round(exp / 10) * 10
 
 def calculate_daily_reward_xp(level: int):
     # Calculate how much XP a daily reward gives, based on the formula in daily_rewards.dart
