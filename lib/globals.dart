@@ -238,18 +238,31 @@ Widget drawerItem(
   BuildContext context, {
   Widget? destination,
   Offset startOffset = const Offset(0, 1),
-  String? tooltip, // optional tooltip
+  String? tooltip,
 }) {
   final listTile = Material(
     color: Colors.transparent,
     child: ListTile(
-      leading: Icon(icon, color: Colors.white),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 20),
+        vertical: Responsive.height(context, 2),
+      ),
+      leading: Icon(
+        icon,
+        color: Colors.white,
+        size: Responsive.scale(context, 22),
+      ),
       title: textWithFont(
         text,
         context,
-        Responsive.font(context, 18),
+        Responsive.font(context, 16),
         color: Colors.white,
         alignment: TextAlign.left,
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: Colors.white38,
+        size: Responsive.scale(context, 20),
       ),
       hoverColor: Colors.white.withAlpha(50),
       onTap: () {

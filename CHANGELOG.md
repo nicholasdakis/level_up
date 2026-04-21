@@ -1161,3 +1161,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Only the first 10 spots get the animation to prevent it from occurring as the user scrolls down
 - Simplified the animation code for the footer exp with TweenAnimationBuilder
 - Made the progress bar's XP go up after the daily reward dialog is dismissed instead of happening automatically with the expNotifier
+- Replaced the "Settings" text in the settings drawer with the user's pfp and username
+- Changed some icons in the Settings drawer
+- Added a divider to separate the Log Out button in the Settings drawer
+- Made a buildActionTile helper method for drawer items that don't navigate to different screens
