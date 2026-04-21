@@ -1179,3 +1179,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added level achievement logic to check_in_poi in case the user levels up from checking in
 - Wired the Full Course Meal achievement so it is now functional
 - Edited the requirements for the Full Course Meal achievement to also require a snack food
+- Added a _parse_and_auth method to server.py to reduce repeated code of schema parsing in every route

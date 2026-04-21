@@ -105,6 +105,20 @@ def _try_verify_token(id_token: str):
     except ValueError as e:
         return None, (jsonify({"error": str(e)}), 401)  # (no uid, 401 error response)
 
+# Helper method for deserializing the JSON request body into the appropriate schema and verifying the user's identity
+def _parse_and_auth(schema):
+    # Parse the JSON into the schema
+    try:
+        body = schema(**request.get_json(force=True))
+    except (ValidationError, TypeError) as e:
+        return None, None, (jsonify({"error": "Invalid request", "details": str(e)}), 400)
+
+    # Verify the JWT
+    uid, err = _try_verify_token(body.id_token)
+    if err:
+        return None, None, err
+    return uid, body, None
+
 def send_due_reminders():
     try:
         now_dt = datetime.now(timezone.utc)
@@ -245,13 +259,7 @@ def call_fatsecret(food_name: str, timeout: int):
 @app.route("/get_food", methods=["POST"])
 def get_food():
     # Validate request body with the Pydantic schema
-    try:
-        body = SearchFoodRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Verify the user's token (uid unused as search is not user-specific)
-    _, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(SearchFoodRequest)
     if err:
         return err
 
@@ -387,18 +395,12 @@ def parse_overpass_response(data):
 
 @app.route("/get_nearby_pois", methods=["POST"])
 def get_nearby_pois():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = NearbyPOIRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user's token. The uid is needed to estimate how fast the user is moving
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(NearbyPOIRequest)
     if err:
         return err
 
-    # Step 3: Reject the request if the user has moved too fast too quickly
+    # Step 2: Reject the request if the user has moved too fast too quickly
     # in comparison to their previous POI request
     if progression_service.is_moving_too_fast_for_poi(uid, body.lat, body.lng):
         return jsonify({
@@ -406,14 +408,14 @@ def get_nearby_pois():
             "code": "moving_too_fast",
         }), 429
 
-    # Step 4: Build the Overpass query by filling in the user's coordinates
+    # Step 3: Build the Overpass query by filling in the user's coordinates
     query = OVERPASS_QUERY.format(
         lat=body.lat,
         lng=body.lng,
         radius=500, # scans 500 meters within the user's location
     )
 
-    # Step 5: Send the query to the Overpass API, retry once if it fails
+    # Step 4: Send the query to the Overpass API, retry once if it fails
     overpass_response = None
     latest_error = None
 
@@ -433,31 +435,25 @@ def get_nearby_pois():
         print(f"Overpass API error: {latest_error}")
         return jsonify({"error": "Overpass API unavailable, try again later"}), 503
 
-    # Step 6: Parse the raw Overpass data into POI objects
+    # Step 5: Parse the raw Overpass data into POI objects
     all_pois = parse_overpass_response(overpass_response.json())
 
-    # Step 7: If there are more than 20 POIs found, a random subset of the 20 are shown
+    # Step 6: If there are more than 20 POIs found, a random subset of the 20 are shown
     if len(all_pois) > 20:
         all_pois = random.sample(all_pois, 20)
 
-    # Step 8: Build and return the validated response
+    # Step 7: Build and return the validated response
     response = NearbyPOIResponse(pois=all_pois)
     return jsonify(response.model_dump()), 200
 
 @app.route("/check_in_poi", methods=["POST"])
 def check_in_poi():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = CheckInPOIRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Make sure the user is who they say they are
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(CheckInPOIRequest)
     if err:
         return err
 
-    # Step 3: Run the check-in through the service layer
+    # Step 2: Run the check-in through the service layer
     result = progression_service.check_in_poi(
         uid,
         body.poi_name,
@@ -467,28 +463,22 @@ def check_in_poi():
         body.user_lng,
     )
 
-    # Step 4: Build and return the validated response
+    # Step 3: Build and return the validated response
     response = CheckInPOIResponse(**result)
     status = 200 if result["success"] else 409 # 409 = conflict
     return jsonify(response.model_dump()), status
 
 @app.route("/update_username", methods=["POST"]) # POST because the route is for modifying data
 def update_username():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = UpdateUsernameRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e: # Stops early with a detailed error
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Make sure the user is who they say they are by verifying the JWT
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(UpdateUsernameRequest)
     if err:
         return err
 
-    # Step 3: The service calculates if the update is valid, and the repository (in the service) reads Postgres atomically
+    # Step 2: The service calculates if the update is valid, and the repository (in the service) reads Postgres atomically
     result = progression_service.update_username(uid, body.username) # Returns a dict, and update_username is successful if the uniqueness check passes
 
-    # Step 4: Build the expected response schema
+    # Step 3: Build the expected response schema
     response = UpdateUsernameResponse(
         success=result["success"],
         error=result.get("error"), # .get to safely return if the error is None
@@ -500,21 +490,15 @@ def update_username():
 
 @app.route("/claim_daily_reward", methods=["POST"]) # POST because the route is for modifying data
 def claim_daily_reward():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = ClaimDailyRewardRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e: # Stops early with a detailed error
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Make sure the user is who they say they are by verifying the JWT
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(ClaimDailyRewardRequest)
     if err:
         return err
 
-    # Step 3: The service calculates XP and level-ups, and the repository (in the service) writes to Postgres atomically
+    # Step 2: The service calculates XP and level-ups, and the repository (in the service) writes to Postgres atomically
     result = progression_service.claim_daily_reward(uid)
 
-    # Step 4: Build the expected response schema
+    # Step 3: Build the expected response schema
     response = DailyRewardResponse(
         claimed=result["claimed"],
         xp_gained=result["xp_gained"],
@@ -528,53 +512,36 @@ def claim_daily_reward():
 
 @app.route("/get_progress", methods=["POST"]) # POST because the id_token is sent in the request body
 def get_progress():
-    # Step 1: Make sure the reponse matches the schema
-    try:
-        body = GetProgressRequest(**request.get_json(force=True)) # force=True is a safety net to make sure the data is parsed as JSON
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user is who they say they are
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(GetProgressRequest)
     if err:
         return err
 
-    # Step 3: Fetch the user's current state through the service layer
+    # Step 2: Fetch the user's current state through the service layer
     result = progression_service.get_progress(uid)
 
-    # Step 4: Return validated response
+    # Step 3: Return validated response
     response = ProgressResponse(**result)
     return jsonify(response.model_dump()), 200
 
 @app.route("/update_exp", methods=["POST"]) # POST because this route modifies data
 def update_exp():
-    # Step 1: Make sure the response matches the schema
-    try:
-        body = UpdateExpRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user is who they say they are
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(UpdateExpRequest)
     if err:
         return err
 
-    # Step 3: Run XP update through the service layer
+    # Step 2: Run XP update through the service layer
     result = progression_service.update_exp(uid, body.event, body.event_id)
 
-    # Step 4: Return validated response
+    # Step 3: Return validated response
     response = UpdateExpResponse(**result)
     return jsonify(response.model_dump()), 200
 
 @app.route("/get_user_data", methods=["POST"])
 def get_user_data():
     # Method that returns all user data in a single call
-    try:
-        body = GetUserDataRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(GetUserDataRequest)
     if err:
         return err
 
@@ -586,12 +553,7 @@ def get_user_data():
 @app.route("/update_pfp", methods=["POST"])
 def update_pfp():
     # Method that updates the user's profile picture, stored as a Base64 string
-    try:
-        body = UpdatePfpRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(UpdatePfpRequest)
     if err:
         return err
 
@@ -602,12 +564,7 @@ def update_pfp():
 @app.route("/update_app_color", methods=["POST"])
 def update_app_color():
     # Method that updates the user's app theme color, stored as an ARGB integer
-    try:
-        body = UpdateAppColorRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(UpdateAppColorRequest)
     if err:
         return err
 
@@ -618,12 +575,7 @@ def update_app_color():
 @app.route("/update_notifications", methods=["POST"])
 def update_notifications():
     # Method that updates whether the user has notifications enabled
-    try:
-        body = UpdateNotificationsRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(UpdateNotificationsRequest)
     if err:
         return err
 
@@ -634,12 +586,7 @@ def update_notifications():
 @app.route("/add_fcm_token", methods=["POST"])
 def add_fcm_token():
     # Method that adds an FCM token to the user's token list for push notifications, ignoring duplicates
-    try:
-        body = AddFcmTokenRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(AddFcmTokenRequest)
     if err:
         return err
 
@@ -650,12 +597,7 @@ def add_fcm_token():
 @app.route("/remove_fcm_token", methods=["POST"])
 def remove_fcm_token():
     # Method that removes an FCM token from the user's token list, called on logout
-    try:
-        body = RemoveFcmTokenRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(RemoveFcmTokenRequest)
     if err:
         return err
 
@@ -666,12 +608,7 @@ def remove_fcm_token():
 @app.route("/upsert_food_log", methods=["POST"])
 def upsert_food_log():
     # Method that inserts or updates a food log entry for a specific date
-    try:
-        body = UpsertFoodLogRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(UpsertFoodLogRequest)
     if err:
         return err
 
@@ -683,12 +620,7 @@ def upsert_food_log():
 @app.route("/get_leaderboard", methods=["POST"]) # POST because the id_token is sent in the request body
 def get_leaderboard():
     # Method that returns all users sorted by level and XP descending for the leaderboard
-    try:
-        body = GetLeaderboardRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-    # Verify the user is who they say they are
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(GetLeaderboardRequest)
     if err:
         return err
 
@@ -700,15 +632,8 @@ def get_leaderboard():
 
 @app.route("/set_reminder", methods=["POST"])  # Endpoint to create a new reminder
 def set_reminder():
-    try:
-        # Parse JSON body into Pydantic schema (ensures correct types/fields)
-        body = SetReminderRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        # If validation fails, return 400 with error details
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Verify Firebase ID token and extract UID
-    uid, err = _try_verify_token(body.id_token)
+    # Parse JSON body into Pydantic schema and verify Firebase ID token
+    uid, body, err = _parse_and_auth(SetReminderRequest)
     if err:
         return err
 
@@ -724,15 +649,8 @@ def set_reminder():
 
 @app.route("/get_reminders", methods=["POST"])  # Endpoint to get the user's reminders
 def get_reminders():
-    try:
-        # Parse JSON body into Pydantic schema (ensures correct types/fields)
-        body = GetRemindersRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        # If validation fails, return 400 with error details
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Verify Firebase ID token and extract UID
-    uid, err = _try_verify_token(body.id_token)
+    # Parse JSON body into Pydantic schema and verify Firebase ID token
+    uid, body, err = _parse_and_auth(GetRemindersRequest)
     if err:
         return err
 
@@ -749,12 +667,7 @@ def get_reminders():
 
 @app.route("/delete_reminder", methods=["POST"])
 def delete_reminder():
-    try:
-        body = DeleteReminderRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(DeleteReminderRequest)
     if err:
         return err
 
@@ -763,21 +676,15 @@ def delete_reminder():
 
 @app.route("/get_achievements", methods=["POST"])  # POST because the id_token is sent in the request body
 def get_achievements():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = GetAchievementsRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user's JWT
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(GetAchievementsRequest)
     if err:
         return err
 
-    # Step 3: Fetch all progress and claims through the service layer
+    # Step 2: Fetch all progress and claims through the service layer
     result = progression_service.get_achievements(uid)
 
-    # Step 4: Build and return the validated response
+    # Step 3: Build and return the validated response
     response = GetAchievementsResponse(
         progress=[AchievementProgressEntry(**p) for p in result["progress"]],
         claims=[AchievementClaimEntry(**c) for c in result["claims"]],
@@ -787,37 +694,25 @@ def get_achievements():
 
 @app.route("/claim_achievement", methods=["POST"]) # POST because the id_token is sent in the request body
 def claim_achievement():
-    # Step 1: Validate request body with the Pydantic schema
-    try:
-        body = ClaimAchievementRequest(
-            **request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    # Step 2: Verify the user's JWT
-    uid, err = _try_verify_token(body.id_token)
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(ClaimAchievementRequest)
     if err:
         return err
 
-    # Step 3: Call the method and get the new progress response
+    # Step 2: Call the method and get the new progress response
     try:
         result = progression_service.claim_achievement(uid, body.achievement_id, body.tier)
     except ValueError as e: # error if the user's progress isn't high enough
         return jsonify({"error": str(e)}), 409
 
-    # Step 4: Build and return the validated response
+    # Step 3: Build and return the validated response
     response = SimpleSuccessResponse(success=True)
     return jsonify(response.model_dump()), 200
 
 @app.route("/claim_trivial_achievement", methods=["POST"])
 def claim_trivial_achievement():
     # Restricted route that only accepts low-stakes achievement IDs the client can trigger directly
-    try:
-        body = ClaimTrivialAchievementRequest(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return jsonify({"error": "Invalid request", "details": str(e)}), 400
-
-    uid, err = _try_verify_token(body.id_token)
+    uid, body, err = _parse_and_auth(ClaimTrivialAchievementRequest)
     if err:
         return err
 
