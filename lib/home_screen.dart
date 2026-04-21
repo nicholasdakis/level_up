@@ -112,7 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Defer dialog until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Give users without a username a dialog box to choose one
-      if (currentUserData!.username != null && currentUserData!.username == currentUserData!.uid) {
+      if (currentUserData!.username != null &&
+          currentUserData!.username == currentUserData!.uid) {
         await promptUsernameDialog(context);
       }
 
@@ -135,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool isLoading = true; // for the skeletonizer
-
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "BETA 04.20",
+                                    "BETA 04.21",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 11),
                                       color: Colors.white.withAlpha(80),
@@ -296,29 +296,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Calorie Calculator",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.calculate_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "calorie_calculator",
-                                          );
-                                          changeToScreen(
+                                            "Calorie Calculator",
+                                            48,
+                                            160,
+                                            750,
                                             context,
-                                            CalorieCalculator(),
-                                          );
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 0.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            icon: Icons.calculate_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "calorie_calculator",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                CalorieCalculator(),
+                                              );
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(delay: 0.ms, duration: 400.ms)
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ), // Space between buttons
@@ -326,55 +326,64 @@ class _HomeScreenState extends State<HomeScreen> {
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Food Logging",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.menu_book_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "open_food_logging",
-                                          );
-                                          changeToScreen(
+                                            "Food Logging",
+                                            48,
+                                            160,
+                                            750,
                                             context,
-                                            FoodLogging(),
-                                          );
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 80.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            icon: Icons.menu_book_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_food_logging",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                FoodLogging(),
+                                              );
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            delay: 80.ms,
+                                            duration: 400.ms,
+                                          )
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ), // Space between buttons
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Explore",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.explore_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "open_explore",
-                                          );
-                                          changeToScreen(context, Explore());
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 160.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            "Explore",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            icon: Icons.explore_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_explore",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Explore(),
+                                              );
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            delay: 160.ms,
+                                            duration: 400.ms,
+                                          )
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ), // Space between buttons
@@ -382,29 +391,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Reminders",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.notifications_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "open_reminders",
-                                          );
-                                          changeToScreen(
+                                            "Reminders",
+                                            48,
+                                            160,
+                                            750,
                                             context,
-                                            Reminders(),
-                                          );
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 240.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            icon: Icons.notifications_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_reminders",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Reminders(),
+                                              );
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            delay: 240.ms,
+                                            duration: 400.ms,
+                                          )
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ), // Space between buttons
@@ -412,26 +424,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Badges",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.emoji_events_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "open_badges",
-                                          );
-                                          changeToScreen(context, Badges());
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 320.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            "Badges",
+                                            48,
+                                            160,
+                                            750,
+                                            context,
+                                            icon: Icons.emoji_events_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_badges",
+                                              );
+                                              changeToScreen(context, Badges());
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            delay: 320.ms,
+                                            duration: 400.ms,
+                                          )
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ), // Space between buttons
@@ -439,29 +454,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : customButton(
-                                        "Leaderboard",
-                                        48,
-                                        160,
-                                        750,
-                                        context,
-                                        icon: Icons.leaderboard_outlined,
-                                        onPressed: () {
-                                          trackTrivialAchievement(
-                                            "open_leaderboard",
-                                          );
-                                          changeToScreen(
+                                            "Leaderboard",
+                                            48,
+                                            160,
+                                            750,
                                             context,
-                                            Leaderboard(),
-                                          );
-                                        },
-                                      ).animate().fadeIn(
-                                        delay: 400.ms,
-                                        duration: 400.ms,
-                                      ).slideY(
-                                        begin: 0.2,
-                                        duration: 400.ms,
-                                        curve: Curves.easeOutCubic,
-                                      ),
+                                            icon: Icons.leaderboard_outlined,
+                                            onPressed: () {
+                                              trackTrivialAchievement(
+                                                "open_leaderboard",
+                                              );
+                                              changeToScreen(
+                                                context,
+                                                Leaderboard(),
+                                              );
+                                            },
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            delay: 400.ms,
+                                            duration: 400.ms,
+                                          )
+                                          .slideY(
+                                            begin: 0.2,
+                                            duration: 400.ms,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                               ],
                             ),
                           ),

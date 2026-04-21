@@ -187,7 +187,8 @@ class UserDataManager {
       expNotifier.value = currentUserData!.expPoints;
     } catch (e) {
       debugPrint('Error loading user data: $e');
-      currentUserData?.username = null; // signals fetch failed so username dialog is not shown
+      currentUserData?.username =
+          null; // signals fetch failed so username dialog is not shown
     }
     stopwatch.stop();
     debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');
@@ -646,8 +647,11 @@ class UserDataManager {
   }
 
   // Adds this device's FCM token to Postgres (called on token refresh)
-  Future<void> addFcmToken(String deviceToken) async {
+  Future<void> addFcmToken(String deviceToken, {String? oldToken}) async {
     try {
+      // clear the stale token
+      if (oldToken != null) await removeFcmToken(oldToken);
+
       // Update local list if not already present
       if (currentUserData != null &&
           !currentUserData!.fcmTokens.contains(deviceToken)) {

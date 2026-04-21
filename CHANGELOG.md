@@ -1168,3 +1168,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made the username == null on a slow backend request to prevent prompting the user for their username when the backend is taking a while to load
 - Fixed reminders not appearing initially in the Reminders tab by initially showing the cached version and then updating in the background
 - Added a flag to show a loading indicator before opening the cropper so that the user knows their profile picture update did not fail
+
+## 2026-04-21
+- Edited addFcmToken to now take an oldToken parameter and remove it to prevent dead tokens from accumulating
+- Before this, tokens were only being cleared when a reminder was sent with send_due_reminders, so old tokens could accumulate for a while in the mean time

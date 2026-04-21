@@ -87,8 +87,11 @@ class FcmService {
 
     // Update the token in Firestore if Firebase rotates it (e.g. after reinstall)
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      // if Firebase rotates the token while the app is active, add the new one
-      if (newToken.isNotEmpty) await userManager.addFcmToken(newToken);
+      if (newToken.isNotEmpty) {
+        // if Firebase rotates the token while the app is active, add the new one and remove the stale one
+        await userManager.addFcmToken(newToken, oldToken: deviceToken);
+        deviceToken = newToken;
+      }
     });
 
     if (kIsWeb) {
