@@ -1155,3 +1155,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made the appBar's height on the Home Screen smaller
 - Added icons near the text in each button on the home screen
 - Changed the style of the current app version text
+- Added the flutter_animate package to remove the boilerplate code from adding animations without the package and to make animations easier to add in the future

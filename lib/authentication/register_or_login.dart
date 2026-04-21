@@ -7,6 +7,7 @@ import 'auth_services.dart';
 import '../utility/responsive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -15,9 +16,8 @@ class RegisterOrLogin extends StatefulWidget {
   State<RegisterOrLogin> createState() => _RegisterOrLoginState();
 }
 
-// TickerProviderStateMixin so this widget can use multiple AnimationControllers (background drift and entrance fade)
 class _RegisterOrLoginState extends State<RegisterOrLogin>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   // Keep track of entered email and password fields
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -31,11 +31,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
   // Tracks whether the user has agreed to the privacy policy and terms, required before sign up
   bool agreedToTerms = false;
 
-  late final AnimationController
-  bgController; // AnimationController for the orbs in the bg
-
-  late final AnimationController
-  entranceController; // Controller that fades the buttons onto the screen when initialized
+  late final AnimationController bgController; // AnimationController for the orbs in the bg
 
   @override
   void initState() {
@@ -45,18 +41,12 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
       vsync: this,
       duration: const Duration(seconds: 18),
     )..repeat(); // Repeats forever
-    // Makes the buttons fade and slide in
-    entranceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..forward(); // its value goes from 0 to 1 after the duration passes
   }
 
   // To prevent memory leaks
   @override
   void dispose() {
     bgController.dispose();
-    entranceController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -120,29 +110,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           ),
         ),
       ),
-    );
-  }
-
-  // Method to make the widgets fade in smoothly one after the other
-  Widget buildStaggered({
-    required Widget child,
-    required double start,
-    required double end,
-  }) {
-    // Only plays between start and end on the entrance controller's 0 to 1 timeline
-    final curve = CurvedAnimation(
-      parent: entranceController,
-      curve: Interval(start, end, curve: Curves.easeOutCubic),
-    );
-    // Starts slightly lower and moves where it should be
-    final slide = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(curve);
-    // FadeTransition fades the widget in and SlideTransition moves it up
-    return FadeTransition(
-      opacity: curve,
-      child: SlideTransition(position: slide, child: child),
     );
   }
 
@@ -741,22 +708,31 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                     children: [
                       SizedBox(height: Responsive.padding(context, 24)),
                       // Top section fades in first
-                      buildStaggered(
-                        start: 0.0,
-                        end: 0.55,
-                        child: buildTopSection(),
+                      buildTopSection().animate().fadeIn(
+                        delay: 0.ms,
+                        duration: 500.ms,
+                      ).slideY(
+                        begin: 0.15,
+                        duration: 500.ms,
+                        curve: Curves.easeOutCubic,
                       ),
                       // Middle section fades in shortly after the top
-                      buildStaggered(
-                        start: 0.2,
-                        end: 0.8,
-                        child: buildMiddleSection(),
+                      buildMiddleSection().animate().fadeIn(
+                        delay: 180.ms,
+                        duration: 500.ms,
+                      ).slideY(
+                        begin: 0.15,
+                        duration: 500.ms,
+                        curve: Curves.easeOutCubic,
                       ),
                       // Bottom section fades in last
-                      buildStaggered(
-                        start: 0.45,
-                        end: 1.0,
-                        child: buildBottomSection(),
+                      buildBottomSection().animate().fadeIn(
+                        delay: 360.ms,
+                        duration: 500.ms,
+                      ).slideY(
+                        begin: 0.15,
+                        duration: 500.ms,
+                        curve: Curves.easeOutCubic,
                       ),
                     ],
                   ),

@@ -103,6 +103,9 @@ dependencies:
   # skeleton loading placeholders
   skeletonizer: ^2.1.3
 
+  # declarative animations
+  flutter_animate: ^4.5.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
