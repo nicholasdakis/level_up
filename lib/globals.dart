@@ -426,9 +426,28 @@ Widget customButton(
   Widget? destination,
   VoidCallback? onPressed,
   Color? baseColor,
+  IconData? icon,
 }) {
   Color color =
       currentUserData!.appColor; // app theme is the user's chosen theme
+
+  Widget child;
+  if (icon != null) {
+    child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: Colors.white.withAlpha(200),
+          size: Responsive.scale(context, baseFontSize),
+        ),
+        SizedBox(width: Responsive.width(context, 10)),
+        buttonText(text, context, baseFontSize),
+      ],
+    );
+  } else {
+    child = buttonText(text, context, baseFontSize);
+  }
 
   return SizedBox(
     height: Responsive.buttonHeight(context, baseHeight),
@@ -443,7 +462,7 @@ Widget customButton(
               changeToScreen(context, destination);
             }
           },
-      child: buttonText(text, context, baseFontSize),
+      child: child,
     ),
   );
 }

@@ -1151,3 +1151,7 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed FCM token removal on sign out, which now uses JS interop on web (to avoid a 404 from Firebase trying to register the SW at the wrong scope) and getToken() on mobile, removing only the current device's token
 - Unregistered old Flutter-generated service workers to prevent them from serving stale cached assets alongside the current bootstrap
 - Made it so installing as a PWA on an Android device shows the app's logo instead of the default Flutter one. Did this by adding maskable versions of the app logo
+- Added dividers under all app bars and on top of the footer bar to separate from the body more cleanly
+- Made the appBar's height on the Home Screen smaller
+- Added icons near the text in each button on the home screen
+- Changed the style of the current app version text

@@ -247,6 +247,13 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
             ),
           ],
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         body: FutureBuilder<List<LeaderboardEntry>>(
           future: _leaderboardFuture,

@@ -682,6 +682,7 @@ class _BadgesState extends State<Badges> {
                 fontWeight: FontWeight.w500,
               ),
               tabs: [for (final label in tabLabels) Tab(text: label)],
+              dividerColor: Colors.white.withAlpha(25),
             ),
           ),
           body: Stack(

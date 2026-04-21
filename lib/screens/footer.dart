@@ -198,7 +198,12 @@ class _FooterState extends State<Footer> with SingleTickerProviderStateMixin {
     return Container(
       width: double.infinity, // full width footer
       height: Responsive.height(context, 120),
-      color: darkenColor(appColorNotifier.value, 0.025), // Header color
+      decoration: BoxDecoration(
+        color: darkenColor(appColorNotifier.value, 0.025),
+        border: Border(
+          top: BorderSide(color: Colors.white.withAlpha(20), width: 1),
+        ),
+      ),
       padding: EdgeInsets.all(Responsive.padding(context, 16)),
       child: Center(
         child: Row(

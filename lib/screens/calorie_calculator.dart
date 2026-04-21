@@ -192,6 +192,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
           title: createTitle("Calculator", context),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         body: SingleChildScrollView(
           child: Padding(

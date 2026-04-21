@@ -236,6 +236,13 @@ class _ResultsState extends State<Results> {
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
           title: createTitle("Results", context),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         body: Scrollbar(
           thumbVisibility: true,

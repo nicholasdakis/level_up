@@ -376,6 +376,13 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
           title: createTitle("Preferences", context),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         body: SingleChildScrollView(
           child: Padding(

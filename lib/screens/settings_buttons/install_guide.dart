@@ -121,6 +121,13 @@ class InstallGuide extends StatelessWidget {
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
           title: createTitle("Install App", context),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         body: SingleChildScrollView(
           child: Padding(

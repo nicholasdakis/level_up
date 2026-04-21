@@ -35,6 +35,13 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
           title: createTitle("Developer", context),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            child: Container(
+              height: Responsive.height(context, 1),
+              color: Colors.white.withAlpha(25),
+            ),
+          ),
         ),
         // scrollable
         body: SingleChildScrollView(

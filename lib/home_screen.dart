@@ -198,83 +198,95 @@ class _HomeScreenState extends State<HomeScreen>
           // Body + Header
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(
-              Responsive.height(context, 200),
+              Responsive.height(context, 201),
             ), // Alter default appBar size
-            child: AppBar(
-              automaticallyImplyLeading:
-                  false, // Prevent the automatic hamburger icon from appearing
-              scrolledUnderElevation:
-                  0, // So the appBar does not change color when the user scrolls down
-              backgroundColor: darkenColor(
-                appColorNotifier.value.withAlpha(100),
-                0.1,
-              ), // Header color
-              centerTitle: true,
-              toolbarHeight: Responsive.buttonHeight(
-                context,
-                120,
-              ), // Prevent the icon from cutting in half
-              elevation: 0,
-              actions: [
-                Builder(
-                  // Wrapped in Builder so Scaffold.of succeeds
-                  builder: (context) => SettingsIconButton(
-                    onTap: () => Scaffold.of(context).openDrawer(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppBar(
+                  automaticallyImplyLeading:
+                      false, // Prevent the automatic hamburger icon from appearing
+                  scrolledUnderElevation:
+                      0, // So the appBar does not change color when the user scrolls down
+                  backgroundColor: darkenColor(
+                    appColorNotifier.value.withAlpha(100),
+                    0.1,
+                  ), // Header color
+                  centerTitle: true,
+                  toolbarHeight: Responsive.buttonHeight(
+                    context,
+                    120,
+                  ), // Prevent the icon from cutting in half
+                  elevation: 0,
+                  actions: [
+                    Builder(
+                      // Wrapped in Builder so Scaffold.of succeeds
+                      builder: (context) => SettingsIconButton(
+                        onTap: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
+                  ],
+                  flexibleSpace: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: Responsive.width(context, 30),
+                      ), // Move the title text down a little bit
+                      // Manually make the title text, since appBar is already being used
+                      child: ShaderMask(
+                        shaderCallback: (bounds) =>
+                            subtleTextGradient().createShader(
+                              Rect.fromLTWH(
+                                0,
+                                0,
+                                bounds.width,
+                                bounds.height,
+                              ), // Make a rectangle the same size as the text so the gradient covers it
+                            ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Stroke / outline
+                            Text(
+                              "LEVEL UP!",
+                              style: GoogleFonts.dangrek(
+                                fontSize: Responsive.font(context, 55),
+                                letterSpacing: Responsive.scale(context, 2),
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = Responsive.scale(context, 4)
+                                  ..color = Colors.black,
+                              ),
+                            ),
+                            // Fill + glow
+                            Text(
+                              "LEVEL UP!",
+                              style: GoogleFonts.dangrek(
+                                fontSize: Responsive.font(context, 55),
+                                letterSpacing: Responsive.scale(context, 2),
+                                color: Colors
+                                    .white, // color is needed but will be masked
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(0, 0),
+                                    blurRadius: Responsive.scale(context, 25),
+                                    color: appColorNotifier.value.withAlpha(
+                                      200,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                ),
+                Container(
+                  height: Responsive.height(context, 1),
+                  color: Colors.white.withAlpha(25),
                 ),
               ],
-              flexibleSpace: Center(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: Responsive.width(context, 30),
-                  ), // Move the title text down a little bit
-                  // Manually make the title text, since appBar is already being used
-                  child: ShaderMask(
-                    shaderCallback: (bounds) => subtleTextGradient().createShader(
-                      Rect.fromLTWH(
-                        0,
-                        0,
-                        bounds.width,
-                        bounds.height,
-                      ), // Make a rectangle the same size as the text so the gradient covers it
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Stroke / outline
-                        Text(
-                          "LEVEL UP!",
-                          style: GoogleFonts.dangrek(
-                            fontSize: Responsive.font(context, 55),
-                            letterSpacing: Responsive.scale(context, 2),
-                            foreground: Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = Responsive.scale(context, 4)
-                              ..color = Colors.black,
-                          ),
-                        ),
-                        // Fill + glow
-                        Text(
-                          "LEVEL UP!",
-                          style: GoogleFonts.dangrek(
-                            fontSize: Responsive.font(context, 55),
-                            letterSpacing: Responsive.scale(context, 2),
-                            color: Colors
-                                .white, // color is needed but will be masked
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 0),
-                                blurRadius: Responsive.scale(context, 25),
-                                color: appColorNotifier.value.withAlpha(200),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
           body: Stack(
@@ -284,189 +296,187 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   // Middle body
                   Expanded(
-                    child: Scrollbar(
-                      controller: _scrollController,
-                      thumbVisibility: true,
-                      child: ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
+                    child: ScrollConfiguration(
+                      behavior: NoGlowScrollBehavior(),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            Responsive.height(context, 5),
+                          ),
                           child: Padding(
-                            padding: EdgeInsets.all(
-                              Responsive.height(context, 5),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 16),
                             ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 16),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Current app version text
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      "App version: Beta 04.20",
-                                      style: TextStyle(
-                                        color: darkenColor(
-                                          appColorNotifier.value,
-                                          0.3,
-                                        ),
-                                        fontSize: Responsive.font(context, 15),
-                                      ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Current app version badge
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "BETA 04.20",
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 11),
+                                      color: Colors.white.withAlpha(80),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.5,
                                     ),
                                   ),
-                                  // CALORIE CALCULATOR BUTTON
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.0,
-                                          0.5,
-                                          customButton(
-                                            "Calorie Calculator",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "calorie_calculator",
-                                              );
-                                              changeToScreen(
-                                                context,
-                                                CalorieCalculator(),
-                                              );
-                                            },
-                                          ),
+                                ),
+                                // CALORIE CALCULATOR BUTTON
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.0,
+                                        0.5,
+                                        customButton(
+                                          "Calorie Calculator",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.calculate_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "calorie_calculator",
+                                            );
+                                            changeToScreen(
+                                              context,
+                                              CalorieCalculator(),
+                                            );
+                                          },
                                         ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 12),
-                                  ), // Space between buttons
-                                  // FOOD LOGGING TAB
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.1,
-                                          0.6,
-                                          customButton(
-                                            "Food Logging",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_food_logging",
-                                              );
-                                              changeToScreen(
-                                                context,
-                                                FoodLogging(),
-                                              );
-                                            },
-                                          ),
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
+                                // FOOD LOGGING TAB
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.1,
+                                        0.6,
+                                        customButton(
+                                          "Food Logging",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.menu_book_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_food_logging",
+                                            );
+                                            changeToScreen(
+                                              context,
+                                              FoodLogging(),
+                                            );
+                                          },
                                         ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 12),
-                                  ), // Space between buttons
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.2,
-                                          0.7,
-                                          customButton(
-                                            "Explore",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_explore",
-                                              );
-                                              changeToScreen(
-                                                context,
-                                                Explore(),
-                                              );
-                                            },
-                                          ),
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.2,
+                                        0.7,
+                                        customButton(
+                                          "Explore",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.explore_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_explore",
+                                            );
+                                            changeToScreen(context, Explore());
+                                          },
                                         ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 12),
-                                  ), // Space between buttons
-                                  // REMINDERS TAB
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.3,
-                                          0.8,
-                                          customButton(
-                                            "Reminders",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_reminders",
-                                              );
-                                              changeToScreen(
-                                                context,
-                                                Reminders(),
-                                              );
-                                            },
-                                          ),
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
+                                // REMINDERS TAB
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.3,
+                                        0.8,
+                                        customButton(
+                                          "Reminders",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.notifications_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_reminders",
+                                            );
+                                            changeToScreen(
+                                              context,
+                                              Reminders(),
+                                            );
+                                          },
                                         ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 12),
-                                  ), // Space between buttons
-                                  // BADGES TAB
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.4,
-                                          0.9,
-                                          customButton(
-                                            "Badges",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_badges",
-                                              );
-                                              changeToScreen(context, Badges());
-                                            },
-                                          ),
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
+                                // BADGES TAB
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.4,
+                                        0.9,
+                                        customButton(
+                                          "Badges",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.emoji_events_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_badges",
+                                            );
+                                            changeToScreen(context, Badges());
+                                          },
                                         ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 12),
-                                  ), // Space between buttons
-                                  // LEADERBOARD TAB
-                                  isLoading
-                                      ? buildPlaceholderButton()
-                                      : buildStaggered(
-                                          0.5,
-                                          1,
-                                          customButton(
-                                            "Leaderboard",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_leaderboard",
-                                              );
-                                              changeToScreen(
-                                                context,
-                                                Leaderboard(),
-                                              );
-                                            },
-                                          ),
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ), // Space between buttons
+                                // LEADERBOARD TAB
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : buildStaggered(
+                                        0.5,
+                                        1,
+                                        customButton(
+                                          "Leaderboard",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.leaderboard_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_leaderboard",
+                                            );
+                                            changeToScreen(
+                                              context,
+                                              Leaderboard(),
+                                            );
+                                          },
                                         ),
-                                ],
-                              ),
+                                      ),
+                              ],
                             ),
                           ),
                         ),

@@ -1668,6 +1668,13 @@ class _FoodLoggingState extends State<FoodLogging>
               centerTitle: true,
               toolbarHeight: Responsive.buttonHeight(context, 120),
               title: createTitle("Food Logging", context),
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+                child: Container(
+                  height: Responsive.height(context, 1),
+                  color: Colors.white.withAlpha(25),
+                ),
+              ),
             ),
             body: Padding(
               padding: EdgeInsets.all(Responsive.width(context, 16)),
