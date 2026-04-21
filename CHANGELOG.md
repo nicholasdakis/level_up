@@ -1159,3 +1159,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made the same changes to the Register or Login page
 - Added the staggered animation into the Leaderboard tab. Made a set to hold the cards that have already shown the animation so that the animation only happens once per card
 - Only the first 10 spots get the animation to prevent it from occurring as the user scrolls down
+- Simplified the animation code for the footer exp with TweenAnimationBuilder
