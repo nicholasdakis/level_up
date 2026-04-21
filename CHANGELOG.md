@@ -1174,3 +1174,6 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Before this, tokens were only being cleared when a reminder was sent with send_due_reminders, so old tokens could accumulate for a while in the mean time
 - Moderenized the Calorie Calculator UI to look like the other tabs
 - Replaced the dropdown buttons with sliders and buttons to feel more polished and convenient
+- Changed the xp formula in the backend to match dart exactly
+- Made the achievement progress for level set the user's level as the progress instead of using track_achievement because level might go up by more than 1 and the current logic didn't work for existing users
+- Added level achievement logic to check_in_poi in case the user levels up from checking in

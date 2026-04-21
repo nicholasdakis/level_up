@@ -206,12 +206,6 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # Step 4: Calculate the new level and XP after applying the reward
         new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
-    
-        if new_level > current_level:
-            try:
-                self._achievement_repo.set_achievement_progress(uid, "level", new_level)
-            except Exception as e:
-                print(f"[achievements] Failed to sync level achievement: {e}")
 
         # Step 5: Atomically record the visit and update XP (also checks 24h cooldown inside the transaction)
         result = self._repo.record_poi_visit_transaction(uid, poi_name, new_level, new_exp)
@@ -227,6 +221,12 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # Step 6: Successful check-in
         self._track_achievement(uid, "poi_visits")
+
+        if new_level > current_level:
+            try:
+                self._achievement_repo.set_achievement_progress(uid, "level", new_level)
+            except Exception as e:
+                print(f"[achievements] Failed to sync level achievement: {e}")
 
         return {
             "success": True,
