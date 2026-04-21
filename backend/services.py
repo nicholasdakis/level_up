@@ -44,6 +44,14 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Per-user in-memory dictionary of the last POI fetch location and time for estimating if they have moved too fast between two requests
         self._last_poi_fetch: dict[str, tuple[float, float, datetime]] = {}
 
+    # Helper method for checking if 23 hours have passed since the last daily claim
+    def _can_claim_daily_reward(self, user: dict) -> bool:
+        last_claim = user.get("last_daily_claim")
+        if last_claim is None:
+            return True
+        seconds_since = (datetime.now(timezone.utc) - to_utc_datetime(last_claim)).total_seconds()
+        return seconds_since >= 82800
+
     def is_moving_too_fast_for_poi(self, uid: str, lat: float, lng: float):
 
         now = datetime.now(timezone.utc)
@@ -109,14 +117,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         exp = user.get("exp_points", 0) # default to 0 XP if missing
 
         # Determine if the user can claim (23-hour cooldown)
-        can_claim = True
-        last_claim = user.get("last_daily_claim")
-        if last_claim is not None:
-            last_claim_dt = to_utc_datetime(last_claim)
-            seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
-
-            # 23 hours = 82800 seconds
-            can_claim = seconds_since >= 82800
+        can_claim = self._can_claim_daily_reward(user)
 
         # Return user's data in the format expected by schemas.py
         return {
@@ -260,12 +261,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             user = self._repo.get_user(uid)
 
         # Determine daily reward eligibility
-        can_claim = True
-        last_claim = user.get("last_daily_claim")
-        if last_claim is not None:
-            last_claim_dt = to_utc_datetime(last_claim)
-            seconds_since = (datetime.now(timezone.utc) - last_claim_dt).total_seconds()
-            can_claim = seconds_since >= 82800
+        can_claim = self._can_claim_daily_reward(user)
 
         food_logs = self._repo.get_food_logs(uid)
         reminders = self._reminder_repo.get_reminders(uid)
