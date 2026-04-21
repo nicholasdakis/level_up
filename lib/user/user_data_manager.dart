@@ -846,7 +846,7 @@ class UserDataManager {
                 'snack': meals['snacks'] ?? [],
               }),
             )
-            .timeout(Duration(seconds: 2));
+            .timeout(Duration(seconds: 10));
 
         if (response.statusCode != 200) {
           throw Exception(
