@@ -232,7 +232,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Return whether movement was suspiciously fast
         return too_fast
 
-    def update_utc_offset(self, uid: str, utc_offset: int):
+    def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._repo.update_utc_offset_minutes(uid, utc_offset)
 
     def _track_achievement(self, uid: str, achievement_id: str):
