@@ -233,7 +233,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         return too_fast
 
     def update_utc_offset(self, uid: str, utc_offset: int):
-        self.repo.update_utc_offset(uid, utc_offset)
+        self._repo.update_utc_offset(uid, utc_offset)
 
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails
