@@ -755,10 +755,10 @@ class UserDataManager {
   // Method that silently stores the user's timezone based on UTC offset
   Future<void> updateUtcOffset() async {
     try {
-      final offset = DateTime.now().timeZoneOffset.inHours;
+      final offset = DateTime.now().timeZoneOffset.inMinutes;
       await http
           .post(
-            Uri.parse('$backendBaseUrl/update_utc_offset'),
+            Uri.parse('$backendBaseUrl/update_utc_offset_minutes'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'id_token': await getIdToken(),

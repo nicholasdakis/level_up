@@ -444,12 +444,12 @@ def update_app_color():
     progression_service.update_app_color(uid, body.app_color)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
-@app.route("/update_utc_offset", methods=["POST"])
-def update_utc_offset():
+@app.route("/update_utc_offset_minutes", methods=["POST"])
+def update_utc_offset_minutes():
     uid, body, err = _parse_and_auth(UpdateUtcOffsetRequest)
     if err:
         return err
-    progression_service.update_utc_offset(uid, body.utc_offset)
+    progression_service.update_utc_offset_minutes(uid, body.utc_offset)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/update_notifications", methods=["POST"])

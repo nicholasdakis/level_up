@@ -1191,3 +1191,4 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Added /update_utc_offset route and methods in server.py, services.py, and repository.py
 - Added UpdateUtcOffsetRequest schema
 - Added updateUtcOffset which is called on user initialization which calls the route which uses the service and repo layer to write the db with the user's timezone
+- Changed utc_offset to utc_offset_minutes and renamed all utc_offset references to utc_offset_minutes to store the offset in minutes so that timezones whose offsets are not perfect hours (eg also have 30 minutes) don't get truncated to the hour
