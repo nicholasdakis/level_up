@@ -25,7 +25,7 @@ CREATE TABLE users (
     fcm_tokens TEXT[] NOT NULL DEFAULT '{}', -- Firebase Cloud Messaging tokens for push notifications
     last_daily_claim TIMESTAMPTZ,     -- when the user last claimed their daily reward
     notifications_enabled BOOLEAN NOT NULL DEFAULT true   -- whether the user has push notifications turned on
-    utc_offset SMALLINT NOT NULL DEFAULT 0,  -- user's UTC offset in hours for snapshot scheduling
+    utc_offset SMALLINT DEFAULT NULL,  -- user's UTC offset in hours for snapshot scheduling
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
