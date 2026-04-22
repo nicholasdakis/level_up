@@ -121,6 +121,8 @@ class UserRepository:
             tokens.remove(token)
             self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
 
+    def update_utc_offset(self, uid: str, utc_offset: int):
+        self.supabase.table("users").update({"utc_offset": utc_offset}).eq("uid", uid).execute()
 
 class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
 

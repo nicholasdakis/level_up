@@ -1183,3 +1183,11 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted repeated logic for checking if the user can claim a daily reward into a helper method in services.py
 - Added FoodService and POIService classes to services.py to move the code from server.py into them
 - server.py now uses the code through the new classes instead of directly in server.py
+- Made a daily_snapshots table that stores each user's data
+- Made a take_daily_snapshots methods that stores each user's snapshot into the daily_snapshots table
+- Made a /daily_snapshot route only accessibly by a CRON job which writes /daily_snapshot once per day at UTC+14
+- Writes at UTC+14 because the method writes yesterday's data to ensure it stores the most up-to-date data. UTC+14 ensures yesterday applies to everyone
+- Realized the logic above isn't fullproof, so added reverted the changes and added a timezone value to each user table and had the snapshot taken at their timezone's midnight
+- Added /update_utc_offset route and methods in server.py, services.py, and repository.py
+- Added UpdateUtcOffsetRequest schema
+- Added updateUtcOffset which is called on user initialization which calls the route which uses the service and repo layer to write the db with the user's timezone

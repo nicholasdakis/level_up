@@ -111,6 +111,10 @@ class ClaimTrivialAchievementRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     achievement_id: str = Field(..., min_length=1)
 
+class UpdateUtcOffsetRequest(BaseModel):
+    id_token: str
+    utc_offset: int
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================

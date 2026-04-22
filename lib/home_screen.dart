@@ -105,6 +105,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await userManager.loadUserData();
     if (mounted) setState(() {});
 
+    // Store the user's timezone based on UTC offset
+    userManager.updateUtcOffset();
+
     // Sync ValueNotifier with loaded XP amount for visually accurate Footer experience
     expNotifier.value = currentUserData?.expPoints ?? 0;
     debugPrint('XP loaded: ${currentUserData?.expPoints}');
@@ -283,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "BETA 04.21",
+                                    "BETA 04.22",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 11),
                                       color: Colors.white.withAlpha(80),

@@ -752,6 +752,25 @@ class UserDataManager {
     }
   }
 
+  // Method that silently stores the user's timezone based on UTC offset
+  Future<void> updateUtcOffset() async {
+    try {
+      final offset = DateTime.now().timeZoneOffset.inHours;
+      await http
+          .post(
+            Uri.parse('$backendBaseUrl/update_utc_offset'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await getIdToken(),
+              'utc_offset': offset,
+            }),
+          )
+          .timeout(Duration(seconds: 2));
+    } catch (e) {
+      debugPrint('Error updating utc offset: $e');
+    }
+  }
+
   // Method for updating the app theme color and storing it
   Future<void> updateAppColor(Color newColor, BuildContext context) async {
     try {

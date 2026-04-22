@@ -4,7 +4,7 @@ import json
 import random
 import logging
 import requests
-from datetime import timedelta, timezone, datetime
+from datetime import timedelta, timezone, datetime, date
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pydantic import ValidationError
@@ -53,7 +53,8 @@ from backend.schemas import (
     AchievementProgressEntry,
     AchievementClaimEntry,
     ClaimAchievementRequest,
-    ClaimTrivialAchievementRequest
+    ClaimTrivialAchievementRequest,
+    UpdateUtcOffsetRequest
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS
@@ -197,6 +198,7 @@ def ping():
         "message": "Pinged."
     }), 200
 
+# Route accessed by the CRON JOB once per minute
 @app.route("/send_reminders")
 def trigger_reminders():
     # Only the CRON-JOB can trigger the route
@@ -442,6 +444,13 @@ def update_app_color():
     progression_service.update_app_color(uid, body.app_color)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
+@app.route("/update_utc_offset", methods=["POST"])
+def update_utc_offset():
+    uid, body, err = _parse_and_auth(UpdateUtcOffsetRequest)
+    if err:
+        return err
+    progression_service.update_utc_offset(uid, body.utc_offset)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/update_notifications", methods=["POST"])
 def update_notifications():
