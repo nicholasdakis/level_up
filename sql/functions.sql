@@ -269,6 +269,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- add_fcm_token: atomically appends a token to the fcm_tokens array if not already present
+-- array_append with a NOT ANY guard prevents duplicates without needing a read first
+CREATE OR REPLACE FUNCTION add_fcm_token(p_uid TEXT, p_token TEXT)
+RETURNS void AS $$
+    UPDATE users
+    SET fcm_tokens = array_append(fcm_tokens, p_token)
+    WHERE uid = p_uid AND NOT (p_token = ANY(fcm_tokens));
+$$ LANGUAGE sql;
+
+-- remove_fcm_token: atomically removes all occurrences of a token from the fcm_tokens array
+-- array_remove is a no-op if the token is not present, so no guard is needed
+CREATE OR REPLACE FUNCTION remove_fcm_token(p_uid TEXT, p_token TEXT)
+RETURNS void AS $$
+    UPDATE users
+    SET fcm_tokens = array_remove(fcm_tokens, p_token)
+    WHERE uid = p_uid;
+$$ LANGUAGE sql;
+
 -- claim_achievement: atomically claims the achievement by creating a row for the specified achievement in achievement_claims table
 -- if the row creation is successful, it means the achievement was not added before and was now added and thus claimed.
 -- if the row creation is unsuccessful, it means the achievement is already claimed, so it won't be claimed again

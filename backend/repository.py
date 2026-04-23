@@ -90,10 +90,6 @@ class UserRepository:
     def set_user_data(self, uid: str, data: dict):
         self._supabase.table("users").update(data).eq("uid", uid).execute()
 
-    def update_fcm_tokens(self, uid: str, tokens: list):
-        # Overwrites the user's fcm_tokens list
-        self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
-    
     def upsert_daily_snapshots(self, rows: list[dict]):
         # Method for adding the user's snapshot into the table
         self._supabase.table("daily_snapshots").upsert(rows).execute()
@@ -157,24 +153,12 @@ class UserRepository:
         return result.data
 
     def add_fcm_token(self, uid: str, token: str):
-        # Appends a token to the fcm_tokens array if not already present
-        user = self.get_user(uid)
-        if user is None:
-            return
-        tokens = user.get("fcm_tokens") or []
-        if token not in tokens:
-            tokens.append(token)
-            self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
+        # Single atomic UPDATE via RPC
+        self._supabase.rpc("add_fcm_token", {"p_uid": uid, "p_token": token}).execute()
 
     def remove_fcm_token(self, uid: str, token: str):
-        # Removes a token from the fcm_tokens array
-        user = self.get_user(uid)
-        if user is None:
-            return
-        tokens = user.get("fcm_tokens") or []
-        if token in tokens:
-            tokens.remove(token)
-            self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
+        # Single atomic UPDATE via RPC
+        self._supabase.rpc("remove_fcm_token", {"p_uid": uid, "p_token": token}).execute()
 
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()

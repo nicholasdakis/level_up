@@ -182,10 +182,9 @@ def send_due_reminders():
                             'invalid-registration-token',
                         ):
                             invalid_tokens.append(fcm_tokens[i])
-                # Remove invalid tokens from the users table to not keep trying to send to them
-                if invalid_tokens:
-                    updated_tokens = [t for t in fcm_tokens if t not in invalid_tokens]
-                    user_repo.update_fcm_tokens(uid, updated_tokens)
+                # Remove each invalid token atomically so no valid tokens are accidentally wiped
+                for token in invalid_tokens:
+                    user_repo.remove_fcm_token(uid, token)
 
         if count == 0:
             print(f'[reminders] No due reminders found')
