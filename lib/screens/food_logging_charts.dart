@@ -31,6 +31,10 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
   List<Map<String, dynamic>> dinnerFoods = [];
   List<Map<String, dynamic>> snacksFoods = [];
 
+  // Which slice is currently tapped (-1 means none)
+  int _touchedCalorieIndex = -1;
+  int _touchedMacroIndex = -1;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +53,9 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
       lunchFoods = FoodLoggingHelper.castFoodList(dayData?['lunch']);
       dinnerFoods = FoodLoggingHelper.castFoodList(dayData?['dinner']);
       snacksFoods = FoodLoggingHelper.castFoodList(dayData?['snacks']);
+      // Clear any tapped slice so a stale highlight doesn't carry over to a new date
+      _touchedCalorieIndex = -1;
+      _touchedMacroIndex = -1;
     });
   }
 
@@ -177,37 +184,51 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
                                 PieChartData(
                                   centerSpaceRadius: 0,
                                   sectionsSpace: 2,
-                                  sections: [
-                                    // Guards prevent zero-value slices from appearing in the chart
-                                    if (breakfastCal > 0)
-                                      _section(
-                                        breakfastCal,
-                                        totalCal,
-                                        breakfastColor,
-                                        context,
-                                      ),
-                                    if (lunchCal > 0)
-                                      _section(
-                                        lunchCal,
-                                        totalCal,
-                                        lunchColor,
-                                        context,
-                                      ),
-                                    if (dinnerCal > 0)
-                                      _section(
-                                        dinnerCal,
-                                        totalCal,
-                                        dinnerColor,
-                                        context,
-                                      ),
-                                    if (snacksCal > 0)
-                                      _section(
-                                        snacksCal,
-                                        totalCal,
-                                        snacksColor,
-                                        context,
-                                      ),
-                                  ],
+                                  pieTouchData: PieTouchData(
+                                    touchCallback:
+                                        (
+                                          FlTouchEvent event,
+                                          PieTouchResponse? response,
+                                        ) {
+                                          setState(() {
+                                            if (!event
+                                                    .isInterestedForInteractions ||
+                                                response?.touchedSection ==
+                                                    null) {
+                                              _touchedCalorieIndex = -1;
+                                              return;
+                                            }
+                                            _touchedCalorieIndex = response!
+                                                .touchedSection!
+                                                .touchedSectionIndex;
+                                          });
+                                        },
+                                  ),
+                                  // Pre-built with index so isTouched maps correctly to the filtered list
+                                  sections:
+                                      <(double, Color)>[
+                                            if (breakfastCal > 0)
+                                              (breakfastCal, breakfastColor),
+                                            if (lunchCal > 0)
+                                              (lunchCal, lunchColor),
+                                            if (dinnerCal > 0)
+                                              (dinnerCal, dinnerColor),
+                                            if (snacksCal > 0)
+                                              (snacksCal, snacksColor),
+                                          ]
+                                          .asMap()
+                                          .entries
+                                          .map(
+                                            (e) => _section(
+                                              e.value.$1,
+                                              totalCal,
+                                              e.value.$2,
+                                              context,
+                                              isTouched:
+                                                  _touchedCalorieIndex == e.key,
+                                            ),
+                                          )
+                                          .toList(),
                                 ),
                               ),
                             ),
@@ -260,29 +281,47 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
                                 PieChartData(
                                   centerSpaceRadius: 0,
                                   sectionsSpace: 2,
-                                  sections: [
-                                    if (proteinCal > 0)
-                                      _section(
-                                        proteinCal,
-                                        totalMacroCal,
-                                        proteinColor,
-                                        context,
-                                      ),
-                                    if (carbsCal > 0)
-                                      _section(
-                                        carbsCal,
-                                        totalMacroCal,
-                                        carbsColor,
-                                        context,
-                                      ),
-                                    if (fatCal > 0)
-                                      _section(
-                                        fatCal,
-                                        totalMacroCal,
-                                        fatColor,
-                                        context,
-                                      ),
-                                  ],
+                                  pieTouchData: PieTouchData(
+                                    touchCallback:
+                                        (
+                                          FlTouchEvent event,
+                                          PieTouchResponse? response,
+                                        ) {
+                                          setState(() {
+                                            if (!event
+                                                    .isInterestedForInteractions ||
+                                                response?.touchedSection ==
+                                                    null) {
+                                              _touchedMacroIndex = -1;
+                                              return;
+                                            }
+                                            _touchedMacroIndex = response!
+                                                .touchedSection!
+                                                .touchedSectionIndex;
+                                          });
+                                        },
+                                  ),
+                                  sections:
+                                      <(double, Color)>[
+                                            if (proteinCal > 0)
+                                              (proteinCal, proteinColor),
+                                            if (carbsCal > 0)
+                                              (carbsCal, carbsColor),
+                                            if (fatCal > 0) (fatCal, fatColor),
+                                          ]
+                                          .asMap()
+                                          .entries
+                                          .map(
+                                            (e) => _section(
+                                              e.value.$1,
+                                              totalMacroCal,
+                                              e.value.$2,
+                                              context,
+                                              isTouched:
+                                                  _touchedMacroIndex == e.key,
+                                            ),
+                                          )
+                                          .toList(),
                                 ),
                               ),
                             ),
@@ -323,20 +362,27 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
   }
 
   // Builds a single pie chart slice showing its percentage of the total
+  // Tapped slices grow outward and show a larger label to confirm the interaction
   PieChartSectionData _section(
     double value,
     double total,
     Color color,
-    BuildContext context,
-  ) {
+    BuildContext context, {
+    bool isTouched = false,
+  }) {
     final percent = (value / total * 100).round();
     return PieChartSectionData(
       value: value,
-      color: color,
-      radius: Responsive.scale(context, 110),
+      // Dim untouched slices slightly so the tapped one stands out
+      color: isTouched ? color : color.withAlpha(210),
+      radius: isTouched
+          ? Responsive.scale(context, 125)
+          : Responsive.scale(context, 110),
       title: "$percent%",
       titleStyle: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, 13),
+        fontSize: isTouched
+            ? Responsive.font(context, 15)
+            : Responsive.font(context, 13),
         fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
