@@ -529,18 +529,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       ),
                     ),
 
-                    SizedBox(height: Responsive.height(context, 24)),
-
-                    // Hint text about profile pictures
-                    Text(
-                      "Please wait for the cropping screen to appear upon choosing a profile picture. This may take a few seconds for larger photos.",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 20),
-                        color: Colors.white24,
-                      ),
-                    ),
-
                     SizedBox(height: Responsive.height(context, 40)),
                   ],
                 ),
