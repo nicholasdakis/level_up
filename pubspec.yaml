@@ -106,6 +106,9 @@ dependencies:
   # declarative animations
   flutter_animate: ^4.5.2
 
+  # charts
+  fl_chart: ^0.70.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

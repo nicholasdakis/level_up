@@ -15,6 +15,7 @@ import '../utility/recent_foods_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../utility/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
+import 'food_logging_charts.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -1706,48 +1707,95 @@ class _FoodLoggingState extends State<FoodLogging>
                 child: Column(
                   children: [
                     // Date navigation
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_left, color: Colors.white),
-                          onPressed: () => changeDate(-1),
-                        ),
-                        InkWell(
-                          splashColor: appColorNotifier.value.withAlpha(100),
-                          onTap: pickDate,
-                          borderRadius: BorderRadius.circular(
-                            Responsive.scale(context, 8),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.width(context, 12),
-                              vertical: Responsive.height(context, 6),
-                            ),
-                            child: Text(
-                              "${const ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 18),
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.arrow_right, color: Colors.white),
-                          onPressed: () => changeDate(1),
-                        ),
-                      ],
+                    DateNavigationRow(
+                      currentDate: currentDate,
+                      onDateChanged: (date) {
+                        setState(() => currentDate = date);
+                        loadFoodForDate(date);
+                      },
                     ),
 
                     // Total calories for the day text
-                    Text(
-                      "Total Calories: ${getTotalCaloriesForDay()}",
-                      style: GoogleFonts.manrope(
-                        color: Colors.white,
-                        fontSize: Responsive.font(context, 20),
-                        fontWeight: FontWeight.bold,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          // leads to the food logging charts screen when clicked
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, _) =>
+                                  FoodLoggingChartsScreen(
+                                    initialDate: currentDate,
+                                    onDateChanged: (date) {
+                                      setState(() => currentDate = date);
+                                      loadFoodForDate(date);
+                                    },
+                                  ),
+                              transitionsBuilder:
+                                  (context, animation, _, child) {
+                                    return SlideTransition(
+                                      position:
+                                          Tween<Offset>(
+                                            begin: const Offset(0, -1),
+                                            end: Offset.zero,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeOut,
+                                            ),
+                                          ),
+                                      child: child,
+                                    );
+                                  },
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 12),
+                        ),
+                        splashColor: appColorNotifier.value.withAlpha(80),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 16),
+                            vertical: Responsive.height(context, 10),
+                          ),
+                          decoration: BoxDecoration(
+                            color: appColorNotifier.value.withAlpha(35),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 12),
+                            ),
+                            border: Border.all(
+                              color: appColorNotifier.value.withAlpha(140),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bar_chart_rounded,
+                                color: appColorNotifier.value,
+                                size: Responsive.font(context, 18),
+                              ),
+                              SizedBox(width: Responsive.width(context, 8)),
+                              Text(
+                                "Total Calories: ${getTotalCaloriesForDay()}",
+                                style: GoogleFonts.manrope(
+                                  color: Colors.white,
+                                  fontSize: Responsive.font(context, 18),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: Responsive.width(context, 8)),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white54,
+                                size: Responsive.font(context, 18),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
 

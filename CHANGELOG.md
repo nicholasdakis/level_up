@@ -1206,3 +1206,15 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Fixed this by building a map before the wrapping is done, since wrapping with modulo is a one-way operation. map[midnight_value] = stored UTC offset, so the stored offset can be retrieved for the DB query
 - find_utc_midnight_offset_mins returns said map
 - Added the 1 minute buffer logic directly to find_utc_midnight_offset_mins
+- Created food_logging_charts.dart as a new screen for viewing daily food analytics
+- The screen is opened by tapping the "Total Calories" display in Food Logging, which was changed from plain text to a styled tappable row with a bar chart icon, the calorie count, and a chevron arrow to signal it leads somewhere
+- The screen slides in from the top using a custom PageRouteBuilder with a SlideTransition (Offset(0, -1) to Offset.zero) to feel like a contextual panel rather than a full navigation push
+- The AppBar uses a keyboard_arrow_down icon as the leading button to reinforce the screen came from above
+- Added fl_chart as a dependency and built two PieChart widgets inside frostedGlassCards
+- CALORIE BREAKDOWN splits total daily calories across Breakfast (amber), Lunch (green), Dinner (indigo), and Snacks (rose), with each slice labeled by percentage and a color-coded legend showing the kcal count per meal
+- MACRO BREAKDOWN splits calories by macronutrient using calorie-equivalent weighting (protein and carbs at 4 kcal/g, fat at 9 kcal/g), with slices for Protein (blue), Carbs (amber), and Fat (rose), and a legend showing grams per macro
+- Both charts show an empty-state message if no data is logged for the selected day
+- The charts screen is stateful and loads its own food data directly from currentUserData.foodDataByDate for any selected date, so it does not depend on what is currently loaded in Food Logging
+- Extracted the date navigation row (left arrow, tappable date label that opens a date picker, right arrow) into a reusable DateNavigationRow widget in globals.dart, replacing the previously duplicated row in both Food Logging and Food Analytics
+- DateNavigationRow takes a currentDate and onDateChanged callback, handling the date picker internally via showDatePicker
+- Food Analytics passes an onDateChanged callback back to Food Logging so that navigating dates on the charts screen also updates the selected date in Food Logging, keeping both screens in sync

@@ -595,6 +595,80 @@ Widget frostedGlassCard(
   );
 }
 
+class DateNavigationRow extends StatelessWidget {
+  final DateTime currentDate;
+  final void Function(DateTime) onDateChanged;
+
+  const DateNavigationRow({
+    super.key,
+    required this.currentDate,
+    required this.onDateChanged,
+  });
+
+  Future<void> _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2026),
+      lastDate: DateTime(2100),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+    );
+    if (picked != null) onDateChanged(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.arrow_left, color: Colors.white),
+          onPressed: () =>
+              onDateChanged(currentDate.subtract(const Duration(days: 1))),
+        ),
+        InkWell(
+          splashColor: appColorNotifier.value.withAlpha(100),
+          onTap: () => _pickDate(context),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 12),
+              vertical: Responsive.height(context, 6),
+            ),
+            child: Text(
+              "${months[currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 18),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.arrow_right, color: Colors.white),
+          onPressed: () =>
+              onDateChanged(currentDate.add(const Duration(days: 1))),
+        ),
+      ],
+    );
+  }
+}
+
 Gradient buildThemeGradient() {
   final base = appColorNotifier.value;
   final darkEdge = darkenColor(base, 0.015); // dark sides
