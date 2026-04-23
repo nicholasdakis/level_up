@@ -1,15 +1,10 @@
-# Service Layer: Contains business logic for progression, XP calculation, and cooldowns, etc
-# Doesn't touch the Supabase Postgres DB directly, it only acts through repository.py and returns the results for the route in the end
-
-import re
 import random
-import requests
 from math import radians, sin, cos, sqrt, atan2
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
-from backend.repository import UserRepository, ReminderRepository, AchievementRepository, RateLimitRepository
+from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS
-from collections import defaultdict
+
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -36,159 +31,9 @@ def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
     return new_level, new_exp
 
 
-class FoodService:
-    def __init__(self, token_manager, rate_limit_repo: RateLimitRepository, client_id: str, client_secret: str):
-        self._token_manager = token_manager
-        self._rate_limit_repo = rate_limit_repo
-        self._client_id = client_id
-        self._client_secret = client_secret
-
-    def get_access_token(self):
-        """Request an access token from FatSecret"""
-        token_url = "https://oauth.fatsecret.com/connect/token"
-        data = {"grant_type": "client_credentials", "scope": "basic"}
-        try:
-            response = requests.post(token_url, data=data, auth=(self._client_id, self._client_secret))
-            response.raise_for_status()
-            return response.json().get("access_token")
-        except requests.RequestException:
-            return None
-
-    def get_next_reset_time(self):
-        # Get the rate_limits row for food_logging from Postgres
-        last_refill_time = self._rate_limit_repo.get_last_refill_time("food_logging")
-        if not last_refill_time:
-            return None
-        # Timestamp to datetime conversion
-        last_refill_dt = to_utc_datetime(last_refill_time)
-        # Reset time is 1 day after the last refill
-        reset_time = last_refill_dt + timedelta(days=1)
-        return reset_time
-
-    def call_fatsecret(self, food_name: str, timeout: int):
-        # Calls the FatSecret API, refunding the token on any failure
-        access_token = self.get_access_token()
-        if not access_token:
-            self._token_manager.refund()
-            raise RuntimeError("Failed to get access token")
-
-        headers = {"Authorization": f"Bearer {access_token}"}
-        data = {
-            "method": "foods.search",
-            "search_expression": food_name,
-            "format": "json"
-        }
-
-        try:
-            api_response = requests.post(
-                "https://platform.fatsecret.com/rest/server.api",
-                headers=headers,
-                data=data,
-                timeout=timeout
-            )
-            if api_response.status_code != 200:
-                self._token_manager.refund()
-                raise RuntimeError(f"FatSecret API error: {api_response.status_code}")
-            return api_response
-        except requests.RequestException as e:
-            self._token_manager.refund()
-            raise RuntimeError(str(e))
-
-
-class POIService:
-    # Overpass API endpoints
-    OVERPASS_URLS = [
-        "https://overpass-api.de/api/interpreter",
-        "https://overpass.private.coffee/api/interpreter",
-    ]
-
-    # Overpass QL query template for fetching general POIs near a location
-    # {lat}, {lng}, {radius} are filled in at request time
-    # Each tag key (amenity, leisure, shop, tourism) produces category values
-    # used by POIIcons.fromCategory on the client side
-    OVERPASS_QUERY = """
-[out:json][timeout:20];
-(
-  node["amenity"](around:{radius},{lat},{lng});
-  node["leisure"](around:{radius},{lat},{lng});
-  node["shop"](around:{radius},{lat},{lng});
-  node["tourism"](around:{radius},{lat},{lng});
-);
-out body 100;
-"""
-
-    def build_query(self, lat: float, lng: float, radius: int = 500):
-        # Fill in the user's coordinates into the Overpass query template
-        return self.OVERPASS_QUERY.format(lat=lat, lng=lng, radius=radius)
-
-    def fetch_pois(self, lat: float, lng: float):
-        # Send the query to the Overpass API, trying each URL in order
-        query = self.build_query(lat, lng)
-        overpass_response = None
-        latest_error = None
-
-        for url in self.OVERPASS_URLS:
-            try:
-                overpass_response = requests.post(url, data={"data": query}, timeout=25) # Overpass expects the query in a "data" form field
-                if overpass_response.status_code == 200:
-                    break
-                else: # Responses other than 200
-                    latest_error = f"HTTP {overpass_response.status_code}: {overpass_response.text}"
-                    overpass_response = None
-            except requests.RequestException as e:
-                latest_error = e
-                overpass_response = None
-
-        if overpass_response is None or overpass_response.status_code != 200:
-            print(f"Overpass API error: {latest_error}")
-            return None
-
-        return overpass_response.json()
-
-    def parse_overpass_response(self, data):
-        # Turn the Overpass JSON into POIItem objects, keeping only named nodes with unique locations
-        from backend.schemas import POIItem
-        pois = []
-        seen_locations = set()
-        elements = data.get("elements", []) # Overpass returns results in an "elements" array
-
-        for element in elements:
-            tags = element.get("tags", {}) # tags hold metadata like name, amenity type
-            name = tags.get("name") # to skip unnamed nodes
-
-            if not name:
-                continue
-
-            # Figure out the node's category by going through all categories
-            category = (
-                tags.get("amenity") or
-                tags.get("leisure") or
-                tags.get("shop") or
-                tags.get("tourism") or
-                "other" # fallback
-            )
-
-            lat = element["lat"] # Overpass always includes lat/lon for nodes
-            lng = element["lon"] # self-note: Overpass uses "lon" for longitude
-
-            # Round to 5 decimal places (1.1m) to prevent duplicate elements returned by Overpass
-            location_key = f"{round(lat, 5)},{round(lng, 5)}"
-            if location_key in seen_locations:
-                continue
-            seen_locations.add(location_key)
-
-            pois.append(POIItem(
-                name=name,
-                lat=lat,
-                lng=lng,
-                category=category,
-            ))
-
-        return pois
-
-
 # Threshold for if a user is moving too fast during a POI request
 _POI_SPEED_THRESHOLD_MPS = 12.0
+
 
 class ProgressionService: # Service class to handle all progression-related business logic, called by server.py after authentication and validation
     def __init__(self, repo: UserRepository, reminder_repo: ReminderRepository, achievement_repo: AchievementRepository):
@@ -337,7 +182,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "new_exp": new_exp,
             "seconds_remaining": 0,
         }
-    
+
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP
     def check_in_poi(self, uid: str, poi_name: str, poi_lat: float, poi_lng: float, user_lat: float, user_lng: float):
         # Step 1: Verify the user is actually close to the POI (within 30 meters using the haversine formula)
@@ -534,94 +379,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             "progress": progress,
             "claims": claims,
         }
-    
+
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         self._track_achievement(uid, "total_achievements")
         return result
-
-class SnapshotService: # Service for building daily snapshots for users
-
-    def __init__(self, user_repo: UserRepository):
-        self.user_repo = user_repo
-
-    def run(self, offsets: list[int]):
-        # Get users in the target timezone
-        users = self.user_repo.get_users_by_offsets(offsets)
-
-        if not users:
-            return 0
-
-        uids = [u["uid"] for u in users]
-        today = datetime.now(timezone.utc).date().isoformat()
-
-        # Fetch related data in bulk
-        streaks = self.user_repo.get_streaks_by_uids(uids)
-        achievements = self.user_repo.get_achievements_by_uids(uids)
-        claims = self.user_repo.get_claims_by_uids(uids)
-        food_logs = self.user_repo.get_food_logs_by_uids_and_date(uids, today)
-
-        # Index by uid
-        streaks_by_uid = defaultdict(list)
-        achievements_by_uid = defaultdict(list)
-        claims_by_uid = defaultdict(list)
-        food_by_uid = {f["uid"]: f for f in food_logs}
-
-        for s in streaks:
-            streaks_by_uid[s["uid"]].append(s)
-
-        for a in achievements:
-            achievements_by_uid[a["uid"]].append(a)
-
-        for c in claims:
-            claims_by_uid[c["uid"]].append(c)
-
-        # Build snapshot rows
-        rows = []
-
-        for user in users:
-            uid = user["uid"]
-            food = food_by_uid.get(uid)
-
-            rows.append({
-                "uid": uid,
-                "snapshot_date": today,
-                "data": {
-                    "level": user["level"],
-                    "exp_points": user["exp_points"],
-                    "app_color": user["app_color"],
-                    "can_claim_daily_reward": user["can_claim_daily_reward"],
-                    "last_daily_claim": user["last_daily_claim"],
-
-                    "streaks": {
-                        s["streak_type"]: {
-                            "streak": s["streak"],
-                            "highest_streak": s["highest_streak"],
-                            "last_date": s["last_date"],
-                        }
-                        for s in streaks_by_uid.get(uid, [])
-                    },
-
-                    "achievement_progress": {
-                        a["achievement_id"]: a["progress"]
-                        for a in achievements_by_uid.get(uid, [])
-                    },
-
-                    "achievement_claims": [
-                        {"achievement_id": c["achievement_id"], "tier": c["tier"]}
-                        for c in claims_by_uid.get(uid, [])
-                    ],
-
-                    "food_logs": {
-                        "breakfast": food["breakfast"] or [],
-                        "lunch": food["lunch"] or [],
-                        "dinner": food["dinner"] or [],
-                        "snack": food["snack"] or [],
-                    } if food else None,
-                }
-            })
-
-        # Write snapshots
-        self.user_repo.upsert_daily_snapshots(rows)
-
-        return len(rows)
