@@ -1200,3 +1200,9 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Made a /daily_snapshot route that gets the users who are at midnight by getting the users' stored utc_offset_minutes that match with the calculated find_utc_midnight_offset
 - Added the methods for getting and writing the user's data for creating the snapshot in repository.py
 - Added a SnapshotService class to services.py which has a run method that compiles and then upserts the data into the user's snapshot table
+
+## 2026-04-23
+- Realized the logic for the snapshot is slightly off because it tries to compare the midnight method's value, which is in the [0, 1439] range, to the user's stored value, which is not wrapped and is the actual offset from UTC (eg UTC-4 is stored as -240)
+- Fixed this by building a map before the wrapping is done, since wrapping with modulo is a one-way operation. map[midnight_value] = stored UTC offset, so the stored offset can be retrieved for the DB query
+- find_utc_midnight_offset_mins returns said map
+- Added the 1 minute buffer logic directly to find_utc_midnight_offset_mins

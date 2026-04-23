@@ -210,7 +210,7 @@ def utc_minute_of_day():
 # local time in mins = utc time in mins + offset in mins
 # local time is 0 at midnight => -(utc time in mins) = offset in mins regardless of timezone
 def find_utc_midnight_offset_mins(utc_min):
-    return (-utc_min) % MINUTES_IN_DAY
+    return {(-utc_min + delta) % MINUTES_IN_DAY: -utc_min + delta for delta in [-1, 0, 1]} # +-1 minute buffer
 
 # Route called by the CRON job every 30 minutes
 @app.route("/daily_snapshot")
@@ -223,15 +223,8 @@ def trigger_snapshot():
     utc_min = utc_minute_of_day()
     target = find_utc_midnight_offset_mins(utc_min) # compared with stored user utc offsets
 
-    # 1 minute buffer
-    offsets = [
-        target,
-        (target + 1) % MINUTES_IN_DAY,
-        (target - 1) % MINUTES_IN_DAY,
-    ]
-
-    # Run the snapshot build
-    count = snapshot_service.run(offsets)
+    # Run the snapshot build for -utc_min with the buffers included
+    count = snapshot_service.run(list(target.values()))
 
     return jsonify({"success": True, "count": count}), 200
 
