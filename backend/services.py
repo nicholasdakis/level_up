@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from backend.utils import to_utc_datetime
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository, RateLimitRepository
 from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS
+from collections import defaultdict
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -538,3 +539,89 @@ class ProgressionService: # Service class to handle all progression-related busi
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         self._track_achievement(uid, "total_achievements")
         return result
+
+class SnapshotService: # Service for building daily snapshots for users
+
+    def __init__(self, user_repo: UserRepository):
+        self.user_repo = user_repo
+
+    def run(self, offsets: list[int]):
+        # Get users in the target timezone
+        users = self.user_repo.get_users_by_offsets(offsets)
+
+        if not users:
+            return 0
+
+        uids = [u["uid"] for u in users]
+        today = datetime.now(timezone.utc).date().isoformat()
+
+        # Fetch related data in bulk
+        streaks = self.user_repo.get_streaks_by_uids(uids)
+        achievements = self.user_repo.get_achievements_by_uids(uids)
+        claims = self.user_repo.get_claims_by_uids(uids)
+        food_logs = self.user_repo.get_food_logs_by_uids_and_date(uids, today)
+
+        # Index by uid
+        streaks_by_uid = defaultdict(list)
+        achievements_by_uid = defaultdict(list)
+        claims_by_uid = defaultdict(list)
+        food_by_uid = {f["uid"]: f for f in food_logs}
+
+        for s in streaks:
+            streaks_by_uid[s["uid"]].append(s)
+
+        for a in achievements:
+            achievements_by_uid[a["uid"]].append(a)
+
+        for c in claims:
+            claims_by_uid[c["uid"]].append(c)
+
+        # Build snapshot rows
+        rows = []
+
+        for user in users:
+            uid = user["uid"]
+            food = food_by_uid.get(uid)
+
+            rows.append({
+                "uid": uid,
+                "snapshot_date": today,
+                "data": {
+                    "level": user["level"],
+                    "exp_points": user["exp_points"],
+                    "app_color": user["app_color"],
+                    "can_claim_daily_reward": user["can_claim_daily_reward"],
+                    "last_daily_claim": user["last_daily_claim"],
+
+                    "streaks": {
+                        s["streak_type"]: {
+                            "streak": s["streak"],
+                            "highest_streak": s["highest_streak"],
+                            "last_date": s["last_date"],
+                        }
+                        for s in streaks_by_uid.get(uid, [])
+                    },
+
+                    "achievement_progress": {
+                        a["achievement_id"]: a["progress"]
+                        for a in achievements_by_uid.get(uid, [])
+                    },
+
+                    "achievement_claims": [
+                        {"achievement_id": c["achievement_id"], "tier": c["tier"]}
+                        for c in claims_by_uid.get(uid, [])
+                    ],
+
+                    "food_logs": {
+                        "breakfast": food["breakfast"] or [],
+                        "lunch": food["lunch"] or [],
+                        "dinner": food["dinner"] or [],
+                        "snack": food["snack"] or [],
+                    } if food else None,
+                }
+            })
+
+        # Write snapshots
+        self.user_repo.upsert_daily_snapshots(rows)
+
+        return len(rows)

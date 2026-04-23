@@ -15,7 +15,7 @@ from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
 from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
-from backend.services import ProgressionService, FoodService, POIService
+from backend.services import ProgressionService, FoodService, POIService, SnapshotService
 from backend.schemas import (
     ClaimDailyRewardRequest,
     GetProgressRequest,
@@ -83,6 +83,7 @@ achievement_repo = AchievementRepository(supabase_client)
 progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
 food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET)
 poi_service = POIService()
+snapshot_service = SnapshotService(user_repo)
 
 # Initialize Firebase Admin SDK for FCM (for notifications)
 if not firebase_admin._apps:
@@ -197,6 +198,42 @@ def ping():
     return jsonify({
         "message": "Pinged."
     }), 200
+
+MINUTES_IN_DAY = 1440 # for wrapping around the time when converting it
+
+# Method to calculate utc time in mins for the formula local time in mins = utc time in mins + offset in mins
+def utc_minute_of_day():
+    now = datetime.now(timezone.utc)
+    return now.hour * 60 + now.minute
+
+# Method to calculate the utc offset of users who are currently at midnight
+# local time in mins = utc time in mins + offset in mins
+# local time is 0 at midnight => -(utc time in mins) = offset in mins regardless of timezone
+def find_utc_midnight_offset_mins(utc_min):
+    return (-utc_min) % MINUTES_IN_DAY
+
+# Route called by the CRON job every 30 minutes
+@app.route("/daily_snapshot")
+def trigger_snapshot():
+    # Only the CRON job has access
+    secret = request.args.get("key") or request.headers.get("X-Cron-Key")
+    if secret != os.environ.get("CRON_SECRET"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    utc_min = utc_minute_of_day()
+    target = find_utc_midnight_offset_mins(utc_min) # compared with stored user utc offsets
+
+    # 1 minute buffer
+    offsets = [
+        target,
+        (target + 1) % MINUTES_IN_DAY,
+        (target - 1) % MINUTES_IN_DAY,
+    ]
+
+    # Run the snapshot build
+    count = snapshot_service.run(offsets)
+
+    return jsonify({"success": True, "count": count}), 200
 
 # Route accessed by the CRON JOB once per minute
 @app.route("/send_reminders")

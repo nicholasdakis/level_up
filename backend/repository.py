@@ -33,6 +33,57 @@ class UserRepository:
         result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).execute()
         return result.data
 
+    def get_users_by_offsets(self, offsets: list[int]):
+        # Fetch the users whose utc_offset_minutes matches the targets
+        result = (
+            self._supabase.table("users")
+            .select("*")
+            .in_("utc_offset_minutes", offsets)
+            .execute()
+        )
+        return result.data
+
+    def get_streaks_by_uids(self, uids: list[str]):
+        # Fetch all streaks for snapshot users
+        result = (
+            self._supabase.table("streaks")
+            .select("*")
+            .in_("uid", uids)
+            .execute()
+        )
+        return result.data
+
+    def get_achievements_by_uids(self, uids: list[str]):
+        # Fetch achievement progress for snapshot users
+        result = (
+            self._supabase.table("achievement_progress")
+            .select("*")
+            .in_("uid", uids)
+            .execute()
+        )
+        return result.data
+
+    def get_claims_by_uids(self, uids: list[str]):
+        # Fetch achievement claims for snapshot users
+        result = (
+            self._supabase.table("achievement_claims")
+            .select("*")
+            .in_("uid", uids)
+            .execute()
+        )
+        return result.data
+
+    def get_food_logs_by_uids_and_date(self, uids: list[str], date: str):
+        # Fetch food logs for snapshot users on given date
+        result = (
+            self._supabase.table("food_logs")
+            .select("*")
+            .in_("uid", uids)
+            .eq("date", date)
+            .execute()
+        )
+        return result.data
+
     # Write operations (non-atomic)
 
     # Method to update the user's data
@@ -42,6 +93,10 @@ class UserRepository:
     def update_fcm_tokens(self, uid: str, tokens: list):
         # Overwrites the user's fcm_tokens list
         self._supabase.table("users").update({"fcm_tokens": tokens}).eq("uid", uid).execute()
+    
+    def upsert_daily_snapshots(self, rows: list[dict]):
+        # Method for adding the user's snapshot into the table
+        self._supabase.table("daily_snapshots").upsert(rows).execute()
 
     # Atomic instructions
 

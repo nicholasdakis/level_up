@@ -1183,12 +1183,20 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Extracted repeated logic for checking if the user can claim a daily reward into a helper method in services.py
 - Added FoodService and POIService classes to services.py to move the code from server.py into them
 - server.py now uses the code through the new classes instead of directly in server.py
+
+## 2026-04-22
 - Made a daily_snapshots table that stores each user's data
 - Made a take_daily_snapshots methods that stores each user's snapshot into the daily_snapshots table
 - Made a /daily_snapshot route only accessibly by a CRON job which writes /daily_snapshot once per day at UTC+14
 - Writes at UTC+14 because the method writes yesterday's data to ensure it stores the most up-to-date data. UTC+14 ensures yesterday applies to everyone
-- Realized the logic above isn't fullproof, so added reverted the changes and added a timezone value to each user table and had the snapshot taken at their timezone's midnight
+- Realized the logic above isn't foolproof, so added reverted the changes and added a timezone value to each user table and had the snapshot taken at their timezone's midnight
 - Added /update_utc_offset route and methods in server.py, services.py, and repository.py
 - Added UpdateUtcOffsetRequest schema
 - Added updateUtcOffset which is called on user initialization which calls the route which uses the service and repo layer to write the db with the user's timezone
 - Changed utc_offset to utc_offset_minutes and renamed all utc_offset references to utc_offset_minutes to store the offset in minutes so that timezones whose offsets are not perfect hours (eg also have 30 minutes) don't get truncated to the hour
+- Made utc_minute_of_day which calculates the time in UTC in terms of minutes
+- Made find_utc_midnight_offset_mins which uses the above method to calculate the offset in minutes of UTC timezones that are currently experiencing timezone. It works by using the formula local time = utc time + offset, where local time = 0 at midnight => offset = -utc time. This value was % by the total minutes in a day to make sure it stays in the valid range
+- Example: NY is UTC-4 => The offset = -240. If it was midnight in NY, utc_mins would be: -offset = 240. 240 % 1440 = 240. So it is midnight in NY at 4 UTC
+- Made a /daily_snapshot route that gets the users who are at midnight by getting the users' stored utc_offset_minutes that match with the calculated find_utc_midnight_offset
+- Added the methods for getting and writing the user's data for creating the snapshot in repository.py
+- Added a SnapshotService class to services.py which has a run method that compiles and then upserts the data into the user's snapshot table
