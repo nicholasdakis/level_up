@@ -468,7 +468,13 @@ class _ExploreState extends State<Explore> {
                           ), // prevent back button from being covered on mobile
                     left: 0,
                     child: GestureDetector(
-                      onTap: () => context.go('/'),
+                      onTap: () {
+                        if (Theme.of(context).platform == TargetPlatform.iOS) {
+                          context.pop();
+                        } else {
+                          context.go('/');
+                        }
+                      },
                       child: Container(
                         padding: EdgeInsets.all(Responsive.width(context, 20)),
                         decoration: BoxDecoration(

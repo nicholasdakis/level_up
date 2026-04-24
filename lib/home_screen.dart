@@ -347,7 +347,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_explore",
                                             );
-                                            context.go('/explore');
+                                            if (Theme.of(context).platform ==
+                                                TargetPlatform.iOS) {
+                                              context.push('/explore');
+                                            } else {
+                                              context.go('/explore');
+                                            }
                                           },
                                         ),
                                         160.ms,
