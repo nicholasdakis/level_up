@@ -19,8 +19,6 @@ from backend.services import ProgressionService, FoodService, POIService, Snapsh
 from backend.schemas import (
     ClaimDailyRewardRequest,
     GetProgressRequest,
-    UpdateExpRequest,
-    UpdateExpResponse,
     DailyRewardResponse,
     ProgressResponse,
     UpdateUsernameRequest,
@@ -425,20 +423,6 @@ def get_progress():
 
     # Step 3: Return validated response
     response = ProgressResponse(**result)
-    return jsonify(response.model_dump()), 200
-
-@app.route("/update_exp", methods=["POST"]) # POST because this route modifies data
-def update_exp():
-    # Step 1: Validate request body and verify the user's identity
-    uid, body, err = _parse_and_auth(UpdateExpRequest)
-    if err:
-        return err
-
-    # Step 2: Run XP update through the service layer
-    result = progression_service.update_exp(uid, body.event, body.event_id)
-
-    # Step 3: Return validated response
-    response = UpdateExpResponse(**result)
     return jsonify(response.model_dump()), 200
 
 @app.route("/get_user_data", methods=["POST"])

@@ -465,49 +465,6 @@ class UserDataManager {
   }
 
   // Updates the user's XP by sending a verified event to the backend
-  // The backend checks the event actually happened in Postgres before awarding any XP
-  Future<void> updateExpPoints(
-    String event,
-    String eventId, {
-    BuildContext? context,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$backendBaseUrl/update_exp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': await getIdToken(),
-          'event': event,
-          'event_id': eventId,
-        }),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'updateExpPoints failed: ${response.statusCode} ${response.body}',
-        );
-      }
-
-      final result = jsonDecode(response.body) as Map<String, dynamic>;
-
-      // only update locally if the backend actually awarded XP
-      if (result['new_level'] != null && result['new_exp'] != null) {
-        currentUserData!.level = result['new_level'];
-        currentUserData!.expPoints = result['new_exp'];
-        expNotifier.value = result['new_exp'];
-      }
-    } catch (e) {
-      if (context != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error updating experience points: $e"),
-            duration: const Duration(milliseconds: 1500),
-          ),
-        );
-      }
-    }
-  }
-
   // The backend validates the 23-hour cooldown and writes XP/level atomically in a transaction
   // This prevents double-claiming even if the user taps the button twice rapidly
   Future<int?> claimDailyReward() async {
