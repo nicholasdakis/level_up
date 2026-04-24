@@ -15,6 +15,9 @@ ValueNotifier<int> expNotifier = ValueNotifier<int>(
   currentUserData?.expPoints ?? 0,
 );
 
+// Flips to true when AppInitScreen finishes loading user data
+ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
+
 // for updating HomeScreen when app color is updated
 ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(
   Color.fromARGB(255, 45, 45, 45),

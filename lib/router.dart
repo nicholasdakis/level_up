@@ -195,8 +195,16 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _initApp() async {
+    // Set initialized before navigating so the redirect doesn't bounce back to /loading
+    _appInitialized = true;
+
+    // Navigate immediately so HomeScreen can show its skeletonizer while data loads
+    final uri = Uri.base;
+    final path = uri.path.replaceFirst('/level_up', '');
+    final destination = (path.isNotEmpty && path != '/loading') ? path : '/';
+    if (mounted) context.go(destination);
+
     await userManager.loadUserData();
-    if (!mounted) return;
 
     userManager.updateUtcOffset();
     expNotifier.value = currentUserData?.expPoints ?? 0;
@@ -207,32 +215,14 @@ class _AppInitScreenState extends State<AppInitScreen> {
     }
 
     // initialize FCM in the background so it doesn't delay screen render
-    FcmService.initialize(context);
+    if (mounted) FcmService.initialize(context);
 
     _appInitialized = true;
-
-    // if the user refreshed on a sub-route, go back there; otherwise go home
-    if (mounted) {
-      final uri = Uri.base;
-      final path = uri.path.replaceFirst('/level_up', '');
-      final destination = (path.isNotEmpty && path != '/loading') ? path : '/';
-      context.go(destination);
-    }
+    appReadyNotifier.value = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white54,
-            strokeWidth: Responsive.scale(context, 2),
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }

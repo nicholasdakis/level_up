@@ -14,6 +14,10 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
 
+class _HomeAnimationState {
+  static bool buttonsAnimated = false;
+}
+
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {
   @override
@@ -41,23 +45,33 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Load user data from Postgres, then initialize FCM once data is ready
-    initializeUser();
-
     // Update the HomeScreen with the updated app color
     _appColorListener = () {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
+    appReadyNotifier.addListener(_onAppReady);
+
+    // If data already loaded (e.g. navigating back to home), finish immediately
+    if (appReadyNotifier.value) _onAppReady();
 
     // Initialize confetti controllers
     confettiControllerinit();
+  }
+
+  void _onAppReady() {
+    if (!mounted) return;
+    initializeUser();
+    Future.delayed(const Duration(milliseconds: 850), () {
+      _HomeAnimationState.buttonsAnimated = true;
+    });
   }
 
   // To prevent memory leaks
   @override
   void dispose() {
     appColorNotifier.removeListener(_appColorListener);
+    appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -97,26 +111,26 @@ class _HomeScreenState extends State<HomeScreen> {
   // AppShell already loaded user data, updated UTC offset, synced XP, and
   // initialized FCM. HomeScreen only needs to show the home-specific dialogs.
   Future<void> initializeUser() async {
-    // Defer dialogs until after the first frame so BuildContext is safely used
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Give users without a username a dialog box to choose one
-      if (currentUserData!.username != null &&
-          currentUserData!.username == currentUserData!.uid) {
-        await promptUsernameDialog(context);
-      }
+    // Give users without a username a dialog box to choose one
+    if (currentUserData!.username != null &&
+        currentUserData!.username == currentUserData!.uid) {
+      await promptUsernameDialog(context);
+    }
 
-      if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
+    if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
 
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        }); // rebuild UI with loaded stats
-      }
-    });
+    if (mounted) setState(() => isLoading = false);
   }
 
-  // Shell already loaded data before HomeScreen mounted, so start loading = false
-  bool isLoading = false;
+  bool isLoading = true;
+
+  Widget _maybeAnimate(Widget button, Duration delay) {
+    if (_HomeAnimationState.buttonsAnimated) return button;
+    return button
+        .animate()
+        .fadeIn(delay: delay, duration: 400.ms)
+        .slideY(begin: 0.2, duration: 400.ms, curve: Curves.easeOutCubic);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -276,176 +290,137 @@ class _HomeScreenState extends State<HomeScreen> {
                                 // CALORIE CALCULATOR BUTTON
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Calorie Calculator",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.calculate_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "calorie_calculator",
-                                              );
-                                              context.go('/calorie-calculator');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(delay: 0.ms, duration: 400.ms)
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Calorie Calculator",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.calculate_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "calorie_calculator",
+                                            );
+                                            context.go('/calorie-calculator');
+                                          },
+                                        ),
+                                        0.ms,
+                                      ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
-                                ), // Space between buttons
+                                ),
                                 // FOOD LOGGING TAB
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Food Logging",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.menu_book_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_food_logging",
-                                              );
-                                              context.go('/food-logging');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            delay: 80.ms,
-                                            duration: 400.ms,
-                                          )
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Food Logging",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.menu_book_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_food_logging",
+                                            );
+                                            context.go('/food-logging');
+                                          },
+                                        ),
+                                        80.ms,
+                                      ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
-                                ), // Space between buttons
+                                ),
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Explore",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.explore_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_explore",
-                                              );
-                                              context.go('/explore');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            delay: 160.ms,
-                                            duration: 400.ms,
-                                          )
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Explore",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.explore_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_explore",
+                                            );
+                                            context.go('/explore');
+                                          },
+                                        ),
+                                        160.ms,
+                                      ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
-                                ), // Space between buttons
+                                ),
                                 // REMINDERS TAB
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Reminders",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.notifications_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_reminders",
-                                              );
-                                              context.go('/reminders');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            delay: 240.ms,
-                                            duration: 400.ms,
-                                          )
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Reminders",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.notifications_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_reminders",
+                                            );
+                                            context.go('/reminders');
+                                          },
+                                        ),
+                                        240.ms,
+                                      ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
-                                ), // Space between buttons
+                                ),
                                 // BADGES TAB
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Badges",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.emoji_events_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_badges",
-                                              );
-                                              context.go('/badges');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            delay: 320.ms,
-                                            duration: 400.ms,
-                                          )
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Badges",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.emoji_events_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_badges",
+                                            );
+                                            context.go('/badges');
+                                          },
+                                        ),
+                                        320.ms,
+                                      ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
-                                ), // Space between buttons
+                                ),
                                 // LEADERBOARD TAB
                                 isLoading
                                     ? buildPlaceholderButton()
-                                    : customButton(
-                                            "Leaderboard",
-                                            48,
-                                            160,
-                                            750,
-                                            context,
-                                            icon: Icons.leaderboard_outlined,
-                                            onPressed: () {
-                                              trackTrivialAchievement(
-                                                "open_leaderboard",
-                                              );
-                                              context.go('/leaderboard');
-                                            },
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            delay: 400.ms,
-                                            duration: 400.ms,
-                                          )
-                                          .slideY(
-                                            begin: 0.2,
-                                            duration: 400.ms,
-                                            curve: Curves.easeOutCubic,
-                                          ),
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Leaderboard",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.leaderboard_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_leaderboard",
+                                            );
+                                            context.go('/leaderboard');
+                                          },
+                                        ),
+                                        400.ms,
+                                      ),
                               ],
                             ),
                           ),
