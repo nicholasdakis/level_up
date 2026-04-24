@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
@@ -429,6 +430,10 @@ class _ResultsState extends State<Results> {
             scrolledUnderElevation: 0,
             centerTitle: true,
             toolbarHeight: Responsive.buttonHeight(context, 120),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => context.go('/calorie-calculator'),
+            ),
             title: createTitle("Calorie Results", context),
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(Responsive.height(context, 48)),

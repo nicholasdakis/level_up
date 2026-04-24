@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pwa_install/pwa_install.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
-import 'settings/personal_preferences.dart';
-import 'settings/about_the_developer.dart';
-import 'settings/install_guide.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'dart:js_interop';
@@ -153,21 +151,21 @@ Widget buildSettingsDrawer(
             ),
           ),
           SizedBox(height: Responsive.height(context, 8)),
-          drawerItem(
-            "Personal Preferences",
-            Icons.account_circle_outlined,
-            context,
-            destination: PersonalPreferences(
-              onProfileImageUpdated: onProfileImageUpdated,
-            ),
-            startOffset: Offset(-1, 0),
+          buildActionTile(
+            icon: Icons.account_circle_outlined,
+            label: "Personal Preferences",
+            onTap: () {
+              Navigator.pop(context); // close drawer before navigating
+              context.go('/settings/preferences', extra: onProfileImageUpdated);
+            },
           ),
-          drawerItem(
-            "About The Developer",
-            Icons.info_outline,
-            context,
-            destination: AboutTheDeveloper(),
-            startOffset: Offset(-1, 0),
+          buildActionTile(
+            icon: Icons.info_outline,
+            label: "About The Developer",
+            onTap: () {
+              Navigator.pop(context); // close drawer before navigating
+              context.go('/settings/developer');
+            },
           ),
           buildActionTile(
             icon: Icons.feedback_outlined,
@@ -212,15 +210,15 @@ Widget buildSettingsDrawer(
                 },
               )
             else // Safari, Firefox, etc.
-              drawerItem(
-                "Install App as PWA",
-                Icons.install_mobile,
-                context,
-                destination:
-                    const InstallGuide(), // a tutorial screen with manual installation instructions
-                startOffset: Offset(-1, 0),
+              buildActionTile(
+                icon: Icons.install_mobile,
+                label: "Install App as PWA",
                 tooltip:
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+                onTap: () {
+                  Navigator.pop(context); // close drawer before navigating
+                  context.go('/settings/install');
+                },
               ),
           // Divider to visually separate Log Out
           Padding(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
@@ -120,6 +121,10 @@ class InstallGuide extends StatelessWidget {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
           title: createTitle("Install App", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),

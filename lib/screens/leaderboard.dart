@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
 import 'dart:math';
@@ -238,6 +239,10 @@ class _LeaderboardState extends State<Leaderboard> {
           ), // Header color
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
           title: createTitle("Leaderboard", context),
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down

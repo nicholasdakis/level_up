@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '/globals.dart';
@@ -35,6 +36,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
           ), // Header color
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
           title: createTitle("About the Developer", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),

@@ -1,0 +1,267 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+import 'home_screen.dart';
+import 'authentication/register_or_login.dart';
+import 'screens/calorie_calculator.dart';
+import 'screens/calorie_calculator/results.dart';
+import 'screens/food_logging.dart';
+import 'screens/food_logging_charts.dart';
+import 'screens/reminders.dart';
+import 'screens/badges.dart';
+import 'screens/leaderboard.dart';
+import 'screens/explore.dart';
+import 'screens/settings/personal_preferences.dart';
+import 'screens/settings/about_the_developer.dart';
+import 'screens/settings/install_guide.dart';
+import 'globals.dart';
+import 'services/fcm/fcm_service.dart';
+import 'utility/responsive.dart';
+
+// Notifies go_router to re-run the redirect check when Firebase auth state changes
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier() {
+    FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
+  }
+}
+
+final _authNotifier = _AuthNotifier();
+
+// Slide-from-bottom transition
+Page<void> _slidePage(
+  LocalKey key,
+  Widget child, {
+  Offset begin = const Offset(0, 1),
+}) {
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 400),
+    transitionsBuilder: (context, animation, _, child) {
+      return SlideTransition(
+        position: Tween(
+          begin: begin,
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeIn)).animate(animation),
+        child: child,
+      );
+    },
+  );
+}
+
+final GoRouter appRouter = GoRouter(
+  initialLocation: '/',
+  debugLogDiagnostics: true,
+  routerNeglect: false,
+  // re-evaluates redirect when auth state changes
+  refreshListenable: _authNotifier,
+  redirect: (context, state) {
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final onLogin = state.matchedLocation == '/login';
+
+    // send logged-out users to login
+    if (!isLoggedIn && !onLogin) return '/login';
+
+    // send already-logged-in users away from login
+    if (isLoggedIn && onLogin) return '/';
+
+    return null; // no redirect needed
+  },
+  routes: [
+    // Login is outside the shell so it doesn't trigger app init
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) =>
+          NoTransitionPage(key: state.pageKey, child: const RegisterOrLogin()),
+    ),
+
+    // ShellRoute wraps all authenticated screens and runs on app init
+    ShellRoute(
+      builder: (context, state, child) => AppShell(child: child),
+      routes: [
+        GoRoute(
+          path: '/',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const HomeScreen()),
+        ),
+        GoRoute(
+          path: '/calorie-calculator',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const CalorieCalculator()),
+          routes: [
+            GoRoute(
+              path: 'results',
+              // redirect back to calculator if the screen is accessed directly
+              // (the Results widget needs params that can't come from a URL)
+              redirect: (context, state) =>
+                  state.extra == null ? '/calorie-calculator' : null,
+              pageBuilder: (context, state) {
+                final p = state.extra as Map<String, dynamic>;
+                return _slidePage(
+                  state.pageKey,
+                  Results(
+                    units: p['units'] as String?,
+                    goal: p['goal'] as String?,
+                    sex: p['sex'] as String?,
+                    activityLevel: p['activityLevel'] as String?,
+                    equation: p['equation'] as String?,
+                    age: p['age'] as int?,
+                    heightCm: p['heightCm'] as int?,
+                    heightInches: p['heightInches'] as int?,
+                    weight: p['weight'] as double?,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/food-logging',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const FoodLogging()),
+          routes: [
+            GoRoute(
+              path: 'analytics',
+              // redirect back if accessed directly without params
+              redirect: (context, state) =>
+                  state.extra == null ? '/food-logging' : null,
+              // slide from top to match the existing upward reveal animation
+              pageBuilder: (context, state) {
+                final p = state.extra as Map<String, dynamic>;
+                return _slidePage(
+                  state.pageKey,
+                  FoodLoggingChartsScreen(
+                    initialDate: p['initialDate'] as DateTime,
+                    onDateChanged:
+                        p['onDateChanged'] as void Function(DateTime)?,
+                  ),
+                  begin: const Offset(0, -1),
+                );
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/reminders',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const Reminders()),
+        ),
+        GoRoute(
+          path: '/badges',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const Badges()),
+        ),
+        GoRoute(
+          path: '/leaderboard',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const Leaderboard()),
+        ),
+        GoRoute(
+          path: '/explore',
+          pageBuilder: (context, state) =>
+              _slidePage(state.pageKey, const Explore()),
+        ),
+        GoRoute(
+          path: '/settings/preferences',
+          // slide from left to match the existing drawer animation
+          pageBuilder: (context, state) => _slidePage(
+            state.pageKey,
+            PersonalPreferences(
+              onProfileImageUpdated: state.extra as VoidCallback?,
+            ),
+            begin: const Offset(-1, 0),
+          ),
+        ),
+        GoRoute(
+          path: '/settings/developer',
+          pageBuilder: (context, state) => _slidePage(
+            state.pageKey,
+            const AboutTheDeveloper(),
+            begin: const Offset(-1, 0),
+          ),
+        ),
+        GoRoute(
+          path: '/settings/install',
+          pageBuilder: (context, state) => _slidePage(
+            state.pageKey,
+            const InstallGuide(),
+            begin: const Offset(-1, 0),
+          ),
+        ),
+      ],
+    ),
+  ],
+);
+
+// Shell widget that wraps all authenticated routes
+// Runs app init once on mount and shows a spinner until data is ready
+class AppShell extends StatefulWidget {
+  final Widget child;
+  const AppShell({super.key, required this.child});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  bool _isLoading = true;
+  late final VoidCallback _colorListener;
+
+  @override
+  void initState() {
+    super.initState();
+    // rebuild spinner when theme color changes while loading
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
+    _initApp();
+  }
+
+  @override
+  void dispose() {
+    appColorNotifier.removeListener(_colorListener);
+    super.dispose();
+  }
+
+  Future<void> _initApp() async {
+    await userManager.loadUserData();
+    if (!mounted) return;
+
+    userManager.updateUtcOffset();
+    expNotifier.value = currentUserData?.expPoints ?? 0;
+
+    // sync theme color before any screen renders
+    if (currentUserData != null) {
+      appColorNotifier.value = currentUserData!.appColor;
+    }
+
+    // initialize FCM in the background so it doesn't delay screen render
+    FcmService.initialize(context);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: CircularProgressIndicator(
+              color: Colors.white54,
+              strokeWidth: Responsive.scale(context, 2),
+            ),
+          ),
+        ),
+      );
+    }
+    return widget.child;
+  }
+}

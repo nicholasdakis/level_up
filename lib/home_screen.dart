@@ -1,21 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/confetti.dart';
-import 'screens/calorie_calculator.dart';
 import 'screens/settings/settings_icon_button.dart';
-import 'screens/explore.dart';
-import 'screens/food_logging.dart';
-import 'screens/reminders.dart';
-import 'screens/badges.dart';
-import 'screens/leaderboard.dart';
 import 'screens/settings.dart';
 import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/settings/personal_preferences.dart';
-import 'services/fcm/fcm_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
@@ -100,19 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Method for initializing the user upon app boot up
+  // AppShell already loaded user data, updated UTC offset, synced XP, and
+  // initialized FCM. HomeScreen only needs to show the home-specific dialogs.
   Future<void> initializeUser() async {
-    await userManager.loadUserData();
-    if (mounted) setState(() {});
-
-    // Store the user's timezone based on UTC offset
-    userManager.updateUtcOffset();
-
-    // Sync ValueNotifier with loaded XP amount for visually accurate Footer experience
-    expNotifier.value = currentUserData?.expPoints ?? 0;
-    debugPrint('XP loaded: ${currentUserData?.expPoints}');
-
-    // Defer dialog until after the first frame so BuildContext is safely used
+    // Defer dialogs until after the first frame so BuildContext is safely used
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Give users without a username a dialog box to choose one
       if (currentUserData!.username != null &&
@@ -123,22 +108,15 @@ class _HomeScreenState extends State<HomeScreen> {
       if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
 
       if (mounted) {
-        // Sync the theme color right before the skeleton turns off. Updating it earlier
-        // would rebuild the ShimmerEffect and restart the shimmer animation mid load
-        if (currentUserData != null) {
-          appColorNotifier.value = currentUserData!.appColor;
-        }
         setState(() {
           isLoading = false;
         }); // rebuild UI with loaded stats
       }
     });
-
-    // Initialize FCM in the background so it doesn't block the UI from rendering
-    if (mounted) FcmService.initialize(context);
   }
 
-  bool isLoading = true; // for the skeletonizer
+  // Shell already loaded data before HomeScreen mounted, so start loading = false
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -309,10 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "calorie_calculator",
                                               );
-                                              changeToScreen(
-                                                context,
-                                                CalorieCalculator(),
-                                              );
+                                              context.go('/calorie-calculator');
                                             },
                                           )
                                           .animate()
@@ -339,10 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "open_food_logging",
                                               );
-                                              changeToScreen(
-                                                context,
-                                                FoodLogging(),
-                                              );
+                                              context.go('/food-logging');
                                             },
                                           )
                                           .animate()
@@ -371,10 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "open_explore",
                                               );
-                                              changeToScreen(
-                                                context,
-                                                Explore(),
-                                              );
+                                              context.go('/explore');
                                             },
                                           )
                                           .animate()
@@ -404,10 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "open_reminders",
                                               );
-                                              changeToScreen(
-                                                context,
-                                                Reminders(),
-                                              );
+                                              context.go('/reminders');
                                             },
                                           )
                                           .animate()
@@ -437,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "open_badges",
                                               );
-                                              changeToScreen(context, Badges());
+                                              context.go('/badges');
                                             },
                                           )
                                           .animate()
@@ -467,10 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               trackTrivialAchievement(
                                                 "open_leaderboard",
                                               );
-                                              changeToScreen(
-                                                context,
-                                                Leaderboard(),
-                                              );
+                                              context.go('/leaderboard');
                                             },
                                           )
                                           .animate()

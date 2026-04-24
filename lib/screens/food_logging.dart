@@ -15,7 +15,7 @@ import '../services/recent_foods_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
-import 'food_logging_charts.dart';
+import 'package:go_router/go_router.dart';
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -1685,6 +1685,10 @@ class _FoodLoggingState extends State<FoodLogging>
               backgroundColor: darkenColor(appColorNotifier.value, 0.025),
               centerTitle: true,
               toolbarHeight: Responsive.buttonHeight(context, 120),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => context.go('/'),
+              ),
               title: createTitle("Food Logging", context),
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(Responsive.height(context, 1)),
@@ -1721,34 +1725,15 @@ class _FoodLoggingState extends State<FoodLogging>
                       child: InkWell(
                         onTap: () {
                           // leads to the food logging charts screen when clicked
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, _) =>
-                                  FoodLoggingChartsScreen(
-                                    initialDate: currentDate,
-                                    onDateChanged: (date) {
-                                      setState(() => currentDate = date);
-                                      loadFoodForDate(date);
-                                    },
-                                  ),
-                              transitionsBuilder:
-                                  (context, animation, _, child) {
-                                    return SlideTransition(
-                                      position:
-                                          Tween<Offset>(
-                                            begin: const Offset(0, -1),
-                                            end: Offset.zero,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeOut,
-                                            ),
-                                          ),
-                                      child: child,
-                                    );
-                                  },
-                            ),
+                          context.go(
+                            '/food-logging/analytics',
+                            extra: {
+                              'initialDate': currentDate,
+                              'onDateChanged': (DateTime date) {
+                                setState(() => currentDate = date);
+                                loadFoodForDate(date);
+                              },
+                            },
                           );
                         },
                         borderRadius: BorderRadius.circular(

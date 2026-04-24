@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -43,7 +44,9 @@ class _RemindersState extends State<Reminders> {
   @override
   void initState() {
     super.initState();
-    reminders = List.from(currentUserData?.reminders ?? []); // show cached data instantly
+    reminders = List.from(
+      currentUserData?.reminders ?? [],
+    ); // show cached data instantly
     placeholderMessage = getReminderMessage();
     _loadRemindersFromServer(); // refresh from server in the background
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -453,6 +456,10 @@ class _RemindersState extends State<Reminders> {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
           title: createTitle("Reminders", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),

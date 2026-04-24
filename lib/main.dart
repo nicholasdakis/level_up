@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
-import 'authentication/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import '../globals.dart';
+import 'globals.dart';
+import 'router.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Removes the # from URLs so paths look like /food-logging instead of /#/food-logging
+  usePathUrlStrategy();
   // Initialize PWA install prompt so users can install the app from the settings drawer
   // try-catch because the pwa_install package crashes in dev mode (flutter run doesn't serve manifest.json)
   try {
@@ -20,6 +23,7 @@ Future<void> main() async {
     debugPrint('PWA install setup skipped: $e');
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -35,8 +39,10 @@ class MyApp extends StatelessWidget {
         return ValueListenableBuilder<Color>(
           valueListenable: appColorNotifier,
           builder: (context, color, _) {
-            return MaterialApp(
+            return MaterialApp.router(
               debugShowCheckedModeBanner: false,
+              // go_router handles all navigation
+              routerConfig: appRouter,
               theme: ThemeData(
                 useMaterial3: true,
                 colorScheme: ColorScheme.dark(
@@ -77,7 +83,6 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
               ),
-              home: const AuthenticationGate(),
             );
           },
         );

@@ -1,6 +1,7 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -467,7 +468,7 @@ class _ExploreState extends State<Explore> {
                           ), // prevent back button from being covered on mobile
                     left: 0,
                     child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => context.go('/'),
                       child: Container(
                         padding: EdgeInsets.all(Responsive.width(context, 20)),
                         decoration: BoxDecoration(

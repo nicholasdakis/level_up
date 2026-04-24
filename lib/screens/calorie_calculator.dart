@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'calorie_calculator/results.dart';
+import 'package:go_router/go_router.dart';
 import '../globals.dart';
 import '/utility/responsive.dart';
 import '/utility/shared_preferences/shared_prefs_async.dart';
@@ -347,6 +347,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
           title: createTitle("Calorie Calculator", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),
@@ -754,43 +758,20 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       // Store the results to the user's device
                       saveCalculatorDataToPrefs();
 
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          // Animation when switching screen
-                          pageBuilder:
-                              (
-                                context,
-                                animation,
-                                secondaryAnimation,
-                              ) => Results(
-                                // Pass in variables to the same-named variables in Results
-                                units: units ?? "0",
-                                goal: goal ?? "0",
-                                activityLevel: activityLevel ?? "0",
-                                equation: equation ?? "0",
-                                age: age ?? 0,
-                                sex: sex ?? "0",
-                                heightCm: heightCm ?? 0,
-                                heightInches: heightInches ?? 0,
-                                weight: weight ?? 0,
-                              ),
-                          transitionDuration: const Duration(milliseconds: 400),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                                const start = Offset(0.0, 1.0);
-                                const finish = Offset.zero;
-                                final tween = Tween(
-                                  begin: start,
-                                  end: finish,
-                                ).chain(CurveTween(curve: Curves.easeIn));
-                                final offsetAnimation = animation.drive(tween);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: child,
-                                );
-                              },
-                        ),
+                      // Pass in variables to the same-named variables in Results
+                      context.go(
+                        '/calorie-calculator/results',
+                        extra: {
+                          'units': units ?? "0",
+                          'goal': goal ?? "0",
+                          'activityLevel': activityLevel ?? "0",
+                          'equation': equation ?? "0",
+                          'age': age ?? 0,
+                          'sex': sex ?? "0",
+                          'heightCm': heightCm ?? 0,
+                          'heightInches': heightInches ?? 0,
+                          'weight': weight ?? 0,
+                        },
                       );
                     },
                     style: ElevatedButton.styleFrom(

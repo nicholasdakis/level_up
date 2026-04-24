@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:level_up/screens/settings/personal_preferences.dart';
+import 'package:go_router/go_router.dart';
 import '../globals.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utility/responsive.dart';
@@ -38,13 +38,9 @@ class _FooterState extends State<Footer> {
           child: InkWell(
             splashColor: appColorNotifier.value.withAlpha(100),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PersonalPreferences(
-                    onProfileImageUpdated: widget.onProfileImageUpdated,
-                  ),
-                ),
+              context.go(
+                '/settings/preferences',
+                extra: widget.onProfileImageUpdated,
               );
             },
             borderRadius: BorderRadius.circular(50),

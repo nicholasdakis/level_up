@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../globals.dart';
@@ -187,7 +188,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
               color: Colors.white,
               size: Responsive.font(context, 28),
             ),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.go('/food-logging'),
           ),
           title: createTitle("Food Analytics", context),
           // Thin divider line

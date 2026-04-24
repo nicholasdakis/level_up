@@ -1247,3 +1247,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the food analytics pie charts animation play each time the user changes date instead of only on initialization
 - Did this by adding an animationKey based on the date changing (increments by 1 each time) so that the animation rebuilds when the date changes, then added the key to each .animate()
 - Made each key a tuple with a unique label as duplicate keys are not allowed
+- Added the go_router package to simplify navigating to different pages and so that the URL bar updates based on the current page being shown, so that if the user refreshes it does not always go back to the first screen
+- Used usePathUrlStrategy() so URLs appear as clean paths (e.g. /food-logging) instead of hash-based paths (e.g. /#/food-logging)
+- All navigation uses context.go so the browser address bar stays in sync
+- Sub-screens (Results, Food Analytics) are also assigned their own routes (/calorie-calculator/results, /food-logging/analytics)
+- Added explicit back buttons to every screen since context.go does not add to Flutter's Navigator stack
+- Each back button navigates to the correct parent screen
+- Replaced the Navigator.push call in the footer profile picture tap with context.go
