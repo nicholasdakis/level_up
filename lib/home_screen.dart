@@ -286,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "BETA 04.23",
+                                    "BETA 04.24",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 11),
                                       color: Colors.white.withAlpha(80),

@@ -347,7 +347,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
-          title: createTitle("Calculator", context),
+          title: createTitle("Calorie Calculator", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),
             child: Container(

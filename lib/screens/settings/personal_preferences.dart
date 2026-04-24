@@ -384,7 +384,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
-          title: createTitle("Preferences", context),
+          title: createTitle("Personal Preferences", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),
             child: Container(

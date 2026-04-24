@@ -28,13 +28,14 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
         backgroundColor: Colors.transparent, // Body color
         // Header box
         appBar: AppBar(
+          scrolledUnderElevation: 0,
           backgroundColor: darkenColor(
             appColorNotifier.value,
             0.025,
           ), // Header color
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
-          title: createTitle("Developer", context),
+          title: createTitle("About the Developer", context),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(Responsive.height(context, 1)),
             child: Container(

@@ -1243,3 +1243,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Formulas tab shows male and female formulas in separate cards with blue and pink color coding
 - All section headers now have a small icon on the left
 - Replaced sectionTitle and resultCard helpers with sectionHeader and frostedGlassCard to match the rest of the app
+- Made the truncated app titles have the full title text

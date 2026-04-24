@@ -406,7 +406,7 @@ class _ResultsState extends State<Results> {
             scrolledUnderElevation: 0,
             centerTitle: true,
             toolbarHeight: Responsive.buttonHeight(context, 120),
-            title: createTitle("Results", context),
+            title: createTitle("Calorie Results", context),
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(Responsive.height(context, 48)),
               child: Column(
