@@ -203,12 +203,16 @@ Widget createTitle(String text, BuildContext context) {
         bounds.height,
       ), // Make a rectangle the same size as the text so the gradient covers it
     ),
-    child: Text(
-      text,
-      style: GoogleFonts.dangrek(
-        fontSize: Responsive.font(context, 40),
-        color: Colors.white,
-        shadows: [textDropShadow(context)],
+    child: FittedBox(
+      // FittedBox to shrink text on smaller screens
+      fit: BoxFit.scaleDown,
+      child: Text(
+        text,
+        style: GoogleFonts.dangrek(
+          fontSize: Responsive.font(context, 40),
+          color: Colors.white,
+          shadows: [textDropShadow(context)],
+        ),
       ),
     ),
   );
@@ -458,11 +462,19 @@ Widget customButton(
           size: Responsive.scale(context, baseFontSize),
         ),
         SizedBox(width: Responsive.width(context, 10)),
-        buttonText(text, context, baseFontSize),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: buttonText(text, context, baseFontSize),
+          ),
+        ),
       ],
     );
   } else {
-    child = buttonText(text, context, baseFontSize);
+    child = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: buttonText(text, context, baseFontSize),
+    );
   }
 
   return SizedBox(

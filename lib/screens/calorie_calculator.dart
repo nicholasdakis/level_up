@@ -344,6 +344,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         backgroundColor: Colors.transparent,
         // Header box
         appBar: AppBar(
+          scrolledUnderElevation: 0,
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),

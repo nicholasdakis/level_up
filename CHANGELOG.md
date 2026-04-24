@@ -1261,3 +1261,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed ShellRoute and replaced AppShell with a dedicated /loading route (AppInitScreen) that runs app init then navigates to the intended destination
 - ShellRoute owned the viewport as a persistent parent which caused swipe-back to flash the home screen and re-play the entrance animation
 - Added addPostFrameCallback to the initial context.go to prevent it from running before the app is ready
+- Added FittedBox to customButton and createTitle to prevent overflow on smaller screens
