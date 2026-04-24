@@ -238,7 +238,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             activeTrackColor: appColorNotifier.value,
             inactiveTrackColor: Colors.white.withAlpha(30),
             thumbColor: appColorNotifier.value,
-            overlayColor: appColorNotifier.value.withAlpha(40),
+            overlayColor: Colors.transparent,
             trackHeight: Responsive.scale(context, 3),
             thumbShape: RoundSliderThumbShape(
               enabledThumbRadius: Responsive.scale(context, 10),
@@ -248,7 +248,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             value: value,
             min: min,
             max: max,
-            divisions: divisions,
+            divisions: null,
             onChanged: onChanged,
           ),
         ),
