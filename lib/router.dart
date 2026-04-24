@@ -34,6 +34,27 @@ final _authNotifier = _AuthNotifier();
 // Set to true by AppInitScreen once _initApp completes
 bool _appInitialized = false;
 
+CustomTransitionPage _slidePage({
+  required LocalKey key,
+  required Widget child,
+  Offset begin = const Offset(1.0, 0.0),
+}) {
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 400),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween(
+          begin: begin,
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
+        child: child,
+      );
+    },
+  );
+}
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/loading',
   debugLogDiagnostics: true,
@@ -71,12 +92,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const HomeScreen()),
+          _slidePage(key: state.pageKey, child: const HomeScreen()),
     ),
     GoRoute(
       path: '/calorie-calculator',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const CalorieCalculator()),
+          _slidePage(key: state.pageKey, child: const CalorieCalculator()),
       routes: [
         GoRoute(
           path: 'results',
@@ -86,7 +107,7 @@ final GoRouter appRouter = GoRouter(
               state.extra == null ? '/calorie-calculator' : null,
           pageBuilder: (context, state) {
             final p = state.extra as Map<String, dynamic>;
-            return CupertinoPage(
+            return _slidePage(
               key: state.pageKey,
               child: Results(
                 units: p['units'] as String?,
@@ -107,7 +128,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/food-logging',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const FoodLogging()),
+          _slidePage(key: state.pageKey, child: const FoodLogging()),
       routes: [
         GoRoute(
           path: 'analytics',
@@ -116,7 +137,7 @@ final GoRouter appRouter = GoRouter(
               state.extra == null ? '/food-logging' : null,
           pageBuilder: (context, state) {
             final p = state.extra as Map<String, dynamic>;
-            return CupertinoPage(
+            return _slidePage(
               key: state.pageKey,
               child: FoodLoggingChartsScreen(
                 initialDate: p['initialDate'] as DateTime,
@@ -130,27 +151,28 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/reminders',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const Reminders()),
+          _slidePage(key: state.pageKey, child: const Reminders()),
     ),
     GoRoute(
       path: '/badges',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const Badges()),
+          _slidePage(key: state.pageKey, child: const Badges()),
     ),
     GoRoute(
       path: '/leaderboard',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const Leaderboard()),
+          _slidePage(key: state.pageKey, child: const Leaderboard()),
     ),
     GoRoute(
       path: '/explore',
       pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const Explore()),
+          _slidePage(key: state.pageKey, child: const Explore()),
     ),
     GoRoute(
       path: '/settings/preferences',
-      pageBuilder: (context, state) => CupertinoPage(
+      pageBuilder: (context, state) => _slidePage(
         key: state.pageKey,
+        begin: const Offset(-1.0, 0.0),
         child: PersonalPreferences(
           onProfileImageUpdated: state.extra as VoidCallback?,
         ),
@@ -158,13 +180,19 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/settings/developer',
-      pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const AboutTheDeveloper()),
+      pageBuilder: (context, state) => _slidePage(
+        key: state.pageKey,
+        begin: const Offset(-1.0, 0.0),
+        child: const AboutTheDeveloper(),
+      ),
     ),
     GoRoute(
       path: '/settings/install',
-      pageBuilder: (context, state) =>
-          CupertinoPage(key: state.pageKey, child: const InstallGuide()),
+      pageBuilder: (context, state) => _slidePage(
+        key: state.pageKey,
+        begin: const Offset(-1.0, 0.0),
+        child: const InstallGuide(),
+      ),
     ),
   ],
 );

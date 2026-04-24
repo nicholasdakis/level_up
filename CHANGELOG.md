@@ -1262,3 +1262,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - ShellRoute owned the viewport as a persistent parent which caused swipe-back to flash the home screen and re-play the entrance animation
 - Added addPostFrameCallback to the initial context.go to prevent it from running before the app is ready
 - Added FittedBox to customButton and createTitle to prevent overflow on smaller screens
+- Readded _slidePage as the custom transition for transitions to different screens because the Cupertino one would show a double initialization bug when swiping back to the home screen
