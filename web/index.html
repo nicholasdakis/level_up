@@ -108,6 +108,18 @@
     }
   </script>
 
+  <!-- Restore the intended route after a 404 redirect.
+       404.html encodes the path as ?redirect=/some/path so Flutter boots on the right route. -->
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var redirect = params.get('redirect');
+      if (redirect) {
+        history.replaceState(null, '', '/level_up' + redirect);
+      }
+    })();
+  </script>
+
   <!-- Load Flutter bootstrap (defines _flutter.loader, does NOT auto-call load()) -->
   <script src="flutter_bootstrap.js" defer></script>
 

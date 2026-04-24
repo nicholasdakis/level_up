@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    // Encode the intended path as a query param and redirect to index.html.
+    // index.html reads this param and passes it to go_router before Flutter renders.
+    var base = '/level_up';
+    var path = location.pathname.startsWith(base)
+      ? location.pathname.slice(base.length)
+      : location.pathname;
+    if (!path) path = '/';
+    location.replace(location.origin + '/level_up/?redirect=' + encodeURIComponent(path));
+  </script>
+</head>
+<body></body>
+</html>
