@@ -1237,3 +1237,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Renamed settings_buttons folder to settings
 - Renamed calorie_calculator_buttons folder to calorie_calculator
 - Deleted the user folder (files were moved to models and services)
+- Deleted web_fcm_token.dart as it was unused
+- Redesigned the Results tab with three tabs (Results, Overview, Formulas) matching the style of other screens
+- Results tab now shows BMR and TDEE as large stat cards with the gradient number, unit label, and equation as secondary text
+- Formulas tab shows male and female formulas in separate cards with blue and pink color coding
+- All section headers now have a small icon on the left
+- Replaced sectionTitle and resultCard helpers with sectionHeader and frostedGlassCard to match the rest of the app
