@@ -223,17 +223,40 @@ class _ResultsState extends State<Results> {
   }
 
   // Shared card style for plain text content
-  Widget _infoCard(String text) {
+  Widget _infoCard(
+    String text, {
+    bool addDivider = false,
+    String aboveDividerText = "",
+  }) {
     return frostedGlassCard(
       context,
       padding: EdgeInsets.all(Responsive.scale(context, 18)),
-      child: Text(
-        text,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, 15),
-          color: Colors.white70,
-          height: 1.6, // line spacing for readability
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (addDivider) ...[
+            if (aboveDividerText.isNotEmpty) ...[
+              Text(
+                aboveDividerText,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: Colors.white60,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+            ],
+            Divider(color: Colors.white.withAlpha(20), height: 1),
+            SizedBox(height: Responsive.height(context, 10)),
+          ],
+          Text(
+            text,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 15),
+              color: Colors.white70,
+              height: 1.6,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -488,16 +511,12 @@ class _ResultsState extends State<Results> {
                 _infoCard(
                   "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
                 ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon("ACTIVITY LEVELS", Icons.directions_run),
-                _infoCard(
-                  "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
-                ),
                 SizedBox(height: Responsive.height(context, 40)),
               ]),
 
               // Tab 3: Full BMR formulas for reference
               _tab([
+                _sectionWithIcon("BMR FORMULAS", Icons.calculate_outlined),
                 _formulaCard(
                   _bmrFormulaText("Male"),
                   "Male",
@@ -510,6 +529,17 @@ class _ResultsState extends State<Results> {
                   "Female",
                   Colors.pinkAccent,
                   Icons.female,
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                _sectionWithIcon(
+                  "ACTIVITY LEVEL MULTIPLIERS",
+                  Icons.directions_run,
+                ),
+
+                _infoCard(
+                  "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
+                  addDivider: true,
+                  aboveDividerText: "TDEE = BMR × Activity Multiplier",
                 ),
                 SizedBox(height: Responsive.height(context, 40)),
               ]),
