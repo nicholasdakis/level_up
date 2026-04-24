@@ -178,6 +178,7 @@ def send_due_reminders():
                         code = getattr(res.exception, 'code', None)
                         print(f'[reminders] Token {i} failed: code={code} error={res.exception}')
                         if code in (
+                            'NOT_FOUND',
                             'registration-token-not-registered',
                             'invalid-registration-token',
                         ):
