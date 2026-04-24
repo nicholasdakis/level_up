@@ -36,6 +36,9 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
   int _touchedCalorieIndex = -1;
   int _touchedMacroIndex = -1;
 
+  // Incremented on each date change so .animate(key:) re-triggers all animations
+  int _animationKey = 0;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +60,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
       // Clear any tapped slice so a stale highlight doesn't carry over to a new date
       _touchedCalorieIndex = -1;
       _touchedMacroIndex = -1;
+      _animationKey++;
     });
   }
 
@@ -214,19 +218,26 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
 
                 // Summary stat tiles: calories, protein, carbs, fat at a glance
                 _statTilesRow(
-                  context: context,
-                  totalCal: totalCal,
-                  macros: macros,
-                  proteinColor: proteinColor,
-                  carbsColor: carbsColor,
-                  fatColor: fatColor,
-                ),
+                      context: context,
+                      totalCal: totalCal,
+                      macros: macros,
+                      proteinColor: proteinColor,
+                      carbsColor: carbsColor,
+                      fatColor: fatColor,
+                    )
+                    .animate(key: ValueKey(('stat_tiles', _animationKey)))
+                    .fadeIn(duration: 300.ms)
+                    .slideY(
+                      begin: 0.08,
+                      duration: 300.ms,
+                      curve: Curves.easeOut,
+                    ),
 
                 SizedBox(height: Responsive.height(context, 24)),
 
                 // Calorie breakdown section
                 sectionHeader("CALORIE BREAKDOWN", context)
-                    .animate()
+                    .animate(key: ValueKey(('calories_title', _animationKey)))
                     .fadeIn(duration: 300.ms)
                     .slideY(
                       begin: 0.08,
@@ -345,7 +356,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
                               ],
                             ),
                     )
-                    .animate()
+                    .animate(key: ValueKey(('calories_chart', _animationKey)))
                     .fadeIn(delay: 50.ms, duration: 300.ms)
                     .slideY(
                       begin: 0.08,
@@ -358,7 +369,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
 
                 // Macro breakdown: slices sized by calorie equivalent
                 sectionHeader("MACRO BREAKDOWN", context)
-                    .animate()
+                    .animate(key: ValueKey(('macros_title', _animationKey)))
                     .fadeIn(delay: 150.ms, duration: 300.ms)
                     .slideY(
                       begin: 0.08,
@@ -476,7 +487,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen> {
                               ],
                             ),
                     )
-                    .animate()
+                    .animate(key: ValueKey(('macros_chart', _animationKey)))
                     .fadeIn(delay: 200.ms, duration: 300.ms)
                     .slideY(
                       begin: 0.08,
@@ -722,69 +733,64 @@ Widget _statTilesRow({
 }) {
   // IntrinsicHeight forces all tiles to match the height of the tallest one
   return IntrinsicHeight(
-        child: Row(
-          children: [
-            // Calories tile is wider since it anchors the whole summary
-            Expanded(
-              flex: 5,
-              child: _statTile(
-                context: context,
-                icon: Icons.local_fire_department_rounded,
-                iconColor: const Color(0xFFF97316),
-                label: "Calories",
-                value: totalCal == 0 ? "—" : totalCal.round().toString(),
-                unit: totalCal == 0 ? "" : "kcal",
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 10)),
-            // Macro tiles share equal remaining space
-            Expanded(
-              flex: 4,
-              child: _statTile(
-                context: context,
-                icon: Icons.fitness_center_rounded,
-                iconColor: proteinColor,
-                label: "Protein",
-                value: macros['protein'] == 0
-                    ? "—"
-                    : macros['protein']!.round().toString(),
-                unit: macros['protein'] == 0 ? "" : "g",
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 10)),
-            Expanded(
-              flex: 4,
-              child: _statTile(
-                context: context,
-                icon: Icons.grain_rounded,
-                iconColor: carbsColor,
-                label: "Carbs",
-                value: macros['carbs'] == 0
-                    ? "—"
-                    : macros['carbs']!.round().toString(),
-                unit: macros['carbs'] == 0 ? "" : "g",
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 10)),
-            Expanded(
-              flex: 4,
-              child: _statTile(
-                context: context,
-                icon: Icons.water_drop_rounded,
-                iconColor: fatColor,
-                label: "Fat",
-                value: macros['fat'] == 0
-                    ? "—"
-                    : macros['fat']!.round().toString(),
-                unit: macros['fat'] == 0 ? "" : "g",
-              ),
-            ),
-          ],
+    child: Row(
+      children: [
+        // Calories tile is wider since it anchors the whole summary
+        Expanded(
+          flex: 5,
+          child: _statTile(
+            context: context,
+            icon: Icons.local_fire_department_rounded,
+            iconColor: const Color(0xFFF97316),
+            label: "Calories",
+            value: totalCal == 0 ? "—" : totalCal.round().toString(),
+            unit: totalCal == 0 ? "" : "kcal",
+          ),
         ),
-      )
-      .animate()
-      .fadeIn(duration: 300.ms)
-      .slideY(begin: 0.08, duration: 300.ms, curve: Curves.easeOut);
+        SizedBox(width: Responsive.width(context, 10)),
+        // Macro tiles share equal remaining space
+        Expanded(
+          flex: 4,
+          child: _statTile(
+            context: context,
+            icon: Icons.fitness_center_rounded,
+            iconColor: proteinColor,
+            label: "Protein",
+            value: macros['protein'] == 0
+                ? "—"
+                : macros['protein']!.round().toString(),
+            unit: macros['protein'] == 0 ? "" : "g",
+          ),
+        ),
+        SizedBox(width: Responsive.width(context, 10)),
+        Expanded(
+          flex: 4,
+          child: _statTile(
+            context: context,
+            icon: Icons.grain_rounded,
+            iconColor: carbsColor,
+            label: "Carbs",
+            value: macros['carbs'] == 0
+                ? "—"
+                : macros['carbs']!.round().toString(),
+            unit: macros['carbs'] == 0 ? "" : "g",
+          ),
+        ),
+        SizedBox(width: Responsive.width(context, 10)),
+        Expanded(
+          flex: 4,
+          child: _statTile(
+            context: context,
+            icon: Icons.water_drop_rounded,
+            iconColor: fatColor,
+            label: "Fat",
+            value: macros['fat'] == 0 ? "—" : macros['fat']!.round().toString(),
+            unit: macros['fat'] == 0 ? "" : "g",
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 // Single frosted-glass stat tile with a colored icon, large value, unit, and pill label

@@ -1244,3 +1244,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - All section headers now have a small icon on the left
 - Replaced sectionTitle and resultCard helpers with sectionHeader and frostedGlassCard to match the rest of the app
 - Made the truncated app titles have the full title text
+- Made the food analytics pie charts animation play each time the user changes date instead of only on initialization
+- Did this by adding an animationKey based on the date changing (increments by 1 each time) so that the animation rebuilds when the date changes, then added the key to each .animate()
+- Made each key a tuple with a unique label as duplicate keys are not allowed
