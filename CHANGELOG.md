@@ -1225,3 +1225,15 @@ Tab switching changed from onTap: (_) => setState(() {}) which rebuilt on every 
 - Split services.py into a services/ package with one file per class: food_service.py, poi_service.py, progression_service.py, and snapshot_service.py. Added a services/__init__.py that re-exports everything so no imports in server.py or tests needed to change
 - Added tap interactions to both pie charts in Food Analytics. Tapping a slice expands its radius outward, increases its label size, and dims the other slices so the selected one stands out. Uses fl_chart's pieTouchData with a touchCallback that updates a touched index in setState, and the sections list is pre-built with explicit indices so the touch index maps correctly to only the non-zero slices. Touch state is reset when the date changes so a highlighted slice never carries over to a different day
 - Added animation upon entering the food analytics screen
+- Converted the pie charts to have a donut hole and overlaid it with a Stack to have a label in the middle
+Converted both pie charts in Food Analytics to donuts by adding a centerSpaceRadius, then overlaid a Stack-centered label in the hole. When nothing is tapped the center shows the day total with a gray unit label beneath it; tapping a slice updates the center to that slice's name and value, tinted to the slice's color. Two separate widget classes handle the calorie and macro variants since the macro center shows grams while the calorie center shows kcal
+Added icon badges to each pie chart slice using fl_chart's badgeWidget and badgePositionPercentageOffset, placing a contextual icon near the outer rim of every slice. The icon brightens and grows when its slice is tapped
+Added a row of four stat tiles above the charts showing total calories, protein, carbs, and fat for the selected day at a glance. Each tile has a colored icon, a large value, a small gray unit label, and a tinted pill label. The calories tile is slightly wider via a higher flex factor. Wrapped in IntrinsicHeight so all four tiles are always the same height regardless of content, and the pill label uses FittedBox so the text never wraps
+Removed kcal from the macro donut chart entirely since macro-derived calories (protein × 4, carbs × 4, fat × 9) do not match the stored calorie values due to rounding in description strings and calories from sources not tracked as macros. The macro chart center now shows grams only
+
+## 2026-04-24
+- Made a models folder to store user_data.dart, reminder_data.dart, leaderboard_entry.dart, and poi.dart
+- Made a services folder for service-related files like user_data_manager, leaderboard, recent_foods, voice_search, poi_service, fcm
+- Renamed settings_buttons folder to settings
+- Renamed calorie_calculator_buttons folder to calorie_calculator
+- Deleted the user folder (files were moved to models and services)

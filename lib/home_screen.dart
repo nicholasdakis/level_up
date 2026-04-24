@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:level_up/utility/confetti.dart';
 import 'screens/calorie_calculator.dart';
-import 'screens/settings_buttons/settings_icon_button.dart';
+import 'screens/settings/settings_icon_button.dart';
 import 'screens/explore.dart';
 import 'screens/food_logging.dart';
 import 'screens/reminders.dart';
@@ -14,11 +14,11 @@ import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
-import 'screens/settings_buttons/personal_preferences.dart';
-import 'utility/fcm/fcm_service.dart';
+import 'screens/settings/personal_preferences.dart';
+import 'services/fcm/fcm_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
-import 'user/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/user_data_manager.dart' show trackTrivialAchievement;
 
 // Class to remove awkward glow buttons show when scrolling to the very top / bottom
 class NoGlowScrollBehavior extends ScrollBehavior {

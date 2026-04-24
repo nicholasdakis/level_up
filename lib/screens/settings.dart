@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pwa_install/pwa_install.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
-import 'settings_buttons/personal_preferences.dart';
-import 'settings_buttons/about_the_developer.dart';
-import 'settings_buttons/install_guide.dart';
+import 'settings/personal_preferences.dart';
+import 'settings/about_the_developer.dart';
+import 'settings/install_guide.dart';
 import '../authentication/auth_services.dart';
-import '../user/user_data_manager.dart' show trackTrivialAchievement;
+import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'dart:js_interop';
 
 @JS('isPwa')

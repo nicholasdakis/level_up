@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'user/user_data.dart';
-import 'user/user_data_manager.dart';
+import 'models/user_data.dart';
+import 'services/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
-import 'utility/leaderboard/leaderboard_service.dart';
+import 'services/leaderboard_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 // Global leaderboard_service object

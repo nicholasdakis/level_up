@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
 import '../../globals.dart';
-import '../responsive.dart';
+import '../../utility/responsive.dart';
 
 // JS interop to get the FCM token on web
 @JS('getWebFcmToken')

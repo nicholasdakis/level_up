@@ -10,10 +10,10 @@ import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../utility/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../user/user_data_manager.dart';
-import '../utility/recent_foods_service.dart';
+import '../services/user_data_manager.dart';
+import '../services/recent_foods_service.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import '../utility/voice_search_service.dart';
+import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
 import 'food_logging_charts.dart';
 

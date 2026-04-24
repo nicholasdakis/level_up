@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
 import "/utility/responsive.dart";
-import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
+import '/services/user_data_manager.dart' show getIdToken, backendBaseUrl;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '/utility/confetti.dart';

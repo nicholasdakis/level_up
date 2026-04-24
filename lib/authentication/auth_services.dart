@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
-import '../utility/fcm/web_fcm_token_stub.dart'
-    if (dart.library.js_interop) '../utility/fcm/web_fcm_token_web.dart'
+import '../services/fcm/web_fcm_token_stub.dart'
+    if (dart.library.js_interop) '../services/fcm/web_fcm_token_web.dart'
     as web_fcm;
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());

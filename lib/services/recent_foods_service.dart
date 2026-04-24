@@ -1,4 +1,4 @@
-import 'shared_preferences/shared_prefs_async.dart';
+import '../utility/shared_preferences/shared_prefs_async.dart';
 
 class RecentFoodsService {
   // Maximum number of recent foods to store

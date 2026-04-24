@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'calorie_calculator_buttons/results.dart';
+import 'calorie_calculator/results.dart';
 import '../globals.dart';
 import '/utility/responsive.dart';
 import '/utility/shared_preferences/shared_prefs_async.dart';
-import '../user/user_data_manager.dart' show trackTrivialAchievement;
+import '../services/user_data_manager.dart' show trackTrivialAchievement;
 
 class CalorieCalculator extends StatefulWidget {
   const CalorieCalculator({super.key});

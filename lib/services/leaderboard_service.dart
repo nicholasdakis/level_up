@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'leaderboard_entry.dart';
-import '../../../user/user_data_manager.dart';
+import '../models/leaderboard_entry.dart';
+import 'user_data_manager.dart';
 
 class LeaderboardService {
   // Fetches the leaderboard data from the backend

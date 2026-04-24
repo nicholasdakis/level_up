@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
-import 'poi.dart';
-import '../shared_preferences/shared_prefs_async.dart';
-import '../../user/user_data_manager.dart' show getIdToken, backendBaseUrl;
+import '../models/poi.dart';
+import '../utility/shared_preferences/shared_prefs_async.dart';
+import 'user_data_manager.dart' show getIdToken, backendBaseUrl;
 
 // Error code thrown when the backend rejects a POI fetch because the user is moving too fast
 const String movingTooFastCode = 'moving_too_fast';

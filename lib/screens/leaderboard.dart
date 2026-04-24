@@ -3,7 +3,7 @@ import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../utility/leaderboard/leaderboard_entry.dart';
+import '../models/leaderboard_entry.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;

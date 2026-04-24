@@ -5,12 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
-import '../user/reminder_data.dart';
+import '../models/reminder_data.dart';
 import '../utility/responsive.dart';
-import '../utility/fcm/notification_service.dart';
+import '../services/fcm/notification_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../user/user_data_manager.dart';
+import '../services/user_data_manager.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});

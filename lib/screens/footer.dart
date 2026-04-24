@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:level_up/screens/settings_buttons/personal_preferences.dart';
+import 'package:level_up/screens/settings/personal_preferences.dart';
 import '../globals.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utility/responsive.dart';
