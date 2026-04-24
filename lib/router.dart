@@ -22,7 +22,10 @@ import 'utility/responsive.dart';
 // Notifies go_router to re-run the redirect check when Firebase auth state changes
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier() {
-    FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
+    FirebaseAuth.instance.authStateChanges().listen((_) {
+      debugPrint('auth state changed');
+      notifyListeners();
+    });
   }
 }
 
@@ -38,6 +41,7 @@ final GoRouter appRouter = GoRouter(
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
+    debugPrint('redirect called: ${state.matchedLocation}');
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';
@@ -202,7 +206,9 @@ class _AppInitScreenState extends State<AppInitScreen> {
     final uri = Uri.base;
     final path = uri.path.replaceFirst('/level_up', '');
     final destination = (path.isNotEmpty && path != '/loading') ? path : '/';
-    if (mounted) context.go(destination);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.go(destination);
+    });
 
     await userManager.loadUserData();
 

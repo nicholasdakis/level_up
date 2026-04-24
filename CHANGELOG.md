@@ -1260,3 +1260,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - 404.html encodes the intended path as a query param and redirects to index.html, which restores the URL with history.replaceState before Flutter boots so go_router loads the correct screen
 - Removed ShellRoute and replaced AppShell with a dedicated /loading route (AppInitScreen) that runs app init then navigates to the intended destination
 - ShellRoute owned the viewport as a persistent parent which caused swipe-back to flash the home screen and re-play the entrance animation
+- Added addPostFrameCallback to the initial context.go to prevent it from running before the app is ready
