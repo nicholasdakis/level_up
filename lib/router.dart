@@ -28,8 +28,11 @@ class _AuthNotifier extends ChangeNotifier {
 
 final _authNotifier = _AuthNotifier();
 
+// Set to true by AppInitScreen once _initApp completes
+bool _appInitialized = false;
+
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/loading',
   debugLogDiagnostics: true,
   routerNeglect: false,
   // re-evaluates redirect when auth state changes
@@ -37,147 +40,141 @@ final GoRouter appRouter = GoRouter(
   redirect: (context, state) {
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final onLogin = state.matchedLocation == '/login';
+    final onLoading = state.matchedLocation == '/loading';
 
     // send logged-out users to login
     if (!isLoggedIn && !onLogin) return '/login';
 
     // send already-logged-in users away from login
-    if (isLoggedIn && onLogin) return '/';
+    if (isLoggedIn && onLogin) return '/loading';
+
+    // if init hasn't run yet (e.g. user refreshed on a sub-route), run it first
+    if (isLoggedIn && !onLoading && !_appInitialized) return '/loading';
 
     return null; // no redirect needed
   },
   routes: [
-    // Login is outside the shell so it doesn't trigger app init
     GoRoute(
       path: '/login',
       pageBuilder: (context, state) =>
           NoTransitionPage(key: state.pageKey, child: const RegisterOrLogin()),
     ),
-
-    // ShellRoute wraps all authenticated screens and runs on app init
-    ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
+    GoRoute(
+      path: '/loading',
+      pageBuilder: (context, state) =>
+          NoTransitionPage(key: state.pageKey, child: const AppInitScreen()),
+    ),
+    GoRoute(
+      path: '/',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const HomeScreen()),
+    ),
+    GoRoute(
+      path: '/calorie-calculator',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const CalorieCalculator()),
       routes: [
         GoRoute(
-          path: '/',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const HomeScreen()),
-        ),
-        GoRoute(
-          path: '/calorie-calculator',
-          pageBuilder: (context, state) => CupertinoPage(
-            key: state.pageKey,
-            child: const CalorieCalculator(),
-          ),
-          routes: [
-            GoRoute(
-              path: 'results',
-              // redirect back to calculator if the screen is accessed directly
-              // (the Results widget needs params that can't come from a URL)
-              redirect: (context, state) =>
-                  state.extra == null ? '/calorie-calculator' : null,
-              pageBuilder: (context, state) {
-                final p = state.extra as Map<String, dynamic>;
-                return CupertinoPage(
-                  key: state.pageKey,
-                  child: Results(
-                    units: p['units'] as String?,
-                    goal: p['goal'] as String?,
-                    sex: p['sex'] as String?,
-                    activityLevel: p['activityLevel'] as String?,
-                    equation: p['equation'] as String?,
-                    age: p['age'] as int?,
-                    heightCm: p['heightCm'] as int?,
-                    heightInches: p['heightInches'] as int?,
-                    weight: p['weight'] as double?,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/food-logging',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const FoodLogging()),
-          routes: [
-            GoRoute(
-              path: 'analytics',
-              // redirect back if accessed directly without params
-              redirect: (context, state) =>
-                  state.extra == null ? '/food-logging' : null,
-              pageBuilder: (context, state) {
-                final p = state.extra as Map<String, dynamic>;
-                return CupertinoPage(
-                  key: state.pageKey,
-                  child: FoodLoggingChartsScreen(
-                    initialDate: p['initialDate'] as DateTime,
-                    onDateChanged:
-                        p['onDateChanged'] as void Function(DateTime)?,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/reminders',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const Reminders()),
-        ),
-        GoRoute(
-          path: '/badges',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const Badges()),
-        ),
-        GoRoute(
-          path: '/leaderboard',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const Leaderboard()),
-        ),
-        GoRoute(
-          path: '/explore',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const Explore()),
-        ),
-        GoRoute(
-          path: '/settings/preferences',
-          pageBuilder: (context, state) => CupertinoPage(
-            key: state.pageKey,
-            child: PersonalPreferences(
-              onProfileImageUpdated: state.extra as VoidCallback?,
-            ),
-          ),
-        ),
-        GoRoute(
-          path: '/settings/developer',
-          pageBuilder: (context, state) => CupertinoPage(
-            key: state.pageKey,
-            child: const AboutTheDeveloper(),
-          ),
-        ),
-        GoRoute(
-          path: '/settings/install',
-          pageBuilder: (context, state) =>
-              CupertinoPage(key: state.pageKey, child: const InstallGuide()),
+          path: 'results',
+          // redirect back to calculator if the screen is accessed directly
+          // (the Results widget needs params that can't come from a URL)
+          redirect: (context, state) =>
+              state.extra == null ? '/calorie-calculator' : null,
+          pageBuilder: (context, state) {
+            final p = state.extra as Map<String, dynamic>;
+            return CupertinoPage(
+              key: state.pageKey,
+              child: Results(
+                units: p['units'] as String?,
+                goal: p['goal'] as String?,
+                sex: p['sex'] as String?,
+                activityLevel: p['activityLevel'] as String?,
+                equation: p['equation'] as String?,
+                age: p['age'] as int?,
+                heightCm: p['heightCm'] as int?,
+                heightInches: p['heightInches'] as int?,
+                weight: p['weight'] as double?,
+              ),
+            );
+          },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/food-logging',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const FoodLogging()),
+      routes: [
+        GoRoute(
+          path: 'analytics',
+          // redirect back if accessed directly without params
+          redirect: (context, state) =>
+              state.extra == null ? '/food-logging' : null,
+          pageBuilder: (context, state) {
+            final p = state.extra as Map<String, dynamic>;
+            return CupertinoPage(
+              key: state.pageKey,
+              child: FoodLoggingChartsScreen(
+                initialDate: p['initialDate'] as DateTime,
+                onDateChanged: p['onDateChanged'] as void Function(DateTime)?,
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/reminders',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const Reminders()),
+    ),
+    GoRoute(
+      path: '/badges',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const Badges()),
+    ),
+    GoRoute(
+      path: '/leaderboard',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const Leaderboard()),
+    ),
+    GoRoute(
+      path: '/explore',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const Explore()),
+    ),
+    GoRoute(
+      path: '/settings/preferences',
+      pageBuilder: (context, state) => CupertinoPage(
+        key: state.pageKey,
+        child: PersonalPreferences(
+          onProfileImageUpdated: state.extra as VoidCallback?,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/settings/developer',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const AboutTheDeveloper()),
+    ),
+    GoRoute(
+      path: '/settings/install',
+      pageBuilder: (context, state) =>
+          CupertinoPage(key: state.pageKey, child: const InstallGuide()),
     ),
   ],
 );
 
-// Shell widget that wraps all authenticated routes
-// Runs app init once on mount and shows a spinner until data is ready
-class AppShell extends StatefulWidget {
-  final Widget child;
-  const AppShell({super.key, required this.child});
+// Runs app init once and redirects to / when done.
+// Uses NoTransitionPage so there is no animation into or out of the loading screen.
+class AppInitScreen extends StatefulWidget {
+  const AppInitScreen({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  State<AppInitScreen> createState() => _AppInitScreenState();
 }
 
-class _AppShellState extends State<AppShell> {
-  bool _isLoading = true;
+class _AppInitScreenState extends State<AppInitScreen> {
   late final VoidCallback _colorListener;
 
   @override
@@ -212,29 +209,30 @@ class _AppShellState extends State<AppShell> {
     // initialize FCM in the background so it doesn't delay screen render
     FcmService.initialize(context);
 
+    _appInitialized = true;
+
+    // if the user refreshed on a sub-route, go back there; otherwise go home
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      final uri = Uri.base;
+      final path = uri.path.replaceFirst('/level_up', '');
+      final destination = (path.isNotEmpty && path != '/loading') ? path : '/';
+      context.go(destination);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient()),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Center(
-            child: CircularProgressIndicator(
-              color: Colors.white54,
-              strokeWidth: Responsive.scale(context, 2),
-            ),
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.white54,
+            strokeWidth: Responsive.scale(context, 2),
           ),
         ),
-      );
-    }
-    return widget.child;
+      ),
+    );
   }
 }
