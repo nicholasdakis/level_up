@@ -217,7 +217,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 vertical: Responsive.height(context, 4),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(60),
+                color: lightenColor(appColorNotifier.value.withAlpha(90), 0.2),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 20),
                 ),
@@ -226,7 +226,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 valueLabel(value),
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 13),
-                  color: appColorNotifier.value,
+                  color: lightenColor(appColorNotifier.value, 0.5),
                   fontWeight: FontWeight.w700,
                 ),
               ),
