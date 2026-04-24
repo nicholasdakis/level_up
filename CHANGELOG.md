@@ -1255,3 +1255,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Each back button navigates to the correct parent screen
 - Replaced the Navigator.push call in the footer profile picture tap with context.go
 - Removed /update_exp and its related schemas and methods because it was dead code and exp handling will happen in the specific routes that deal with updating exp (eg daily reward or claiming a poi visit)
+- Replaced custom slide transitions with CupertinoPage so iOS swipe-back gestures reveal the parent screen natively instead of re-triggering the entrance animation

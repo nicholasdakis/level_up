@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -26,28 +27,6 @@ class _AuthNotifier extends ChangeNotifier {
 }
 
 final _authNotifier = _AuthNotifier();
-
-// Slide-from-bottom transition
-Page<void> _slidePage(
-  LocalKey key,
-  Widget child, {
-  Offset begin = const Offset(0, 1),
-}) {
-  return CustomTransitionPage(
-    key: key,
-    child: child,
-    transitionDuration: const Duration(milliseconds: 400),
-    transitionsBuilder: (context, animation, _, child) {
-      return SlideTransition(
-        position: Tween(
-          begin: begin,
-          end: Offset.zero,
-        ).chain(CurveTween(curve: Curves.easeIn)).animate(animation),
-        child: child,
-      );
-    },
-  );
-}
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -82,12 +61,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const HomeScreen()),
+              CupertinoPage(key: state.pageKey, child: const HomeScreen()),
         ),
         GoRoute(
           path: '/calorie-calculator',
-          pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const CalorieCalculator()),
+          pageBuilder: (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: const CalorieCalculator(),
+          ),
           routes: [
             GoRoute(
               path: 'results',
@@ -97,9 +78,9 @@ final GoRouter appRouter = GoRouter(
                   state.extra == null ? '/calorie-calculator' : null,
               pageBuilder: (context, state) {
                 final p = state.extra as Map<String, dynamic>;
-                return _slidePage(
-                  state.pageKey,
-                  Results(
+                return CupertinoPage(
+                  key: state.pageKey,
+                  child: Results(
                     units: p['units'] as String?,
                     goal: p['goal'] as String?,
                     sex: p['sex'] as String?,
@@ -118,24 +99,22 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/food-logging',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const FoodLogging()),
+              CupertinoPage(key: state.pageKey, child: const FoodLogging()),
           routes: [
             GoRoute(
               path: 'analytics',
               // redirect back if accessed directly without params
               redirect: (context, state) =>
                   state.extra == null ? '/food-logging' : null,
-              // slide from top to match the existing upward reveal animation
               pageBuilder: (context, state) {
                 final p = state.extra as Map<String, dynamic>;
-                return _slidePage(
-                  state.pageKey,
-                  FoodLoggingChartsScreen(
+                return CupertinoPage(
+                  key: state.pageKey,
+                  child: FoodLoggingChartsScreen(
                     initialDate: p['initialDate'] as DateTime,
                     onDateChanged:
                         p['onDateChanged'] as void Function(DateTime)?,
                   ),
-                  begin: const Offset(0, -1),
                 );
               },
             ),
@@ -144,49 +123,43 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/reminders',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const Reminders()),
+              CupertinoPage(key: state.pageKey, child: const Reminders()),
         ),
         GoRoute(
           path: '/badges',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const Badges()),
+              CupertinoPage(key: state.pageKey, child: const Badges()),
         ),
         GoRoute(
           path: '/leaderboard',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const Leaderboard()),
+              CupertinoPage(key: state.pageKey, child: const Leaderboard()),
         ),
         GoRoute(
           path: '/explore',
           pageBuilder: (context, state) =>
-              _slidePage(state.pageKey, const Explore()),
+              CupertinoPage(key: state.pageKey, child: const Explore()),
         ),
         GoRoute(
           path: '/settings/preferences',
-          // slide from left to match the existing drawer animation
-          pageBuilder: (context, state) => _slidePage(
-            state.pageKey,
-            PersonalPreferences(
+          pageBuilder: (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: PersonalPreferences(
               onProfileImageUpdated: state.extra as VoidCallback?,
             ),
-            begin: const Offset(-1, 0),
           ),
         ),
         GoRoute(
           path: '/settings/developer',
-          pageBuilder: (context, state) => _slidePage(
-            state.pageKey,
-            const AboutTheDeveloper(),
-            begin: const Offset(-1, 0),
+          pageBuilder: (context, state) => CupertinoPage(
+            key: state.pageKey,
+            child: const AboutTheDeveloper(),
           ),
         ),
         GoRoute(
           path: '/settings/install',
-          pageBuilder: (context, state) => _slidePage(
-            state.pageKey,
-            const InstallGuide(),
-            begin: const Offset(-1, 0),
-          ),
+          pageBuilder: (context, state) =>
+              CupertinoPage(key: state.pageKey, child: const InstallGuide()),
         ),
       ],
     ),
