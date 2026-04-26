@@ -200,6 +200,8 @@ class UserDataManager {
       debugPrint('Error loading user data: $e');
       currentUserData?.username =
           null; // signals fetch failed so username dialog is not shown
+      currentUserData?.canClaimDailyReward =
+          true; // let the backend decide on claim attempt
     }
     stopwatch.stop();
     debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');
