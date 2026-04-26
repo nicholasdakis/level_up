@@ -1308,3 +1308,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a clear button when selecting a food to prevent the user having to change date / re enter the screen to clear the food from the search bar
 - The clear text replaces the microphone icon when a food is selected, and clicking it clears the selection
 - Changed the search TextField from enabled: false to readOnly: true when a food is selected so the suffix widget stays interactive and the clear button is tappable. This also fixed the search box disappearing when a food was selected as the TextField no longer gets rebuilt
+- Replaced the snack bar on food logging errors with an inline error for better UX
+- Made an _inlineError widget that is used instead of showSnackbar when necessary

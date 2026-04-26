@@ -35,6 +35,8 @@ class _FoodLoggingState extends State<FoodLogging>
     with TickerProviderStateMixin {
   // 2 tickers: one for TabController and one for AnimatedSize
 
+  String? _inlineError;
+
   // Hold selected food for updating the UI in real time
   Map<String, dynamic>? selectedFood;
   String? mealType;
@@ -498,6 +500,31 @@ class _FoodLoggingState extends State<FoodLogging>
     }
   }
 
+  // Inline validation error shown above the Log Food button
+  Widget _buildInlineError() {
+    if (_inlineError == null) return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.redAccent,
+            size: Responsive.font(context, 14),
+          ),
+          SizedBox(width: Responsive.width(context, 6)),
+          Text(
+            _inlineError!,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              color: Colors.redAccent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> logFood(Map<String, dynamic> foodObject) async {
     if (isLogging) {
       _showSnackbar("Please wait before logging again.");
@@ -552,6 +579,7 @@ class _FoodLoggingState extends State<FoodLogging>
     setState(() {
       loadFoodForDate(currentDate);
       // Reset search state
+      _inlineError = null;
       userCanType = true;
       mealChosen = false;
       selectedFood = null;
@@ -647,7 +675,10 @@ class _FoodLoggingState extends State<FoodLogging>
         manualCaloriesController.text.trim().isEmpty ||
         manualServingAmountController.text.trim().isEmpty ||
         manualSelectedUnit.isEmpty) {
-      _showSnackbar("Food name, calories, and serving size are required.");
+      setState(
+        () => _inlineError =
+            "Food name, calories, and serving size are required.",
+      );
       return;
     }
 
@@ -826,22 +857,29 @@ class _FoodLoggingState extends State<FoodLogging>
       onPressed: () async {
         final tab = _tabController.index;
         if (tab == FoodTab.search) {
-          if (mealType == null || !mealChosen) {
-            _showSnackbar("All fields must be filled.");
+          if (mealType == null) {
+            setState(() => _inlineError = "Select a meal type first.");
             return;
           }
+          if (!mealChosen || selectedFood == null) {
+            setState(() => _inlineError = "Search and select a food first.");
+            return;
+          }
+          setState(() => _inlineError = null);
           if (selectedFood != null) {
             await logFood(Map<String, dynamic>.from(selectedFood!));
             trackTrivialAchievement("food_search");
           }
         } else if (tab == FoodTab.barcode) {
           if (barcodeResult == null) {
-            _showSnackbar("Scan a barcode first.");
+            setState(() => _inlineError = "Scan a barcode first.");
             return;
           }
+          setState(() => _inlineError = null);
           await logFood(Map<String, dynamic>.from(barcodeResult!));
           trackTrivialAchievement("food_barcode");
         } else if (tab == FoodTab.manual) {
+          setState(() => _inlineError = null);
           await handleManualEntry();
           trackTrivialAchievement("food_manual");
         }
@@ -1848,6 +1886,7 @@ class _FoodLoggingState extends State<FoodLogging>
                         if (index != _previousTabIndex) {
                           setState(() {
                             _previousTabIndex = index;
+                            _inlineError = null;
                             foodList = [];
                             servingAmountController.clear();
                             selectedUnit = 'g';
@@ -1946,6 +1985,15 @@ class _FoodLoggingState extends State<FoodLogging>
                         ),
                       ),
 
+                    // Inline error for barcode and manual tabs
+                    if (_tabController.index != FoodTab.search)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 20),
+                        ),
+                        child: _buildInlineError(),
+                      ),
+
                     // Meal type dropdown and search field / log button
                     Padding(
                       padding: EdgeInsets.symmetric(
@@ -2016,7 +2064,9 @@ class _FoodLoggingState extends State<FoodLogging>
                             // Search field on the search tab, log button everywhere else
                             _tabController.index == FoodTab.search
                                 ? buildSearchButton()
-                                : Expanded(child: buildLogFoodButton()),
+                                : Expanded(
+                                    child: buildLogFoodButton(),
+                                  ), // back to original
                           ],
                         ),
                       ),
@@ -2030,9 +2080,15 @@ class _FoodLoggingState extends State<FoodLogging>
                         padding: EdgeInsets.symmetric(
                           horizontal: Responsive.width(context, 20),
                         ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: buildLogFoodButton(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInlineError(),
+                            SizedBox(
+                              width: double.infinity,
+                              child: buildLogFoodButton(),
+                            ),
+                          ],
                         ),
                       ),
 
