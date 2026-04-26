@@ -749,15 +749,18 @@ class _FoodLoggingState extends State<FoodLogging>
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "Search",
-          suffixIcon: IconButton(
-            icon: Icon(
-              // Red microphone icon when actively listening
-              _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
-              color: _voiceSearch.isListening
-                  ? Colors.redAccent
-                  : Colors.white54,
+          suffixIcon: Opacity(
+            opacity: userCanType ? 1.0 : 0.3,
+            child: IconButton(
+              icon: Icon(
+                // Red microphone icon when actively listening
+                _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
+                color: _voiceSearch.isListening
+                    ? Colors.redAccent
+                    : Colors.white54,
+              ),
+              onPressed: userCanType ? _toggleListening : null,
             ),
-            onPressed: userCanType ? _toggleListening : null,
           ),
           contentPadding: EdgeInsets.symmetric(
             vertical: Responsive.height(context, 12),
@@ -924,15 +927,23 @@ class _FoodLoggingState extends State<FoodLogging>
         if (selectedFood != null && foodList.isEmpty) ...[
           // Spread operator to put the widgets in the list into the parent widget’s children list
           _buildServingRow(),
+          SizedBox(height: Responsive.height(context, 10)),
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: Responsive.width(context, 20),
             ),
-            child: Text(
-              displayDescription,
-              style: TextStyle(
-                color: lightenColor(appColorNotifier.value, 0.2),
-                fontSize: Responsive.font(context, 13),
+            child: frostedGlassCard(
+              context,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 12),
+              ),
+              child: Text(
+                displayDescription,
+                style: GoogleFonts.manrope(
+                  color: Colors.white70,
+                  fontSize: Responsive.font(context, 13),
+                ),
               ),
             ),
           ),

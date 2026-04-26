@@ -1303,3 +1303,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the settings drawer reopen after exiting one of its tabs to feel more natural
 - Used GlobalKey<ScaffoldState> passed into buildSettingsDrawer to open the settings drawer outside of its build method
 - Extracted food_logging_charts colors into consts to reduce repeated code
+- Made the Food Logging mic hide some opacity when the user chooses a food to show it is inactive
+- Added a card around the food description when editing nutrition info to make it easier to read

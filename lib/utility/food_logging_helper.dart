@@ -96,7 +96,7 @@ class FoodLoggingHelper {
     final amountStr = amount % 1 == 0
         ? amount.toInt().toString()
         : amount.toString();
-    return 'Per $amountStr$unit - Calories: ${macros['calories']!.round()}kcal'
+    return 'Per $amountStr $unit - Calories: ${macros['calories']!.round()}kcal'
         ' | Fat: ${macros['fat']!.toStringAsFixed(2)}g'
         ' | Carbs: ${macros['carbs']!.toStringAsFixed(2)}g'
         ' | Protein: ${macros['protein']!.toStringAsFixed(2)}g';
