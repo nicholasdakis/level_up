@@ -1289,3 +1289,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Switched settings drawer navigation from context.go to context.push
 - Removed the begin: Offset(-1, 0) override from settings routes so they use CupertinoPage like all other routes, fixing the instant pop when going back from settings screens
 - Simplified _slidePage to just return CupertinoPage directly since all routes now use the default direction, removing the fallback CustomTransitionPage branch
+- Replaced CupertinoPage with a custom _SlidePage and _SlideRoute (a CupertinoPageRoute subclass) to fix the iOS swipe-back double-transition bug
+- _SlideRoute overrides buildTransitions to check popGestureInProgress which is true when an iOS device uses the swipe back gesture
+- Overriden so that when true, it plays no animation to fix the double animation bug
+- All other transitions still animate normally

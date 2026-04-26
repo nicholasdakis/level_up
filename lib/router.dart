@@ -34,10 +34,47 @@ final _authNotifier = _AuthNotifier();
 // Set to true by AppInitScreen once _initApp completes
 bool _appInitialized = false;
 
-// CupertinoPage gives the native iOS slide-in and ties the swipe-back gesture
-// directly to the animation so there's no secondary transition after the gesture completes
+// CupertinoPageRoute subclass that skips the reverse transition when the iOS
+// swipe-back gesture is driving the animation, preventing the double-transition bug
+class _SlideRoute<T> extends CupertinoPageRoute<T> {
+  _SlideRoute({required super.builder, super.settings});
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 400);
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // swipe gesture is in progress or just completed so skip the animation
+    if (popGestureInProgress) return child;
+
+    return SlideTransition(
+      position: Tween(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
+      child: child,
+    );
+  }
+}
+
+// Page subclass that creates _SlideRoute so go_router uses our custom transition
+class _SlidePage<T> extends Page<T> {
+  final Widget child;
+  const _SlidePage({required super.key, required this.child});
+
+  @override
+  Route<T> createRoute(BuildContext context) {
+    return _SlideRoute<T>(settings: this, builder: (_) => child);
+  }
+}
+
 Page _slidePage({required LocalKey key, required Widget child}) {
-  return CupertinoPage(key: key, child: child);
+  return _SlidePage(key: key, child: child);
 }
 
 final GoRouter appRouter = GoRouter(
