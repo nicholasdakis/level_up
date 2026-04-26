@@ -1263,3 +1263,17 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added addPostFrameCallback to the initial context.go to prevent it from running before the app is ready
 - Added FittedBox to customButton and createTitle to prevent overflow on smaller screens
 - Readded _slidePage as the custom transition for transitions to different screens because the Cupertino one would show a double initialization bug when swiping back to the home screen
+
+## 2026-04-25
+- Added a Range tab to the Food Analytics screen alongside the existing Daily tab using a TabController and TabBar in the AppBar
+- Added table_calendar as a dependency for the range date picker
+- Range tab contains a TableCalendar styled to match the app theme (Manrope font, white text, app color for selected range endpoints)
+- Set availableGestures: AvailableGestures.none on the calendar so mouse clicks register correctly instead of being swallowed by the gesture recognizer
+- Before a range is selected, a touch icon and instruction text tell the user to tap a start date then an end date, with a second line clarifying both are required
+- Selecting a start and end date aggregates all food data across every logged day in the range, skipping days with no entries
+- Added _RangeAggregate data class to hold all aggregated totals from a range in a single return value instead of returning 9 separate values
+- Added _aggregateRange method that adds every day in the range and accumulates calories per meal and macros, tracking daysWithData separately so averages exclude empty days
+- Range tab shows the same two donut charts as the daily tab (calorie breakdown by meal, macro breakdown) but with totals across the selected range
+- Added _rangeStatTilesRow and _rangeTile widgets that mirror the daily stat tiles but add an avg/logged day line beneath each value
+- Extracted the daily tab body into a _DailyTab StatelessWidget to keep the main build method readable after the tab structure was added
+- Extracted the range tab body into a _buildRangeTab method for the same reason
