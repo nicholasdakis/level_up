@@ -266,7 +266,6 @@ class _AppInitScreenState extends State<AppInitScreen> {
     // initialize FCM in the background so it doesn't delay screen render
     if (mounted) FcmService.initialize(context);
 
-    _appInitialized = true;
     appReadyNotifier.value = true;
   }
 
