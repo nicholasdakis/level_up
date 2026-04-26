@@ -1293,3 +1293,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - _SlideRoute overrides buildTransitions to check popGestureInProgress which is true when an iOS device uses the swipe back gesture
 - Overriden so that when true, it plays no animation to fix the double animation bug
 - All other transitions still animate normally
+- Added + / - buttons to the Age and Height sliders in Calorie Calculator that use new increment() and decrement() callbacks to improve UX on smaller screens where sliding accurately is more difficult

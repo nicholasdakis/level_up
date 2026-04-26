@@ -186,6 +186,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   }
 
   // Helper to build a slider row with a label and live value readout
+  // showButtons adds +/- buttons on either side of the slider for fine-tuning by 1 unit
   Widget buildSliderField({
     required String label,
     required double value,
@@ -195,6 +196,14 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     required String Function(double) valueLabel,
     required void Function(double) onChanged,
   }) {
+    void decrement() {
+      if (value > min) onChanged((value - 1).clamp(min, max));
+    }
+
+    void increment() {
+      if (value < max) onChanged((value + 1).clamp(min, max));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -233,26 +242,55 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
             ),
           ],
         ),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: appColorNotifier.value,
-            inactiveTrackColor: Colors.white.withAlpha(30),
-            thumbColor: appColorNotifier.value,
-            overlayColor: Colors.transparent,
-            trackHeight: Responsive.scale(context, 3),
-            thumbShape: RoundSliderThumbShape(
-              enabledThumbRadius: Responsive.scale(context, 10),
+        Row(
+          children: [
+            _sliderButton(Icons.remove, decrement),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: appColorNotifier.value,
+                  inactiveTrackColor: Colors.white.withAlpha(30),
+                  thumbColor: appColorNotifier.value,
+                  overlayColor: Colors.transparent,
+                  trackHeight: Responsive.scale(context, 3),
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: Responsive.scale(context, 10),
+                  ),
+                ),
+                child: Slider(
+                  value: value,
+                  min: min,
+                  max: max,
+                  divisions: null,
+                  onChanged: onChanged,
+                ),
+              ),
             ),
-          ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: null,
-            onChanged: onChanged,
-          ),
+            _sliderButton(Icons.add, increment),
+          ],
         ),
       ],
+    );
+  }
+
+  // Method to add the + and - buttons to age and height sliders
+  Widget _sliderButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: Responsive.scale(context, 28),
+        height: Responsive.scale(context, 28),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(18),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+          border: Border.all(color: Colors.white.withAlpha(30)),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white70,
+          size: Responsive.font(context, 14),
+        ),
+      ),
     );
   }
 
