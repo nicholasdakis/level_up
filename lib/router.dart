@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +16,6 @@ import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
-import 'package:flutter/foundation.dart';
 import 'utility/responsive.dart';
 
 // Notifies go_router to re-run the redirect check when Firebase auth state changes
@@ -35,52 +33,23 @@ final _authNotifier = _AuthNotifier();
 // Set to true by AppInitScreen once _initApp completes
 bool _appInitialized = false;
 
-// CupertinoPageRoute subclass that skips the reverse transition when the iOS
-// swipe-back gesture is driving the animation, preventing the double-transition bug
-class _SlideRoute<T> extends CupertinoPageRoute<T> {
-  _SlideRoute({required super.builder, super.settings});
-
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 400);
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    // swipe gesture is in progress or just completed so skip the animation
-    if (popGestureInProgress) return child;
-
-    return SlideTransition(
-      position: Tween(
-        begin: const Offset(1.0, 0.0),
-        end: Offset.zero,
-      ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
-      child: child,
-    );
-  }
-}
-
-// Page subclass that creates _SlideRoute so go_router uses our custom transition
-class _SlidePage<T> extends Page<T> {
-  final Widget child;
-  const _SlidePage({required super.key, required this.child});
-
-  @override
-  Route<T> createRoute(BuildContext context) {
-    return _SlideRoute<T>(settings: this, builder: (_) => child);
-  }
-}
-
+// slides in on push, instant on pop so there's no reverse animation after swipe-back or back button
 Page _slidePage({required LocalKey key, required Widget child}) {
-  if (kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    return NoTransitionPage(key: key, child: child);
-  }
-  return _SlidePage(key: key, child: child);
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 400),
+    reverseTransitionDuration: Duration.zero,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
+        child: child,
+      );
+    },
+  );
 }
 
 final GoRouter appRouter = GoRouter(
@@ -120,7 +89,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const HomeScreen()),
+          NoTransitionPage(key: state.pageKey, child: const HomeScreen()),
     ),
     GoRoute(
       path: '/calorie-calculator',
