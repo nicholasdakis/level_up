@@ -52,9 +52,9 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
   int _animationKey = 0;
 
   // Range tab state
-  // _rangeStart is always set (initialized to today) but _rangeSelected only goes true once the user picks both dates
-  DateTime _rangeStart = DateTime.now();
-  DateTime _rangeEnd = DateTime.now();
+  // null until the user picks dates so the calendar shows no highlight initially
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
   bool _rangeSelected = false;
   DateTime _calendarFocused = DateTime.now();
 
@@ -408,10 +408,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
                 },
                 calendarStyle: CalendarStyle(
                   outsideDaysVisible: false,
-                  todayDecoration: const BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
+                  todayDecoration: const BoxDecoration(),
                   rangeStartDecoration: BoxDecoration(
                     color: appColorNotifier.value,
                     shape: BoxShape.circle,
@@ -433,9 +430,8 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
                     fontSize: Responsive.font(context, 13),
                   ),
                   todayTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
+                    color: Colors.white70,
                     fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w700,
                   ),
                   rangeStartTextStyle: GoogleFonts.manrope(
                     color: Colors.white,
@@ -526,7 +522,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
               // only when a range is actually selected, not on every build
               Builder(
                 builder: (context) {
-                  final agg = _aggregateRange(_rangeStart, _rangeEnd);
+                  final agg = _aggregateRange(_rangeStart!, _rangeEnd!);
 
                   if (agg.daysWithData == 0) {
                     return Center(
