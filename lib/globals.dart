@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/user_data.dart';
@@ -238,62 +237,6 @@ Widget textWithCard(String text, BuildContext context, double baseFontSize) {
   );
 }
 
-// ADD ITEMS TO A DRAWER, AND ON TAP: CLOSE THE DRAWER AND CHANGE TO THE APPROPRIATE SCREEN
-Widget drawerItem(
-  String text,
-  IconData icon,
-  BuildContext context, {
-  Widget? destination,
-  Offset startOffset = const Offset(0, 1),
-  String? tooltip,
-}) {
-  final listTile = Material(
-    color: Colors.transparent,
-    child: ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 20),
-        vertical: Responsive.height(context, 2),
-      ),
-      leading: Icon(
-        icon,
-        color: Colors.white,
-        size: Responsive.scale(context, 22),
-      ),
-      title: textWithFont(
-        text,
-        context,
-        Responsive.font(context, 16),
-        color: Colors.white,
-        alignment: TextAlign.left,
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.white38,
-        size: Responsive.scale(context, 20),
-      ),
-      hoverColor: Colors.white.withAlpha(50),
-      onTap: () {
-        Navigator.pop(context); // close the drawer
-        if (destination != null) {
-          changeToScreen(context, destination, startOffset: startOffset);
-        }
-      },
-    ),
-  );
-
-  // Wrap in Tooltip if tooltip text is provided
-  if (tooltip != null) {
-    return Tooltip(
-      message: tooltip,
-      waitDuration: Duration(milliseconds: 0),
-      showDuration: Duration(seconds: 3),
-      child: listTile,
-    );
-  } else {
-    return listTile;
-  }
-}
-
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
 Widget buttonText(String text, BuildContext context, double baseFontSize) {
   return ShaderMask(
@@ -436,14 +379,13 @@ Widget _frostedButtonShell(
   );
 }
 
-// CREATE THE CUSTOM BUTTONS THAT CAN OPTIONALLY LEAD TO NEW SCREENS (destinations)
+// CREATE THE CUSTOM BUTTONS
 Widget customButton(
   String text,
   double baseFontSize,
   double baseHeight,
   double baseWidth,
   BuildContext context, {
-  Widget? destination,
   VoidCallback? onPressed,
   Color? baseColor,
   IconData? icon,
@@ -483,13 +425,7 @@ Widget customButton(
     child: _frostedButtonShell(
       context,
       color: color,
-      onTap:
-          onPressed ??
-          () {
-            if (destination != null) {
-              changeToScreen(context, destination);
-            }
-          },
+      onTap: onPressed ?? () {},
       child: child,
     ),
   );
@@ -517,38 +453,6 @@ Widget simpleCustomButton(
       color: color,
       onTap: onPressed,
       child: buttonText(text, context, Responsive.font(context, baseFontSize)),
-    ),
-  );
-}
-
-// CHANGE SCREEN (DART FILE) WITH A TRANSITION
-void changeToScreen(
-  BuildContext context,
-  Widget destination, {
-  Offset? startOffset = const Offset(0, 1),
-}) {
-  // iOS gets its native horizontal slide gesture
-  if (Theme.of(context).platform == TargetPlatform.iOS) {
-    Navigator.push(context, CupertinoPageRoute(builder: (_) => destination));
-    return;
-  }
-
-  // other platforms
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => destination,
-      transitionDuration: Duration(milliseconds: 400),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final start = startOffset ?? Offset(0.0, 1.0);
-        final finish = Offset.zero;
-        final tween = Tween(
-          begin: start,
-          end: finish,
-        ).chain(CurveTween(curve: Curves.easeIn));
-        final offsetAnimation = animation.drive(tween);
-        return SlideTransition(position: offsetAnimation, child: child);
-      },
     ),
   );
 }

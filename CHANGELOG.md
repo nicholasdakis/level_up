@@ -1277,3 +1277,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added _rangeStatTilesRow and _rangeTile widgets that mirror the daily stat tiles but add an avg/logged day line beneath each value
 - Extracted the daily tab body into a _DailyTab StatelessWidget to keep the main build method readable after the tab structure was added
 - Extracted the range tab body into a _buildRangeTab method for the same reason
+- Deleted changeToScreen as it is no longer used
+- Deleted drawerItem as it was unused
