@@ -1296,3 +1296,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added + / - buttons to the Age and Height sliders in Calorie Calculator that use new increment() and decrement() callbacks to improve UX on smaller screens where sliding accurately is more difficult
 - Realized a daily snapshot bug that occurred when a user hits midnight in a timezone whose midnight is a different day to UTC. E.g. Cyprus midnight is 21:00 UTC the previous day, so food logs were being fetched for the wrong date and the snapshot was being written with the wrong snapshot_date
 - Fixed by splitting users into two groups based on whether their UTC offset is positive or negative, then doing two bulk food log fetches, one with utc_today for behind-UTC users and one with utc_tomorrow for ahead-UTC users
+## 2026-04-26
+- Fixed a bug where the app gets stuck on the loading screen after login
+- Fixed by moving appInitialized to globals.dart to avoid a circular import (router.dart imports register_or_login.dart which imports auth_services.dart), resetting it in signOut(), and replacing context.go with appRouter.refresh() after init completes so the redirect rule drives navigation out of /loading
+- Added a redirect rule: when isLoggedIn and onLoading and appInitialized is true, redirect to the intended destination (restores sub-route on web page refresh, falls back to /)

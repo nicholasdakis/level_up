@@ -16,7 +16,6 @@ import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
-import 'utility/responsive.dart';
 
 // Notifies go_router to re-run the redirect check when Firebase auth state changes
 class _AuthNotifier extends ChangeNotifier {
@@ -29,9 +28,6 @@ class _AuthNotifier extends ChangeNotifier {
 }
 
 final _authNotifier = _AuthNotifier();
-
-// Set to true by AppInitScreen once _initApp completes
-bool _appInitialized = false;
 
 // slides in on push, instant on pop so there's no reverse animation after swipe-back or back button
 Page _slidePage({required LocalKey key, required Widget child}) {
@@ -71,7 +67,15 @@ final GoRouter appRouter = GoRouter(
     if (isLoggedIn && onLogin) return '/loading';
 
     // if init hasn't run yet (e.g. user refreshed on a sub-route), run it first
-    if (isLoggedIn && !onLoading && !_appInitialized) return '/loading';
+    if (isLoggedIn && !onLoading && !appInitialized) return '/loading';
+
+    // init is done and user is still on loading
+    // restores sub-route on web page refresh (e.g. /food-logging), falls back to /
+    if (isLoggedIn && onLoading && appInitialized) {
+      final uri = Uri.base;
+      final path = uri.path.replaceFirst('/level_up', '');
+      return (path.isNotEmpty && path != '/loading') ? path : '/';
+    }
 
     return null; // no redirect needed
   },
@@ -217,31 +221,22 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _initApp() async {
-    // Set initialized before navigating so the redirect doesn't bounce back to /loading
-    _appInitialized = true;
-
-    // Navigate immediately so HomeScreen can show its skeletonizer while data loads
-    final uri = Uri.base;
-    final path = uri.path.replaceFirst('/level_up', '');
-    final destination = (path.isNotEmpty && path != '/loading') ? path : '/';
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.go(destination);
-    });
-
     await userManager.loadUserData();
 
     userManager.updateUtcOffset();
     expNotifier.value = currentUserData?.expPoints ?? 0;
 
-    // sync theme color before any screen renders
     if (currentUserData != null) {
       appColorNotifier.value = currentUserData!.appColor;
     }
 
-    // initialize FCM in the background so it doesn't delay screen render
     if (mounted) FcmService.initialize(context);
 
     appReadyNotifier.value = true;
+
+    // set flag then refresh the router so the redirect rule sends the user to /
+    appInitialized = true;
+    appRouter.refresh();
   }
 
   @override

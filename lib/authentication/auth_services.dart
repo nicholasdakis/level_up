@@ -19,7 +19,8 @@ class AuthService {
   Future<void> signOut() async {
     // Remove only this device's FCM token so notifications stop on this device
     try {
-      const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
+      const vapidKey =
+          "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
       final deviceToken = kIsWeb
           ? await web_fcm.getWebFcmToken(vapidKey)
           : await FirebaseMessaging.instance.getToken();
@@ -31,6 +32,7 @@ class AuthService {
     }
 
     await firebaseAuth.signOut();
+    appInitialized = false;
   }
 
   Future<UserCredential?> signInWithGoogle() async {
