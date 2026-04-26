@@ -1300,3 +1300,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where the app gets stuck on the loading screen after login
 - Fixed by moving appInitialized to globals.dart to avoid a circular import (router.dart imports register_or_login.dart which imports auth_services.dart), resetting it in signOut(), and replacing context.go with appRouter.refresh() after init completes so the redirect rule drives navigation out of /loading
 - Added a redirect rule: when isLoggedIn and onLoading and appInitialized is true, redirect to the intended destination (restores sub-route on web page refresh, falls back to /)
+- Made the settings drawer reopen after exiting one of its tabs to feel more natural
+- Used GlobalKey<ScaffoldState> passed into buildSettingsDrawer to open the settings drawer outside of its build method

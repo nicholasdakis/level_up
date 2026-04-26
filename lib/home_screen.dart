@@ -38,6 +38,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late VoidCallback _appColorListener;
 
   @override
@@ -144,8 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: BoxDecoration(gradient: buildThemeGradient()),
         child: Scaffold(
+          key: _scaffoldKey,
           drawer: buildSettingsDrawer(
             context,
+            scaffoldKey: _scaffoldKey,
             // rebuild on pfp image update
             onProfileImageUpdated: () {
               if (!mounted) return;

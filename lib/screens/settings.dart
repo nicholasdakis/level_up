@@ -21,6 +21,8 @@ external bool hasInstallPrompt();
 Widget buildSettingsDrawer(
   BuildContext context, {
   VoidCallback? onProfileImageUpdated,
+  GlobalKey<ScaffoldState>?
+  scaffoldKey, // for opening the settings drawer outside its build method
 }) {
   final openedAsPwa = kIsWeb
       ? isPwa()
@@ -154,17 +156,23 @@ Widget buildSettingsDrawer(
           buildActionTile(
             icon: Icons.account_circle_outlined,
             label: "Personal Preferences",
-            onTap: () {
-              Navigator.pop(context); // close drawer before navigating
-              context.push('/settings/preferences', extra: onProfileImageUpdated);
+            onTap: () async {
+              Navigator.pop(context); // close drawer
+              await context.push(
+                '/settings/preferences',
+                extra: onProfileImageUpdated,
+              );
+              // re-open the drawer when the user comes back so it feels like they never left
+              if (context.mounted) scaffoldKey?.currentState?.openDrawer();
             },
           ),
           buildActionTile(
             icon: Icons.info_outline,
             label: "About The Developer",
-            onTap: () {
-              Navigator.pop(context); // close drawer before navigating
-              context.push('/settings/developer');
+            onTap: () async {
+              Navigator.pop(context);
+              await context.push('/settings/developer');
+              if (context.mounted) scaffoldKey?.currentState?.openDrawer();
             },
           ),
           buildActionTile(
@@ -215,9 +223,10 @@ Widget buildSettingsDrawer(
                 label: "Install App as PWA",
                 tooltip:
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-                onTap: () {
-                  Navigator.pop(context); // close drawer before navigating
-                  context.push('/settings/install');
+                onTap: () async {
+                  Navigator.pop(context);
+                  await context.push('/settings/install');
+                  if (context.mounted) scaffoldKey?.currentState?.openDrawer();
                 },
               ),
           // Divider to visually separate Log Out
