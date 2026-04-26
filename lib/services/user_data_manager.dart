@@ -159,6 +159,17 @@ class UserDataManager {
         );
       }
 
+      // If the backend says the reward can't be claimed but 23 hours have passed
+      // locally, override it (can't be exploited as the backend independently verifies this too)
+      if (currentUserData?.canClaimDailyReward == false &&
+          currentUserData?.lastDailyClaim != null) {
+        final secondsSince = DateTime.now()
+            .toUtc()
+            .difference(currentUserData!.lastDailyClaim!.toUtc())
+            .inSeconds;
+        if (secondsSince >= 82800) currentUserData!.canClaimDailyReward = true;
+      }
+
       // Map food logs from the backend response into the local foodDataByDate format
       if (data['food_logs'] != null) {
         final Map<String, Map<String, List<Map<String, dynamic>>>> foodData =
