@@ -79,7 +79,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Method so the skeletonizer works for the buttons before they fade and slide in
   Widget buildPlaceholderButton() {
-    return customButton("Placeholder", 48, 160, 750, context, onPressed: () {});
+    return simpleCustomButton(
+      "Placeholder",
+      48,
+      160,
+      750,
+      context,
+      onPressed: () {},
+      baseColor: appColorNotifier.value,
+    );
   }
 
   Future<void> promptUsernameDialog(BuildContext context) async {

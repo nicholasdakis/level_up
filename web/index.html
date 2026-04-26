@@ -194,15 +194,19 @@
 
     // Handle foreground messages directly in JS since the Flutter SDK's onMessage
     // doesn't receive messages when the token was obtained via JS interop
-    var messaging = firebase.messaging();
-    messaging.onMessage(function (payload) {
-      console.log('Foreground message received:', payload);
-      var title = payload.notification?.title || 'Level Up! Reminder';
-      var body = payload.notification?.body || payload.data?.body || '';
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body: body, icon: '/level_up/favicon-512.png' });
-      }
-    });
+    try {
+      var messaging = firebase.messaging();
+      messaging.onMessage(function (payload) {
+        console.log('Foreground message received:', payload);
+        var title = payload.notification?.title || 'Level Up! Reminder';
+        var body = payload.notification?.body || payload.data?.body || '';
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body: body, icon: '/level_up/favicon-512.png' });
+        }
+      });
+    } catch (e) {
+      console.error('Failed to set up foreground message handler:', e);
+    }
 
     // If the app was hidden for more than 30 min, force a reload on return so the renderer re-initializes
     (function () {
