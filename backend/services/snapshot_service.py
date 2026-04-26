@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from backend.repository import UserRepository
 
@@ -16,13 +16,27 @@ class SnapshotService: # Service for building daily snapshots for users
             return 0
 
         uids = [u["uid"] for u in users]
-        today = datetime.now(timezone.utc).date().isoformat()
+
+        # Users behind UTC see today's date, users ahead of UTC are already in tomorrow
+        utc_now = datetime.now(timezone.utc)
+        utc_today = utc_now.date().isoformat()
+        utc_tomorrow = (utc_now + timedelta(days=1)).date().isoformat()
+        
+        # Timezones before UTC
+        behind_uids = [u["uid"] for u in users if u["utc_offset"] <= 0]
+        # Timezones after UTC
+        ahead_uids = [u["uid"] for u in users if u["utc_offset"] > 0]
+        ahead_uid_set = set(ahead_uids) # converted to a set for O(1) lookup time instead of O(n)
 
         # Fetch related data in bulk
         streaks = self.user_repo.get_streaks_by_uids(uids)
         achievements = self.user_repo.get_achievements_by_uids(uids)
         claims = self.user_repo.get_claims_by_uids(uids)
-        food_logs = self.user_repo.get_food_logs_by_uids_and_date(uids, today)
+        food_logs = (
+            self.user_repo.get_food_logs_by_uids_and_date(behind_uids, utc_today) if behind_uids else []
+        ) + (
+            self.user_repo.get_food_logs_by_uids_and_date(ahead_uids, utc_tomorrow) if ahead_uids else []
+        )
 
         # Index by uid
         streaks_by_uid = defaultdict(list)
@@ -45,10 +59,11 @@ class SnapshotService: # Service for building daily snapshots for users
         for user in users:
             uid = user["uid"]
             food = food_by_uid.get(uid)
+            snapshot_date = utc_tomorrow if uid in ahead_uid_set else utc_today
 
             rows.append({
                 "uid": uid,
-                "snapshot_date": today,
+                "snapshot_date": snapshot_date,
                 "data": {
                     "level": user["level"],
                     "exp_points": user["exp_points"],
