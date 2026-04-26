@@ -1302,3 +1302,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a redirect rule: when isLoggedIn and onLoading and appInitialized is true, redirect to the intended destination (restores sub-route on web page refresh, falls back to /)
 - Made the settings drawer reopen after exiting one of its tabs to feel more natural
 - Used GlobalKey<ScaffoldState> passed into buildSettingsDrawer to open the settings drawer outside of its build method
+- Extracted food_logging_charts colors into consts to reduce repeated code

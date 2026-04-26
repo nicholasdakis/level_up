@@ -25,6 +25,15 @@ class FoodLoggingChartsScreen extends StatefulWidget {
       _FoodLoggingChartsScreenState();
 }
 
+// Meal and macro colors used across both daily and range tabs
+const breakfastColor = Color(0xFFF59E0B);
+const lunchColor = Color(0xFF10B981);
+const dinnerColor = Color(0xFF6366F1);
+const snacksColor = Color(0xFFF43F5E);
+const proteinColor = Color(0xFF06B6D4);
+const carbsColor = Color(0xFFF59E0B);
+const fatColor = Color(0xFFF43F5E);
+
 class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -218,17 +227,6 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
     final fatCal = macros['fat']! * 9;
     final totalMacroCal = proteinCal + carbsCal + fatCal;
 
-    // Meal colors
-    const breakfastColor = Color(0xFFF59E0B);
-    const lunchColor = Color(0xFF10B981);
-    const dinnerColor = Color(0xFF6366F1);
-    const snacksColor = Color(0xFFF43F5E);
-
-    // Macro colors
-    const proteinColor = Color(0xFF06B6D4);
-    const carbsColor = Color(0xFFF59E0B);
-    const fatColor = Color(0xFFF43F5E);
-
     // Ordered meal data parallel to the sections list so the center label can
     // look up the tapped slice by index without re-filtering
     final calorieSections = <(String, double, Color, IconData)>[
@@ -349,13 +347,13 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
               section: _section,
               legend: _legend,
               emptyState: _emptyState,
-              breakfastColor: const Color(0xFFF59E0B),
-              lunchColor: const Color(0xFF10B981),
-              dinnerColor: const Color(0xFF6366F1),
-              snacksColor: const Color(0xFFF43F5E),
-              proteinColor: const Color(0xFF06B6D4),
-              carbsColor: const Color(0xFFF59E0B),
-              fatColor: const Color(0xFFF43F5E),
+              breakfastColor: breakfastColor,
+              lunchColor: lunchColor,
+              dinnerColor: dinnerColor,
+              snacksColor: snacksColor,
+              proteinColor: proteinColor,
+              carbsColor: carbsColor,
+              fatColor: fatColor,
             ),
             // Range tab
             _buildRangeTab(context),
@@ -366,14 +364,6 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
   }
 
   Widget _buildRangeTab(BuildContext context) {
-    const breakfastColor = Color(0xFFF59E0B);
-    const lunchColor = Color(0xFF10B981);
-    const dinnerColor = Color(0xFF6366F1);
-    const snacksColor = Color(0xFFF43F5E);
-    const proteinColor = Color(0xFF06B6D4);
-    const carbsColor = Color(0xFFF59E0B);
-    const fatColor = Color(0xFFF43F5E);
-
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.symmetric(
