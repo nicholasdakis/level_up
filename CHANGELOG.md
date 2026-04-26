@@ -1315,3 +1315,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wrapped the Log Food button in IgnorePointer during the cooldown to prevent tap-spamming while the animation plays
 - Made the mobile keyboard automatically dismiss after a food search so that the keyboard doesn't block the table of returned foods
 - Fixed an uncaught error on page refresh caused by firebase.messaging() throwing when called unconditionally in index.html by wrapping it in a try/catch so a stale service worker state on refresh no longer crashes the app
+- Fixed home screen skeleton showing briefly on every login even though user data was already loaded before the router navigated to /
+- isLoading now initializes to false when appReadyNotifier is already true at mount time

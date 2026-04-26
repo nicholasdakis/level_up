@@ -50,9 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
-    appReadyNotifier.addListener(_onAppReady);
 
-    // If data already loaded (e.g. navigating back to home), finish immediately
+    // If data is already loaded, skip the skeleton entirely
+    isLoading = !appReadyNotifier.value;
+
+    appReadyNotifier.addListener(_onAppReady);
     if (appReadyNotifier.value) _onAppReady();
 
     // Initialize confetti controllers
@@ -130,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => isLoading = false);
   }
 
-  bool isLoading = true;
+  late bool isLoading;
 
   Widget _maybeAnimate(Widget button, Duration delay) {
     if (_HomeAnimationState.buttonsAnimated) return button;
