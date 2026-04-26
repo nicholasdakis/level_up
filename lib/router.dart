@@ -17,6 +17,7 @@ import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
+import 'package:flutter/foundation.dart';
 import 'utility/responsive.dart';
 
 // Notifies go_router to re-run the redirect check when Firebase auth state changes
@@ -74,6 +75,11 @@ class _SlidePage<T> extends Page<T> {
 }
 
 Page _slidePage({required LocalKey key, required Widget child}) {
+  if (kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
+    return NoTransitionPage(key: key, child: child);
+  }
   return _SlidePage(key: key, child: child);
 }
 
