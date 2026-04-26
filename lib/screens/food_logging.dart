@@ -531,7 +531,7 @@ class _FoodLoggingState extends State<FoodLogging>
       return;
     }
     if (mealType == null) {
-      _showSnackbar("Please select a meal type.");
+      setState(() => _inlineError = "Select a meal type first.");
       return;
     }
 
