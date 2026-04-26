@@ -420,6 +420,10 @@ class _FoodLoggingState extends State<FoodLogging>
       if (response.statusCode == 200) {
         if (latestQuery != query) return;
         final foods = jsonDecode(response.body)['foods'];
+
+        // Dismiss the keyboard so results aren't hidden on mobile
+        FocusScope.of(context).unfocus();
+
         setState(() {
           foodList = foods?['food'] != null
               ? List<dynamic>.from(foods['food'])

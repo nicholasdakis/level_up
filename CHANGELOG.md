@@ -1312,3 +1312,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made an _inlineError widget that is used instead of showSnackbar when necessary
 - Replaced the Log Food cooldown snackbar with a visual fill animation that drains across the button over 3 seconds, giving clear feedback that the button is temporarily inactive
 - Wrapped the Log Food button in IgnorePointer during the cooldown to prevent tap-spamming while the animation plays
+- Made the mobile keyboard automatically dismiss after a food search so that the keyboard doesn't block the table of returned foods
