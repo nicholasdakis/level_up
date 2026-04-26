@@ -1310,3 +1310,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Changed the search TextField from enabled: false to readOnly: true when a food is selected so the suffix widget stays interactive and the clear button is tappable. This also fixed the search box disappearing when a food was selected as the TextField no longer gets rebuilt
 - Replaced the snack bar on food logging errors with an inline error for better UX
 - Made an _inlineError widget that is used instead of showSnackbar when necessary
+- Replaced the Log Food cooldown snackbar with a visual fill animation that drains across the button over 3 seconds, giving clear feedback that the button is temporarily inactive
+- Wrapped the Log Food button in IgnorePointer during the cooldown to prevent tap-spamming while the animation plays

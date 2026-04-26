@@ -16,6 +16,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
 // Tab indices for the food logging input methods
 class FoodTab {
@@ -851,39 +852,72 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Widget buildLogFoodButton() {
-    return frostedButton(
-      "Log Food",
-      context,
-      onPressed: () async {
-        final tab = _tabController.index;
-        if (tab == FoodTab.search) {
-          if (mealType == null) {
-            setState(() => _inlineError = "Select a meal type first.");
-            return;
-          }
-          if (!mealChosen || selectedFood == null) {
-            setState(() => _inlineError = "Search and select a food first.");
-            return;
-          }
-          setState(() => _inlineError = null);
-          if (selectedFood != null) {
-            await logFood(Map<String, dynamic>.from(selectedFood!));
-            trackTrivialAchievement("food_search");
-          }
-        } else if (tab == FoodTab.barcode) {
-          if (barcodeResult == null) {
-            setState(() => _inlineError = "Scan a barcode first.");
-            return;
-          }
-          setState(() => _inlineError = null);
-          await logFood(Map<String, dynamic>.from(barcodeResult!));
-          trackTrivialAchievement("food_barcode");
-        } else if (tab == FoodTab.manual) {
-          setState(() => _inlineError = null);
-          await handleManualEntry();
-          trackTrivialAchievement("food_manual");
-        }
-      },
+    return IgnorePointer(
+      // Prevents tapping while the cooldown bar is running
+      ignoring: isLogging,
+      child: Stack(
+        children: [
+          // The button itself, full width so the Stack has a defined size
+          SizedBox(
+            width: double.infinity,
+            child: frostedButton(
+              "Log Food",
+              context,
+              onPressed: () async {
+                final tab = _tabController.index;
+                if (tab == FoodTab.search) {
+                  if (mealType == null) {
+                    setState(() => _inlineError = "Select a meal type first.");
+                    return;
+                  }
+                  if (!mealChosen || selectedFood == null) {
+                    setState(
+                      () => _inlineError = "Search and select a food first.",
+                    );
+                    return;
+                  }
+                  setState(() => _inlineError = null);
+                  if (selectedFood != null) {
+                    await logFood(Map<String, dynamic>.from(selectedFood!));
+                    trackTrivialAchievement("food_search");
+                  }
+                } else if (tab == FoodTab.barcode) {
+                  if (barcodeResult == null) {
+                    setState(() => _inlineError = "Scan a barcode first.");
+                    return;
+                  }
+                  setState(() => _inlineError = null);
+                  await logFood(Map<String, dynamic>.from(barcodeResult!));
+                  trackTrivialAchievement("food_barcode");
+                } else if (tab == FoodTab.manual) {
+                  setState(() => _inlineError = null);
+                  await handleManualEntry();
+                  trackTrivialAchievement("food_manual");
+                }
+              },
+            ),
+          ),
+          // Cooldown progress bar overlaid at the bottom of the button
+          if (isLogging)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                child: Container(color: appColorNotifier.value.withAlpha(80))
+                    .animate()
+                    .custom(
+                      duration: const Duration(seconds: 3),
+                      builder: (context, value, child) => FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: 1.0 - value, // drains from full to empty
+                        child: child,
+                      ),
+                    ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
