@@ -740,7 +740,7 @@ class _FoodLoggingState extends State<FoodLogging>
     return Expanded(
       child: TextField(
         controller: searchController,
-        enabled: userCanType,
+        readOnly: !userCanType,
         keyboardType: TextInputType.text,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 17),
@@ -749,19 +749,61 @@ class _FoodLoggingState extends State<FoodLogging>
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "Search",
-          suffixIcon: Opacity(
-            opacity: userCanType ? 1.0 : 0.3,
-            child: IconButton(
-              icon: Icon(
-                // Red microphone icon when actively listening
-                _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
-                color: _voiceSearch.isListening
-                    ? Colors.redAccent
-                    : Colors.white54,
-              ),
-              onPressed: userCanType ? _toggleListening : null,
-            ),
-          ),
+          // Clear food icon when a food is selected
+          suffix: selectedFood != null
+              ? GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedFood = null;
+                      userCanType = true;
+                      mealChosen = false;
+                      searchController.clear();
+                      foodList = [];
+                      displayDescription = "";
+                      baseMacros = {};
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: Responsive.width(context, 12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.close,
+                          color: Colors.white54,
+                          size: Responsive.font(context, 14),
+                        ),
+                        SizedBox(width: Responsive.width(context, 4)),
+                        Text(
+                          "Clear",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : null,
+          // Microphone icon when a food is not selected
+          suffixIcon: selectedFood == null
+              ? Opacity(
+                  opacity: userCanType ? 1.0 : 0.3,
+                  child: IconButton(
+                    icon: Icon(
+                      // Red microphone icon when actively listening
+                      _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
+                      color: _voiceSearch.isListening
+                          ? Colors.redAccent
+                          : Colors.white54,
+                    ),
+                    onPressed: userCanType ? _toggleListening : null,
+                  ),
+                )
+              : null,
           contentPadding: EdgeInsets.symmetric(
             vertical: Responsive.height(context, 12),
             horizontal: Responsive.width(context, 14),

@@ -1305,3 +1305,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Extracted food_logging_charts colors into consts to reduce repeated code
 - Made the Food Logging mic hide some opacity when the user chooses a food to show it is inactive
 - Added a card around the food description when editing nutrition info to make it easier to read
+- Added a clear button when selecting a food to prevent the user having to change date / re enter the screen to clear the food from the search bar
+- The clear text replaces the microphone icon when a food is selected, and clicking it clears the selection
+- Changed the search TextField from enabled: false to readOnly: true when a food is selected so the suffix widget stays interactive and the clear button is tappable. This also fixed the search box disappearing when a food was selected as the TextField no longer gets rebuilt
