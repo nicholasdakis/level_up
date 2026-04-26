@@ -180,11 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ), // Prevent the icon from cutting in half
                   elevation: 0,
                   actions: [
-                    Builder(
-                      // Wrapped in Builder so Scaffold.of succeeds
-                      builder: (context) => SettingsIconButton(
-                        onTap: () => Scaffold.of(context).openDrawer(),
-                      ),
+                    SettingsIconButton(
+                      onTap: () => _scaffoldKey.currentState?.openDrawer(),
                     ),
                   ],
                   flexibleSpace: Center(
