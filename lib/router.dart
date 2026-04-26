@@ -34,25 +34,10 @@ final _authNotifier = _AuthNotifier();
 // Set to true by AppInitScreen once _initApp completes
 bool _appInitialized = false;
 
-CustomTransitionPage _slidePage({
-  required LocalKey key,
-  required Widget child,
-  Offset begin = const Offset(1.0, 0.0),
-}) {
-  return CustomTransitionPage(
-    key: key,
-    child: child,
-    transitionDuration: const Duration(milliseconds: 400),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return SlideTransition(
-        position: Tween(
-          begin: begin,
-          end: Offset.zero,
-        ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
-        child: child,
-      );
-    },
-  );
+// CupertinoPage gives the native iOS slide-in and ties the swipe-back gesture
+// directly to the animation so there's no secondary transition after the gesture completes
+Page _slidePage({required LocalKey key, required Widget child}) {
+  return CupertinoPage(key: key, child: child);
 }
 
 final GoRouter appRouter = GoRouter(
@@ -172,7 +157,6 @@ final GoRouter appRouter = GoRouter(
       path: '/settings/preferences',
       pageBuilder: (context, state) => _slidePage(
         key: state.pageKey,
-        begin: const Offset(-1.0, 0.0),
         child: PersonalPreferences(
           onProfileImageUpdated: state.extra as VoidCallback?,
         ),
@@ -180,19 +164,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/settings/developer',
-      pageBuilder: (context, state) => _slidePage(
-        key: state.pageKey,
-        begin: const Offset(-1.0, 0.0),
-        child: const AboutTheDeveloper(),
-      ),
+      pageBuilder: (context, state) =>
+          _slidePage(key: state.pageKey, child: const AboutTheDeveloper()),
     ),
     GoRoute(
       path: '/settings/install',
-      pageBuilder: (context, state) => _slidePage(
-        key: state.pageKey,
-        begin: const Offset(-1.0, 0.0),
-        child: const InstallGuide(),
-      ),
+      pageBuilder: (context, state) =>
+          _slidePage(key: state.pageKey, child: const InstallGuide()),
     ),
   ],
 );

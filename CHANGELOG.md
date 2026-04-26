@@ -1279,3 +1279,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Extracted the range tab body into a _buildRangeTab method for the same reason
 - Deleted changeToScreen as it is no longer used
 - Deleted drawerItem as it was unused
+- Deleted the destination parameter from customButton since all callers use onPressed and the fallback called changeToScreen
+- Removed the cupertino import from globals.dart as it was only needed by changeToScreen
+- Switched _slidePage to return CupertinoPage for standard right-to-left transitions so the iOS swipe-back gesture is tied directly to the animation, preventing the secondary re-entrance animation bug
+- Falls back to CustomTransitionPage with reverseTransitionDuration: Duration.zero only for non-standard directions like settings sliding in from the left
+- Switched all home screen button navigation from context.go to context.push so a proper back stack exists
+- Switched all back buttons from context.go('/') to context.pop() so they pop the current page off the stack instead of re-pushing the home screen and triggering a forward transition
+- Switched sub-screen navigation (food logging to analytics, calorie calculator to results) from context.go to context.push
+- Switched settings drawer navigation from context.go to context.push
+- Removed the begin: Offset(-1, 0) override from settings routes so they use CupertinoPage like all other routes, fixing the instant pop when going back from settings screens
+- Simplified _slidePage to just return CupertinoPage directly since all routes now use the default direction, removing the fallback CustomTransitionPage branch

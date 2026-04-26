@@ -350,7 +350,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           toolbarHeight: Responsive.height(context, 100),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/'),
+            onPressed: () => context.pop(),
           ),
           title: createTitle("Calorie Calculator", context),
           bottom: PreferredSize(
@@ -760,7 +760,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       saveCalculatorDataToPrefs();
 
                       // Pass in variables to the same-named variables in Results
-                      context.go(
+                      context.push(
                         '/calorie-calculator/results',
                         extra: {
                           'units': units ?? "0",

@@ -432,7 +432,7 @@ class _ResultsState extends State<Results> {
             toolbarHeight: Responsive.buttonHeight(context, 120),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => context.go('/calorie-calculator'),
+              onPressed: () => context.pop(),
             ),
             title: createTitle("Calorie Results", context),
             bottom: PreferredSize(

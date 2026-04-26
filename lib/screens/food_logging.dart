@@ -1687,7 +1687,7 @@ class _FoodLoggingState extends State<FoodLogging>
               toolbarHeight: Responsive.buttonHeight(context, 120),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.go('/'),
+                onPressed: () => context.pop(),
               ),
               title: createTitle("Food Logging", context),
               bottom: PreferredSize(
@@ -1725,7 +1725,7 @@ class _FoodLoggingState extends State<FoodLogging>
                       child: InkWell(
                         onTap: () {
                           // leads to the food logging charts screen when clicked
-                          context.go(
+                          context.push(
                             '/food-logging/analytics',
                             extra: {
                               'initialDate': currentDate,

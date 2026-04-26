@@ -285,7 +285,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
               color: Colors.white,
               size: Responsive.font(context, 28),
             ),
-            onPressed: () => context.go('/food-logging'),
+            onPressed: () => context.pop(),
           ),
           title: createTitle("Food Analytics", context),
           bottom: PreferredSize(

@@ -241,7 +241,7 @@ class _LeaderboardState extends State<Leaderboard> {
           toolbarHeight: Responsive.buttonHeight(context, 120),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/'),
+            onPressed: () => context.pop(),
           ),
           title: createTitle("Leaderboard", context),
           scrolledUnderElevation:

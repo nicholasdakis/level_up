@@ -302,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "calorie_calculator",
                                             );
-                                            context.go('/calorie-calculator');
+                                            context.push('/calorie-calculator');
                                           },
                                         ),
                                         0.ms,
@@ -325,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_food_logging",
                                             );
-                                            context.go('/food-logging');
+                                            context.push('/food-logging');
                                           },
                                         ),
                                         80.ms,
@@ -347,12 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_explore",
                                             );
-                                            if (Theme.of(context).platform ==
-                                                TargetPlatform.iOS) {
-                                              context.push('/explore');
-                                            } else {
-                                              context.go('/explore');
-                                            }
+                                            context.push('/explore');
                                           },
                                         ),
                                         160.ms,
@@ -375,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_reminders",
                                             );
-                                            context.go('/reminders');
+                                            context.push('/reminders');
                                           },
                                         ),
                                         240.ms,
@@ -398,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_badges",
                                             );
-                                            context.go('/badges');
+                                            context.push('/badges');
                                           },
                                         ),
                                         320.ms,
@@ -421,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             trackTrivialAchievement(
                                               "open_leaderboard",
                                             );
-                                            context.go('/leaderboard');
+                                            context.push('/leaderboard');
                                           },
                                         ),
                                         400.ms,

@@ -38,7 +38,7 @@ class _FooterState extends State<Footer> {
           child: InkWell(
             splashColor: appColorNotifier.value.withAlpha(100),
             onTap: () {
-              context.go(
+              context.push(
                 '/settings/preferences',
                 extra: widget.onProfileImageUpdated,
               );

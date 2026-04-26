@@ -156,7 +156,7 @@ Widget buildSettingsDrawer(
             label: "Personal Preferences",
             onTap: () {
               Navigator.pop(context); // close drawer before navigating
-              context.go('/settings/preferences', extra: onProfileImageUpdated);
+              context.push('/settings/preferences', extra: onProfileImageUpdated);
             },
           ),
           buildActionTile(
@@ -164,7 +164,7 @@ Widget buildSettingsDrawer(
             label: "About The Developer",
             onTap: () {
               Navigator.pop(context); // close drawer before navigating
-              context.go('/settings/developer');
+              context.push('/settings/developer');
             },
           ),
           buildActionTile(
@@ -217,7 +217,7 @@ Widget buildSettingsDrawer(
                     "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
                 onTap: () {
                   Navigator.pop(context); // close drawer before navigating
-                  context.go('/settings/install');
+                  context.push('/settings/install');
                 },
               ),
           // Divider to visually separate Log Out

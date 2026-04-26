@@ -387,7 +387,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           toolbarHeight: Responsive.height(context, 100),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/'),
+            onPressed: () => context.pop(),
           ),
           title: createTitle("Personal Preferences", context),
           bottom: PreferredSize(

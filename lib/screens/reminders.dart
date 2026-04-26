@@ -458,7 +458,7 @@ class _RemindersState extends State<Reminders> {
           toolbarHeight: Responsive.height(context, 100),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/'),
+            onPressed: () => context.pop(),
           ),
           title: createTitle("Reminders", context),
           bottom: PreferredSize(
