@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/confetti.dart';
 import 'screens/settings/settings_icon_button.dart';
@@ -134,10 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight =
-        1.sh; // Make widgets the size of the user's personal screen size
-    double screenWidth =
-        1.sw; // Make widgets the size of the user's personal screen size
     // Show loading if user data not loaded yet
     return Skeletonizer(
       enabled: isLoading,
@@ -431,8 +426,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Footer box
                   Footer(
-                    screenHeight: screenHeight,
-                    screenWidth: screenWidth,
                     profilePicture: userManager.insertProfilePicture(),
                     // Rebuild footer with correct Profile Picture
                     onProfileImageUpdated: () {

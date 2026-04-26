@@ -5,15 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utility/responsive.dart';
 
 class Footer extends StatefulWidget {
-  final double screenHeight;
-  final double screenWidth;
   final Widget profilePicture;
   final VoidCallback onProfileImageUpdated;
 
   const Footer({
     super.key,
-    required this.screenHeight,
-    required this.screenWidth,
     required this.profilePicture,
     required this.onProfileImageUpdated,
   });
