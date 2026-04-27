@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     appColorNotifier.addListener(_appColorListener);
 
     // If data is already loaded, skip the skeleton entirely
-    isLoading = !appReadyNotifier.value;
+    if (appReadyNotifier.value) isLoading = false;
 
     appReadyNotifier.addListener(_onAppReady);
     if (appReadyNotifier.value) _onAppReady();
@@ -121,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // AppShell already loaded user data, updated UTC offset, synced XP, and
   // initialized FCM. HomeScreen only needs to show the home-specific dialogs.
   Future<void> initializeUser() async {
+    if (currentUserData == null) return;
     // Give users without a username a dialog box to choose one
     if (currentUserData!.username != null &&
         currentUserData!.username == currentUserData!.uid) {
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => isLoading = false);
   }
 
-  late bool isLoading;
+  bool isLoading = true;
 
   Widget _maybeAnimate(Widget button, Duration delay) {
     if (_HomeAnimationState.buttonsAnimated) return button;
