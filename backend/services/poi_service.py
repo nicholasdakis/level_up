@@ -7,6 +7,8 @@ class POIService:
     OVERPASS_URLS = [
         "https://overpass-api.de/api/interpreter",
         "https://overpass.private.coffee/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.openstreetmap.ru/api/interpreter",
     ]
 
     # Overpass QL query template for fetching general POIs near a location
