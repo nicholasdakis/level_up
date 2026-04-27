@@ -1,15 +1,16 @@
-import concurrent.futures
 import requests
 
 
 class POIService:
-    # Overpass API endpoints
+    # Overpass API endpoints. tried sequentially, first success wins
     OVERPASS_URLS = [
         "https://overpass-api.de/api/interpreter",
         "https://overpass.private.coffee/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
-        "https://overpass.openstreetmap.ru/api/interpreter",
     ]
+
+    # Identifies the app to Overpass as required by their fair-use policy
+    HEADERS = {"User-Agent": "LevelUpApp/1.0 (contact: n1ch0lasd4k1s@gmail.com)"}
 
     # Overpass QL query template for fetching general POIs near a location
     # {lat}, {lng}, {radius} are filled in at request time
@@ -33,38 +34,16 @@ out body 100;
     def fetch_pois(self, lat: float, lng: float):
         query = self.build_query(lat, lng)
 
-        def try_url(url):
-            # Raises on non-200 so the executor treats it as a failed future
-            r = requests.post(url, data={"data": query}, timeout=15)
-            if r.status_code == 200:
-                return r
-            raise Exception(f"HTTP {r.status_code}: {r.text}")
-
-        # ThreadPoolExecutor runs each try_url call in its own thread so all
-        # URLs are requested simultaneously instead of one after another
-        # executor.submit() schedules a call and immediately returns a Future
-        # (a handle to the result that will arrive later)
-        # The dict maps each Future back to its URL for error logging.
-        executor = concurrent.futures.ThreadPoolExecutor()
-        futures = {executor.submit(try_url, url): url for url in self.OVERPASS_URLS}
-
-        # shutdown(wait=False) means the executorgit  won't block when we return early
-        # after the first success — the losing thread finishes in the background.
-        # Using a 'with' block instead would call shutdown(wait=True) on return,
-        # which would wait for both threads to finish before the function returned
-        executor.shutdown(wait=False)
-
-        # as_completed() yields each Future in the order they finish,
-        # not the order they were submitted, so whichever Overpass server
-        # responds first is handled first
-        for future in concurrent.futures.as_completed(futures):
+        # Try each URL in order as Overpass's fair-use policy prohibits parallel requests
+        for url in self.OVERPASS_URLS:
             try:
-                return future.result().json()  # first success wins
-            except Exception as e:
-                print(f"Overpass error ({futures[future]}): {e}")
-                # loop continues to the next completed future
+                r = requests.post(url, data={"data": query}, headers=self.HEADERS, timeout=15)
+                if r.status_code == 200:
+                    return r.json()
+                print(f"Overpass error ({url}): HTTP {r.status_code}")
+            except requests.RequestException as e:
+                print(f"Overpass error ({url}): {e}")
 
-        # Only reached if every future raised an exception
         print("All Overpass endpoints failed")
         return None
 

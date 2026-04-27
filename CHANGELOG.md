@@ -1334,7 +1334,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-04-27
 - Changed the backend to fire all Overpass API URLs in parallel and use the first successful response instead of trying them sequentially
-- Fixed the parallel executor using a with block which caused shutdown(wait=True) to be called on early return, making it wait for all threads to finish instead of returning as soon as the first URL succeeded — replaced with shutdown(wait=False)
+- Fixed the parallel executor using a with block which caused shutdown(wait=True) to be called on early return, making it wait for all threads to finish instead of returning as soon as the first URL succeeded, replaced with shutdown(wait=False)
 - Added two additional Overpass mirror URLs (kumi.systems, openstreetmap.ru) so 4 servers race in parallel instead of 2
 - Reduced per-URL HTTP timeout from 25s to 15s and the Overpass query timeout from 20s to 14s to fail faster when servers are unresponsive
 - Fixed the explore tab showing "Failed to load locations" alongside visible POI markers by only showing the error when nearbyPOIs is empty
@@ -1343,3 +1343,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - On first visit to the explore tab a button is shown to trigger location access; on subsequent visits permission is already granted so location is retrieved automatically
 - Made Nearby Spots card automatically expand on an error for better UX
 - Added per-request logging to the backend so every route logs the uid and response status, allowing Render logs to be grepped by uid to diagnose user-specific issues
+- Reverted to sequential Overpass API calls as per their rules
