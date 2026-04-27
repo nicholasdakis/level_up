@@ -233,14 +233,31 @@ class _AppInitScreenState extends State<AppInitScreen> {
       appColorNotifier.value = currentUserData!.appColor;
       try {
         // Update the body background so the notch / loading screen matches the app color
-        final argb = currentUserData!.appColor.toARGB32();
-        final hex =
-            '#'
-            '${((argb >> 16) & 0xFF).toRadixString(16).padLeft(2, '0')}'
-            '${((argb >> 8) & 0xFF).toRadixString(16).padLeft(2, '0')}'
-            '${(argb & 0xFF).toRadixString(16).padLeft(2, '0')}';
-        web_fcm.setAppColor(hex);
-        debugPrint('setAppColor called with: $hex');
+        String toHex(Color c) {
+          final a = c.toARGB32();
+          return '#'
+              '${((a >> 16) & 0xFF).toRadixString(16).padLeft(2, '0')}'
+              '${((a >> 8) & 0xFF).toRadixString(16).padLeft(2, '0')}'
+              '${(a & 0xFF).toRadixString(16).padLeft(2, '0')}';
+        }
+
+        final base = currentUserData!.appColor;
+        final dark = darkenColor(base, 0.015);
+        final mid = lightenColor(base, 0.015);
+
+        // Blend color.withAlpha(200) over the dark gradient edge to get the exact appbar color
+        // This is what the notch shows since Flutter's safe area leaves it as the HTML background
+        const alpha = 200 / 255;
+        Color blendOver(Color fg, Color bg) => Color.fromARGB(
+          255,
+          (fg.r * alpha + bg.r * (1 - alpha)).round(),
+          (fg.g * alpha + bg.g * (1 - alpha)).round(),
+          (fg.b * alpha + bg.b * (1 - alpha)).round(),
+        );
+        final notch = toHex(blendOver(base, dark));
+
+        web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|$notch');
+        debugPrint('setAppColor called with notch: $notch');
       } catch (e) {
         debugPrint('setAppColor failed: $e');
       }

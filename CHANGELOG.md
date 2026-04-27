@@ -1355,3 +1355,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The CSS was hardcoding #2d2d2d which overwrote the color the inline script set from localStorage
 - Switched to a CSS variable so the stored color is applied before Flutter paints and can't be overwritten by the stylesheet
 - The loading color is now blended at the same opacity Flutter uses (200/255) so it matches the scaffold background color exactly instead of showing the raw unblended color
+- Changed the loading background to use the full app gradient instead of a flat color so it matches buildThemeGradient exactly
+- Flutter sends the dark and mid gradient stop colors as a pipe-separated string, and the JS reconstructs the same linear-gradient before Flutter paints
