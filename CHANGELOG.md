@@ -1334,4 +1334,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-04-27
 - Changed the backend to fire all Overpass API URLs in parallel and use the first successful response instead of trying them sequentially
-- Made the POI error message only appear if there are no nearby POIs to fall back on
+- Fixed the parallel executor using a with block which caused shutdown(wait=True) to be called on early return, making it wait for all threads to finish instead of returning as soon as the first URL succeeded — replaced with shutdown(wait=False)
+- Added two additional Overpass mirror URLs (kumi.systems, openstreetmap.ru) so 4 servers race in parallel instead of 2
+- Reduced per-URL HTTP timeout from 25s to 15s and the Overpass query timeout from 20s to 14s to fail faster when servers are unresponsive
+- Fixed the explore tab showing "Failed to load locations" alongside visible POI markers by only showing the error when nearbyPOIs is empty
+- Changed the Overpass failure error message to clarify that Overpass is slow rather than implying the app itself failed

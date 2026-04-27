@@ -334,7 +334,7 @@ def get_nearby_pois():
     # Step 3: Fetch POIs from the Overpass API
     data = poi_service.fetch_pois(body.lat, body.lng)
     if data is None:
-        return jsonify({"error": "Overpass API unavailable, try again later"}), 503
+        return jsonify({"error": "overpass_unavailable"}), 503
 
     # Step 4: Parse the raw Overpass data into POI objects
     all_pois = poi_service.parse_overpass_response(data)

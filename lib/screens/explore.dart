@@ -172,10 +172,13 @@ class _ExploreState extends State<Explore> {
       if (!mounted) return;
       // Match the known code from the service layer to show a tailored error message
       final isMovingTooFast = e.toString().contains(movingTooFastCode);
+      final isOverpassDown = e.toString().contains('overpass_unavailable');
       setState(() {
         poiError = isMovingTooFast
-            ? 'Moving too far too quickly. Please try again.'
-            : 'Failed to load locations, please try again shortly.';
+            ? 'Moving too fast. Please try again.'
+            : isOverpassDown
+            ? 'Location data is unavailable right now. Overpass is slow. Try again later.'
+            : 'Failed to load locations. Please try again later.';
         loadingPOIs = false;
         fillingCache = false;
       });

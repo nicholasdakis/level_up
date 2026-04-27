@@ -153,6 +153,11 @@ class POIService {
       }
     }
 
+    if (response.statusCode == 503) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Failed to fetch POIs: 503');
+    }
+
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch POIs: ${response.statusCode}');
     }
