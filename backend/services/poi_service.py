@@ -16,7 +16,7 @@ class POIService:
     # Each tag key (amenity, leisure, shop, tourism) produces category values
     # used by POIIcons.fromCategory on the client side
     OVERPASS_QUERY = """
-[out:json][timeout:20];
+[out:json][timeout:14];
 (
   node["amenity"](around:{radius},{lat},{lng});
   node["leisure"](around:{radius},{lat},{lng});
@@ -35,7 +35,7 @@ out body 100;
 
         def try_url(url):
             # Raises on non-200 so the executor treats it as a failed future
-            r = requests.post(url, data={"data": query}, timeout=25)
+            r = requests.post(url, data={"data": query}, timeout=15)
             if r.status_code == 200:
                 return r
             raise Exception(f"HTTP {r.status_code}: {r.text}")
