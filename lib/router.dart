@@ -250,9 +250,9 @@ class _AppInitScreenState extends State<AppInitScreen> {
         const alpha = 200 / 255;
         Color blendOver(Color fg, Color bg) => Color.fromARGB(
           255,
-          (fg.r * alpha + bg.r * (1 - alpha)).round(),
-          (fg.g * alpha + bg.g * (1 - alpha)).round(),
-          (fg.b * alpha + bg.b * (1 - alpha)).round(),
+          ((fg.r * 255) * alpha + (bg.r * 255) * (1 - alpha)).round(),
+          ((fg.g * 255) * alpha + (bg.g * 255) * (1 - alpha)).round(),
+          ((fg.b * 255) * alpha + (bg.b * 255) * (1 - alpha)).round(),
         );
         final notch = toHex(blendOver(base, dark));
 
