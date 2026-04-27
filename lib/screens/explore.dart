@@ -378,9 +378,11 @@ class _ExploreState extends State<Explore> {
 
   @override
   Widget build(BuildContext context) {
+    // Offset pushes the back button down so the card doesn't cover it on mobile
+    // Use a smaller offset when only an error is shown since the card is much shorter than a full POI list
     double cardOpenMobileOffset = cardIsOpen
-        ? 300
-        : 0; // offset to prevent card from covering back button on mobile devices
+        ? (poiError != null && nearbyPOIs.isEmpty ? 80 : 300)
+        : 0;
 
     return Scaffold(
       body: Stack(
