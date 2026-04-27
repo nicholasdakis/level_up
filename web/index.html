@@ -31,11 +31,10 @@
   <style>
     html,
     body {
-      background-color: #2d2d2d;
+      background-color: var(--app-color, #2d2d2d);
       margin: 0;
       padding: 0;
       height: 100%;
-      transition: background-color 0.3s ease;
     }
   </style>
 
@@ -44,11 +43,9 @@
     // Uses documentElement because document.body is null when scripts run in <head>
     (function () {
       var saved = localStorage.getItem('appColor');
-      alert('appColor from localStorage: ' + saved);
       if (saved) {
         document.documentElement.style.backgroundColor = saved;
-        var metaTheme = document.querySelector('meta[name="theme-color"]');
-        if (metaTheme) metaTheme.setAttribute('content', saved);
+        document.documentElement.style.setProperty('--app-color', saved);
       }
     })();
 
