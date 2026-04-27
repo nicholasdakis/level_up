@@ -24,6 +24,8 @@ class Explore extends StatefulWidget {
 
 class _ExploreState extends State<Explore> {
   LatLng? userLocation;
+  bool _locationRequested =
+      false; // true once the user has tapped to grant location
   bool cardIsOpen = false;
   double _cardOpacity = 0; // for the fade-out
   bool loadingPOIs = false; // true while fetching POIs
@@ -50,9 +52,8 @@ class _ExploreState extends State<Explore> {
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
-    _poiService
-        .cleanupOldVisits(); // remove expired visit records on screen open
-    _initLocation();
+    _poiService.cleanupOldVisits();
+    _checkAndInitLocation();
   }
 
   @override
@@ -61,6 +62,18 @@ class _ExploreState extends State<Explore> {
     _mapController.dispose();
     _positionStream?.cancel();
     super.dispose();
+  }
+
+  Future<void> _checkAndInitLocation() async {
+    final permission = await Geolocator.checkPermission();
+    final alreadyGranted =
+        permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+    if (alreadyGranted) {
+      setState(() => _locationRequested = true);
+      _initLocation();
+    }
+    // Otherwise the button is shown and _initLocation is called on tap
   }
 
   Future<void> _initLocation() async {
@@ -427,7 +440,7 @@ class _ExploreState extends State<Explore> {
             ],
           ),
 
-          // Loading screen while getting user's coordinates
+          // Overlay shown before and while location is being retrieved
           if (userLocation == null)
             Container(
               color: Colors.black54,
@@ -436,15 +449,40 @@ class _ExploreState extends State<Explore> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const CircularProgressIndicator(),
-                    SizedBox(height: Responsive.height(context, 10)),
-                    Text(
-                      "Retrieving location...",
-                      style: TextStyle(
-                        fontSize: Responsive.width(context, 35),
+                    if (!_locationRequested) ...[
+                      // Browser requires geolocation to be triggered by a direct user gesture
+                      const Icon(
+                        Icons.location_on,
                         color: Colors.white,
+                        size: 48,
                       ),
-                    ),
+                      SizedBox(height: Responsive.height(context, 12)),
+                      Text(
+                        "Tap to find nearby spots",
+                        style: TextStyle(
+                          fontSize: Responsive.width(context, 18),
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 16)),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() => _locationRequested = true);
+                          _initLocation();
+                        },
+                        child: const Text("Find nearby spots"),
+                      ),
+                    ] else ...[
+                      const CircularProgressIndicator(),
+                      SizedBox(height: Responsive.height(context, 10)),
+                      Text(
+                        "Retrieving location...",
+                        style: TextStyle(
+                          fontSize: Responsive.width(context, 18),
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
