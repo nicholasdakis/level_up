@@ -5,7 +5,7 @@ import random
 import logging
 import requests
 from datetime import timedelta, timezone, datetime, date
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from pydantic import ValidationError
 from firebase_admin import messaging
@@ -91,6 +91,13 @@ if not firebase_admin._apps:
 app = Flask(__name__)
 CORS(app) # allow requests from desktop device browsers
 
+# Logs every request with the uid and status code for debugging user-specific issues in Render logs
+@app.after_request
+def log_request(response):
+    uid = getattr(g, 'uid', 'unauthenticated')
+    logger.info(f"[{request.method}] {request.path} uid={uid} status={response.status_code}")
+    return response
+
 @app.after_request # runs after every request
 # This method adds CORS headers even when responses are unsuccessful to prevent CORS errors when trying to debug
 def add_cors_headers(response):
@@ -120,6 +127,7 @@ def _parse_and_auth(schema):
     uid, err = _try_verify_token(body.id_token)
     if err:
         return None, None, err
+    g.uid = uid  # stored so after_request can log it for every route
     return uid, body, None
 
 def send_due_reminders():

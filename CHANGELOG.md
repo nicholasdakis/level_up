@@ -1342,3 +1342,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a browser violation where geolocation was requested automatically on page load instead of in response to a user gesture, causing the browser to silently deny location access and prevent POIs from ever loading
 - On first visit to the explore tab a button is shown to trigger location access; on subsequent visits permission is already granted so location is retrieved automatically
 - Made Nearby Spots card automatically expand on an error for better UX
+- Added per-request logging to the backend so every route logs the uid and response status, allowing Render logs to be grepped by uid to diagnose user-specific issues
