@@ -39,15 +39,17 @@
 
   <script>
     // Apply the saved app color immediately so the notch matches before Flutter paints
+    // Uses documentElement because document.body is null when scripts run in <head>
     (function () {
       var saved = localStorage.getItem('appColor');
-      if (saved) document.body.style.backgroundColor = saved;
+      if (saved) document.documentElement.style.backgroundColor = saved;
     })();
 
     // Called from Flutter via JS interop when the app color is known
     window.setAppColor = function (hex) {
       localStorage.setItem('appColor', hex);
-      document.body.style.backgroundColor = hex;
+      document.documentElement.style.backgroundColor = hex;
+      if (document.body) document.body.style.backgroundColor = hex;
     };
   </script>
 
