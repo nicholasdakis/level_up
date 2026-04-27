@@ -56,6 +56,8 @@ void initConnectivity() {
 }
 
 class UserDataManager {
+  bool lastLoadFailed = false;
+
   // Formula for calculating experience needed for next level: 100 * 1.25^(current_level-0.5) * 1.05 + (current_level * 10), rounded to a multiple of 10
   // Kept here so the XP bar can render instantly
   int? get experienceNeeded {
@@ -196,12 +198,14 @@ class UserDataManager {
 
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
+      lastLoadFailed = false;
     } catch (e) {
       debugPrint('Error loading user data: $e');
       currentUserData?.username =
           null; // signals fetch failed so username dialog is not shown
       currentUserData?.canClaimDailyReward =
           true; // let the backend decide on claim attempt
+      lastLoadFailed = true;
     }
     stopwatch.stop();
     debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');

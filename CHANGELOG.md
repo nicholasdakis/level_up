@@ -1323,3 +1323,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Each meal tile is colored using lightenColor(appColorNotifier, 0.30) so the picker stays on theme
 - Recent foods now go through the same meal picker instead of logging immediately on tap
 - Fixed an Incorrect use of ParentDataWidget error caused by buildSearchButton() returning an Expanded widget after the surrounding Row was removed when the meal type dropdown was deleted
+- Added a failed to load state on the home screen when the backend fetch fails
+- The skeletonizer stays visible in the background and a frosted card with a retry button is shown on top
+- The home screen is non-interactable while the load failed state is active so the user cannot tap buttons with stale or missing data
+- Added lastLoadFailed flag to UserDataManager so the home screen can detect and react to a failed fetch

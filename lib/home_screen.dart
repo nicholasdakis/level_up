@@ -54,8 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
     // Initialize confetti controllers before _onAppReady
     confettiControllerinit();
 
-    // If data is already loaded, skip the skeleton entirely
-    if (appReadyNotifier.value) isLoading = false;
+    // If data is already loaded and fetch succeeded, skip the skeleton entirely
+    if (appReadyNotifier.value && !userManager.lastLoadFailed) {
+      isLoading = false;
+    }
 
     appReadyNotifier.addListener(_onAppReady);
     if (appReadyNotifier.value) _onAppReady();
@@ -122,6 +124,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // initialized FCM. HomeScreen only needs to show the home-specific dialogs.
   Future<void> initializeUser() async {
     if (currentUserData == null) return;
+
+    if (userManager.lastLoadFailed) {
+      if (mounted) setState(() => loadFailed = true);
+      return;
+    }
+
     // Give users without a username a dialog box to choose one
     if (currentUserData!.username != null &&
         currentUserData!.username == currentUserData!.uid) {
@@ -133,7 +141,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => isLoading = false);
   }
 
+  // Method that retries loading user data after a failed fetch
+  Future<void> _retry() async {
+    if (!mounted) return;
+    setState(() {
+      loadFailed = false;
+      isLoading = true;
+    });
+    await userManager.loadUserData();
+    if (mounted) initializeUser();
+  }
+
   bool isLoading = true;
+  bool loadFailed = false;
 
   Widget _maybeAnimate(Widget button, Duration delay) {
     if (_HomeAnimationState.buttonsAnimated) return button;
@@ -145,6 +165,65 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IgnorePointer(ignoring: loadFailed, child: _buildBody()),
+        if (loadFailed)
+          Center(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 40),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 24),
+                vertical: Responsive.height(context, 28),
+              ),
+              decoration: BoxDecoration(
+                color: darkenColor(appColorNotifier.value, 0.02).withAlpha(230),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(20), width: 1),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Failed to load.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 16),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    "Check your connection and try again.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white54,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  simpleCustomButton(
+                    "Retry",
+                    16,
+                    50,
+                    160,
+                    context,
+                    onPressed: _retry,
+                    baseColor: appColorNotifier.value,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBody() {
     // Show loading if user data not loaded yet
     return Skeletonizer(
       enabled: isLoading,
