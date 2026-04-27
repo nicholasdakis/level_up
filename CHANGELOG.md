@@ -1330,3 +1330,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the default load color on PWA show a dark gray color instead of white which is too bright and jarring
 - Saved the user's app color to localStorage so that subsequent load colors will use the user's actual stored app color
 - Made a js interop method setAppColor for saving the app color
+- Reordered home screen buttons

@@ -375,29 +375,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                // CALORIE CALCULATOR BUTTON
-                                isLoading
-                                    ? buildPlaceholderButton()
-                                    : _maybeAnimate(
-                                        customButton(
-                                          "Calorie Calculator",
-                                          48,
-                                          160,
-                                          750,
-                                          context,
-                                          icon: Icons.calculate_outlined,
-                                          onPressed: () {
-                                            trackTrivialAchievement(
-                                              "calorie_calculator",
-                                            );
-                                            context.push('/calorie-calculator');
-                                          },
-                                        ),
-                                        0.ms,
-                                      ),
-                                SizedBox(
-                                  height: Responsive.height(context, 12),
-                                ),
                                 // FOOD LOGGING TAB
                                 isLoading
                                     ? buildPlaceholderButton()
@@ -416,11 +393,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                             context.push('/food-logging');
                                           },
                                         ),
-                                        80.ms,
+                                        0.ms,
                                       ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ),
+                                // EXPLORE TAB
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : _maybeAnimate(
@@ -438,30 +416,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                             context.push('/explore');
                                           },
                                         ),
-                                        160.ms,
+                                        80.ms,
                                       ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ),
-                                // REMINDERS TAB
+                                // LEADERBOARD TAB
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : _maybeAnimate(
                                         customButton(
-                                          "Reminders",
+                                          "Leaderboard",
                                           48,
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.notifications_outlined,
+                                          icon: Icons.leaderboard_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
-                                              "open_reminders",
+                                              "open_leaderboard",
                                             );
-                                            context.push('/reminders');
+                                            context.push('/leaderboard');
                                           },
                                         ),
-                                        240.ms,
+                                        160.ms,
                                       ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
@@ -484,27 +462,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                             context.push('/badges');
                                           },
                                         ),
+                                        240.ms,
+                                      ),
+                                SizedBox(
+                                  height: Responsive.height(context, 12),
+                                ),
+                                // REMINDERS TAB
+                                isLoading
+                                    ? buildPlaceholderButton()
+                                    : _maybeAnimate(
+                                        customButton(
+                                          "Reminders",
+                                          48,
+                                          160,
+                                          750,
+                                          context,
+                                          icon: Icons.notifications_outlined,
+                                          onPressed: () {
+                                            trackTrivialAchievement(
+                                              "open_reminders",
+                                            );
+                                            context.push('/reminders');
+                                          },
+                                        ),
                                         320.ms,
                                       ),
                                 SizedBox(
                                   height: Responsive.height(context, 12),
                                 ),
-                                // LEADERBOARD TAB
+                                // CALORIE CALCULATOR BUTTON
                                 isLoading
                                     ? buildPlaceholderButton()
                                     : _maybeAnimate(
                                         customButton(
-                                          "Leaderboard",
+                                          "Calorie Calculator",
                                           48,
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.leaderboard_outlined,
+                                          icon: Icons.calculate_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
-                                              "open_leaderboard",
+                                              "calorie_calculator",
                                             );
-                                            context.push('/leaderboard');
+                                            context.push('/calorie-calculator');
                                           },
                                         ),
                                         400.ms,
