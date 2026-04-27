@@ -51,14 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
     };
     appColorNotifier.addListener(_appColorListener);
 
+    // Initialize confetti controllers before _onAppReady
+    confettiControllerinit();
+
     // If data is already loaded, skip the skeleton entirely
     if (appReadyNotifier.value) isLoading = false;
 
     appReadyNotifier.addListener(_onAppReady);
     if (appReadyNotifier.value) _onAppReady();
-
-    // Initialize confetti controllers
-    confettiControllerinit();
   }
 
   void _onAppReady() {
