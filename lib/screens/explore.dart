@@ -168,6 +168,7 @@ class _ExploreState extends State<Explore> {
             poiError = 'Moving too far too quickly. Please try again.';
             loadingPOIs = false;
             fillingCache = false;
+            cardIsOpen = true;
           });
           return;
         }
@@ -194,6 +195,7 @@ class _ExploreState extends State<Explore> {
             : 'Failed to load locations. Please try again later.';
         loadingPOIs = false;
         fillingCache = false;
+        cardIsOpen = true;
       });
     }
   }
