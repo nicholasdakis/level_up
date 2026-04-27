@@ -20,31 +20,45 @@ class POIService {
   Future<List<POI>> getNearbyPOIs(
     double lat,
     double lng, {
-    void Function(List<POI>)?
-    onSupplement, // callback function for updating the UI
-    void Function()? onFillStart, // called when a background fill begins
+    void Function(List<POI>)? onSupplement,
+    void Function()? onFillStart,
   }) async {
-    // Check if a valid cache exists for this area
     final cached = await _getCachedPOIs(lat, lng);
     if (cached != null) {
-      // Cache is valid but not filled
       if (onSupplement != null) {
-        onFillStart?.call(); // notify the UI that a fill is starting
-        _fillCache(lat, lng, cached)
-            .then((filled) {
-              onSupplement(
-                filled ?? cached,
-              ); // send the result back to the callback function
-            })
-            .catchError((_) {
-              onSupplement(cached); // clear the filling indicator on error
-            });
+        // Only attempt a fill (and show the indicator) if the cache count is
+        // below the last known backend count
+        // Skips the fill when already full
+        final lastBackendCount = await _prefs.getInt(
+          SharedPreferencesKey.cachedPoisBackendCount,
+        );
+        final cacheIsFull =
+            lastBackendCount != null && cached.length >= lastBackendCount;
+
+        if (!cacheIsFull) {
+          onFillStart?.call(); // notify the UI that a fill is starting
+          _fillCache(lat, lng, cached)
+              .then((filled) {
+                onSupplement(
+                  filled ?? cached,
+                ); // send the result back to the callback function
+              })
+              .catchError((_) {
+                onSupplement(cached); // clear the filling indicator on error
+              });
+        }
       }
       return cached;
     }
 
     // Cache is stale or empty, fetch fresh data from the backend
     final fresh = await _fetchFromBackend(lat, lng);
+
+    // Store the backend count so future visits can skip the fill when already full
+    await _prefs.setInt(
+      SharedPreferencesKey.cachedPoisBackendCount,
+      fresh.length,
+    );
 
     // Save the fresh results and the fetch location
     await _prefsPOIs(fresh, lat, lng);
@@ -62,6 +76,12 @@ class POIService {
     List<POI> cached,
   ) async {
     final fresh = await _fetchFromBackend(lat, lng);
+
+    // Update the stored count so subsequent visits know the current backend max
+    await _prefs.setInt(
+      SharedPreferencesKey.cachedPoisBackendCount,
+      fresh.length,
+    );
 
     // Cache already has as many as the backend would return
     if (cached.length >= fresh.length) return null;

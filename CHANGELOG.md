@@ -1346,3 +1346,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Reverted to sequential Overpass API calls as per their rules
 - Fixed the Nearby Experience Spots card briefly flickering closed and open when POIs were already loaded by only showing the skeleton placeholder when no POIs exist yet, preventing the list from being replaced by the skeleton on a fast cache hit
 - Fixed the "Finding more spots..." spinner never appearing because fillingCache was being reset to false immediately after getNearbyPOIs returned, overriding the onFillStart callback that set it to true
+- Fixed the "Finding more spots..." spinner incorrectly appearing when the cache was already at max POIs
+- The service now stores how many POIs the backend returned (cached_pois_backend_count) after each fetch and skips the background fill entirely when the cache already holds that many, so the indicator only shows during actual partial-cache fills
+- Fixed the check-in button twitching in and out of visibility by adding a version counter to _refreshClosestCheckinPOI so that only the result from the latest call is applied, discarding any stale concurrent calls that would otherwise overwrite it
+- Made Nearby Experience Spots card not appear until the map loads
+- Made the Back button initially appear in the top left, moving down only when the map loads

@@ -13,6 +13,8 @@ class SharedPreferencesKey {
   static const String cachedPois = 'cached_pois';
   static const String cachedPoiLat = 'cached_poi_lat';
   static const String cachedPoiLng = 'cached_poi_lng';
+  static const String cachedPoisBackendCount =
+      'cached_pois_backend_count'; // how many POIs the backend returned last time, used to skip background fills when the cache is already complete
   static const String visitedPois = 'cached_visited_pois';
 }
 
@@ -80,5 +82,15 @@ class SharedPrefsService {
   Future<void> setDouble(String key, double value) async {
     // Save the double value directly under the given key
     await _prefs.setDouble(key, value);
+  }
+
+  // Read an int from storage
+  Future<int?> getInt(String key) async {
+    return await _prefs.getInt(key);
+  }
+
+  // Write an int to storage
+  Future<void> setInt(String key, int value) async {
+    await _prefs.setInt(key, value);
   }
 }
