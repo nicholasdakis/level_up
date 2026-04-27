@@ -231,11 +231,15 @@ class _AppInitScreenState extends State<AppInitScreen> {
 
     if (currentUserData != null) {
       appColorNotifier.value = currentUserData!.appColor;
-      // Update the body background so the notch matches the app color
-      final c = currentUserData!.appColor;
-      web_fcm.setAppColor(
-        '#${c.r.toInt().toRadixString(16).padLeft(2, '0')}${c.g.toInt().toRadixString(16).padLeft(2, '0')}${c.b.toInt().toRadixString(16).padLeft(2, '0')}',
-      );
+      try {
+        // Update the body background so the notch matches the app color
+        final c = currentUserData!.appColor;
+        web_fcm.setAppColor(
+          '#${c.r.toInt().toRadixString(16).padLeft(2, '0')}${c.g.toInt().toRadixString(16).padLeft(2, '0')}${c.b.toInt().toRadixString(16).padLeft(2, '0')}',
+        );
+      } catch (e) {
+        debugPrint('setAppColor failed: $e');
+      }
     }
 
     if (mounted) FcmService.initialize(context);
