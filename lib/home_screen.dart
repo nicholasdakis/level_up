@@ -149,6 +149,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isLoading = true;
     });
     await userManager.loadUserData();
+    if (currentUserData != null) {
+      appColorNotifier.value = currentUserData!.appColor;
+    }
     if (mounted) initializeUser();
   }
 
