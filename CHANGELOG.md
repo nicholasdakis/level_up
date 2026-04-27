@@ -1334,3 +1334,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-04-27
 - Changed the backend to fire all Overpass API URLs in parallel and use the first successful response instead of trying them sequentially
+- Made the POI error message only appear if there are no nearby POIs to fall back on

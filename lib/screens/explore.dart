@@ -650,8 +650,9 @@ class _ExploreState extends State<Explore> {
                                                   ),
                                                 ),
                                               )
-                                            // Show error message if fetching failed
-                                            else if (poiError != null)
+                                            // Show error message if fetching failed and there are no POIs to fall back on
+                                            else if (poiError != null &&
+                                                nearbyPOIs.isEmpty)
                                               Padding(
                                                 padding: EdgeInsets.all(
                                                   Responsive.width(context, 10),
