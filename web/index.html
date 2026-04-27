@@ -54,6 +54,10 @@
       var gradient = 'linear-gradient(to right, ' + dark + ' 0%, ' + dark + ' 10%, ' + mid + ' 50%, ' + dark + ' 90%, ' + dark + ' 100%)';
       document.documentElement.style.setProperty('--app-color', gradient);
       document.documentElement.style.setProperty('--notch-color', notch);
+      // Update theme-color meta tag so Android PWA status bar matches the app bar
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+      meta.content = notch;
     }
 
     // Apply before Flutter paints so the loading background matches the app gradient
