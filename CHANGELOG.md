@@ -1351,3 +1351,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed the check-in button twitching in and out of visibility by adding a version counter to _refreshClosestCheckinPOI so that only the result from the latest call is applied, discarding any stale concurrent calls that would otherwise overwrite it
 - Made Nearby Experience Spots card not appear until the map loads
 - Made the Back button initially appear in the top left, moving down only when the map loads
+- Fixed the loading background color not matching the user's app color on iOS PWA
+- The CSS was hardcoding #2d2d2d which overwrote the color the inline script set from localStorage
+- Switched to a CSS variable so the stored color is applied before Flutter paints and can't be overwritten by the stylesheet
+- The loading color is now blended at the same opacity Flutter uses (200/255) so it matches the scaffold background color exactly instead of showing the raw unblended color
