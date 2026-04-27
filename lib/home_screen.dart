@@ -12,6 +12,20 @@ import 'screens/settings/personal_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'dart:js_interop';
+import 'package:flutter/foundation.dart';
+
+@JS('window.matchMedia("(display-mode: standalone)").matches')
+external bool get _isPwaMatches;
+
+bool get _isPwa {
+  if (!kIsWeb) return false;
+  try {
+    return _isPwaMatches;
+  } catch (_) {
+    return false;
+  }
+}
 
 class _HomeAnimationState {
   static bool buttonsAnimated = false;
@@ -252,11 +266,17 @@ class _HomeScreenState extends State<HomeScreen> {
           // Body + Header
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(
-              Responsive.height(context, 201),
+              Responsive.height(context, 201) +
+                  (_isPwa ? Responsive.height(context, 1) : 0),
             ), // Alter default appBar size
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_isPwa)
+                  Container(
+                    height: Responsive.height(context, 1),
+                    color: Colors.white.withAlpha(25),
+                  ),
                 AppBar(
                   automaticallyImplyLeading:
                       false, // Prevent the automatic hamburger icon from appearing

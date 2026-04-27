@@ -63,6 +63,8 @@ dependencies:
 
   speech_to_text: ^7.3.0
 
+  web: ^1.0.0
+
   # persistent on-device storage
   shared_preferences: ^2.5.5
 
