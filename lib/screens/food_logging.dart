@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:async';
@@ -40,7 +39,6 @@ class _FoodLoggingState extends State<FoodLogging>
 
   // Hold selected food for updating the UI in real time
   Map<String, dynamic>? selectedFood;
-  String? mealType;
   DateTime currentDate = DateTime.now();
   bool userCanType = true;
   bool mealChosen = false;
@@ -530,16 +528,129 @@ class _FoodLoggingState extends State<FoodLogging>
     );
   }
 
-  Future<void> logFood(Map<String, dynamic> foodObject) async {
+  // Single tappable meal tile that fills half the row width
+  Widget _mealTile(BuildContext context, (String, String, Color) meal) {
+    final (label, value, color) = meal;
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.pop(context, value),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
+          splashColor: color.withAlpha(60),
+          child: Container(
+            height: Responsive.height(context, 64),
+            decoration: BoxDecoration(
+              color: color.withAlpha(60),
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 16),
+              ),
+              border: Border.all(color: color.withAlpha(120), width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 16),
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Lays two meal tiles side by side with a gap between them
+  Widget _mealRow(
+    BuildContext context,
+    (String, String, Color) a,
+    (String, String, Color) b,
+  ) {
+    return Row(
+      children: [
+        _mealTile(context, a),
+        SizedBox(width: Responsive.scale(context, 10)),
+        _mealTile(context, b),
+      ],
+    );
+  }
+
+  // Method that shows a centered meal picker dialog and logs the food once a meal is chosen
+  Future<void> _showMealPicker(
+    Map<String, dynamic> foodObject, {
+    String? achievementId,
+  }) async {
     if (isLogging) {
       _showSnackbar("Please wait before logging again.");
       return;
     }
-    if (mealType == null) {
-      setState(() => _inlineError = "Select a meal type first.");
-      return;
-    }
 
+    final base = appColorNotifier.value;
+    final meals = [
+      ("Breakfast", "breakfast", lightenColor(base, 0.30)),
+      ("Lunch", "lunch", lightenColor(base, 0.30)),
+      ("Dinner", "dinner", lightenColor(base, 0.30)),
+      ("Snacks", "snacks", lightenColor(base, 0.30)),
+    ];
+
+    final chosen = await showDialog<String>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: darkenColor(appColorNotifier.value, 0.02).withAlpha(230),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 24)),
+            border: Border.all(color: Colors.white.withAlpha(20), width: 1),
+          ),
+          padding: EdgeInsets.all(Responsive.scale(context, 24)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dialog title
+              Text(
+                "ADD TO MEAL",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 11),
+                  color: Colors.white38,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              // Top row: Breakfast and Lunch
+              _mealRow(context, meals[0], meals[1]),
+              SizedBox(height: Responsive.scale(context, 10)),
+              // Bottom row: Dinner and Snacks
+              _mealRow(context, meals[2], meals[3]),
+              SizedBox(height: Responsive.height(context, 4)),
+              // Cancel button
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    "Cancel",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white30,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (chosen == null) return;
+    if (achievementId != null) trackTrivialAchievement(achievementId);
+    await logFood(foodObject, chosen);
+  }
+
+  Future<void> logFood(Map<String, dynamic> foodObject, String meal) async {
     // For search/barcode: rebuild description with scaled serving values
     if (!foodObject.containsKey('calories') && baseMacros.isNotEmpty) {
       final newAmount =
@@ -571,7 +682,7 @@ class _FoodLoggingState extends State<FoodLogging>
       dateKey,
       () => {"breakfast": [], "lunch": [], "dinner": [], "snacks": []},
     );
-    foodDataByDate[dateKey]![mealType!]!.add(foodObject);
+    foodDataByDate[dateKey]![meal]!.add(foodObject);
 
     checkFullDayBadge(); // gives the user the full course meal achievement if it can be earned
 
@@ -746,11 +857,11 @@ class _FoodLoggingState extends State<FoodLogging>
     if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
 
     // Format manual entry like the other tabs
-    await logFood({
+    await _showMealPicker({
       'food_name': name,
       'food_description': 'Per $servingLabel - ${parts.join(' | ')}',
       'calories': calories,
-    });
+    }, achievementId: 'food_manual');
   }
 
   Widget buildAttribution(String url, String text, Color color) {
@@ -773,85 +884,83 @@ class _FoodLoggingState extends State<FoodLogging>
   }
 
   Widget buildSearchButton() {
-    return Expanded(
-      child: TextField(
-        controller: searchController,
-        readOnly: !userCanType,
-        keyboardType: TextInputType.text,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, 17),
-          color: Colors.white,
-        ),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: "Search",
-          // Clear food icon when a food is selected
-          suffix: selectedFood != null
-              ? GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedFood = null;
-                      userCanType = true;
-                      mealChosen = false;
-                      searchController.clear();
-                      foodList = [];
-                      displayDescription = "";
-                      baseMacros = {};
-                    });
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: Responsive.width(context, 12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.close,
-                          color: Colors.white54,
-                          size: Responsive.font(context, 14),
-                        ),
-                        SizedBox(width: Responsive.width(context, 4)),
-                        Text(
-                          "Clear",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 13),
-                            color: Colors.white54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : null,
-          // Microphone icon when a food is not selected
-          suffixIcon: selectedFood == null
-              ? Opacity(
-                  opacity: userCanType ? 1.0 : 0.3,
-                  child: IconButton(
-                    icon: Icon(
-                      // Red microphone icon when actively listening
-                      _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
-                      color: _voiceSearch.isListening
-                          ? Colors.redAccent
-                          : Colors.white54,
-                    ),
-                    onPressed: userCanType ? _toggleListening : null,
-                  ),
-                )
-              : null,
-          contentPadding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 12),
-            horizontal: Responsive.width(context, 14),
-          ),
-          hintStyle: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 15),
-            color: Colors.white54,
-          ),
-        ),
-        // Debouncer timer to prevent unwanted API calls
-        onChanged: _scheduleSearch,
+    return TextField(
+      controller: searchController,
+      readOnly: !userCanType,
+      keyboardType: TextInputType.text,
+      style: GoogleFonts.manrope(
+        fontSize: Responsive.font(context, 17),
+        color: Colors.white,
       ),
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        hintText: "Search",
+        // Clear food icon when a food is selected
+        suffix: selectedFood != null
+            ? GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedFood = null;
+                    userCanType = true;
+                    mealChosen = false;
+                    searchController.clear();
+                    foodList = [];
+                    displayDescription = "";
+                    baseMacros = {};
+                  });
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: Responsive.width(context, 12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.close,
+                        color: Colors.white54,
+                        size: Responsive.font(context, 14),
+                      ),
+                      SizedBox(width: Responsive.width(context, 4)),
+                      Text(
+                        "Clear",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 13),
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
+        // Microphone icon when a food is not selected
+        suffixIcon: selectedFood == null
+            ? Opacity(
+                opacity: userCanType ? 1.0 : 0.3,
+                child: IconButton(
+                  icon: Icon(
+                    // Red microphone icon when actively listening
+                    _voiceSearch.isListening ? Icons.mic : Icons.mic_none,
+                    color: _voiceSearch.isListening
+                        ? Colors.redAccent
+                        : Colors.white54,
+                  ),
+                  onPressed: userCanType ? _toggleListening : null,
+                ),
+              )
+            : null,
+        contentPadding: EdgeInsets.symmetric(
+          vertical: Responsive.height(context, 12),
+          horizontal: Responsive.width(context, 14),
+        ),
+        hintStyle: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 15),
+          color: Colors.white54,
+        ),
+      ),
+      // Debouncer timer to prevent unwanted API calls
+      onChanged: _scheduleSearch,
     );
   }
 
@@ -870,33 +979,28 @@ class _FoodLoggingState extends State<FoodLogging>
               onPressed: () async {
                 final tab = _tabController.index;
                 if (tab == FoodTab.search) {
-                  if (mealType == null) {
-                    setState(() => _inlineError = "Select a meal type first.");
-                    return;
-                  }
                   if (!mealChosen || selectedFood == null) {
-                    setState(
-                      () => _inlineError = "Search and select a food first.",
-                    );
+                    setState(() => _inlineError = "Select a food first.");
                     return;
                   }
                   setState(() => _inlineError = null);
-                  if (selectedFood != null) {
-                    await logFood(Map<String, dynamic>.from(selectedFood!));
-                    trackTrivialAchievement("food_search");
-                  }
+                  await _showMealPicker(
+                    Map<String, dynamic>.from(selectedFood!),
+                    achievementId: 'food_search',
+                  );
                 } else if (tab == FoodTab.barcode) {
                   if (barcodeResult == null) {
                     setState(() => _inlineError = "Scan a barcode first.");
                     return;
                   }
                   setState(() => _inlineError = null);
-                  await logFood(Map<String, dynamic>.from(barcodeResult!));
-                  trackTrivialAchievement("food_barcode");
+                  await _showMealPicker(
+                    Map<String, dynamic>.from(barcodeResult!),
+                    achievementId: 'food_barcode',
+                  );
                 } else if (tab == FoodTab.manual) {
                   setState(() => _inlineError = null);
                   await handleManualEntry();
-                  trackTrivialAchievement("food_manual");
                 }
               },
             ),
@@ -1578,12 +1682,10 @@ class _FoodLoggingState extends State<FoodLogging>
                         child: MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
-                            // Recent foods already have calories set, so logFood's
-                            // calorie extraction is a no op here
-                            onTap: () {
-                              logFood(Map<String, dynamic>.from(food));
-                              trackTrivialAchievement("food_recent");
-                            },
+                            onTap: () => _showMealPicker(
+                              Map<String, dynamic>.from(food),
+                              achievementId: 'food_recent',
+                            ),
                             child: frostedGlassCard(
                               context,
                               baseRadius: 12,
@@ -2032,81 +2134,16 @@ class _FoodLoggingState extends State<FoodLogging>
                         child: _buildInlineError(),
                       ),
 
-                    // Meal type dropdown and search field / log button
+                    // Search field on search tab, log button on barcode/manual
                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: Responsive.width(context, 20),
                       ),
                       child: SizedBox(
                         height: Responsive.height(context, 58),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Meal Type chooser
-                            DropdownButton2<String>(
-                              isDense: true,
-                              dropdownStyleData: DropdownStyleData(
-                                decoration: BoxDecoration(
-                                  color: appColorNotifier.value.withAlpha(128),
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 10),
-                                  ),
-                                ),
-                                maxHeight: Responsive.height(context, 200),
-                              ),
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 15),
-                                color: Colors.white,
-                                shadows: [textDropShadow(context)],
-                              ),
-                              hint: Text(
-                                "Meal Type",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 16),
-                                  color: Colors.white,
-                                  shadows: [textDropShadow(context)],
-                                ),
-                              ),
-                              value: mealType,
-                              // Map List<Map<String, String>> to DropdownMenuItems so users see the label but the correct value is stored
-                              items:
-                                  [
-                                        {
-                                          "value": "breakfast",
-                                          "label": "Breakfast",
-                                        },
-                                        {"value": "lunch", "label": "Lunch"},
-                                        {"value": "dinner", "label": "Dinner"},
-                                        {"value": "snacks", "label": "Snacks"},
-                                      ]
-                                      .map(
-                                        (t) => DropdownMenuItem(
-                                          value: t["value"], // "breakfast"
-                                          child: Text(
-                                            t["label"]!, // "Breakfast"
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                16,
-                                              ),
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                              onChanged: (value) =>
-                                  setState(() => mealType = value),
-                            ),
-                            SizedBox(width: Responsive.width(context, 25)),
-                            // Search field on the search tab, log button everywhere else
-                            _tabController.index == FoodTab.search
-                                ? buildSearchButton()
-                                : Expanded(
-                                    child: buildLogFoodButton(),
-                                  ), // back to original
-                          ],
-                        ),
+                        child: _tabController.index == FoodTab.search
+                            ? buildSearchButton()
+                            : buildLogFoodButton(),
                       ),
                     ),
 

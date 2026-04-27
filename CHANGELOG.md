@@ -1319,3 +1319,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - isLoading now initializes to false when appReadyNotifier is already true at mount time
 - Added frontend code to set canClaimDailyReward to true in case the backend ever has stale data. Can't be exploited as the backend independently makes the time check
 - Fixed a crash on first load for users with an unclaimed daily reward caused by confettiControllerinit() running after _onAppReady() in initState, making dailyRewardConfettiController uninitialized when buildDailyRewardDialog() accessed it synchronously
+- Removed the meal type dropdown from the food logging toolbar and replaced it with a centered dialog that appears after pressing Log Food, showing a 2x2 grid of meal tiles with a cancel button
+- Each meal tile is colored using lightenColor(appColorNotifier, 0.30) so the picker stays on theme
+- Recent foods now go through the same meal picker instead of logging immediately on tap
+- Fixed an Incorrect use of ParentDataWidget error caused by buildSearchButton() returning an Expanded widget after the surrounding Row was removed when the meal type dropdown was deleted
