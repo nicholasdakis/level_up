@@ -1344,3 +1344,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made Nearby Spots card automatically expand on an error for better UX
 - Added per-request logging to the backend so every route logs the uid and response status, allowing Render logs to be grepped by uid to diagnose user-specific issues
 - Reverted to sequential Overpass API calls as per their rules
+- Fixed the Nearby Experience Spots card briefly flickering closed and open when POIs were already loaded by only showing the skeleton placeholder when no POIs exist yet, preventing the list from being replaced by the skeleton on a fast cache hit
+- Fixed the "Finding more spots..." spinner never appearing because fillingCache was being reset to false immediately after getNearbyPOIs returned, overriding the onFillStart callback that set it to true

@@ -177,7 +177,6 @@ class _ExploreState extends State<Explore> {
       setState(() {
         nearbyPOIs = pois; // update the list
         loadingPOIs = false;
-        fillingCache = false;
       });
 
       // Check if the user is close enough to any POI to check in
@@ -381,7 +380,7 @@ class _ExploreState extends State<Explore> {
     // Offset pushes the back button down so the card doesn't cover it on mobile
     // Use a smaller offset when only an error is shown since the card is much shorter than a full POI list
     double cardOpenMobileOffset = cardIsOpen
-        ? (poiError != null && nearbyPOIs.isEmpty ? 80 : 300)
+        ? (poiError != null && nearbyPOIs.isEmpty ? 60 : 300)
         : 0;
 
     return Scaffold(
@@ -604,7 +603,9 @@ class _ExploreState extends State<Explore> {
                                               ),
                                             ),
                                             // Show skeleton placeholder tiles while POIs are being fetched
-                                            if (loadingPOIs)
+                                            // Only show skeleton when there are no POIs yet
+                                            if (loadingPOIs &&
+                                                nearbyPOIs.isEmpty)
                                               Skeletonizer(
                                                 enabled: true,
                                                 // Subtle white shimmer to blend with the dark card background
