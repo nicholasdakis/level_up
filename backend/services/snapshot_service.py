@@ -23,9 +23,9 @@ class SnapshotService: # Service for building daily snapshots for users
         utc_tomorrow = (utc_now + timedelta(days=1)).date().isoformat()
         
         # Timezones before UTC
-        behind_uids = [u["uid"] for u in users if u["utc_offset"] <= 0]
+        behind_uids = [u["uid"] for u in users if u["utc_offset_minutes"] <= 0]
         # Timezones after UTC
-        ahead_uids = [u["uid"] for u in users if u["utc_offset"] > 0]
+        ahead_uids = [u["uid"] for u in users if u["utc_offset_minutes"] > 0]
         ahead_uid_set = set(ahead_uids) # converted to a set for O(1) lookup time instead of O(n)
 
         # Fetch related data in bulk
