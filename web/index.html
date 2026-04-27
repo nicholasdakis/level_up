@@ -33,8 +33,23 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      transition: background-color 0.3s ease;
     }
   </style>
+
+  <script>
+    // Apply the saved app color immediately so the notch matches before Flutter paints
+    (function () {
+      var saved = localStorage.getItem('appColor');
+      if (saved) document.body.style.backgroundColor = saved;
+    })();
+
+    // Called from Flutter via JS interop when the app color is known
+    window.setAppColor = function (hex) {
+      localStorage.setItem('appColor', hex);
+      document.body.style.backgroundColor = hex;
+    };
+  </script>
 
   <!-- cropperjs -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css" />

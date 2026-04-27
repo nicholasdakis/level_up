@@ -1327,3 +1327,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The skeletonizer stays visible in the background and a frosted card with a retry button is shown on top
 - The home screen is non-interactable while the load failed state is active so the user cannot tap buttons with stale or missing data
 - Added lastLoadFailed flag to UserDataManager so the home screen can detect and react to a failed fetch
+- Made the default load color on PWA show a dark gray color instead of white which is too bright and jarring
+- Saved the user's app color to localStorage so that subsequent load colors will use the user's actual stored app color
+- Made a js interop method setAppColor for saving the app color

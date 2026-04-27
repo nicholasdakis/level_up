@@ -16,6 +16,9 @@ import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
+import 'utility/web_utils_stub.dart'
+    if (dart.library.js_interop) 'utility/web_utils_web.dart'
+    as web_fcm;
 
 // Notifies go_router to re-run the redirect check when Firebase auth state changes
 class _AuthNotifier extends ChangeNotifier {
@@ -228,6 +231,11 @@ class _AppInitScreenState extends State<AppInitScreen> {
 
     if (currentUserData != null) {
       appColorNotifier.value = currentUserData!.appColor;
+      // Update the body background so the notch matches the app color
+      final c = currentUserData!.appColor;
+      web_fcm.setAppColor(
+        '#${c.r.toInt().toRadixString(16).padLeft(2, '0')}${c.g.toInt().toRadixString(16).padLeft(2, '0')}${c.b.toInt().toRadixString(16).padLeft(2, '0')}',
+      );
     }
 
     if (mounted) FcmService.initialize(context);
