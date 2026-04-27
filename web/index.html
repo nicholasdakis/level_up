@@ -16,6 +16,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-title" content="Level Up!">
+  <meta name="theme-color" content="#2d2d2d">
   <link rel="apple-touch-icon" sizes="512x512" href="favicon-512.png">
 
   <!-- Favicons for browsers -->
@@ -28,7 +29,8 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    html, body {
+    html,
+    body {
       background-color: #2d2d2d;
       margin: 0;
       padding: 0;
@@ -42,7 +44,11 @@
     // Uses documentElement because document.body is null when scripts run in <head>
     (function () {
       var saved = localStorage.getItem('appColor');
-      if (saved) document.documentElement.style.backgroundColor = saved;
+      if (saved) {
+        document.documentElement.style.backgroundColor = saved;
+        var metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute('content', saved);
+      }
     })();
 
     // Called from Flutter via JS interop when the app color is known
@@ -50,6 +56,8 @@
       localStorage.setItem('appColor', hex);
       document.documentElement.style.backgroundColor = hex;
       if (document.body) document.body.style.backgroundColor = hex;
+      var metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', hex);
     };
   </script>
 
@@ -175,9 +183,9 @@
 
     // Enable Firestore disk cache (default = false for web) so subsequent reads are served locally instead of from the network
     firebase.firestore().enablePersistence()
-      .catch(function(err) {
+      .catch(function (err) {
         console.log('Persistence failed:', err);
-    });
+      });
 
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
