@@ -232,11 +232,15 @@ class _AppInitScreenState extends State<AppInitScreen> {
     if (currentUserData != null) {
       appColorNotifier.value = currentUserData!.appColor;
       try {
-        // Update the body background so the notch matches the app color
-        final c = currentUserData!.appColor;
-        web_fcm.setAppColor(
-          '#${c.r.toInt().toRadixString(16).padLeft(2, '0')}${c.g.toInt().toRadixString(16).padLeft(2, '0')}${c.b.toInt().toRadixString(16).padLeft(2, '0')}',
-        );
+        // Update the body background so the notch / loading screen matches the app color
+        final argb = currentUserData!.appColor.toARGB32();
+        final hex =
+            '#'
+            '${((argb >> 16) & 0xFF).toRadixString(16).padLeft(2, '0')}'
+            '${((argb >> 8) & 0xFF).toRadixString(16).padLeft(2, '0')}'
+            '${(argb & 0xFF).toRadixString(16).padLeft(2, '0')}';
+        web_fcm.setAppColor(hex);
+        debugPrint('setAppColor called with: $hex');
       } catch (e) {
         debugPrint('setAppColor failed: $e');
       }
