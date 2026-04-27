@@ -1331,3 +1331,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Saved the user's app color to localStorage so that subsequent load colors will use the user's actual stored app color
 - Made a js interop method setAppColor for saving the app color
 - Reordered home screen buttons
+
+## 2026-04-27
+- Changed the backend to fire all Overpass API URLs in parallel and use the first successful response instead of trying them sequentially

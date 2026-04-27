@@ -1,3 +1,4 @@
+import concurrent.futures
 import requests
 
 
@@ -28,28 +29,42 @@ out body 100;
         return self.OVERPASS_QUERY.format(lat=lat, lng=lng, radius=radius)
 
     def fetch_pois(self, lat: float, lng: float):
-        # Send the query to the Overpass API, trying each URL in order
         query = self.build_query(lat, lng)
-        overpass_response = None
-        latest_error = None
 
-        for url in self.OVERPASS_URLS:
+        def try_url(url):
+            # Raises on non-200 so the executor treats it as a failed future
+            r = requests.post(url, data={"data": query}, timeout=25)
+            if r.status_code == 200:
+                return r
+            raise Exception(f"HTTP {r.status_code}: {r.text}")
+
+        # ThreadPoolExecutor runs each try_url call in its own thread so all
+        # URLs are requested simultaneously instead of one after another
+        # executor.submit() schedules a call and immediately returns a Future
+        # (a handle to the result that will arrive later)
+        # The dict maps each Future back to its URL for error logging.
+        executor = concurrent.futures.ThreadPoolExecutor()
+        futures = {executor.submit(try_url, url): url for url in self.OVERPASS_URLS}
+
+        # shutdown(wait=False) means the executorgit  won't block when we return early
+        # after the first success — the losing thread finishes in the background.
+        # Using a 'with' block instead would call shutdown(wait=True) on return,
+        # which would wait for both threads to finish before the function returned
+        executor.shutdown(wait=False)
+
+        # as_completed() yields each Future in the order they finish,
+        # not the order they were submitted, so whichever Overpass server
+        # responds first is handled first
+        for future in concurrent.futures.as_completed(futures):
             try:
-                overpass_response = requests.post(url, data={"data": query}, timeout=25) # Overpass expects the query in a "data" form field
-                if overpass_response.status_code == 200:
-                    break
-                else: # Responses other than 200
-                    latest_error = f"HTTP {overpass_response.status_code}: {overpass_response.text}"
-                    overpass_response = None
-            except requests.RequestException as e:
-                latest_error = e
-                overpass_response = None
+                return future.result().json()  # first success wins
+            except Exception as e:
+                print(f"Overpass error ({futures[future]}): {e}")
+                # loop continues to the next completed future
 
-        if overpass_response is None or overpass_response.status_code != 200:
-            print(f"Overpass API error: {latest_error}")
-            return None
-
-        return overpass_response.json()
+        # Only reached if every future raised an exception
+        print("All Overpass endpoints failed")
+        return None
 
     def parse_overpass_response(self, data):
         # Turn the Overpass JSON into POIItem objects, keeping only named nodes with unique locations
