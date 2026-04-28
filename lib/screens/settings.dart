@@ -162,8 +162,6 @@ Widget buildSettingsDrawer(
                 '/settings/preferences',
                 extra: onProfileImageUpdated,
               );
-              // re-open the drawer when the user comes back so it feels like they never left
-              if (context.mounted) scaffoldKey?.currentState?.openDrawer();
             },
           ),
           buildActionTile(
