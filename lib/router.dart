@@ -16,6 +16,7 @@ import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
+import 'screens/log_food_screen.dart';
 import 'utility/web_utils_stub.dart'
     if (dart.library.js_interop) 'utility/web_utils_web.dart'
     as web_fcm;
@@ -32,7 +33,7 @@ class _AuthNotifier extends ChangeNotifier {
 
 final _authNotifier = _AuthNotifier();
 
-// slides in on push, instant on pop so there's no reverse animation after swipe-back or back button
+// slides in from the right on push, instant on pop
 Page _slidePage({required LocalKey key, required Widget child}) {
   return CustomTransitionPage(
     key: key,
@@ -45,6 +46,25 @@ Page _slidePage({required LocalKey key, required Widget child}) {
           begin: const Offset(1.0, 0.0),
           end: Offset.zero,
         ).chain(CurveTween(curve: Curves.easeOut)).animate(animation),
+        child: child,
+      );
+    },
+  );
+}
+
+// slides up from the bottom, feels like an extension of the parent screen rather than a new screen
+Page _slideUpPage({required LocalKey key, required Widget child}) {
+  return CustomTransitionPage(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: Duration.zero,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween(
+          begin: const Offset(0.0, 1.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation),
         child: child,
       );
     },
@@ -141,11 +161,28 @@ final GoRouter appRouter = GoRouter(
               state.extra == null ? '/food-logging' : null,
           pageBuilder: (context, state) {
             final p = state.extra as Map<String, dynamic>;
-            return _slidePage(
+            return _slideUpPage(
               key: state.pageKey,
               child: FoodLoggingChartsScreen(
                 initialDate: p['initialDate'] as DateTime,
                 onDateChanged: p['onDateChanged'] as void Function(DateTime)?,
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: 'log',
+          redirect: (context, state) =>
+              state.extra == null ? '/food-logging' : null,
+          pageBuilder: (context, state) {
+            final p = state.extra as Map<String, dynamic>;
+            return _slideUpPage(
+              key: state.pageKey,
+              child: LogFoodScreen(
+                meal: p['meal'] as String,
+                currentDate: p['currentDate'] as DateTime,
+                onFoodLogged: p['onFoodLogged'] as VoidCallback,
+                achievementId: p['achievementId'] as String?,
               ),
             );
           },

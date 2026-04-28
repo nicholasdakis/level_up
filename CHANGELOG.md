@@ -1362,3 +1362,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Tweaked Calorie Calculator colors for better UI
 - Made age slider cap at 120 instead of 100
 - Made the circle on the thumb sliders smaller
+- Rebuilt the food logging screen with a new structure where each meal section (Breakfast, Lunch, Dinner, Snacks) lives on the main screen with its own collapsible food list and a dedicated Log Food button per meal
+- Each meal section is collapsible using AnimatedSize before animating so it feels intentional
+- Logging a food now opens a dedicated LogFoodScreen instead of showing a meal picker dialog after the fact, so the meal context is set before the user even starts searching
+- LogFoodScreen contains search, barcode scanning, and manual entry all on one screen with the search bar always at the top, recent foods always visible below it with an empty state, and manual entry as a collapsible labeled section at the bottom
+- The log food button pops the screen immediately on success instead of waiting 3 seconds for a cooldown bar since the user is leaving the screen anyway
+- LogFoodScreen and the analytics screen both slide up from the bottom instead of from the side so they feel like extensions of the food logging screen rather than separate screens
+- Made the total calories for the day text more prominent which also allowed making the button that leads to Food Analytics much more prominent
+- Added side donuts for macros that appear on the daily view as well that will be capped based on the user's goals (currently just use placeholder values)
+- Added calories text near each meal type
+- Made a _slideUpPage method for food logging screens to feel like extensions of the Food Logging tab instead of feeling like entirely new screens
