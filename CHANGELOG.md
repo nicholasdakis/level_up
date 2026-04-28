@@ -1357,3 +1357,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The loading color is now blended at the same opacity Flutter uses (200/255) so it matches the scaffold background color exactly instead of showing the raw unblended color
 - Changed the loading background to use the full app gradient instead of a flat color so it matches buildThemeGradient exactly
 - Flutter sends the dark and mid gradient stop colors as a pipe-separated string, and the JS reconstructs the same linear-gradient before Flutter paints
+
+## 2026-04-28
+- Tweaked Calorie Calculator colors for better UI
+- Made age slider cap at 120 instead of 100
+- Made the circle on the thumb sliders smaller

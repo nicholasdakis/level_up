@@ -219,16 +219,20 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 letterSpacing: 0.8,
               ),
             ),
-            // Pill that shows the current slider value next to the label
+            // Pill showing the current slider value
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 10),
                 vertical: Responsive.height(context, 4),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColorNotifier.value.withAlpha(90), 0.2),
+                color: Colors.white.withAlpha(15),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 20),
+                ),
+                border: Border.all(
+                  color: Colors.white.withAlpha(40),
+                  width: Responsive.scale(context, 1),
                 ),
               ),
               child: Text(
@@ -254,7 +258,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   overlayColor: Colors.transparent,
                   trackHeight: Responsive.scale(context, 3),
                   thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: Responsive.scale(context, 10),
+                    enabledThumbRadius: Responsive.scale(context, 7),
                   ),
                 ),
                 child: Slider(
@@ -371,7 +375,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     final bool isMetric = units == "Metric" || units == "MetricDefault";
 
     // Safe fallbacks so sliders always have a valid position before the user picks a value
-    final double ageSliderValue = (age ?? 25).toDouble().clamp(13, 100);
+    final double ageSliderValue = (age ?? 25).toDouble().clamp(13, 120);
     final double heightSliderValue = isMetric
         ? (heightCm ?? 170).toDouble().clamp(100, 275)
         : (heightInches ?? 68).toDouble().clamp(36, 107);
@@ -535,8 +539,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         label: "AGE",
                         value: ageSliderValue,
                         min: 13,
-                        max: 100,
-                        divisions: 87,
+                        max: 120,
+                        divisions: 107,
                         valueLabel: (v) => "${v.round()} yrs",
                         onChanged: (value) =>
                             setState(() => age = value.round()),
@@ -814,11 +818,18 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: appColorNotifier.value,
+                      backgroundColor: lightenColor(
+                        appColorNotifier.value,
+                        0.1,
+                      ).withAlpha(180),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 14),
+                        ),
+                        side: BorderSide(
+                          color: Colors.white.withAlpha(30),
+                          width: Responsive.scale(context, 1),
                         ),
                       ),
                       elevation: 0,
