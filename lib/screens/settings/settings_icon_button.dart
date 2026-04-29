@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:level_up/utility/responsive.dart';
+import 'package:level_up/globals.dart';
 
 class SettingsIconButton extends StatefulWidget {
   final VoidCallback onTap;
@@ -14,14 +15,15 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _glowAnimation;
+  bool _isPressed = false;
 
-  @override
   // Initialize the glow animation controller
+  @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
     );
     _glowAnimation = Tween<double>(
       begin: 0.0,
@@ -44,6 +46,8 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
 
   @override
   Widget build(BuildContext context) {
+    final color = appColorNotifier.value; // matches HomeScreen color source
+
     return Padding(
       padding: EdgeInsets.only(
         top: Responsive.height(context, 20),
@@ -53,36 +57,58 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
         animation: _glowAnimation,
         builder: (context, child) {
           return GestureDetector(
+            onTapDown: (_) => setState(() => _isPressed = true),
+            onTapUp: (_) => setState(() => _isPressed = false),
+            onTapCancel: () => setState(() => _isPressed = false),
             onTap: _handleTap,
-            // Frosted glass container with glow pulse on tap
-            child: Container(
-              padding: EdgeInsets.all(Responsive.width(context, 12)),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(
-                  alpha: 0.1 + _glowAnimation.value * 0.15,
-                ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withValues(
-                    alpha: 0.25 + _glowAnimation.value * 0.45,
+            child: AnimatedScale(
+              scale: _isPressed ? 0.92 : 1.0, // press-down feel on tap
+              duration: const Duration(milliseconds: 120),
+              curve: Curves.easeOut,
+              child: Container(
+                padding: EdgeInsets.all(Responsive.width(context, 11)),
+                decoration: BoxDecoration(
+                  // Mirrors _frostedButtonShell fill pattern
+                  color: darkenColor(
+                    color,
+                    0.075,
+                  ).withValues(alpha: 0.16 + _glowAnimation.value * 0.12),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 16),
                   ),
-                  width: 1.5,
-                ),
-                // Outer glow that pulses on tap
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withValues(
-                      alpha: _glowAnimation.value * 0.125, // glow strength
+                  border: Border.all(
+                    // Same brightness as customButton border
+                    color: lightenColor(
+                      color,
+                      0.30,
+                    ).withValues(alpha: 0.30 + _glowAnimation.value * 0.45),
+                    width: Responsive.scale(context, 1.5),
+                  ),
+                  boxShadow: [
+                    // Strong app color glow on tap
+                    BoxShadow(
+                      color: color.withValues(
+                        alpha: 0.25 + _glowAnimation.value * 0.60,
+                      ),
+                      blurRadius: Responsive.scale(context, 24),
+                      spreadRadius:
+                          Responsive.scale(context, 4) * _glowAnimation.value,
                     ),
-                    blurRadius: 5 * _glowAnimation.value,
-                    spreadRadius: 2 * _glowAnimation.value,
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.manage_accounts_outlined,
-                size: Responsive.font(context, 48),
-                color: Colors.white,
+                    // Depth shadow that mirrors _frostedButtonShell boxShadow
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: Responsive.scale(context, 16),
+                      offset: Offset(0, Responsive.scale(context, 4)),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                // Icon alpha matches customButton icon pattern
+                child: Icon(
+                  Icons.manage_accounts_outlined,
+                  size: Responsive.font(context, 46),
+                  color: Colors.white.withAlpha(200),
+                ),
               ),
             ),
           );

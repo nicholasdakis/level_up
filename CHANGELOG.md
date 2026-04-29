@@ -1397,3 +1397,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the icons from the home screen buttons
 - Edited frostedButtonShell's border so the home screen button borders stand out
 - Added subtle shadows to buttonText
+- Updated the settings drawer to fit Home Screen better by matching the style of the buttons
