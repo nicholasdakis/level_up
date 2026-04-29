@@ -196,6 +196,16 @@ class UserDataManager {
             .toList();
       }
 
+      //
+      // Map goals from the backend response if they exist
+      if (data['goals'] != null) {
+        currentUserData?.caloriesGoal = data['goals']['calories_goal'];
+        currentUserData?.proteinGoal = data['goals']['protein_goal'];
+        currentUserData?.carbsGoal = data['goals']['carbs_goal'];
+        currentUserData?.fatGoal = data['goals']['fat_goal'];
+        currentUserData?.weightGoalType = data['goals']['weight_goal_type'];
+      }
+
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
       lastLoadFailed = false;

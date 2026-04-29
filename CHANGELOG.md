@@ -1383,3 +1383,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a button to Personal Preferences for updating goals
 - Added a get_goals method in the repository that is called in the /get_user_data route so that goals are also loaded
 - Updated getUserDataResponse schema to handle the goals field by calling a new GoalsResponse schema
+- Added goal loading to fetchUserDataSafely so the frontend updates the goals
+- Replaced the placeholder goals in food_logging with the real values
+- If no goals are set, a button appears where the user can enter their goals (same button as in Personal Preferences)
+- If the user has no specific goal set, the gauge shows a button prompting them to enter the goal and leads them to personal preferences (_buildMacroPlaceholder)

@@ -9,12 +9,6 @@ import '../utility/responsive.dart';
 import '../utility/food_logging_helper.dart';
 import '../services/user_data_manager.dart';
 
-// Placeholder goals until the goal-setting screen is built
-const double kGoalCalories = 12345.0;
-const double kGoalProtein = 12345.0;
-const double kGoalCarbs = 12345.0;
-const double kGoalFat = 12345.0;
-
 List<Color> _mealColors(Color base) {
   return [
     lightenColor(base, 0.30),
@@ -48,6 +42,15 @@ class _FoodLoggingState extends State<FoodLogging> {
   };
 
   Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
+
+  // getters that read from currentUserData so goals are always up to date
+  double get _goalCalories => (currentUserData?.caloriesGoal ?? 0).toDouble();
+  double get _goalProtein => (currentUserData?.proteinGoal ?? 0).toDouble();
+  double get _goalCarbs => (currentUserData?.carbsGoal ?? 0).toDouble();
+  double get _goalFat => (currentUserData?.fatGoal ?? 0).toDouble();
+  bool get _goalsSet =>
+      currentUserData?.caloriesGoal !=
+      null; // true only if the user has set at least a calorie goal
 
   @override
   void initState() {
@@ -218,11 +221,46 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   // Calories bar which also has a "View Analytics button
   Widget _buildCaloriesBar(Color appColor) {
+    // if no goals set, show a prompt to open the goals dialog
+    if (!_goalsSet) {
+      return frostedGlassCard(
+        context,
+        baseRadius: 20,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 18),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: TextButton.icon(
+            onPressed: () async {
+              // waits for the user to come back from preferences tab to update the user data with the new data
+              await context.push('/settings/preferences');
+              await userManager.refreshUserData();
+              _syncFoodData();
+            },
+            icon: Icon(
+              Icons.track_changes_outlined,
+              color: lightenColor(appColor, 0.30),
+            ),
+            label: Text(
+              "Set your nutrition goals",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 14),
+                fontWeight: FontWeight.w600,
+                color: lightenColor(appColor, 0.30),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final total = _totalCalories();
-    final progress = (total / kGoalCalories).clamp(0.0, 1.0);
-    final remaining = (kGoalCalories - total).round();
+    final progress = (total / _goalCalories).clamp(0.0, 1.0);
+    final remaining = (_goalCalories - total).round();
     final barColor = lightenColor(appColor, 0.30);
-    final isOver = total > kGoalCalories;
+    final isOver = total > _goalCalories;
 
     return frostedGlassCard(
       context,
@@ -250,7 +288,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               Padding(
                 padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
                 child: Text(
-                  " / ${kGoalCalories.round()} kcal",
+                  " / ${_goalCalories.round()} kcal",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
                     color: Colors.white38,
@@ -264,7 +302,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                 children: [
                   Text(
                     isOver
-                        ? "${(total - kGoalCalories).round()} over"
+                        ? "${(total - _goalCalories).round()} over"
                         : "$remaining left",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
@@ -431,28 +469,64 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   // Builds the 3 macro goal gauges
   Widget _buildMacroGauges(Color appColor) {
+    // hide gauges entirely if no goals set since the calories bar already shows the prompt
+    if (!_goalsSet) return const SizedBox.shrink();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildMacroGauge(
-          label: "Protein",
-          current: _totalMacro('protein'),
-          goal: kGoalProtein,
-          color: lightenColor(appColor, 0.30),
-        ),
-        _buildMacroGauge(
-          label: "Carbs",
-          current: _totalMacro('carbs'),
-          goal: kGoalCarbs,
-          color: lightenColor(appColor, 0.30),
-        ),
-        _buildMacroGauge(
-          label: "Fat",
-          current: _totalMacro('fat'),
-          goal: kGoalFat,
-          color: lightenColor(appColor, 0.30),
-        ),
+        _goalProtein > 0
+            ? _buildMacroGauge(
+                label: "Protein",
+                current: _totalMacro('protein'),
+                goal: _goalProtein,
+                color: lightenColor(appColor, 0.30),
+              )
+            : _buildMacroPlaceholder("Protein", appColor),
+        _goalCarbs > 0
+            ? _buildMacroGauge(
+                label: "Carbs",
+                current: _totalMacro('carbs'),
+                goal: _goalCarbs,
+                color: lightenColor(appColor, 0.30),
+              )
+            : _buildMacroPlaceholder("Carbs", appColor),
+        _goalFat > 0
+            ? _buildMacroGauge(
+                label: "Fat",
+                current: _totalMacro('fat'),
+                goal: _goalFat,
+                color: lightenColor(appColor, 0.30),
+              )
+            : _buildMacroPlaceholder("Fat", appColor),
       ],
+    );
+  }
+
+  // Helper method that appears when the user has no chosen macro
+  Widget _buildMacroPlaceholder(String label, Color appColor) {
+    return frostedGlassCard(
+      context,
+      baseRadius: 16,
+      child: TextButton.icon(
+        onPressed: () async {
+          await context.push('/settings/preferences');
+          await userManager.refreshUserData();
+          _syncFoodData();
+        },
+        icon: Icon(
+          Icons.add_circle_outline,
+          color: lightenColor(appColor, 0.30),
+          size: Responsive.scale(context, 18),
+        ),
+        label: Text(
+          "Set $label goal",
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 12),
+            color: lightenColor(appColor, 0.30),
+          ),
+        ),
+      ),
     );
   }
 
