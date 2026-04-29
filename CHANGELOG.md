@@ -1377,3 +1377,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made an UpdateGoalsRequest schema used in the update_goals route
 - Made a update_goals method in services that sends the non-empty goal changes as a dict to the repository
 - Made an upsert_goals method in repository that unpacks the dict and upserts the changes
+- Changed this.fcmTokens = const [] and this.reminders = const [] to the initializer list style with ?? [] so each instance gets its own fresh list and .add doesn't throw on a shared const
+- Added the nutrition goals to UserData as variables
+- Added an updateGoals method that called the /update_goals route
+- Added a button to Personal Preferences for updating goals

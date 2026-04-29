@@ -27,7 +27,7 @@ Future<void> showUsernameDialogBox(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Only show text if the username has set a username before
+          // Only show text if the user has set a username before
           if (currentUserData?.username != currentUserData?.uid)
             Text(
               "Current username: \n ${currentUserData?.username}",
@@ -53,7 +53,7 @@ Future<void> showUsernameDialogBox(
       actions: [
         Row(
           mainAxisAlignment:
-              // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
+              // spaceBetween so CANCEL appears at the left and CONFIRM at the right
               MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
@@ -87,7 +87,7 @@ Future<void> showUsernameDialogBox(
 
 class PersonalPreferences extends StatefulWidget {
   final VoidCallback?
-  onProfileImageUpdated; // callback to call HomeScreen when the profile picture is updated
+  onProfileImageUpdated; // callback to notify HomeScreen when the profile picture is updated
 
   const PersonalPreferences({super.key, this.onProfileImageUpdated});
 
@@ -239,7 +239,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
 
-                  // Default app color
+                  // Reset to default app color
                   TextButton(
                     child: Text('Default'),
                     onPressed: () async {
@@ -265,8 +265,151 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
   }
 
-  // Builds a single tappable row inside a frosted glass card
-  // Each row has: icon badge on the left, label + optional subtitle, and a trailing widget or chevron
+  // opens a dialog to update the user's nutrition and weight goals
+  Future<void> showGoalsDialog() async {
+    // pre-fill with existing values if they exist
+    final calCtrl = TextEditingController(
+      text: currentUserData?.caloriesGoal?.toString() ?? '',
+    );
+    final proCtrl = TextEditingController(
+      text: currentUserData?.proteinGoal?.toString() ?? '',
+    );
+    final carbCtrl = TextEditingController(
+      text: currentUserData?.carbsGoal?.toString() ?? '',
+    );
+    final fatCtrl = TextEditingController(
+      text: currentUserData?.fatGoal?.toString() ?? '',
+    );
+    String? weightGoal = currentUserData?.weightGoalType;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        // StatefulBuilder so the segmented button can update without rebuilding the whole screen
+        return StatefulBuilder(
+          builder: (sbContext, setDialogState) {
+            return AlertDialog(
+              backgroundColor: appColorNotifier.value.withAlpha(255),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                "Update Goals",
+                style: TextStyle(color: Colors.white),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _goalField(calCtrl, "Daily Calories (kcal)"),
+                    _goalField(proCtrl, "Protein (g)"),
+                    _goalField(carbCtrl, "Carbs (g)"),
+                    _goalField(fatCtrl, "Fat (g)"),
+                    SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Weight Goal",
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    // segmented button so only one weight goal type can be selected at a time
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(value: 'lose', label: Text('Lose')),
+                        ButtonSegment(
+                          value: 'maintain',
+                          label: Text('Maintain'),
+                        ),
+                        ButtonSegment(value: 'gain', label: Text('Gain')),
+                      ],
+                      selected: {if (weightGoal != null) weightGoal!},
+                      emptySelectionAllowed: true, // allow deselecting
+                      onSelectionChanged: (val) =>
+                          setDialogState(() => weightGoal = val.firstOrNull),
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? Colors.white
+                              : Colors.white54,
+                        ),
+                        backgroundColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? appColorNotifier.value
+                              : Colors.transparent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: Text(
+                        "CANCEL",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => Navigator.pop(dialogContext),
+                    ),
+                    TextButton(
+                      child: Text(
+                        "SAVE",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () async {
+                        await userManager.updateGoals(
+                          caloriesGoal: int.tryParse(calCtrl.text.trim()),
+                          proteinGoal: int.tryParse(proCtrl.text.trim()),
+                          carbsGoal: int.tryParse(carbCtrl.text.trim()),
+                          fatGoal: int.tryParse(fatCtrl.text.trim()),
+                          weightGoalType: weightGoal,
+                          context:
+                              dialogContext, // dialogContext so snackbar works after popping
+                        );
+                        if (mounted) {
+                          setState(() {}); // refresh subtitle with new values
+                        }
+                        Navigator.pop(dialogContext);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // single text field used inside the goals dialog
+  Widget _goalField(TextEditingController ctrl, String hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.white54),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
+          ),
+        ),
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  // builds a single tappable row inside a frosted glass card
+  // each row has: icon badge on the left, label + optional subtitle, and a trailing widget or chevron
   Widget buildPreferenceRow({
     required IconData icon,
     required String label,
@@ -468,6 +611,38 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               "Update your username",
                               usernameController,
                             ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 28)),
+
+                    // Goals section
+                    sectionHeader(
+                      "GOALS",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      ),
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: Icons.track_changes_outlined,
+                            label: "Nutrition and Weight Goals",
+                            // show a summary of current goals if they exist
+                            subtitle:
+                                "Current goals:  "
+                                "${currentUserData?.caloriesGoal != null ? '${currentUserData!.caloriesGoal} kcal' : 'no set calorie goal'}  ·  "
+                                "${currentUserData?.proteinGoal != null ? '${currentUserData!.proteinGoal}g protein' : 'no set protein goal'}  ·  "
+                                "${currentUserData?.carbsGoal != null ? '${currentUserData!.carbsGoal}g carbs' : 'no set carbs goal'}  ·  "
+                                "${currentUserData?.fatGoal != null ? '${currentUserData!.fatGoal}g fat' : 'no set fat goal'}  ·  "
+                                "${currentUserData?.weightGoalType != null ? 'goal: ${currentUserData!.weightGoalType}' : 'no weight goal'}",
+                            onTap: showGoalsDialog,
                           ),
                         ],
                       ),

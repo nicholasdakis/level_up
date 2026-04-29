@@ -897,4 +897,64 @@ class UserDataManager {
   Future<void> refreshUserData() async {
     await _fetchUserDataSafely();
   }
+
+  // Method for calling the /update_goals route from the frontend
+  Future<void> updateGoals({
+    int? caloriesGoal,
+    int? proteinGoal,
+    int? carbsGoal,
+    int? fatGoal,
+    String? weightGoalType,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/update_goals'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': await getIdToken(),
+              'calories_goal': caloriesGoal,
+              'protein_goal': proteinGoal,
+              'carbs_goal': carbsGoal,
+              'fat_goal': fatGoal,
+              'weight_goal_type': weightGoalType,
+            }),
+          )
+          .timeout(const Duration(seconds: 2));
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_goals failed: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      // update local state
+      if (currentUserData != null) {
+        currentUserData!.caloriesGoal = caloriesGoal;
+        currentUserData!.proteinGoal = proteinGoal;
+        currentUserData!.carbsGoal = carbsGoal;
+        currentUserData!.fatGoal = fatGoal;
+        currentUserData!.weightGoalType = weightGoalType;
+      }
+
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Goals updated successfully."),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating goals: $e"),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    }
+  }
 }
