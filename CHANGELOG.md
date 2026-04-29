@@ -1387,3 +1387,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the placeholder goals in food_logging with the real values
 - If no goals are set, a button appears where the user can enter their goals (same button as in Personal Preferences)
 - If the user has no specific goal set, the gauge shows a button prompting them to enter the goal and leads them to personal preferences (_buildMacroPlaceholder)
+
+## 2026-04-29
+- Edited the text gradient values
+- Changed createTitle() font from dangrek to spaceGrotesk
+- Edited the text shadows to be more subtle
+- Changed button text from dangrek to manrope
+- Changed Level Up! title text to use spaceGrotesk
+- Removed the icons from the home screen buttons
+- Edited frostedButtonShell's border so the home screen button borders stand out

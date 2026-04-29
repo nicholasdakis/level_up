@@ -187,9 +187,9 @@ Widget frostedButton(
 LinearGradient subtleTextGradient() {
   return LinearGradient(
     colors: [
-      lightenColor(appColorNotifier.value, 0.65),
-      lightenColor(appColorNotifier.value, 0.80),
-      lightenColor(appColorNotifier.value, 0.65),
+      lightenColor(appColorNotifier.value, 0.45),
+      lightenColor(appColorNotifier.value, 0.50),
+      lightenColor(appColorNotifier.value, 0.45),
     ],
   );
 }
@@ -210,8 +210,9 @@ Widget createTitle(String text, BuildContext context) {
       fit: BoxFit.scaleDown,
       child: Text(
         text,
-        style: GoogleFonts.dangrek(
+        style: GoogleFonts.spaceGrotesk(
           fontSize: Responsive.font(context, 40),
+          fontWeight: FontWeight.w800,
           color: Colors.white,
           shadows: [textDropShadow(context)],
         ),
@@ -254,37 +255,15 @@ Widget buttonText(String text, BuildContext context, double baseFontSize) {
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: GoogleFonts.dangrek(
+      style: GoogleFonts.manrope(
         fontSize: Responsive.font(context, baseFontSize),
+        fontWeight: FontWeight.w700,
         color: Colors.white,
         shadows: [
           Shadow(
-            offset: Offset(
-              -Responsive.scale(context, 1),
-              -Responsive.scale(context, 1),
-            ),
-            color: Colors.black,
-          ),
-          Shadow(
-            offset: Offset(
-              Responsive.scale(context, 1),
-              -Responsive.scale(context, 1),
-            ),
-            color: Colors.black,
-          ),
-          Shadow(
-            offset: Offset(
-              -Responsive.scale(context, 1),
-              Responsive.scale(context, 1),
-            ),
-            color: Colors.black,
-          ),
-          Shadow(
-            offset: Offset(
-              Responsive.scale(context, 1),
-              Responsive.scale(context, 1),
-            ),
-            color: Colors.black,
+            offset: Offset(0, 2),
+            blurRadius: 8,
+            color: Colors.black.withAlpha(120),
           ),
         ],
       ),
@@ -339,10 +318,10 @@ Widget _frostedButtonShell(
               borderRadius: radius,
 
               border: Border.all(
-                color: color.withValues(
+                color: lightenColor(color, 0.30).withValues(
                   alpha: borderAlpha,
                 ), // defines edge separation from background
-                width: Responsive.scale(context, 1.5), // border width scaled
+                width: Responsive.scale(context, 3), // border width scaled
               ),
 
               boxShadow: [

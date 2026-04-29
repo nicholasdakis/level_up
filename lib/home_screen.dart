@@ -299,23 +299,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             // Stroke / outline
                             Text(
                               "LEVEL UP!",
-                              style: GoogleFonts.dangrek(
+                              style: GoogleFonts.spaceGrotesk(
                                 fontSize: Responsive.font(context, 55),
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: Responsive.scale(context, 2),
                                 foreground: Paint()
                                   ..style = PaintingStyle.stroke
-                                  ..strokeWidth = Responsive.scale(context, 4)
-                                  ..color = Colors.black,
+                                  ..strokeWidth = Responsive.scale(context, 3)
+                                  ..color = Colors.black.withAlpha(180),
                               ),
                             ),
                             // Fill + glow
                             Text(
                               "LEVEL UP!",
-                              style: GoogleFonts.dangrek(
+                              style: GoogleFonts.spaceGrotesk(
                                 fontSize: Responsive.font(context, 55),
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: Responsive.scale(context, 2),
-                                color: Colors
-                                    .white, // color is needed but will be masked
+                                color: Colors.white,
                                 shadows: [
                                   Shadow(
                                     offset: Offset(0, 0),
@@ -366,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    "BETA 04.28",
+                                    "BETA 04.29",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 11),
                                       color: Colors.white.withAlpha(80),
@@ -385,7 +386,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.menu_book_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "open_food_logging",
@@ -408,7 +408,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.explore_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "open_explore",
@@ -431,7 +430,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.leaderboard_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "open_leaderboard",
@@ -454,7 +452,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.emoji_events_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "open_badges",
@@ -477,7 +474,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.notifications_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "open_reminders",
@@ -500,7 +496,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           160,
                                           750,
                                           context,
-                                          icon: Icons.calculate_outlined,
                                           onPressed: () {
                                             trackTrivialAchievement(
                                               "calorie_calculator",
