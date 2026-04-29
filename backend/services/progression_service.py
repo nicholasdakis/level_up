@@ -380,6 +380,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "carbs_goal": carbs_goal,
             "fat_goal": fat_goal,
             "weight_goal_type": weight_goal_type,
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
         # Remove None values to not overwrite existing fields
