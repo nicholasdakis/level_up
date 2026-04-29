@@ -173,52 +173,49 @@ class _HomeScreenState extends State<HomeScreen> {
         IgnorePointer(ignoring: loadFailed, child: _buildBody()),
         if (loadFailed)
           Center(
-            child: Container(
-              margin: EdgeInsets.symmetric(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 40),
               ),
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 24),
-                vertical: Responsive.height(context, 28),
-              ),
-              decoration: BoxDecoration(
-                color: darkenColor(appColorNotifier.value, 0.02).withAlpha(230),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 20),
+              child: frostedGlassCard(
+                context,
+                baseRadius: 20,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 24),
+                  vertical: Responsive.height(context, 28),
                 ),
-                border: Border.all(color: Colors.white.withAlpha(20), width: 1),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Failed to load.",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 16),
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Failed to load.",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 16),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  Text(
-                    "Check your connection and try again.",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 13),
-                      color: Colors.white54,
+                    SizedBox(height: Responsive.height(context, 6)),
+                    Text(
+                      "Check your connection and try again.",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        color: Colors.white54,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  simpleCustomButton(
-                    "Retry",
-                    16,
-                    50,
-                    160,
-                    context,
-                    onPressed: _retry,
-                    baseColor: appColorNotifier.value,
-                  ),
-                ],
+                    SizedBox(height: Responsive.height(context, 20)),
+                    simpleCustomButton(
+                      "Retry",
+                      16,
+                      50,
+                      160,
+                      context,
+                      onPressed: _retry,
+                      baseColor: appColorNotifier.value,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -231,8 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Skeletonizer(
       enabled: isLoading,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColorNotifier.value, 0.3),
-        highlightColor: lightenColor(appColorNotifier.value, 0.1),
+        baseColor: darkenColor(appColorNotifier.value, 0.1),
+        highlightColor: lightenColor(appColorNotifier.value, 0.2),
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
@@ -334,9 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                // Separator between header and body
                 Container(
                   height: Responsive.height(context, 1),
-                  color: Colors.white.withAlpha(25),
+                  color: Colors.white.withAlpha(40),
                 ),
               ],
             ),
@@ -363,16 +361,37 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // room above first button
+                                SizedBox(height: Responsive.height(context, 8)),
                                 // Current app version badge
                                 Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "BETA 04.29",
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 11),
-                                      color: Colors.white.withAlpha(80),
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.5,
+                                  child: Container(
+                                    margin: EdgeInsets.only(
+                                      bottom: Responsive.height(context, 4),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: Responsive.width(context, 10),
+                                      vertical: Responsive.height(context, 4),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withAlpha(12),
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(context, 20),
+                                      ),
+                                      border: Border.all(
+                                        color: Colors.white.withAlpha(20),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "BETA 04.29",
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 11),
+                                        color: Colors.white.withAlpha(80),
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.5,
+                                      ),
                                     ),
                                   ),
                                 ),
