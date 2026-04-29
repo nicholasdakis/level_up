@@ -1372,3 +1372,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added side donuts for macros that appear on the daily view as well that will be capped based on the user's goals (currently just use placeholder values)
 - Added calories text near each meal type
 - Made a _slideUpPage method for food logging screens to feel like extensions of the Food Logging tab instead of feeling like entirely new screens
+- Added a goals table for letting the user set nutritional goals

@@ -104,3 +104,14 @@ CREATE TABLE daily_snapshots (
     data JSONB NOT NULL,
     PRIMARY KEY (uid, snapshot_date)
 );
+
+-- Table to store a user's nutritional goals
+CREATE TABLE goals (
+    uid TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
+    calories_goal INTEGER,
+    protein_goal INTEGER,
+    carbs_goal INTEGER,
+    fat_goal INTEGER,
+    weight_goal_type TEXT CHECK (weight_goal_type IN ('lose', 'gain', 'maintain')),
+    last_updated TIMESTAMPTZ NOT NULL
+);
