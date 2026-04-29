@@ -268,6 +268,7 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         food_logs = self._repo.get_food_logs(uid)
         reminders = self._reminder_repo.get_reminders(uid)
+        goals = self._repo.get_goals(uid)
 
         return {
             "level": user.get("level", 1),
@@ -282,6 +283,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "last_daily_claim": user.get("last_daily_claim"),
             "food_logs": food_logs,
             "reminders": reminders,
+            "goals": goals,
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):

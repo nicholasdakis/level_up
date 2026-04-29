@@ -1381,3 +1381,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the nutrition goals to UserData as variables
 - Added an updateGoals method that called the /update_goals route
 - Added a button to Personal Preferences for updating goals
+- Added a get_goals method in the repository that is called in the /get_user_data route so that goals are also loaded
+- Updated getUserDataResponse schema to handle the goals field by calling a new GoalsResponse schema

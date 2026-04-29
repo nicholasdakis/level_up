@@ -196,6 +196,13 @@ class CheckInPOIResponse(BaseModel):
     new_exp: int = 0    # user's XP after the award
     error: str | None = None  # reason for failure if success is false
 
+class GoalsResponse(BaseModel):
+    calories_goal: int | None = None
+    protein_goal: int | None = None
+    carbs_goal: int | None = None
+    fat_goal: int | None = None
+    weight_goal_type: str | None = None
+
 class GetUserDataResponse(BaseModel):
     level: int = 1
     exp_points: int = 0
@@ -209,6 +216,7 @@ class GetUserDataResponse(BaseModel):
     last_daily_claim: str | None = None  # ISO string
     food_logs: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
+    goals: GoalsResponse | None = None
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success

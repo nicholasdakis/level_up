@@ -169,6 +169,12 @@ class UserRepository:
             "uid": uid,
             **data # unpack the data which is in the same format as the goals table
         }).execute()
+    
+    def get_goals(self, uid: str):
+        result = self._supabase.table("goals").select("*").eq("uid", uid).execute()
+        if result.data:
+            return result.data[0]
+        return None
 
 class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
 
