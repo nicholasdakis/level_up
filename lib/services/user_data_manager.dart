@@ -196,7 +196,6 @@ class UserDataManager {
             .toList();
       }
 
-      //
       // Map goals from the backend response if they exist
       if (data['goals'] != null) {
         currentUserData?.caloriesGoal = data['goals']['calories_goal'];

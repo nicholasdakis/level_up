@@ -243,6 +243,8 @@ Widget textWithCard(String text, BuildContext context, double baseFontSize) {
 
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
 Widget buttonText(String text, BuildContext context, double baseFontSize) {
+  final double fontSize = Responsive.font(context, baseFontSize);
+
   return ShaderMask(
     shaderCallback: (bounds) => subtleTextGradient().createShader(
       Rect.fromLTWH(
@@ -256,14 +258,21 @@ Widget buttonText(String text, BuildContext context, double baseFontSize) {
       text,
       textAlign: TextAlign.center,
       style: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, baseFontSize),
+        fontSize: fontSize,
         fontWeight: FontWeight.w700,
         color: Colors.white,
         shadows: [
+          // Dark shadow below
           Shadow(
             offset: Offset(0, 2),
-            blurRadius: 8,
-            color: Colors.black.withAlpha(120),
+            blurRadius: 4,
+            color: Colors.black.withAlpha(180),
+          ),
+          // Light shadow above
+          Shadow(
+            offset: Offset(0, -1),
+            blurRadius: 3,
+            color: Colors.white.withAlpha(60),
           ),
         ],
       ),

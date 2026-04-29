@@ -1396,3 +1396,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Changed Level Up! title text to use spaceGrotesk
 - Removed the icons from the home screen buttons
 - Edited frostedButtonShell's border so the home screen button borders stand out
+- Added subtle shadows to buttonText
