@@ -52,7 +52,8 @@ from backend.schemas import (
     AchievementClaimEntry,
     ClaimAchievementRequest,
     ClaimTrivialAchievementRequest,
-    UpdateUtcOffsetRequest
+    UpdateUtcOffsetRequest,
+    UpdateGoalsRequest
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS
@@ -323,6 +324,29 @@ def get_food():
         return jsonify({"error": "Server busy, try again"}), 503
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
+
+    @app.route("/update_goals", methods=["POST"])
+    def update_goals():
+        # Step 1: Validate request body and verify the user's identity
+        uid, body, err = _parse_and_auth(UpdateGoalsRequest)
+        if err:
+            return err
+
+        # Step 2: Update goals through service layer (upsert behavior)
+        result = progression_service.update_goals(
+            uid=uid,
+            calories_goal=body.calories_goal,
+            protein_goal=body.protein_goal,
+            carbs_goal=body.carbs_goal,
+            fat_goal=body.fat_goal,
+            weight_goal_type=body.weight_goal_type,
+        )
+
+        # Step 3: Return updated state
+        return jsonify({
+            "success": True,
+            "goals": result
+        }), 200
 
 @app.route("/get_nearby_pois", methods=["POST"])
 def get_nearby_pois():

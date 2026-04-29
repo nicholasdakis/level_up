@@ -110,6 +110,19 @@ class UpdateUtcOffsetRequest(BaseModel):
     id_token: str
     utc_offset: int
 
+class UpdateGoalsRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+
+    calories_goal: int | None = None
+    protein_goal: int | None = None
+    carbs_goal: int | None = None
+    fat_goal: int | None = None
+
+    weight_goal_type: str | None = Field(
+        default=None,
+        description="lose | gain | maintain"
+    )
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================

@@ -1373,3 +1373,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added calories text near each meal type
 - Made a _slideUpPage method for food logging screens to feel like extensions of the Food Logging tab instead of feeling like entirely new screens
 - Added a goals table for letting the user set nutritional goals
+- Made an /update_goals route
+- Made an UpdateGoalsRequest schema used in the update_goals route
+- Made a update_goals method in services that sends the non-empty goal changes as a dict to the repository
+- Made an upsert_goals method in repository that unpacks the dict and upserts the changes

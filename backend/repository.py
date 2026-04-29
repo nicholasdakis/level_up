@@ -84,7 +84,7 @@ class UserRepository:
         )
         return result.data
 
-    # Write operations (non-atomic)
+    # Write operations
 
     # Method to update the user's data
     def set_user_data(self, uid: str, data: dict):
@@ -162,6 +162,13 @@ class UserRepository:
 
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()
+
+    def upsert_goals(self, uid: str, data: dict):
+        # Insert or update goals row for this user
+        self._supabase.table("goals").upsert({
+            "uid": uid,
+            **data # unpack the data which is in the same format as the goals table
+        }).execute()
 
 class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
 

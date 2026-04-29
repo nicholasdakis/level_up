@@ -364,3 +364,27 @@ class ProgressionService: # Service class to handle all progression-related busi
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         self._track_achievement(uid, "total_achievements")
         return result
+
+    def update_goals(
+        self,
+        uid: str,
+        calories_goal: int | None,
+        protein_goal: int | None,
+        carbs_goal: int | None,
+        fat_goal: int | None,
+        weight_goal_type: str | None,
+    ):
+        data = {
+            "calories_goal": calories_goal,
+            "protein_goal": protein_goal,
+            "carbs_goal": carbs_goal,
+            "fat_goal": fat_goal,
+            "weight_goal_type": weight_goal_type,
+        }
+
+        # Remove None values to not overwrite existing fields
+        data = {k: v for k, v in data.items() if v is not None}
+
+        # Call the repository to update the goals
+        self._repo.upsert_goals(uid, data)
+        return {"success": True}
