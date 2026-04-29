@@ -221,26 +221,6 @@ Widget createTitle(String text, BuildContext context) {
   );
 }
 
-// CREATE TEXT INSIDE OF A CARD
-Widget textWithCard(String text, BuildContext context, double baseFontSize) {
-  return Card(
-    elevation: Responsive.scale(context, 10),
-    color: darkenColor(appColorNotifier.value, 0.025), // Header color
-    child: Padding(
-      padding: EdgeInsets.all(Responsive.padding(context, 4)),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(context, baseFontSize),
-          color: Colors.white,
-          shadows: [textDropShadow(context)],
-        ),
-      ),
-    ),
-  );
-}
-
 // CREATE THE CUSTOM TEXT MEANT FOR BUTTONS
 Widget buttonText(String text, BuildContext context, double baseFontSize) {
   final double fontSize = Responsive.font(context, baseFontSize);
