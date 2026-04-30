@@ -4,7 +4,7 @@
 
 ## Availability
 
-- Available at https://nicholasdakis.github.io/level_up/ on all devices
+- Available at https://nicholasdakis.com/level_up/ on all devices
 - Installable as a **Progressive Web App (PWA)** via the browser link for a native app experience
 
 ## Wiki
