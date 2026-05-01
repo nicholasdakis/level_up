@@ -1407,3 +1407,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed daily snapshot timezone targeting for users east of UTC where the computed offset was never matching the stored value
 - Normalized the midnight offset formula to the -720 to +720 range so computed offsets match what Flutter stores via DateTime.now().timeZoneOffset.inMinutes
 - Added UTC+12 edge case where both 720 and -720 are queried since devices can store either
+- Moved the daily snapshot-related code from server.py to utils.py
