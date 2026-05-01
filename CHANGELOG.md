@@ -1399,3 +1399,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added subtle shadows to buttonText
 - Updated the settings drawer to fit Home Screen better by matching the style of the buttons
 - Made the current version text in a pill
+
+## 2026-04-30
+- Added ON DELETE CASCADE to sql tables

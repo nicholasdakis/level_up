@@ -24,13 +24,13 @@ CREATE TABLE users (
     can_claim_daily_reward BOOLEAN NOT NULL DEFAULT true,  -- whether the user can claim their daily reward
     fcm_tokens TEXT[] NOT NULL DEFAULT '{}', -- Firebase Cloud Messaging tokens for push notifications
     last_daily_claim TIMESTAMPTZ,     -- when the user last claimed their daily reward
-    notifications_enabled BOOLEAN NOT NULL DEFAULT true   -- whether the user has push notifications turned on
+    notifications_enabled BOOLEAN NOT NULL DEFAULT true,   -- whether the user has push notifications turned on
     utc_offset_minutes SMALLINT DEFAULT NULL  -- user's UTC offset in minutes for snapshot scheduling
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
 CREATE TABLE food_logs (
-    uid TEXT REFERENCES users(uid),    -- the user who logged the food
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     date DATE,                         -- the calendar date for this log
     breakfast JSONB[],                 -- array of food items logged for breakfast
     lunch JSONB[],                     -- array of food items logged for lunch
@@ -42,7 +42,7 @@ CREATE TABLE food_logs (
 -- Scheduled push notification reminders set by the user
 CREATE TABLE reminders (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT, -- auto-generated unique ID
-    uid TEXT REFERENCES users(uid),    -- the user who created the reminder
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     scheduled_at TIMESTAMPTZ,          -- when the notification should be sent
     message TEXT,                      -- the notification message body
     notification_id BIGINT             -- client-side notification ID for cancellation
@@ -50,7 +50,7 @@ CREATE TABLE reminders (
 
 -- Tracks the last time a user visited each point of interest for the 24-hour cooldown
 CREATE TABLE poi_visits (
-    uid TEXT REFERENCES users(uid),    -- the user who visited the POI
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     poi_name TEXT,                     -- name of the point of interest
     last_visit TIMESTAMPTZ,            -- when the user last checked in
     PRIMARY KEY (uid, poi_name)        -- one row per user per POI
@@ -59,7 +59,7 @@ CREATE TABLE poi_visits (
 -- Stores processed responses so retried requests return the same result instead of re-executing
 CREATE TABLE idempotency_keys (
     key TEXT,                          -- client-generated unique key (e.g. UUID) per request
-    uid TEXT REFERENCES users(uid),    -- scoped to the user so keys can't cross accounts
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     endpoint TEXT,                     -- which route was called (e.g. "claim_daily_reward")
     response JSONB,                    -- the exact JSON response returned the first time
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -70,7 +70,7 @@ CREATE TABLE idempotency_keys (
 -- Tracks user progress toward each achievement category (e.g. "level", "poi_visits")
 -- One row per user per achievement category, progress updates as the user advances
 CREATE TABLE achievement_progress (
-    uid TEXT REFERENCES users(uid),    -- the user being tracked
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     achievement_id TEXT,               -- category key (e.g. 'level', 'poi_visits', 'food_streak')
     progress INTEGER NOT NULL DEFAULT 0, -- current progress toward the next tier
     PRIMARY KEY (uid, achievement_id)  -- one progress row per user per achievement category
@@ -84,12 +84,12 @@ CREATE TABLE achievement_claims (
     tier INTEGER,                      -- the milestone threshold (e.g. 5, 10, 25)
     claimed_at TIMESTAMPTZ NOT NULL,   -- when the user claimed the reward
     PRIMARY KEY (uid, achievement_id, tier), -- one row per user per achievement per tier
-    FOREIGN KEY (uid, achievement_id) REFERENCES achievement_progress(uid, achievement_id) -- must have a progress row first
+    FOREIGN KEY (uid, achievement_id) REFERENCES achievement_progress(uid, achievement_id) ON DELETE CASCADE
 );
 
 -- Table to store streaks and highest_streaks for different stats per-user
 CREATE TABLE streaks (
-    uid TEXT REFERENCES users(uid),
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     streak_type TEXT,
     streak INTEGER DEFAULT 0,
     highest_streak INTEGER DEFAULT 0,
@@ -99,7 +99,7 @@ CREATE TABLE streaks (
 
 -- Table to store one snapshot of a user's data in a json file per day
 CREATE TABLE daily_snapshots (
-    uid TEXT REFERENCES users(uid),
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     snapshot_date DATE NOT NULL,
     data JSONB NOT NULL,
     PRIMARY KEY (uid, snapshot_date)
