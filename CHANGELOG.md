@@ -1411,3 +1411,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wrote unit tests for utils.py
 - Added a test job to deploy.yml that sets up Python and runs pytest before deploying
 - Made build-and-deploy depend on the test job so deploys are blocked if any test fails
+
+## 2026-05-01
+- Integrated Google Analytics (GA4) to index.html to track page views and user engagement on the web version of the app
