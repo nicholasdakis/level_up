@@ -1404,3 +1404,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added ON DELETE CASCADE to sql tables
 - Fixed a naming inconsistency where last_date in the daily_consecutive field of the streaks table was never updating
 - Renamed all occurrences of the name to daily_consecutive_streak
+- Fixed daily snapshot timezone targeting for users east of UTC where the computed offset was never matching the stored value
+- Normalized the midnight offset formula to the -720 to +720 range so computed offsets match what Flutter stores via DateTime.now().timeZoneOffset.inMinutes
+- Added UTC+12 edge case where both 720 and -720 are queried since devices can store either
