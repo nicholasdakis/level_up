@@ -1409,3 +1409,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added UTC+12 edge case where both 720 and -720 are queried since devices can store either
 - Moved the daily snapshot-related code from server.py to utils.py
 - Wrote unit tests for utils.py
+- Added a test job to deploy.yml that sets up Python and runs pytest before deploying
+- Made build-and-deploy depend on the test job so deploys are blocked if any test fails

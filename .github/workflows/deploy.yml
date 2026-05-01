@@ -15,9 +15,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Step 3: Install Python dependencies from pyproject.toml
+      - name: Install dependencies
+        run: pip install .
+
+      # Step 4: Run pytest on all tests in backend/tests/
+      - name: Run tests
+        run: pytest backend/tests/ -v
+
   build-and-deploy:
-    runs-on: ubuntu-latest  # The virtual machine used for CI
-    
+    needs: test # only runs if tests pass
+    runs-on: ubuntu-latest # The virtual machine used for CI
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,7 +54,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.3'
+          flutter-version: "3.41.9"
 
       # Step 3: Create firebase_options.dart from base64 secret
       # Used base64 because multi-line Dart files can break if echoed directly.
