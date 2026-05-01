@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  run-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
         run: pytest -v
 
   build-and-deploy:
-    needs: test # only runs if tests pass
+    needs: run-tests # only runs if tests pass
     runs-on: ubuntu-latest # The virtual machine used for CI
 
     environment:
