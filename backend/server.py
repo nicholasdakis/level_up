@@ -223,8 +223,9 @@ def find_utc_midnight_offset_mins(utc_min):
     # edge case for UTC-12 and UTC+12, which have the same utc_min but different offsets
     if -720 in offsets:
         offsets.append(720)
-    if 720 in offsets:
+    elif 720 in offsets:
         offsets.append(-720)
+    offsets = list(set(offsets)) # dedupe in case of duplicates from the edge case handling
     return offsets
 
 # Route called by the CRON job every 30 minutes
