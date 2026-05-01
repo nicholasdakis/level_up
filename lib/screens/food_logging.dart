@@ -41,8 +41,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     'snacks': false,
   };
 
-  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate = {};
-
   // getters that read from currentUserData so goals are always up to date
   double get _goalCalories => (currentUserData?.caloriesGoal ?? 0).toDouble();
   double get _goalProtein => (currentUserData?.proteinGoal ?? 0).toDouble();
@@ -64,26 +62,21 @@ class _FoodLoggingState extends State<FoodLogging> {
     if (currentUserData != null &&
         currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
       await userManager.refreshUserData();
-      _syncFoodData();
+      await _syncFoodData();
       return;
     }
     await userManager.loadUserData();
-    _syncFoodData();
+    await _syncFoodData();
   }
 
-  // Method that brings the latest user food data into local state, then loads the current date
-  void _syncFoodData() {
-    // copy user data locally to avoid mutating global state directly
-    foodDataByDate = currentUserData?.foodDataByDate != null
-        ? Map<String, Map<String, List<Map<String, dynamic>>>>.from(
-            currentUserData!.foodDataByDate,
-          )
-        : {};
+  Future<void> _syncFoodData() async {
+    await userManager.refreshUserData();
     loadFoodForDate(currentDate);
   }
 
   void loadFoodForDate(DateTime date) {
-    final dayData = foodDataByDate[FoodLoggingHelper.formatDateKey(date)];
+    final dayData =
+        currentUserData?.foodDataByDate[FoodLoggingHelper.formatDateKey(date)];
     setState(() {
       breakfastFoods = FoodLoggingHelper.castFoodList(dayData?['breakfast']);
       lunchFoods = FoodLoggingHelper.castFoodList(dayData?['lunch']);
@@ -170,7 +163,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     setState(() {
       foods.removeAt(idx);
       final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-      foodDataByDate[dateKey]![mealKey] = foods;
       currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
     });
     await _saveFoodData("delete");
@@ -178,9 +170,10 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   Future<void> _saveFoodData(String addOrDelete) async {
     if (currentUserData == null) return;
-    currentUserData!.foodDataByDate = foodDataByDate;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final currentDateData = {dateKey: foodDataByDate[dateKey]!};
+    final currentDateData = {
+      dateKey: currentUserData!.foodDataByDate[dateKey]!,
+    };
     await userManager.updateFoodDataByDate(
       currentDateData,
       context: context,
@@ -237,7 +230,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               // waits for the user to come back from preferences tab to update the user data with the new data
               await context.push('/settings/preferences');
               await userManager.refreshUserData();
-              _syncFoodData();
+              await _syncFoodData();
             },
             icon: Icon(
               Icons.track_changes_outlined,
@@ -512,7 +505,7 @@ class _FoodLoggingState extends State<FoodLogging> {
         onPressed: () async {
           await context.push('/settings/preferences');
           await userManager.refreshUserData();
-          _syncFoodData();
+          await _syncFoodData();
         },
         icon: Icon(
           Icons.add_circle_outline,
@@ -735,7 +728,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   extra: {
                     'meal': mealKey,
                     'currentDate': currentDate,
-                    'onFoodLogged': () => _syncFoodData(),
+                    'onFoodLogged': () async => await _syncFoodData(),
                     // passed to LogFoodScreen so it knows which achievement to update on log
                     'achievementId': 'food_search',
                   },

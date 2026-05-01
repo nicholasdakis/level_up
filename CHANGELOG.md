@@ -1414,3 +1414,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-05-01
 - Integrated Google Analytics (GA4) to index.html to track page views and user engagement on the web version of the app
+- Fixed food logging screen not refreshing after logging food and then changing date by making _syncFoodData async and awaiting refreshUserData before reloading the current date
+- Removed stale local copy of foodDataByDate as it added complexity for no reason
+- Now data reads directly from currentUserData instead
