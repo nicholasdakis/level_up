@@ -31,11 +31,11 @@ jobs:
 
       # Step 3: Install Python dependencies from pyproject.toml
       - name: Install dependencies
-        run: pip install .
+        run: pip install ".[dev]"
 
       # Step 4: Run pytest on all tests in backend/tests/
       - name: Run tests
-        run: pytest backend/tests/ -v
+        run: pytest -v
 
   build-and-deploy:
     needs: test # only runs if tests pass
