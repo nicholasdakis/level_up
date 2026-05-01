@@ -1402,3 +1402,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-04-30
 - Added ON DELETE CASCADE to sql tables
+- Fixed a naming inconsistency where last_date in the daily_consecutive field of the streaks table was never updating
+- Renamed all occurrences of the name to daily_consecutive_streak

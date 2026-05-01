@@ -35,7 +35,7 @@ BEGIN
     -- Otherwise they missed a day and it resets to 1.
     -- 172800 seconds = 48 hours
     IF v_last_claim IS NOT NULL AND EXTRACT(EPOCH FROM (v_now - v_last_claim)) < 172800 THEN
-        SELECT streak + 1 INTO v_new_streak FROM streaks WHERE uid = p_uid AND streak_type = 'daily_claim_streak';
+        SELECT streak + 1 INTO v_new_streak FROM streaks WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
         IF NOT FOUND THEN
             v_new_streak := 1;
         END IF;
@@ -54,7 +54,7 @@ BEGIN
 
     -- Update the streak in the streaks table
     INSERT INTO streaks (uid, streak_type, streak, highest_streak, last_date)
-    VALUES (p_uid, 'daily_claim_streak', v_new_streak, v_new_streak, v_now::DATE)
+    VALUES (p_uid, 'daily_consecutive_streak', v_new_streak, v_new_streak, v_now::DATE)
     ON CONFLICT (uid, streak_type)
     DO UPDATE SET streak = v_new_streak, highest_streak = GREATEST(streaks.highest_streak, v_new_streak), last_date = v_now::DATE;
 
