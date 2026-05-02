@@ -238,7 +238,7 @@ class UserDataManager {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_token': token}),
         )
-        .timeout(Duration(seconds: 2));
+        .timeout(Duration(seconds: 5));
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -430,7 +430,7 @@ class UserDataManager {
               'pfp_base64': base64String,
             }),
           )
-          .timeout(Duration(seconds: 2));
+          .timeout(Duration(seconds: 5));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -547,7 +547,7 @@ class UserDataManager {
               'username': updatedUsername,
             }),
           )
-          .timeout(Duration(seconds: 2));
+          .timeout(Duration(seconds: 5));
 
       final result = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -691,7 +691,7 @@ class UserDataManager {
               'enabled': enabled,
             }),
           )
-          .timeout(Duration(seconds: 2));
+          .timeout(Duration(seconds: 5));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -748,7 +748,7 @@ class UserDataManager {
               'utc_offset': offset,
             }),
           )
-          .timeout(Duration(seconds: 2));
+          .timeout(Duration(seconds: 5));
     } catch (e) {
       debugPrint('Error updating utc offset: $e');
     }
@@ -778,7 +778,7 @@ class UserDataManager {
               'app_color': argbInt,
             }),
           )
-          .timeout(Duration(seconds: 2));
+          .timeout(Duration(seconds: 5));
 
       if (response.statusCode != 200) {
         throw Exception(

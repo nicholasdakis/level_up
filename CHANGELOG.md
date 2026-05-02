@@ -1417,3 +1417,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed food logging screen not refreshing after logging food and then changing date by making _syncFoodData async and awaiting refreshUserData before reloading the current date
 - Removed stale local copy of foodDataByDate as it added complexity for no reason
 - Now data reads directly from currentUserData instead
+- Increased the timeout duration in userDataManager methods to prevent "Connection is slow" messages happening on successful requests that took longer than 2 seconds
