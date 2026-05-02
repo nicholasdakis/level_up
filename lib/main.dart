@@ -50,6 +50,30 @@ class MyApp extends StatelessWidget {
                   surface: color.withAlpha(200),
                 ),
                 scaffoldBackgroundColor: color.withAlpha(200),
+
+                dialogTheme: DialogThemeData(
+                  backgroundColor: color.withAlpha(
+                    170,
+                  ), // main dialog theme transparency
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    side: BorderSide(
+                      color: Colors.white.withAlpha(100),
+                      width: 1.5,
+                    ),
+                  ),
+                  titleTextStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  contentTextStyle: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 15,
+                  ),
+                ),
+
                 appBarTheme: AppBarTheme(
                   backgroundColor: color.withAlpha(200),
                   iconTheme: IconThemeData(color: Colors.white),

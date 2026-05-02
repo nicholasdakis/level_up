@@ -234,37 +234,30 @@ class _RemindersState extends State<Reminders> {
     DateTime dateTime,
     Function(DateTime) onPicked,
   ) async {
-    final picker = SizedBox(
-      height: Responsive.height(context, 300),
-      width: Responsive.width(context, 400),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(128, 37, 37, 37),
-          borderRadius: BorderRadius.circular(Responsive.height(context, 30)),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoDatePicker(
-                initialDateTime: dateTime,
-                mode: CupertinoDatePickerMode.dateAndTime,
-                use24hFormat: false,
-                onDateTimeChanged: (newDate) => onPicked(newDate),
-              ),
-            ),
-            CupertinoButton(
-              child: Text("Confirm"),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      ),
-    );
-
     showDialog(
       context: context,
-      builder: (_) => Center(
-        child: Material(color: Colors.transparent, child: picker),
+      builder: (_) => AlertDialog(
+        contentPadding: EdgeInsets.all(Responsive.padding(context, 16)),
+        content: SizedBox(
+          height: Responsive.height(context, 300),
+          width: Responsive.width(context, 400),
+          child: Column(
+            children: [
+              Expanded(
+                child: CupertinoDatePicker(
+                  initialDateTime: dateTime,
+                  mode: CupertinoDatePickerMode.dateAndTime,
+                  use24hFormat: false,
+                  onDateTimeChanged: (newDate) => onPicked(newDate),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("CONFIRM"),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

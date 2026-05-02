@@ -488,10 +488,6 @@ class _BadgesState extends State<Badges> {
         ? (highestStreaks[def.id] ?? 0)
         : currentProgress;
 
-    debugPrint('highestStreaks: $highestStreaks');
-    debugPrint('def.id: ${def.id}');
-    debugPrint('reachableProgress: $reachableProgress');
-
     // Whether this tier has already been claimed by the user
     final claimed = claimedTiers[def.id]?.contains(tier) ?? false;
 

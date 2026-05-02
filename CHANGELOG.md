@@ -1430,3 +1430,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Populated highestStreaks using the fetchStreaks highest_streak data in the _fetchBadgeData method
 - Edited badgeTierChip to use highestStreaks for its claiming boundaries
 - The progress bar still shows the current streak, which is intended so the user who has not completed all tiers is aware of their current streak number
+
+## 2026-05-02
+- Added a theme for Dialogs in main.dart so dialogs in the app appear more modern
+- Edited the date picker method in Reminders to follow the same theme as the other dialogs

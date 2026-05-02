@@ -20,32 +20,17 @@ Future<void> showUsernameDialogBox(
     context: context,
     builder: (dialogContext) => AlertDialog(
       // dialogContext so that the snackbar works after popping
-      backgroundColor: appColorNotifier.value.withAlpha(255),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(title, style: TextStyle(color: Colors.white)),
+      title: Text(title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Only show text if the user has set a username before
           if (currentUserData?.username != currentUserData?.uid)
-            Text(
-              "Current username: \n ${currentUserData?.username}",
-              style: TextStyle(color: Colors.white70),
-            ),
+            Text("Current username: \n ${currentUserData?.username}"),
           SizedBox(height: 10),
           TextField(
             controller: usernameController,
-            decoration: InputDecoration(
-              hintText: "Enter a username.",
-              hintStyle: TextStyle(color: Colors.white54),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
-              ),
-            ),
             style: TextStyle(color: Colors.white),
           ),
         ],
@@ -57,12 +42,11 @@ Future<void> showUsernameDialogBox(
               MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
-              child: Text("CANCEL", style: TextStyle(color: Colors.white)),
               // close if canceled
               onPressed: () => Navigator.pop(dialogContext),
+              child: Text("CANCEL"),
             ),
             TextButton(
-              child: Text("CONFIRM", style: TextStyle(color: Colors.white)),
               // Handle username update
               onPressed: () async {
                 String updatedUsername = usernameController.text.trim();
@@ -74,6 +58,7 @@ Future<void> showUsernameDialogBox(
                   Navigator.pop(dialogContext);
                 }
               },
+              child: Text("CONFIRM"),
             ),
           ],
         ),
@@ -289,14 +274,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         return StatefulBuilder(
           builder: (sbContext, setDialogState) {
             return AlertDialog(
-              backgroundColor: appColorNotifier.value.withAlpha(255),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Text(
-                "Update Goals",
-                style: TextStyle(color: Colors.white),
-              ),
+              title: Text("Update Goals"),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -305,7 +283,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     _goalField(proCtrl, "Protein (g)"),
                     _goalField(carbCtrl, "Carbs (g)"),
                     _goalField(fatCtrl, "Fat (g)"),
-                    SizedBox(height: 16),
+                    SizedBox(height: Responsive.height(context, 16)),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -313,7 +291,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: Responsive.height(context, 6)),
                     // segmented button so only one weight goal type can be selected at a time
                     SegmentedButton<String>(
                       segments: const [

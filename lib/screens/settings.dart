@@ -246,15 +246,7 @@ Widget buildSettingsDrawer(
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: appColorNotifier.value.withAlpha(200),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  title: Text(
-                    "Confirm Logout",
-                    style: TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
+                  title: Text("Confirm Logout", textAlign: TextAlign.center),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,18 +258,12 @@ Widget buildSettingsDrawer(
                           MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
-                          child: Text(
-                            "CANCEL",
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: Text("CANCEL"),
                           // close if canceled
                           onPressed: () => Navigator.pop(context),
                         ),
                         TextButton(
-                          child: Text(
-                            "CONFIRM",
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          child: Text("CONFIRM"),
                           // Handle logout
                           onPressed: () async {
                             // close the dialog box

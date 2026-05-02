@@ -65,31 +65,21 @@ class DailyRewardDialog {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: appColorNotifier.value.withAlpha(200),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          "Daily Reward!",
-          style: TextStyle(color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
+        title: Text("Daily Reward!", textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Display XP awarded from backend
-            Text(
-              "You gained $xpAwarded XP!",
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
+            Text("You gained $xpAwarded XP!", textAlign: TextAlign.center),
           ],
         ),
         actions: [
           Center(
             child: TextButton(
               // just a visual button; the claiming is already done
-              child: Text("CLAIM", style: TextStyle(color: Colors.white)),
               onPressed: () => Navigator.pop(context),
+              child: Text("CLAIM"),
             ),
           ),
         ],
