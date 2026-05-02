@@ -660,6 +660,14 @@ class _BadgesState extends State<Badges> {
     return cards;
   }
 
+  // reset isLoading to true when the user revisits the tab
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    setState(() => _isLoading = true);
+    _fetchAchievements();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Skeletonizer(
