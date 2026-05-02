@@ -53,7 +53,10 @@ from backend.schemas import (
     ClaimAchievementRequest,
     ClaimTrivialAchievementRequest,
     UpdateUtcOffsetRequest,
-    UpdateGoalsRequest
+    UpdateGoalsRequest,
+    GetStreaksResponse,
+    GetStreaksRequest,
+    StreakEntry
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS
@@ -455,6 +458,19 @@ def get_user_data():
     response = GetUserDataResponse(**result)
     return jsonify(response.model_dump()), 200
 
+@app.route("/get_streaks", methods=["POST"])
+def get_streaks():
+    # Step 1: Validate request body and verify the user's identity
+    uid, body, err = _parse_and_auth(GetStreaksRequest)
+    if err:
+        return err
+
+    # Step 2: Fetch all streaks for the user through the service layer
+    result = progression_service.get_streaks(uid)
+
+    # Step 3: Build and return the validated response
+    response = GetStreaksResponse(streaks=[StreakEntry(**s) for s in result])
+    return jsonify(response.model_dump()), 200
 
 @app.route("/update_pfp", methods=["POST"])
 def update_pfp():

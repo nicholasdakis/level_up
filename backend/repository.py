@@ -83,6 +83,11 @@ class UserRepository:
             .execute()
         )
         return result.data
+    
+    def get_streaks(self, uid: str):
+        # Fetches all streak rows for a user
+        result = self._supabase.table("streaks").select("streak_type, streak, highest_streak").eq("uid", uid).execute()
+        return result.data
 
     # Write operations
 
@@ -205,7 +210,7 @@ class AchievementRepository: # Repository class to handle all Postgres operation
     def set_achievement_progress(self, uid: str, achievement_id: str, value: int):
         if achievement_id not in VALID_ACHIEVEMENT_IDS:
             raise ValueError(f"Unknown achievement: {achievement_id}")
-        # Sets progress to an exact value instead of incrementing (used for streaks)
+        # Sets progress to an exact value instead of incrementing (e.g. used for streaks)
         result = self._supabase.rpc("set_achievement_progress", {
             "p_uid": uid,
             "p_achievement_id": achievement_id,

@@ -123,6 +123,9 @@ class UpdateGoalsRequest(BaseModel):
         description="lose | gain | maintain"
     )
 
+class GetStreaksRequest(BaseModel):
+    id_token: str = Field(..., min_length=1)
+
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
 # ==============================================================================
@@ -158,6 +161,11 @@ class AchievementClaimEntry(BaseModel):
     achievement_id: str
     tier: int
     claimed_at: str
+
+class StreakEntry(BaseModel):
+    streak_type: str
+    streak: int
+    highest_streak: int
 
 # ==============================================================================
 # Response schemas
@@ -234,3 +242,6 @@ class GetAchievementsResponse(BaseModel):
     # Both progress and claims returned together so the badges screen has everything in one call
     progress: list[AchievementProgressEntry] = []
     claims: list[AchievementClaimEntry] = []
+
+class GetStreaksResponse(BaseModel):
+    streaks: list[StreakEntry] = []
