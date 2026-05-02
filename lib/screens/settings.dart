@@ -170,7 +170,6 @@ Widget buildSettingsDrawer(
             onTap: () async {
               Navigator.pop(context);
               await context.push('/settings/developer');
-              if (context.mounted) scaffoldKey?.currentState?.openDrawer();
             },
           ),
           buildActionTile(
@@ -224,7 +223,6 @@ Widget buildSettingsDrawer(
                 onTap: () async {
                   Navigator.pop(context);
                   await context.push('/settings/install');
-                  if (context.mounted) scaffoldKey?.currentState?.openDrawer();
                 },
               ),
           // Divider to visually separate Log Out

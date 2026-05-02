@@ -1435,3 +1435,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a theme for Dialogs in main.dart so dialogs in the app appear more modern
 - Edited the date picker method in Reminders to follow the same theme as the other dialogs
 - Added padding to the notch to fix iOS PWA button hitboxes being slightly misaligned
+- Fixed going back from About The Developer and Install PWA screens reopening the settings drawer
