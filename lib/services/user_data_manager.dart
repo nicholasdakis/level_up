@@ -989,4 +989,24 @@ class UserDataManager {
         .map((s) => Map<String, dynamic>.from(s as Map))
         .toList();
   }
+
+  // Fetches the user's achievement progress and claims from the backend
+  static Future<Map<String, dynamic>> fetchAchievements() async {
+    final token = await getIdToken();
+    final response = await http
+        .post(
+          Uri.parse('$backendBaseUrl/get_achievements'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': token}),
+        )
+        .timeout(const Duration(seconds: 5));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'get_achievements failed: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
 }

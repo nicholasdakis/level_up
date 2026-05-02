@@ -3,11 +3,11 @@ import "package:go_router/go_router.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
 import "/utility/responsive.dart";
-import '/services/user_data_manager.dart' show getIdToken, backendBaseUrl;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '/utility/confetti.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import '../services/user_data_manager.dart';
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -373,6 +373,7 @@ class _BadgesState extends State<Badges> {
   // Populated from the backend on init
   final Map<String, int> progress = {};
   final Map<String, Set<int>> claimedTiers = {};
+  final Map<String, int> highestStreaks = {};
 
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
@@ -380,28 +381,20 @@ class _BadgesState extends State<Badges> {
   @override
   void initState() {
     super.initState();
-    _fetchAchievements();
+    _fetchBadgesData();
   }
 
-  // Fetches all achievement progress and claimed tiers from the backend
-  Future<void> _fetchAchievements() async {
+  // Fetches all achievement progress, claimed tiers, and streaks from the backend in parallel
+  Future<void> _fetchBadgesData() async {
     try {
-      final token = await getIdToken();
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/get_achievements'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'id_token': token}),
-          )
-          .timeout(const Duration(seconds: 5));
+      // fetch in parallel for faster retrieval
+      final results = await Future.wait([
+        UserDataManager.fetchAchievements(),
+        UserDataManager.fetchStreaks(),
+      ]);
 
-      if (response.statusCode != 200) {
-        throw Exception(
-          'get_achievements failed: ${response.statusCode} ${response.body}',
-        );
-      }
-
-      final data = jsonDecode(response.body);
+      final data = results[0] as Map<String, dynamic>;
+      final streaks = results[1] as List<Map<String, dynamic>>;
 
       setState(() {
         // Populate progress map from the progress list
@@ -414,11 +407,23 @@ class _BadgesState extends State<Badges> {
           claimedTiers[claim['achievement_id']] ??= {};
           claimedTiers[claim['achievement_id']]!.add(claim['tier']);
         }
-        _isLoading = false; // stop the skeletonizer on a successful fetch
+
+        // Populate highestStreaks map from the streaks list
+        for (final streak in streaks) {
+          final streakType = streak['streak_type'] as String;
+
+          // Map DB streak_type names to achievement IDs
+          final achievementId = streakType == 'daily_consecutive_streak'
+              ? 'daily_claim_streak'
+              : streakType;
+          highestStreaks[achievementId] = streak['highest_streak'] as int;
+        }
+
+        _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Failed to fetch achievements: $e');
-      _isLoading = false; // stop the skeletonizer on a failed fetch
+      debugPrint('Failed to fetch badges data: $e');
+      setState(() => _isLoading = false);
     }
   }
 
@@ -473,10 +478,25 @@ class _BadgesState extends State<Badges> {
 
   // Builds a single tier chip showing the milestone, its status, and a claim button if ready
   Widget _buildTierChip(AchievementDef def, int tier) {
-    final currentProgress = progress[def.id] ?? 0;
-    // Safe check: if no tiers claimed for this achievement yet, default to false
+    final currentProgress =
+        progress[def.id] ??
+        0; // reads the progress in the achievement_progress table
+
+    // For streak achievements, use the highest ever streak for claimability
+    // so breaking a streak doesn't lock previously reached tiers
+    final reachableProgress = highestStreaks.containsKey(def.id)
+        ? (highestStreaks[def.id] ?? 0)
+        : currentProgress;
+
+    debugPrint('highestStreaks: $highestStreaks');
+    debugPrint('def.id: ${def.id}');
+    debugPrint('reachableProgress: $reachableProgress');
+
+    // Whether this tier has already been claimed by the user
     final claimed = claimedTiers[def.id]?.contains(tier) ?? false;
-    final reachable = currentProgress >= tier;
+
+    // Whether the user has reached this tier (claimable if not already claimed)
+    final reachable = reachableProgress >= tier;
 
     Color chipColor;
     Color textColor;
@@ -665,7 +685,7 @@ class _BadgesState extends State<Badges> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     setState(() => _isLoading = true);
-    _fetchAchievements();
+    _fetchBadgesData();
   }
 
   @override

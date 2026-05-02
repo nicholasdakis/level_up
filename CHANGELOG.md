@@ -1421,3 +1421,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the page reload when a stale service worker is found instead of still serving the cached, stale one
 - Added the skeletonizer package to the Badges tab
 - Made isLoading reset to true when the user re-enters the Badges tab so the skeletonizer works on subsequent visits
+- Realized that the streak badge claiming depends on the current streak. So for example, if a user had a highest streak of 10 and then lost that streak, they would not be able to claim the achievement for a streak of 10 because their current streak would be <10
+- Fixed this by making the claiming depend on highest_streaks in the streaks table instead of progress in the achievement_progress table
+- Made a get_streaks route, schema, methods etc for getting the user's streak table info
+- Made a fetchStreaks flutter method that calls the backend
+- Moved fetchAchievements from Badges to userdatamanager for consistency
+- Called fetchStreaks and fetchAchievements in parallel in Badges in _fetchBadgeData method
+- Populated highestStreaks using the fetchStreaks highest_streak data in the _fetchBadgeData method
+- Edited badgeTierChip to use highestStreaks for its claiming boundaries
+- The progress bar still shows the current streak, which is intended so the user who has not completed all tiers is aware of their current streak number
