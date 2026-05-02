@@ -31,7 +31,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
   // Tracks whether the user has agreed to the privacy policy and terms, required before sign up
   bool agreedToTerms = false;
 
-  late final AnimationController bgController; // AnimationController for the orbs in the bg
+  late final AnimationController
+  bgController; // AnimationController for the orbs in the bg
 
   @override
   void initState() {
@@ -460,7 +461,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
         SizedBox(height: Responsive.padding(context, 6)),
         // Subtitle
         Text(
-          "Turn daily habits into progress",
+          "Turn your daily habits into measurable progress!",
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
             color: Colors.white54,
@@ -708,32 +709,36 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                     children: [
                       SizedBox(height: Responsive.padding(context, 24)),
                       // Top section fades in first
-                      buildTopSection().animate().fadeIn(
-                        delay: 0.ms,
-                        duration: 500.ms,
-                      ).slideY(
-                        begin: 0.15,
-                        duration: 500.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
+                      buildTopSection()
+                          .animate()
+                          .fadeIn(delay: 0.ms, duration: 500.ms)
+                          .slideY(
+                            begin: 0.15,
+                            duration: 500.ms,
+                            curve: Curves.easeOutCubic,
+                          ),
+                      if (Responsive.isMobile(context))
+                        SizedBox(
+                          height: Responsive.height(context, 10),
+                        ), // spacing on mobile for widgets to not touch
                       // Middle section fades in shortly after the top
-                      buildMiddleSection().animate().fadeIn(
-                        delay: 180.ms,
-                        duration: 500.ms,
-                      ).slideY(
-                        begin: 0.15,
-                        duration: 500.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
+                      buildMiddleSection()
+                          .animate()
+                          .fadeIn(delay: 180.ms, duration: 500.ms)
+                          .slideY(
+                            begin: 0.15,
+                            duration: 500.ms,
+                            curve: Curves.easeOutCubic,
+                          ),
                       // Bottom section fades in last
-                      buildBottomSection().animate().fadeIn(
-                        delay: 360.ms,
-                        duration: 500.ms,
-                      ).slideY(
-                        begin: 0.15,
-                        duration: 500.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
+                      buildBottomSection()
+                          .animate()
+                          .fadeIn(delay: 360.ms, duration: 500.ms)
+                          .slideY(
+                            begin: 0.15,
+                            duration: 500.ms,
+                            curve: Curves.easeOutCubic,
+                          ),
                     ],
                   ),
                 ),
