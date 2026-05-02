@@ -156,12 +156,18 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        var unregistered = false;
         for (var reg of registrations) {
           var url = (reg.active || reg.installing || reg.waiting)?.scriptURL || '';
+          // Only unregister Flutter's service worker, never the FCM one
+          // (removing the FCM worker would break background push notifications)
           if (!url.includes('firebase-messaging-sw')) {
             reg.unregister();
+            unregistered = true;
           }
         }
+        // Force a full reload if any stale Flutter service worker was found and removed
+        if (unregistered) window.location.reload();
       });
     }
   </script>

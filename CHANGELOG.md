@@ -1418,3 +1418,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed stale local copy of foodDataByDate as it added complexity for no reason
 - Now data reads directly from currentUserData instead
 - Increased the timeout duration in userDataManager methods to prevent "Connection is slow" messages happening on successful requests that took longer than 2 seconds
+- Made the page reload when a stale service worker is found instead of still serving the cached, stale one
