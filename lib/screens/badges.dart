@@ -7,6 +7,7 @@ import '/services/user_data_manager.dart' show getIdToken, backendBaseUrl;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '/utility/confetti.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -59,6 +60,8 @@ const List<String> tabLabels = [
   "Personal",
   "Meta",
 ];
+
+bool _isLoading = true; // for the skeletonizer
 
 const List<AchievementDef> achievementDefs = [
   // Progression
@@ -411,9 +414,11 @@ class _BadgesState extends State<Badges> {
           claimedTiers[claim['achievement_id']] ??= {};
           claimedTiers[claim['achievement_id']]!.add(claim['tier']);
         }
+        _isLoading = false; // stop the skeletonizer on a successful fetch
       });
     } catch (e) {
       debugPrint('Failed to fetch achievements: $e');
+      _isLoading = false; // stop the skeletonizer on a failed fetch
     }
   }
 
@@ -657,67 +662,75 @@ class _BadgesState extends State<Badges> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
-      child: DefaultTabController(
-        length: tabSections.length,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-            centerTitle: true,
-            toolbarHeight: Responsive.height(context, 100),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => context.pop(),
-            ),
-            title: createTitle("Badges", context),
-            bottom: TabBar(
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: Colors.white,
-              indicatorWeight: Responsive.height(context, 3),
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white38,
-              labelStyle: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                fontWeight: FontWeight.w700,
+    return Skeletonizer(
+      enabled: _isLoading,
+      effect: ShimmerEffect(
+        baseColor: darkenColor(appColorNotifier.value, 0.1),
+        highlightColor: lightenColor(appColorNotifier.value, 0.2),
+        duration: const Duration(milliseconds: 1200),
+      ),
+      child: Container(
+        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        child: DefaultTabController(
+          length: tabSections.length,
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: darkenColor(appColorNotifier.value, 0.025),
+              centerTitle: true,
+              toolbarHeight: Responsive.height(context, 100),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => context.pop(),
               ),
-              unselectedLabelStyle: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                fontWeight: FontWeight.w500,
+              title: createTitle("Badges", context),
+              bottom: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: Colors.white,
+                indicatorWeight: Responsive.height(context, 3),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white38,
+                labelStyle: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w700,
+                ),
+                unselectedLabelStyle: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: [for (final label in tabLabels) Tab(text: label)],
+                dividerColor: Colors.white.withAlpha(25),
               ),
-              tabs: [for (final label in tabLabels) Tab(text: label)],
-              dividerColor: Colors.white.withAlpha(25),
             ),
-          ),
-          body: Stack(
-            children: [
-              TabBarView(
-                children: [
-                  for (final section in tabSections)
-                    SingleChildScrollView(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 50),
-                          vertical: Responsive.height(context, 24),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ..._buildCardsForSection(section),
-                            SizedBox(height: Responsive.height(context, 40)),
-                          ],
+            body: Stack(
+              children: [
+                TabBarView(
+                  children: [
+                    for (final section in tabSections)
+                      SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 50),
+                            vertical: Responsive.height(context, 24),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ..._buildCardsForSection(section),
+                              SizedBox(height: Responsive.height(context, 40)),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.topCenter,
-                child: buildDailyRewardConfetti(badgesConfettiController),
-              ),
-            ],
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: buildDailyRewardConfetti(badgesConfettiController),
+                ),
+              ],
+            ),
           ),
         ),
       ),
