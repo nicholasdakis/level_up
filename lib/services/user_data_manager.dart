@@ -966,4 +966,27 @@ class UserDataManager {
       }
     }
   }
+
+  // Fetches the user's streak data from the backend
+  static Future<List<Map<String, dynamic>>> fetchStreaks() async {
+    final token = await getIdToken();
+    final response = await http
+        .post(
+          Uri.parse('$backendBaseUrl/get_streaks'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': token}),
+        )
+        .timeout(const Duration(seconds: 5));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'get_streaks failed: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['streaks'] as List<dynamic>)
+        .map((s) => Map<String, dynamic>.from(s as Map))
+        .toList();
+  }
 }
