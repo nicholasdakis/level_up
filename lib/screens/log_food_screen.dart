@@ -59,6 +59,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   // Manual entry form visibility
   bool manualExpanded = false;
 
+  // Recent foods section visibility
+  bool _recentExpanded = true;
+
   static const List<String> allowedUnits = [
     'g',
     'oz',
@@ -1105,34 +1108,64 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               SizedBox(height: Responsive.height(context, 12)),
             ],
 
-            // RECENT FOODS section is always visible and an empty state when nothing logged yet
+            // RECENT FOODS section
             if (showSections) ...[
-              sectionHeader("RECENT", context),
-              if (_recentFoods.isEmpty)
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: Responsive.width(context, 4),
-                    bottom: Responsive.height(context, 8),
-                  ),
-                  child: Text(
-                    "Nothing logged recently",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 13),
-                      color: Colors.white24,
+              GestureDetector(
+                onTap: () => setState(() => _recentExpanded = !_recentExpanded),
+                child: Row(
+                  children: [
+                    Expanded(child: sectionHeader("RECENT", context)),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 12),
+                      ),
+                      child: Icon(
+                        _recentExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: Colors.white38,
+                        size: Responsive.scale(context, 20),
+                      ),
                     ),
-                  ),
-                )
-              else
-                ...List.generate(_recentFoods.length, (i) {
-                  final food = _recentFoods[i];
-                  return Column(
-                    children: [
-                      _buildRecentTile(food),
-                      if (i < _recentFoods.length - 1)
-                        Container(height: 1, color: Colors.white.withAlpha(12)),
-                    ],
-                  );
-                }),
+                  ],
+                ),
+              ),
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: _recentExpanded
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                firstChild: _recentFoods.isEmpty
+                    ? Padding(
+                        padding: EdgeInsets.only(
+                          left: Responsive.width(context, 4),
+                          bottom: Responsive.height(context, 8),
+                        ),
+                        child: Text(
+                          "Nothing logged recently",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white24,
+                          ),
+                        ),
+                      )
+                    : Column(
+                        children: List.generate(_recentFoods.length, (i) {
+                          final food = _recentFoods[i];
+                          return Column(
+                            children: [
+                              _buildRecentTile(food),
+                              if (i < _recentFoods.length - 1)
+                                Container(
+                                  height: 1,
+                                  color: Colors.white.withAlpha(12),
+                                ),
+                            ],
+                          );
+                        }),
+                      ),
+                secondChild: const SizedBox.shrink(),
+              ),
 
               _buildDivider(),
 
@@ -1161,236 +1194,264 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 ),
               ),
 
-              if (manualExpanded) ...[
-                // "Powered by you" attribution for manual entries
-                Center(
-                  child: Builder(
-                    builder: (ctx) {
-                      final username = currentUserData?.username;
-                      final hasUsername =
-                          username != null && username != currentUserData?.uid;
-                      return Text(
-                        hasUsername ? "Powered by $username" : "Powered by you",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 11),
-                          color: Colors.white24,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 14)),
-                frostedGlassCard(
-                  context,
-                  baseRadius: 16,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 20),
-                    vertical: Responsive.height(context, 16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "REQUIRED",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 11),
-                          color: Colors.white38,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                        ),
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: manualExpanded
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                firstChild: Column(
+                  children: [
+                    // "Powered by you" attribution for manual entries
+                    Center(
+                      child: Builder(
+                        builder: (ctx) {
+                          final username = currentUserData?.username;
+                          final hasUsername =
+                              username != null &&
+                              username != currentUserData?.uid;
+                          return Text(
+                            hasUsername
+                                ? "Powered by $username"
+                                : "Powered by you",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white24,
+                            ),
+                          );
+                        },
                       ),
-                      _buildManualField(manualNameController, "Food Name"),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                    ),
+                    SizedBox(height: Responsive.height(context, 14)),
+                    frostedGlassCard(
+                      context,
+                      baseRadius: 16,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 20),
+                        vertical: Responsive.height(context, 16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            flex: 2,
-                            child: _buildManualField(
-                              manualServingAmountController,
-                              "Serving Amount",
-                              keyboardType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormatters: [_decimalFormatter()],
+                          Text(
+                            "REQUIRED",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white38,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
                             ),
                           ),
-                          SizedBox(width: Responsive.width(context, 12)),
-                          Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                bottom: Responsive.height(context, 4),
+                          _buildManualField(manualNameController, "Food Name"),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildManualField(
+                                  manualServingAmountController,
+                                  "Serving Amount",
+                                  keyboardType: TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  inputFormatters: [_decimalFormatter()],
+                                ),
                               ),
-                              child: DropdownButton<String>(
-                                isDense: true,
-                                focusColor: Colors.transparent,
-                                value: allowedUnits.contains(manualSelectedUnit)
-                                    ? manualSelectedUnit
-                                    : '__custom_active__',
-                                isExpanded: true,
-                                dropdownColor: darkenColor(appColor, 0.05),
-                                style: GoogleFonts.manrope(
-                                  color: Colors.white,
-                                  fontSize: Responsive.font(context, 14),
-                                ),
-                                underline: Container(
-                                  height: 1,
-                                  color: lightenColor(appColor, 0.15),
-                                ),
-                                items: [
-                                  if (!allowedUnits.contains(
-                                    manualSelectedUnit,
-                                  ))
-                                    DropdownMenuItem(
-                                      value: '__custom_active__',
-                                      child: Text(manualSelectedUnit),
-                                    ),
-                                  ...allowedUnits.map(
-                                    (u) => DropdownMenuItem(
-                                      value: u,
-                                      child: Text(u),
-                                    ),
+                              SizedBox(width: Responsive.width(context, 12)),
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: Responsive.height(context, 4),
                                   ),
-                                  DropdownMenuItem(
-                                    value: '__custom__',
-                                    child: Text(
-                                      "Custom...",
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white38,
-                                        fontSize: Responsive.font(context, 14),
+                                  child: DropdownButton<String>(
+                                    isDense: true,
+                                    focusColor: Colors.transparent,
+                                    value:
+                                        allowedUnits.contains(
+                                          manualSelectedUnit,
+                                        )
+                                        ? manualSelectedUnit
+                                        : '__custom_active__',
+                                    isExpanded: true,
+                                    dropdownColor: darkenColor(appColor, 0.05),
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                      fontSize: Responsive.font(context, 14),
+                                    ),
+                                    underline: Container(
+                                      height: 1,
+                                      color: lightenColor(appColor, 0.15),
+                                    ),
+                                    items: [
+                                      if (!allowedUnits.contains(
+                                        manualSelectedUnit,
+                                      ))
+                                        DropdownMenuItem(
+                                          value: '__custom_active__',
+                                          child: Text(manualSelectedUnit),
+                                        ),
+                                      ...allowedUnits.map(
+                                        (u) => DropdownMenuItem(
+                                          value: u,
+                                          child: Text(u),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  if (value == '__custom__') {
-                                    _customUnitController.clear();
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text("Custom Unit"),
-                                        content: TextField(
-                                          controller: _customUnitController,
+                                      DropdownMenuItem(
+                                        value: '__custom__',
+                                        child: Text(
+                                          "Custom...",
                                           style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                "e.g. a slice, a can, a bag...",
-                                            hintStyle: GoogleFonts.manrope(
-                                              color: Colors.white38,
+                                            color: Colors.white38,
+                                            fontSize: Responsive.font(
+                                              context,
+                                              14,
                                             ),
-                                            enabledBorder:
-                                                const UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                    color: Colors.white38,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      if (value == '__custom__') {
+                                        _customUnitController.clear();
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text("Custom Unit"),
+                                            content: TextField(
+                                              controller: _customUnitController,
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white,
+                                              ),
+                                              decoration: InputDecoration(
+                                                hintText:
+                                                    "e.g. a slice, a can, a bag...",
+                                                hintStyle: GoogleFonts.manrope(
+                                                  color: Colors.white38,
+                                                ),
+                                                enabledBorder:
+                                                    const UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.white38,
+                                                      ),
+                                                    ),
+                                                focusedBorder:
+                                                    const UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: const Text(
+                                                  "Cancel",
+                                                  style: TextStyle(
+                                                    color: Colors.white54,
                                                   ),
                                                 ),
-                                            focusedBorder:
-                                                const UnderlineInputBorder(
-                                                  borderSide: BorderSide(
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  final custom =
+                                                      _customUnitController.text
+                                                          .trim();
+                                                  if (custom.isNotEmpty) {
+                                                    setState(
+                                                      () => manualSelectedUnit =
+                                                          custom,
+                                                    );
+                                                  }
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text(
+                                                  "OK",
+                                                  style: TextStyle(
                                                     color: Colors.white,
                                                   ),
                                                 ),
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text(
-                                              "Cancel",
-                                              style: TextStyle(
-                                                color: Colors.white54,
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                          TextButton(
-                                            onPressed: () {
-                                              final custom =
-                                                  _customUnitController.text
-                                                      .trim();
-                                              if (custom.isNotEmpty) {
-                                                setState(
-                                                  () => manualSelectedUnit =
-                                                      custom,
-                                                );
-                                              }
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text(
-                                              "OK",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  } else if (value != null &&
-                                      value != '__custom_active__') {
-                                    setState(() => manualSelectedUnit = value);
-                                  }
-                                },
+                                        );
+                                      } else if (value != null &&
+                                          value != '__custom_active__') {
+                                        setState(
+                                          () => manualSelectedUnit = value,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
+                            ],
+                          ),
+                          _buildManualField(
+                            manualCaloriesController,
+                            "Calories (kcal)",
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              _decimalFormatter(decimalPlaces: 3),
+                            ],
+                          ),
+                          SizedBox(height: Responsive.height(context, 14)),
+                          Text(
+                            "OPTIONAL",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white38,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
                             ),
+                          ),
+                          _buildManualField(
+                            manualProteinController,
+                            "Protein (g)",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              _decimalFormatter(decimalPlaces: 3),
+                            ],
+                          ),
+                          _buildManualField(
+                            manualCarbsController,
+                            "Carbs (g)",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              _decimalFormatter(decimalPlaces: 3),
+                            ],
+                          ),
+                          _buildManualField(
+                            manualFatController,
+                            "Fat (g)",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              _decimalFormatter(decimalPlaces: 3),
+                            ],
                           ),
                         ],
                       ),
-                      _buildManualField(
-                        manualCaloriesController,
-                        "Calories (kcal)",
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
-                      ),
-                      SizedBox(height: Responsive.height(context, 14)),
-                      Text(
-                        "OPTIONAL",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 11),
-                          color: Colors.white38,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                      _buildManualField(
-                        manualProteinController,
-                        "Protein (g)",
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
-                      ),
-                      _buildManualField(
-                        manualCarbsController,
-                        "Carbs (g)",
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
-                      ),
-                      _buildManualField(
-                        manualFatController,
-                        "Fat (g)",
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        inputFormatters: [_decimalFormatter(decimalPlaces: 3)],
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 14)),
+                    _buildInlineError(_manualInlineError),
+                    _buildLogFoodButton(
+                      onPressed: () async {
+                        setState(() => _manualInlineError = null);
+                        await handleManualEntry();
+                      },
+                    ),
+                    SizedBox(height: Responsive.height(context, 32)),
+                  ],
                 ),
-                SizedBox(height: Responsive.height(context, 14)),
-                _buildInlineError(_manualInlineError),
-                _buildLogFoodButton(
-                  onPressed: () async {
-                    setState(() => _manualInlineError = null);
-                    await handleManualEntry();
-                  },
-                ),
-                SizedBox(height: Responsive.height(context, 32)),
-              ],
+                secondChild: const SizedBox.shrink(),
+              ),
             ],
           ],
         ),

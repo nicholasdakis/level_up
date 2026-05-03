@@ -259,10 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       false, // Prevent the automatic hamburger icon from appearing
                   scrolledUnderElevation:
                       0, // So the appBar does not change color when the user scrolls down
-                  backgroundColor: darkenColor(
-                    appColorNotifier.value.withAlpha(100),
-                    0.1,
-                  ), // Header color
+                  backgroundColor: darkenColor(appColorNotifier.value, 0.025),
                   centerTitle: true,
                   toolbarHeight: Responsive.buttonHeight(
                     context,

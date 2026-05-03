@@ -1448,3 +1448,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the textStyle dialog code to main.dart instead of having to explicitly write it out every time
 - Made app border dividers thicker
 - Added rounded corners and a subtle border to the settings drawer to match the dialog style
+- Made Recent Meals collapsable like the meal categories in the Food Logging tab
+- Made the Manual Entry card expand and collapse smoothly like Recent Meals and meal categories instead of happening instantly
