@@ -414,10 +414,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: darkenColor(
-            appColorNotifier.value,
-            0.025,
-          ).withAlpha(200),
           title: Text(
             "No macronutrients entered!",
             style: GoogleFonts.manrope(color: Colors.white),
@@ -1275,10 +1271,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        backgroundColor: darkenColor(
-                                          appColor,
-                                          0.025,
-                                        ).withAlpha(220),
                                         title: Text(
                                           "Custom Unit",
                                           style: GoogleFonts.manrope(

@@ -41,7 +41,6 @@ void showBrowserBlockedDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: appColorNotifier.value.withAlpha(150),
       title: Text(
         'Browser Notifications are Disabled',
         style: TextStyle(

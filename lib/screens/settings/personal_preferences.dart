@@ -194,7 +194,6 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: appColorNotifier.value.withAlpha(200),
           title: textWithFont(
             'Pick a theme color \n (Very light colors are not recommended)',
             context,

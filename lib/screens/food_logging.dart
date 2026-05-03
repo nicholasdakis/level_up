@@ -128,10 +128,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ).withAlpha(100),
         title: Text(
           "Delete food?",
           style: GoogleFonts.manrope(color: Colors.white),
@@ -193,10 +189,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     final newAmtStr = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: darkenColor(
-          appColorNotifier.value,
-          0.025,
-        ).withAlpha(100),
         title: Text(
           "Edit serving size",
           style: GoogleFonts.manrope(color: Colors.white),

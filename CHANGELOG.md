@@ -1442,3 +1442,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - On save, all macros and calories are scaled proportionally using the existing scaleFood and buildDescription helpers and stored
 - Added an "edited" case to saveFoodData to show a specific snackbar for a successful edit instead of showing "Food logged successfully"
 - Made it so if the user submits the same serving size it just returns
+- Made all dialogs have the same opacity for consistency
