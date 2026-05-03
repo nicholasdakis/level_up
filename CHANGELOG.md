@@ -1447,3 +1447,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made all dialogs have the same opacity for consistency
 - Added the textStyle dialog code to main.dart instead of having to explicitly write it out every time
 - Made app border dividers thicker
+- Added rounded corners and a subtle border to the settings drawer to match the dialog style

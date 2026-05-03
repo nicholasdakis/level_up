@@ -94,8 +94,21 @@ Widget buildSettingsDrawer(
 
   return Drawer(
     backgroundColor: Colors.transparent, // Transparent so gradient shows
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topRight: Radius.circular(28),
+        bottomRight: Radius.circular(28),
+      ),
+      side: BorderSide(color: Colors.white.withAlpha(25), width: 3),
+    ),
     child: Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(
+        gradient: buildThemeGradient(),
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
