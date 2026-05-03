@@ -382,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     child: Text(
-                                      "BETA 05.02",
+                                      "BETA 05.03",
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 11),
                                         color: Colors.white.withAlpha(80),

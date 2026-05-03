@@ -1453,3 +1453,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Edited the serving size picker so its color and font matches the rest of the manual serving card
 - Replaced the manual serving size dropdownbutton with a showModalBottomSheet for more modern UI and more control over how it looks
 - Wrapped the sheet with BackdropFilter to give it a glass-like look
+
+## 2026-05-03
+- Fixed attribution text not being centered when the camera is being used for barcode scanning

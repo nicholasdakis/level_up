@@ -807,9 +807,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             ),
             Padding(
               padding: EdgeInsets.only(bottom: Responsive.height(context, 20)),
-              child: _buildAttributionLink(
-                "https://openfoodfacts.org",
-                "Powered by Open Food Facts",
+              child: Center(
+                child: _buildAttributionLink(
+                  "https://openfoodfacts.org",
+                  "Powered by Open Food Facts",
+                ),
               ),
             ),
           ],
