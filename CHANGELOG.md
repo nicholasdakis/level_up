@@ -1450,3 +1450,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added rounded corners and a subtle border to the settings drawer to match the dialog style
 - Made Recent Meals collapsable like the meal categories in the Food Logging tab
 - Made the Manual Entry card expand and collapse smoothly like Recent Meals and meal categories instead of happening instantly
+- Edited the serving size picker so its color and font matches the rest of the manual serving card
+- Replaced the manual serving size dropdownbutton with a showModalBottomSheet for more modern UI and more control over how it looks
+- Wrapped the sheet with BackdropFilter to give it a glass-like look

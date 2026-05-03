@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -57,7 +58,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   String? barcodeError;
 
   // Manual entry form visibility
-  bool manualExpanded = false;
+  bool manualExpanded = true;
 
   // Recent foods section visibility
   bool _recentExpanded = true;
@@ -1201,26 +1202,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     : CrossFadeState.showSecond,
                 firstChild: Column(
                   children: [
-                    // "Powered by you" attribution for manual entries
-                    Center(
-                      child: Builder(
-                        builder: (ctx) {
-                          final username = currentUserData?.username;
-                          final hasUsername =
-                              username != null &&
-                              username != currentUserData?.uid;
-                          return Text(
-                            hasUsername
-                                ? "Powered by $username"
-                                : "Powered by you",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 11),
-                              color: Colors.white24,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
                     SizedBox(height: Responsive.height(context, 14)),
                     frostedGlassCard(
                       context,
@@ -1260,65 +1241,207 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               Expanded(
                                 flex: 1,
                                 child: Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: Responsive.height(context, 4),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: Responsive.height(context, 4),
                                   ),
-                                  child: DropdownButton<String>(
-                                    isDense: true,
-                                    focusColor: Colors.transparent,
-                                    value:
-                                        allowedUnits.contains(
-                                          manualSelectedUnit,
-                                        )
-                                        ? manualSelectedUnit
-                                        : '__custom_active__',
-                                    isExpanded: true,
-                                    dropdownColor: darkenColor(appColor, 0.05),
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white,
-                                      fontSize: Responsive.font(context, 14),
-                                    ),
-                                    underline: Container(
-                                      height: 1,
-                                      color: lightenColor(appColor, 0.15),
-                                    ),
-                                    items: [
-                                      if (!allowedUnits.contains(
-                                        manualSelectedUnit,
-                                      ))
-                                        DropdownMenuItem(
-                                          value: '__custom_active__',
-                                          child: Text(manualSelectedUnit),
-                                        ),
-                                      ...allowedUnits.map(
-                                        (u) => DropdownMenuItem(
-                                          value: u,
-                                          child: Text(u),
-                                        ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: '__custom__',
-                                        child: Text(
-                                          "Custom...",
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white38,
-                                            fontSize: Responsive.font(
-                                              context,
-                                              14,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final picked = await showModalBottomSheet<String>(
+                                        context: context,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (ctx) => ClipRRect(
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(24),
+                                              ),
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 20,
+                                              sigmaY: 20,
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: darkenColor(
+                                                  appColor,
+                                                  0.025,
+                                                ).withAlpha(200),
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                      top: Radius.circular(24),
+                                                    ),
+                                                border: Border(
+                                                  top: BorderSide(
+                                                    color: Colors.white
+                                                        .withAlpha(25),
+                                                    width: 3,
+                                                  ),
+                                                ),
+                                              ),
+                                              padding: EdgeInsets.fromLTRB(
+                                                Responsive.width(ctx, 24),
+                                                Responsive.height(ctx, 20),
+                                                Responsive.width(ctx, 24),
+                                                Responsive.height(ctx, 32),
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "UNIT",
+                                                    style: GoogleFonts.manrope(
+                                                      fontSize: Responsive.font(
+                                                        ctx,
+                                                        11,
+                                                      ),
+                                                      color: Colors.white38,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      letterSpacing: 1.1,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    height: Responsive.height(
+                                                      ctx,
+                                                      12,
+                                                    ),
+                                                  ),
+                                                  // Standard units
+                                                  ...allowedUnits.map(
+                                                    (u) => Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        onTap: () =>
+                                                            Navigator.pop(
+                                                              ctx,
+                                                              u,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        child: Padding(
+                                                          padding: EdgeInsets.symmetric(
+                                                            vertical:
+                                                                Responsive.height(
+                                                                  ctx,
+                                                                  12,
+                                                                ),
+                                                            horizontal:
+                                                                Responsive.width(
+                                                                  ctx,
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Text(
+                                                                  u,
+                                                                  style: GoogleFonts.manrope(
+                                                                    fontSize:
+                                                                        Responsive.font(
+                                                                          ctx,
+                                                                          16,
+                                                                        ),
+                                                                    color:
+                                                                        manualSelectedUnit ==
+                                                                            u
+                                                                        ? Colors
+                                                                              .white
+                                                                        : Colors
+                                                                              .white60,
+                                                                    fontWeight:
+                                                                        manualSelectedUnit ==
+                                                                            u
+                                                                        ? FontWeight
+                                                                              .w600
+                                                                        : FontWeight
+                                                                              .w400,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              if (manualSelectedUnit ==
+                                                                  u)
+                                                                Icon(
+                                                                  Icons.check,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  size:
+                                                                      Responsive.scale(
+                                                                        ctx,
+                                                                        18,
+                                                                      ),
+                                                                ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Divider(
+                                                    color: Colors.white
+                                                        .withAlpha(25),
+                                                    thickness: 1,
+                                                  ),
+                                                  // Custom unit option
+                                                  Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      onTap: () =>
+                                                          Navigator.pop(
+                                                            ctx,
+                                                            '__custom__',
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      child: Padding(
+                                                        padding: EdgeInsets.symmetric(
+                                                          vertical:
+                                                              Responsive.height(
+                                                                ctx,
+                                                                12,
+                                                              ),
+                                                          horizontal:
+                                                              Responsive.width(
+                                                                ctx,
+                                                                8,
+                                                              ),
+                                                        ),
+                                                        child: Text(
+                                                          "Custom...",
+                                                          style: GoogleFonts.manrope(
+                                                            fontSize:
+                                                                Responsive.font(
+                                                                  ctx,
+                                                                  16,
+                                                                ),
+                                                            color:
+                                                                Colors.white38,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                    onChanged: (value) {
-                                      if (value == '__custom__') {
+                                      );
+                                      if (picked == '__custom__') {
                                         _customUnitController.clear();
+                                        if (!mounted) return;
                                         showDialog(
                                           context: context,
                                           builder: (context) => AlertDialog(
                                             title: const Text("Custom Unit"),
                                             content: TextField(
                                               controller: _customUnitController,
+                                              autofocus: true,
                                               style: GoogleFonts.manrope(
                                                 color: Colors.white,
                                               ),
@@ -1376,13 +1499,49 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                             ],
                                           ),
                                         );
-                                      } else if (value != null &&
-                                          value != '__custom_active__') {
+                                      } else if (picked != null) {
                                         setState(
-                                          () => manualSelectedUnit = value,
+                                          () => manualSelectedUnit = picked,
                                         );
                                       }
                                     },
+                                    child: Container(
+                                      padding: EdgeInsets.only(
+                                        bottom: Responsive.height(context, 6),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: lightenColor(appColor, 0.15),
+                                            width: Responsive.scale(
+                                              context,
+                                              0.25,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              manualSelectedUnit,
+                                              style: GoogleFonts.manrope(
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  14,
+                                                ),
+                                                color: Colors.white38,
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.keyboard_arrow_down,
+                                            color: Colors.white38,
+                                            size: Responsive.scale(context, 16),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
