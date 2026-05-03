@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../services/user_data_manager.dart';
+import '../utility/responsive.dart';
 
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
@@ -59,7 +60,7 @@ class DailyRewardDialog {
     // If claim failed or cooldown not met, do nothing
     if (result == null) return;
 
-    final (xpAwarded, streak) = result;
+    final (xpGained, baseXp, streak, multiplier) = result;
 
     if (!context.mounted) return;
 
@@ -72,16 +73,125 @@ class DailyRewardDialog {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text("You gained $xpAwarded XP!", textAlign: TextAlign.center),
-            SizedBox(height: 8),
-            Text(
-              "🔥 $streak day streak",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white70,
+            SizedBox(
+              height: Responsive.height(context, 16),
+            ), // vertical spacing scaled to screen height
+
+            Divider(
+              indent: 24,
+              endIndent: 24,
+            ), // horizontal divider with left/right padding
+
+            SizedBox(
+              height: Responsive.height(context, 12),
+            ), // spacing below divider
+
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // centers icon + text horizontally
+              children: [
+                Icon(
+                  Icons.local_fire_department, // fire icon to represent streak
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.3,
+                  ), // slightly lighter than theme color
+                  size: Responsive.font(context, 20), // responsive icon size
+                ),
+
+                SizedBox(
+                  width: Responsive.width(context, 6),
+                ), // space between icon and text
+
+                Text(
+                  "$streak day streak", // dynamic streak value
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: Responsive.font(
+                      context,
+                      16,
+                    ), // responsive font size
+                    fontWeight: FontWeight.w600, // semi-bold for emphasis
+                    color: lightenColor(
+                      appColorNotifier.value,
+                      0.3,
+                    ), // matches icon color
+                  ),
+                ),
+              ],
+            ),
+
+            // only show bonus text if multiplier is actually active (>1)
+            if (multiplier > 1.0) ...[
+              SizedBox(
+                height: Responsive.height(context, 10),
+              ), // spacing before bonus text
+
+              Text(
+                "${multiplier}x streak bonus (+${xpGained - baseXp} XP)",
+
+                // shows multiplier + extra XP gained beyond base
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: Responsive.font(
+                    context,
+                    13,
+                  ), // slightly smaller than main text
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.2,
+                  ), // more subtle color
+                ),
               ),
+            ],
+
+            Builder(
+              builder: (context) {
+                // milestone thresholds: (days required, multiplier unlocked)
+                const milestones = [(3, 1.1), (10, 1.25), (30, 1.4), (50, 1.5)];
+
+                for (final (days, mult) in milestones) {
+                  // find the NEXT milestone the user hasn't reached yet
+                  if (streak < days) {
+                    final daysAway =
+                        days - streak; // how many days left to reach it
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        top: Responsive.height(
+                          context,
+                          6,
+                        ), // spacing above hint text
+                      ),
+                      child: Text(
+                        "$daysAway day${daysAway == 1 ? '' : 's'} away from ${mult}x bonus",
+
+                        // pluralizes "day" correctly + shows next multiplier target
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            12,
+                          ), // smallest text in section
+                          color: Colors.white38, // low emphasis hint text
+                        ),
+                      ),
+                    );
+                  }
+                }
+                // if user passed all milestones, theyt have the highest possible streak
+                return Padding(
+                  padding: EdgeInsets.only(top: Responsive.height(context, 6)),
+                  child: Text(
+                    "Highest streak bonus unlocked (${multiplier}x)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: Responsive.font(context, 12),
+                      color: Colors.white38,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

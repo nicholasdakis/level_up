@@ -16,6 +16,18 @@ def calculate_daily_reward_xp(level: int):
     # Calculate how much XP a daily reward gives, based on the formula in daily_rewards.dart
     return 25 * level + 2 * random.randint(1, level)
 
+def streak_multiplier(streak: int) -> float:
+    # Returns a bonus XP multiplier based on the user's current daily claim streak
+    if streak >= 50:
+        return 1.5
+    elif streak >= 30:
+        return 1.4
+    elif streak >= 10:
+        return 1.25
+    elif streak >= 3:
+        return 1.1
+    return 1.0
+
 def calculate_level_up(current_level: int, current_exp: int, xp_gained: int):
     # Calculate the user's new level and XP after gaining XP, applying the level-up logic from user_data_manager.dart
     new_exp = current_exp + xp_gained
@@ -142,8 +154,18 @@ class ProgressionService: # Service class to handle all progression-related busi
         current_level = user.get("level", 1) # default to level 1 if missing
         current_exp = user.get("exp_points", 0) # default to 0 XP if missing
 
-        # Step 2: Calculate XP reward and apply level-ups based on the current state of the user
-        xp_gained = calculate_daily_reward_xp(current_level)
+        # Step 2: Fetch current streak to apply multiplier
+        streaks = self._repo.get_streaks(uid)
+        current_streak = next(
+            (s["streak"] for s in streaks if s["streak_type"] == "daily_consecutive_streak"),
+            0,
+        )
+        multiplier = streak_multiplier(current_streak)
+
+        # Step 3: Calculate XP reward with streak multiplier and apply level-ups
+        base_xp = calculate_daily_reward_xp(current_level)
+        xp_gained = round(base_xp * multiplier)
+        bonus_xp = xp_gained - base_xp
         new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
 
         # Step 3: Write atomically via transaction so that if two requests come in at the same time, only one goes through
@@ -178,10 +200,13 @@ class ProgressionService: # Service class to handle all progression-related busi
         return {
             "claimed": True,
             "xp_gained": xp_gained,
+            "base_xp": base_xp,
+            "bonus_xp": bonus_xp,
             "new_level": new_level,
             "new_exp": new_exp,
             "seconds_remaining": 0,
             "daily_streak": daily_streak,
+            "streak_multiplier": multiplier,
         }
 
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP

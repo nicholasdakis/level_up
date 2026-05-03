@@ -1457,3 +1457,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-03
 - Fixed attribution text not being centered when the camera is being used for barcode scanning
 - Added current daily streak to the daily reward dialog
+- The claim_daily_reward SQL function already calculates the current streak, so that value is used
+- Made the fire emoji in the daily reward dialog use the user's app color
+- Added streak-based XP multiplier to daily rewards (1.1x at 3 days, 1.25x at 10 days, 1.4x at 30 days, 1.5x at 50 days)
+- Multiplier is computed server-side in Python by fetching the current streak from the streaks table before the claim transaction
+- The multiplier is computed in Python from the streak value fetched before the claim and included in the API response so the dialog can display it
+- Added the current daily reward xp multiplier and extra xp gained (boosted xp - base xp) to the daily reward dialog
+- The daily dialog also shows how many days away the user is from the next streak

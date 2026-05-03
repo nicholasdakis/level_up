@@ -26,7 +26,8 @@ BEGIN
             RETURN jsonb_build_object(
                 'claimed', false,
                 'reason', 'cooldown',
-                'seconds_remaining', (82800 - v_seconds_since_claim)::INTEGER
+                'seconds_remaining', (82800 - v_seconds_since_claim)::INTEGER,
+                'daily_streak', 0 -- unused (added for consistency)
             );
         END IF;
     END IF;
