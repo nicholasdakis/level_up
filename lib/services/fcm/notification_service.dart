@@ -41,12 +41,8 @@ void showBrowserBlockedDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(
+      title: const Text(
         'Browser Notifications are Disabled',
-        style: TextStyle(
-          fontSize: Responsive.font(context, 20),
-          fontWeight: FontWeight.bold,
-        ),
         textAlign: TextAlign.center,
       ),
       content: Text(

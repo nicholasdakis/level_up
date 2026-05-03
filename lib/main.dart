@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -63,12 +64,12 @@ class MyApp extends StatelessWidget {
                       width: 1.5,
                     ),
                   ),
-                  titleTextStyle: TextStyle(
+                  titleTextStyle: GoogleFonts.manrope(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
-                  contentTextStyle: TextStyle(
+                  contentTextStyle: GoogleFonts.manrope(
                     color: Colors.white70,
                     fontSize: 15,
                   ),

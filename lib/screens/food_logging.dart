@@ -128,10 +128,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          "Delete food?",
-          style: GoogleFonts.manrope(color: Colors.white),
-        ),
+        title: const Text("Delete food?"),
         content: Text(
           "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
           style: GoogleFonts.manrope(color: Colors.white70),
@@ -189,10 +186,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     final newAmtStr = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          "Edit serving size",
-          style: GoogleFonts.manrope(color: Colors.white),
-        ),
+        title: const Text("Edit serving size"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -810,7 +804,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
-                            SizedBox(width: Responsive.width(context, 8)),
+                            SizedBox(width: Responsive.width(context, 5)),
                             // Delete food button
                             IconButton(
                               icon: Icon(

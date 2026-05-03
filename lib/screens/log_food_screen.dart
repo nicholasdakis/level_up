@@ -414,10 +414,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(
-            "No macronutrients entered!",
-            style: GoogleFonts.manrope(color: Colors.white),
-          ),
+          title: const Text("No macronutrients entered!"),
           content: Text(
             "You haven't entered any fat, carbs, or protein. Log anyway?",
             style: GoogleFonts.manrope(color: Colors.white70),
@@ -1271,12 +1268,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        title: Text(
-                                          "Custom Unit",
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                        title: const Text("Custom Unit"),
                                         content: TextField(
                                           controller: _customUnitController,
                                           style: GoogleFonts.manrope(
