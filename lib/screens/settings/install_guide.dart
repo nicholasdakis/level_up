@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
@@ -128,9 +128,9 @@ class InstallGuide extends StatelessWidget {
           ),
           title: createTitle("Install App", context),
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
             child: Container(
-              height: Responsive.height(context, 1),
+              height: Responsive.height(context, 3),
               color: Colors.white.withAlpha(25),
             ),
           ),

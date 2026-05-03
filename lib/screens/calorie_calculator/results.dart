@@ -440,7 +440,7 @@ class _ResultsState extends State<Results> {
               child: Column(
                 children: [
                   Container(
-                    height: Responsive.height(context, 1),
+                    height: Responsive.height(context, 3),
                     color: Colors.white.withAlpha(25),
                   ),
                   // Tab bar with one tab per section

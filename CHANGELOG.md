@@ -1446,3 +1446,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so if the user submits the same serving size it just returns
 - Made all dialogs have the same opacity for consistency
 - Added the textStyle dialog code to main.dart instead of having to explicitly write it out every time
+- Made app border dividers thicker

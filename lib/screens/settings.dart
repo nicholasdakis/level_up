@@ -109,7 +109,7 @@ Widget buildSettingsDrawer(
             ),
             decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: Colors.white.withAlpha(25), width: 1),
+                bottom: BorderSide(color: Colors.white.withAlpha(25), width: 3),
               ),
             ),
             child: Row(
@@ -231,7 +231,7 @@ Widget buildSettingsDrawer(
               horizontal: Responsive.width(context, 16),
               vertical: Responsive.height(context, 8),
             ),
-            child: Divider(color: Colors.white.withAlpha(25), height: 1),
+            child: Divider(color: Colors.white.withAlpha(25), thickness: 3),
           ),
           buildActionTile(
             icon: Icons.logout,

@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -455,9 +455,9 @@ class _RemindersState extends State<Reminders> {
           ),
           title: createTitle("Reminders", context),
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
             child: Container(
-              height: Responsive.height(context, 1),
+              height: Responsive.height(context, 3),
               color: Colors.white.withAlpha(25),
             ),
           ),

@@ -511,9 +511,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           ),
           title: createTitle("Personal Preferences", context),
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 1)),
+            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
             child: Container(
-              height: Responsive.height(context, 1),
+              height: Responsive.height(context, 3),
               color: Colors.white.withAlpha(25),
             ),
           ),

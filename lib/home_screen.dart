@@ -333,8 +333,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 // Separator between header and body
                 Container(
-                  height: Responsive.height(context, 1),
-                  color: Colors.white.withAlpha(40),
+                  height: Responsive.height(context, 3),
+                  color: Colors.white.withAlpha(25),
                 ),
               ],
             ),

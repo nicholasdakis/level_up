@@ -293,7 +293,7 @@ class _FoodLoggingChartsScreenState extends State<FoodLoggingChartsScreen>
             child: Column(
               children: [
                 Container(
-                  height: Responsive.height(context, 1),
+                  height: Responsive.height(context, 3),
                   color: Colors.white.withAlpha(25),
                 ),
                 TabBar(
