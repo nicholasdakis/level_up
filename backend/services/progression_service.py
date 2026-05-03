@@ -181,6 +181,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "new_level": new_level,
             "new_exp": new_exp,
             "seconds_remaining": 0,
+            "daily_streak": daily_streak,
         }
 
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP

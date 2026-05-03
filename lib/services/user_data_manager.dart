@@ -493,7 +493,7 @@ class UserDataManager {
   // Updates the user's XP by sending a verified event to the backend
   // The backend validates the 23-hour cooldown and writes XP/level atomically in a transaction
   // This prevents double-claiming even if the user taps the button twice rapidly
-  Future<int?> claimDailyReward() async {
+  Future<(int, int)?> claimDailyReward() async {
     try {
       // Call backend to claim daily reward
       final response = await http.post(
@@ -522,8 +522,10 @@ class UserDataManager {
       currentUserData!.canClaimDailyReward = false;
       currentUserData!.lastDailyClaim = DateTime.now().toUtc();
 
-      // Return the XP gained
-      return result['xp_gained'];
+      // Return XP gained and daily streak
+      final xpGained = result['xp_gained'] as int;
+      final streak = (result['daily_streak'] ?? 1) as int;
+      return (xpGained, streak);
     } catch (e) {
       debugPrint('claimDailyReward backend error: $e');
       return null;

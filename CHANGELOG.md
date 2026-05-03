@@ -1456,3 +1456,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-05-03
 - Fixed attribution text not being centered when the camera is being used for barcode scanning
+- Added current daily streak to the daily reward dialog

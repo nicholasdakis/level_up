@@ -54,10 +54,12 @@ class DailyRewardDialog {
     ConfettiController controller,
   ) async {
     // Claim the daily reward from backend first to get the actual XP awarded
-    final xpAwarded = await userManager.claimDailyReward();
+    final result = await userManager.claimDailyReward();
 
     // If claim failed or cooldown not met, do nothing
-    if (xpAwarded == null) return;
+    if (result == null) return;
+
+    final (xpAwarded, streak) = result;
 
     if (!context.mounted) return;
 
@@ -70,8 +72,17 @@ class DailyRewardDialog {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Display XP awarded from backend
             Text("You gained $xpAwarded XP!", textAlign: TextAlign.center),
+            SizedBox(height: 8),
+            Text(
+              "🔥 $streak day streak",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+            ),
           ],
         ),
         actions: [
