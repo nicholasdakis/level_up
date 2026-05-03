@@ -120,11 +120,6 @@ Widget buildSettingsDrawer(
               Responsive.width(context, 20),
               Responsive.height(context, 20),
             ),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.white.withAlpha(25), width: 3),
-              ),
-            ),
             child: Row(
               children: [
                 Container(
@@ -165,7 +160,12 @@ Widget buildSettingsDrawer(
               ],
             ),
           ),
-          SizedBox(height: Responsive.height(context, 8)),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 16),
+            ),
+            child: Divider(color: Colors.white.withAlpha(25), thickness: 3),
+          ),
           buildActionTile(
             icon: Icons.account_circle_outlined,
             label: "Personal Preferences",
