@@ -1436,3 +1436,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Edited the date picker method in Reminders to follow the same theme as the other dialogs
 - Added padding to the notch to fix iOS PWA button hitboxes being slightly misaligned
 - Fixed going back from About The Developer and Install PWA screens reopening the settings drawer
+- Delayed Flutter launch until viewport settles on PWA to fix iOS safe area hitbox race condition

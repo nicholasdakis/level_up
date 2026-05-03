@@ -191,12 +191,37 @@
 
   <script>
     window.addEventListener('load', function (ev) {
-      _flutter.loader.load({
-        onEntrypointLoaded: async function (engineInitializer) {
-          const appRunner = await engineInitializer.initializeEngine();
-          await appRunner.runApp();
+      function launchFlutter() {
+        _flutter.loader.load({
+          onEntrypointLoaded: async function (engineInitializer) {
+            const appRunner = await engineInitializer.initializeEngine();
+            await appRunner.runApp();
+          }
+        });
+      }
+
+      // true if running as an installed PWA in standalone mode
+      const isPWA = window.navigator.standalone === true ||
+                    window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isPWA) {
+        // wait for the viewport to settle before launching Flutter
+        // prevents hitbox offset caused by safe area insets not being applied yet
+        var settled = false;
+        function onViewportReady() {
+          if (settled) return; // prevent double launch
+          settled = true;
+          window.visualViewport.removeEventListener('resize', onViewportReady);
+          launchFlutter();
         }
-      });
+        // launch as soon as viewport stops resizing
+        window.visualViewport.addEventListener('resize', onViewportReady);
+        // fallback in case viewport never fires a resize event
+        setTimeout(onViewportReady, 500);
+      } else {
+        // not a PWA, launch immediately
+        launchFlutter();
+      }
     });
   </script>
 
