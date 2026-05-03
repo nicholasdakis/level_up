@@ -2,7 +2,7 @@
     "name": "Level Up!",
     "short_name": "Level Up!",
     "id": "/level_up/",
-    "start_url": ".",
+    "start_url": "/level_up/",
     "display": "standalone",
     "background_color": "#2d2d2d",
     "theme_color": "#000000",

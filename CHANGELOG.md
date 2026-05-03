@@ -1434,9 +1434,11 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-02
 - Added a theme for Dialogs in main.dart so dialogs in the app appear more modern
 - Edited the date picker method in Reminders to follow the same theme as the other dialogs
-- Added padding to the notch to fix iOS PWA button hitboxes being slightly misaligned
+- Added padding to the notch to fix iOS PWA button hitboxes being slightly misaligned (did not fully fix the issue)
+- Delayed Flutter launch until viewport settles on PWA to fix iOS safe area hitbox race condition (appeared to work but broke again on a full cold open)
 - Fixed going back from About The Developer and Install PWA screens reopening the settings drawer
-- Delayed Flutter launch until viewport settles on PWA to fix iOS safe area hitbox race condition
+- Properly fixed the iOS PWA hitbox issue by removing the CSS body safe area padding entirely and instead reading MediaQuery.viewPaddingOf in Flutter, which is reliable at render time
+- Extended the Footer height and bottom padding by the home indicator inset so content does not sit under the home bar (visual fix only, unrelated to the hitbox issue)
 - Added an edit icon button next to the delete button on logged food cards to edit serving sizes after logging
 - Tapping it opens a dialog pre-filled with the current serving amount and unit
 - On save, all macros and calories are scaled proportionally using the existing scaleFood and buildDescription helpers and stored

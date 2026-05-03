@@ -157,16 +157,22 @@ class _FooterState extends State<Footer> {
       );
     }
 
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     return Container(
       width: double.infinity, // full width footer
-      height: Responsive.height(context, 120),
+      height: Responsive.height(context, 120) + bottomInset,
       decoration: BoxDecoration(
         color: darkenColor(appColorNotifier.value, 0.025),
         border: Border(
           top: BorderSide(color: Colors.white.withAlpha(20), width: 1),
         ),
       ),
-      padding: EdgeInsets.all(Responsive.padding(context, 16)),
+      padding: EdgeInsets.fromLTRB(
+        Responsive.padding(context, 16),
+        Responsive.padding(context, 16),
+        Responsive.padding(context, 16),
+        Responsive.padding(context, 16) + bottomInset,
+      ),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center, // center XP bar
