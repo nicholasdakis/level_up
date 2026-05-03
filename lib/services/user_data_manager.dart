@@ -829,6 +829,7 @@ class UserDataManager {
     Map<String, Map<String, List<Map<String, dynamic>>>> newFoodData, {
     BuildContext? context,
     bool isBeingDeleted = false,
+    bool isBeingEdited = false,
   }) async {
     try {
       // Update locally so the UI reflects the change immediately
@@ -864,6 +865,8 @@ class UserDataManager {
       // Only show success snackbar if connected, otherwise the error snackbar is shown in the catch block
       final msg = isBeingDeleted
           ? "Food deleted successfully."
+          : isBeingEdited
+          ? "Food edited successfully."
           : "Food logged successfully.";
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(

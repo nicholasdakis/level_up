@@ -1437,3 +1437,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added padding to the notch to fix iOS PWA button hitboxes being slightly misaligned
 - Fixed going back from About The Developer and Install PWA screens reopening the settings drawer
 - Delayed Flutter launch until viewport settles on PWA to fix iOS safe area hitbox race condition
+- Added an edit icon button next to the delete button on logged food cards to edit serving sizes after logging
+- Tapping it opens a dialog pre-filled with the current serving amount and unit
+- On save, all macros and calories are scaled proportionally using the existing scaleFood and buildDescription helpers and stored
+- Added an "edited" case to saveFoodData to show a specific snackbar for a successful edit instead of showing "Food logged successfully"
+- Made it so if the user submits the same serving size it just returns

@@ -168,6 +168,116 @@ class _FoodLoggingState extends State<FoodLogging> {
     await _saveFoodData("delete");
   }
 
+  // Opens a dialog letting the user change the serving amount for a logged food
+  // Scales all macros proportionally and saves the updated entry
+  Future<void> _editServingSize(
+    String mealKey,
+    List<Map<String, dynamic>> foods,
+    Map<String, dynamic> food,
+  ) async {
+    // Pull the current serving amount and unit out of food_description
+    final serving = FoodLoggingHelper.parseServing(
+      food['food_description'] as String? ?? '',
+    );
+    final currentAmt = serving['amount'] as double;
+    final unit = serving['unit'] as String;
+
+    // Pre-fill with the current amount, dropping the decimal if it's a whole number
+    final controller = TextEditingController(
+      text: currentAmt % 1 == 0
+          ? currentAmt.toInt().toString()
+          : currentAmt.toString(),
+    );
+
+    // Show the dialog and wait for the user to type a new amount and hit Save
+    final newAmtStr = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: darkenColor(
+          appColorNotifier.value,
+          0.025,
+        ).withAlpha(100),
+        title: Text(
+          "Edit serving size",
+          style: GoogleFonts.manrope(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Food name shown as subtitle so the user knows what they're editing
+            Text(
+              food['food_name'] as String? ?? '',
+              style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
+            ),
+            SizedBox(height: Responsive.height(context, 12)),
+            // Numeric input with the unit (e.g. "g", "oz") shown as a suffix
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: GoogleFonts.manrope(color: Colors.white),
+              decoration: InputDecoration(
+                suffixText: unit,
+                suffixStyle: GoogleFonts.manrope(color: Colors.white54),
+                enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white38),
+                ),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    // the user cancelled or typed something invalid
+    if (newAmtStr == null || newAmtStr.isEmpty) return;
+    final newAmt = double.tryParse(newAmtStr);
+    if (newAmt == null || newAmt <= 0) return;
+    // No change, skip the write
+    if (newAmt == currentAmt) return;
+
+    // Scale every macro by the ratio of new amount to old amount
+    final baseMacros = FoodLoggingHelper.extractMacros(
+      food['food_description'] as String? ?? '',
+    );
+    final scaled = FoodLoggingHelper.scaleFood(baseMacros, currentAmt, newAmt);
+    // Rebuild food_description
+    final newDescription = FoodLoggingHelper.buildDescription(
+      scaled,
+      newAmt,
+      unit,
+    );
+
+    // Update the food map in place
+    setState(() {
+      food['food_description'] = newDescription;
+      food['calories'] = scaled['calories']!.round();
+      final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+      currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
+    });
+    await _saveFoodData("edit"); // store the changes
+  }
+
   Future<void> _saveFoodData(String addOrDelete) async {
     if (currentUserData == null) return;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
@@ -178,6 +288,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       currentDateData,
       context: context,
       isBeingDeleted: addOrDelete == "delete",
+      isBeingEdited: addOrDelete == "edit",
     );
   }
 
@@ -695,6 +806,20 @@ class _FoodLoggingState extends State<FoodLogging> {
                                 ],
                               ),
                             ),
+                            IconButton(
+                              // Edit serving size button
+                              icon: Icon(
+                                Icons.edit_outlined,
+                                color: Colors.white54,
+                                size: Responsive.scale(context, 18),
+                              ),
+                              onPressed: () =>
+                                  _editServingSize(mealKey, foods, food),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            SizedBox(width: Responsive.width(context, 8)),
+                            // Delete food button
                             IconButton(
                               icon: Icon(
                                 Icons.delete_outline,
