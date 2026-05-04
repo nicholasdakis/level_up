@@ -1464,3 +1464,15 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The multiplier is computed in Python from the streak value fetched before the claim and included in the API response so the dialog can display it
 - Added the current daily reward xp multiplier and extra xp gained (boosted xp - base xp) to the daily reward dialog
 - The daily dialog also shows how many days away the user is from the next streak
+- Realized that a new user signing up with no direction on what to do and immediately being shown two dialogs (username dialog and daily reward dialog) should be tweaked
+- Created onboarding.dart with new-user onboarding flow that shows up when username == uid (which can now only happen when the user is new as the username setting is unskippable)
+- New users now see a welcome dialog, a two-step interactive tour, and a username setup dialog before accessing the app
+- showWelcomeTourDialog shows a frosted glass card explaining the tour before it starts
+- showUsernameSetupDialog forces new users to set a username before they can proceed, blocking dismissal until one is saved
+- generateRandomUsername builds a random AdjectiveNounNumber username (e.g. SwiftFalcon1234) as a suggestion
+- buildShowcaseTooltip renders a frosted glass tooltip card used during the tour
+- Added a two-step tour overlay directly in HomeScreen using a full-screen GestureDetector with a semi-transparent backdrop
+- Step 0 shows a tooltip pinned to the top of the screen describing the main tabs
+- Step 1 shows a tooltip describing the footer bar
+- Tapping anywhere advances the tour, and tapping on the final step dismisses the overlay and launches the username dialog
+- Tour disables all button interactions via IgnorePointer while active so users cannot navigate away mid-tour or quickly tap a button and access the app before the tour is done
