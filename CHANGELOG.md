@@ -1481,3 +1481,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-05-04
 - Fixed updateFoodUserByDate replacing foodDataByDate with just today's and wiping all other food dates in-memory. Now it uses addAll(). This fixed the bug where deleting a food and then changing date would not show the other date's foods
+- Fixed the bonus multiplier for bonus XP still awarding a bonus on the day a streak is lost by making it set after claim_daily_reward SQL method updates the streak instead of before
+- Fixed missing data in the DailyRewardResponse schema that caused the daily reward to not show the streak data and multiplied values
+- Made the daily dialog show the total xp gained instead of just the bonus xp

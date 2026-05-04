@@ -160,7 +160,16 @@ class ProgressionService: # Service class to handle all progression-related busi
             (s["streak"] for s in streaks if s["streak_type"] == "daily_consecutive_streak"),
             0,
         )
-        multiplier = streak_multiplier(current_streak)
+
+        # If more than 48 hours have passed since the last claim, the streak will reset to 1
+        # inside the transaction. In that case the bonus doesn't apply
+        last_claim_raw = user.get("last_daily_claim")
+        streak_will_reset = True
+        if last_claim_raw:
+            seconds_since = (datetime.now(timezone.utc) - to_utc_datetime(last_claim_raw)).total_seconds()
+            streak_will_reset = seconds_since >= 172800
+
+        multiplier = 1.0 if streak_will_reset else streak_multiplier(current_streak)
 
         # Step 3: Calculate XP reward with streak multiplier and apply level-ups
         base_xp = calculate_daily_reward_xp(current_level)

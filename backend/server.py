@@ -425,9 +425,12 @@ def claim_daily_reward():
     response = DailyRewardResponse(
         claimed=result["claimed"],
         xp_gained=result["xp_gained"],
+        base_xp=result.get("base_xp", result["xp_gained"]),
         new_level=result["new_level"],
         new_exp=result["new_exp"],
         seconds_remaining=result["seconds_remaining"],
+        daily_streak=result.get("daily_streak", 1),
+        streak_multiplier=result.get("streak_multiplier", 1.0),
     )
 
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts

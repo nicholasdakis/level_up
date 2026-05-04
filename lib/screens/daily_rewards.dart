@@ -118,27 +118,17 @@ class DailyRewardDialog {
             ],
           ),
 
-          // only show bonus text if multiplier is actually active (>1)
-          if (multiplier > 1.0) ...[
-            SizedBox(
-              height: Responsive.height(context, 10),
-            ), // spacing before bonus text
-            Text(
-              "${multiplier}x streak bonus (+${xpGained - baseXp} XP)",
-              // shows multiplier + extra XP gained beyond base
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: Responsive.font(
-                  context,
-                  13,
-                ), // slightly smaller than main text
-                color: lightenColor(
-                  appColorNotifier.value,
-                  0.2,
-                ), // more subtle color
-              ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Text(
+            multiplier > 1.0
+                ? "XP Gained: $baseXp + ${xpGained - baseXp} bonus"
+                : "XP Gained: $xpGained",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: Responsive.font(context, 13),
+              color: lightenColor(appColorNotifier.value, 0.2),
             ),
-          ],
+          ),
 
           Builder(
             builder: (context) {
@@ -186,10 +176,14 @@ class DailyRewardDialog {
         ],
       ),
       actions: [
-        TextButton(
-          // just a visual button; the claiming is already done
-          onPressed: () => Navigator.pop(context),
-          child: Text("CLAIM"),
+        Expanded(
+          child: Center(
+            child: TextButton(
+              // just a visual button; the claiming is already done
+              onPressed: () => Navigator.pop(context),
+              child: Text("CLAIM"),
+            ),
+          ),
         ),
       ],
     );

@@ -175,9 +175,12 @@ class DailyRewardResponse(BaseModel):
     # What is returned when the user tries to claim a daily reward
     claimed: bool  # true if successfully claimed
     xp_gained: int = 0
+    base_xp: int = 0
     new_level: int = 1
     new_exp: int = 0
     seconds_remaining: int = 0
+    daily_streak: int = 1
+    streak_multiplier: float = 1.0
 
 class ProgressResponse(BaseModel):
     # What is returned when Flutter requests the user's current progress (level, XP, and reward status)
