@@ -108,6 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  bool get isNewUser =>
+      currentUserData?.username != null &&
+      currentUserData?.username == currentUserData?.uid;
+
   bool canClaimDailyReward() {
     return currentUserData?.canClaimDailyReward ??
         true; // reads from currentUserData because upon loading, it calls the backend to get the most up-to-date value
@@ -122,14 +126,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Advances the tour step on tap, finishing after the footer step
-  void _onTourTap() {
+  Future<void> _onTourTap() async {
     if (_tourStep == 0) {
       // advance from buttons to footer
       setState(() => _tourStep = 1);
     } else if (_tourStep == 1) {
-      // finish the tour and show the username dialog
+      // finish the tour and show the username dialog, and then give the daily reward dialog
       setState(() => _tourStep = -1);
-      showUsernameSetupDialog(context);
+      await showUsernameSetupDialog(context);
+      if (canClaimDailyReward() && mounted) {
+        buildDailyRewardDialog();
+      }
     }
   }
 
@@ -143,11 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final isNewUser =
-        currentUserData!.username != null &&
-        currentUserData!.username == currentUserData!.uid;
-
-    if (canClaimDailyReward() && mounted) buildDailyRewardDialog();
+    if (canClaimDailyReward() && mounted && !isNewUser) {
+      buildDailyRewardDialog();
+    }
 
     if (mounted) {
       setState(() => isLoading = false);
