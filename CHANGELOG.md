@@ -1478,3 +1478,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Tour disables all button interactions via IgnorePointer while active so users cannot navigate away mid-tour or quickly tap a button and access the app before the tour is done
 - Made helper methods for wrapping dialogs and alertdialogs as main.dart cannot directly give them the frosted-glass look. The dialogs now have a true glass look instead of just being slightly transparent
 - Replaced all basic showDialog with the helper method versions
+
+## 2026-05-04
+- Fixed updateFoodUserByDate replacing foodDataByDate with just today's and wiping all other food dates in-memory. Now it uses addAll(). This fixed the bug where deleting a food and then changing date would not show the other date's foods

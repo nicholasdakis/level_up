@@ -838,7 +838,7 @@ class UserDataManager {
   }) async {
     try {
       // Update locally so the UI reflects the change immediately
-      currentUserData?.foodDataByDate = newFoodData;
+      currentUserData?.foodDataByDate.addAll(newFoodData);
 
       // Write each date as its own row in Postgres via the backend
       for (final entry in newFoodData.entries) {
