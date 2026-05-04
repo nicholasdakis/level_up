@@ -147,6 +147,7 @@ Future<T?> showFrostedDialog<T>({
   bool dismissible = true,
   EdgeInsetsGeometry? padding,
   double baseRadius = 20,
+  double maxWidth = 500,
 }) {
   return showDialog<T>(
     context: context,
@@ -158,22 +159,18 @@ Future<T?> showFrostedDialog<T>({
         horizontal: Responsive.width(context, 24),
         vertical: Responsive.height(context, 40),
       ),
-      child: IntrinsicWidth(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 500,
-          ), // prevents the dialog from stretching too wide on desktop
-          child: frostedGlassCard(
-            context,
-            baseRadius: baseRadius,
-            padding:
-                padding ??
-                EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 28),
-                  vertical: Responsive.height(context, 32),
-                ),
-            child: child,
-          ),
+      child: SizedBox(
+        width: Responsive.dialogWidth(context, maxWidth: maxWidth),
+        child: frostedGlassCard(
+          context,
+          baseRadius: baseRadius,
+          padding:
+              padding ??
+              EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 28),
+                vertical: Responsive.height(context, 32),
+              ),
+          child: child,
         ),
       ),
     ),

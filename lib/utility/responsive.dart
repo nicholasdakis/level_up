@@ -137,6 +137,23 @@ class Responsive {
     );
   }
 
+  // Returns a dialog width as a fraction of screen width, per device type, capped at maxWidth
+  static double dialogWidth(
+    BuildContext context, {
+    double mobile = 0.88,
+    double tablet = 0.65,
+    double desktop = 0.40,
+    double maxWidth = 500,
+  }) {
+    final width = _safeSize(context).width;
+    final fraction = switch (screenType(context)) {
+      ScreenType.mobile => mobile,
+      ScreenType.tablet => tablet,
+      ScreenType.desktop => desktop,
+    };
+    return (width * fraction).clamp(0, maxWidth);
+  }
+
   // Generic scaling method
   static double scale(BuildContext context, double baseSize) {
     final size = _safeSize(context);

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../utility/responsive.dart';
+import '../globals.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 // ignore: avoid_web_libraries_in_flutter, deprecated_member_use
@@ -186,37 +187,43 @@ class _CropperDialogState extends State<_CropperDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // AlertDialog for web version (mobile uses native cropping screen)
-    return AlertDialog(
-      backgroundColor: Colors.black,
-      content: Container(
-        width: Responsive.width(context, 500),
-        height: Responsive.height(context, 500),
-        color: Colors.black,
-        child: widget.cropper,
-      ),
-      // Dialog buttons
-      actions: [
-        Row(
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.all(Responsive.scale(context, 16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(null),
-                child: const Text('Cancel'),
-              ),
+            Container(
+              width: Responsive.width(context, 500),
+              height: Responsive.height(context, 500),
+              color: Colors.black,
+              child: widget.cropper,
             ),
-            Expanded(
-              child: TextButton(
-                onPressed: () async {
-                  final result = await widget.crop();
-                  Navigator.of(context).pop(result);
-                },
-                child: const Text('Crop'),
-              ),
+            SizedBox(height: Responsive.height(context, 12)),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(null),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () async {
+                      final result = await widget.crop();
+                      Navigator.of(context).pop(result);
+                    },
+                    child: const Text('Crop'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 }

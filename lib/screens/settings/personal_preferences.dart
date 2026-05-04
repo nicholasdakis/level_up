@@ -182,65 +182,76 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     Color pickerColor = baseColor.withAlpha(
       255,
     ); // .withAlpha(255) so the alpha circle is initially filled up
-    // Dialog box prompting the chosen color
-    showFrostedDialog(
+    // IntrinsicWidth sizes the dialog to exactly the picker's colorPickerWidth
+    showDialog(
       context: context,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Pick a theme color \n (Very light colors are not recommended)',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 15),
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 24),
+          vertical: Responsive.height(context, 40),
+        ),
+        child: IntrinsicWidth(
+          child: frostedGlassCard(
+            context,
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 28),
+              vertical: Responsive.height(context, 32),
             ),
-          ),
-          SizedBox(height: Responsive.height(context, 16)),
-          SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) {
-                pickerColor = color;
-              },
-              labelTypes: [],
-              enableAlpha: false, // disable the alpha slider
-              pickerAreaHeightPercent: 0.8,
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 16)),
-          SizedBox(
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween, // Space buttons evenly
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Cancel selection
-                TextButton(
-                  child: Text('Cancel'),
-                  onPressed: () => Navigator.of(context).pop(),
+                Text(
+                  'Pick a theme color \n (Very light colors are not recommended)',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                // Reset to default app color
-                TextButton(
-                  child: Text('Default'),
-                  onPressed: () async {
-                    await applyAppColor(Color.fromARGB(255, 45, 45, 45));
-                    Navigator.of(context).pop();
+                SizedBox(height: Responsive.height(context, 16)),
+                ColorPicker(
+                  pickerColor: pickerColor,
+                  onColorChanged: (color) {
+                    pickerColor = color;
                   },
+                  colorPickerWidth: 280,
+                  labelTypes: [],
+                  enableAlpha: false, // disable the alpha slider
+                  pickerAreaHeightPercent: 0.8,
                 ),
-                // Confirm selection
-                TextButton(
-                  child: Text('Select'),
-                  onPressed: () async {
-                    await applyAppColor(pickerColor);
-                    Navigator.of(context).pop();
-                  },
+                SizedBox(height: Responsive.height(context, 16)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Cancel selection
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    // Reset to default app color
+                    TextButton(
+                      child: Text('Default'),
+                      onPressed: () async {
+                        await applyAppColor(Color.fromARGB(255, 45, 45, 45));
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    // Confirm selection
+                    TextButton(
+                      child: Text('Select'),
+                      onPressed: () async {
+                        await applyAppColor(pickerColor);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

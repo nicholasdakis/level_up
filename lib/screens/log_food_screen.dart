@@ -415,34 +415,32 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final protein = manualProteinController.text.trim();
 
     if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
-      showDialog(
+      showFrostedAlertDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("No macronutrients entered!"),
-          content: Text(
-            "You haven't entered any fat, carbs, or protein. Log anyway?",
-            style: GoogleFonts.manrope(color: Colors.white70),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                "Go Back",
-                style: TextStyle(color: Colors.white54),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _submitManualEntry(name, calories, fat, carbs, protein);
-              },
-              child: const Text(
-                "Log Anyway",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
+        title: "No macronutrients entered!",
+        content: Text(
+          "You haven't entered any fat, carbs, or protein. Log anyway?",
+          style: GoogleFonts.manrope(color: Colors.white70),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Go Back",
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _submitManualEntry(name, calories, fat, carbs, protein);
+            },
+            child: const Text(
+              "Log Anyway",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       );
       return;
     }
@@ -1437,69 +1435,67 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                       if (picked == '__custom__') {
                                         _customUnitController.clear();
                                         if (!mounted) return;
-                                        showDialog(
+                                        showFrostedAlertDialog(
                                           context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text("Custom Unit"),
-                                            content: TextField(
-                                              controller: _customUnitController,
-                                              autofocus: true,
-                                              style: GoogleFonts.manrope(
-                                                color: Colors.white,
+                                          title: "Custom Unit",
+                                          content: TextField(
+                                            controller: _customUnitController,
+                                            autofocus: true,
+                                            style: GoogleFonts.manrope(
+                                              color: Colors.white,
+                                            ),
+                                            decoration: InputDecoration(
+                                              hintText:
+                                                  "e.g. a slice, a can, a bag...",
+                                              hintStyle: GoogleFonts.manrope(
+                                                color: Colors.white38,
                                               ),
-                                              decoration: InputDecoration(
-                                                hintText:
-                                                    "e.g. a slice, a can, a bag...",
-                                                hintStyle: GoogleFonts.manrope(
-                                                  color: Colors.white38,
+                                              enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                      color: Colors.white38,
+                                                    ),
+                                                  ),
+                                              focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text(
+                                                "Cancel",
+                                                style: TextStyle(
+                                                  color: Colors.white54,
                                                 ),
-                                                enabledBorder:
-                                                    const UnderlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                        color: Colors.white38,
-                                                      ),
-                                                    ),
-                                                focusedBorder:
-                                                    const UnderlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
                                               ),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: const Text(
-                                                  "Cancel",
-                                                  style: TextStyle(
-                                                    color: Colors.white54,
-                                                  ),
+                                            TextButton(
+                                              onPressed: () {
+                                                final custom =
+                                                    _customUnitController.text
+                                                        .trim();
+                                                if (custom.isNotEmpty) {
+                                                  setState(
+                                                    () => manualSelectedUnit =
+                                                        custom,
+                                                  );
+                                                }
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text(
+                                                "OK",
+                                                style: TextStyle(
+                                                  color: Colors.white,
                                                 ),
                                               ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  final custom =
-                                                      _customUnitController.text
-                                                          .trim();
-                                                  if (custom.isNotEmpty) {
-                                                    setState(
-                                                      () => manualSelectedUnit =
-                                                          custom,
-                                                    );
-                                                  }
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text(
-                                                  "OK",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         );
                                       } else if (picked != null) {
                                         setState(

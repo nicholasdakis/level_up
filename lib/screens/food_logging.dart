@@ -125,31 +125,26 @@ class _FoodLoggingState extends State<FoodLogging> {
     int idx,
     List<Map<String, dynamic>> foods,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete food?"),
-        content: Text(
-          "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
-          style: GoogleFonts.manrope(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: Colors.white54),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              "Delete",
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-        ],
+      title: "Delete food?",
+      content: Text(
+        "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
+        style: GoogleFonts.manrope(color: Colors.white70),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text(
+            "Delete",
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        ),
+      ],
     );
     if (confirmed != true) return;
 
