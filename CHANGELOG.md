@@ -1499,3 +1499,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made isNewUser a getter so it is computed on demand and used to gate the initializeUser() daily dialog from new users
 - New users get a separate block that runs the daily dialog after the tour finishes
 - Updated the onboarding tour to also mention the settings drawer
+- Fixed a bug where clicking browser notification dialog buttons did nothing. showBrowserBlockedDialog was called from FcmService.initialize, which receives its BuildContext from AppShell in router.dart. The buttons were pre-built TextButton widgets whose onPressed closures captured that outer context. By the time a user tapped a button, the outer context's element could be unmounted, causing Navigator.of(context) to return null and throw. The fix rewrites the dialog to use showFrostedDialog with a Builder child so the buttons capture ctx, a fresh BuildContext that is alive for the entire lifetime of the dialog
