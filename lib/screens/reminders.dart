@@ -57,35 +57,32 @@ class _RemindersState extends State<Reminders> {
   }
 
   void _showNotificationsDisabledDialog() {
-    showDialog(
+    showFrostedAlertDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("In-App Notifications Are Disabled"),
-        content: Text("Enable notifications to receive reminders."),
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Dismiss"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context); // close dialog first
-              await userManager.updateNotificationsEnabled(true, context);
+      title: "In-App Notifications Are Disabled",
+      content: Text("Enable notifications to receive reminders."),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("Dismiss"),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context); // close dialog first
+            await userManager.updateNotificationsEnabled(true, context);
 
-              if (kIsWeb) {
-                final token = await requestNotificationAndToken();
-                if (token != null) {
-                  await userManager.addFcmToken(token);
-                } else if (mounted) {
-                  showBrowserBlockedDialog(context); // fallback dialog
-                }
+            if (kIsWeb) {
+              final token = await requestNotificationAndToken();
+              if (token != null) {
+                await userManager.addFcmToken(token);
+              } else if (mounted) {
+                showBrowserBlockedDialog(context); // fallback dialog
               }
-            },
-            child: Text("Enable"),
-          ),
-        ],
-      ),
+            }
+          },
+          child: Text("Enable"),
+        ),
+      ],
     );
   }
 
@@ -234,29 +231,26 @@ class _RemindersState extends State<Reminders> {
     DateTime dateTime,
     Function(DateTime) onPicked,
   ) async {
-    showDialog(
+    showFrostedDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        contentPadding: EdgeInsets.all(Responsive.padding(context, 16)),
-        content: SizedBox(
-          height: Responsive.height(context, 300),
-          width: Responsive.width(context, 400),
-          child: Column(
-            children: [
-              Expanded(
-                child: CupertinoDatePicker(
-                  initialDateTime: dateTime,
-                  mode: CupertinoDatePickerMode.dateAndTime,
-                  use24hFormat: false,
-                  onDateTimeChanged: (newDate) => onPicked(newDate),
-                ),
+      child: SizedBox(
+        height: Responsive.height(context, 300),
+        width: Responsive.width(context, 400),
+        child: Column(
+          children: [
+            Expanded(
+              child: CupertinoDatePicker(
+                initialDateTime: dateTime,
+                mode: CupertinoDatePickerMode.dateAndTime,
+                use24hFormat: false,
+                onDateTimeChanged: (newDate) => onPicked(newDate),
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("CONFIRM"),
-              ),
-            ],
-          ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("CONFIRM"),
+            ),
+          ],
         ),
       ),
     );

@@ -140,6 +140,84 @@ Widget textWithFont(
   );
 }
 
+// Helper method for wrapping dialogs and giving them the frosted glass card appearance
+Future<T?> showFrostedDialog<T>({
+  required BuildContext context,
+  required Widget child,
+  bool dismissible = true,
+  EdgeInsetsGeometry? padding,
+  double baseRadius = 20,
+}) {
+  return showDialog<T>(
+    context: context,
+    barrierDismissible: dismissible,
+    builder: (ctx) => Dialog(
+      backgroundColor:
+          Colors.transparent, // let frostedGlassCard handle all visuals
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 24),
+        vertical: Responsive.height(context, 40),
+      ),
+      child: IntrinsicWidth(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 500,
+          ), // prevents the dialog from stretching too wide on desktop
+          child: frostedGlassCard(
+            context,
+            baseRadius: baseRadius,
+            padding:
+                padding ??
+                EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 28),
+                  vertical: Responsive.height(context, 32),
+                ),
+            child: child,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// Alert-style frosted dialog with title, optional content, and actions
+Future<T?> showFrostedAlertDialog<T>({
+  required BuildContext context,
+  required String title,
+  Widget? content,
+  required List<Widget> actions,
+  bool dismissible = true,
+}) {
+  return showFrostedDialog<T>(
+    context: context,
+    dismissible: dismissible,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 20),
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        if (content != null) ...[
+          SizedBox(height: Responsive.height(context, 16)),
+          content,
+        ],
+        SizedBox(height: Responsive.height(context, 24)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: actions,
+        ),
+      ],
+    ),
+  );
+}
+
 Color darkenColor(Color color, [double amount = .1]) {
   final hsl = HSLColor.fromColor(color);
   final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));

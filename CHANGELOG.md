@@ -1476,3 +1476,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Step 1 shows a tooltip describing the footer bar
 - Tapping anywhere advances the tour, and tapping on the final step dismisses the overlay and launches the username dialog
 - Tour disables all button interactions via IgnorePointer while active so users cannot navigate away mid-tour or quickly tap a button and access the app before the tour is done
+- Made helper methods for wrapping dialogs and alertdialogs as main.dart cannot directly give them the frosted-glass look. The dialogs now have a true glass look instead of just being slightly transparent
+- Replaced all basic showDialog with the helper method versions

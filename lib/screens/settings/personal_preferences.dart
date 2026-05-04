@@ -16,54 +16,47 @@ Future<void> showUsernameDialogBox(
   String title,
   TextEditingController usernameController,
 ) async {
-  await showDialog(
+  await showFrostedAlertDialog(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      // dialogContext so that the snackbar works after popping
-      title: Text(title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Only show text if the user has set a username before
-          if (currentUserData?.username != currentUserData?.uid)
-            Text("Current username: \n ${currentUserData?.username}"),
-          SizedBox(height: 10),
-          TextField(
-            controller: usernameController,
-            style: TextStyle(color: Colors.white),
+    title: title,
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Only show text if the user has set a username before
+        if (currentUserData?.username != currentUserData?.uid)
+          Text(
+            "Current username: \n ${currentUserData?.username}",
+            style: GoogleFonts.manrope(color: Colors.white70),
           ),
-        ],
-      ),
-      actions: [
-        Row(
-          mainAxisAlignment:
-              // spaceBetween so CANCEL appears at the left and CONFIRM at the right
-              MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              // close if canceled
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text("CANCEL"),
-            ),
-            TextButton(
-              // Handle username update
-              onPressed: () async {
-                String updatedUsername = usernameController.text.trim();
-                // Only pop if successful
-                if (await UserDataManager().updateUsername(
-                  updatedUsername,
-                  context,
-                )) {
-                  Navigator.pop(dialogContext);
-                }
-              },
-              child: Text("CONFIRM"),
-            ),
-          ],
+        SizedBox(height: 10),
+        TextField(
+          controller: usernameController,
+          style: TextStyle(color: Colors.white),
         ),
       ],
     ),
+    actions: [
+      TextButton(
+        // close if canceled
+        onPressed: () => Navigator.pop(context),
+        child: Text("CANCEL"),
+      ),
+      TextButton(
+        // Handle username update
+        onPressed: () async {
+          String updatedUsername = usernameController.text.trim();
+          // Only pop if successful
+          if (await UserDataManager().updateUsername(
+            updatedUsername,
+            context,
+          )) {
+            Navigator.pop(context);
+          }
+        },
+        child: Text("CONFIRM"),
+      ),
+    ],
   ).then((_) {
     // Reset the text field after exiting the dialog box
     usernameController.text = "";
@@ -190,16 +183,22 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       255,
     ); // .withAlpha(255) so the alpha circle is initially filled up
     // Dialog box prompting the chosen color
-    showDialog(
+    showFrostedDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: textWithFont(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
             'Pick a theme color \n (Very light colors are not recommended)',
-            context,
-            0.075,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 15),
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          content: SingleChildScrollView(
+          SizedBox(height: Responsive.height(context, 16)),
+          SingleChildScrollView(
             child: ColorPicker(
               pickerColor: pickerColor,
               onColorChanged: (color) {
@@ -210,42 +209,39 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               pickerAreaHeightPercent: 0.8,
             ),
           ),
-          actions: [
-            SizedBox(
-              width: double.infinity, // Make the row fill the dialog width
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween, // Space buttons evenly
-                children: [
-                  // Cancel selection
-                  TextButton(
-                    child: Text('Cancel'),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-
-                  // Reset to default app color
-                  TextButton(
-                    child: Text('Default'),
-                    onPressed: () async {
-                      await applyAppColor(Color.fromARGB(255, 45, 45, 45));
-                      Navigator.of(context).pop();
-                    },
-                  ),
-
-                  // Confirm selection
-                  TextButton(
-                    child: Text('Select'),
-                    onPressed: () async {
-                      await applyAppColor(pickerColor);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
+          SizedBox(height: Responsive.height(context, 16)),
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween, // Space buttons evenly
+              children: [
+                // Cancel selection
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                // Reset to default app color
+                TextButton(
+                  child: Text('Default'),
+                  onPressed: () async {
+                    await applyAppColor(Color.fromARGB(255, 45, 45, 45));
+                    Navigator.of(context).pop();
+                  },
+                ),
+                // Confirm selection
+                TextButton(
+                  child: Text('Select'),
+                  onPressed: () async {
+                    await applyAppColor(pickerColor);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 
@@ -266,15 +262,24 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     );
     String? weightGoal = currentUserData?.weightGoalType;
 
-    await showDialog(
+    await showFrostedDialog(
       context: context,
-      builder: (dialogContext) {
+      child: StatefulBuilder(
         // StatefulBuilder so the segmented button can update without rebuilding the whole screen
-        return StatefulBuilder(
-          builder: (sbContext, setDialogState) {
-            return AlertDialog(
-              title: Text("Update Goals"),
-              content: SingleChildScrollView(
+        builder: (sbContext, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Update Goals",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 20),
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 16)),
+              SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -321,45 +326,41 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                   ],
                 ),
               ),
-              actions: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      child: Text(
-                        "CANCEL",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () => Navigator.pop(dialogContext),
+              SizedBox(height: Responsive.height(context, 24)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    child: Text(
+                      "CANCEL",
+                      style: TextStyle(color: Colors.white),
                     ),
-                    TextButton(
-                      child: Text(
-                        "SAVE",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () async {
-                        await userManager.updateGoals(
-                          caloriesGoal: int.tryParse(calCtrl.text.trim()),
-                          proteinGoal: int.tryParse(proCtrl.text.trim()),
-                          carbsGoal: int.tryParse(carbCtrl.text.trim()),
-                          fatGoal: int.tryParse(fatCtrl.text.trim()),
-                          weightGoalType: weightGoal,
-                          context:
-                              dialogContext, // dialogContext so snackbar works after popping
-                        );
-                        if (mounted) {
-                          setState(() {}); // refresh subtitle with new values
-                        }
-                        Navigator.pop(dialogContext);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        );
-      },
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  TextButton(
+                    child: Text("SAVE", style: TextStyle(color: Colors.white)),
+                    onPressed: () async {
+                      await userManager.updateGoals(
+                        caloriesGoal: int.tryParse(calCtrl.text.trim()),
+                        proteinGoal: int.tryParse(proCtrl.text.trim()),
+                        carbsGoal: int.tryParse(carbCtrl.text.trim()),
+                        fatGoal: int.tryParse(fatCtrl.text.trim()),
+                        weightGoalType: weightGoal,
+                        context:
+                            context, // dialogContext so snackbar works after popping
+                      );
+                      if (mounted) {
+                        setState(() {}); // refresh subtitle with new values
+                      }
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

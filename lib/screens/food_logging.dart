@@ -181,59 +181,49 @@ class _FoodLoggingState extends State<FoodLogging> {
           ? currentAmt.toInt().toString()
           : currentAmt.toString(),
     );
-
-    // Show the dialog and wait for the user to type a new amount and hit Save
-    final newAmtStr = await showDialog<String>(
+    final newAmtStr = await showFrostedAlertDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Edit serving size"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Food name shown as subtitle so the user knows what they're editing
-            Text(
-              food['food_name'] as String? ?? '',
-              style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
-            ),
-            SizedBox(height: Responsive.height(context, 12)),
-            // Numeric input with the unit (e.g. "g", "oz") shown as a suffix
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: GoogleFonts.manrope(color: Colors.white),
-              decoration: InputDecoration(
-                suffixText: unit,
-                suffixStyle: GoogleFonts.manrope(color: Colors.white54),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white38),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: Colors.white54),
-            ),
+      title: "Edit serving size",
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Food name shown as subtitle so the user knows what they're editing
+          Text(
+            food['food_name'] as String? ?? '',
+            style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
+          SizedBox(height: Responsive.height(context, 12)),
+          // Numeric input with the unit (e.g. "g", "oz") shown as a suffix
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: GoogleFonts.manrope(color: Colors.white),
+            decoration: InputDecoration(
+              suffixText: unit,
+              suffixStyle: GoogleFonts.manrope(color: Colors.white54),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white38),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+            ),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          child: const Text("Save", style: TextStyle(color: Colors.white)),
+        ),
+      ],
     );
-
     controller.dispose();
     // the user cancelled or typed something invalid
     if (newAmtStr == null || newAmtStr.isEmpty) return;

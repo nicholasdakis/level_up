@@ -254,38 +254,22 @@ Widget buildSettingsDrawer(
             showChevron: false,
             onTap: () async {
               // Dialog box for confirming logout
-              showDialog(
+              showFrostedAlertDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: Text("Confirm Logout", textAlign: TextAlign.center),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                title: "Confirm Logout",
+                actions: [
+                  TextButton(
+                    child: Text("CANCEL"),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  actions: [
-                    Row(
-                      mainAxisAlignment:
-                          // spaceBetween so CANCEL appears in the left-most part of the box and CONFIRM at the right-most
-                          MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          child: Text("CANCEL"),
-                          // close if canceled
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        TextButton(
-                          child: Text("CONFIRM"),
-                          // Handle logout
-                          onPressed: () async {
-                            // close the dialog box
-                            Navigator.pop(context);
-                            await authService.value.signOut();
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  TextButton(
+                    child: Text("CONFIRM"),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await authService.value.signOut();
+                    },
+                  ),
+                ],
               );
             },
           ),
