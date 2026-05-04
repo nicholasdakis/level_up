@@ -171,6 +171,14 @@ class StreakEntry(BaseModel):
 # Response schemas
 # ==============================================================================
 
+class AchievementDefItem(BaseModel):
+    id: str
+    name: str
+    description: str
+    tiers: list[int]
+    unit: str
+    section: str
+
 class DailyRewardResponse(BaseModel):
     # What is returned when the user tries to claim a daily reward
     claimed: bool  # true if successfully claimed

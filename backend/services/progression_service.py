@@ -3,7 +3,7 @@ from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
-from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS
+from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS, VALID_ACHIEVEMENT_IDS, ACHIEVEMENT_VALID_TIERS
 
 
 def experience_needed(level: int):
@@ -402,6 +402,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         }
 
     def claim_achievement(self, uid: str, achievement_id: str, tier: int):
+        if achievement_id not in VALID_ACHIEVEMENT_IDS:
+            raise ValueError(f"Unknown achievement: {achievement_id}")
+        if tier not in ACHIEVEMENT_VALID_TIERS.get(achievement_id, set()):
+            raise ValueError(f"Invalid tier {tier} for achievement {achievement_id}")
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         self._track_achievement(uid, "total_achievements")
         return result

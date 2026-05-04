@@ -998,6 +998,23 @@ class UserDataManager {
         .toList();
   }
 
+  // Fetches the achievement definitions (public, no auth)
+  static Future<List<Map<String, dynamic>>> fetchAchievementDefs() async {
+    final response = await http
+        .get(Uri.parse('$backendBaseUrl/get_achievement_defs'))
+        .timeout(const Duration(seconds: 5));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'get_achievement_defs failed: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    return (jsonDecode(response.body) as List<dynamic>)
+        .map((d) => Map<String, dynamic>.from(d as Map))
+        .toList();
+  }
+
   // Fetches the user's achievement progress and claims from the backend
   static Future<Map<String, dynamic>> fetchAchievements() async {
     final token = await getIdToken();

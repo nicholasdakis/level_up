@@ -1,22 +1,49 @@
-# Server-protected achievements that are only tracked internally as side effects of validated actions.
-# _track_achievement validates against this set so our own code can't write junk IDs to the DB.
-SERVER_ACHIEVEMENT_IDS = {
-    "level", "daily_claims", "daily_claim_streak", "poi_visits", "food_logs",
-    "food_streak", "set_reminder", "delete_reminder", "set_username",
-    "set_pfp", "change_app_color", "color_indecisive", "change_username",
-    "total_achievements",
-}
+# Single source of truth for all achievement definitions
+# server_tracked=True means progress is written server-side as a side effect of validated actions
+# server_tracked=False means the client triggers progress directly via /claim_trivial_achievement
+ACHIEVEMENT_DEFINITIONS = [
+    # Progression
+    {"id": "level",              "name": "Level Up",         "description": "Reach the specified level",                                        "tiers": [3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100], "unit": "levels",                    "section": "PROGRESSION", "server_tracked": True},
+    {"id": "daily_claims",       "name": "Daily Claims",     "description": "Claim your daily reward the specified number of times",             "tiers": [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 365],                         "unit": "claims",                    "section": "PROGRESSION", "server_tracked": True},
+    {"id": "daily_claim_streak", "name": "On a Roll",        "description": "Claim your daily reward for the specified consecutive days",        "tiers": [3, 5, 10, 15, 20, 25, 30],                   "unit": "consecutive days",          "section": "PROGRESSION", "server_tracked": True},
+    # Explore
+    {"id": "poi_visits",         "name": "Just Checking In", "description": "Check in at the specified number of POIs",                         "tiers": [1, 5, 10, 15, 20, 25, 50, 75, 100, 150, 200], "unit": "visits",                  "section": "EXPLORE",     "server_tracked": True},
+    {"id": "poi_categories",     "name": "Category Collector","description": "Check in at POIs from the specified number of unique categories",  "tiers": [5, 10, 15, 20, 25, 30],                      "unit": "different categories",      "section": "EXPLORE",     "server_tracked": False},
+    {"id": "poi_regular",        "name": "The Usual",        "description": "Check in at the same POI 5 times",                                 "tiers": [5],                                           "unit": "visits to same POI",        "section": "EXPLORE",     "server_tracked": False},
+    # Tabs
+    {"id": "open_food_logging",  "name": "Write That Down!", "description": "Open the Food Logging tab",                                        "tiers": [1],                                           "unit": "open",                      "section": "TABS",        "server_tracked": False},
+    {"id": "open_explore",       "name": "First Steps",      "description": "Open the Explore tab",                                             "tiers": [1],                                           "unit": "open",                      "section": "TABS",        "server_tracked": False},
+    {"id": "open_reminders",     "name": "Always On Time",   "description": "Open the Reminders tab",                                           "tiers": [1],                                           "unit": "open",                      "section": "TABS",        "server_tracked": False},
+    {"id": "open_badges",        "name": "Badge Hunter",     "description": "Open the Badges tab (this one!)",                                  "tiers": [1],                                           "unit": "open",                      "section": "TABS",        "server_tracked": False},
+    {"id": "open_leaderboard",   "name": "Bring It On",      "description": "Open the Leaderboard tab",                                         "tiers": [1],                                           "unit": "open",                      "section": "TABS",        "server_tracked": False},
+    # Food
+    {"id": "food_logs",          "name": "Food Logger",      "description": "Log the specified number of foods",                                "tiers": [1, 5, 10, 20, 30, 40, 50, 75, 100, 150, 200, 300, 400, 500, 1000],                         "unit": "foods logged",              "section": "FOOD",        "server_tracked": True},
+    {"id": "food_recent",        "name": "Shortcut",         "description": "Log a food from the Recent Logs section",                          "tiers": [1],                                           "unit": "recent log used",           "section": "FOOD",        "server_tracked": False},
+    {"id": "food_full_day",      "name": "Full Course Meal", "description": "Log breakfast, lunch, dinner, and snack foods in the same day",    "tiers": [1],                                           "unit": "day with all meals logged", "section": "FOOD",        "server_tracked": False},
+    {"id": "food_streak",        "name": "Consistency",      "description": "Log food for 7 consecutive days",                                  "tiers": [7],                                           "unit": "consecutive days logged",   "section": "FOOD",        "server_tracked": True},
+    {"id": "food_manual",        "name": "My Way",           "description": "Log a food using manual entry",                                    "tiers": [1],                                           "unit": "manual log",                "section": "FOOD",        "server_tracked": False},
+    {"id": "food_barcode",       "name": "Barcode Scanner",  "description": "Log a food by scanning a barcode",                                 "tiers": [1],                                           "unit": "barcode scan",              "section": "FOOD",        "server_tracked": False},
+    {"id": "food_search",        "name": "Food Search",      "description": "Log a food using the search bar",                                  "tiers": [1],                                           "unit": "search log",                "section": "FOOD",        "server_tracked": False},
+    {"id": "calorie_calculator", "name": "Goal Reacher",     "description": "Use the calorie calculator",                                       "tiers": [1],                                           "unit": "use",                       "section": "FOOD",        "server_tracked": False},
+    # Reminders
+    {"id": "set_reminder",       "name": "Reminder Setter",  "description": "Set a reminder",                                                   "tiers": [1],                                           "unit": "reminder set",              "section": "REMINDERS",   "server_tracked": True},
+    {"id": "delete_reminder",    "name": "Honestly, Nevermind","description": "Delete a reminder",                                              "tiers": [1],                                           "unit": "reminder deleted",          "section": "REMINDERS",   "server_tracked": True},
+    {"id": "future_reminder",    "name": "Planning Ahead",   "description": "Set a reminder at least one month in the future",                  "tiers": [1],                                           "unit": "reminder 1+ month out",     "section": "REMINDERS",   "server_tracked": False},
+    {"id": "active_reminders",   "name": "Busy Person",      "description": "Have 5 active reminders at once",                                  "tiers": [5],                                           "unit": "active reminders at once",  "section": "REMINDERS",   "server_tracked": False},
+    # Personalization
+    {"id": "set_username",       "name": "Only One Of Me",   "description": "Set your username",                                                "tiers": [1],                                           "unit": "username set",              "section": "PERSONALIZATION", "server_tracked": True},
+    {"id": "set_pfp",            "name": "Say Cheese",       "description": "Set a profile picture",                                            "tiers": [1],                                           "unit": "profile picture set",       "section": "PERSONALIZATION", "server_tracked": True},
+    {"id": "change_app_color",   "name": "Fresh Coat Of Paint","description": "Change your app color",                                          "tiers": [1],                                           "unit": "color changed",             "section": "PERSONALIZATION", "server_tracked": True},
+    {"id": "send_feedback",      "name": "The Critic",       "description": "Send feedback using the feedback button",                          "tiers": [1],                                           "unit": "feedback sent",             "section": "PERSONALIZATION", "server_tracked": False},
+    {"id": "switch_imperial",    "name": "Freedom Units",    "description": "Switch your units to imperial in the Calorie Calculator tab",      "tiers": [1],                                           "unit": "switched to imperial",      "section": "PERSONALIZATION", "server_tracked": False},
+    {"id": "color_indecisive",   "name": "Indecisive",       "description": "Change the app color 5 times",                                     "tiers": [5],                                           "unit": "color changes",             "section": "PERSONALIZATION", "server_tracked": True},
+    {"id": "change_username",    "name": "Identity Crisis",  "description": "Change your username after setting it",                            "tiers": [1],                                           "unit": "username changed",          "section": "PERSONALIZATION", "server_tracked": True},
+    # Meta
+    {"id": "total_achievements", "name": "Completionist",    "description": "Unlock the specified number of achievements",                      "tiers": [5, 10, 15, 20, 25, 50],                                  "unit": "achievements unlocked",     "section": "META",        "server_tracked": True},
+]
 
-# Low-stakes achievements the client can trigger directly via /claim_trivial_achievement.
-# Gaming these doesn't matter, so they don't need server-side validation of the action.
-TRIVIAL_ACHIEVEMENT_IDS = {
-    "poi_categories", "poi_regular",
-    "open_food_logging", "open_explore", "open_reminders", "open_badges", "open_leaderboard",
-    "food_recent", "food_full_day", "food_manual", "food_barcode",
-    "food_search", "calorie_calculator",
-    "future_reminder", "active_reminders",
-    "send_feedback", "switch_imperial",
-}
-
-# Union of both sets, used anywhere that needs to check if an ID is valid at all
-VALID_ACHIEVEMENT_IDS = SERVER_ACHIEVEMENT_IDS | TRIVIAL_ACHIEVEMENT_IDS
+# Sets derived from ACHIEVEMENT_DEFINITIONS
+SERVER_ACHIEVEMENT_IDS  = {d["id"] for d in ACHIEVEMENT_DEFINITIONS if     d["server_tracked"]}  # achievements the server awards automatically
+TRIVIAL_ACHIEVEMENT_IDS = {d["id"] for d in ACHIEVEMENT_DEFINITIONS if not d["server_tracked"]}  # achievements the client reports (e.g. one-time unlocks)
+VALID_ACHIEVEMENT_IDS   = {d["id"] for d in ACHIEVEMENT_DEFINITIONS}                             # all known achievement ids, used for input validation
+ACHIEVEMENT_VALID_TIERS = {d["id"]: set(d["tiers"]) for d in ACHIEVEMENT_DEFINITIONS}            # maps each achievement to its allowed tier values

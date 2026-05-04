@@ -1482,5 +1482,16 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-04
 - Fixed updateFoodUserByDate replacing foodDataByDate with just today's and wiping all other food dates in-memory. Now it uses addAll(). This fixed the bug where deleting a food and then changing date would not show the other date's foods
 - Fixed the bonus multiplier for bonus XP still awarding a bonus on the day a streak is lost by making it set after claim_daily_reward SQL method updates the streak instead of before
-- Fixed missing data in the DailyRewardResponse schema that caused the daily reward to not show the streak data and multiplied values
+- Fixed missing data in the DailyRewardResponse schema that caused the daily reward to not show the streak data and multiplied values. The correct data was written to the db, but the wrong data was shown on the frontend to the user
 - Made the daily dialog show the total xp gained instead of just the bonus xp
+- Realized that achievements are only validated in terms of their name, but not in terms of tiers, which meant that someone could send fake achievement requests to the server for tiers higher than possible
+- Fixed this by storing the max possible tier of achievements server-side in ACHIEVEMENT_VALID_TIERS so they cannot be bypassed, and then using the data as validation before trying to claim an achievement
+- After this change, realized that the achievement definitions could just live on the backend entirely. This would prevent sending fake values, and would also allow achievements to be updated server-side instead of having to update the whole app to make new tiers / achievements
+- Replaced the hardcoded achievementDefs list in badges.dart and the separate set literals in valid_achievements.py with a single ACHIEVEMENT_DEFINITIONS list in valid_achievements.py as the source of truth
+- SERVER_ACHIEVEMENT_IDS, TRIVIAL_ACHIEVEMENT_IDS, VALID_ACHIEVEMENT_IDS, and ACHIEVEMENT_VALID_TIERS are all derived from ACHIEVEMENT_DEFINITIONS so there is only one place to update when adding achievements
+- Added a /get_achievement_defs route that returns the definitions without server_tracked, since that is an internal field
+- Added AchievementDefItem schema for the response
+- Added fetchAchievementDefs to user_data_manager.dart which calls the new endpoint without auth since definitions are public
+- Badges tab now fetches definitions at runtime alongside progress and streaks in _fetchBadgesData, building AchievementDef objects by merging the fetched data with a local icon map
+- Icons stay client-side since IconData is Flutter-specific
+- Added more tiers to existing achievements

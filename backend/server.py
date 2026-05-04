@@ -56,10 +56,11 @@ from backend.schemas import (
     UpdateGoalsRequest,
     GetStreaksResponse,
     GetStreaksRequest,
-    StreakEntry
+    StreakEntry,
+    AchievementDefItem,
 )
 from backend.auth import verify_token
-from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS
+from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
 from backend.utils import utc_minute_of_day, find_utc_midnight_offset_mins
 from backend.redis_cache import FOOD_CACHE_TTL, redis
 
@@ -622,6 +623,13 @@ def get_achievements():
         claims=[AchievementClaimEntry(**c) for c in result["claims"]],
     )
     return jsonify(response.model_dump()), 200
+
+
+@app.route("/get_achievement_defs", methods=["GET"])
+def get_achievement_defs():
+    # Public endpoint, no auth needed since definitions are the same for all users
+    defs = [AchievementDefItem(**{k: v for k, v in d.items() if k != "server_tracked"}) for d in ACHIEVEMENT_DEFINITIONS]
+    return jsonify([d.model_dump() for d in defs]), 200
 
 
 @app.route("/claim_achievement", methods=["POST"]) # POST because the id_token is sent in the request body

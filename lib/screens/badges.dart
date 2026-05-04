@@ -63,302 +63,40 @@ const List<String> tabLabels = [
 
 bool _isLoading = true; // for the skeletonizer
 
-const List<AchievementDef> achievementDefs = [
-  // Progression
-  AchievementDef(
-    id: "level",
-    name: "Level Up",
-    description: "Reach the specified level",
-    icon: Icons.arrow_upward,
-    tiers: [3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
-    unit: "levels",
-    section: "PROGRESSION",
-  ),
-  AchievementDef(
-    id: "daily_claims",
-    name: "Daily Claims",
-    description: "Claim your daily reward the specified number of times",
-    icon: Icons.calendar_today,
-    tiers: [1, 7, 30, 100, 365],
-    unit: "claims",
-    section: "PROGRESSION",
-  ),
-  AchievementDef(
-    id: "daily_claim_streak",
-    name: "On a Roll",
-    description: "Claim your daily reward for the specified consecutive days",
-    icon: Icons.local_fire_department,
-    tiers: [2, 5, 10, 15, 20, 25, 30],
-    unit: "consecutive days",
-    section: "PROGRESSION",
-  ),
-
-  // Explore
-  AchievementDef(
-    id: "poi_visits",
-    name: "Just Checking In",
-    description: "Check in at the specified number of POIs",
-    icon: Icons.explore,
-    tiers: [1, 5, 10, 15, 20, 25, 50, 75, 100, 150, 200],
-    unit: "visits",
-    section: "EXPLORE",
-  ),
-  AchievementDef(
-    id: "poi_categories",
-    name: "Category Collector",
-    description:
-        "Check in at POIs from the specified number of unique categories",
-    icon: Icons.category,
-    tiers: [5, 10, 15, 20, 25, 30],
-    unit: "different categories",
-    section: "EXPLORE",
-  ),
-  AchievementDef(
-    id: "poi_regular",
-    name: "The Usual",
-    description: "Check in at the same POI 5 times",
-    icon: Icons.repeat,
-    tiers: [5],
-    unit: "visits to same POI",
-    section: "EXPLORE",
-  ),
-
-  // Tabs
-  AchievementDef(
-    id: "open_food_logging",
-    name: "Write That Down!",
-    description: "Open the Food Logging tab",
-    icon: Icons.restaurant_menu,
-    tiers: [1],
-    unit: "open",
-    section: "TABS",
-  ),
-  AchievementDef(
-    id: "open_explore",
-    name: "First Steps",
-    description: "Open the Explore tab",
-    icon: Icons.map,
-    tiers: [1],
-    unit: "open",
-    section: "TABS",
-  ),
-  AchievementDef(
-    id: "open_reminders",
-    name: "Always On Time",
-    description: "Open the Reminders tab",
-    icon: Icons.alarm,
-    tiers: [1],
-    unit: "open",
-    section: "TABS",
-  ),
-  AchievementDef(
-    id: "open_badges",
-    name: "Badge Hunter",
-    description: "Open the Badges tab (this one!)",
-    icon: Icons.emoji_events,
-    tiers: [1],
-    unit: "open",
-    section: "TABS",
-  ),
-  AchievementDef(
-    id: "open_leaderboard",
-    name: "Bring It On",
-    description: "Open the Leaderboard tab",
-    icon: Icons.leaderboard,
-    tiers: [1],
-    unit: "open",
-    section: "TABS",
-  ),
-
-  // Food
-  AchievementDef(
-    id: "food_logs",
-    name: "Food Logger",
-    description: "Log the specified number of foods",
-    icon: Icons.restaurant,
-    tiers: [1, 10, 50, 100, 200],
-    unit: "foods logged",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_recent",
-    name: "Shortcut",
-    description: "Log a food from the Recent Logs section",
-    icon: Icons.history,
-    tiers: [1],
-    unit: "recent log used",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_full_day",
-    name: "Full Course Meal",
-    description:
-        "Log breakfast, lunch, dinner, and snack foods in the same day",
-    icon: Icons.dinner_dining,
-    tiers: [1],
-    unit: "day with all meals logged",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_streak",
-    name: "Consistency",
-    description: "Log food for 7 consecutive days",
-    icon: Icons.date_range,
-    tiers: [7],
-    unit: "consecutive days logged",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_manual",
-    name: "My Way",
-    description: "Log a food using manual entry",
-    icon: Icons.edit,
-    tiers: [1],
-    unit: "manual log",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_barcode",
-    name: "Barcode Scanner",
-    description: "Log a food by scanning a barcode",
-    icon: Icons.qr_code_scanner,
-    tiers: [1],
-    unit: "barcode scan",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "food_search",
-    name: "Food Search",
-    description: "Log a food using the search bar",
-    icon: Icons.search,
-    tiers: [1],
-    unit: "search log",
-    section: "FOOD",
-  ),
-  AchievementDef(
-    id: "calorie_calculator",
-    name: "Goal Reacher",
-    description: "Use the calorie calculator",
-    icon: Icons.calculate,
-    tiers: [1],
-    unit: "use",
-    section: "FOOD",
-  ),
-
-  // Reminders
-  AchievementDef(
-    id: "set_reminder",
-    name: "Reminder Setter",
-    description: "Set a reminder",
-    icon: Icons.notifications_active,
-    tiers: [1],
-    unit: "reminder set",
-    section: "REMINDERS",
-  ),
-  AchievementDef(
-    id: "delete_reminder",
-    name: "Honestly, Nevermind",
-    description: "Delete a reminder",
-    icon: Icons.delete_outline,
-    tiers: [1],
-    unit: "reminder deleted",
-    section: "REMINDERS",
-  ),
-  AchievementDef(
-    id: "future_reminder",
-    name: "Planning Ahead",
-    description: "Set a reminder at least one month in the future",
-    icon: Icons.event,
-    tiers: [1],
-    unit: "reminder 1+ month out",
-    section: "REMINDERS",
-  ),
-  AchievementDef(
-    id: "active_reminders",
-    name: "Busy Person",
-    description: "Have 5 active reminders at once",
-    icon: Icons.notifications,
-    tiers: [5],
-    unit: "active reminders at once",
-    section: "REMINDERS",
-  ),
-
-  // Personalization
-  AchievementDef(
-    id: "set_username",
-    name: "Only One Of Me",
-    description: "Set your username",
-    icon: Icons.badge,
-    tiers: [1],
-    unit: "username set",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "set_pfp",
-    name: "Say Cheese",
-    description: "Set a profile picture",
-    icon: Icons.camera_alt,
-    tiers: [1],
-    unit: "profile picture set",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "change_app_color",
-    name: "Fresh Coat Of Paint",
-    description: "Change your app color",
-    icon: Icons.palette,
-    tiers: [1],
-    unit: "color changed",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "send_feedback",
-    name: "The Critic",
-    description: "Send feedback using the feedback button",
-    icon: Icons.feedback,
-    tiers: [1],
-    unit: "feedback sent",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "switch_imperial",
-    name: "Freedom Units",
-    description: "Switch your units to imperial in the Calorie Calculator tab",
-    icon: Icons.straighten,
-    tiers: [1],
-    unit: "switched to imperial",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "color_indecisive",
-    name: "Indecisive",
-    description: "Change the app color 5 times",
-    icon: Icons.color_lens,
-    tiers: [5],
-    unit: "color changes",
-    section: "PERSONALIZATION",
-  ),
-  AchievementDef(
-    id: "change_username",
-    name: "Identity Crisis",
-    description: "Change your username after setting it",
-    icon: Icons.swap_horiz,
-    tiers: [1],
-    unit: "username changed",
-    section: "PERSONALIZATION",
-  ),
-
-  // Meta
-  AchievementDef(
-    id: "total_achievements",
-    name: "Completionist",
-    description: "Unlock the specified number of achievements",
-    icon: Icons.stars,
-    tiers: [10, 25, 50],
-    unit: "achievements unlocked",
-    section: "META",
-  ),
-];
+// Icons stay client-side since IconData is Flutter-specific
+const Map<String, IconData> _achievementIcons = {
+  "level": Icons.arrow_upward,
+  "daily_claims": Icons.calendar_today,
+  "daily_claim_streak": Icons.local_fire_department,
+  "poi_visits": Icons.explore,
+  "poi_categories": Icons.category,
+  "poi_regular": Icons.repeat,
+  "open_food_logging": Icons.restaurant_menu,
+  "open_explore": Icons.map,
+  "open_reminders": Icons.alarm,
+  "open_badges": Icons.emoji_events,
+  "open_leaderboard": Icons.leaderboard,
+  "food_logs": Icons.restaurant,
+  "food_recent": Icons.history,
+  "food_full_day": Icons.dinner_dining,
+  "food_streak": Icons.date_range,
+  "food_manual": Icons.edit,
+  "food_barcode": Icons.qr_code_scanner,
+  "food_search": Icons.search,
+  "calorie_calculator": Icons.calculate,
+  "set_reminder": Icons.notifications_active,
+  "delete_reminder": Icons.delete_outline,
+  "future_reminder": Icons.event,
+  "active_reminders": Icons.notifications,
+  "set_username": Icons.badge,
+  "set_pfp": Icons.camera_alt,
+  "change_app_color": Icons.palette,
+  "send_feedback": Icons.feedback,
+  "switch_imperial": Icons.straighten,
+  "color_indecisive": Icons.color_lens,
+  "change_username": Icons.swap_horiz,
+  "total_achievements": Icons.stars,
+};
 
 class Badges extends StatefulWidget {
   const Badges({super.key});
@@ -371,6 +109,7 @@ class Badges extends StatefulWidget {
 
 class _BadgesState extends State<Badges> {
   // Populated from the backend on init
+  List<AchievementDef> _achievementDefs = [];
   final Map<String, int> progress = {};
   final Map<String, Set<int>> claimedTiers = {};
   final Map<String, int> highestStreaks = {};
@@ -391,12 +130,29 @@ class _BadgesState extends State<Badges> {
       final results = await Future.wait([
         UserDataManager.fetchAchievements(),
         UserDataManager.fetchStreaks(),
+        UserDataManager.fetchAchievementDefs(),
       ]);
 
       final data = results[0] as Map<String, dynamic>;
       final streaks = results[1] as List<Map<String, dynamic>>;
+      final rawDefs = results[2] as List<Map<String, dynamic>>;
 
       setState(() {
+        // Build achievement definitions from fetched data, merging with local icon map
+        _achievementDefs = rawDefs
+            .map(
+              (d) => AchievementDef(
+                id: d['id'] as String,
+                name: d['name'] as String,
+                description: d['description'] as String,
+                icon: _achievementIcons[d['id']] ?? Icons.star,
+                tiers: List<int>.from(d['tiers'] as List),
+                unit: d['unit'] as String,
+                section: d['section'] as String,
+              ),
+            )
+            .toList();
+
         // Populate progress map from the progress list
         for (final entry in data['progress']) {
           progress[entry['achievement_id']] = entry['progress'];
@@ -668,7 +424,7 @@ class _BadgesState extends State<Badges> {
   // Returns the list of achievement cards for a given section
   List<Widget> _buildCardsForSection(String section) {
     List<Widget> cards = [];
-    for (final def in achievementDefs) {
+    for (final def in _achievementDefs) {
       if (def.section == section) {
         cards.add(_buildAchievementCard(def));
       }
