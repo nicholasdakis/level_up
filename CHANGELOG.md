@@ -1498,3 +1498,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so the daily reward dialog is awaited for new users so that it does not appear before the onboarding flow
 - Made isNewUser a getter so it is computed on demand and used to gate the initializeUser() daily dialog from new users
 - New users get a separate block that runs the daily dialog after the tour finishes
+- Updated the onboarding tour to also mention the settings drawer

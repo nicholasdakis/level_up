@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late VoidCallback _appColorListener;
 
-  // 0 = buttons step, 1 = footer step, -1 = tour not active
+  // 0 = buttons step, 1 = footer step, 2 = settings step, -1 = tour not active
   int _tourStep = -1;
 
   @override
@@ -125,13 +125,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Advances the tour step on tap, finishing after the footer step
+  // Advances the tour step on tap, finishing after the settings step
   Future<void> _onTourTap() async {
     if (_tourStep == 0) {
-      // advance from buttons to footer
       setState(() => _tourStep = 1);
     } else if (_tourStep == 1) {
-      // finish the tour and show the username dialog, and then give the daily reward dialog
+      setState(() => _tourStep = 2);
+    } else if (_tourStep == 2) {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
       if (canClaimDailyReward() && mounted) {
@@ -212,35 +212,55 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // Semi-transparent overlay so the UI behind is still visible
                     Container(color: Colors.black.withAlpha(120)),
-                    // Tooltip positioned at the top for buttons step, bottom for footer step
+                    // Step 2 on mobile: left-anchored narrow card so the gear icon stays visible
                     Positioned(
                       left: Responsive.width(context, 16),
-                      right: Responsive.width(context, 16),
-                      top: _tourStep == 0
+                      right: (_tourStep == 2 && Responsive.isMobile(context))
+                          ? null
+                          : Responsive.width(context, 16),
+                      top: (_tourStep == 0 || _tourStep == 2)
                           ? Responsive.height(context, 16)
                           : null,
                       bottom: _tourStep == 1
                           ? Responsive.height(context, 100)
                           : null,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 500),
-                          child:
-                              buildShowcaseTooltip(
-                                    context,
-                                    title: _tourStep == 0
-                                        ? 'Main Features'
-                                        : 'Footer',
-                                    description: _tourStep == 0
-                                        ? 'Below are your six main tabs: Food Logging, Explore, Leaderboard, Badges, Reminders, and Calorie Calculator.'
-                                        : 'Below is your footer bar which contains your level, XP bar, and profile picture. Tapping your profile picture takes you to your Personal Preferences tab.',
-                                  )
-                                  .animate(key: ValueKey(_tourStep))
-                                  .fadeIn(
-                                    duration: 200.ms,
-                                  ), // key so the animation plays for each tooltip
-                        ),
-                      ),
+                      child: (_tourStep == 2 && Responsive.isMobile(context))
+                          ? ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width -
+                                    Responsive.width(context, 120),
+                              ),
+                              child:
+                                  buildShowcaseTooltip(
+                                        context,
+                                        title: 'Settings',
+                                        description:
+                                            'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
+                                      )
+                                      .animate(key: ValueKey(_tourStep))
+                                      .fadeIn(duration: 200.ms),
+                            )
+                          : Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 500,
+                                ),
+                                child: buildShowcaseTooltip(
+                                  context,
+                                  title: _tourStep == 0
+                                      ? 'Main Features'
+                                      : _tourStep == 1
+                                      ? 'Footer'
+                                      : 'Settings',
+                                  description: _tourStep == 0
+                                      ? 'Below are your six main tabs: Food Logging, Explore, Leaderboard, Badges, Reminders, and Calorie Calculator.'
+                                      : _tourStep == 1
+                                      ? 'Below is your footer bar which contains your level, XP bar, and profile picture. Tapping your profile picture takes you to your Personal Preferences tab.'
+                                      : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
+                                ).animate(key: ValueKey(_tourStep)).fadeIn(duration: 200.ms),
+                              ),
+                            ),
                     ),
                     // Tap hint at the bottom
                     Positioned(
@@ -248,7 +268,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       left: 0,
                       right: 0,
                       child: Text(
-                        'Tap anywhere to continue',
+                        _tourStep == 2
+                            ? 'Tap anywhere to finish'
+                            : 'Tap anywhere to continue',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
