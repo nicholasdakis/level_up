@@ -477,44 +477,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   SizedBox(
                                     height: Responsive.height(context, 8),
                                   ),
-                                  // Current app version badge
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                        bottom: Responsive.height(context, 4),
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          10,
-                                        ),
-                                        vertical: Responsive.height(context, 4),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(12),
-                                        borderRadius: BorderRadius.circular(
-                                          Responsive.scale(context, 20),
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.white.withAlpha(20),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        "BETA 05.04",
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            11,
-                                          ),
-                                          color: Colors.white.withAlpha(80),
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 1.5,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                   // MAIN TABS
                                   Column(
                                     mainAxisSize: MainAxisSize.min,

@@ -1505,3 +1505,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a visual jitter when returning from Personal Preferences after setting nutrition goals. Both goal entry points in Food Logging were calling refreshUserData() and _syncFoodData() on return, causing an unnecessary backend round-trip. Since updateGoals() already updates currentUserData in place on success, a setState() is sufficient to reflect the new values immediately
 - Added privacy policy and terms of service files
 - Made the privacy policy and tos text in the registration screen clickable, now leading to the files above
+- Moved the version pill into the settings drawer

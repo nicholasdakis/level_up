@@ -109,169 +109,217 @@ Widget buildSettingsDrawer(
           bottomRight: Radius.circular(28),
         ),
       ),
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          // Profile header (contains pfp, username, level)
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              Responsive.width(context, 20),
-              Responsive.height(context, 60),
-              Responsive.width(context, 20),
-              Responsive.height(context, 20),
-            ),
-            child: Row(
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
               children: [
+                // Profile header (contains pfp, username, level)
                 Container(
-                  width: Responsive.scale(context, 52),
-                  height: Responsive.scale(context, 52),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black,
-                    border: Border.all(
-                      color: Colors.white.withAlpha(60),
-                      width: Responsive.scale(context, 2),
-                    ),
+                  padding: EdgeInsets.fromLTRB(
+                    Responsive.width(context, 20),
+                    Responsive.height(context, 60),
+                    Responsive.width(context, 20),
+                    Responsive.height(context, 20),
                   ),
-                  child: ClipOval(child: userManager.insertProfilePicture()),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: Responsive.scale(context, 52),
+                        height: Responsive.scale(context, 52),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black,
+                          border: Border.all(
+                            color: Colors.white.withAlpha(60),
+                            width: Responsive.scale(context, 2),
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: userManager.insertProfilePicture(),
+                        ),
+                      ),
+                      SizedBox(width: Responsive.width(context, 14)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            username,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 16),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 2)),
+                          Text(
+                            "Level ${currentUserData?.level ?? 1}",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 12),
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(width: Responsive.width(context, 14)),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      username,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 16),
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                  ),
+                  child: Divider(
+                    color: Colors.white.withAlpha(25),
+                    thickness: 3,
+                  ),
+                ),
+                buildActionTile(
+                  icon: Icons.account_circle_outlined,
+                  label: "Personal Preferences",
+                  onTap: () async {
+                    Navigator.pop(context); // close drawer
+                    await context.push(
+                      '/settings/preferences',
+                      extra: onProfileImageUpdated,
+                    );
+                  },
+                ),
+                buildActionTile(
+                  icon: Icons.info_outline,
+                  label: "About The Developer",
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await context.push('/settings/developer');
+                  },
+                ),
+                buildActionTile(
+                  icon: Icons.feedback_outlined,
+                  label: "Send Feedback",
+                  onTap: () async {
+                    Navigator.pop(context);
+                    trackTrivialAchievement("send_feedback");
+                    sendEmail(
+                      context,
+                      "n1ch0lasd4k1s@gmail.com",
+                      "Feedback for Level up!",
+                    );
+                  },
+                ),
+                // Chromium browsers (Chrome/Edge): show native install prompt, or snackbar if already installed
+                // Non-Chromium browsers (Safari/Firefox): always show install guide with manual instructions
+                if (kIsWeb && !openedAsPwa)
+                  if (nativeSupported)
+                    buildActionTile(
+                      icon: Icons.install_mobile,
+                      label: "Install App as PWA",
+                      tooltip:
+                          "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+                      onTap: () {
+                        if (promptAvailable) {
+                          Navigator.pop(context); // close drawer
+                          PWAInstall()
+                              .promptInstall_(); // trigger the browser's native install dialog
+                        } else {
+                          Navigator.pop(
+                            context,
+                          ); // close drawer so snackbar appears clearly
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "This app is already installed. Check your home screen or app drawer.",
+                              ),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      },
+                    )
+                  else // Safari, Firefox, etc.
+                    buildActionTile(
+                      icon: Icons.install_mobile,
+                      label: "Install App as PWA",
+                      tooltip:
+                          "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await context.push('/settings/install');
+                      },
                     ),
-                    SizedBox(height: Responsive.height(context, 2)),
-                    Text(
-                      "Level ${currentUserData?.level ?? 1}",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
+                // Divider to visually separate Log Out
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                    vertical: Responsive.height(context, 8),
+                  ),
+                  child: Divider(
+                    color: Colors.white.withAlpha(25),
+                    thickness: 3,
+                  ),
+                ),
+                buildActionTile(
+                  icon: Icons.logout,
+                  label: "Log Out",
+                  iconColor: Colors.red.withAlpha(200),
+                  textColor: Colors.red.withAlpha(200),
+                  showChevron: false,
+                  onTap: () async {
+                    // Dialog box for confirming logout
+                    showFrostedAlertDialog(
+                      context: context,
+                      title: "Confirm Logout",
+                      actions: [
+                        TextButton(
+                          child: Text("CANCEL"),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        TextButton(
+                          child: Text("CONFIRM"),
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await authService.value.signOut();
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
           ),
+          // Version pill pinned to the bottom of the drawer
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 16),
+            padding: EdgeInsets.only(
+              top: Responsive.height(context, 8),
+              bottom: Responsive.height(context, 24),
             ),
-            child: Divider(color: Colors.white.withAlpha(25), thickness: 3),
-          ),
-          buildActionTile(
-            icon: Icons.account_circle_outlined,
-            label: "Personal Preferences",
-            onTap: () async {
-              Navigator.pop(context); // close drawer
-              await context.push(
-                '/settings/preferences',
-                extra: onProfileImageUpdated,
-              );
-            },
-          ),
-          buildActionTile(
-            icon: Icons.info_outline,
-            label: "About The Developer",
-            onTap: () async {
-              Navigator.pop(context);
-              await context.push('/settings/developer');
-            },
-          ),
-          buildActionTile(
-            icon: Icons.feedback_outlined,
-            label: "Send Feedback",
-            onTap: () async {
-              Navigator.pop(context);
-              trackTrivialAchievement("send_feedback");
-              sendEmail(
-                context,
-                "n1ch0lasd4k1s@gmail.com",
-                "Feedback for Level up!",
-              );
-            },
-          ),
-          // Chromium browsers (Chrome/Edge): show native install prompt, or snackbar if already installed
-          // Non-Chromium browsers (Safari/Firefox): always show install guide with manual instructions
-          if (kIsWeb && !openedAsPwa)
-            if (nativeSupported)
-              buildActionTile(
-                icon: Icons.install_mobile,
-                label: "Install App as PWA",
-                tooltip:
-                    "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-                onTap: () {
-                  if (promptAvailable) {
-                    Navigator.pop(context); // close drawer
-                    PWAInstall()
-                        .promptInstall_(); // trigger the browser's native install dialog
-                  } else {
-                    Navigator.pop(
-                      context,
-                    ); // close drawer so snackbar appears clearly
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "This app is already installed. Check your home screen or app drawer.",
-                        ),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                },
-              )
-            else // Safari, Firefox, etc.
-              buildActionTile(
-                icon: Icons.install_mobile,
-                label: "Install App as PWA",
-                tooltip:
-                    "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
-                onTap: () async {
-                  Navigator.pop(context);
-                  await context.push('/settings/install');
-                },
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 10),
+                  vertical: Responsive.height(context, 4),
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(12),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(20),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  "BETA 05.04",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 11),
+                    color: Colors.white.withAlpha(80),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
+                ),
               ),
-          // Divider to visually separate Log Out
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 16),
-              vertical: Responsive.height(context, 8),
             ),
-            child: Divider(color: Colors.white.withAlpha(25), thickness: 3),
-          ),
-          buildActionTile(
-            icon: Icons.logout,
-            label: "Log Out",
-            iconColor: Colors.red.withAlpha(200),
-            textColor: Colors.red.withAlpha(200),
-            showChevron: false,
-            onTap: () async {
-              // Dialog box for confirming logout
-              showFrostedAlertDialog(
-                context: context,
-                title: "Confirm Logout",
-                actions: [
-                  TextButton(
-                    child: Text("CANCEL"),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  TextButton(
-                    child: Text("CONFIRM"),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await authService.value.signOut();
-                    },
-                  ),
-                ],
-              );
-            },
           ),
         ],
       ),
