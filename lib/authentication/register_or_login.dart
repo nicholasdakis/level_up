@@ -8,6 +8,7 @@ import '../utility/responsive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import 'package:url_launcher/url_launcher.dart';
 
 class RegisterOrLogin extends StatefulWidget {
   const RegisterOrLogin({super.key});
@@ -339,14 +340,20 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
             text: "Privacy Policy",
             style: linkStyle,
             recognizer: TapGestureRecognizer()
-              ..onTap = () {}, // placeholder link
+              ..onTap = () => launchUrl(
+                Uri.parse('https://nicholasdakis.com/level_up/privacy-policy'),
+                mode: LaunchMode.externalApplication,
+              ),
           ),
           const TextSpan(text: " and "),
           TextSpan(
             text: "Terms of Service",
             style: linkStyle,
             recognizer: TapGestureRecognizer()
-              ..onTap = () {}, // placeholder link
+              ..onTap = () => launchUrl(
+                Uri.parse('https://nicholasdakis.com/level_up/terms-of-service'),
+                mode: LaunchMode.externalApplication,
+              ),
           ),
         ],
       ),
