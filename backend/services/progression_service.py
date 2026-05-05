@@ -126,20 +126,16 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Fallback for users with no row yet
         if user is None:
             self._repo.initialize_user_if_new(uid)
-            user = {"level": 1, "exp_points": 0, "last_daily_claim": None, "can_claim_daily_reward": True}
+            user = {"level": 1, "exp_points": 0, "last_daily_claim": None}
 
         level = user.get("level", 1) # default to level 1 if missing
         exp = user.get("exp_points", 0) # default to 0 XP if missing
-
-        # Determine if the user can claim (23-hour cooldown)
-        can_claim = self._can_claim_daily_reward(user)
 
         # Return user's data in the format expected by schemas.py
         return {
             "level": level,
             "exp_points": exp,
             "exp_needed": experience_needed(level),
-            "can_claim_daily_reward": can_claim,
         }
 
     def claim_daily_reward(self, uid: str):
@@ -298,9 +294,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             self._repo.initialize_user_if_new(uid)
             user = self._repo.get_user(uid)
 
-        # Determine daily reward eligibility
-        can_claim = self._can_claim_daily_reward(user)
-
         food_logs = self._repo.get_food_logs(uid)
         reminders = self._reminder_repo.get_reminders(uid)
         goals = self._repo.get_goals(uid)
@@ -309,7 +302,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "level": user.get("level", 1),
             "exp_points": user.get("exp_points", 0),
             "exp_needed": experience_needed(user.get("level", 1)),
-            "can_claim_daily_reward": can_claim,
             "pfp_base64": user.get("pfp_base64"),
             "username": user.get("username") or uid,
             "app_color": user.get("app_color"),

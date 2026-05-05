@@ -135,8 +135,6 @@ class UserDataManager {
       currentUserData?.level = data['level'] ?? currentUserData?.level;
       currentUserData?.expPoints =
           data['exp_points'] ?? currentUserData?.expPoints;
-      currentUserData?.canClaimDailyReward =
-          data['can_claim_daily_reward'] ?? true;
       currentUserData?.pfpBase64 = data['pfp_base64'];
       currentUserData?.username = data['username'] ?? currentUserData?.uid;
       currentUserData?.notificationsEnabled =
@@ -154,22 +152,18 @@ class UserDataManager {
         currentUserData?.appColor = Color(data['app_color'] as int);
       }
 
-      // Convert last_daily_claim ISO string to DateTime if present
+      // Compute canClaimDailyReward directly from last_daily_claim (23-hour cooldown)
       if (data['last_daily_claim'] != null) {
         currentUserData?.lastDailyClaim = DateTime.parse(
           data['last_daily_claim'],
         );
-      }
-
-      // If the backend says the reward can't be claimed but 23 hours have passed
-      // locally, override it (can't be exploited as the backend independently verifies this too)
-      if (currentUserData?.canClaimDailyReward == false &&
-          currentUserData?.lastDailyClaim != null) {
         final secondsSince = DateTime.now()
             .toUtc()
             .difference(currentUserData!.lastDailyClaim!.toUtc())
             .inSeconds;
-        if (secondsSince >= 82800) currentUserData!.canClaimDailyReward = true;
+        currentUserData!.canClaimDailyReward = secondsSince >= 82800;
+      } else {
+        currentUserData!.canClaimDailyReward = true;
       }
 
       // Map food logs from the backend response into the local foodDataByDate format

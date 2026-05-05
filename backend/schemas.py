@@ -197,7 +197,8 @@ class ProgressResponse(BaseModel):
     level: int = 1
     exp_points: int = 0
     exp_needed: int = 100
-    can_claim_daily_reward: bool = True
+    can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
+
 
 class UpdateUsernameResponse(BaseModel):
     success: bool
@@ -226,13 +227,14 @@ class GetUserDataResponse(BaseModel):
     level: int = 1
     exp_points: int = 0
     exp_needed: int = 100
-    can_claim_daily_reward: bool = True
+
     pfp_base64: str | None = None
     username: str
     app_color: int | None = None
     fcm_tokens: list[str] = []
     notifications_enabled: bool = True
     last_daily_claim: str | None = None  # ISO string
+    can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
     food_logs: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
     goals: GoalsResponse | None = None

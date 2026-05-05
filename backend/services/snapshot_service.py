@@ -68,7 +68,6 @@ class SnapshotService: # Service for building daily snapshots for users
                     "level": user["level"],
                     "exp_points": user["exp_points"],
                     "app_color": user["app_color"],
-                    "can_claim_daily_reward": user["can_claim_daily_reward"],
                     "last_daily_claim": user["last_daily_claim"],
 
                     "streaks": {
