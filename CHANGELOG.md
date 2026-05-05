@@ -1507,3 +1507,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the privacy policy and tos text in the registration screen clickable, now leading to the files above
 - Moved the version pill into the settings drawer
 - Removed the can_claim_daily_reward column from the users table and all backend references to it. The value was never written to the DB, it was always computed from last_daily_claim on the fly. Flutter now computes canClaimDailyReward directly from last_daily_claim using the same 23-hour threshold instead of reading it from the backend response
+- Added unit testing for progression_service and snapshot_service
+- Added favicons to the privacy policy and terms of service pages
