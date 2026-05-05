@@ -8,6 +8,7 @@ import '../globals.dart';
 import '../utility/responsive.dart';
 import '../utility/food_logging_helper.dart';
 import '../services/user_data_manager.dart';
+import '../utility/shared_preferences/shared_prefs_async.dart';
 
 List<Color> _mealColors(Color base) {
   return [
@@ -41,6 +42,29 @@ class _FoodLoggingState extends State<FoodLogging> {
     'snacks': false,
   };
 
+  final _prefs = SharedPrefsService(); // for persisting meal collapsed state
+
+  // Restores which meal sections were collapsed from the last session
+  Future<void> _loadCollapsedState() async {
+    final saved = await _prefs.getJsonMap(
+      SharedPreferencesKey.mealCollapsedState,
+    );
+    if (saved.isEmpty) return;
+    setState(() {
+      for (final key in _collapsed.keys) {
+        if (saved.containsKey(key)) _collapsed[key] = saved[key] as bool;
+      }
+    });
+  }
+
+  // Persists the current collapsed state so it is remembered when the screen re-opens
+  void _saveCollapsedState() {
+    _prefs.setJsonMap(
+      SharedPreferencesKey.mealCollapsedState,
+      Map.from(_collapsed),
+    );
+  }
+
   // getters that read from currentUserData so goals are always up to date
   double get _goalCalories => (currentUserData?.caloriesGoal ?? 0).toDouble();
   double get _goalProtein => (currentUserData?.proteinGoal ?? 0).toDouble();
@@ -53,6 +77,7 @@ class _FoodLoggingState extends State<FoodLogging> {
   @override
   void initState() {
     super.initState();
+    _loadCollapsedState();
     _loadUserDataFuture = _loadUserDataAndInit();
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
@@ -615,7 +640,10 @@ class _FoodLoggingState extends State<FoodLogging> {
       children: [
         // Tapping anywhere on the header row toggles collapse
         GestureDetector(
-          onTap: () => setState(() => _collapsed[mealKey] = !isCollapsed),
+          onTap: () {
+            setState(() => _collapsed[mealKey] = !isCollapsed);
+            _saveCollapsedState();
+          },
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: EdgeInsets.only(

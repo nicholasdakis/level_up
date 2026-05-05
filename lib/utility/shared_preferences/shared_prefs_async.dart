@@ -9,6 +9,9 @@ class SharedPreferencesKey {
   // RecentFoodsService keys
   static const String recentFoods = 'recent_foods';
 
+  // FoodLogging keys
+  static const String mealCollapsedState = 'meal_collapsed_state';
+
   // POIService keys
   static const String cachedPois = 'cached_pois';
   static const String cachedPoiLat = 'cached_poi_lat';
