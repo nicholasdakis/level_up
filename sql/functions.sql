@@ -50,7 +50,6 @@ BEGIN
         level = p_new_level,
         exp_points = p_new_exp,
         last_daily_claim = v_now,      -- Record when they claimed so the cooldown starts now
-        can_claim_daily_reward = false  -- Prevent claiming again until the scheduler resets this
     WHERE uid = p_uid;
 
     -- Update the streak in the streaks table
