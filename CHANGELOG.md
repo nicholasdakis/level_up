@@ -1509,3 +1509,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the can_claim_daily_reward column from the users table and all backend references to it. The value was never written to the DB, it was always computed from last_daily_claim on the fly. Flutter now computes canClaimDailyReward directly from last_daily_claim using the same 23-hour threshold instead of reading it from the backend response
 - Added unit testing for progression_service and snapshot_service
 - Added favicons to the privacy policy and terms of service pages
+
+## 2026-05-05
+- Created a custom skeletonizer for Badges since the old one no longer works due to all the data coming from the backend
+- Removed didChangeDependencies because it is no longer needed. The skeletonizer reloads normally because the data comes from the backend

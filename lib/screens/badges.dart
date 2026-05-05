@@ -61,8 +61,6 @@ const List<String> tabLabels = [
   "Meta",
 ];
 
-bool _isLoading = true; // for the skeletonizer
-
 // Icons stay client-side since IconData is Flutter-specific
 const Map<String, IconData> _achievementIcons = {
   "level": Icons.arrow_upward,
@@ -108,6 +106,7 @@ class Badges extends StatefulWidget {
 }
 
 class _BadgesState extends State<Badges> {
+  bool _isLoading = true; // for the skeletonizer
   // Populated from the backend on init
   List<AchievementDef> _achievementDefs = [];
   final Map<String, int> progress = {};
@@ -116,6 +115,20 @@ class _BadgesState extends State<Badges> {
 
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
+
+  static final List<AchievementDef> _skeletonDefs = [
+    for (int s = 0; s < tabSections.length; s++)
+      for (int i = 0; i < 4; i++)
+        AchievementDef(
+          id: 'skeleton_${s}_$i',
+          name: BoneMock.name,
+          description: BoneMock.name,
+          icon: Icons.star,
+          tiers: [1, 5, 10],
+          unit: BoneMock.name,
+          section: tabSections[s],
+        ),
+  ];
 
   @override
   void initState() {
@@ -423,21 +436,14 @@ class _BadgesState extends State<Badges> {
 
   // Returns the list of achievement cards for a given section
   List<Widget> _buildCardsForSection(String section) {
+    final defs = _isLoading ? _skeletonDefs : _achievementDefs;
     List<Widget> cards = [];
-    for (final def in _achievementDefs) {
+    for (final def in defs) {
       if (def.section == section) {
         cards.add(_buildAchievementCard(def));
       }
     }
     return cards;
-  }
-
-  // reset isLoading to true when the user revisits the tab
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    setState(() => _isLoading = true);
-    _fetchBadgesData();
   }
 
   @override
