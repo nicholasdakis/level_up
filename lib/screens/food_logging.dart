@@ -309,10 +309,8 @@ class _FoodLoggingState extends State<FoodLogging> {
           width: double.infinity,
           child: TextButton.icon(
             onPressed: () async {
-              // waits for the user to come back from preferences tab to update the user data with the new data
               await context.push('/settings/preferences');
-              await userManager.refreshUserData();
-              await _syncFoodData();
+              if (mounted) setState(() {});
             },
             icon: Icon(
               Icons.track_changes_outlined,
@@ -586,8 +584,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       child: TextButton.icon(
         onPressed: () async {
           await context.push('/settings/preferences');
-          await userManager.refreshUserData();
-          await _syncFoodData();
+          if (mounted) setState(() {});
         },
         icon: Icon(
           Icons.add_circle_outline,
