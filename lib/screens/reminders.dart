@@ -198,6 +198,40 @@ class _RemindersState extends State<Reminders> {
 
   // Method that deletes a reminder from the Supabase Postgres db
   Future<void> _deleteReminder(ReminderData reminder) async {
+    final confirmed = await showFrostedAlertDialog<bool>(
+      context: context,
+      title: "Delete reminder?",
+      content: RichText(
+        text: TextSpan(
+          style: GoogleFonts.manrope(color: Colors.white70),
+          children: [
+            const TextSpan(text: "You're deleting the reminder:\n\n"),
+            TextSpan(
+              text: reminder.message,
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text(
+            "Delete",
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        ),
+      ],
+    );
+    if (confirmed != true) return;
+
     final token = await FirebaseAuth.instance.currentUser!.getIdToken();
 
     try {
@@ -218,6 +252,7 @@ class _RemindersState extends State<Reminders> {
 
       if (mounted) {
         setState(() => reminders = updatedReminders);
+        _showSnackbar("Reminder deleted successfully!");
       }
       currentUserData?.reminders = List.from(updatedReminders);
     } catch (e) {
@@ -248,7 +283,7 @@ class _RemindersState extends State<Reminders> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("CONFIRM"),
+              child: Text("CONFIRM TIME"),
             ),
           ],
         ),

@@ -1513,3 +1513,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-05
 - Created a custom skeletonizer for Badges since the old one no longer works due to all the data coming from the backend
 - Removed didChangeDependencies because it is no longer needed. The skeletonizer reloads normally because the data comes from the backend
+- Added a confirmation dialog for deleting Reminders
+- Added a snackbar on Reminder deletion
