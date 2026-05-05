@@ -701,7 +701,7 @@ class UserDataManager {
       // Default confirmation snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Notification prefences updated successfully."),
+          content: Text("Notification preferences updated successfully."),
           duration: Duration(milliseconds: 500),
         ),
       );
