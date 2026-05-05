@@ -64,16 +64,6 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Placeholder image (Flutter logo)
-                    Center(
-                      child: Image.network(
-                        "https://upload.wikimedia.org/wikipedia/commons/1/17/Google-flutter-logo.png",
-                        width: Responsive.width(context, 300),
-                        height: Responsive.height(context, 300),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 20)),
-
                     // OVERVIEW SECTION
                     sectionHeader("OVERVIEW", context, baseFontSize: 15),
                     frostedGlassCard(
