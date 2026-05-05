@@ -539,10 +539,90 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     );
   }
 
+  // Shows a serving size dialog before logging a recent food so the user can adjust the amount
+  Future<void> _logRecentWithServingPicker(Map<String, dynamic> food) async {
+    final serving = FoodLoggingHelper.parseServing(
+      food['food_description'] as String? ?? '',
+    );
+    final currentAmt = serving['amount'] as double;
+    final unit = serving['unit'] as String;
+
+    final controller = TextEditingController(
+      text: currentAmt % 1 == 0
+          ? currentAmt.toInt().toString()
+          : currentAmt.toString(),
+    );
+
+    final newAmtStr = await showFrostedAlertDialog<String>(
+      context: context,
+      title: "Serving size",
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            food['food_name'] as String? ?? '',
+            style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: GoogleFonts.manrope(color: Colors.white),
+            decoration: InputDecoration(
+              suffixText: unit,
+              suffixStyle: GoogleFonts.manrope(color: Colors.white54),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white38),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          child: const Text("Log", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+    controller.dispose();
+
+    if (newAmtStr == null || newAmtStr.isEmpty) return;
+    final newAmt = double.tryParse(newAmtStr);
+    if (newAmt == null || newAmt <= 0) return;
+
+    final updatedFood = Map<String, dynamic>.from(food);
+
+    // Only rescale if the user changed the amount
+    if (newAmt != currentAmt) {
+      final macros = FoodLoggingHelper.extractMacros(
+        food['food_description'] as String? ?? '',
+      );
+      final scaled = FoodLoggingHelper.scaleFood(macros, currentAmt, newAmt);
+      updatedFood['food_description'] = FoodLoggingHelper.buildDescription(
+        scaled,
+        newAmt,
+        unit,
+      );
+      updatedFood['calories'] = scaled['calories']!.round();
+    }
+
+    await logFood(updatedFood);
+  }
+
   // Recent food tile which is a simple row with food name, macros, and a tap-to-log plus icon
   Widget _buildRecentTile(Map<String, dynamic> food) {
     return InkWell(
-      onTap: () => logFood(Map<String, dynamic>.from(food)),
+      onTap: () => _logRecentWithServingPicker(food),
       splashColor: appColorNotifier.value.withAlpha(40),
       borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
       child: Padding(

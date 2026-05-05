@@ -1519,3 +1519,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed refreshAndLoadFood from _loadUserDataAndInit because refreshUserData already gets the food data, so it was doing two reads for the same data
 - Stored whether meal cards were expanded or not using SharedPreferences so they don't force-open when a user revisits the tab
 - Added a refresh button to the Food Logging tab
+- Made a _logRecentWithServingPicker method so that a dialog appears when a user logs a food from recent foods so they can directly edit the serving size before serving instead of having to do so after
