@@ -470,151 +470,173 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 16),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // room above first button
-                                  SizedBox(
-                                    height: Responsive.height(context, 8),
-                                  ),
-                                  // MAIN TABS
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // FOOD LOGGING TAB
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Food Logging",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "open_food_logging",
-                                                  );
-                                                  context.push('/food-logging');
-                                                },
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // room above first button
+                                    SizedBox(
+                                      height: Responsive.height(context, 8),
+                                    ),
+                                    // MAIN TABS
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // FOOD LOGGING TAB
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Food Logging",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "open_food_logging",
+                                                    );
+                                                    context.push(
+                                                      '/food-logging',
+                                                    );
+                                                  },
+                                                ),
+                                                0.ms,
                                               ),
-                                              0.ms,
-                                            ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      // EXPLORE TAB
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Explore",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "open_explore",
-                                                  );
-                                                  context.push('/explore');
-                                                },
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        // EXPLORE TAB
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Explore",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "open_explore",
+                                                    );
+                                                    context.push('/explore');
+                                                  },
+                                                ),
+                                                80.ms,
                                               ),
-                                              80.ms,
-                                            ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      // LEADERBOARD TAB
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Leaderboard",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "open_leaderboard",
-                                                  );
-                                                  context.push('/leaderboard');
-                                                },
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        // LEADERBOARD TAB
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Leaderboard",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "open_leaderboard",
+                                                    );
+                                                    context.push(
+                                                      '/leaderboard',
+                                                    );
+                                                  },
+                                                ),
+                                                160.ms,
                                               ),
-                                              160.ms,
-                                            ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      // BADGES TAB
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Badges",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "open_badges",
-                                                  );
-                                                  context.push('/badges');
-                                                },
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        // BADGES TAB
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Badges",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "open_badges",
+                                                    );
+                                                    context.push('/badges');
+                                                  },
+                                                ),
+                                                240.ms,
                                               ),
-                                              240.ms,
-                                            ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      // REMINDERS TAB
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Reminders",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "open_reminders",
-                                                  );
-                                                  context.push('/reminders');
-                                                },
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        // REMINDERS TAB
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Reminders",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "open_reminders",
+                                                    );
+                                                    context.push('/reminders');
+                                                  },
+                                                ),
+                                                320.ms,
                                               ),
-                                              320.ms,
-                                            ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      // CALORIE CALCULATOR BUTTON
-                                      isLoading
-                                          ? buildPlaceholderButton()
-                                          : _maybeAnimate(
-                                              customButton(
-                                                "Calorie Calculator",
-                                                48,
-                                                160,
-                                                750,
-                                                context,
-                                                onPressed: () {
-                                                  trackTrivialAchievement(
-                                                    "calorie_calculator",
-                                                  );
-                                                  context.push(
-                                                    '/calorie-calculator',
-                                                  );
-                                                },
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        // CALORIE CALCULATOR BUTTON
+                                        isLoading
+                                            ? buildPlaceholderButton()
+                                            : _maybeAnimate(
+                                                customButton(
+                                                  "Calorie Calculator",
+                                                  48,
+                                                  160,
+                                                  750,
+                                                  context,
+                                                  onPressed: () {
+                                                    trackTrivialAchievement(
+                                                      "calorie_calculator",
+                                                    );
+                                                    context.push(
+                                                      '/calorie-calculator',
+                                                    );
+                                                  },
+                                                ),
+                                                400.ms,
                                               ),
-                                              400.ms,
-                                            ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

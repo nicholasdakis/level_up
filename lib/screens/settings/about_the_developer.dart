@@ -163,7 +163,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                               ),
                               child: Center(
                                 child: Text(
-                                  "Feel free to send feedback or suggestions to improve Level Up!",
+                                  "My goal is to make this app as enjoyable and easy to use as possible. Feel free to send feedback or suggestions you'd like to see added to improve Level Up!",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 18),
                                     color: Colors.white38,
