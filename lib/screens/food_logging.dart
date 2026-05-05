@@ -908,6 +908,14 @@ class _FoodLoggingState extends State<FoodLogging> {
                 onPressed: () => context.pop(),
               ),
               title: createTitle("Food Logging", context),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: () => setState(() {
+                    _loadUserDataFuture = _refreshAndLoadFood();
+                  }),
+                ),
+              ],
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(Responsive.height(context, 3)),
                 child: Container(
