@@ -1515,3 +1515,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed didChangeDependencies because it is no longer needed. The skeletonizer reloads normally because the data comes from the backend
 - Added a confirmation dialog for deleting Reminders
 - Added a snackbar on Reminder deletion
+- Renamed syncFoodData to refreshAndLoadFood to be more accurate
+- Removed refreshAndLoadFood from _loadUserDataAndInit because refreshUserData already gets the food data, so it was doing two reads for the same data

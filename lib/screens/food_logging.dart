@@ -61,15 +61,14 @@ class _FoodLoggingState extends State<FoodLogging> {
   Future<void> _loadUserDataAndInit() async {
     if (currentUserData != null &&
         currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
-      await userManager.refreshUserData();
-      await _syncFoodData();
+      await _refreshAndLoadFood();
       return;
     }
     await userManager.loadUserData();
-    await _syncFoodData();
+    await _refreshAndLoadFood();
   }
 
-  Future<void> _syncFoodData() async {
+  Future<void> _refreshAndLoadFood() async {
     await userManager.refreshUserData();
     loadFoodForDate(currentDate);
   }
@@ -821,7 +820,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   extra: {
                     'meal': mealKey,
                     'currentDate': currentDate,
-                    'onFoodLogged': () async => await _syncFoodData(),
+                    'onFoodLogged': () async => await _refreshAndLoadFood(),
                     // passed to LogFoodScreen so it knows which achievement to update on log
                     'achievementId': 'food_search',
                   },
