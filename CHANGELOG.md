@@ -1527,3 +1527,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-06
 - Replaced print statements in backend code with logger messages to differentiate warnings vs errors etc
 - Wrapped debugPrint messages in Flutter code with if (kDebugMode) so they don't appear in production
+- Added UCropActivity to AndroidManifest to fix a bug where the image cropper would cause the Android version of the app to crash
