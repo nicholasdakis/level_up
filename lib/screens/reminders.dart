@@ -30,6 +30,8 @@ class _RemindersState extends State<Reminders> {
 
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
+  bool _notifBlocked =
+      false; // true if OS notifications are denied — disables the form
   bool _dateTimePicked = false;
   final TextEditingController remindersController =
       TextEditingController(); // Input text for reminder message
@@ -49,9 +51,14 @@ class _RemindersState extends State<Reminders> {
     ); // show cached data instantly
     placeholderMessage = getReminderMessage();
     _loadRemindersFromServer(); // refresh from server in the background
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Request OS permission if not yet asked, or show blocked dialog if denied
+      // Result drives _notifBlocked which disables the form if notifications can't fire
+      final granted = await requestNotificationPermissionIfNeeded(context);
+      if (!mounted) return;
+      setState(() => _notifBlocked = !granted);
       if (currentUserData?.notificationsEnabled == false) {
-        _showNotificationsDisabledDialog(); // prompt user to enable notifications
+        _showNotificationsDisabledDialog(); // in-app toggle is off, prompt to re-enable
       }
     });
   }
@@ -511,6 +518,7 @@ class _RemindersState extends State<Reminders> {
                         children: [
                           // Text field
                           TextField(
+                            enabled: !_notifBlocked,
                             minLines: 1,
                             maxLines:
                                 null, // allow the text field to expand vertically as the user types more lines
@@ -546,14 +554,16 @@ class _RemindersState extends State<Reminders> {
 
                           // Selected date/time display
                           GestureDetector(
-                            onTap: () => pickDateTime(
-                              context,
-                              dateTime,
-                              (newDate) => setState(() {
-                                dateTime = newDate;
-                                _dateTimePicked = true;
-                              }),
-                            ),
+                            onTap: _notifBlocked
+                                ? null
+                                : () => pickDateTime(
+                                    context,
+                                    dateTime,
+                                    (newDate) => setState(() {
+                                      dateTime = newDate;
+                                      _dateTimePicked = true;
+                                    }),
+                                  ),
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 16),
@@ -599,7 +609,6 @@ class _RemindersState extends State<Reminders> {
                           SizedBox(height: Responsive.height(context, 16)),
 
                           // Set Reminder button
-                          // if notifications are disabled, prompt the user to enable them instead
                           isLoading
                               ? Center(
                                   child: SizedBox(
@@ -613,10 +622,17 @@ class _RemindersState extends State<Reminders> {
                               : SizedBox(
                                   height: Responsive.height(context, 48),
                                   child: ElevatedButton(
-                                    onPressed:
-                                        currentUserData?.notificationsEnabled ==
-                                            true
+                                    // if OS blocked, re-show the blocked dialog. if in-app toggle is off, prompt to enable
+                                    onPressed: _notifBlocked
+                                        ? () =>
+                                              requestNotificationPermissionIfNeeded(
+                                                context,
+                                              )
+                                        : currentUserData
+                                                  ?.notificationsEnabled ==
+                                              true
                                         ? _setReminder
+                                        // block the reminder if the user's notifications are disabled
                                         : () =>
                                               _showNotificationsDisabledDialog(),
                                     style: ElevatedButton.styleFrom(

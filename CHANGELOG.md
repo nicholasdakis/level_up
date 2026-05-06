@@ -1528,3 +1528,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced print statements in backend code with logger messages to differentiate warnings vs errors etc
 - Wrapped debugPrint messages in Flutter code with if (kDebugMode) so they don't appear in production
 - Added UCropActivity to AndroidManifest to fix a bug where the image cropper would cause the Android version of the app to crash
+- Moved Android notification permission request from app startup to when the user opens the reminders tab, so the prompt appears in context rather than on the loading screen
+- When OS notifications are denied, the reminders form is disabled and the Set Reminder button immediately shows a blocked dialog instead of letting the user fill out the form
+- showBrowserBlockedDialog now only triggers on web; on Android a null FCM token at startup no longer shows a dialog since permission is requested contextually
+- Made new-user-specific daily claim dialog request notification permissions for Android users

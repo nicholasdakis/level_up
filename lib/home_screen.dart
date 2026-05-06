@@ -13,6 +13,7 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/fcm/notification_service.dart';
 
 class _HomeAnimationState {
   static bool buttonsAnimated = false;
@@ -117,9 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
         true; // reads from currentUserData because upon loading, it calls the backend to get the most up-to-date value
   }
 
-  void buildDailyRewardDialog() {
+  Future<void> buildDailyRewardDialog() async {
     if (!mounted) return;
-    DailyRewardDialog().showDailyRewardDialog(
+    await DailyRewardDialog().showDailyRewardDialog(
       context,
       dailyRewardConfettiController,
     );
@@ -135,7 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
       if (canClaimDailyReward() && mounted) {
-        buildDailyRewardDialog();
+        await buildDailyRewardDialog();
+        // Ask for notification permission after the first reward so the user understands why
+        if (mounted) await requestNotificationPermissionIfNeeded(context);
       }
     }
   }

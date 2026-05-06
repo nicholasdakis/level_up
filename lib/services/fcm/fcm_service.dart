@@ -28,16 +28,6 @@ class FcmService {
     // Background message handler must be registered before any other FCM events
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // requestPermission hangs on web if the browser silently blocks the dialog, so skip it
-    // getToken() handles permissions on web natively
-    if (!kIsWeb) {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
     // Show notifications even when the app is in the foreground (iOS only)
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
@@ -71,13 +61,14 @@ class FcmService {
       );
     }
 
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
+    }
 
     if (deviceToken != null) {
       await userManager.initializeFcmToken(deviceToken);
-    } else if (currentUserData?.notificationsEnabled == true) {
-      // Token is null with notifications enabled, browser is blocking them
+    } else if (kIsWeb && currentUserData?.notificationsEnabled == true) {
+      // On web only: token is null with notifications enabled, so the browser is blocking them
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) showBrowserBlockedDialog(context);
       });

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
 import 'notification_service_stub.dart'
@@ -11,6 +13,54 @@ Future<String?> requestNotificationAndToken() =>
 
 Future<String?> getWebFcmTokenSafe(String vapidKey) =>
     platform.getWebFcmTokenSafe(vapidKey);
+
+// Requests OS notification permission if not yet determined, or shows a dialog if denied
+// Returns true if notifications are granted, false if denied.
+Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
+  if (kIsWeb) return true; // web handles its own permission flow
+
+  final settings = await FirebaseMessaging.instance.getNotificationSettings();
+
+  if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+    // First time asking, so show the OS permission dialog
+    final result = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    if (result.authorizationStatus == AuthorizationStatus.authorized) {
+      // Permission just granted, grab the token now since we skipped it at startup
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) await userManager.initializeFcmToken(token);
+      return true;
+    }
+    return false;
+  } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
+    // Already denied — can't re-prompt, tell the user to go to device settings
+    if (context.mounted) {
+      showFrostedAlertDialog(
+        context: context,
+        title: "Notifications Blocked",
+        content: Text(
+          "Enable notifications for Level Up! in your device settings to receive reminders.",
+          style: TextStyle(fontSize: Responsive.font(context, 15)),
+        ),
+        actions: [
+          Expanded(
+            child: Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Dismiss"),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return false;
+  }
+  return true;
+}
 
 // Show a dialog telling the user their browser is blocking notifications
 void showBrowserBlockedDialog(BuildContext context) {
