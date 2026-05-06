@@ -1,4 +1,4 @@
-package com.example.level_up
+package com.nicholasdakis.levelup
 
 import io.flutter.embedding.android.FlutterActivity
 

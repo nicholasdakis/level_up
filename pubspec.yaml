@@ -4,7 +4,7 @@ description: "A health application that motivates you to workout."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/app_logo_transparent_bg.png"

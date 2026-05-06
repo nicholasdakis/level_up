@@ -49,7 +49,7 @@ BEGIN
     UPDATE users SET
         level = p_new_level,
         exp_points = p_new_exp,
-        last_daily_claim = v_now,      -- Record when they claimed so the cooldown starts now
+        last_daily_claim = v_now     -- Record when they claimed so the cooldown starts now
     WHERE uid = p_uid;
 
     -- Update the streak in the streaks table

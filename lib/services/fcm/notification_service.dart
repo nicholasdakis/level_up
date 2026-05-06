@@ -1,45 +1,19 @@
 import 'package:flutter/material.dart';
-import 'dart:js_interop';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
+import 'notification_service_stub.dart'
+    if (dart.library.js_interop) 'notification_service_web.dart'
+    as platform;
 
-// JS interop to get the FCM token on web
-@JS('getWebFcmToken')
-external JSPromise<JSString?> _getWebFcmToken(String vapidKey);
+// Re-export platform functions so callers don't need to know the split
+Future<String?> requestNotificationAndToken() =>
+    platform.requestNotificationAndToken();
 
-@JS('Notification.requestPermission')
-external JSPromise<JSString> _jsRequestPermission();
-
-// Safely retrieve the web FCM token with error handling and null checks, returning a Dart String? instead of a JSString?
-Future<String?> getWebFcmTokenSafe(String vapidKey) async {
-  try {
-    final JSString? jsToken = await _getWebFcmToken(vapidKey).toDart;
-    return jsToken?.toDart; // JSString? -> String?
-  } catch (e) {
-    debugPrint('Error getting FCM token: $e');
-    return null;
-  }
-}
-
-// Request browser permission and get token
-Future<String?> requestNotificationAndToken() async {
-  try {
-    final permission = (await _jsRequestPermission().toDart).toDart;
-    if (permission != 'granted') return null;
-
-    const vapidKey =
-        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
-    return await getWebFcmTokenSafe(vapidKey);
-  } catch (e) {
-    debugPrint('Notification permission/token error: $e');
-    return null;
-  }
-}
+Future<String?> getWebFcmTokenSafe(String vapidKey) =>
+    platform.getWebFcmTokenSafe(vapidKey);
 
 // Show a dialog telling the user their browser is blocking notifications
 void showBrowserBlockedDialog(BuildContext context) {
-  // Builder child gives the buttons a live dialog context so Navigator.of(ctx)
-  // works even if the outer context (from AppShell) is later unmounted
   showFrostedDialog(
     context: context,
     child: Builder(

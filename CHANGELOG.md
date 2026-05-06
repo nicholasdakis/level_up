@@ -1520,3 +1520,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Stored whether meal cards were expanded or not using SharedPreferences so they don't force-open when a user revisits the tab
 - Added a refresh button to the Food Logging tab
 - Made a _logRecentWithServingPicker method so that a dialog appears when a user logs a food from recent foods so they can directly edit the serving size before serving instead of having to do so after
+- Configured the app for Google Play Store release: updated application ID, Firebase Android options, release signing config, ProGuard rules, FCM messaging dependency, and AndroidManifest permissions
+- Moved web-only JS interop in the notification service, settings drawer, and image crop handler behind conditional imports so the app compiles on Android
+- Fixed various Android build configuration issues until the app successfully compiled and installed as an APK

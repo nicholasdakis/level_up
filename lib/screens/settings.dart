@@ -7,16 +7,8 @@ import '../globals.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart' show trackTrivialAchievement;
-import 'dart:js_interop';
-
-@JS('isPwa')
-external bool isPwa();
-
-@JS('supportsNativePrompt')
-external bool supportsNativePrompt();
-
-@JS('hasInstallPrompt') // for PWA installation detection natively
-external bool hasInstallPrompt();
+import 'settings_stub_utils.dart'
+    if (dart.library.js_interop) 'settings_web_utils.dart';
 
 Widget buildSettingsDrawer(
   BuildContext context, {
