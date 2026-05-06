@@ -122,9 +122,35 @@ class InstallGuide extends StatelessWidget {
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
           toolbarHeight: Responsive.height(context, 100),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.pop(),
+          leading: GestureDetector(
+            onTap: () => context.pop(),
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.1,
+                  ).withAlpha(20),
+                  border: Border.all(
+                    color: lightenColor(
+                      appColorNotifier.value,
+                      0.3,
+                    ).withAlpha(180),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.3,
+                  ).withAlpha(180),
+                  size: Responsive.font(context, 13),
+                ),
+              ),
+            ),
           ),
           title: createTitle("Install App", context),
           bottom: PreferredSize(

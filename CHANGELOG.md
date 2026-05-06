@@ -1532,3 +1532,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - When OS notifications are denied, the reminders form is disabled and the Set Reminder button immediately shows a blocked dialog instead of letting the user fill out the form
 - showBrowserBlockedDialog now only triggers on web; on Android a null FCM token at startup no longer shows a dialog since permission is requested contextually
 - Made new-user-specific daily claim dialog request notification permissions for Android users
+- Made the Explore tab buttons use frosted glass themes to match the rest of the app
+- Updated the back button and refresh buttons as they looked too bare
+- Fixed the pixel overflow error for the Nearby Experience Spots card
+- Changed the card name to "Nearby Spots"

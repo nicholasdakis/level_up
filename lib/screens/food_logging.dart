@@ -903,17 +903,70 @@ class _FoodLoggingState extends State<FoodLogging> {
               backgroundColor: darkenColor(appColor, 0.025),
               centerTitle: true,
               toolbarHeight: Responsive.buttonHeight(context, 120),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.pop(),
+              leading: GestureDetector(
+                onTap: () => context.pop(),
+                child: Center(
+                  child: Container(
+                    padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.1,
+                      ).withAlpha(20),
+                      border: Border.all(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.3,
+                      ).withAlpha(180),
+                      size: Responsive.font(context, 13),
+                    ),
+                  ),
+                ),
               ),
               title: createTitle("Food Logging", context),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: () => setState(() {
-                    _loadUserDataFuture = _refreshAndLoadFood();
-                  }),
+                Padding(
+                  padding: EdgeInsets.all(Responsive.padding(context, 8)),
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      _loadUserDataFuture = _refreshAndLoadFood();
+                    }),
+                    child: Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(20),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.refresh,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        size: Responsive.font(context, 13),
+                      ),
+                    ),
+                  ),
                 ),
               ],
               bottom: PreferredSize(

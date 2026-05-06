@@ -12,6 +12,7 @@ import '../models/poi.dart';
 import '../utility/poi/poi_icons.dart';
 import '../services/poi_service.dart';
 import 'dart:async';
+import 'dart:ui';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -524,15 +525,25 @@ class _ExploreState extends State<Explore> {
                     left: 0,
                     child: GestureDetector(
                       onTap: () => context.pop(),
-                      child: Container(
-                        padding: EdgeInsets.all(Responsive.width(context, 20)),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(200),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Tooltip(
-                          message: "Back",
-                          child: Icon(Icons.arrow_back, color: Colors.white),
+                      child: ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          child: Container(
+                            padding: EdgeInsets.all(
+                              Responsive.width(context, 20),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(100),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Tooltip(
+                              message: "Back",
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -547,329 +558,352 @@ class _ExploreState extends State<Explore> {
                             () => cardIsOpen = !cardIsOpen,
                           ); // toggle open/close
                         },
-                        child: ConstrainedBox(
-                          // keeps width consistent without taking full screen
-                          constraints: BoxConstraints(
-                            maxWidth: Responsive.width(context, 400),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
                           ),
-                          child: SizedBox(
-                            width: double
-                                .infinity, // fill available width so edges align with buttons
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 313),
-                              curve: Curves.easeInOut,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(200),
+                          child: ConstrainedBox(
+                            // keeps width consistent without taking full screen
+                            constraints: BoxConstraints(
+                              maxWidth: Responsive.width(context, 400),
+                            ),
+                            child: SizedBox(
+                              width: double
+                                  .infinity, // fill available width so edges align with buttons
+                              child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(
-                                  Responsive.width(context, 10),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize
-                                      .min, // So widget doesn't take the height of the whole screen
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            "Nearby Experience Spots",
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.width(
-                                                context,
-                                                25,
-                                              ),
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: Responsive.width(
-                                              context,
-                                              10,
-                                            ),
-                                          ),
-                                          Icon(
-                                            cardIsOpen
-                                                ? Icons.keyboard_arrow_up
-                                                : Icons.keyboard_arrow_down,
-                                            color: Colors.white,
-                                          ),
-                                        ],
-                                      ),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 12,
+                                    sigmaY: 12,
+                                  ),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 313),
+                                    curve: Curves.easeInOut,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withAlpha(100),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    ClipRect(
-                                      child: AnimatedSize(
-                                        duration: const Duration(
-                                          milliseconds: 313,
-                                        ),
-                                        curve: Curves.easeInOut,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Spread operator to add the text into the Column with one if statement
-                                            if (cardIsOpen) ...[
-                                              SizedBox(
-                                                height: Responsive.height(
-                                                  context,
-                                                  10,
-                                                ),
-                                              ),
-                                              // Show skeleton placeholder tiles while POIs are being fetched
-                                              // Only show skeleton when there are no POIs yet
-                                              if (loadingPOIs &&
-                                                  nearbyPOIs.isEmpty)
-                                                Skeletonizer(
-                                                  enabled: true,
-                                                  // Subtle white shimmer to blend with the dark card background
-                                                  effect: ShimmerEffect(
-                                                    baseColor: Colors.white
-                                                        .withAlpha(30),
-                                                    highlightColor: Colors.white
-                                                        .withAlpha(15),
-                                                    duration: const Duration(
-                                                      milliseconds: 1200,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(
+                                        Responsive.width(context, 10),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize
+                                            .min, // So widget doesn't take the height of the whole screen
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Center(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    "Nearby Spots",
+                                                    style: GoogleFonts.manrope(
+                                                      fontSize:
+                                                          Responsive.width(
+                                                            context,
+                                                            25,
+                                                          ),
+                                                      color: Colors.white,
                                                     ),
                                                   ),
-                                                  // 4 fake POI rows for Skeletonizer
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: List.generate(
-                                                      4,
-                                                      (_) => Padding(
-                                                        padding:
-                                                            EdgeInsets.symmetric(
-                                                              vertical:
-                                                                  Responsive.height(
-                                                                    context,
-                                                                    4,
-                                                                  ),
-                                                            ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Placeholder category icon
-                                                            Icon(
-                                                              Icons.place,
-                                                              color:
-                                                                  Colors.white,
-                                                              size:
-                                                                  Responsive.width(
-                                                                    context,
-                                                                    20,
-                                                                  ),
-                                                            ),
-                                                            SizedBox(
-                                                              width:
-                                                                  Responsive.width(
-                                                                    context,
-                                                                    8,
-                                                                  ),
-                                                            ),
-                                                            Expanded(
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
+                                                ),
+                                                SizedBox(
+                                                  width: Responsive.width(
+                                                    context,
+                                                    10,
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  cardIsOpen
+                                                      ? Icons.keyboard_arrow_up
+                                                      : Icons
+                                                            .keyboard_arrow_down,
+                                                  color: Colors.white,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          ClipRect(
+                                            child: AnimatedSize(
+                                              duration: const Duration(
+                                                milliseconds: 313,
+                                              ),
+                                              curve: Curves.easeInOut,
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  // Spread operator to add the text into the Column with one if statement
+                                                  if (cardIsOpen) ...[
+                                                    SizedBox(
+                                                      height: Responsive.height(
+                                                        context,
+                                                        10,
+                                                      ),
+                                                    ),
+                                                    // Show skeleton placeholder tiles while POIs are being fetched
+                                                    // Only show skeleton when there are no POIs yet
+                                                    if (loadingPOIs &&
+                                                        nearbyPOIs.isEmpty)
+                                                      Skeletonizer(
+                                                        enabled: true,
+                                                        // Subtle white shimmer to blend with the dark card background
+                                                        effect: ShimmerEffect(
+                                                          baseColor: Colors
+                                                              .white
+                                                              .withAlpha(30),
+                                                          highlightColor: Colors
+                                                              .white
+                                                              .withAlpha(15),
+                                                          duration:
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    1200,
+                                                              ),
+                                                        ),
+                                                        // 4 fake POI rows for Skeletonizer
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: List.generate(
+                                                            4,
+                                                            (_) => Padding(
+                                                              padding: EdgeInsets.symmetric(
+                                                                vertical:
+                                                                    Responsive.height(
+                                                                      context,
+                                                                      4,
+                                                                    ),
+                                                              ),
+                                                              child: Row(
                                                                 children: [
-                                                                  // Placeholder POI name
-                                                                  Text(
-                                                                    "Loading spot name",
-                                                                    style: GoogleFonts.manrope(
-                                                                      color: Colors
-                                                                          .white,
-                                                                      fontSize:
-                                                                          Responsive.width(
-                                                                            context,
-                                                                            16,
-                                                                          ),
+                                                                  // Placeholder category icon
+                                                                  Icon(
+                                                                    Icons.place,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: Responsive.width(
+                                                                      context,
+                                                                      20,
                                                                     ),
                                                                   ),
-                                                                  // Placeholder category label
-                                                                  Text(
-                                                                    "Category",
+                                                                  SizedBox(
+                                                                    width:
+                                                                        Responsive.width(
+                                                                          context,
+                                                                          8,
+                                                                        ),
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        // Placeholder POI name
+                                                                        Text(
+                                                                          "Loading spot name",
+                                                                          style: GoogleFonts.manrope(
+                                                                            color:
+                                                                                Colors.white,
+                                                                            fontSize: Responsive.width(
+                                                                              context,
+                                                                              16,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        // Placeholder category label
+                                                                        Text(
+                                                                          "Category",
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  // Placeholder visit status icon
+                                                                  Icon(
+                                                                    Icons
+                                                                        .circle_outlined,
+                                                                    color: Colors
+                                                                        .white38,
+                                                                    size: Responsive.width(
+                                                                      context,
+                                                                      20,
+                                                                    ),
                                                                   ),
                                                                 ],
                                                               ),
                                                             ),
-                                                            // Placeholder visit status icon
-                                                            Icon(
-                                                              Icons
-                                                                  .circle_outlined,
-                                                              color: Colors
-                                                                  .white38,
-                                                              size:
-                                                                  Responsive.width(
-                                                                    context,
-                                                                    20,
-                                                                  ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    // Show error message if fetching failed and there are no POIs to fall back on
+                                                    else if (poiError != null &&
+                                                        nearbyPOIs.isEmpty)
+                                                      Padding(
+                                                        padding: EdgeInsets.all(
+                                                          Responsive.width(
+                                                            context,
+                                                            10,
+                                                          ),
+                                                        ),
+                                                        child: Text(
+                                                          poiError!,
+                                                          style: GoogleFonts.manrope(
+                                                            color: Colors
+                                                                .redAccent,
+                                                            fontSize:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  14,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    // Show message if no POIs found
+                                                    else if (nearbyPOIs.isEmpty)
+                                                      Padding(
+                                                        padding: EdgeInsets.all(
+                                                          Responsive.width(
+                                                            context,
+                                                            10,
+                                                          ),
+                                                        ),
+                                                        child: Text(
+                                                          "No spots found nearby",
+                                                          style: GoogleFonts.manrope(
+                                                            color:
+                                                                Colors.white70,
+                                                            fontSize:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  14,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    // Show the list of POIs in a scrollable container
+                                                    else
+                                                      ConstrainedBox(
+                                                        constraints: BoxConstraints(
+                                                          maxHeight:
+                                                              Responsive.height(
+                                                                context,
+                                                                300,
+                                                              ), // cap height so it doesn't fill the screen
+                                                        ),
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Flexible(
+                                                              child: ListView.builder(
+                                                                shrinkWrap:
+                                                                    true, // only take as much space as needed
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                itemCount:
+                                                                    nearbyPOIs
+                                                                        .length,
+                                                                itemBuilder:
+                                                                    (
+                                                                      context,
+                                                                      index,
+                                                                    ) {
+                                                                      return _poiTile(
+                                                                        nearbyPOIs[index],
+                                                                      );
+                                                                    },
+                                                              ),
                                                             ),
+                                                            // Show a small loading indicator while the cache is being filled
+                                                            if (fillingCache)
+                                                              Padding(
+                                                                padding: EdgeInsets.symmetric(
+                                                                  vertical:
+                                                                      Responsive.height(
+                                                                        context,
+                                                                        8,
+                                                                      ),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    SizedBox(
+                                                                      width: Responsive.width(
+                                                                        context,
+                                                                        14,
+                                                                      ),
+                                                                      height: Responsive.width(
+                                                                        context,
+                                                                        14,
+                                                                      ),
+                                                                      child: const CircularProgressIndicator(
+                                                                        color: Colors
+                                                                            .white38,
+                                                                        strokeWidth:
+                                                                            2,
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: Responsive.width(
+                                                                        context,
+                                                                        8,
+                                                                      ),
+                                                                    ),
+                                                                    Text(
+                                                                      "Finding more spots...",
+                                                                      style: GoogleFonts.manrope(
+                                                                        color: Colors
+                                                                            .white38,
+                                                                        fontSize: Responsive.width(
+                                                                          context,
+                                                                          13,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
                                                           ],
                                                         ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                )
-                                              // Show error message if fetching failed and there are no POIs to fall back on
-                                              else if (poiError != null &&
-                                                  nearbyPOIs.isEmpty)
-                                                Padding(
-                                                  padding: EdgeInsets.all(
-                                                    Responsive.width(
-                                                      context,
-                                                      10,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    poiError!,
-                                                    style: GoogleFonts.manrope(
-                                                      color: Colors.redAccent,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            14,
+                                                  ] else
+                                                    SizedBox(
+                                                      height: Responsive.height(
+                                                        context,
+                                                        30,
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          loadingPOIs
+                                                              ? "Loading spots..."
+                                                              : "Tap to view spots",
+                                                          style: TextStyle(
+                                                            color:
+                                                                Colors.white70,
+                                                            fontSize:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  15,
+                                                                ),
                                                           ),
-                                                    ),
-                                                  ),
-                                                )
-                                              // Show message if no POIs found
-                                              else if (nearbyPOIs.isEmpty)
-                                                Padding(
-                                                  padding: EdgeInsets.all(
-                                                    Responsive.width(
-                                                      context,
-                                                      10,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    "No spots found nearby",
-                                                    style: GoogleFonts.manrope(
-                                                      color: Colors.white70,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            14,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                )
-                                              // Show the list of POIs in a scrollable container
-                                              else
-                                                ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxHeight: Responsive.height(
-                                                      context,
-                                                      300,
-                                                    ), // cap height so it doesn't fill the screen
-                                                  ),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Flexible(
-                                                        child: ListView.builder(
-                                                          shrinkWrap:
-                                                              true, // only take as much space as needed
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          itemCount:
-                                                              nearbyPOIs.length,
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                                return _poiTile(
-                                                                  nearbyPOIs[index],
-                                                                );
-                                                              },
                                                         ),
                                                       ),
-                                                      // Show a small loading indicator while the cache is being filled
-                                                      if (fillingCache)
-                                                        Padding(
-                                                          padding:
-                                                              EdgeInsets.symmetric(
-                                                                vertical:
-                                                                    Responsive.height(
-                                                                      context,
-                                                                      8,
-                                                                    ),
-                                                              ),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              SizedBox(
-                                                                width:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      14,
-                                                                    ),
-                                                                height:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      14,
-                                                                    ),
-                                                                child: const CircularProgressIndicator(
-                                                                  color: Colors
-                                                                      .white38,
-                                                                  strokeWidth:
-                                                                      2,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                width:
-                                                                    Responsive.width(
-                                                                      context,
-                                                                      8,
-                                                                    ),
-                                                              ),
-                                                              Text(
-                                                                "Finding more spots...",
-                                                                style: GoogleFonts.manrope(
-                                                                  color: Colors
-                                                                      .white38,
-                                                                  fontSize:
-                                                                      Responsive.width(
-                                                                        context,
-                                                                        13,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ] else
-                                              SizedBox(
-                                                height: Responsive.height(
-                                                  context,
-                                                  30,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    loadingPOIs
-                                                        ? "Loading spots..."
-                                                        : "Tap to view spots",
-                                                    style: TextStyle(
-                                                      color: Colors.white70,
-                                                      fontSize:
-                                                          Responsive.width(
-                                                            context,
-                                                            15,
-                                                          ),
                                                     ),
-                                                  ),
-                                                ),
+                                                ],
                                               ),
-                                          ],
-                                        ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -1057,21 +1091,26 @@ class _ExploreState extends State<Explore> {
                       child: GestureDetector(
                         onTap: () =>
                             _mapController.move(userLocation!, _currentZoom),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.width(context, 20),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(200),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Tooltip(
-                            message: "Recenter",
-                            child: Transform.rotate(
-                              angle: 0.75,
-                              child: const Icon(
-                                Icons.navigation_rounded,
-                                color: Colors.white,
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.width(context, 20),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(100),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Tooltip(
+                                message: "Recenter",
+                                child: Transform.rotate(
+                                  angle: 0.75,
+                                  child: const Icon(
+                                    Icons.navigation_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
