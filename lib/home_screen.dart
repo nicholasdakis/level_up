@@ -1,5 +1,6 @@
 // home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/confetti.dart';
@@ -14,6 +15,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
 import 'services/fcm/notification_service.dart';
+import 'services/fcm/web_fcm_token_stub.dart'
+    if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
+    as web_fcm;
 
 class _HomeAnimationState {
   static bool buttonsAnimated = false;
@@ -159,6 +163,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (mounted) {
       setState(() => isLoading = false);
+      if (kIsWeb &&
+          !isNewUser &&
+          web_fcm.getNotificationPermission() != 'granted' &&
+          currentUserData!.notificationsEnabled) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) showBrowserBlockedDialog(context);
+        });
+      }
       if (isNewUser) {
         // Wait for the frame after isLoading = false so all targets are visible
         WidgetsBinding.instance.addPostFrameCallback((_) async {

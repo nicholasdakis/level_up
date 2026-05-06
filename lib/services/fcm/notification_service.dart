@@ -17,7 +17,8 @@ Future<String?> getWebFcmTokenSafe(String vapidKey) =>
 // Requests OS notification permission if not yet determined, or shows a dialog if denied
 // Returns true if notifications are granted, false if denied.
 Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
-  if (kIsWeb) return true; // web handles its own permission flow
+  if (kIsWeb)
+    return true; // web uses showBrowserBlockedDialog directly via a user gesture
 
   final settings = await FirebaseMessaging.instance.getNotificationSettings();
 
@@ -91,20 +92,28 @@ void showBrowserBlockedDialog(BuildContext context) {
                 ),
               ),
               TextButton(
-                onPressed: () async {
+                onPressed: () {
                   Navigator.of(ctx).pop();
-                  final token = await requestNotificationAndToken();
-                  if (token != null) {
-                    await userManager.initializeFcmToken(token);
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Browser is still blocking notifications.',
+
+                  // Schedule the async work after the current Flutter frame completes
+                  Future.microtask(() async {
+                    // Request browser notification permission and FCM token (Web)
+                    final token = await requestNotificationAndToken();
+
+                    if (token != null) {
+                      // Store/initialize token in backend so push notifications can work
+                      await userManager.initializeFcmToken(token);
+                    } else if (context.mounted) {
+                      // If permission was denied or browser blocked it, inform the user
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Browser is still blocking notifications.',
+                          ),
                         ),
-                      ),
-                    );
-                  }
+                      );
+                    }
+                  });
                 },
                 child: Text(
                   'Enable',

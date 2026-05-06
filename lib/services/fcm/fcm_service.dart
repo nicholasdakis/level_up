@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../firebase_options.dart';
-import 'notification_service.dart';
 import '../../globals.dart';
 
 // Conditional imports to handle the web interop correctly across platforms
@@ -28,13 +27,15 @@ class FcmService {
     // Background message handler must be registered before any other FCM events
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // Show notifications even when the app is in the foreground (iOS only)
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+    // iOS only — skip on web to avoid triggering an automatic permission request
+    if (!kIsWeb) {
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    }
 
     // Get the device's FCM token and save it to Firestore
     // Timeout prevents hanging if the browser blocks the permission dialog
@@ -67,11 +68,6 @@ class FcmService {
 
     if (deviceToken != null) {
       await userManager.initializeFcmToken(deviceToken);
-    } else if (kIsWeb && currentUserData?.notificationsEnabled == true) {
-      // On web only: token is null with notifications enabled, so the browser is blocking them
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) showBrowserBlockedDialog(context);
-      });
     }
 
     // Update the token in Firestore if Firebase rotates it (e.g. after reinstall)

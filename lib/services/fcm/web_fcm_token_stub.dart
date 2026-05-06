@@ -1,3 +1,4 @@
 // Stub for non-web platforms where JS interop is not available (just so the code can compile)
 Future<String?> getWebFcmToken(String vapidKey) async => null;
+String getNotificationPermission() => 'granted';
 void showJsNotification(String title, String body) {}
