@@ -1,9 +1,12 @@
+import logging
 import random
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS, VALID_ACHIEVEMENT_IDS, ACHIEVEMENT_VALID_TIERS
+
+logger = logging.getLogger(__name__)
 
 
 def experience_needed(level: int):
@@ -96,12 +99,12 @@ class ProgressionService: # Service class to handle all progression-related busi
     def _track_achievement(self, uid: str, achievement_id: str):
         # Silently increments achievement progress by 1, never breaking the caller if it fails
         if achievement_id not in SERVER_ACHIEVEMENT_IDS:
-            print(f"[achievements] Rejected unknown server achievement: {achievement_id}")
+            logger.warning(f"[achievements] Rejected unknown server achievement: {achievement_id}")
             return
         try:
             self._achievement_repo.upsert_achievement_progress(uid, achievement_id, 1)
         except Exception as e:
-            print(f"[achievements] Failed to track {achievement_id} for {uid}: {e}")
+            logger.error(f"[achievements] Failed to track {achievement_id} for {uid}: {e}")
 
     def update_username(self, uid: str, username: str):
         if self._repo.username_exists(uid, username):
@@ -192,14 +195,14 @@ class ProgressionService: # Service class to handle all progression-related busi
             try:
                 self._achievement_repo.set_achievement_progress(uid, "level", new_level)
             except Exception as e:
-                print(f"[achievements] Failed to set level for {uid}: {e}")
+                logger.error(f"[achievements] Failed to set level for {uid}: {e}")
 
         # Set the consecutive-day streak progress to the exact value from the DB
         daily_streak = result.get("daily_streak", 1)
         try:
             self._achievement_repo.set_achievement_progress(uid, "daily_claim_streak", daily_streak)
         except Exception as e:
-            print(f"[achievements] Failed to set daily_claim_streak for {uid}: {e}")
+            logger.error(f"[achievements] Failed to set daily_claim_streak for {uid}: {e}")
 
         # Successful return with the new progression state
         return {
@@ -261,7 +264,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             try:
                 self._achievement_repo.set_achievement_progress(uid, "level", new_level)
             except Exception as e:
-                print(f"[achievements] Failed to sync level achievement: {e}")
+                logger.error(f"[achievements] Failed to sync level achievement: {e}")
 
         return {
             "success": True,
@@ -350,7 +353,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             food_streak = self._repo.update_food_streak(uid)
             self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)
         except Exception as e:
-            print(f"[achievements] Failed to update food_streak for {uid}: {e}")
+            logger.error(f"[achievements] Failed to update food_streak for {uid}: {e}")
 
     def get_reminders(self, uid: str):
         # Returns all reminders for a user

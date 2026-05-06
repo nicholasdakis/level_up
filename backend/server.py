@@ -138,7 +138,7 @@ def _parse_and_auth(schema):
 def send_due_reminders():
     try:
         now_dt = datetime.now(timezone.utc)
-        print(f'[reminders] Checking for due reminders at {now_dt.isoformat()}')
+        logger.info(f'[reminders] Checking for due reminders at {now_dt.isoformat()}')
 
         # Query the reminders table for all rows where the time is due (i.e. time <= now)
         due_reminders = reminder_repo.get_due_reminders(now_dt.isoformat())
@@ -151,7 +151,7 @@ def send_due_reminders():
             # Atomically claim the reminder by deleting it, so skip if another instance already claimed it
             if not reminder_repo.delete_reminder(reminder_id):
                 # Another instance already deleted/claimed this reminder, skip it
-                print(f'[reminders] Reminder {reminder_id} already claimed by another instance, skipping')
+                logger.info(f'[reminders] Reminder {reminder_id} already claimed by another instance, skipping')
                 continue
 
             count += 1
@@ -179,7 +179,7 @@ def send_due_reminders():
                 tokens=fcm_tokens,
             )
             response = messaging.send_each_for_multicast(message)
-            print(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
+            logger.info(f'[reminders] Sent to {uid}: success={response.success_count}, failure={response.failure_count}')
 
             # Clean up tokens with unregistered / invalid error codes (e.g. user uninstalled the app or revoked permissions)
             if response.failure_count > 0:
@@ -187,7 +187,7 @@ def send_due_reminders():
                 for i, res in enumerate(response.responses):
                     if not res.success and res.exception:
                         code = getattr(res.exception, 'code', None)
-                        print(f'[reminders] Token {i} failed: code={code} error={res.exception}')
+                        logger.warning(f'[reminders] Token {i} failed: code={code} error={res.exception}')
                         if code in (
                             'NOT_FOUND',
                             'registration-token-not-registered',
@@ -199,10 +199,10 @@ def send_due_reminders():
                     user_repo.remove_fcm_token(uid, token)
 
         if count == 0:
-            print(f'[reminders] No due reminders found')
+            logger.info('[reminders] No due reminders found')
 
     except Exception as e:
-        print(f'Error sending reminders: {e}')
+        logger.exception(f'Error sending reminders: {e}')
 
 @app.route("/ping")
 def ping():
@@ -257,8 +257,7 @@ def get_food():
             return jsonify(json.loads(cached))
 
     except Exception as e: # Prints exception and continues with the API call as fallback
-        logger.warning(f"[Redis Error]: {e}") # Real error message logged to server
-        print("Redis error, falling back to the API search.") # Generic error message for user
+        logger.warning(f"[Redis Error]: {e}")
     
     # Lock to prevent race conditions and redundant API calls
     # The timeout is to prevent the lock from being stuck if the server crashes

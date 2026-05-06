@@ -41,7 +41,9 @@ void trackTrivialAchievement(String achievementId) async {
         )
         .timeout(const Duration(seconds: 5));
   } catch (e) {
-    debugPrint('Failed to track trivial achievement $achievementId: $e');
+    if (kDebugMode) {
+      debugPrint('Failed to track trivial achievement $achievementId: $e');
+    }
   }
 }
 
@@ -75,12 +77,8 @@ class UserDataManager {
     final stopwatch = Stopwatch()..start();
     // Initialize the connectivity stream to know the user's connectivity state
     initConnectivity();
-    debugPrint(
-      'initConnectivity happened at ${stopwatch.elapsedMilliseconds}ms',
-    );
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    debugPrint('Setting uid happened at ${stopwatch.elapsedMilliseconds}ms');
 
     if (uid != null) {
       // Initialize currentUserData if it's null or has the wrong UID (safety guard that gets overwritten)
@@ -100,14 +98,10 @@ class UserDataManager {
           fcmTokens: [],
         );
       }
-      debugPrint(
-        'initializing currentuserdata happened at ${stopwatch.elapsedMilliseconds}ms',
-      );
 
       await _fetchUserDataSafely();
     }
     stopwatch.stop();
-    debugPrint('loadUserData took ${stopwatch.elapsedMilliseconds}ms');
   }
 
   // Calls the backend /get_user_data endpoint to load all user fields at once, with no fallback since Firestore is no longer the source of truth
@@ -203,7 +197,7 @@ class UserDataManager {
       expNotifier.value = currentUserData!.expPoints;
       lastLoadFailed = false;
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      if (kDebugMode) debugPrint('Error loading user data: $e');
       currentUserData?.username =
           null; // signals fetch failed so username dialog is not shown
       currentUserData?.canClaimDailyReward =
@@ -211,7 +205,6 @@ class UserDataManager {
       lastLoadFailed = true;
     }
     stopwatch.stop();
-    debugPrint('_fetchUserDataSafely took ${stopwatch.elapsedMilliseconds}ms');
   }
 
   // Helper to safely parse a meal list from the backend response
@@ -524,7 +517,7 @@ class UserDataManager {
           .toDouble();
       return (xpGained, baseXp, streak, multiplier);
     } catch (e) {
-      debugPrint('claimDailyReward backend error: $e');
+      if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
       return null;
     }
   }
@@ -624,7 +617,7 @@ class UserDataManager {
         }),
       );
     } catch (e) {
-      debugPrint("Error initializing FCM token: $e");
+      if (kDebugMode) debugPrint("Error initializing FCM token: $e");
     }
   }
 
@@ -649,7 +642,7 @@ class UserDataManager {
         }),
       );
     } catch (e) {
-      debugPrint("Error adding FCM token: $e");
+      if (kDebugMode) debugPrint("Error adding FCM token: $e");
     }
   }
 
@@ -668,7 +661,7 @@ class UserDataManager {
         }),
       );
     } catch (e) {
-      debugPrint("Error removing FCM token: $e");
+      if (kDebugMode) debugPrint("Error removing FCM token: $e");
     }
   }
 
@@ -749,7 +742,7 @@ class UserDataManager {
           )
           .timeout(Duration(seconds: 5));
     } catch (e) {
-      debugPrint('Error updating utc offset: $e');
+      if (kDebugMode) debugPrint('Error updating utc offset: $e');
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
@@ -15,13 +16,9 @@ Future<void> main() async {
   // Initialize PWA install prompt so users can install the app from the settings drawer
   // try-catch because the pwa_install package crashes in dev mode (flutter run doesn't serve manifest.json)
   try {
-    PWAInstall().setup(
-      installCallback: () {
-        debugPrint('App installed as PWA');
-      },
-    );
+    PWAInstall().setup(installCallback: () {});
   } catch (e) {
-    debugPrint('PWA install setup skipped: $e');
+    if (kDebugMode) debugPrint('PWA install setup skipped: $e');
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

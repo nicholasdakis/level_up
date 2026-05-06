@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -256,7 +257,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         setState(() => foodList = []);
       }
     } catch (error) {
-      debugPrint("API call error: $error");
+      if (kDebugMode) debugPrint("API call error: $error");
       setState(() => foodList = []);
       if (!isConnected) {
         _showSnackbar("Error searching. Check your connection and try again.");
@@ -373,7 +374,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         isBeingDeleted: false,
       );
     } catch (e) {
-      debugPrint("Error saving food data: $e");
+      if (kDebugMode) debugPrint("Error saving food data: $e");
     }
 
     // Track which input method the user used to log this food

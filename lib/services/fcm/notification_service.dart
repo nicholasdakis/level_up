@@ -46,7 +46,6 @@ void showBrowserBlockedDialog(BuildContext context) {
                   final token = await requestNotificationAndToken();
                   if (token != null) {
                     await userManager.initializeFcmToken(token);
-                    debugPrint('FCM token obtained after enable button');
                   } else if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

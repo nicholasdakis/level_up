@@ -28,7 +28,7 @@ class AuthService {
         await userManager.removeFcmToken(deviceToken);
       }
     } catch (e) {
-      debugPrint('Error removing FCM token during signOut: $e');
+      if (kDebugMode) debugPrint('Error removing FCM token during signOut: $e');
     }
 
     await firebaseAuth.signOut();
@@ -101,5 +101,3 @@ class AuthService {
     await firebaseAuth.signOut();
   }
 }
-
-// TODO: sign up/in with phone number

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
@@ -25,7 +26,6 @@ import 'utility/web_utils_stub.dart'
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier() {
     FirebaseAuth.instance.authStateChanges().listen((_) {
-      debugPrint('auth state changed');
       notifyListeners();
     });
   }
@@ -73,12 +73,11 @@ Page _slideUpPage({required LocalKey key, required Widget child}) {
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/loading',
-  debugLogDiagnostics: true,
+  debugLogDiagnostics: kDebugMode,
   routerNeglect: false,
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
-    debugPrint('redirect called: ${state.matchedLocation}');
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';
@@ -299,11 +298,8 @@ class _AppInitScreenState extends State<AppInitScreen> {
         web_fcm.setAppColor(
           '${toHex(dark)}|${toHex(mid)}|$notchEdge|$notchMid',
         );
-        debugPrint(
-          'setAppColor called with notchEdge: $notchEdge notchMid: $notchMid',
-        );
       } catch (e) {
-        debugPrint('setAppColor failed: $e');
+        if (kDebugMode) debugPrint('setAppColor failed: $e');
       }
     }
 

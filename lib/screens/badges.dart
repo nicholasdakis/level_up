@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:flutter/foundation.dart';
 import "package:go_router/go_router.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
@@ -191,7 +192,7 @@ class _BadgesState extends State<Badges> {
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Failed to fetch badges data: $e');
+      if (kDebugMode) debugPrint('Failed to fetch badges data: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -237,7 +238,7 @@ class _BadgesState extends State<Badges> {
       });
       badgesConfettiController.play();
     } catch (e) {
-      debugPrint('Failed to claim tier: $e');
+      if (kDebugMode) debugPrint('Failed to claim tier: $e');
     }
 
     // Cooldown before allowing another claim attempt

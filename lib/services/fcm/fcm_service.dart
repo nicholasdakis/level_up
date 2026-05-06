@@ -20,9 +20,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  debugPrint(
-    'onBackgroundMessage: ${message.messageId} | ${message.data.toString()}',
-  );
 }
 
 class FcmService {
@@ -74,7 +71,8 @@ class FcmService {
       );
     }
 
-    debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
+    if (kDebugMode)
+      debugPrint('FCM token: ${deviceToken != null ? "obtained" : "NULL"}');
 
     if (deviceToken != null) {
       await userManager.initializeFcmToken(deviceToken);
@@ -104,9 +102,6 @@ class FcmService {
     // Show a browser notification for foreground messages on web
     // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint(
-        'onMessage: ${message.notification?.title} - ${message.notification?.body}',
-      );
       if (kIsWeb) {
         final title = message.notification?.title ?? 'Level Up! Reminder';
         final body = message.notification?.body ?? message.data['body'] ?? '';
@@ -129,10 +124,6 @@ class FcmService {
     } catch (e) {
       deviceToken = null;
     }
-
-    debugPrint(
-      'FCM token refresh: ${deviceToken != null ? "obtained" : "NULL"}',
-    );
 
     if (deviceToken != null &&
         (currentUserData == null ||

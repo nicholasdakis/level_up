@@ -1,4 +1,7 @@
+import logging
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 class POIService:
@@ -40,11 +43,11 @@ out body 100;
                 r = requests.post(url, data={"data": query}, headers=self.HEADERS, timeout=15)
                 if r.status_code == 200:
                     return r.json()
-                print(f"Overpass error ({url}): HTTP {r.status_code}")
+                logger.warning(f"Overpass error ({url}): HTTP {r.status_code}")
             except requests.RequestException as e:
-                print(f"Overpass error ({url}): {e}")
+                logger.warning(f"Overpass error ({url}): {e}")
 
-        print("All Overpass endpoints failed")
+        logger.error("All Overpass endpoints failed")
         return None
 
     def parse_overpass_response(self, data):

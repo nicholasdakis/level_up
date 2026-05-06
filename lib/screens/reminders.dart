@@ -96,7 +96,7 @@ class _RemindersState extends State<Reminders> {
         reminders = result;
       });
     } catch (e) {
-      debugPrint("Failed to load reminders: $e");
+      if (kDebugMode) debugPrint("Failed to load reminders: $e");
     }
   }
 
@@ -256,7 +256,7 @@ class _RemindersState extends State<Reminders> {
       }
       currentUserData?.reminders = List.from(updatedReminders);
     } catch (e) {
-      debugPrint("Error deleting reminder: $e");
+      if (kDebugMode) debugPrint("Error deleting reminder: $e");
       _showSnackbar("Failed to delete reminder", isError: true);
     }
   }
@@ -378,7 +378,7 @@ class _RemindersState extends State<Reminders> {
         trackTrivialAchievement("active_reminders");
       }
     } catch (e) {
-      debugPrint("Error in _setReminder: $e");
+      if (kDebugMode) debugPrint("Error in _setReminder: $e");
       _showSnackbar("Failed to set reminder: ${e.toString()}", isError: true);
     } finally {
       if (mounted) setState(() => isLoading = false);

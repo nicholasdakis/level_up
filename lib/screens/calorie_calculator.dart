@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -365,7 +366,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   void initState() {
     super.initState();
     restoreCalculatorDataFromPrefs().catchError((e) {
-      debugPrint('Failed to restore calculator data ${e.runtimeType}');
+      if (kDebugMode)
+        debugPrint('Failed to restore calculator data ${e.runtimeType}');
     });
   }
 

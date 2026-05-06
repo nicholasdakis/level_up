@@ -1523,3 +1523,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Configured the app for Google Play Store release: updated application ID, Firebase Android options, release signing config, ProGuard rules, FCM messaging dependency, and AndroidManifest permissions
 - Moved web-only JS interop in the notification service, settings drawer, and image crop handler behind conditional imports so the app compiles on Android
 - Fixed various Android build configuration issues until the app successfully compiled and installed as an APK
+
+## 2026-05-06
+- Replaced print statements in backend code with logger messages to differentiate warnings vs errors etc
+- Wrapped debugPrint messages in Flutter code with if (kDebugMode) so they don't appear in production
