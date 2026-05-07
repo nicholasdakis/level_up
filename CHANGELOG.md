@@ -1536,3 +1536,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated the back button and refresh buttons as they looked too bare
 - Fixed the pixel overflow error for the Nearby Experience Spots card
 - Changed the card name to "Nearby Spots"
+
+## 2026-05-07
+- Changed the index.html meta description
