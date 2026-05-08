@@ -1545,3 +1545,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Realized achievement handling is not atomic. For example, checking into a POI handles the visit atomically using row-level locking in an RPC, but the achievement itself is handled after in Python. If a crash / error happens between the two, the achievement will never write
 - Moved the achievement handling out of record_poi_visit and directly into the RPC function, ensuring the achievements are also handled atomically with the visit
 - Deleted test_check_in_poi_level_up_tracks_achievement as it is now obsolete
+- Added a "delete account" url as per Google Play's requirements
