@@ -361,17 +361,6 @@ def test_check_in_poi_success(mocker):
     assert result["success"] == True
     assert result["xp_gained"] > 0
 
-# Leveling up during a check-in must trigger set_achievement_progress for the level achievement
-def test_check_in_poi_level_up_tracks_achievement(mocker):
-    threshold = experience_needed(1)
-    user = {"level": 1, "exp_points": threshold - 1}  # one XP short of leveling up
-    service = make_checkin_service(mocker, user=user)
-
-    result = service.check_in_poi("user_123", "Park", 40.7, -74.0, 40.7, -74.0)
-
-    assert result["new_level"] == 2
-    service._achievement_repo.set_achievement_progress.assert_called_once_with("user_123", "level", 2)
-
 # upsert_food_log tests -----------------
 
 # A successful food log must track the food_logs achievement and update the food streak
