@@ -1540,3 +1540,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-07
 - Changed the index.html meta description
 - Made footer divider the same thickness as the others
+
+## 2026-05-08
+- Realized achievement handling is not atomic. For example, checking into a POI handles the visit atomically using row-level locking in an RPC, but the achievement itself is handled after in Python. If a crash / error happens between the two, the achievement will never write
+- Moved the achievement handling out of record_poi_visit and directly into the RPC function, ensuring the achievements are also handled atomically with the visit

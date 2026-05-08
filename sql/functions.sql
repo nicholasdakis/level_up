@@ -113,6 +113,18 @@ BEGIN
         exp_points = p_new_exp
     WHERE uid = p_uid;
 
+    -- Update the user's "level" cell of the achievements_progress table
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'level', p_new_level)
+    ON CONFLICT (uid, achievement_id) DO UPDATE 
+    SET progress = p_new_level;
+
+    -- Update the user's "poi_visits" cell of the achievements_progress table
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'poi_visits', 1)
+    ON CONFLICT (uid, achievement_id) DO UPDATE 
+    SET progress = achievement_progress.progress + 1;
+
     RETURN jsonb_build_object('success', true);
 END;
 $$ LANGUAGE plpgsql;

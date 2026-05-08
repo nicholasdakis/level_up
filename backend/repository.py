@@ -112,7 +112,7 @@ class UserRepository:
 
     # Atomically record the visit, update XP, and set a 24 hour cooldown for that poi
     def record_poi_visit_transaction(self, uid: str, poi_name: str, new_level: int, new_exp: int):
-        # Call the record_poi_visit Postgres function via RPC to handle the operation atomically, which also handles the 24-hour cooldown
+        # Call the record_poi_visit Postgres function via RPC to handle the operation atomically, which also handles the 24-hour cooldown and achievements
         result = self._supabase.rpc("record_poi_visit", {
             "p_uid": uid,
             "p_poi_name": poi_name,
