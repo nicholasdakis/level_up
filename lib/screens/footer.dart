@@ -164,7 +164,10 @@ class _FooterState extends State<Footer> {
       decoration: BoxDecoration(
         color: darkenColor(appColorNotifier.value, 0.025),
         border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(20), width: 1),
+          top: BorderSide(
+            color: Colors.white.withAlpha(25),
+            width: Responsive.height(context, 3),
+          ),
         ),
       ),
       padding: EdgeInsets.fromLTRB(

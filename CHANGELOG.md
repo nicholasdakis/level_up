@@ -1539,3 +1539,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-05-07
 - Changed the index.html meta description
+- Made footer divider the same thickness as the others
