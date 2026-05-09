@@ -52,6 +52,52 @@ class _ExploreState extends State<Explore> {
   final MapController _mapController = MapController();
   double _currentZoom = 15;
 
+  // Restricted to the Google Play reviewer account so real users cannot fake check-ins
+  static const _testUid = 'Inu2nmOe0lbwhj1zbjsk4oSf5R42';
+  bool get _isTestAccount => currentUserData?.uid == _testUid;
+
+  // Simulated NYC spawn point (Times Square). One POI is placed exactly here so it is immediately claimable
+  // User spawns ~10m from Times Square so it looks natural but is still within the 30m check-in range
+  static const _simulatedLat = 40.75809;
+  static const _simulatedLng = -73.98538;
+  static final _simulatedPOIs = [
+    POI(
+      name: 'Times Square',
+      lat: _simulatedLat,
+      lng: _simulatedLng,
+      category: 'attraction',
+    ),
+    POI(name: 'Bryant Park', lat: 40.7536, lng: -73.9832, category: 'park'),
+    POI(
+      name: 'Grand Central Terminal',
+      lat: 40.7527,
+      lng: -73.9772,
+      category: 'landmark',
+    ),
+    POI(
+      name: 'The Museum of Modern Art',
+      lat: 40.7614,
+      lng: -73.9776,
+      category: 'museum',
+    ),
+  ];
+
+  void _simulateLocation() {
+    final loc = LatLng(_simulatedLat, _simulatedLng);
+    setState(() {
+      userLocation = loc;
+      _locationRequested = true;
+      nearbyPOIs = _simulatedPOIs;
+      loadingPOIs = false;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _buttonPositionReady = true);
+    });
+    _mapController.move(loc, 15);
+    _refreshClosestCheckinPOI();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -433,17 +479,42 @@ class _ExploreState extends State<Explore> {
                 ),
               ),
 
-              // User location layer
-              CurrentLocationLayer(
-                style: LocationMarkerStyle(
-                  marker: DefaultLocationMarker(
-                    child: Icon(Icons.person, color: Colors.white),
+              // User location layer — real GPS stream, not used when location is simulated
+              if (!(_isTestAccount && userLocation != null))
+                CurrentLocationLayer(
+                  style: LocationMarkerStyle(
+                    marker: DefaultLocationMarker(
+                      child: Icon(Icons.person, color: Colors.white),
+                    ),
+                    markerSize: Size(35, 35),
+                    showAccuracyCircle: false,
+                    showHeadingSector: false,
                   ),
-                  markerSize: Size(35, 35),
-                  showAccuracyCircle: false,
-                  showHeadingSector: false,
                 ),
-              ),
+
+              // Hardcoded user marker for the simulated location since CurrentLocationLayer uses real GPS
+              if (_isTestAccount && userLocation != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: userLocation!,
+                      width: 35,
+                      height: 35,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: appColorNotifier.value,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
               // POI markers layer
               MarkerLayer(markers: _buildMarkers()),
@@ -489,6 +560,20 @@ class _ExploreState extends State<Explore> {
                         ),
                         child: const Text("Find nearby spots"),
                       ),
+                      if (_isTestAccount) ...[
+                        SizedBox(height: Responsive.height(context, 12)),
+                        ElevatedButton(
+                          onPressed: _simulateLocation,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple.withAlpha(200),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: const Text("Simulate Location (NYC)"),
+                        ),
+                      ],
                     ] else ...[
                       const CircularProgressIndicator(),
                       SizedBox(height: Responsive.height(context, 10)),
