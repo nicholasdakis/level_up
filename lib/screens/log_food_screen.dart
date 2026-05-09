@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
+import '../guest.dart';
 import '../utility/responsive.dart';
 import '../services/user_data_manager.dart';
 import '../services/recent_foods_service.dart';
@@ -104,6 +105,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // 750ms debounce before firing the search API
   void _scheduleSearch(String value) {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     lastInput = DateTime.now();
     checkTimer?.cancel();
     checkTimer = Timer(
@@ -114,6 +119,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Toggles the microphone for voice input on the search bar
   Future<void> _toggleListening() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     if (!_voiceSearch.isAvailable) {
       _showSnackbar("Voice search isn't available on this device.");
       return;
@@ -1008,7 +1017,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   Expanded(
                     child: TextField(
                       controller: searchController,
-                      readOnly: !userCanType,
+                      readOnly: !userCanType || isGuest, // For guest users
+                      onTap: isGuest ? () => Guest.block(context) : null,
                       keyboardType: TextInputType.text,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 16),
@@ -1064,7 +1074,14 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     ),
                     // crop_free looks cleaner than qr_code_scanner for a scan hint
                     GestureDetector(
-                      onTap: () => setState(() => scannerActive = true),
+                      onTap: () {
+                        // For guest users
+                        if (isGuest) {
+                          Guest.block(context);
+                          return;
+                        }
+                        setState(() => scannerActive = true);
+                      },
                       child: Padding(
                         padding: EdgeInsets.only(
                           left: Responsive.width(context, 2),

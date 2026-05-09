@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'dart:math' as math;
 import '../globals.dart';
+import '../guest.dart';
 import '../utility/responsive.dart';
 import '../utility/food_logging_helper.dart';
 import '../services/user_data_manager.dart';
@@ -149,6 +150,10 @@ class _FoodLoggingState extends State<FoodLogging> {
     int idx,
     List<Map<String, dynamic>> foods,
   ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
       title: "Delete food?",
@@ -187,6 +192,10 @@ class _FoodLoggingState extends State<FoodLogging> {
     List<Map<String, dynamic>> foods,
     Map<String, dynamic> food,
   ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     // Pull the current serving amount and unit out of food_description
     final serving = FoodLoggingHelper.parseServing(
       food['food_description'] as String? ?? '',
@@ -333,6 +342,11 @@ class _FoodLoggingState extends State<FoodLogging> {
           width: double.infinity,
           child: TextButton.icon(
             onPressed: () async {
+              // For guest users
+              if (isGuest) {
+                Guest.block(context);
+                return;
+              }
               await context.push('/settings/preferences');
               if (mounted) setState(() {});
             },
@@ -607,6 +621,11 @@ class _FoodLoggingState extends State<FoodLogging> {
       baseRadius: 16,
       child: TextButton.icon(
         onPressed: () async {
+          // For guest users
+          if (isGuest) {
+            Guest.block(context);
+            return;
+          }
           await context.push('/settings/preferences');
           if (mounted) setState(() {});
         },
@@ -843,6 +862,10 @@ class _FoodLoggingState extends State<FoodLogging> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () {
+                if (isGuest) {
+                  Guest.block(context);
+                  return;
+                } // For guest users
                 context.push(
                   '/food-logging/log',
                   extra: {

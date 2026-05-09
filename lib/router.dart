@@ -28,6 +28,7 @@ class _AuthNotifier extends ChangeNotifier {
     FirebaseAuth.instance.authStateChanges().listen((_) {
       notifyListeners();
     });
+    guestNotifier.addListener(notifyListeners);
   }
 }
 
@@ -78,7 +79,7 @@ final GoRouter appRouter = GoRouter(
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
-    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';
 
@@ -94,6 +95,7 @@ final GoRouter appRouter = GoRouter(
     // init is done and user is still on loading
     // restores sub-route on web page refresh (e.g. /food-logging), falls back to /
     if (isLoggedIn && onLoading && appInitialized) {
+      if (isGuest) return '/';
       final uri = Uri.base;
       final path = uri.path.replaceFirst('/level_up', '');
       return (path.isNotEmpty && path != '/loading') ? path : '/';
@@ -303,7 +305,7 @@ class _AppInitScreenState extends State<AppInitScreen> {
       }
     }
 
-    if (mounted) FcmService.initialize(context);
+    if (mounted && !isGuest) FcmService.initialize(context);
 
     appReadyNotifier.value = true;
 

@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (canClaimDailyReward() && mounted && !isNewUser) {
+    if (canClaimDailyReward() && mounted && !isNewUser && !isGuest) {
       buildDailyRewardDialog();
     }
 

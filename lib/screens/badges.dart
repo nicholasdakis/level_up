@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import "package:go_router/go_router.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
+import "/guest.dart";
 import "/utility/responsive.dart";
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -134,6 +135,12 @@ class _BadgesState extends State<Badges> {
   @override
   void initState() {
     super.initState();
+    if (isGuest) {
+      // For guest users
+      Guest.blockOnOpen(context);
+      setState(() => _isLoading = false);
+      return;
+    }
     _fetchBadgesData();
   }
 
@@ -449,6 +456,34 @@ class _BadgesState extends State<Badges> {
 
   @override
   Widget build(BuildContext context) {
+    if (isGuest && !_isLoading) {
+      // For guest users
+      return Container(
+        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: darkenColor(appColorNotifier.value, 0.025),
+            centerTitle: true,
+            toolbarHeight: Responsive.height(context, 100),
+            leading: GestureDetector(
+              onTap: () => context.pop(),
+              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            ),
+            title: createTitle("Badges", context),
+          ),
+          body: Center(
+            child: Text(
+              "Sign up to track your badges",
+              style: GoogleFonts.manrope(
+                color: Colors.white70,
+                fontSize: Responsive.font(context, 16),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Skeletonizer(
       enabled: _isLoading,
       effect: ShimmerEffect(

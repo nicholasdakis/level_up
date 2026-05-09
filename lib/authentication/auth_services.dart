@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
+import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) '../services/fcm/web_fcm_token_web.dart'
     as web_fcm;
@@ -17,6 +18,10 @@ class AuthService {
       firebaseAuth.authStateChanges(); // to see if user is connected
 
   Future<void> signOut() async {
+    if (isGuest) {
+      Guest.exit();
+      return;
+    }
     // Remove only this device's FCM token so notifications stop on this device
     try {
       const vapidKey =

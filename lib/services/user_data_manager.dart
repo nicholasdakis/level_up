@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
+import '../guest.dart';
 import '../models/user_data.dart';
 import '../models/reminder_data.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -28,6 +29,7 @@ Future<String> getIdToken() async {
 
 // Fires and forgets a trivial achievement increment to the backend
 void trackTrivialAchievement(String achievementId) async {
+  if (isGuest) return;
   try {
     final token = await getIdToken();
     await http
@@ -77,6 +79,11 @@ class UserDataManager {
     final stopwatch = Stopwatch()..start();
     // Initialize the connectivity stream to know the user's connectivity state
     initConnectivity();
+
+    if (isGuest) {
+      currentUserData = Guest.defaultUserData;
+      return;
+    }
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
@@ -407,6 +414,11 @@ class UserDataManager {
         base64String = base64Encode(await mobileCompressIfNeed(file!));
       }
 
+      if (isGuest) {
+        Guest.block(context);
+        return;
+      }
+
       // Send the Base64 string to the backend to store in Postgres
       final response = await http
           .post(
@@ -481,6 +493,8 @@ class UserDataManager {
   // The backend validates the 23-hour cooldown and writes XP/level atomically in a transaction
   // This prevents double-claiming even if the user taps the button twice rapidly
   Future<(int, int, int, double)?> claimDailyReward() async {
+    if (isGuest) return null;
+
     try {
       // Call backend to claim daily reward
       final response = await http.post(
@@ -528,6 +542,11 @@ class UserDataManager {
     String updatedUsername,
     BuildContext context,
   ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return false;
+    }
+
     try {
       // Call the backend to check uniqueness and update the username atomically
       final response = await http
@@ -601,6 +620,7 @@ class UserDataManager {
 
   // Method to initialize FCM token on app startup and add it to Postgres if not already present, ensuring no duplicates
   Future<void> initializeFcmToken(String deviceToken) async {
+    if (isGuest) return;
     try {
       // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
       if (currentUserData != null &&
@@ -623,6 +643,7 @@ class UserDataManager {
 
   // Adds this device's FCM token to Postgres (called on token refresh)
   Future<void> addFcmToken(String deviceToken, {String? oldToken}) async {
+    if (isGuest) return;
     try {
       // clear the stale token
       if (oldToken != null) await removeFcmToken(oldToken);
@@ -648,6 +669,7 @@ class UserDataManager {
 
   // Removes this device's FCM token from Postgres (called on logout)
   Future<void> removeFcmToken(String deviceToken) async {
+    if (isGuest) return;
     try {
       // Remove token from local list
       currentUserData!.fcmTokens.remove(deviceToken);
@@ -670,10 +692,12 @@ class UserDataManager {
     bool enabled,
     BuildContext context,
   ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    currentUserData!.notificationsEnabled = enabled;
     try {
-      // Update locally so the UI reflects the change immediately
-      currentUserData!.notificationsEnabled = enabled;
-
       final response = await http
           .post(
             Uri.parse('$backendBaseUrl/update_notifications'),
@@ -729,6 +753,7 @@ class UserDataManager {
 
   // Method that silently stores the user's timezone based on UTC offset
   Future<void> updateUtcOffset() async {
+    if (isGuest) return;
     try {
       final offset = DateTime.now().timeZoneOffset.inMinutes;
       await http
@@ -748,10 +773,12 @@ class UserDataManager {
 
   // Method for updating the app theme color and storing it
   Future<void> updateAppColor(Color newColor, BuildContext context) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    currentUserData!.appColor = newColor;
     try {
-      // Update locally
-      currentUserData!.appColor = newColor;
-
       // Convert color to int
       final int argbInt = newColor.toARGB32();
 
@@ -823,6 +850,10 @@ class UserDataManager {
     bool isBeingDeleted = false,
     bool isBeingEdited = false,
   }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
     try {
       // Update locally so the UI reflects the change immediately
       currentUserData?.foodDataByDate.addAll(newFoodData);
@@ -889,6 +920,7 @@ class UserDataManager {
 
   // Searches for food via the backend, which proxies to FatSecret API
   static Future<http.Response> searchFood(String query) async {
+    if (isGuest) return http.Response('{"foods": []}', 200);
     final idToken = await getIdToken();
     return await http.post(
       Uri.parse('$backendBaseUrl/get_food'),
@@ -899,6 +931,7 @@ class UserDataManager {
 
   // Refreshes all user data from the backend, called on Food Logging tab switch to keep data fresh across devices
   Future<void> refreshUserData() async {
+    if (isGuest) return;
     await _fetchUserDataSafely();
   }
 
@@ -911,6 +944,10 @@ class UserDataManager {
     String? weightGoalType,
     BuildContext? context,
   }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
     try {
       final response = await http
           .post(
@@ -964,6 +1001,7 @@ class UserDataManager {
 
   // Fetches the user's streak data from the backend
   static Future<List<Map<String, dynamic>>> fetchStreaks() async {
+    if (isGuest) return [];
     final token = await getIdToken();
     final response = await http
         .post(

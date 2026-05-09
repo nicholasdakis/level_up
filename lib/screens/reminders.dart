@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
+import '../guest.dart';
 import '../models/reminder_data.dart';
 import '../utility/responsive.dart';
 import '../services/fcm/notification_service.dart';
@@ -205,6 +206,10 @@ class _RemindersState extends State<Reminders> {
 
   // Method that deletes a reminder from the Supabase Postgres db
   Future<void> _deleteReminder(ReminderData reminder) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
       title: "Delete reminder?",
@@ -321,6 +326,10 @@ class _RemindersState extends State<Reminders> {
 
   // Method that saves a new reminder to the Supabase Postgres db
   Future<void> _setReminder() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     if (isLoading) return;
 
     if (remindersController.text.isEmpty) {

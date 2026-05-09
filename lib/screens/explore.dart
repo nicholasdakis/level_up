@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../globals.dart';
+import '../guest.dart';
 import '../utility/responsive.dart';
 import '../models/poi.dart';
 import '../utility/poi/poi_icons.dart';
@@ -58,7 +59,12 @@ class _ExploreState extends State<Explore> {
       duration: const Duration(seconds: 2),
     );
     _poiService.cleanupOldVisits();
-    _checkAndInitLocation();
+    if (isGuest) {
+      // For guest users
+      Guest.blockOnOpen(context);
+    } else {
+      _checkAndInitLocation();
+    }
   }
 
   @override
@@ -772,7 +778,9 @@ class _ExploreState extends State<Explore> {
                                                           ),
                                                         ),
                                                         child: Text(
-                                                          "No spots found nearby",
+                                                          isGuest
+                                                              ? "Sign up to explore nearby spots"
+                                                              : "No spots found nearby",
                                                           style: GoogleFonts.manrope(
                                                             color:
                                                                 Colors.white70,

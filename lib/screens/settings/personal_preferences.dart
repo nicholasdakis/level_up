@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '/globals.dart';
+import '/guest.dart';
 import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
@@ -90,6 +91,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   bool _cropLoading = false;
 
   Future pickProfileImage() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
     final returnedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
@@ -156,6 +161,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   }
 
   Future<void> applyAppColor(Color color) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
     // Check if the color is too light for white text / cards to be visible, and if so, darken it slightly
     if (isColorTooLight(color)) {
       color = darkenColor(color, getDarknessMultiplier(color));
@@ -179,6 +188,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   }
 
   void showColorPickerDialog() {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    } // For guest users
     Color pickerColor = baseColor.withAlpha(
       255,
     ); // .withAlpha(255) so the alpha circle is initially filled up
@@ -258,6 +271,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
 
   // opens a dialog to update the user's nutrition and weight goals
   Future<void> showGoalsDialog() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
     // pre-fill with existing values if they exist
     final calCtrl = TextEditingController(
       text: currentUserData?.caloriesGoal?.toString() ?? '',
@@ -621,11 +638,17 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                     currentUserData?.uid
                                 ? "Current username: ${currentUserData?.username}"
                                 : "Set a display name",
-                            onTap: () => showUsernameDialogBox(
-                              context,
-                              "Update your username",
-                              usernameController,
-                            ),
+                            onTap: () {
+                              if (isGuest) {
+                                Guest.block(context);
+                                return;
+                              }
+                              showUsernameDialogBox(
+                                context,
+                                "Update your username",
+                                usernameController,
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -699,6 +722,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                               inactiveThumbColor: Colors.white38,
                               inactiveTrackColor: Colors.white.withAlpha(20),
                               onChanged: (value) async {
+                                if (isGuest) {
+                                  Guest.block(context);
+                                  return;
+                                }
                                 setState(() {
                                   notificationsEnabled = value;
                                 });

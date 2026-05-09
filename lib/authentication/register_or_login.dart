@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
+import '../guest.dart';
 import 'auth_services.dart';
 import '../utility/responsive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -351,7 +352,9 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
             style: linkStyle,
             recognizer: TapGestureRecognizer()
               ..onTap = () => launchUrl(
-                Uri.parse('https://nicholasdakis.com/level_up/terms-of-service'),
+                Uri.parse(
+                  'https://nicholasdakis.com/level_up/terms-of-service',
+                ),
                 mode: LaunchMode.externalApplication,
               ),
           ),
@@ -685,7 +688,34 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
       );
     }
     children.add(SizedBox(height: Responsive.padding(context, 12)));
+    children.add(
+      OutlinedButton(
+        onPressed: _handleContinueAsGuest,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.white24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
+          ),
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 14),
+            horizontal: Responsive.width(context, 24),
+          ),
+        ),
+        child: Text(
+          "Continue as guest",
+          style: GoogleFonts.manrope(
+            color: Colors.white54,
+            fontSize: Responsive.font(context, 13),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
     return Column(children: children);
+  }
+
+  void _handleContinueAsGuest() {
+    Guest.enter();
   }
 
   @override

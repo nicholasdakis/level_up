@@ -1553,3 +1553,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed self._track_achievement(uid, "total_achievements") and moved the handling directly into RPC for atomicity
 - Used GET DIAGNOSTICS v_rows = ROW_COUNT in the claim_achievement RPC so that total_achievements only gets incremented if the row insert actually happened
 - Moved achievement handling for total daily claims and daily claims streak directly into the RPC to ensure atomicity
+- Added a "Continue as guest" option so users can view the app before signing up
+- Created guest.dart as a single file owning all guest logic: Guest.enter(), Guest.exit(), Guest.block(), Guest.blockOnOpen(), and Guest.defaultUserData
+- isGuest and guestNotifier remain in globals.dart since they are imported everywhere; all other guest behaviour lives in Guest
+- Guest.blockOnOpen() wraps the WidgetsBinding.instance.addPostFrameCallback pattern so each screen that blocks guests on open is one line in initState
+- Leaderboard, Explore, and Badges tabs show a guest-appropriate message and immediately show the block dialog on open
+- All write actions (food logging, daily reward, username, goals, app color, profile picture, reminders, notifications) show the block dialog instead of executing
+- Search bar and mic button in the food logging screen are disabled for guests so they cannot type or speak before the dialog appears
+- Guests bypass the FCM, UTC offset, and backend fetch calls entirely since they serve no purpose without an account
+- Router sends guests directly to / after init instead of using the web URL path restoration logic which would redirect them back to /login

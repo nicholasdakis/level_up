@@ -20,6 +20,12 @@ ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
 // set to true by AppInitScreen once init completes, reset to false on logout
 bool appInitialized = false;
 
+// set to true when the user chooses "Continue as Guest" — skips auth and backend writes
+bool isGuest = false;
+
+// Notifies go_router to re-run redirect when guest state changes
+ValueNotifier<bool> guestNotifier = ValueNotifier<bool>(false);
+
 // for updating HomeScreen when app color is updated
 ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(
   Color.fromARGB(255, 45, 45, 45),

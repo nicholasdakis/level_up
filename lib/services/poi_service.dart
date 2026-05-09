@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/poi.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'user_data_manager.dart' show getIdToken, backendBaseUrl;
+import '../globals.dart' show isGuest;
 
 // Error code thrown when the backend rejects a POI fetch because the user is moving too fast
 const String movingTooFastCode = 'moving_too_fast';
@@ -23,6 +24,7 @@ class POIService {
     void Function(List<POI>)? onSupplement,
     void Function()? onFillStart,
   }) async {
+    if (isGuest) return [];
     final cached = await _getCachedPOIs(lat, lng);
     if (cached != null) {
       if (onSupplement != null) {

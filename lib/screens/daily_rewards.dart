@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
+import '../guest.dart';
 import '../services/user_data_manager.dart';
 import '../utility/responsive.dart';
 
@@ -54,6 +55,11 @@ class DailyRewardDialog {
     BuildContext context,
     ConfettiController controller,
   ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+
     // Claim the daily reward from backend first to get the actual XP awarded
     final result = await userManager.claimDailyReward();
 

@@ -2,6 +2,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
+import '../guest.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/leaderboard_entry.dart';
@@ -51,6 +52,7 @@ class _LeaderboardState extends State<Leaderboard> {
   void initState() {
     super.initState();
     _leaderboardFuture = leaderboardService.fetchLeaderboard();
+    if (isGuest) Guest.blockOnOpen(context); // For guest users
   }
 
   void _refreshLeaderboard() {
@@ -335,10 +337,13 @@ class _LeaderboardState extends State<Leaderboard> {
                 : snapshot.data!;
 
             if (!isLoading && leaderboardUsers.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text(
-                  "No users found",
-                  style: TextStyle(color: Colors.white),
+                  isGuest
+                      ? "Create an account to see the leaderboard"
+                      : "No users found",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70),
                 ),
               );
             }
