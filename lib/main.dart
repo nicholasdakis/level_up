@@ -8,6 +8,10 @@ import 'firebase_options.dart';
 import 'globals.dart';
 import 'router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'dart:js_interop';
+
+@JS('removeSplash')
+external void removeSplash();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +27,13 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const MyApp());
+
+  // wait until the first frame is fully painted before fading out the splash
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (kIsWeb) {
+      removeSplash();
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {

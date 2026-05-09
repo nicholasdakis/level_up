@@ -1546,3 +1546,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the achievement handling out of record_poi_visit and directly into the RPC function, ensuring the achievements are also handled atomically with the visit
 - Deleted test_check_in_poi_level_up_tracks_achievement as it is now obsolete
 - Added a "delete account" url as per Google Play's requirements
+- Added a splash screen instead of just a blank gradient background when the app is loading
+- Added removeSplash to main.dart which removes the splash screen once Flutter is ready to prevent the splash screen from being removed too early

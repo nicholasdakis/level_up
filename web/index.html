@@ -22,6 +22,14 @@
   <!-- Material Icons for Flutter Web -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+  <!-- For the splash screen-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Space Grotesk for the app name -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
+
   <!-- iOS / PWA meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -54,34 +62,169 @@
       padding: 0;
       height: 100%;
     }
+
+    /* splash screen overlay covers everything before flutter loads */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--app-color, #2d2d2d);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 999999;
+      font-family: 'Manrope', sans-serif;
+      /* Fade the whole splash in so it doesn't just pop in harshly */
+      animation: splashFadeIn 0.4s ease forwards;
+      /* lets flutter receive touches even during the fade out so UI is immediately responsive */
+      pointer-events: none;
+    }
+
+    /* logo wrapper holds the glow effect behind the logo */
+    #splash-logo-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 24px;
+      /* fade and scale up from slightly small */
+      animation: logoReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+
+    /* radial glow behind logo using a lighter version of the user's theme color */
+    #splash-logo-wrapper::before {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent-color, #888) 22%, transparent) 0%, transparent 70%);
+      /* pulsing glow so it feels alive, not static */
+      animation: glowPulse 2.5s ease-in-out infinite;
+    }
+
+    #splash-logo {
+      width: 160px;
+      position: relative; /* sits on top of the ::before glow */
+    }
+
+    /* app name below the logo */
+    #splash-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      margin-bottom: 40px;
+      color: color-mix(in srgb, var(--accent-color, #888) 85%, white);
+      animation: fadeUp 0.6s ease 0.5s both;
+    }
+
+    /* wrapper for spinner + text so spacing is consistent */
+    #splash-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      /* fade in last, after title */
+      animation: fadeUp 0.6s ease 0.75s both;
+    }
+
+    #loading-text {
+      color: color-mix(in srgb, var(--accent-color, #888) 70%, white);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* spinner loader */
+    #loader {
+      width: 36px;
+      height: 36px;
+      /* lighter version of the user's theme color */
+      border: 3px solid var(--spinner-track, rgba(128,128,128,0.3));
+      border-top: 3px solid var(--spinner-color, #888);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    /* infinite rotation animation */
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* whole splash fades in smoothly on load */
+    @keyframes splashFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* logo scales up from 85% and fades in */
+    @keyframes logoReveal {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* elements slide up slightly and fade in */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* glow behind logo breathes in and out gently */
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50%       { opacity: 1;   transform: scale(1.12); }
+    }
+
   </style>
 
   <script>
     // Applies the gradient and notch color from a stored "dark|mid|notch" string
     // The gradient matches buildThemeGradient, the notch color matches the appbar (color.withAlpha(200) over dark)
     function applyAppColor(value) {
+
       var parts = value.split('|');
       var dark = parts[0], mid = parts[1], notch = parts[2] || dark;
+
+      /* main gradient background used by splash and body */
       var gradient = 'linear-gradient(to right, ' + dark + ' 0%, ' + dark + ' 10%, ' + mid + ' 50%, ' + dark + ' 90%, ' + dark + ' 100%)';
+
+      /* set css variables used by splash and body */
       document.documentElement.style.setProperty('--app-color', gradient);
+      document.documentElement.style.setProperty('--spinner-color', mid);
+      document.documentElement.style.setProperty('--spinner-track', 'rgba(128,128,128,0.3)');
       document.documentElement.style.setProperty('--notch-color', notch);
-      // Update theme-color meta tag so Android PWA status bar matches the app bar
+      /* mid color exposed as accent so spinner and glow use a lighter version of the theme color */
+      document.documentElement.style.setProperty('--accent-color', mid);
+
+      /* keep android status bar in sync with app theme */
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+      }
       meta.content = notch;
     }
 
-    // Apply before Flutter paints so the loading background matches the app gradient
+    /* load saved theme before flutter boots so splash matches instantly */
     (function () {
       var saved = localStorage.getItem('appColor');
       if (saved) applyAppColor(saved);
     })();
 
-    // Called from Flutter via JS interop when the app color is known
+    /* called from flutter when user changes theme */
     window.setAppColor = function (value) {
       localStorage.setItem('appColor', value);
       applyAppColor(value);
     };
+
   </script>
 
   <!-- cropperjs -->
@@ -95,7 +238,8 @@
   <!-- JS required by the pwa_install package, must be in <head> so it loads before Dart -->
 
   <script>
-    // Stores the browser's install prompt event
+
+    /* stores install prompt event from browser */
     var deferredPrompt;
 
     // Capture the install prompt event when the browser fires it (Chrome/Edge only)
@@ -127,10 +271,12 @@
         window.appLaunchedInBrowser(); // running in a normal browser tab
       }
     };
+
   </script>
 
   <script>
-    // Returns true if the app is opened as a PWA
+
+    /* pwa detection helpers used by dart side */
     window.isPwa = function () {
       var standalone = window.matchMedia('(display-mode: standalone)').matches
         || window.navigator.standalone === true; // iOS support
@@ -146,11 +292,34 @@
     window.hasInstallPrompt = function () {
       return deferredPrompt != null;
     }
+
   </script>
 
 </head>
 
 <body>
+
+  <!-- splash screen shown until flutter fully loads -->
+  <div id="splash-screen">
+
+    <!-- Wrapper div so we can attach the glow pseudo-element to it -->
+    <div id="splash-logo-wrapper">
+      <!-- app branding shown before engine boots -->
+      <img src="assets/app_logo_transparent_bg.png" id="splash-logo">
+    </div>
+
+    <!-- App name with gold glow -->
+    <div id="splash-title">LEVEL UP!</div>
+
+    <!-- Spinner and text so they animate together -->
+    <div id="splash-bottom">
+      <!-- css spinner -->
+      <div id="loader"></div>
+      <div id="loading-text">Loading...</div>
+    </div>
+
+  </div>
+
   <!-- Unregister old Flutter-generated service workers to prevent them from
        serving stale cached assets alongside the current bootstrap -->
   <script>
@@ -159,21 +328,21 @@
         var unregistered = false;
         for (var reg of registrations) {
           var url = (reg.active || reg.installing || reg.waiting)?.scriptURL || '';
-          // Only unregister Flutter's service worker, never the FCM one
-          // (removing the FCM worker would break background push notifications)
+
+          /* keep firebase worker because it handles push notifications */
           if (!url.includes('firebase-messaging-sw')) {
             reg.unregister();
             unregistered = true;
           }
         }
-        // Force a full reload if any stale Flutter service worker was found and removed
+
+        /* reload if we removed old flutter cache worker */
         if (unregistered) window.location.reload();
       });
     }
   </script>
 
-  <!-- Restore the intended route after a 404 redirect.
-       404.html encodes the path as ?redirect=/some/path so Flutter boots on the right route. -->
+  <!-- Restore route after 404 redirect -->
   <script>
     (function () {
       var params = new URLSearchParams(location.search);
@@ -188,19 +357,37 @@
   <script src="flutter_bootstrap.js" defer></script>
 
   <script>
+
     window.addEventListener('load', function (ev) {
+
       _flutter.loader.load({
+
         onEntrypointLoaded: async function (engineInitializer) {
+
           const appRunner = await engineInitializer.initializeEngine();
           await appRunner.runApp();
         }
       });
     });
+
   </script>
 
-  <!-- Register the Firebase Cloud Messaging service worker so the browser can receive push notifications in the background -->
+  <!-- Called from dart via js.context.callMethod('removeSplash') after the first frame paints -->
+  <!-- this ensures the splash only disappears once flutter has actually drawn something, no blank flash -->
   <script>
-    // Required JS initialization so the 'firebase' object exists for getWebFcmToken
+    window.removeSplash = function () {
+      const splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.style.transition = 'opacity 0.4s ease';
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 400);
+      }
+    };
+  </script>
+
+  <!-- Firebase init for messaging and firestore -->
+  <script>
+
     firebase.initializeApp({
       apiKey: "AIzaSyDJGN1oGmrLRFnyJL3PMj2G_-hyJeKywnE",
       authDomain: "level-up-a3181.firebaseapp.com",
@@ -210,7 +397,6 @@
       appId: "1:722650087969:web:2b812c5bb0a2c30bc8d960"
     });
 
-    // Enable Firestore disk cache (default = false for web) so subsequent reads are served locally instead of from the network
     firebase.firestore().enablePersistence()
       .catch(function (err) {
         console.log('Persistence failed:', err);
@@ -218,82 +404,106 @@
 
     const vapidKey = "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
 
-    // Register firebase-messaging-sw.js separately, which handles FCM only
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' })
         .then(function (registration) {
-          console.log('FCM Service Worker registered with scope:', registration.scope);
           window._swRegistration = registration;
         })
         .catch(function (err) {
-          console.log('FCM Service Worker registration failed:', err);
+          console.log('FCM SW failed:', err);
         });
     }
 
-    // Called from Dart via JS interop to pass the SW registration to getToken() so Firebase can find the service worker on subdirectory deployments (e.g. GitHub Pages at /level_up/)
+  </script>
+
+  <script>
+
     window.getWebFcmToken = async function (vapidKeyParam) {
-      // Only call getToken() if permission is already granted (prevents JS violation)
+
       if (Notification.permission !== 'granted') return null;
+
       try {
+
         var reg = window._swRegistration;
+
         if (!reg) {
           const registrations = await navigator.serviceWorker.getRegistrations();
           reg = registrations.find(r =>
             (r.active || r.installing || r.waiting)?.scriptURL.includes('firebase-messaging-sw')
           );
         }
+
         if (!reg) {
           reg = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/level_up/' });
         }
+
         var messaging = firebase.messaging();
+
         return await messaging.getToken({
           vapidKey: vapidKeyParam,
           serviceWorkerRegistration: reg
         });
+
       } catch (e) {
         console.error('getWebFcmToken error:', e);
         return null;
       }
     };
 
-    // Handle foreground messages directly in JS since the Flutter SDK's onMessage
-    // doesn't receive messages when the token was obtained via JS interop
+  </script>
+
+  <script>
+
+    /* foreground push handler */
     try {
       var messaging = firebase.messaging();
+
       messaging.onMessage(function (payload) {
-        console.log('Foreground message received:', payload);
-        var title = payload.notification?.title || 'Level Up! Reminder';
-        var body = payload.notification?.body || payload.data?.body || '';
+
+        var title = payload.notification?.title || 'Level Up!';
+        var body = payload.notification?.body || '';
+
         if (Notification.permission === 'granted') {
-          new Notification(title, { body: body, icon: '/level_up/favicon-512.png' });
+          new Notification(title, { body: body });
         }
       });
-    } catch (e) {
-      console.error('Failed to set up foreground message handler:', e);
-    }
+    } catch (e) {}
 
-    // If the app was hidden for more than 30 min, force a reload on return so the renderer re-initializes
+  </script>
+
+  <script>
+
+    /* reload app if user leaves it for too long */
     (function () {
+
       var hiddenAt = null;
-      var RELOAD_AFTER_MS = 30 * 60 * 1000; // 30 mins in ms
+      var RELOAD_AFTER_MS = 30 * 60 * 1000;
+
       document.addEventListener('visibilitychange', function () {
+
         if (document.visibilityState === 'hidden') {
           hiddenAt = Date.now();
-        } else if (document.visibilityState === 'visible') {
-          if (hiddenAt != null && Date.now() - hiddenAt > RELOAD_AFTER_MS) {
+        }
+
+        if (document.visibilityState === 'visible') {
+          if (hiddenAt && Date.now() - hiddenAt > RELOAD_AFTER_MS) {
             window.location.reload();
           }
           hiddenAt = null;
         }
+
       });
+
     })();
 
-    // Called from Dart via JS interop to request notification permissions from the browser
+  </script>
+
+  <script>
+
   window.jsRequestPermission = function () {
     try {
       return Notification.requestPermission();
     } catch (e) {
-      console.error('Permission request error:', e);
       return Promise.resolve('denied');
     }
   };
