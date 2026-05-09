@@ -189,20 +189,7 @@ class ProgressionService: # Service class to handle all progression-related busi
                 "seconds_remaining": result.get("seconds_remaining", 0),
             }
 
-        # Track achievements for the successful claim
-        self._track_achievement(uid, "daily_claims")
-        if new_level > current_level:
-            try:
-                self._achievement_repo.set_achievement_progress(uid, "level", new_level)
-            except Exception as e:
-                logger.error(f"[achievements] Failed to set level for {uid}: {e}")
-
-        # Set the consecutive-day streak progress to the exact value from the DB
         daily_streak = result.get("daily_streak", 1)
-        try:
-            self._achievement_repo.set_achievement_progress(uid, "daily_claim_streak", daily_streak)
-        except Exception as e:
-            logger.error(f"[achievements] Failed to set daily_claim_streak for {uid}: {e}")
 
         # Successful return with the new progression state
         return {
@@ -393,7 +380,6 @@ class ProgressionService: # Service class to handle all progression-related busi
         if tier not in ACHIEVEMENT_VALID_TIERS.get(achievement_id, set()):
             raise ValueError(f"Invalid tier {tier} for achievement {achievement_id}")
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
-        self._track_achievement(uid, "total_achievements")
         return result
 
     def update_goals(

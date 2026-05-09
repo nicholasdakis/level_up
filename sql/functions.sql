@@ -58,6 +58,22 @@ BEGIN
     ON CONFLICT (uid, streak_type)
     DO UPDATE SET streak = v_new_streak, highest_streak = GREATEST(streaks.highest_streak, v_new_streak), last_date = v_now::DATE;
 
+    -- Track achievements atomically with the claim so a crash between the RPC and Python can't leave them out of sync
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'daily_claims', 1)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = achievement_progress.progress + 1;
+
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'level', p_new_level)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = p_new_level;
+
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'daily_claim_streak', v_new_streak)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = v_new_streak;
+
     -- Return success with the new state so Python doesn't need to do another fetch
     RETURN jsonb_build_object(
         'claimed', true,
@@ -308,17 +324,27 @@ CREATE OR REPLACE FUNCTION claim_achievement (
     p_tier INTEGER              -- the tier being claimed
 )
 RETURNS void as $$
-DECLARE v_progress INTEGER; -- To store the user's progress cell for this achievement
+DECLARE
+    v_progress INTEGER; -- To store the user's progress cell for this achievement
+    v_rows INTEGER;     -- How many rows the INSERT actually affected (0 if DO NOTHING fired)
 BEGIN
     -- Lock the progress row so no other transaction can claim at the same time
     SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id FOR UPDATE;
     -- make sure progress >= tier to ensure the claim is eligible but has not occurred
     IF v_progress >= p_tier THEN
-    -- valid, so carry out the claim
-    INSERT INTO achievement_claims (uid, achievement_id, tier, claimed_at)
-    VALUES (p_uid, p_achievement_id, p_tier, NOW())
-    ON CONFLICT (uid, achievement_id, tier)
-    DO NOTHING; -- If the achievement is already claimed, the row already exists, so return
+        -- valid, so carry out the claim
+        INSERT INTO achievement_claims (uid, achievement_id, tier, claimed_at)
+        VALUES (p_uid, p_achievement_id, p_tier, NOW())
+        ON CONFLICT (uid, achievement_id, tier)
+        DO NOTHING; -- If the achievement is already claimed, the row already exists, so return
+        GET DIAGNOSTICS v_rows = ROW_COUNT;
+        -- Only increment total_achievements if this was a new claim, not a duplicate
+        IF v_rows > 0 THEN
+            INSERT INTO achievement_progress (uid, achievement_id, progress)
+            VALUES (p_uid, 'total_achievements', 1)
+            ON CONFLICT (uid, achievement_id) DO UPDATE
+            SET progress = achievement_progress.progress + 1;
+        END IF;
     ELSE
         RAISE EXCEPTION 'Progress not met';
     END IF;

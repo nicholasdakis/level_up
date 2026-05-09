@@ -236,22 +236,6 @@ def test_claim_daily_reward_success(mocker):
     assert result["xp_gained"] > 0
     assert result["daily_streak"] == 3
 
-# Leveling up during a claim must trigger set_achievement_progress for the level achievement
-def test_claim_daily_reward_level_up_tracks_achievement(mocker):
-    threshold = experience_needed(1)
-    # Give the user enough exp that the daily reward will push them over the level 1 threshold
-    user = {"level": 1, "exp_points": threshold - 1, "last_daily_claim": None}
-    service = make_claim_service(mocker, user, transaction_result={
-        "claimed": True, "daily_streak": 1
-    })
-
-    result = service.claim_daily_reward("user_123")
-
-    # Level must have increased
-    assert result["new_level"] == 2
-    # Achievement repo must have been told the new level
-    service._achievement_repo.set_achievement_progress.assert_any_call("user_123", "level", 2)
-
 # If the last claim was more than 48 hours ago the streak resets so the multiplier must be 1.0
 def test_claim_daily_reward_streak_resets_after_48_hours(mocker):
     three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
@@ -440,7 +424,7 @@ def test_claim_achievement_invalid_tier(mocker):
     with _pytest.raises(ValueError, match="Invalid tier"):
         service.claim_achievement("user_123", "level", 999)  # 999 is not a valid tier for level
 
-# A valid claim must call the repo and track the total_achievements achievement
+# A valid claim must call the repo
 def test_claim_achievement_success(mocker):
     fake_achievement_repo = mocker.Mock()
     fake_achievement_repo.claim_achievement.return_value = True
@@ -449,7 +433,6 @@ def test_claim_achievement_success(mocker):
     service.claim_achievement("user_123", "level", 3)
 
     fake_achievement_repo.claim_achievement.assert_called_once_with("user_123", "level", 3)
-    fake_achievement_repo.upsert_achievement_progress.assert_called_once_with("user_123", "total_achievements", 1)
 
 # update_goals tests -----------------
 

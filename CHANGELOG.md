@@ -1548,3 +1548,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a "delete account" url as per Google Play's requirements
 - Added a splash screen instead of just a blank gradient background when the app is loading
 - Added removeSplash to main.dart which removes the splash screen once Flutter is ready to prevent the splash screen from being removed too early
+
+## 2026-05-09
+- Removed self._track_achievement(uid, "total_achievements") and moved the handling directly into RPC for atomicity
+- Used GET DIAGNOSTICS v_rows = ROW_COUNT in the claim_achievement RPC so that total_achievements only gets incremented if the row insert actually happened
+- Moved achievement handling for total daily claims and daily claims streak directly into the RPC to ensure atomicity
