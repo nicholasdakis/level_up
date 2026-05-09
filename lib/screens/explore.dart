@@ -1094,7 +1094,10 @@ class _ExploreState extends State<Explore> {
                               context,
                               130 + cardOpenMobileOffset,
                             ), // pushed down on mobile to avoid the nearby spots card
-                      right: 0,
+                      right: Responsive.width(
+                        context,
+                        8,
+                      ), // matches the card's horizontal padding
 
                       child: GestureDetector(
                         onTap: () =>

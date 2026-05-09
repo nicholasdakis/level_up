@@ -1562,3 +1562,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Search bar and mic button in the food logging screen are disabled for guests so they cannot type or speak before the dialog appears
 - Guests bypass the FCM, UTC offset, and backend fetch calls entirely since they serve no purpose without an account
 - Router sends guests directly to / after init instead of using the web URL path restoration logic which would redirect them back to /login
+- Fixed the padding of the recenter button to align with the Nearby Spots card
