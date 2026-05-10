@@ -341,6 +341,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               ' | Carbs: ${nutriments['carbohydrates_100g'] ?? 0}g'
               ' | Protein: ${nutriments['proteins_100g'] ?? 0}g';
           _initServing(description);
+          trackTrivialAchievement('food_barcode');
           setState(() {
             // Treat the barcode result the same as a selected search result
             selectedFood = {
@@ -357,18 +358,24 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           setState(() {
             barcodeError = "Product not found in database.";
             barcodeLoading = false;
+            foodList = [];
+            _recentMatches = [];
           });
         }
       } else {
         setState(() {
           barcodeError = "Failed to look up product. Try again.";
           barcodeLoading = false;
+          foodList = [];
+          _recentMatches = [];
         });
       }
     } catch (e) {
       setState(() {
         barcodeError = "Network error. Check your connection.";
         barcodeLoading = false;
+        foodList = [];
+        _recentMatches = [];
       });
     }
   }
@@ -518,6 +525,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     if (carbs.isNotEmpty) parts.add('Carbs: ${carbs}g');
     if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
 
+    trackTrivialAchievement('food_manual');
     await logFood({
       'food_name': name,
       'food_description': 'Per $servingLabel - ${parts.join(' | ')}',
@@ -672,6 +680,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       updatedFood['calories'] = scaled['calories']!.round();
     }
 
+    trackTrivialAchievement('food_recent');
     await logFood(updatedFood);
   }
 

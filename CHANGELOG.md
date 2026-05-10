@@ -1571,3 +1571,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added times_visited and category columns to the poi_visits SQL table so that the corresponding achievements that require that data can be wired up correctly
 - Added poi_category to the CheckInPOI request body, threading it through the service and repository layers down to the record_poi_visit RPC
 - Wired up poi_categories and poi_regular achievements directly inside record_poi_visit using COUNT(DISTINCT category) and MAX(times_visited) on the poi_visits table
+- Wired up food_barcode, food_manual, and food_recent achievements
+- Made the search table clear when a failed barcode lookup occurs after the user uses the search bar without selecting anything
