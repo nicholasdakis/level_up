@@ -321,7 +321,7 @@ def test_check_in_poi_too_far(mocker):
     service = make_checkin_service(mocker)
 
     # Place user 1km away from the POI
-    result = service.check_in_poi("user_123", "Coffee Shop", 40.7, -74.0, 40.709, -74.0)
+    result = service.check_in_poi("user_123", "Coffee Shop", "cafe", 40.7, -74.0, 40.709, -74.0)
 
     assert result["success"] == False
     assert result["error"] == "Too far from this spot"
@@ -332,7 +332,7 @@ def test_check_in_poi_on_cooldown(mocker):
     service = make_checkin_service(mocker, transaction_result={"success": False, "error": "Already visited"})
 
     # Place user right next to the POI (same point = 0m)
-    result = service.check_in_poi("user_123", "Coffee Shop", 40.7, -74.0, 40.7, -74.0)
+    result = service.check_in_poi("user_123", "Coffee Shop", "cafe", 40.7, -74.0, 40.7, -74.0)
 
     assert result["success"] == False
 
@@ -340,7 +340,7 @@ def test_check_in_poi_on_cooldown(mocker):
 def test_check_in_poi_success(mocker):
     service = make_checkin_service(mocker)
 
-    result = service.check_in_poi("user_123", "Coffee Shop", 40.7, -74.0, 40.7, -74.0)
+    result = service.check_in_poi("user_123", "Coffee Shop", "cafe", 40.7, -74.0, 40.7, -74.0)
 
     assert result["success"] == True
     assert result["xp_gained"] > 0
