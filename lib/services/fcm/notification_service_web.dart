@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
+import '../user_data_manager.dart';
 
 @JS('getWebFcmToken')
 external JSPromise<JSString?> _getWebFcmToken(String vapidKey);
@@ -27,9 +28,7 @@ Future<String?> requestNotificationAndToken() async {
     );
     final permission = jsPermission.toDart;
     if (permission != 'granted') return null;
-    const vapidKey =
-        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
-    return await getWebFcmTokenSafe(vapidKey);
+    return await getWebFcmTokenSafe(fcmVapidKey);
   } catch (e) {
     if (kDebugMode) debugPrint('Notification permission/token error: $e');
     return null;

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
+import '../services/user_data_manager.dart';
 import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) '../services/fcm/web_fcm_token_web.dart'
@@ -24,10 +25,8 @@ class AuthService {
     }
     // Remove only this device's FCM token so notifications stop on this device
     try {
-      const vapidKey =
-          "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
       final deviceToken = kIsWeb
-          ? await web_fcm.getWebFcmToken(vapidKey)
+          ? await web_fcm.getWebFcmToken(fcmVapidKey)
           : await FirebaseMessaging.instance.getToken();
       if (deviceToken != null) {
         await userManager.removeFcmToken(deviceToken);

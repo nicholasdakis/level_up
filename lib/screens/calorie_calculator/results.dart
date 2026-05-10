@@ -142,7 +142,7 @@ class _ResultsState extends State<Results> {
       case "Light":
         return 1.375;
       case "Moderate":
-        return 1.5;
+        return 1.55;
       case "Active":
         return 1.725;
       case "Very Active":

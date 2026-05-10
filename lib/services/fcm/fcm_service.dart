@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../firebase_options.dart';
 import '../../globals.dart';
+import '../user_data_manager.dart';
 
 // Conditional imports to handle the web interop correctly across platforms
 import 'web_fcm_token_stub.dart'
@@ -39,9 +40,6 @@ class FcmService {
 
     // Get the device's FCM token and save it to Firestore
     // Timeout prevents hanging if the browser blocks the permission dialog
-    const vapidKey =
-        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
-
     String? deviceToken;
 
     if (kIsWeb) {
@@ -49,7 +47,7 @@ class FcmService {
       // Flutter's plugin can't find the SW on subdirectory deployments (e.g. GitHub Pages at /level_up/)
       try {
         deviceToken = await web_fcm
-            .getWebFcmToken(vapidKey)
+            .getWebFcmToken(fcmVapidKey)
             .timeout(const Duration(seconds: 2), onTimeout: () => null);
       } catch (e) {
         deviceToken = null;
@@ -100,13 +98,10 @@ class FcmService {
   // Re-fetches the FCM token and updates Firestore if it changed
   // Called when the web tab regains visibility after being suspended
   static Future<void> refreshToken() async {
-    const vapidKey =
-        "BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0";
-
     String? deviceToken;
     try {
       deviceToken = await web_fcm
-          .getWebFcmToken(vapidKey)
+          .getWebFcmToken(fcmVapidKey)
           .timeout(const Duration(seconds: 2), onTimeout: () => null);
     } catch (e) {
       deviceToken = null;

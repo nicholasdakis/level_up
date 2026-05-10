@@ -17,6 +17,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
 
+// Firebase Cloud Messaging VAPID key for web push notifications
+const String fcmVapidKey =
+    'BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0';
+
 // Gets a fresh Firebase ID token, a JWT, to authenticate requests with the backend
 // Firebase caches this automatically so it only re-fetches when close to expiry (1hr)
 Future<String> getIdToken() async {

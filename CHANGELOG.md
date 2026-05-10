@@ -1576,3 +1576,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed setDailyRewardNotification crashing on null currentUser and silently failing on network errors by adding a null check, try/catch, and a 5-second timeout
 - Updated the privacy policy and linked to the delete-account page
 - Added 5-second timeouts to the leaderboard fetch and set_reminder calls to prevent indefinite hangs on slow connections
+
+## 2026-05-10
+- Changed the maskable icons to have a white background instead of purple
+- Fixed a small typo in the activity multiplier of calorie calculator
