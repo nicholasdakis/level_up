@@ -1580,3 +1580,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-10
 - Changed the maskable icons to have a white background instead of purple
 - Fixed a small typo in the activity multiplier of calorie calculator
+- Defined fcmVapidKey once in user_data_manager instead of individually defining it each time
+- Replaced repeated maxFileSize code with one maxProfileImageBytes const
+- Moved the pfp-related code to its own service class

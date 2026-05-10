@@ -9,8 +9,8 @@ import '../globals.dart';
 import '../guest.dart';
 import '../models/user_data.dart';
 import '../models/reminder_data.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../utility/image_crop_handler.dart';
+import 'profile_image_service.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -259,99 +259,6 @@ class UserDataManager {
     }
   }
 
-  Future<Uint8List> webCompressIfNeed(Uint8List image) async {
-    const int maxFileSize =
-        750 * 1024; // max limit for base64 images to be stored in Postgres
-
-    // No compression needed
-    if (image.lengthInBytes <= maxFileSize) {
-      return image;
-    }
-
-    // Compress
-    var result = await FlutterImageCompress.compressWithList(
-      image,
-      quality: 70,
-    );
-    return result;
-  }
-
-  Future<Uint8List> mobileCompressIfNeed(File file) async {
-    const int maxFileSize =
-        750 * 1024; // max limit for base64 images to be stored in Postgres
-
-    // Read bytes from the file
-    Uint8List bytes = await file.readAsBytes();
-
-    // No compression needed
-    if (bytes.lengthInBytes <= maxFileSize) return bytes;
-
-    // Compress using FlutterImageCompress
-    Uint8List? compressedBytes = await FlutterImageCompress.compressWithFile(
-      file.absolute.path,
-      quality: 70,
-    );
-
-    return compressedBytes!;
-  }
-
-  Future<bool> canUpdateProfilePicture(
-    File? file,
-    BuildContext? context, {
-    bool isWeb = false,
-    Uint8List? webBytes, // The optional parameters are only used for web
-  }) async {
-    // 750 KB size limit in bytes (To meet the 1 MB Postgres limit when converted to base64)
-    const int maxFileSize = 750 * 1024; // 768000 bytes
-
-    // Handle Web
-    if (isWeb) {
-      // Check the size of the web image bytes
-      if (webBytes != null && webBytes.lengthInBytes > maxFileSize) {
-        webBytes = await webCompressIfNeed(webBytes);
-
-        // If still too big:
-        if (context != null && webBytes.lengthInBytes > maxFileSize) {
-          double sizeInMbWeb = webBytes.lengthInBytes / (1024 * 1024);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Profile picture must be 0.75 MB or less. This image is ${sizeInMbWeb.toStringAsFixed(2)} MB after compression.",
-              ),
-              duration: Duration(milliseconds: 1500),
-            ),
-          );
-          return false; // file too large
-        }
-      }
-      return true;
-    }
-
-    // Handle Mobile (File check)
-    if (file == null) return false; // safety check
-
-    Uint8List fileBytes = await mobileCompressIfNeed(file);
-
-    int fileSize = fileBytes.lengthInBytes;
-
-    if (fileSize > maxFileSize) {
-      if (context != null) {
-        double sizeInMbMobile = fileSize / (1024 * 1024);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Profile picture must be 0.75 MB or less. This image is ${sizeInMbMobile.toStringAsFixed(2)} MB after compression.",
-            ),
-            duration: Duration(milliseconds: 1500),
-          ),
-        );
-      }
-      return false; // early exit if file too large
-    }
-
-    return true;
-  }
-
   Future<void> updateProfilePicture(
     File? file, {
     VoidCallback? onProfileUpdated,
@@ -398,7 +305,7 @@ class UserDataManager {
     }
 
     // Step 2: Check size and compress
-    if (!await canUpdateProfilePicture(
+    if (!await ProfileImageService.checkSize(
       file,
       context,
       isWeb: kIsWeb,
@@ -412,10 +319,14 @@ class UserDataManager {
     try {
       if (kIsWeb) {
         // Web
-        base64String = base64Encode(await webCompressIfNeed(imageInBytes!));
+        base64String = base64Encode(
+          await ProfileImageService.compressWeb(imageInBytes!),
+        );
       } else {
         // Mobile
-        base64String = base64Encode(await mobileCompressIfNeed(file!));
+        base64String = base64Encode(
+          await ProfileImageService.compressMobile(file!),
+        );
       }
 
       if (isGuest) {
