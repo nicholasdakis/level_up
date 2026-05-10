@@ -9,11 +9,13 @@ class LeaderboardService {
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
     if (isGuest) return [];
     final token = await getIdToken();
-    final response = await http.post(
-      Uri.parse('$backendBaseUrl/get_leaderboard'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': token}),
-    );
+    final response = await http
+        .post(
+          Uri.parse('$backendBaseUrl/get_leaderboard'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_token': token}),
+        )
+        .timeout(const Duration(seconds: 5));
 
     if (response.statusCode != 200) {
       throw Exception(

@@ -1566,10 +1566,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a test-account-specific button in the Explore tab that simulates the Explore tab with hardcoded POIs and location
 - Searching a food then scanning a barcode would show the search results after the scanning was done, so cleared the table upon a barcode scan
 - Made it so the expanded / collapse status of recent foods is stored using SharedPreferences
-- Made it so searching for a food first checks the recent foods, and if a food is found from recent foods it also shows a button "Search database instead"
+- Made it so searching for a food first checks the recent foods, and if matches are found it shows a segmented toggle between "Recent" and "Database" instead of the normal search results
 - If the search is found in recent foods, it bypasses the 750ms debouncer timer
 - Added times_visited and category columns to the poi_visits SQL table so that the corresponding achievements that require that data can be wired up correctly
 - Added poi_category to the CheckInPOI request body, threading it through the service and repository layers down to the record_poi_visit RPC
 - Wired up poi_categories and poi_regular achievements directly inside record_poi_visit using COUNT(DISTINCT category) and MAX(times_visited) on the poi_visits table
 - Wired up food_barcode, food_manual, and food_recent achievements
 - Made the search table clear when a failed barcode lookup occurs after the user uses the search bar without selecting anything
+- Fixed setDailyRewardNotification crashing on null currentUser and silently failing on network errors by adding a null check, try/catch, and a 5-second timeout
+- Updated the privacy policy and linked to the delete-account page
+- Added 5-second timeouts to the leaderboard fetch and set_reminder calls to prevent indefinite hangs on slow connections

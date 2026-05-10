@@ -361,16 +361,18 @@ class _RemindersState extends State<Reminders> {
       final token = await FirebaseAuth.instance.currentUser!.getIdToken();
       final id = DateTime.now().millisecondsSinceEpoch;
 
-      final response = await http.post(
-        Uri.parse('$backendBaseUrl/set_reminder'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': token,
-          'message': remindersController.text,
-          'scheduled_at': pickedTime.toUtc().toIso8601String(),
-          'notification_id': id,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/set_reminder'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id_token': token,
+              'message': remindersController.text,
+              'scheduled_at': pickedTime.toUtc().toIso8601String(),
+              'notification_id': id,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode != 200) {
         _showSnackbar(
