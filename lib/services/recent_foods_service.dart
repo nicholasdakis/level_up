@@ -34,4 +34,16 @@ class RecentFoodsService {
     await _prefs.setJsonList(SharedPreferencesKey.recentFoods, recents);
     // save the updated list back to SharedPreferences as a JSON string
   }
+
+  // Remove a single food from the recent foods list by name
+  Future<void> removeRecentFood(String foodName) async {
+    final recents = await getRecentFoods(); // fetch the current list
+    recents.removeWhere(
+      (f) => f['food_name'] == foodName,
+    ); // remove the matching entry
+    await _prefs.setJsonList(
+      SharedPreferencesKey.recentFoods,
+      recents,
+    ); // save the updated list back
+  }
 }

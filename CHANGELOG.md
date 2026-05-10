@@ -1589,3 +1589,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where searching for a food, having it appear under "Recent Foods", and then clicking and changing the serving size would log the original serving size stored, not the updated one
 - This didn't happen when logging a food from the Recent foods that is always there because it uses its own scaling logic
 - Fixed by moving all the scaling logic to logFood
+- Added a delete button for recent food entries and a removeRecentFood method that removes a single food entry from the sharedpreferences entries

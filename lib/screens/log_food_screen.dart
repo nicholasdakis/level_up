@@ -743,6 +743,39 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               ),
             ),
             SizedBox(width: Responsive.width(context, 12)),
+            GestureDetector(
+              onTap: () async {
+                final confirmed = await showFrostedAlertDialog<bool>(
+                  context: context,
+                  title: "Remove from recents?",
+                  content: Text(
+                    food['food_name'] ?? '',
+                    style: GoogleFonts.manrope(color: Colors.white70),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text("Remove", style: TextStyle(color: Colors.redAccent)),
+                    ),
+                  ],
+                );
+                if (confirmed != true) return;
+                await _recentFoodsService.removeRecentFood(food['food_name']);
+                await _loadRecentFoods();
+              },
+              child: Padding(
+                padding: EdgeInsets.only(right: Responsive.width(context, 8)),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: Colors.white24,
+                  size: Responsive.scale(context, 18),
+                ),
+              ),
+            ),
             Icon(
               Icons.add_circle_outline,
               color: Colors.white38,
