@@ -1568,3 +1568,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so the expanded / collapse status of recent foods is stored using SharedPreferences
 - Made it so searching for a food first checks the recent foods, and if a food is found from recent foods it also shows a button "Search database instead"
 - If the search is found in recent foods, it bypasses the 750ms debouncer timer
+- Added times_visited and category columns to the poi_visits SQL table so that the corresponding achievements that require that data can be wired up correctly
+- Added poi_category to the CheckInPOI request body, threading it through the service and repository layers down to the record_poi_visit RPC
+- Wired up poi_categories and poi_regular achievements directly inside record_poi_visit using COUNT(DISTINCT category) and MAX(times_visited) on the poi_visits table

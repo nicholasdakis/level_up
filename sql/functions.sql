@@ -85,10 +85,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- record_poi_visit: Atomically checks the 24-hour cooldown for a POI visit and updates XP/level
+-- record_poi_visit: Atomically checks the 24-hour cooldown for a POI visit and updates XP/level and any achievement progress
 CREATE OR REPLACE FUNCTION record_poi_visit(
     p_uid TEXT,          -- The user's ID
     p_poi_name TEXT,     -- The name of the POI being visited
+    p_category TEXT,     -- The category of the POI (e.g. 'restaurant', 'park')
     p_new_level INTEGER, -- The new level to set after visiting
     p_new_exp INTEGER    -- The new XP to set after visiting
 )
@@ -118,10 +119,13 @@ BEGIN
         END IF;
     END IF;
 
-    -- Upsert the visit timestamp (insert if first visit, update if returning)
-    INSERT INTO poi_visits (uid, poi_name, last_visit)
-    VALUES (p_uid, p_poi_name, v_now)
-    ON CONFLICT (uid, poi_name) DO UPDATE SET last_visit = v_now;
+    -- Upsert the visit timestamp and category, increment times_visited on each check-in
+    INSERT INTO poi_visits (uid, poi_name, last_visit, category, times_visited)
+    VALUES (p_uid, p_poi_name, v_now, p_category, 1)
+    ON CONFLICT (uid, poi_name) DO UPDATE SET
+        last_visit = v_now,
+        category = p_category,
+        times_visited = poi_visits.times_visited + 1;
 
     -- Update the user's XP and level atomically in the same transaction
     UPDATE users SET
@@ -140,6 +144,18 @@ BEGIN
     VALUES (p_uid, 'poi_visits', 1)
     ON CONFLICT (uid, achievement_id) DO UPDATE 
     SET progress = achievement_progress.progress + 1;
+
+    -- Update the user's "poi_categories" cell of the achievements_progress table
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'poi_categories', (SELECT COUNT(DISTINCT category) FROM poi_visits WHERE uid = p_uid))
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = (SELECT COUNT(DISTINCT category) FROM poi_visits WHERE uid = p_uid);
+
+    -- Update the user's "poi_regular" cell of the achievements_progress table
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_uid, 'poi_regular', (SELECT MAX(times_visited) FROM poi_visits WHERE uid = p_uid))
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = (SELECT MAX(times_visited) FROM poi_visits WHERE uid = p_uid);
 
     RETURN jsonb_build_object('success', true);
 END;

@@ -205,7 +205,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         }
 
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP
-    def check_in_poi(self, uid: str, poi_name: str, poi_lat: float, poi_lng: float, user_lat: float, user_lng: float):
+    def check_in_poi(self, uid: str, poi_name: str, poi_category: str, poi_lat: float, poi_lng: float, user_lat: float, user_lng: float):
         # Step 1: Verify the user is actually close to the POI (within 30 meters using the haversine formula)
         distance = self._haversine(user_lat, user_lng, poi_lat, poi_lng)
         if distance > 30:
@@ -233,7 +233,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
 
         # Step 5: Call the RPC which atomically checks the cooldown, records the visit, updates XP, and handles achievements related to the visit
-        result = self._repo.record_poi_visit_transaction(uid, poi_name, new_level, new_exp)
+        result = self._repo.record_poi_visit_transaction(uid, poi_name, poi_category, new_level, new_exp)
 
         if not result["success"]:
             return {

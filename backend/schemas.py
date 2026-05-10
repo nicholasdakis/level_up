@@ -41,6 +41,7 @@ class CheckInPOIRequest(BaseModel):
     # Sent by Flutter when the user taps the Check In button near a POI
     id_token: str = Field(..., min_length=1)
     poi_name: str = Field(..., min_length=1)          # name of the POI the user wants to check into
+    poi_category: str = Field(..., min_length=1)      # category of the POI (e.g. 'restaurant', 'park')
     poi_lat: float = Field(..., ge=-90, le=90)        # latitude of the POI
     poi_lng: float = Field(..., ge=-180, le=180)      # longitude of the POI
     user_lat: float = Field(..., ge=-90, le=90)       # user's current latitude (verified server-side)

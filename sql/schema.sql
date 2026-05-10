@@ -53,6 +53,8 @@ CREATE TABLE poi_visits (
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     poi_name TEXT,                     -- name of the point of interest
     last_visit TIMESTAMPTZ,            -- when the user last checked in
+    category TEXT,                     -- POI category (e.g. 'restaurant', 'park')
+    times_visited INTEGER NOT NULL DEFAULT 1, -- total check-ins at this POI
     PRIMARY KEY (uid, poi_name)        -- one row per user per POI
 );
 

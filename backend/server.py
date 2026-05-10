@@ -380,6 +380,7 @@ def check_in_poi():
     result = progression_service.check_in_poi(
         uid,
         body.poi_name,
+        body.poi_category,
         body.poi_lat,
         body.poi_lng,
         body.user_lat,
