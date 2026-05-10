@@ -8,10 +8,8 @@ import 'firebase_options.dart';
 import 'globals.dart';
 import 'router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'dart:js_interop';
-
-@JS('removeSplash')
-external void removeSplash();
+import 'utility/remove_splash_stub.dart'
+    if (dart.library.js_interop) 'utility/remove_splash_web.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
