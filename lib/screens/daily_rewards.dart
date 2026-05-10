@@ -45,8 +45,9 @@ class DailyRewardDialog {
         },
       );
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('Failed to schedule daily reward notification: $e');
+      }
     }
   }
 

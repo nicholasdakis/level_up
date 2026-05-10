@@ -17,6 +17,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
 
+// The default dark grey app color — used as a fallback when no color has been set
+const Color defaultAppColor = Color.fromARGB(255, 45, 45, 45);
+
 // Firebase Cloud Messaging VAPID key for web push notifications
 const String fcmVapidKey =
     'BHOUN3IilK1CAEVwa3wGYU-2Ne801epRrf881PxACR6ZD064wMMrMNH89OCxWm4ArfE7Mc4GJhiZOcd0nbsGPQ0';
@@ -121,7 +124,7 @@ class UserDataManager {
           lastDailyClaim: null,
           username: uid, // default username is uid
           reminders: [],
-          appColor: const Color.fromARGB(255, 45, 45, 45),
+          appColor: defaultAppColor,
           foodDataByDate: {},
           fcmTokens: [],
         );
@@ -682,11 +685,8 @@ class UserDataManager {
       // Convert color to int
       final int argbInt = newColor.toARGB32();
 
-      // Flag for checking if the chosen color is the "Default color" atribute
-      bool isDefaultColor = false;
-      if (argbInt == 4281150765) {
-        isDefaultColor = true;
-      }
+      // Flag for checking if the chosen color is the default app color
+      bool isDefaultColor = argbInt == defaultAppColor.toARGB32();
 
       final response = await http
           .post(

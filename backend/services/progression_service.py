@@ -20,7 +20,9 @@ def calculate_daily_reward_xp(level: int):
     return 25 * level + 2 * random.randint(1, level)
 
 def streak_multiplier(streak: int) -> float:
-    # Returns a bonus XP multiplier based on the user's current daily claim streak
+    # Returns a bonus XP multiplier based on the user's current daily claim streak.
+    # Tiers are at 3, 10, 30, 50 days — spaced to reward short, medium, and long-term habits.
+    # Multipliers cap at 1.5x so the bonus stays meaningful without becoming game-breaking.
     if streak >= 50:
         return 1.5
     elif streak >= 30:

@@ -34,7 +34,8 @@ BEGIN
 
     -- Compute the new streak: if they claimed within the last 48 hours, keep the streak going.
     -- Otherwise they missed a day and it resets to 1.
-    -- 172800 seconds = 48 hours
+    -- 172800 seconds = 48 hours. 48 instead of 24 gives a one-day grace period so a user who
+    -- claims at 11pm one day and 1am two days later doesn't lose their streak unfairly.
     IF v_last_claim IS NOT NULL AND EXTRACT(EPOCH FROM (v_now - v_last_claim)) < 172800 THEN
         SELECT streak + 1 INTO v_new_streak FROM streaks WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
         IF NOT FOUND THEN

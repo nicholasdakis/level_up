@@ -17,8 +17,9 @@ Future<String?> getWebFcmTokenSafe(String vapidKey) =>
 // Requests OS notification permission if not yet determined, or shows a dialog if denied
 // Returns true if notifications are granted, false if denied.
 Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
-  if (kIsWeb)
+  if (kIsWeb) {
     return true; // web uses showBrowserBlockedDialog directly via a user gesture
+  }
 
   final settings = await FirebaseMessaging.instance.getNotificationSettings();
 

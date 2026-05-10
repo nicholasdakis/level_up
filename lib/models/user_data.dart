@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'reminder_data.dart';
+import '../services/user_data_manager.dart' show defaultAppColor;
 
 class UserData {
   final String uid;
@@ -29,7 +30,7 @@ class UserData {
     this.canClaimDailyReward = true,
     this.notificationsEnabled = true,
     this.lastDailyClaim,
-    this.appColor = const Color.fromARGB(255, 45, 45, 45), // default app color
+    this.appColor = defaultAppColor,
     Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,
     String? username,
     List<ReminderData>? reminders,

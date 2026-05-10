@@ -450,9 +450,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                 child: Icon(
                   icon,
                   // use white if default theme, otherwise lighten the user's chosen color
-                  color:
-                      appColorNotifier.value ==
-                          const Color.fromARGB(255, 45, 45, 45)
+                  color: appColorNotifier.value == defaultAppColor
                       ? Colors.white70
                       : lightenColor(appColorNotifier.value, 0.2),
                   size: Responsive.scale(context, 22),
@@ -713,8 +711,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                             trailing: Switch.adaptive(
                               value: notificationsEnabled,
                               activeThumbColor:
-                                  appColorNotifier.value ==
-                                      const Color.fromARGB(255, 45, 45, 45)
+                                  appColorNotifier.value == defaultAppColor
                                   ? Colors.white70
                                   : lightenColor(appColorNotifier.value, 0.2),
                               activeTrackColor: appColorNotifier.value

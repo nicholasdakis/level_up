@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'globals.dart';
 import 'models/user_data.dart';
+import 'services/user_data_manager.dart' show defaultAppColor;
 import 'utility/responsive.dart';
 
 class Guest {
@@ -16,7 +17,7 @@ class Guest {
     lastDailyClaim: null,
     username: 'Guest',
     reminders: [],
-    appColor: const Color.fromARGB(255, 45, 45, 45),
+    appColor: defaultAppColor,
     foodDataByDate: {},
     fcmTokens: [],
   );
@@ -70,7 +71,7 @@ class Guest {
           44,
           110,
           context,
-          baseColor: const Color.fromARGB(255, 45, 45, 45),
+          baseColor: defaultAppColor,
           onPressed: () {
             Navigator.pop(context);
             exit();
