@@ -16,6 +16,7 @@ import '../services/user_data_manager.dart';
 import '../services/recent_foods_service.dart';
 import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
+import '../utility/shared_preferences/shared_prefs_async.dart';
 
 class LogFoodScreen extends StatefulWidget {
   final String meal;
@@ -64,6 +65,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Recent foods section visibility
   bool _recentExpanded = true;
+  final _prefs = SharedPrefsService();
+
+  // Recent food matches shown when a search query matches something in recent foods
+  List<Map<String, dynamic>> _recentMatches = [];
+  bool _showingRecentMatches = true;
 
   static const List<String> allowedUnits = [
     'g',
@@ -98,23 +104,51 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   void initState() {
     super.initState();
     _loadRecentFoods();
+    _loadRecentExpanded();
     _voiceSearch.init(() {
       if (mounted) setState(() {});
     });
   }
 
-  // 750ms debounce before firing the search API
+  // Instantly filters recent foods, then schedules a debounced API call if no recent matches
   void _scheduleSearch(String value) {
     if (isGuest) {
       Guest.block(context);
       return;
     } // For guest users
-    lastInput = DateTime.now();
-    checkTimer?.cancel();
-    checkTimer = Timer(
-      const Duration(milliseconds: 750),
-      () => handleApiCall(lastInput, value),
-    );
+
+    final query = value.toLowerCase().trim();
+
+    if (query.isEmpty) {
+      setState(() {
+        _recentMatches = [];
+        foodList = [];
+      });
+      checkTimer?.cancel();
+      return;
+    }
+
+    final matches = _recentFoods.where((f) {
+      final name = (f['food_name'] as String? ?? '').toLowerCase();
+      return name.contains(query);
+    }).toList();
+
+    if (matches.isNotEmpty) {
+      checkTimer?.cancel();
+      setState(() {
+        _recentMatches = matches;
+        _showingRecentMatches = true;
+        foodList = [];
+      });
+    } else {
+      setState(() => _recentMatches = []);
+      lastInput = DateTime.now();
+      checkTimer?.cancel();
+      checkTimer = Timer(
+        const Duration(milliseconds: 750),
+        () => handleApiCall(lastInput, value),
+      );
+    }
   }
 
   // Toggles the microphone for voice input on the search bar
@@ -194,6 +228,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   Future<void> _loadRecentFoods() async {
     final recents = await _recentFoodsService.getRecentFoods();
     if (mounted) setState(() => _recentFoods = recents);
+  }
+
+  Future<void> _loadRecentExpanded() async {
+    final val = await _prefs.getBool(SharedPreferencesKey.recentFoodsExpanded);
+    if (mounted && val != null) setState(() => _recentExpanded = val);
+  }
+
+  void _saveRecentExpanded(bool val) {
+    _prefs.setBool(SharedPreferencesKey.recentFoodsExpanded, val);
   }
 
   // Method for updating the user's recent stored foods to local storage
@@ -308,6 +351,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             searchController.text = selectedFood!['food_name'];
             userCanType = false;
             barcodeLoading = false;
+            foodList = [];
           });
         } else {
           setState(() {
@@ -488,6 +532,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       userCanType = true;
       searchController.clear();
       foodList = [];
+      _recentMatches = [];
+      _showingRecentMatches = true;
       displayDescription = '';
       baseMacros = {};
       barcodeError = null;
@@ -630,6 +676,42 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   }
 
   // Recent food tile which is a simple row with food name, macros, and a tap-to-log plus icon
+  Widget _buildSourceTab(
+    String label,
+    bool active,
+    Color appColor,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      splashColor: appColor.withAlpha(40),
+      borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 10),
+          vertical: Responsive.height(context, 4),
+        ),
+        decoration: BoxDecoration(
+          color: active ? appColor.withAlpha(40) : Colors.transparent,
+          border: Border.all(
+            color: active ? appColor.withAlpha(160) : Colors.transparent,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.manrope(
+            color: active ? lightenColor(appColor, 0.2) : Colors.white38,
+            fontSize: Responsive.font(context, 11),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRecentTile(Map<String, dynamic> food) {
     return InkWell(
       onTap: () => _logRecentWithServingPicker(food),
@@ -942,7 +1024,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final mealLabel = widget.meal[0].toUpperCase() + widget.meal.substring(1);
 
     // Only show recent and manual sections when the user isn't mid-search
-    final showSections = foodList.isEmpty && selectedFood == null;
+    final showSections =
+        foodList.isEmpty && selectedFood == null && _recentMatches.isEmpty;
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -1205,8 +1288,99 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               SizedBox(height: Responsive.height(context, 24)),
             ],
 
+            // Recent foods that match the current search query
+            if (_recentMatches.isNotEmpty ||
+                (foodList.isNotEmpty && !_showingRecentMatches)) ...[
+              Padding(
+                padding: EdgeInsets.only(bottom: Responsive.height(context, 8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildSourceTab(
+                      'Recent',
+                      _showingRecentMatches,
+                      appColor,
+                      () {
+                        setState(() {
+                          _showingRecentMatches = true;
+                          foodList = [];
+                        });
+                      },
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    _buildSourceTab(
+                      'Database',
+                      !_showingRecentMatches,
+                      appColor,
+                      () {
+                        setState(() => _showingRecentMatches = false);
+                        lastInput = DateTime.now();
+                        handleApiCall(lastInput, searchController.text);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (_showingRecentMatches)
+                for (int i = 0; i < _recentMatches.length; i++) ...[
+                  InkWell(
+                    splashColor: appColor.withAlpha(60),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 10),
+                    ),
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      _initServing(_recentMatches[i]['food_description'] ?? '');
+                      setState(() {
+                        userCanType = false;
+                        selectedFood = _recentMatches[i];
+                        searchController.text =
+                            _recentMatches[i]['food_name'] ?? '';
+                        _recentMatches = [];
+                      });
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                        horizontal: Responsive.width(context, 4),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _recentMatches[i]['brand_name'] != null
+                                ? '${_recentMatches[i]['brand_name']} · ${_recentMatches[i]['food_name'] ?? ''}'
+                                : (_recentMatches[i]['food_name'] ?? ''),
+                            style: GoogleFonts.manrope(
+                              color: Colors.white,
+                              fontSize: Responsive.font(context, 14),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 4)),
+                          Text(
+                            _recentMatches[i]['food_description'] ?? '',
+                            style: GoogleFonts.manrope(
+                              color: Colors.white38,
+                              fontSize: Responsive.font(context, 12),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 12)),
+                          Container(
+                            height: 1,
+                            color: Colors.white.withAlpha(12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              SizedBox(height: Responsive.height(context, 12)),
+            ],
+
             // Search results from FatSecret API replaces sections while the user is searching
-            if (foodList.isNotEmpty) ...[
+            if (foodList.isNotEmpty &&
+                (!_showingRecentMatches || _recentMatches.isEmpty)) ...[
               ...foodList.map((food) {
                 return InkWell(
                   splashColor: appColor.withAlpha(60),
@@ -1262,7 +1436,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             // RECENT FOODS section
             if (showSections) ...[
               GestureDetector(
-                onTap: () => setState(() => _recentExpanded = !_recentExpanded),
+                onTap: () {
+                  final next = !_recentExpanded;
+                  setState(() => _recentExpanded = next);
+                  _saveRecentExpanded(next);
+                },
                 child: Row(
                   children: [
                     Expanded(child: sectionHeader("RECENT", context)),

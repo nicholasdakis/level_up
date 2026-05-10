@@ -11,6 +11,7 @@ class SharedPreferencesKey {
 
   // FoodLogging keys
   static const String mealCollapsedState = 'meal_collapsed_state';
+  static const String recentFoodsExpanded = 'recent_foods_expanded';
 
   // POIService keys
   static const String cachedPois = 'cached_pois';
@@ -95,5 +96,15 @@ class SharedPrefsService {
   // Write an int to storage
   Future<void> setInt(String key, int value) async {
     await _prefs.setInt(key, value);
+  }
+
+  // Read a bool from storage
+  Future<bool?> getBool(String key) async {
+    return await _prefs.getBool(key);
+  }
+
+  // Write a bool to storage
+  Future<void> setBool(String key, bool value) async {
+    await _prefs.setBool(key, value);
   }
 }

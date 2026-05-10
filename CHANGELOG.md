@@ -1564,3 +1564,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Router sends guests directly to / after init instead of using the web URL path restoration logic which would redirect them back to /login
 - Fixed the padding of the recenter button to align with the Nearby Spots card
 - Added a test-account-specific button in the Explore tab that simulates the Explore tab with hardcoded POIs and location
+- Searching a food then scanning a barcode would show the search results after the scanning was done, so cleared the table upon a barcode scan
+- Made it so the expanded / collapse status of recent foods is stored using SharedPreferences
+- Made it so searching for a food first checks the recent foods, and if a food is found from recent foods it also shows a button "Search database instead"
+- If the search is found in recent foods, it bypasses the 750ms debouncer timer
