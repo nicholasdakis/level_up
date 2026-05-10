@@ -387,8 +387,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       return;
     }
 
-    // Rebuild the description with scaled serving values for search and barcode results
-    if (!foodObject.containsKey('calories') && baseMacros.isNotEmpty) {
+    // Scale the food to the user's chosen serving size if baseMacros is available
+    if (baseMacros.isNotEmpty) {
       final newAmount =
           double.tryParse(servingAmountController.text) ?? baseAmount;
       final scaled = FoodLoggingHelper.scaleFood(
@@ -605,9 +605,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Shows a serving size dialog before logging a recent food so the user can adjust the amount
   Future<void> _logRecentWithServingPicker(Map<String, dynamic> food) async {
-    final serving = FoodLoggingHelper.parseServing(
-      food['food_description'] as String? ?? '',
-    );
+    final description = food['food_description'] as String? ?? '';
+    final serving = FoodLoggingHelper.parseServing(description);
     final currentAmt = serving['amount'] as double;
     final unit = serving['unit'] as String;
 
@@ -664,24 +663,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final newAmt = double.tryParse(newAmtStr);
     if (newAmt == null || newAmt <= 0) return;
 
-    final updatedFood = Map<String, dynamic>.from(food);
-
-    // Only rescale if the user changed the amount
-    if (newAmt != currentAmt) {
-      final macros = FoodLoggingHelper.extractMacros(
-        food['food_description'] as String? ?? '',
-      );
-      final scaled = FoodLoggingHelper.scaleFood(macros, currentAmt, newAmt);
-      updatedFood['food_description'] = FoodLoggingHelper.buildDescription(
-        scaled,
-        newAmt,
-        unit,
-      );
-      updatedFood['calories'] = scaled['calories']!.round();
-    }
+    // Use the same scaling path as search/barcode: _initServing populates baseMacros
+    // and logFood re-scales based on whatever the user typed
+    _initServing(description);
+    servingAmountController.text = newAmt % 1 == 0
+        ? newAmt.toInt().toString()
+        : newAmt.toString();
 
     trackTrivialAchievement('food_recent');
-    await logFood(updatedFood);
+    await logFood(Map<String, dynamic>.from(food));
   }
 
   // Recent food tile which is a simple row with food name, macros, and a tap-to-log plus icon

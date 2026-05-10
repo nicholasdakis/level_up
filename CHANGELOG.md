@@ -1584,3 +1584,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced repeated maxFileSize code with one maxProfileImageBytes const
 - Moved the pfp-related code to its own service class
 - Created authenticatedPost() to remove the repeated pattern of manually attaching the id_token, Content-Type header, and timeout to every backend HTTP call
+- Extracted the default app color values as a const in globals.dart for better clarity
+- Added more comments for better readability and maintainability
+- Fixed a bug where searching for a food, having it appear under "Recent Foods", and then clicking and changing the serving size would log the original serving size stored, not the updated one
+- This didn't happen when logging a food from the Recent foods that is always there because it uses its own scaling logic
+- Fixed by moving all the scaling logic to logFood
