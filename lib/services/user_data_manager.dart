@@ -31,6 +31,23 @@ Future<String> getIdToken() async {
   return token;
 }
 
+// Sends an authenticated POST to a backend endpoint, automatically attaching the id_token
+// Extra fields in body are merged with the id_token so callers only pass what's specific to their request
+Future<http.Response> authenticatedPost(
+  String endpoint, {
+  Map<String, dynamic> body = const {},
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final token = await getIdToken();
+  return http
+      .post(
+        Uri.parse('$backendBaseUrl/$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id_token': token, ...body}),
+      )
+      .timeout(timeout);
+}
+
 // Fires and forgets a trivial achievement increment to the backend
 void trackTrivialAchievement(String achievementId) async {
   if (isGuest) return;
@@ -119,14 +136,7 @@ class UserDataManager {
   Future<void> _fetchUserDataSafely() async {
     final stopwatch = Stopwatch()..start();
     try {
-      final token = await getIdToken();
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/get_user_data'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'id_token': token}),
-          )
-          .timeout(Duration(seconds: 5));
+      final response = await authenticatedPost('get_user_data');
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -412,11 +422,7 @@ class UserDataManager {
 
     try {
       // Call backend to claim daily reward
-      final response = await http.post(
-        Uri.parse('$backendBaseUrl/claim_daily_reward'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': await getIdToken()}),
-      );
+      final response = await authenticatedPost('claim_daily_reward');
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -543,14 +549,7 @@ class UserDataManager {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await http.post(
-        Uri.parse('$backendBaseUrl/add_fcm_token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': await getIdToken(),
-          'token': deviceToken,
-        }),
-      );
+      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
     } catch (e) {
       if (kDebugMode) debugPrint("Error initializing FCM token: $e");
     }
@@ -569,14 +568,7 @@ class UserDataManager {
         currentUserData!.fcmTokens.add(deviceToken);
       }
 
-      await http.post(
-        Uri.parse('$backendBaseUrl/add_fcm_token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': await getIdToken(),
-          'token': deviceToken,
-        }),
-      );
+      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
     } catch (e) {
       if (kDebugMode) debugPrint("Error adding FCM token: $e");
     }
@@ -589,14 +581,7 @@ class UserDataManager {
       // Remove token from local list
       currentUserData!.fcmTokens.remove(deviceToken);
 
-      await http.post(
-        Uri.parse('$backendBaseUrl/remove_fcm_token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': await getIdToken(),
-          'token': deviceToken,
-        }),
-      );
+      await authenticatedPost('remove_fcm_token', body: {'token': deviceToken});
     } catch (e) {
       if (kDebugMode) debugPrint("Error removing FCM token: $e");
     }
@@ -836,12 +821,7 @@ class UserDataManager {
   // Searches for food via the backend, which proxies to FatSecret API
   static Future<http.Response> searchFood(String query) async {
     if (isGuest) return http.Response('{"foods": []}', 200);
-    final idToken = await getIdToken();
-    return await http.post(
-      Uri.parse('$backendBaseUrl/get_food'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': idToken, 'food_name': query}),
-    );
+    return await authenticatedPost('get_food', body: {'food_name': query});
   }
 
   // Refreshes all user data from the backend, called on Food Logging tab switch to keep data fresh across devices

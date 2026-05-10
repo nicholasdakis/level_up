@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../models/reminder_data.dart';
 import '../utility/responsive.dart';
 import '../services/fcm/notification_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../services/user_data_manager.dart';
 
 class Reminders extends StatefulWidget {
@@ -110,13 +108,7 @@ class _RemindersState extends State<Reminders> {
 
   // Loads reminders from the Supabase Postgres db and removes past ones
   Future<List<ReminderData>> _loadReminders() async {
-    final token = await FirebaseAuth.instance.currentUser!.getIdToken();
-
-    final response = await http.post(
-      Uri.parse('$backendBaseUrl/get_reminders'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': token}),
-    );
+    final response = await authenticatedPost('get_reminders');
 
     if (response.statusCode != 200) {
       throw Exception('getReminders failed: ${response.body}');
@@ -244,13 +236,10 @@ class _RemindersState extends State<Reminders> {
     );
     if (confirmed != true) return;
 
-    final token = await FirebaseAuth.instance.currentUser!.getIdToken();
-
     try {
-      final response = await http.post(
-        Uri.parse('$backendBaseUrl/delete_reminder'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': token, 'reminder_id': reminder.id}),
+      final response = await authenticatedPost(
+        'delete_reminder',
+        body: {'reminder_id': reminder.id},
       );
 
       if (response.statusCode != 200) {
@@ -358,21 +347,16 @@ class _RemindersState extends State<Reminders> {
     setState(() => isLoading = true);
 
     try {
-      final token = await FirebaseAuth.instance.currentUser!.getIdToken();
       final id = DateTime.now().millisecondsSinceEpoch;
 
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/set_reminder'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': token,
-              'message': remindersController.text,
-              'scheduled_at': pickedTime.toUtc().toIso8601String(),
-              'notification_id': id,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'set_reminder',
+        body: {
+          'message': remindersController.text,
+          'scheduled_at': pickedTime.toUtc().toIso8601String(),
+          'notification_id': id,
+        },
+      );
 
       if (response.statusCode != 200) {
         _showSnackbar(

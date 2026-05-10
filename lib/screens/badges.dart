@@ -5,8 +5,6 @@ import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
 import "/guest.dart";
 import "/utility/responsive.dart";
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '/utility/confetti.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../services/user_data_manager.dart';
@@ -219,18 +217,10 @@ class _BadgesState extends State<Badges> {
     _claimingInProgress.add(key);
 
     try {
-      final token = await getIdToken();
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/claim_achievement'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': token,
-              'achievement_id': def.id,
-              'tier': tier,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'claim_achievement',
+        body: {'achievement_id': def.id, 'tier': tier},
+      );
 
       if (response.statusCode != 200) {
         throw Exception(

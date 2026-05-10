@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:http/http.dart' as http;
 import '../models/poi.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
-import 'user_data_manager.dart' show getIdToken, backendBaseUrl;
+import 'user_data_manager.dart' show authenticatedPost;
 import '../globals.dart' show isGuest;
 
 // Error code thrown when the backend rejects a POI fetch because the user is moving too fast
@@ -154,18 +153,13 @@ class POIService {
 
   // Call the backend endpoint to get POIs from Overpass
   Future<List<POI>> _fetchFromBackend(double lat, double lng) async {
-    final token = await getIdToken();
-
     // POST to the backend with the user's coordinates and auth token
-    final response = await http
-        .post(
-          Uri.parse('$backendBaseUrl/get_nearby_pois'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': token, 'lat': lat, 'lng': lng}),
-        )
-        .timeout(
-          const Duration(seconds: 20),
-        ); // longer timeout since Overpass can be slow
+    // longer timeout since Overpass can be slow
+    final response = await authenticatedPost(
+      'get_nearby_pois',
+      body: {'lat': lat, 'lng': lng},
+      timeout: const Duration(seconds: 20),
+    );
 
     // Backend flagged this request as too fast between fetches
     if (response.statusCode == 429) {
@@ -222,23 +216,19 @@ class POIService {
     double userLat,
     double userLng,
   ) async {
-    final token = await getIdToken();
-
     // POST to the check-in endpoint with both the POI and user coordinates
-    final response = await http
-        .post(
-          Uri.parse('$backendBaseUrl/check_in_poi'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'id_token': token,
-            'poi_name': poi.name,
-            'poi_lat': poi.lat,
-            'poi_lng': poi.lng,
-            'user_lat': userLat,
-            'user_lng': userLng,
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
+    final response = await authenticatedPost(
+      'check_in_poi',
+      body: {
+        'poi_name': poi.name,
+        'poi_category': poi.category,
+        'poi_lat': poi.lat,
+        'poi_lng': poi.lng,
+        'user_lat': userLat,
+        'user_lng': userLng,
+      },
+      timeout: const Duration(seconds: 10),
+    );
 
     final result = jsonDecode(response.body) as Map<String, dynamic>;
 

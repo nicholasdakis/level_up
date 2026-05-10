@@ -1,10 +1,7 @@
 import 'dart:math';
-import 'dart:convert';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../guest.dart';
 import '../services/user_data_manager.dart';
@@ -35,26 +32,18 @@ class DailyRewardDialog {
   // Schedules a reminder notification 23 hours after claiming via the backend
   Future<void> setDailyRewardNotification() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-      final token = await user.getIdToken();
-
       final scheduledTime = DateTime.now().add(const Duration(hours: 23));
       final id =
           DateTime.now().millisecondsSinceEpoch; // unique ID for the reminder
 
-      await http
-          .post(
-            Uri.parse('$backendBaseUrl/set_reminder'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': token,
-              'message': randomRewardReminderMessage(),
-              'scheduled_at': scheduledTime.toUtc().toIso8601String(),
-              'notification_id': id,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
+      await authenticatedPost(
+        'set_reminder',
+        body: {
+          'message': randomRewardReminderMessage(),
+          'scheduled_at': scheduledTime.toUtc().toIso8601String(),
+          'notification_id': id,
+        },
+      );
     } catch (e) {
       if (kDebugMode)
         debugPrint('Failed to schedule daily reward notification: $e');

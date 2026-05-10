@@ -1583,3 +1583,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Defined fcmVapidKey once in user_data_manager instead of individually defining it each time
 - Replaced repeated maxFileSize code with one maxProfileImageBytes const
 - Moved the pfp-related code to its own service class
+- Created authenticatedPost() to remove the repeated pattern of manually attaching the id_token, Content-Type header, and timeout to every backend HTTP call
