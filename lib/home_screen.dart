@@ -153,7 +153,26 @@ class _HomeScreenState extends State<HomeScreen> {
     if (currentUserData == null) return;
 
     if (userManager.lastLoadFailed) {
-      if (mounted) setState(() => loadFailed = true);
+      if (!mounted) return;
+      setState(() => loadFailed = true);
+      await showFrostedAlertDialog(
+        context: context,
+        title: "Failed to load",
+        content: Text(
+          "Check your connection and try again.",
+          style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _retry();
+            },
+            child: const Text("Retry"),
+          ),
+        ],
+      );
       return;
     }
 
@@ -292,54 +311,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white38,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        if (loadFailed)
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 40),
-              ),
-              child: frostedGlassCard(
-                context,
-                baseRadius: 20,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 24),
-                  vertical: Responsive.height(context, 28),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Failed to load.",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 16),
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    Text(
-                      "Check your connection and try again.",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 13),
-                        color: Colors.white54,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: Responsive.height(context, 20)),
-                    simpleCustomButton(
-                      "Retry",
-                      16,
-                      50,
-                      160,
-                      context,
-                      onPressed: _retry,
-                      baseColor: appColorNotifier.value,
                     ),
                   ],
                 ),

@@ -1590,3 +1590,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - This didn't happen when logging a food from the Recent foods that is always there because it uses its own scaling logic
 - Fixed by moving all the scaling logic to logFood
 - Added a delete button for recent food entries and a removeRecentFood method that removes a single food entry from the sharedpreferences entries
+
+## 2026-05-11
+- Replaced the inline "Failed to load" frosted glass card in HomeScreen with a proper showFrostedAlertDialog so it no longer glitches with underlined text against the background
