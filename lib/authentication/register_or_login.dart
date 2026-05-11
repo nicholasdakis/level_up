@@ -740,8 +740,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment
-                        .spaceBetween, // spreads the three sections evenly across the screen
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       SizedBox(height: Responsive.padding(context, 24)),
@@ -759,23 +758,33 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                           height: Responsive.height(context, 10),
                         ), // spacing on mobile for widgets to not touch
                       // Middle section fades in shortly after the top
-                      buildMiddleSection()
-                          .animate()
-                          .fadeIn(delay: 180.ms, duration: 500.ms)
-                          .slideY(
-                            begin: 0.15,
-                            duration: 500.ms,
-                            curve: Curves.easeOutCubic,
-                          ),
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: buildMiddleSection()
+                              .animate()
+                              .fadeIn(delay: 180.ms, duration: 500.ms)
+                              .slideY(
+                                begin: 0.15,
+                                duration: 500.ms,
+                                curve: Curves.easeOutCubic,
+                              ),
+                        ),
+                      ),
                       // Bottom section fades in last
-                      buildBottomSection()
-                          .animate()
-                          .fadeIn(delay: 360.ms, duration: 500.ms)
-                          .slideY(
-                            begin: 0.15,
-                            duration: 500.ms,
-                            curve: Curves.easeOutCubic,
-                          ),
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: buildBottomSection()
+                              .animate()
+                              .fadeIn(delay: 360.ms, duration: 500.ms)
+                              .slideY(
+                                begin: 0.15,
+                                duration: 500.ms,
+                                curve: Curves.easeOutCubic,
+                              ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
