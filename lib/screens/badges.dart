@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:flutter/foundation.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import "package:go_router/go_router.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
@@ -279,7 +280,7 @@ class _BadgesState extends State<Badges> {
       statusIcon = Icons.lock_outline;
     }
 
-    return GestureDetector(
+    final chip = GestureDetector(
       onTap: (reachable && !claimed) ? () => _claimTier(def, tier) : null,
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -317,6 +318,30 @@ class _BadgesState extends State<Badges> {
         ),
       ),
     );
+
+    if (reachable && !claimed) {
+      return chip
+          .animate(
+            onPlay: (c) => c.repeat(reverse: true),
+          ) // loops forward then backward forever
+          .scaleXY(
+            begin: 0.92,
+            end: 1.08, // goes between slightly smaller and larger sizes
+            duration: 1200.ms,
+            curve: Curves.easeInOut,
+          )
+          .tint(
+            color: lightenColor(
+              appColorNotifier.value,
+              0.3,
+            ), // lightened app color for contrast against the chip
+            begin: 0.0,
+            end: 0.4, // pulses toward a lighter version of the theme color
+            duration: 1200.ms,
+            curve: Curves.easeInOut,
+          );
+    }
+    return chip;
   }
 
   // Builds a single achievement card with icon, name, progress bar, and tier chips

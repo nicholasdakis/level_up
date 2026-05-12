@@ -1596,3 +1596,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Prevented the login screen buttons from taking up the whole width on desktop
 - Made it so continuing with google does not let users bypass the tos and privacy policy check
 - Redesigned the login screen UI slightly
+- Made claimable achievements pulse in the badges tab to emphasize it is claimable
