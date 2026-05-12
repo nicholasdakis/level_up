@@ -459,23 +459,23 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
       children: [
         // App logo
         SizedBox(
-          height: Responsive.buttonHeight(context, 160),
+          height: Responsive.buttonHeight(context, 200),
           child: Image.asset(
             "assets/app_logo_transparent_bg.png",
             fit: BoxFit.contain,
           ),
         ),
-        SizedBox(height: Responsive.padding(context, 12)),
+        SizedBox(height: Responsive.padding(context, 14)),
         // Title text
         createTitle("Welcome", context),
-        SizedBox(height: Responsive.padding(context, 6)),
+        SizedBox(height: Responsive.padding(context, 8)),
         // Subtitle
         Text(
-          "Turn your daily habits into measurable progress!",
+          "Turn your daily habits into measurable progress",
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
             color: Colors.white54,
-            fontSize: Responsive.font(context, 14),
+            fontSize: Responsive.font(context, 16),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -585,7 +585,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           label: "Email",
           icon: Icons.mail_outline,
         ),
-        SizedBox(height: Responsive.padding(context, 14)),
+        SizedBox(height: Responsive.padding(context, 12)),
         // Password field, the suffix toggles between hidden and visible text
         buildAuthField(
           controller: passwordController,
@@ -595,11 +595,15 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           suffix: buildPasswordVisibilityToggle(),
         ),
         buildTermsCheckboxArea(),
-        SizedBox(height: Responsive.padding(context, 18)),
+        SizedBox(height: Responsive.padding(context, 16)),
         // Primary button and label switches with the active tab
         buildPrimaryButton(),
         SizedBox(height: Responsive.padding(context, 4)),
         buildForgotPasswordArea(),
+        SizedBox(height: Responsive.padding(context, 20)),
+        buildSocialDivider(),
+        SizedBox(height: Responsive.padding(context, 16)),
+        buildGoogleButton(),
       ],
     );
   }
@@ -639,6 +643,13 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
 
   // Method to sign the user in with Google
   Future<void> handleGoogleSignIn() async {
+    if (!isLoginMode && !agreedToTerms) {
+      setState(() {
+        notifyingMessage =
+            "Please agree to the Privacy Policy and Terms of Service to continue.";
+      });
+      return;
+    }
     try {
       await authService.value.signInWithGoogle();
       if (!mounted) return;
@@ -664,54 +675,47 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     );
   }
 
-  // Method that builds the bottom section with the divider, Google button, and error message
+  // Method that builds the bottom section with the error message and guest button
   Widget buildBottomSection() {
-    // Build the children list step by step so the error message can be added only when needed
-    final children = <Widget>[];
-    children.add(buildSocialDivider());
-    children.add(SizedBox(height: Responsive.padding(context, 16)));
-    // Google sign in button, kept as the existing SVG for brand consistency
-    children.add(buildGoogleButton());
-    children.add(SizedBox(height: Responsive.padding(context, 16)));
-    // Notify the user about any problems with registering or login
-    if (notifyingMessage != null) {
-      children.add(
-        Text(
-          notifyingMessage!,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.manrope(
-            color: Colors.redAccent.shade100,
-            fontSize: Responsive.font(context, 13),
-            fontWeight: FontWeight.w500,
+    return Column(
+      children: [
+        if (notifyingMessage != null) ...[
+          Text(
+            notifyingMessage!,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              color: Colors.redAccent.shade100,
+              fontSize: Responsive.font(context, 13),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: Responsive.padding(context, 12)),
+        ],
+        OutlinedButton(
+          onPressed: _handleContinueAsGuest,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: Colors.white24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 30),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 14),
+              horizontal: Responsive.width(context, 32),
+            ),
+          ),
+          child: Text(
+            "Continue as guest",
+            style: GoogleFonts.manrope(
+              color: Colors.white38,
+              fontSize: Responsive.font(context, 13),
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
-      );
-    }
-    children.add(SizedBox(height: Responsive.padding(context, 12)));
-    children.add(
-      OutlinedButton(
-        onPressed: _handleContinueAsGuest,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.white24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
-          ),
-          padding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 14),
-            horizontal: Responsive.width(context, 24),
-          ),
-        ),
-        child: Text(
-          "Continue as guest",
-          style: GoogleFonts.manrope(
-            color: Colors.white54,
-            fontSize: Responsive.font(context, 13),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
+      ],
     );
-    return Column(children: children);
   }
 
   void _handleContinueAsGuest() {
@@ -740,7 +744,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       SizedBox(height: Responsive.padding(context, 24)),
@@ -753,10 +757,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                             duration: 500.ms,
                             curve: Curves.easeOutCubic,
                           ),
-                      if (Responsive.isMobile(context))
-                        SizedBox(
-                          height: Responsive.height(context, 10),
-                        ), // spacing on mobile for widgets to not touch
+                      SizedBox(height: Responsive.padding(context, 32)),
                       // Middle section fades in shortly after the top
                       Center(
                         child: ConstrainedBox(
@@ -771,6 +772,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                               ),
                         ),
                       ),
+                      SizedBox(height: Responsive.padding(context, 20)),
                       // Bottom section fades in last
                       Center(
                         child: ConstrainedBox(
@@ -785,6 +787,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                               ),
                         ),
                       ),
+                      SizedBox(height: Responsive.padding(context, 24)),
                     ],
                   ),
                 ),

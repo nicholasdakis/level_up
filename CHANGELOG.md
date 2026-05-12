@@ -1594,3 +1594,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-11
 - Replaced the inline "Failed to load" frosted glass card in HomeScreen with a proper showFrostedAlertDialog so it no longer glitches with underlined text against the background
 - Prevented the login screen buttons from taking up the whole width on desktop
+- Made it so continuing with google does not let users bypass the tos and privacy policy check
+- Redesigned the login screen UI slightly
