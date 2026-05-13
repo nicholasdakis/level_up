@@ -1605,3 +1605,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated "POI" text in badges to "locations"
 - Made most tabs use a centeredHorizontalPadding method that prevents desktop device content from spanning the whole screen and stretching too far
 - Updated the UI of the Developer tab
+
+## 2026-05-13
+- Used the google_sign_in package for Android and iOS to prevent the white screen error that appears even on successful logins, along with adding a more native feel to logging in with Google
