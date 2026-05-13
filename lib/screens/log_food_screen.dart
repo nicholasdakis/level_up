@@ -755,11 +755,17 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.white54),
+                      ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text("Remove", style: TextStyle(color: Colors.redAccent)),
+                      child: const Text(
+                        "Remove",
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
                     ),
                   ],
                 );
@@ -1109,7 +1115,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         ),
         body: ListView(
           padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
+            horizontal: Responsive.centeredHorizontalPadding(context, 20),
             vertical: Responsive.height(context, 20),
           ),
           children: [

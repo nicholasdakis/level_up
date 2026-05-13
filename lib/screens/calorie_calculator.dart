@@ -435,7 +435,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         body: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 50),
+              horizontal: Responsive.centeredHorizontalPadding(context, 50),
               vertical: Responsive.height(context, 24),
             ),
             child: Column(

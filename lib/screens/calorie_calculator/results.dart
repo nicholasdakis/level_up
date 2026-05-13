@@ -402,7 +402,7 @@ class _ResultsState extends State<Results> {
   Widget _tab(List<Widget> children) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 20),
+        horizontal: Responsive.centeredHorizontalPadding(context, 20),
         vertical: Responsive.height(context, 24),
       ),
       child: Column(

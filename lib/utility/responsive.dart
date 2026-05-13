@@ -4,6 +4,22 @@ enum ScreenType { mobile, tablet, desktop }
 
 class Responsive {
   static const double _baseScreenWidth = 400;
+
+  // Max content width on desktop so layouts don't stretch across the full screen
+  static const double desktopContentMaxWidth = 900;
+
+  // Returns horizontal padding that centers content at desktopContentMaxWidth on desktop
+  // On mobile/tablet returns the base padding value as normal
+  static double centeredHorizontalPadding(
+    BuildContext context,
+    double basePadding,
+  ) {
+    if (!isDesktop(context)) return width(context, basePadding);
+    final screenW = _safeSize(context).width;
+    if (screenW <= desktopContentMaxWidth) return width(context, basePadding);
+    return (screenW - desktopContentMaxWidth) / 2;
+  }
+
   static const double _baseScreenHeight = 800;
 
   // Scale factors applied on top of proportional scaling

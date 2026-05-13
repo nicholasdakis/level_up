@@ -358,7 +358,7 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 15),
+                  horizontal: Responsive.centeredHorizontalPadding(context, 15),
                   vertical: Responsive.height(context, 24),
                 ),
                 itemCount:
