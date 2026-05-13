@@ -1604,3 +1604,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added an "Open in Maps" option when clicking on a POI using the map_launcher package, which detects installed maps apps and shows a picker if multiple are installed, falling back to Google Maps on web
 - Updated "POI" text in badges to "locations"
 - Made most tabs use a centeredHorizontalPadding method that prevents desktop device content from spanning the whole screen and stretching too far
+- Updated the UI of the Developer tab
