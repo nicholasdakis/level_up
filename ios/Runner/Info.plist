@@ -76,6 +76,11 @@
     <array>
     <string>https</string>
     <string>http</string>
+    <string>comgooglemaps</string>
+    <string>waze</string>
+    <string>osmandmaps</string>
+    <string>citymapper</string>
+    <string>here-location</string>
     </array>
 
 </dict>

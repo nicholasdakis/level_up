@@ -1,4 +1,5 @@
 import 'package:confetti/confetti.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class Explore extends StatefulWidget {
   const Explore({super.key});
@@ -532,55 +534,44 @@ class _ExploreState extends State<Explore> {
                   children: [
                     if (!_locationRequested) ...[
                       // Browser requires geolocation to be triggered by a direct user gesture
-                      const Icon(
+                      Icon(
                         Icons.location_on,
-                        color: Colors.white,
-                        size: 48,
+                        color: Colors.white70,
+                        size: Responsive.scale(context, 48),
                       ),
                       SizedBox(height: Responsive.height(context, 12)),
                       Text(
                         "Tap to find nearby spots",
-                        style: TextStyle(
-                          fontSize: Responsive.width(context, 18),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 18),
                           color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 16)),
-                      ElevatedButton(
+                      frostedButton(
+                        "Find nearby spots",
+                        context,
                         onPressed: () {
                           setState(() => _locationRequested = true);
                           _initLocation();
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black.withAlpha(200),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text("Find nearby spots"),
                       ),
                       if (_isTestAccount) ...[
                         SizedBox(height: Responsive.height(context, 12)),
-                        ElevatedButton(
+                        frostedButton(
+                          "Simulate Location (NYC)",
+                          context,
                           onPressed: _simulateLocation,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple.withAlpha(200),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: const Text("Simulate Location (NYC)"),
                         ),
                       ],
                     ] else ...[
-                      const CircularProgressIndicator(),
+                      CircularProgressIndicator(color: Colors.white70),
                       SizedBox(height: Responsive.height(context, 10)),
                       Text(
                         "Retrieving location...",
-                        style: TextStyle(
-                          fontSize: Responsive.width(context, 18),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 18),
                           color: Colors.white,
                         ),
                       ),
@@ -977,11 +968,11 @@ class _ExploreState extends State<Explore> {
                                                           loadingPOIs
                                                               ? "Loading spots..."
                                                               : "Tap to view spots",
-                                                          style: TextStyle(
+                                                          style: GoogleFonts.manrope(
                                                             color:
                                                                 Colors.white70,
                                                             fontSize:
-                                                                Responsive.width(
+                                                                Responsive.font(
                                                                   context,
                                                                   15,
                                                                 ),
@@ -1096,66 +1087,136 @@ class _ExploreState extends State<Explore> {
                               nearestPOI != null ? 100 : 40,
                             ),
                           ),
-
                           child: GestureDetector(
                             onTap: () => setState(() => _cardOpacity = 0),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 16),
-                                vertical: Responsive.height(context, 10),
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(210),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withAlpha(80),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 12,
+                                  sigmaY: 12,
+                                ),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(context, 16),
+                                    vertical: Responsive.height(context, 10),
                                   ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    POIIcons.fromCategory(_tappedPOI!.category),
-                                    color: Colors.white,
-                                    size: Responsive.width(context, 22),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withAlpha(100),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                  SizedBox(width: Responsive.width(context, 8)),
-                                  Flexible(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _tappedPOI!.name,
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white,
-                                            fontSize: Responsive.width(
-                                              context,
-                                              16,
-                                            ),
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          softWrap: true,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        POIIcons.fromCategory(
+                                          _tappedPOI!.category,
                                         ),
-                                        Text(
-                                          _tappedPOI!.displayCategory,
-                                          style: GoogleFonts.manrope(
-                                            color: Colors.white70,
-                                            fontSize: Responsive.width(
-                                              context,
-                                              13,
+                                        color: Colors.white,
+                                        size: Responsive.width(context, 22),
+                                      ),
+                                      SizedBox(
+                                        width: Responsive.width(context, 8),
+                                      ),
+                                      Flexible(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _tappedPOI!.name,
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  16,
+                                                ),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              softWrap: true,
                                             ),
-                                          ),
+                                            Text(
+                                              _tappedPOI!.displayCategory,
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white70,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  13,
+                                                ),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                final lat = _tappedPOI!.lat;
+                                                final lng = _tappedPOI!.lng;
+                                                final name = _tappedPOI!.name;
+                                                if (kIsWeb) {
+                                                  // map_launcher doesn't support web, fall back to Google Maps
+                                                  launchUrl(
+                                                    Uri.parse(
+                                                      'https://www.google.com/maps/@$lat,$lng,17z/search/${Uri.encodeComponent(name)}',
+                                                    ),
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                  return;
+                                                }
+                                                final maps = await MapLauncher
+                                                    .installedMaps;
+                                                if (!mounted) return;
+                                                if (maps.length == 1) {
+                                                  // only one maps app installed, launch it directly
+                                                  maps.first.showMarker(
+                                                    coords: Coords(lat, lng),
+                                                    title: name,
+                                                  );
+                                                } else {
+                                                  // show a picker with all installed maps
+                                                  showFrostedAlertDialog(
+                                                    context: context,
+                                                    title: 'Open in Maps',
+                                                    actions: [
+                                                      for (final map in maps)
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            map.showMarker(
+                                                              coords: Coords(
+                                                                lat,
+                                                                lng,
+                                                              ),
+                                                              title: name,
+                                                            );
+                                                          },
+                                                          child: Text(
+                                                            map.mapName,
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                              child: Text(
+                                                'Open in Maps',
+                                                style: GoogleFonts.manrope(
+                                                  color: Colors.lightBlueAccent,
+                                                  fontSize: Responsive.font(
+                                                    context,
+                                                    12,
+                                                  ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
