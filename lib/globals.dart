@@ -476,9 +476,15 @@ Widget customButton(
       ],
     );
   } else {
-    child = FittedBox(
-      fit: BoxFit.scaleDown,
-      child: buttonText(text, context, baseFontSize),
+    child = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 12),
+      ), // prevents long labels like "Calorie Calculator" from touching the edges
+      child: FittedBox(
+        fit: BoxFit
+            .scaleDown, // shrinks text if it doesn't fit rather than overflowing
+        child: buttonText(text, context, baseFontSize),
+      ),
     );
   }
 

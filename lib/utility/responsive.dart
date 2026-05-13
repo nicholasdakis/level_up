@@ -126,11 +126,13 @@ class Responsive {
   }
 
   // Scales a button height against screen width
+  // On mobile, capped at 140px so buttons don't grow too tall on large-screen phones
   static double buttonHeight(BuildContext context, double baseHeight) {
     final type = screenType(context);
-    return type == ScreenType.mobile
+    final raw = type == ScreenType.mobile
         ? baseHeight
         : baseHeight * _scaleFactor(type);
+    return type == ScreenType.mobile ? raw.clamp(0, 140) : raw;
   }
 
   static double font(BuildContext context, double baseFontSize) {

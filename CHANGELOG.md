@@ -1611,3 +1611,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed buttons in Developer tab lightening up when scrolling by using the same NoGlowScrollBehavior class HomeScreen.dart had
 - Moved the NoGlowScrollBehavior to globals.dart from home screen file
 - Added a button in the Developer tab that leads to developer website
+- Tweaked home buttons so that text does not touch the very edges of the buttons, and automatically resizes to be smaller if it needs to

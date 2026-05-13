@@ -364,54 +364,66 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Padding(
                         padding: EdgeInsets.only(
                           top: Responsive.width(context, 30),
-                        ), // Move the title text down a little bit
-                        // Manually make the title text, since appBar is already being used
-                        child: ShaderMask(
-                          shaderCallback: (bounds) =>
-                              subtleTextGradient().createShader(
-                                Rect.fromLTWH(
-                                  0,
-                                  0,
-                                  bounds.width,
-                                  bounds.height,
-                                ), // Make a rectangle the same size as the text so the gradient covers it
-                              ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Stroke / outline
-                              Text(
-                                "LEVEL UP!",
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: Responsive.font(context, 55),
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: Responsive.scale(context, 2),
-                                  foreground: Paint()
-                                    ..style = PaintingStyle.stroke
-                                    ..strokeWidth = Responsive.scale(context, 3)
-                                    ..color = Colors.black.withAlpha(180),
+                          // Reserve space for the settings button on the right so the title never overlaps it
+                          left: Responsive.width(context, 70),
+                          right: Responsive.width(context, 70),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          // Manually make the title text, since appBar is already being used
+                          child: ShaderMask(
+                            shaderCallback: (bounds) =>
+                                subtleTextGradient().createShader(
+                                  Rect.fromLTWH(
+                                    0,
+                                    0,
+                                    bounds.width,
+                                    bounds.height,
+                                  ), // Make a rectangle the same size as the text so the gradient covers it
                                 ),
-                              ),
-                              // Fill + glow
-                              Text(
-                                "LEVEL UP!",
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: Responsive.font(context, 55),
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: Responsive.scale(context, 2),
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      offset: Offset(0, 0),
-                                      blurRadius: Responsive.scale(context, 25),
-                                      color: appColorNotifier.value.withAlpha(
-                                        200,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Stroke / outline
+                                Text(
+                                  "LEVEL UP!",
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: Responsive.font(context, 55),
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: Responsive.scale(context, 2),
+                                    foreground: Paint()
+                                      ..style = PaintingStyle.stroke
+                                      ..strokeWidth = Responsive.scale(
+                                        context,
+                                        3,
+                                      )
+                                      ..color = Colors.black.withAlpha(180),
+                                  ),
+                                ),
+                                // Fill + glow
+                                Text(
+                                  "LEVEL UP!",
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: Responsive.font(context, 55),
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: Responsive.scale(context, 2),
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        offset: Offset(0, 0),
+                                        blurRadius: Responsive.scale(
+                                          context,
+                                          25,
+                                        ),
+                                        color: appColorNotifier.value.withAlpha(
+                                          200,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
