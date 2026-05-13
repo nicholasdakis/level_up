@@ -735,7 +735,13 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
             child: SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.sizeOf(context).height,
+                  // Subtract safe area insets so minHeight matches the actual usable space inside SafeArea
+                  // to prevent the Column trying to fill the whole screen height and potentially showing only half
+                  // of "Continue with Google"
+                  minHeight:
+                      MediaQuery.sizeOf(context).height -
+                      MediaQuery.paddingOf(context).top -
+                      MediaQuery.paddingOf(context).bottom,
                 ),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -744,8 +750,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(height: Responsive.padding(context, 24)),
                       // Top section fades in first

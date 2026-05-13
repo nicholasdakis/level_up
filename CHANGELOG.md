@@ -1612,3 +1612,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the NoGlowScrollBehavior to globals.dart from home screen file
 - Added a button in the Developer tab that leads to developer website
 - Tweaked home buttons so that text does not touch the very edges of the buttons, and automatically resizes to be smaller if it needs to
+- Fixed the login screen cutting off the Google button on short phones by subtracting SafeArea insets from the column's minHeight so it fills the actual usable space instead of the full screen height
