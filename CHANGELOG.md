@@ -1610,3 +1610,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Used the google_sign_in package for Android and iOS to prevent the white screen error that appears even on successful logins, along with adding a more native feel to logging in with Google
 - Fixed buttons in Developer tab lightening up when scrolling by using the same NoGlowScrollBehavior class HomeScreen.dart had
 - Moved the NoGlowScrollBehavior to globals.dart from home screen file
+- Added a button in the Developer tab that leads to developer website

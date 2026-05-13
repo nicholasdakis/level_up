@@ -116,6 +116,13 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                   child: Column(
                     children: [
                       socialLink(
+                        assetPath: 'assets/nicholasdakis_website_logo.png',
+                        label: 'nicholasdakis.com',
+                        url: 'https://nicholasdakis.com',
+                        context: context,
+                      ),
+                      SizedBox(height: Responsive.height(context, 12)),
+                      socialLink(
                         assetPath: 'assets/linkedin_logo.png',
                         label: 'LinkedIn',
                         url: 'https://www.linkedin.com/in/nicholasdakis',
