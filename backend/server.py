@@ -17,7 +17,6 @@ from backend.token_manager import TokenManager
 from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
 from backend.services import ProgressionService, FoodService, POIService, SnapshotService
 from backend.schemas import (
-    CheckUserExistsRequest,
     ClaimDailyRewardRequest,
     GetProgressRequest,
     DailyRewardResponse,
@@ -211,14 +210,15 @@ def ping():
         "message": "Pinged."
     }), 200
 
-# Checks if a user exists in Supabase without creating an account or touching Firebase Auth
-# Called before Google Sign-In to enforce TOS for new users
-@app.route("/check_user_exists", methods=["POST"])
+# Checks if a user exists in Supabase by email before Google Sign-In
+# This allows TOS enforcement without ever touching Firebase Auth for new users
+@app.route("/check_user_email_exists", methods=["POST"])
 def check_user_exists():
-    uid, _, err = _parse_and_auth(CheckUserExistsRequest)
-    if err:
-        return err
-    exists = user_repo.user_exists(uid)
+    data = request.get_json()
+    if not data or 'email' not in data:
+        return jsonify({"error": "Missing email"}), 400
+    email = data['email']
+    exists = user_repo.user_exists_by_email(email)
     return jsonify({"exists": exists}), 200
 
 # Route called by the CRON job every 30 minutes
@@ -469,7 +469,15 @@ def get_user_data():
     if err:
         return err
 
-    result = progression_service.get_user_data(uid)
+    # Extract email from the Firebase token to store on new user creation
+    from firebase_admin import auth as fb_auth
+    try:
+        decoded = fb_auth.verify_id_token(body.id_token)
+        email = decoded.get("email")
+    except Exception:
+        email = None
+
+    result = progression_service.get_user_data(uid, email=email)
     response = GetUserDataResponse(**result)
     return jsonify(response.model_dump()), 200
 

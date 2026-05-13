@@ -270,11 +270,12 @@ class ProgressionService: # Service class to handle all progression-related busi
         c = 2 * atan2(sqrt(a), sqrt(1 - a)) # convert angular distance to radians
         return earth_radius * c # multiply by Earth's radius to get meters
 
-    def get_user_data(self, uid: str):
+    def get_user_data(self, uid: str, email: str = None):
         # Returns all user fields plus food logs and reminders in one call
         user = self._repo.get_user(uid)
         if user is None:
-            self._repo.initialize_user_if_new(uid)
+            # Store email on first load so /check_user_exists can find them by email later
+            self._repo.initialize_user_if_new(uid, email=email)
             user = self._repo.get_user(uid)
 
         food_logs = self._repo.get_food_logs(uid)

@@ -16,6 +16,11 @@ class UserRepository:
         result = self._supabase.table("users").select("uid").eq("uid", uid).execute()
         return len(result.data) > 0
 
+    def user_exists_by_email(self, email: str) -> bool:
+        # Checks if a user exists by email — used before Google Sign-In to enforce TOS for new users
+        result = self._supabase.table("users").select("uid").eq("email", email).execute()
+        return len(result.data) > 0
+
     def username_exists(self, uid: str, username: str):
         # Check if the proposed username is taken by another user (case-insensitive because username is a CITEXT), ignoring the user themselves
         result = self._supabase.table("users").select("uid").eq("username", username).neq("uid", uid).execute()
@@ -127,13 +132,13 @@ class UserRepository:
         }).execute()
         return result.data
 
-    def initialize_user_if_new(self, uid: str):
+    def initialize_user_if_new(self, uid: str, email: str = None):
         # Insert a default row for a first-time user, but do nothing if they already exist
+        row = {"uid": uid, "username": uid} # username defaults to UID
+        if email:
+            row["email"] = email # store email so it can be looked up later for TOS enforcement
         self._supabase.table("users").upsert(
-            {
-                "uid": uid,
-                "username": uid, # username defaults to UID
-            },
+            row,
             on_conflict="uid",  # If a row with this uid already exists, do nothing
             ignore_duplicates=True
         ).execute()
