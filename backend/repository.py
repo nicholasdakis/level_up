@@ -11,6 +11,11 @@ class UserRepository:
 
     # Read operations
 
+    def user_exists(self, uid: str) -> bool:
+        # Checks if a user row exists in Supabase without creating anything
+        result = self._supabase.table("users").select("uid").eq("uid", uid).execute()
+        return len(result.data) > 0
+
     def username_exists(self, uid: str, username: str):
         # Check if the proposed username is taken by another user (case-insensitive because username is a CITEXT), ignoring the user themselves
         result = self._supabase.table("users").select("uid").eq("username", username).neq("uid", uid).execute()

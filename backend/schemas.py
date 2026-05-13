@@ -7,6 +7,10 @@ from pydantic import BaseModel, Field
 # Request schemas
 # ==============================================================================
 
+class CheckUserExistsRequest(BaseModel):
+    # Sent by Flutter before Google Sign-In to check if the account exists without creating it
+    id_token: str = Field(..., min_length=1)
+
 class ClaimDailyRewardRequest(BaseModel):
     # Sent by Flutter when the user tries to claim their daily reward
     id_token: str = Field(
