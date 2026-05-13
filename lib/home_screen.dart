@@ -23,18 +23,6 @@ class _HomeAnimationState {
   static bool buttonsAnimated = false;
 }
 
-// Class to remove awkward glow buttons show when scrolling to the very top / bottom
-class NoGlowScrollBehavior extends ScrollBehavior {
-  @override
-  Widget buildOverscrollIndicator(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    return child; // No glow effect
-  }
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 

@@ -43,6 +43,18 @@ Shadow textDropShadow(BuildContext context) {
   );
 }
 
+// Removes the overscroll glow effect that lights up widgets at the top/bottom of a scroll view
+class NoGlowScrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+}
+
 // Tappable social link card with a logo and label
 Widget socialLink({
   required String assetPath,
@@ -51,7 +63,8 @@ Widget socialLink({
   required BuildContext context,
 }) {
   return InkWell(
-    splashColor: appColorNotifier.value.withAlpha(100),
+    splashColor: appColorNotifier.value.withAlpha(60),
+    borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
     onTap: () => url_launcher.launchUrl(
       Uri.parse(url),
       mode: url_launcher.LaunchMode.externalApplication,

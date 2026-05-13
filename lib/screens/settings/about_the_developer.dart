@@ -64,7 +64,9 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
             ),
           ),
         ),
-        body: SingleChildScrollView(
+        body: ScrollConfiguration(
+          behavior: NoGlowScrollBehavior(),
+          child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: Responsive.centeredHorizontalPadding(context, 24),
@@ -151,10 +153,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       ),
                       SizedBox(height: Responsive.height(context, 14)),
                       InkWell(
-                        splashColor: appColorNotifier.value.withAlpha(100),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 12),
-                        ),
+                        splashColor: appColorNotifier.value.withAlpha(60),
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
                         onTap: () {
                           trackTrivialAchievement("send_feedback");
                           sendEmail(
@@ -222,10 +222,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                       ),
                       SizedBox(height: Responsive.height(context, 14)),
                       InkWell(
-                        splashColor: appColorNotifier.value.withAlpha(100),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 12),
-                        ),
+                        splashColor: appColorNotifier.value.withAlpha(60),
+                        borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
                         onTap: () => launchUrl(
                           Uri.parse(
                             "https://www.paypal.com/donate/?business=UR3VZ962M4F4N&item_name=Support+the+developer+of+Level+Up%21&currency_code=USD",
@@ -274,6 +272,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
