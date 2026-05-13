@@ -1602,3 +1602,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the cards that appear when a user clicks a POI consistent with the glass-like appearance of the Nearby Spots card
 - Made the "Find nearby spots" button and overlay text align with the rest of the app style
 - Added an "Open in Maps" option when clicking on a POI using the map_launcher package, which detects installed maps apps and shows a picker if multiple are installed, falling back to Google Maps on web
+- Updated "POI" text in badges to "locations"
