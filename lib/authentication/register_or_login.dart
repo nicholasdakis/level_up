@@ -651,8 +651,9 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
       return;
     }
     try {
-      await authService.value.signInWithGoogle();
+      final result = await authService.value.signInWithGoogle();
       if (!mounted) return;
+      if (result == null) return; // user cancelled the picker
       setState(() {
         notifyingMessage = "Google login successful";
       });

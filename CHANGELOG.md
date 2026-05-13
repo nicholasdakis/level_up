@@ -1613,3 +1613,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a button in the Developer tab that leads to developer website
 - Tweaked home buttons so that text does not touch the very edges of the buttons, and automatically resizes to be smaller if it needs to
 - Fixed the login screen cutting off the Google button on short phones by subtracting SafeArea insets from the column's minHeight so it fills the actual usable space instead of the full screen height
+- Made the google_sign_in picker always appear when a user taps on it instead of auto-signing into their last used account
+- Made exiting Guest mode more obvious by replacing the footer on the home screen with a sign up button
+- Fixed the LEVEL UP! title overlapping the settings icon on narrow screens by adding symmetric horizontal padding equal to the button width
+- On native Android the app renders behind the status bar so the title appeared too high — added status bar height to the title's top padding on non-web platforms so it visually aligns with the PWA version

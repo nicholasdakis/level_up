@@ -8,6 +8,7 @@ import 'screens/settings/settings_icon_button.dart';
 import 'screens/settings.dart';
 import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
+import 'authentication/auth_services.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
 import 'screens/onboarding.dart';
@@ -209,6 +210,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get _tourActive => _tourStep != -1;
 
+  // Guest user footer
+  Widget _buildGuestFooter() {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return GestureDetector(
+      onTap: () async {
+        await authService.value.signOut(); // clears guest state
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          Responsive.width(context, 24),
+          Responsive.height(context, 16),
+          Responsive.width(context, 24),
+          Responsive.height(context, 16) + bottomInset,
+        ),
+        decoration: BoxDecoration(
+          color: darkenColor(appColorNotifier.value, 0.025),
+          border: Border(
+            top: BorderSide(
+              color: Colors.white.withAlpha(25),
+              width: Responsive.height(context, 3),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "You're in guest mode",
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    "Create an account to save your progress",
+                    style: GoogleFonts.manrope(
+                      color: Colors.white54,
+                      fontSize: Responsive.font(context, 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 12)),
+            frostedButton(
+              "Sign Up",
+              context,
+              onPressed: () async {
+                await authService.value
+                    .signOut(); // exits guest mode and redirects to login
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _maybeAnimate(Widget button, Duration delay) {
     if (_HomeAnimationState.buttonsAnimated) return button;
     return button
@@ -363,7 +428,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     flexibleSpace: Center(
                       child: Padding(
                         padding: EdgeInsets.only(
-                          top: Responsive.width(context, 30),
+                          // On web use the original padding; on native add status bar height since flexibleSpace renders behind it
+                          top: kIsWeb
+                              ? Responsive.width(context, 30)
+                              : Responsive.height(context, 20) + MediaQuery.paddingOf(context).top * 1.5,
                           // Reserve space for the settings button on the right so the title never overlaps it
                           left: Responsive.width(context, 70),
                           right: Responsive.width(context, 70),
@@ -629,15 +697,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    // Footer box
-                    Footer(
-                      profilePicture: userManager.insertProfilePicture(),
-                      // Rebuild footer with correct Profile Picture
-                      onProfileImageUpdated: () {
-                        if (!mounted) return;
-                        setState(() {}); // safely rebuild HomeScreen
-                      }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
-                    ),
+                    // Footer: show sign-up prompt for guests, normal XP footer for real users
+                    if (isGuest)
+                      _buildGuestFooter()
+                    else
+                      Footer(
+                        profilePicture: userManager.insertProfilePicture(),
+                        // Rebuild footer with correct Profile Picture
+                        onProfileImageUpdated: () {
+                          if (!mounted) return;
+                          setState(() {}); // safely rebuild HomeScreen
+                        }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
+                      ),
                   ],
                 ),
                 // Align Widget must be the last child of this Stack so it appears above all other widgets

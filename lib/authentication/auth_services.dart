@@ -48,7 +48,10 @@ class AuthService {
       return await firebaseAuth.signInWithPopup(googleProvider);
     } else {
       // Native Android/iOS uses the google_sign_in package to show the native account picker
-      final googleUser = await GoogleSignIn().signIn();
+      // Sign out first so the account picker always appears instead of auto-signing into the last used account
+      final gsi = GoogleSignIn();
+      await gsi.signOut();
+      final googleUser = await gsi.signIn();
       if (googleUser == null) return null; // user cancelled
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
