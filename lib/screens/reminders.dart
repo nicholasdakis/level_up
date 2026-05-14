@@ -1,4 +1,5 @@
 ﻿import 'dart:math';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -302,7 +303,11 @@ class _RemindersState extends State<Reminders> {
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.info, color: Colors.white), // Info icon
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedInformationCircle,
+                  color: Colors.white,
+                  size: Responsive.scale(context, 18),
+                ),
                 SizedBox(width: Responsive.width(context, 10)),
                 Text(message), // Message text
               ],
@@ -425,8 +430,8 @@ class _RemindersState extends State<Reminders> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.notifications_outlined,
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedNotification01,
               color: appColorNotifier.value,
               size: Responsive.scale(context, 22),
             ),
@@ -455,8 +460,8 @@ class _RemindersState extends State<Reminders> {
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete02,
                 color: Colors.redAccent,
                 size: Responsive.scale(context, 20),
               ),
@@ -598,8 +603,8 @@ class _RemindersState extends State<Reminders> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    Icons.schedule,
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedTime01,
                                     color: appColorNotifier.value,
                                     size: Responsive.scale(context, 18),
                                   ),
@@ -618,8 +623,8 @@ class _RemindersState extends State<Reminders> {
                                     ),
                                   ),
 
-                                  Icon(
-                                    Icons.chevron_right,
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedArrowRight01,
                                     color: Colors.white38,
                                     size: Responsive.scale(context, 18),
                                   ),
@@ -693,8 +698,8 @@ class _RemindersState extends State<Reminders> {
                               ),
                               child: Column(
                                 children: [
-                                  Icon(
-                                    Icons.notifications_none,
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedNotification02,
                                     color: Colors.white24,
                                     size: Responsive.scale(context, 48),
                                   ),
@@ -740,8 +745,9 @@ class _RemindersState extends State<Reminders> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.info_outline,
+                                HugeIcon(
+                                  icon:
+                                      HugeIcons.strokeRoundedInformationCircle,
                                   color: Colors.white38,
                                   size: Responsive.scale(context, 18),
                                 ),
@@ -774,8 +780,8 @@ class _RemindersState extends State<Reminders> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.phone_iphone,
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedSmartPhone01,
                                   color: Colors.white38,
                                   size: Responsive.scale(context, 18),
                                 ),

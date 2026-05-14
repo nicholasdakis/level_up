@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -350,9 +351,10 @@ class _FoodLoggingState extends State<FoodLogging> {
               await context.push('/settings/preferences');
               if (mounted) setState(() {});
             },
-            icon: Icon(
-              Icons.track_changes_outlined,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedDart,
               color: lightenColor(appColor, 0.30),
+              size: Responsive.scale(context, 24),
             ),
             label: Text(
               "Set your nutrition goals",
@@ -481,10 +483,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                   },
                 );
               },
-              icon: Icon(
-                Icons.bar_chart_rounded,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAnalytics01,
                 color: barColor,
-                size: Responsive.font(context, 16),
+                size: Responsive.font(context, 26),
               ),
               label: Text(
                 "View Analytics",
@@ -629,8 +631,8 @@ class _FoodLoggingState extends State<FoodLogging> {
           await context.push('/settings/preferences');
           if (mounted) setState(() {});
         },
-        icon: Icon(
-          Icons.add_circle_outline,
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedAddCircle,
           color: lightenColor(appColor, 0.30),
           size: Responsive.scale(context, 18),
         ),
@@ -721,8 +723,8 @@ class _FoodLoggingState extends State<FoodLogging> {
                 AnimatedRotation(
                   turns: isCollapsed ? -0.5 : 0,
                   duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowDown01,
                     color: Colors.white38,
                     size: Responsive.scale(context, 20),
                   ),
@@ -773,7 +775,11 @@ class _FoodLoggingState extends State<FoodLogging> {
                       padding: EdgeInsets.only(
                         right: Responsive.width(context, 20),
                       ),
-                      child: const Icon(Icons.delete, color: Colors.white),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete01,
+                        color: Colors.white,
+                        size: Responsive.scale(context, 22),
+                      ),
                     ),
                     direction: DismissDirection.endToStart,
                     confirmDismiss: (_) async {
@@ -793,11 +799,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.restaurant_outlined,
-                              color: accentColor,
-                              size: Responsive.scale(context, 20),
-                            ),
                             SizedBox(width: Responsive.width(context, 12)),
                             Expanded(
                               child: Column(
@@ -822,8 +823,8 @@ class _FoodLoggingState extends State<FoodLogging> {
                             ),
                             IconButton(
                               // Edit serving size button
-                              icon: Icon(
-                                Icons.edit_outlined,
+                              icon: HugeIcon(
+                                icon: HugeIcons.strokeRoundedEdit03,
                                 color: Colors.white54,
                                 size: Responsive.scale(context, 18),
                               ),
@@ -835,8 +836,8 @@ class _FoodLoggingState extends State<FoodLogging> {
                             SizedBox(width: Responsive.width(context, 5)),
                             // Delete food button
                             IconButton(
-                              icon: Icon(
-                                Icons.delete_outline,
+                              icon: HugeIcon(
+                                icon: HugeIcons.strokeRoundedDelete02,
                                 color: Colors.redAccent.withAlpha(180),
                                 size: Responsive.scale(context, 18),
                               ),
@@ -877,8 +878,8 @@ class _FoodLoggingState extends State<FoodLogging> {
                   },
                 );
               },
-              icon: Icon(
-                Icons.add,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
                 color: accentColor,
                 size: Responsive.font(context, 17),
               ),

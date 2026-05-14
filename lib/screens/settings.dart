@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:pwa_install/pwa_install.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
@@ -49,8 +50,8 @@ Widget buildSettingsDrawer(
           horizontal: Responsive.width(context, 20),
           vertical: Responsive.height(context, 2),
         ),
-        leading: Icon(
-          icon,
+        leading: HugeIcon(
+          icon: icon,
           color: iconColor,
           size: Responsive.scale(context, 22),
         ),
@@ -62,8 +63,8 @@ Widget buildSettingsDrawer(
           ),
         ),
         trailing: showChevron
-            ? Icon(
-                Icons.chevron_right,
+            ? HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 color: Colors.white38,
                 size: Responsive.scale(context, 20),
               )
@@ -167,7 +168,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 buildActionTile(
-                  icon: Icons.account_circle_outlined,
+                  icon: HugeIcons.strokeRoundedSlidersHorizontal,
                   label: "Personal Preferences",
                   onTap: () async {
                     Navigator.pop(context); // close drawer
@@ -178,7 +179,7 @@ Widget buildSettingsDrawer(
                   },
                 ),
                 buildActionTile(
-                  icon: Icons.info_outline,
+                  icon: HugeIcons.strokeRoundedPhoneDeveloperMode,
                   label: "About The Developer",
                   onTap: () async {
                     Navigator.pop(context);
@@ -186,7 +187,7 @@ Widget buildSettingsDrawer(
                   },
                 ),
                 buildActionTile(
-                  icon: Icons.feedback_outlined,
+                  icon: HugeIcons.strokeRoundedComment01,
                   label: "Send Feedback",
                   onTap: () async {
                     Navigator.pop(context);
@@ -203,7 +204,7 @@ Widget buildSettingsDrawer(
                 if (kIsWeb && !openedAsPwa)
                   if (nativeSupported)
                     buildActionTile(
-                      icon: Icons.install_mobile,
+                      icon: HugeIcons.strokeRoundedInstallingUpdates01,
                       label: "Install App as PWA",
                       tooltip:
                           "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
@@ -229,7 +230,7 @@ Widget buildSettingsDrawer(
                     )
                   else // Safari, Firefox, etc.
                     buildActionTile(
-                      icon: Icons.install_mobile,
+                      icon: HugeIcons.strokeRoundedInstallingUpdates01,
                       label: "Install App as PWA",
                       tooltip:
                           "PWA = Progressive Web App: a web app that feels like a native app and updates automatically.",
@@ -250,7 +251,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 buildActionTile(
-                  icon: Icons.logout,
+                  icon: HugeIcons.strokeRoundedLogout01,
                   label: "Log Out",
                   iconColor: Colors.red.withAlpha(200),
                   textColor: Colors.red.withAlpha(200),
@@ -302,7 +303,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 child: Text(
-                  "BETA 05.13",
+                  "BETA 05.14",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 11),
                     color: Colors.white.withAlpha(80),

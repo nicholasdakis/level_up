@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
@@ -340,8 +341,8 @@ class _ResultsState extends State<Results> {
         children: [
           Row(
             children: [
-              Icon(
-                icon,
+              HugeIcon(
+                icon: icon,
                 color: labelColor,
                 size: Responsive.scale(context, 18),
               ),
@@ -378,8 +379,8 @@ class _ResultsState extends State<Results> {
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
       child: Row(
         children: [
-          Icon(
-            icon,
+          HugeIcon(
+            icon: icon,
             color: Colors.white38,
             size: Responsive.scale(context, 13),
           ),
@@ -497,7 +498,7 @@ class _ResultsState extends State<Results> {
             children: [
               // Tab 1: User results
               _tab([
-                _sectionWithIcon("YOUR BMR", Icons.favorite_border),
+                _sectionWithIcon("YOUR BMR", HugeIcons.strokeRoundedHeartCheck),
                 _statCard(
                   bmr,
                   "calories / day at rest",
@@ -506,10 +507,7 @@ class _ResultsState extends State<Results> {
                       "What your body burns just to stay alive. Does not include any physical activity.",
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon(
-                  "YOUR TDEE",
-                  Icons.local_fire_department_outlined,
-                ),
+                _sectionWithIcon("YOUR TDEE", HugeIcons.strokeRoundedFire),
                 _statCard(
                   tdee.toString(),
                   "calories / day total",
@@ -520,7 +518,7 @@ class _ResultsState extends State<Results> {
                 SizedBox(height: Responsive.height(context, 20)),
                 _sectionWithIcon(
                   "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
-                  Icons.flag_outlined,
+                  HugeIcons.strokeRoundedFlag01,
                 ),
                 _infoCard(calculateGoal()),
                 SizedBox(height: Responsive.height(context, 40)),
@@ -528,17 +526,17 @@ class _ResultsState extends State<Results> {
 
               // Tab 2: Educational section
               _tab([
-                _sectionWithIcon("WHAT IS BMR?", Icons.info_outline),
+                _sectionWithIcon(
+                  "WHAT IS BMR?",
+                  HugeIcons.strokeRoundedInformationCircle,
+                ),
                 _infoCard(
                   widget.equation == "Mifflin-St Jeor"
                       ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
                       : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon(
-                  "WHAT IS TDEE?",
-                  Icons.local_fire_department_outlined,
-                ),
+                _sectionWithIcon("WHAT IS TDEE?", HugeIcons.strokeRoundedFire),
                 _infoCard(
                   "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
                 ),
@@ -547,24 +545,27 @@ class _ResultsState extends State<Results> {
 
               // Tab 3: Full BMR formulas for reference
               _tab([
-                _sectionWithIcon("BMR FORMULAS", Icons.calculate_outlined),
+                _sectionWithIcon(
+                  "BMR FORMULAS",
+                  HugeIcons.strokeRoundedCalculate,
+                ),
                 _formulaCard(
                   _bmrFormulaText("Male"),
                   "Male",
                   Colors.lightBlueAccent,
-                  Icons.male,
+                  HugeIcons.strokeRoundedMaleSymbol,
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
                 _formulaCard(
                   _bmrFormulaText("Female"),
                   "Female",
                   Colors.pinkAccent,
-                  Icons.female,
+                  HugeIcons.strokeRoundedFemaleSymbol,
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
                 _sectionWithIcon(
                   "ACTIVITY LEVEL MULTIPLIERS",
-                  Icons.directions_run,
+                  HugeIcons.strokeRoundedMultiplicationSign,
                 ),
 
                 _infoCard(

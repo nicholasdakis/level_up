@@ -1619,3 +1619,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - On native Android the app renders behind the status bar so the title appeared too high — added status bar height to the title's top padding on non-web platforms so it visually aligns with the PWA version
 - Added an email field to the users table to prevent bypassing the TOS and Privacy Policy check with "Continue with Google". Upon signup, it checks if the email exists in Supabase, and if it doesn't then it blocks entry and shows a TOS dialog — on native this check runs before Firebase is touched, on web the Firebase session is kept alive after the check fails so the retry skips the popup and routes in directly once the user accepts
 - Added backend route check_user_email_exists that checks if the email exists in the users table
+
+## 2026-05-14
+- Used the hugeicons package to replace defualt Material icons with more modern icons
+- Added a box decoration around the icons in the Badges tab
+- Added the missing border to Badges tab between header and body so it is consistent with the other screens

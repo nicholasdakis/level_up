@@ -115,6 +115,9 @@ dependencies:
   # charts
   fl_chart: ^0.70.2
 
+  # modern stroke-style icons
+  hugeicons: ^0.0.7
+
   # calendar widget for date range picking
   table_calendar: ^3.1.3
 
@@ -143,6 +146,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+    - family: HugeIcons
+      fonts:
+        - asset: packages/hugeicons/fonts/hugeicons-stroke-rounded.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

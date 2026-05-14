@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import "package:go_router/go_router.dart";
@@ -64,37 +65,37 @@ const List<String> tabLabels = [
 
 // Icons stay client-side since IconData is Flutter-specific
 const Map<String, IconData> _achievementIcons = {
-  "level": Icons.arrow_upward,
-  "daily_claims": Icons.calendar_today,
-  "daily_claim_streak": Icons.local_fire_department,
-  "poi_visits": Icons.explore,
-  "poi_categories": Icons.category,
-  "poi_regular": Icons.repeat,
-  "open_food_logging": Icons.restaurant_menu,
-  "open_explore": Icons.map,
-  "open_reminders": Icons.alarm,
-  "open_badges": Icons.emoji_events,
-  "open_leaderboard": Icons.leaderboard,
-  "food_logs": Icons.restaurant,
-  "food_recent": Icons.history,
-  "food_full_day": Icons.dinner_dining,
-  "food_streak": Icons.date_range,
-  "food_manual": Icons.edit,
-  "food_barcode": Icons.qr_code_scanner,
-  "food_search": Icons.search,
-  "calorie_calculator": Icons.calculate,
-  "set_reminder": Icons.notifications_active,
-  "delete_reminder": Icons.delete_outline,
-  "future_reminder": Icons.event,
-  "active_reminders": Icons.notifications,
-  "set_username": Icons.badge,
-  "set_pfp": Icons.camera_alt,
-  "change_app_color": Icons.palette,
-  "send_feedback": Icons.feedback,
-  "switch_imperial": Icons.straighten,
-  "color_indecisive": Icons.color_lens,
-  "change_username": Icons.swap_horiz,
-  "total_achievements": Icons.stars,
+  "level": HugeIcons.strokeRoundedStairs01,
+  "daily_claims": HugeIcons.strokeRoundedCalendar02,
+  "daily_claim_streak": HugeIcons.strokeRoundedFire,
+  "poi_visits": HugeIcons.strokeRoundedCompass,
+  "poi_categories": HugeIcons.strokeRoundedLocation10,
+  "poi_regular": HugeIcons.strokeRoundedRepeat,
+  "open_food_logging": HugeIcons.strokeRoundedPencil,
+  "open_explore": HugeIcons.strokeRoundedLocation01,
+  "open_reminders": HugeIcons.strokeRoundedAlarmClock,
+  "open_badges": HugeIcons.strokeRoundedCrown,
+  "open_leaderboard": HugeIcons.strokeRoundedMedal01,
+  "food_logs": HugeIcons.strokeRoundedNote,
+  "food_recent": HugeIcons.strokeRoundedClock01,
+  "food_full_day": HugeIcons.strokeRoundedRestaurant03,
+  "food_streak": HugeIcons.strokeRoundedCalendar02,
+  "food_manual": HugeIcons.strokeRoundedEdit01,
+  "food_barcode": HugeIcons.strokeRoundedQrCode,
+  "food_search": HugeIcons.strokeRoundedSearch01,
+  "calorie_calculator": HugeIcons.strokeRoundedCalculate,
+  "set_reminder": HugeIcons.strokeRoundedNotification01,
+  "delete_reminder": HugeIcons.strokeRoundedDelete02,
+  "future_reminder": HugeIcons.strokeRoundedCalendarAdd01,
+  "active_reminders": HugeIcons.strokeRoundedNotification02,
+  "set_username": HugeIcons.strokeRoundedUserCircle,
+  "set_pfp": HugeIcons.strokeRoundedCamera01,
+  "change_app_color": HugeIcons.strokeRoundedColors,
+  "send_feedback": HugeIcons.strokeRoundedComment01,
+  "switch_imperial": HugeIcons.strokeRoundedRuler,
+  "color_indecisive": HugeIcons.strokeRoundedColorPicker,
+  "change_username": HugeIcons.strokeRoundedUserCircle,
+  "total_achievements": HugeIcons.strokeRoundedMedal02,
 };
 
 class Badges extends StatefulWidget {
@@ -124,7 +125,7 @@ class _BadgesState extends State<Badges> {
           id: 'skeleton_${s}_$i',
           name: BoneMock.name,
           description: BoneMock.name,
-          icon: Icons.star,
+          icon: HugeIcons.strokeRoundedStar,
           tiers: [1, 5, 10],
           unit: BoneMock.name,
           section: tabSections[s],
@@ -165,7 +166,7 @@ class _BadgesState extends State<Badges> {
                 id: d['id'] as String,
                 name: d['name'] as String,
                 description: d['description'] as String,
-                icon: _achievementIcons[d['id']] ?? Icons.star,
+                icon: _achievementIcons[d['id']] ?? HugeIcons.strokeRoundedStar,
                 tiers: List<int>.from(d['tiers'] as List),
                 unit: d['unit'] as String,
                 section: d['section'] as String,
@@ -269,15 +270,15 @@ class _BadgesState extends State<Badges> {
     if (claimed) {
       chipColor = appColorNotifier.value.withAlpha(80);
       textColor = Colors.white;
-      statusIcon = Icons.check_circle;
+      statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
       chipColor = appColorNotifier.value.withAlpha(160);
       textColor = Colors.white;
-      statusIcon = Icons.star;
+      statusIcon = HugeIcons.strokeRoundedStar;
     } else {
       chipColor = Colors.white.withAlpha(12);
       textColor = Colors.white38;
-      statusIcon = Icons.lock_outline;
+      statusIcon = HugeIcons.strokeRoundedLockKey;
     }
 
     final chip = GestureDetector(
@@ -300,8 +301,8 @@ class _BadgesState extends State<Badges> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              statusIcon,
+            HugeIcon(
+              icon: statusIcon,
               color: textColor,
               size: Responsive.scale(context, 14),
             ),
@@ -384,10 +385,31 @@ class _BadgesState extends State<Badges> {
             // Top row: icon, name, and progress count
             Row(
               children: [
-                Icon(
-                  def.icon,
-                  color: appColorNotifier.value,
-                  size: Responsive.scale(context, 24),
+                Container(
+                  padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                  decoration: BoxDecoration(
+                    color: lightenColor(
+                      appColorNotifier.value,
+                      0.05,
+                    ).withAlpha(80),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 10),
+                    ),
+                    border: Border.all(
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.25,
+                      ).withAlpha(60),
+                      width: Responsive.width(context, 2),
+                    ),
+                  ),
+                  child: HugeIcon(
+                    icon: def.icon,
+                    color: appColorNotifier.value == defaultAppColor
+                        ? Colors.white70
+                        : lightenColor(appColorNotifier.value, 0.2),
+                    size: Responsive.scale(context, 24),
+                  ),
                 ),
                 SizedBox(width: Responsive.width(context, 14)),
                 Expanded(
@@ -547,23 +569,36 @@ class _BadgesState extends State<Badges> {
                 ),
               ),
               title: createTitle("Badges", context),
-              bottom: TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                indicatorColor: Colors.white,
-                indicatorWeight: Responsive.height(context, 3),
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white38,
-                labelStyle: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(
+                  Responsive.height(context, 3) + kTextTabBarHeight,
                 ),
-                unselectedLabelStyle: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w500,
+                child: Column(
+                  children: [
+                    Container(
+                      height: Responsive.height(context, 3),
+                      color: Colors.white.withAlpha(25),
+                    ),
+                    TabBar(
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      indicatorColor: Colors.white,
+                      indicatorWeight: Responsive.height(context, 3),
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white38,
+                      dividerColor: Colors.transparent,
+                      labelStyle: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        fontWeight: FontWeight.w700,
+                      ),
+                      unselectedLabelStyle: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      tabs: [for (final label in tabLabels) Tab(text: label)],
+                    ),
+                  ],
                 ),
-                tabs: [for (final label in tabLabels) Tab(text: label)],
-                dividerColor: Colors.white.withAlpha(25),
               ),
             ),
             body: Stack(

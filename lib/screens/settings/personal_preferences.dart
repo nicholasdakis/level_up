@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -442,14 +443,23 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               Container(
                 padding: EdgeInsets.all(Responsive.scale(context, 8)),
                 decoration: BoxDecoration(
-                  color: appColorNotifier.value.withAlpha(40),
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.05,
+                  ).withAlpha(80),
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 10),
                   ),
+                  border: Border.all(
+                    color: lightenColor(
+                      appColorNotifier.value,
+                      0.25,
+                    ).withAlpha(60),
+                    width: Responsive.width(context, 2),
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  // use white if default theme, otherwise lighten the user's chosen color
+                child: HugeIcon(
+                  icon: icon,
                   color: appColorNotifier.value == defaultAppColor
                       ? Colors.white70
                       : lightenColor(appColorNotifier.value, 0.2),
@@ -487,8 +497,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               if (trailing != null)
                 trailing
               else if (onTap != null)
-                Icon(
-                  Icons.chevron_right,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
                   color: Colors.white38,
                   size: Responsive.scale(context, 20),
                 ),
@@ -597,7 +607,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       child: Column(
                         children: [
                           buildPreferenceRow(
-                            icon: Icons.palette_outlined,
+                            icon: HugeIcons.strokeRoundedPaintBoard,
                             label: "App Theme Color",
                             subtitle: "Customize your app's color scheme",
                             trailing: colorPreview,
@@ -623,14 +633,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       child: Column(
                         children: [
                           buildPreferenceRow(
-                            icon: Icons.camera_alt_outlined,
+                            icon: HugeIcons.strokeRoundedCamera01,
                             label: "Profile Picture",
                             subtitle: "Update your profile picture",
                             onTap: pickProfileImage,
                           ),
                           buildDivider(),
                           buildPreferenceRow(
-                            icon: Icons.person_outline,
+                            icon: HugeIcons.strokeRoundedUserCircle,
                             label: "Username",
                             subtitle:
                                 currentUserData?.username !=
@@ -669,7 +679,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       child: Column(
                         children: [
                           buildPreferenceRow(
-                            icon: Icons.track_changes_outlined,
+                            icon: HugeIcons.strokeRoundedTarget01,
                             label: "Nutrition and Weight Goals",
                             // show a summary of current goals if they exist
                             subtitle:
@@ -702,8 +712,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         children: [
                           buildPreferenceRow(
                             icon: notificationsEnabled
-                                ? Icons.notifications_active_outlined
-                                : Icons.notifications_off_outlined,
+                                ? HugeIcons.strokeRoundedNotification01
+                                : HugeIcons.strokeRoundedNotificationOff01,
                             label: "Push Notifications",
                             subtitle: notificationsEnabled
                                 ? "Enabled"

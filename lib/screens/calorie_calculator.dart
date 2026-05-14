@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
@@ -158,8 +159,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (opt.icon != null) ...[
-                        Icon(
-                          opt.icon,
+                        HugeIcon(
+                          icon: opt.icon!,
                           size: Responsive.scale(context, 15),
                           color: isSelected ? Colors.white : Colors.white54,
                         ),
@@ -249,7 +250,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         ),
         Row(
           children: [
-            _sliderButton(Icons.remove, decrement),
+            _sliderButton(HugeIcons.strokeRoundedRemove01, decrement),
             Expanded(
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
@@ -271,7 +272,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
               ),
             ),
-            _sliderButton(Icons.add, increment),
+            _sliderButton(HugeIcons.strokeRoundedAdd01, increment),
           ],
         ),
       ],
@@ -290,8 +291,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
           borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
           border: Border.all(color: Colors.white.withAlpha(30)),
         ),
-        child: Icon(
-          icon,
+        child: HugeIcon(
+          icon: icon,
           color: Colors.white70,
           size: Responsive.font(context, 14),
         ),
@@ -540,11 +541,15 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         label: "SEX",
                         selectedValue: sex,
                         options: [
-                          (value: 'Male', label: 'Male', icon: Icons.male),
+                          (
+                            value: 'Male',
+                            label: 'Male',
+                            icon: HugeIcons.strokeRoundedMaleSymbol,
+                          ),
                           (
                             value: 'Female',
                             label: 'Female',
-                            icon: Icons.female,
+                            icon: HugeIcons.strokeRoundedFemaleSymbol,
                           ),
                         ],
                         onChanged: (value) => setState(() => sex = value),
@@ -754,27 +759,27 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildActivityRow(
-                        Icons.weekend_outlined,
+                        HugeIcons.strokeRoundedSofa01,
                         "Sedentary",
                         "Low or no exercise.",
                       ),
                       _buildActivityRow(
-                        Icons.directions_walk,
+                        HugeIcons.strokeRoundedRunningShoes,
                         "Light",
                         "Light exercise 1–3 days per week.",
                       ),
                       _buildActivityRow(
-                        Icons.directions_bike,
+                        HugeIcons.strokeRoundedBicycle01,
                         "Moderate",
                         "Moderate exercise 3–5 days per week.",
                       ),
                       _buildActivityRow(
-                        Icons.fitness_center,
+                        HugeIcons.strokeRoundedDumbbell01,
                         "Active",
                         "Hard exercise 6–7 days per week.",
                       ),
                       _buildActivityRow(
-                        Icons.bolt,
+                        HugeIcons.strokeRoundedFlash,
                         "Very Active",
                         "Very hard exercise or physical job 6–7 days per week.",
                         isLast: true,
@@ -809,7 +814,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                               SnackBar(
                                 content: Row(
                                   children: [
-                                    const Icon(Icons.info, color: Colors.white),
+                                    HugeIcon(
+                                      icon: HugeIcons
+                                          .strokeRoundedInformationCircle,
+                                      color: Colors.white,
+                                      size: Responsive.scale(context, 20),
+                                    ),
                                     SizedBox(
                                       width: Responsive.width(context, 10),
                                     ),
@@ -896,8 +906,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
+          HugeIcon(
+            icon: icon,
             size: Responsive.scale(context, 16),
             color: Colors.white38,
           ),
