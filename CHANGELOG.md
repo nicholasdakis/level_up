@@ -1624,3 +1624,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Used the hugeicons package to replace defualt Material icons with more modern icons
 - Added a box decoration around the icons in the Badges tab
 - Added the missing border to Badges tab between header and body so it is consistent with the other screens
+- Updated authDomain from firebase to the website domain to fix sessionStorage being lost when pressing Continue with Google

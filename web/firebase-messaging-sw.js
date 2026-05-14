@@ -7,7 +7,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-comp
 
 const firebaseConfig = {
   apiKey: "AIzaSyDJGN1oGmrLRFnyJL3PMj2G_-hyJeKywnE", // identifier, not secret
-  authDomain: "level-up-a3181.firebaseapp.com",
+  authDomain: "nicholasdakis.com",
   projectId: "level-up-a3181",
   storageBucket: "level-up-a3181.firebasestorage.app",
   messagingSenderId: "722650087969",
