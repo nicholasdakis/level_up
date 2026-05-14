@@ -7,7 +7,7 @@ import 'authentication/register_or_login.dart';
 import 'screens/calorie_calculator.dart';
 import 'screens/calorie_calculator/results.dart';
 import 'screens/food_logging.dart';
-import 'screens/food_logging_charts.dart';
+import 'screens/food_analytics.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
@@ -167,7 +167,7 @@ final GoRouter appRouter = GoRouter(
             final p = state.extra as Map<String, dynamic>;
             return _slideUpPage(
               key: state.pageKey,
-              child: FoodLoggingChartsScreen(
+              child: FoodAnalyticsScreen(
                 initialDate: p['initialDate'] as DateTime,
                 onDateChanged: p['onDateChanged'] as void Function(DateTime)?,
               ),

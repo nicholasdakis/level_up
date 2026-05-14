@@ -1625,3 +1625,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a box decoration around the icons in the Badges tab
 - Added the missing border to Badges tab between header and body so it is consistent with the other screens
 - Updated authDomain from firebase to the website domain to fix sessionStorage being lost when pressing Continue with Google
+- Removed the hard-coded colors in the Food Analytics tab
+- Replaced the pie charts with bar charts so using uniform colors stays readable
+- Replaced Material icons with hugeicons package for the Food Analytics tab
+- Added the desktop width constraint to the Food Analytics tab
+- Renamed food_logging_charts file to food_analytics
