@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
@@ -40,12 +42,45 @@ class AuthService {
     appInitialized = false;
   }
 
-  Future<UserCredential?> signInWithGoogle() async {
+  // CONTINUE WITH GOOGLE BUTTON
+
+  // On native: checks if the user exists in Supabase BEFORE signing into Firebase
+  // so new users never enter the app without accepting TOS
+  Future<UserCredential?> signInWithGoogle({bool agreedToTerms = false}) async {
+    // Web check
     if (kIsWeb) {
-      // Web uses Firebase popup
       final googleProvider = GoogleAuthProvider();
       googleProvider.setCustomParameters({'prompt': 'select_account'});
-      return await firebaseAuth.signInWithPopup(googleProvider);
+      suppressAuthRedirect = true;
+      try {
+        if (agreedToTerms && firebaseAuth.currentUser != null) {
+          suppressAuthRedirect = false;
+          return null;
+        }
+        final result = await firebaseAuth.signInWithPopup(googleProvider);
+        final email = result.user?.email;
+        if (email != null) {
+          final response = await http
+              .post(
+                Uri.parse('$backendBaseUrl/check_user_email_exists'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({'email': email}),
+              )
+              .timeout(const Duration(seconds: 5));
+          final exists = jsonDecode(response.body)['exists'] == true;
+          if (!exists) {
+            throw FirebaseAuthException(code: 'new-user-no-tos');
+          }
+        }
+        suppressAuthRedirect = false;
+        return result;
+      } catch (e) {
+        if (e is! FirebaseAuthException || e.code != 'new-user-no-tos') {
+          suppressAuthRedirect = false;
+        }
+        rethrow;
+      }
+      // Native check
     } else {
       // Native Android/iOS uses the google_sign_in package to show the native account picker
       // Sign out first so the account picker always appears instead of auto-signing into the last used account
@@ -53,6 +88,23 @@ class AuthService {
       await gsi.signOut();
       final googleUser = await gsi.signIn();
       if (googleUser == null) return null; // user cancelled
+
+      // Check by email before touching Firebase — no auth state change for new users
+      final response = await http
+          .post(
+            Uri.parse('$backendBaseUrl/check_user_email_exists'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': googleUser.email}),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      final body = jsonDecode(response.body);
+      final exists = body['exists'] == true;
+      if (!exists && !agreedToTerms) {
+        throw FirebaseAuthException(code: 'new-user-no-tos');
+      }
+
+      // User exists or TOS accepted — safe to sign into Firebase
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,

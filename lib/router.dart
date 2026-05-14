@@ -79,6 +79,9 @@ final GoRouter appRouter = GoRouter(
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
+    if (suppressAuthRedirect) {
+      return null; // TOS check in progress — hold position
+    }
     final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';

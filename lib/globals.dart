@@ -23,6 +23,9 @@ bool appInitialized = false;
 // set to true when the user chooses "Continue as Guest" — skips auth and backend writes
 bool isGuest = false;
 
+// set to true while a Google Sign-In TOS check is in progress — suppresses router redirect
+bool suppressAuthRedirect = false;
+
 // Notifies go_router to re-run redirect when guest state changes
 ValueNotifier<bool> guestNotifier = ValueNotifier<bool>(false);
 

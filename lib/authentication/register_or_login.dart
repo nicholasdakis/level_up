@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
 import '../guest.dart';
+import '../router.dart';
 import 'auth_services.dart';
 import '../utility/responsive.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -643,25 +644,42 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
 
   // Method to sign the user in with Google
   Future<void> handleGoogleSignIn() async {
-    if (!isLoginMode && !agreedToTerms) {
-      setState(() {
-        notifyingMessage =
-            "Please agree to the Privacy Policy and Terms of Service to continue.";
-      });
-      return;
-    }
     try {
-      final result = await authService.value.signInWithGoogle();
+      await authService.value.signInWithGoogle(agreedToTerms: agreedToTerms);
       if (!mounted) return;
-      if (result == null) return; // user cancelled the picker
-      setState(() {
-        notifyingMessage = "Google login successful";
-      });
+      appRouter.refresh();
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      if (e.code == 'new-user-no-tos') {
+        // New user — switch to sign-up tab and show TOS dialog
+        setState(() => isLoginMode = false);
+        await showFrostedAlertDialog(
+          context: context,
+          title: "One more step",
+          content: Text(
+            "Please agree to the Privacy Policy and Terms of Service before creating an account.",
+            style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Expanded(
+              child: Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Got it"),
+                ),
+              ),
+            ),
+          ],
+        );
+      } else {
+        setState(
+          () => notifyingMessage = "Google sign in failed: ${e.message}",
+        );
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        notifyingMessage = "Google sign in failed: $e";
-      });
+      setState(() => notifyingMessage = "Google sign in failed: $e");
     }
   }
 
