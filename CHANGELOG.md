@@ -1641,3 +1641,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the confetti in the Explore tab to confetti.dart
 - Unified the padding across all screens to feel more consistent across the app
 - Fixed the frosted alert dialogs looking like they had two separate borders on wider screens by wrapping it in its own border and removing the default border of Dialog
+- Made a showCalcDialog method that builds a mini calculator that supports basic operations and is wrapped in a frosted dialog
+- Added a calcSuffixIcon method that adds a calculator icon button to the "Serving Size" dialogs that opens the calculator when clicked
+- The calculator is pre-filled with what was last stored for the serving size dialog

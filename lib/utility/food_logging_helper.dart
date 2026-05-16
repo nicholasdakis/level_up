@@ -1,3 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '../globals.dart';
+import 'responsive.dart';
+
 class FoodLoggingHelper {
   // Method that puts DateTime objects in the form that foodDataByDate expects
   static String formatDateKey(DateTime date) {
@@ -120,4 +126,282 @@ class FoodLoggingHelper {
     if (segments.length == 1) return segments.first;
     return '${segments.take(segments.length - 1).join(', ')}, and ${segments.last}';
   }
+}
+
+// Calculator icon button for serving size fields
+Widget calcSuffixIcon(BuildContext context, TextEditingController controller) {
+  return GestureDetector(
+    onTap: () async {
+      final result = await showCalcDialog(
+        context,
+        initialValue: controller.text.trim(),
+      );
+      if (result != null) {
+        controller.text = result;
+        controller.selection = TextSelection.collapsed(
+          offset:
+              result.length, // move cursor to end so it doesn't look selected
+        );
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.all(Responsive.scale(context, 8)),
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedCalculator,
+        color: Colors.white38,
+        size: Responsive.scale(context, 18),
+      ),
+    ),
+  );
+}
+
+// Opens a calculator dialog so the user can do quick math quickly
+Future<String?> showCalcDialog(
+  BuildContext context, {
+  String initialValue = '',
+}) {
+  String expression = initialValue; // tracks the raw input string (e.g. "35x7")
+  String display = initialValue.isNotEmpty
+      ? initialValue
+      : '0'; // show existing value instead of defaulting to 0
+
+  // operator buttons get a tinted color to stand out from digit buttons
+  final buttons = [
+    ['7', '8', '9', '÷'],
+    ['4', '5', '6', '×'],
+    ['1', '2', '3', '-'],
+    ['Clear', '0', '.', '+'],
+  ];
+
+  return showFrostedDialog<String>(
+    context: context,
+    child: StatefulBuilder(
+      builder: (context, setState) {
+        void press(String val) {
+          setState(() {
+            if (val == 'Clear') {
+              // clear resets both the display and the running expression
+              expression = '';
+              display = '0';
+            } else if (val == '=') {
+              try {
+                // swap display symbols to actual operators before evaluating
+                final expr = expression
+                    .replaceAll('×', '*')
+                    .replaceAll('÷', '/');
+                // regex splits on operator boundaries so each part starts with its operator
+                final parts = expr.split(RegExp(r'(?<=[0-9.])(?=[+\-*/])'));
+                double result = double.parse(parts[0]);
+                for (int i = 1; i < parts.length; i++) {
+                  final op = parts[i][0];
+                  final num = double.parse(parts[i].substring(1));
+                  if (op == '+') {
+                    result += num;
+                  } else if (op == '-') {
+                    result -= num;
+                  } else if (op == '*') {
+                    result *= num;
+                  } else if (op == '/') {
+                    result /= num;
+                  }
+                }
+                // drop the decimal if the result is a whole number
+                display = result % 1 == 0
+                    ? result.toInt().toString()
+                    : result.toStringAsFixed(2);
+                expression = display; // so pressing = again doesn't re-evaluate
+              } catch (_) {
+                display = 'Error';
+                expression = '';
+              }
+            } else {
+              expression += val;
+              display = expression;
+            }
+          });
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Calculator",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 20),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 16)),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 12),
+                vertical: Responsive.height(context, 10),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(15),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 10),
+                ),
+              ),
+              child: Text(
+                display,
+                textAlign: TextAlign.right,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 24),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 12)),
+            for (final row in buttons)
+              Padding(
+                padding: EdgeInsets.only(bottom: Responsive.height(context, 8)),
+                child: Row(
+                  children: [
+                    for (final btn in row) ...[
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => press(btn),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: Responsive.height(context, 12),
+                            ),
+                            margin: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 3),
+                            ),
+                            decoration: BoxDecoration(
+                              color: ['+', '-', '×', '÷'].contains(btn)
+                                  ? lightenColor(
+                                      appColorNotifier.value,
+                                      0.1,
+                                    ).withAlpha(80)
+                                  : Colors.white.withAlpha(20),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 8),
+                              ),
+                            ),
+                            child: Text(
+                              btn,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 16),
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            SizedBox(height: Responsive.height(context, 4)),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 3),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(20),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 16),
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => press('='),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 3),
+                      ),
+                      decoration: BoxDecoration(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(80),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                      ),
+                      child: Text(
+                        "=",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 16),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      press('=');
+                      Navigator.pop(
+                        context,
+                        display != 'Error' ? display : null,
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 3),
+                      ),
+                      decoration: BoxDecoration(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.2,
+                        ).withAlpha(120),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                      ),
+                      child: Text(
+                        "Set",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 16),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
 }

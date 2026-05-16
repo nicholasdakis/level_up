@@ -232,6 +232,7 @@ class _FoodLoggingState extends State<FoodLogging> {
             decoration: InputDecoration(
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(color: Colors.white54),
+              suffixIcon: calcSuffixIcon(context, controller),
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white38),
               ),
