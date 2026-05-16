@@ -189,27 +189,50 @@ Future<String?> showCalcDialog(
                 final expr = expression
                     .replaceAll('×', '*')
                     .replaceAll('÷', '/');
-                // regex splits on operator boundaries so each part starts with its operator
-                final parts = expr.split(RegExp(r'(?<=[0-9.])(?=[+\-*/])'));
-                double result = double.parse(parts[0]);
-                for (int i = 1; i < parts.length; i++) {
-                  final op = parts[i][0];
-                  final num = double.parse(parts[i].substring(1));
-                  if (op == '+') {
-                    result += num;
-                  } else if (op == '-') {
-                    result -= num;
-                  } else if (op == '*') {
-                    result *= num;
-                  } else if (op == '/') {
-                    result /= num;
+                // regex splits between a digit and an operator in both directions
+                // so "12+3*4" becomes ["12", "+", "3", "*", "4"]
+                final tokens = expr.split(
+                  RegExp(r'(?<=[0-9.])(?=[+\-*/])|(?<=[+\-*/])(?=[0-9.])'),
+                );
+                // separate into two parallel lists
+                final nums = <double>[];
+                final ops = <String>[];
+                for (final t in tokens) {
+                  if (t == '+' || t == '-' || t == '*' || t == '/') {
+                    ops.add(t);
+                  } else {
+                    nums.add(double.parse(t));
                   }
                 }
-                // drop the decimal if the result is a whole number
+                // pass 1: collapse * and / in place so they take precedence over + and -
+                int i = 0;
+                while (i < ops.length) {
+                  if (ops[i] == '*' || ops[i] == '/') {
+                    final res = ops[i] == '*'
+                        ? nums[i] * nums[i + 1]
+                        : nums[i] / nums[i + 1];
+                    nums[i] = res; // overwrite left operand with result
+                    nums.removeAt(i + 1); // right operand is absorbed
+                    ops.removeAt(i); // operator is consumed
+                  } else {
+                    i++; // skip + and -
+                  }
+                }
+                // pass 2: only + and - are left
+                double result = nums[0];
+                for (int j = 0; j < ops.length; j++) {
+                  if (ops[j] == '+') {
+                    result += nums[j + 1];
+                  } else if (ops[j] == '-') {
+                    result -= nums[j + 1];
+                  }
+                }
+                // drop the trailing .0 if the result is a whole number
                 display = result % 1 == 0
                     ? result.toInt().toString()
                     : result.toStringAsFixed(2);
-                expression = display; // so pressing = again doesn't re-evaluate
+                expression =
+                    display; // so pressing = again doesn't re-evaluate the old expression
               } catch (_) {
                 display = 'Error';
                 expression = '';

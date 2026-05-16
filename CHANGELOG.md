@@ -1644,3 +1644,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made a showCalcDialog method that builds a mini calculator that supports basic operations and is wrapped in a frosted dialog
 - Added a calcSuffixIcon method that adds a calculator icon button to the "Serving Size" dialogs that opens the calculator when clicked
 - The calculator is pre-filled with what was last stored for the serving size dialog
+- Fixed the calculator logic so order of operations are followed
+- Made it so the expression calculates * and / first, then goes through the list again after and handles + and -
