@@ -582,7 +582,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: Responsive.centeredHorizontalPadding(context, 24),
+          horizontal: Responsive.centeredHorizontalPadding(context, 20),
           vertical: Responsive.height(context, 24),
         ),
         child: Column(
@@ -926,7 +926,7 @@ class _DailyTab extends StatelessWidget {
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: Responsive.centeredHorizontalPadding(ctx, 24),
+          horizontal: Responsive.centeredHorizontalPadding(ctx, 20),
           vertical: Responsive.height(ctx, 24),
         ),
         child: Column(

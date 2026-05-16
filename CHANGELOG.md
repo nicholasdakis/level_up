@@ -1639,3 +1639,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Changed the confetti style on POI check ins to make it less intense and to show more shapes
 - Made the confetti in the explore tab begin above the screen
 - Moved the confetti in the Explore tab to confetti.dart
+- Unified the padding across all screens to feel more consistent across the app
+- Fixed the frosted alert dialogs looking like they had two separate borders on wider screens by wrapping it in its own border and removing the default border of Dialog

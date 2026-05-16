@@ -303,7 +303,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 child: Text(
-                  "BETA 05.14",
+                  "BETA 05.16",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 11),
                     color: Colors.white.withAlpha(80),

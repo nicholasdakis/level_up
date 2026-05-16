@@ -173,24 +173,37 @@ Future<T?> showFrostedDialog<T>({
     context: context,
     barrierDismissible: dismissible,
     builder: (ctx) => Dialog(
-      backgroundColor:
-          Colors.transparent, // let frostedGlassCard handle all visuals
+      backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
       insetPadding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 24),
         vertical: Responsive.height(context, 40),
       ),
       child: SizedBox(
         width: Responsive.dialogWidth(context, maxWidth: maxWidth),
-        child: frostedGlassCard(
-          context,
-          baseRadius: baseRadius,
-          padding:
-              padding ??
-              EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 28),
-                vertical: Responsive.height(context, 32),
-              ),
-          child: child,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(
+              Responsive.scale(context, baseRadius),
+            ),
+            border: Border.all(
+              color: Colors.white.withAlpha(120),
+              width: Responsive.width(context, 1),
+            ),
+          ),
+          child: frostedGlassCard(
+            context,
+            baseRadius: baseRadius,
+            padding:
+                padding ??
+                EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 28),
+                  vertical: Responsive.height(context, 32),
+                ),
+            child: child,
+          ),
         ),
       ),
     ),

@@ -1010,7 +1010,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               ),
               child: ListView(
                 padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.centeredHorizontalPadding(context, 16),
+                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
                   vertical: Responsive.height(context, 12),
                 ),
                 children: [
