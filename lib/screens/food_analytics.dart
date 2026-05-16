@@ -249,24 +249,39 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
             topTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: Responsive.height(context, 36),
+                reservedSize: Responsive.height(context, 48),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= values.length)
+                  if (i < 0 || i >= values.length) {
                     return const SizedBox.shrink();
+                  }
                   final v = values[i];
                   final pct = total > 0 ? (v / total * 100).round() : 0;
+                  if (v == 0) return const SizedBox.shrink();
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: Responsive.height(context, 4),
                     ),
-                    child: Text(
-                      v == 0 ? "" : "$pct% · ${v.round()} kcal",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 10),
-                        fontWeight: FontWeight.w700,
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "$pct%",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w700,
+                            color: lightenColor(appColorNotifier.value, 0.45),
+                          ),
+                        ),
+                        Text(
+                          "${v.round()} kcal",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w700,
+                            color: lightenColor(appColorNotifier.value, 0.45),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -278,8 +293,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                 reservedSize: Responsive.height(context, 32),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= labels.length)
+                  if (i < 0 || i >= labels.length) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Responsive.height(context, 6),
@@ -358,24 +374,39 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
             topTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: Responsive.height(context, 36),
+                reservedSize: Responsive.height(context, 48),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= values.length)
+                  if (i < 0 || i >= values.length) {
                     return const SizedBox.shrink();
+                  }
                   final v = values[i];
                   final pct = totalG > 0 ? (v / totalG * 100).round() : 0;
+                  if (v == 0) return const SizedBox.shrink();
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: Responsive.height(context, 4),
                     ),
-                    child: Text(
-                      v == 0 ? "" : "$pct% · ${v.round()}g",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 10),
-                        fontWeight: FontWeight.w700,
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "$pct%",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w700,
+                            color: lightenColor(appColorNotifier.value, 0.45),
+                          ),
+                        ),
+                        Text(
+                          "${v.round()}g",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w700,
+                            color: lightenColor(appColorNotifier.value, 0.45),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -387,8 +418,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                 reservedSize: Responsive.height(context, 32),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= labels.length)
+                  if (i < 0 || i >= labels.length) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Responsive.height(context, 6),
@@ -498,6 +530,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                   controller: _tabController,
                   indicatorColor: Colors.white,
                   indicatorWeight: Responsive.height(context, 2),
+                  dividerColor: Colors.transparent,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white38,
                   labelStyle: GoogleFonts.manrope(

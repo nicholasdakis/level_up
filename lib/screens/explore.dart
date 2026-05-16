@@ -1,4 +1,3 @@
-import 'package:confetti/confetti.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -10,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../utility/responsive.dart';
+import '../utility/confetti.dart';
 import '../models/poi.dart';
 import '../utility/poi/poi_icons.dart';
 import '../services/poi_service.dart';
@@ -47,8 +47,6 @@ class _ExploreState extends State<Explore> {
   POI? _tappedPOI; // POI whose tooltip is currently showing on the map
   StreamSubscription<Position>?
   _positionStream; // keep track of current coordinates for POI refreshing
-  late ConfettiController
-  _confettiController; // confetti controller for the check-in celebration
   final POIService _poiService =
       POIService(); // service for fetching and caching POIs
   final MapController _mapController = MapController();
@@ -103,9 +101,6 @@ class _ExploreState extends State<Explore> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 2),
-    );
     _poiService.cleanupOldVisits();
     if (isGuest) {
       // For guest users
@@ -117,7 +112,6 @@ class _ExploreState extends State<Explore> {
 
   @override
   void dispose() {
-    _confettiController.dispose(); // clean up the confetti controller
     _mapController.dispose();
     _positionStream?.cancel();
     super.dispose();
@@ -292,10 +286,10 @@ class _ExploreState extends State<Explore> {
           checkingIn = false;
         });
 
-        _confettiController.play(); // confetti celebration
+        checkinConfettiController.play(); // confetti celebration
 
         // After 2 seconds, clear the XP display and refresh nearest POI
-        await Future.delayed(const Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 4));
         if (!mounted) return;
         setState(() => xpAwarded = null);
 
@@ -709,6 +703,53 @@ class _ExploreState extends State<Explore> {
                                               ],
                                             ),
                                           ),
+                                          if (fillingCache && !cardIsOpen)
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                top: Responsive.height(
+                                                  context,
+                                                  4,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      12,
+                                                    ),
+                                                    height: Responsive.width(
+                                                      context,
+                                                      12,
+                                                    ),
+                                                    child:
+                                                        const CircularProgressIndicator(
+                                                          color: Colors.white38,
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      6,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "Finding more spots...",
+                                                    style: GoogleFonts.manrope(
+                                                      color: Colors.white38,
+                                                      fontSize:
+                                                          Responsive.width(
+                                                            context,
+                                                            12,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ClipRect(
                                             child: AnimatedSize(
                                               duration: const Duration(
@@ -1275,28 +1316,12 @@ class _ExploreState extends State<Explore> {
                       ),
                     ),
 
-                  // CONFETTI (centered at the top, rains down over the whole screen)
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: ConfettiWidget(
-                      confettiController: _confettiController,
-                      blastDirectionality:
-                          BlastDirectionality.explosive, // all directions
-                      emissionFrequency: 0.03, // how often new particles spawn
-                      numberOfParticles: 30, // how many per blast
-                      gravity: 0.2, // how fast they fall
-                      shouldLoop: false, // play once per check-in
-                      maxBlastForce: 25, // max speed
-                      minBlastForce: 10, // min speed
-                      particleDrag: 0.05, // air resistance
-                      colors: [
-                        Colors.yellow,
-                        Colors.green,
-                        Colors.blue,
-                        Colors.purple,
-                        Colors.orange,
-                      ],
-                    ),
+                  // CONFETTI positioned above screen so particles enter from off-screen
+                  Positioned(
+                    top: -Responsive.height(context, 20),
+                    left: 0,
+                    right: 0,
+                    child: Center(child: buildCheckinConfetti()),
                   ),
                 ],
               ),

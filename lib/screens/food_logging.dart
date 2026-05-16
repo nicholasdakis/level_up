@@ -352,7 +352,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               if (mounted) setState(() {});
             },
             icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedDart,
+              icon: HugeIcons.strokeRoundedTarget01,
               color: lightenColor(appColor, 0.30),
               size: Responsive.scale(context, 24),
             ),

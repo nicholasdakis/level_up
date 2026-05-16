@@ -1630,3 +1630,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced Material icons with hugeicons package for the Food Analytics tab
 - Added the desktop width constraint to the Food Analytics tab
 - Renamed food_logging_charts file to food_analytics
+
+## 2026-05-16
+- Moved calories under the percentage in the bar charts so they don't intersect for different meals
+- Removed the white line under the tab picker in Food Analytics
+- Made checking into a POI last for a few more seconds so the user can see the xp better
+- Made the "finding more spots" text appear directly below the card header so it is visible when the card is collapsed
+- Changed the confetti style on POI check ins to make it less intense and to show more shapes
+- Made the confetti in the explore tab begin above the screen
+- Moved the confetti in the Explore tab to confetti.dart
