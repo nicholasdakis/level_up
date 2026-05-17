@@ -1,3 +1,15 @@
+-- get_public_tables: Returns all user-created tables in the public schema — used by the backup script
+CREATE OR REPLACE FUNCTION get_public_tables()
+RETURNS TABLE(table_name TEXT)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+  SELECT table_name::TEXT
+  FROM information_schema.tables
+  WHERE table_schema = 'public'
+    AND table_type = 'BASE TABLE';
+$$;
+
 -- claim_daily_reward: Atomically checks the 23-hour cooldown and claims the daily reward
 CREATE OR REPLACE FUNCTION claim_daily_reward(
     p_uid TEXT,        -- The user's ID

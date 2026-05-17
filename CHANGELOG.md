@@ -1662,3 +1662,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the app color luminance threshold lower and the multiplier higher to prevent lighter theme colors even more drastically
 - Fixed the border between the app bar and the body of the screens being obscured by the gradient with a Stack with the border on top of the screens
 - Fixed the double border bug on the update app color dialog
+- Added a workflow for auto daily database backups
+- Added get_public_tables to functions.sql so the workflow can dynamically get all the tables instead of having to manually update it with new ones every time
