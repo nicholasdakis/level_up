@@ -845,6 +845,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             fontSize: Responsive.font(context, 14),
           ),
         ),
+        SizedBox(width: Responsive.width(context, 8)),
+        calcSuffixIcon(context, servingAmountController),
       ],
     );
   }

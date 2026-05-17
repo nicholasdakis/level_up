@@ -1646,3 +1646,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The calculator is pre-filled with what was last stored for the serving size dialog
 - Fixed the calculator logic so order of operations are followed
 - Made it so the expression calculates * and / first, then goes through the list again after and handles + and -
+
+## 2026-05-17
+- Added the food logging calculator icon to the Serving Amount card
