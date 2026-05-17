@@ -150,14 +150,14 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   bool isColorTooLight(Color color) {
     // calculate the relative luminance of the color (0 = black, 1 = white)
     double luminance = color.computeLuminance();
-    return luminance > 0.7; // threshold for "too light"
+    return luminance > 0.5; // threshold for "too light"
   }
 
   double getDarknessMultiplier(Color color) {
     return max(
-      (color.computeLuminance() - 0.7) *
-          0.5, // the lighter the color, the more it gets darkened
-      0.1,
+      (color.computeLuminance() - 0.5) *
+          0.8, // the lighter the color, the more it gets darkened
+      0.15,
     ); // lighter colors get darkened more, but minimum darkness multiplier is 0.1
   }
 
