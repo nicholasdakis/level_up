@@ -1650,3 +1650,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-05-17
 - Added the food logging calculator icon to the Serving Amount card
 - Updated the Privacy Policy to make sure it is as accurate as possible
+- Removed enablePersistence() call in index.html as Firestore is no longer used for backend
+- Self-hosted cropper.js so Edge's tracking prevention stops blocking it
