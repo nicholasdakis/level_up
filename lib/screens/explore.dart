@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
@@ -560,13 +562,36 @@ class _ExploreState extends State<Explore> {
                         ),
                       ],
                     ] else ...[
-                      CircularProgressIndicator(color: Colors.white70),
-                      SizedBox(height: Responsive.height(context, 10)),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: Responsive.scale(context, 80),
+                            height: Responsive.scale(context, 80),
+                            child: CircularProgressIndicator(
+                              color: Colors.white.withAlpha(40),
+                              strokeWidth: Responsive.width(context, 2),
+                            ),
+                          ),
+                          HugeIcon(
+                                icon: HugeIcons.strokeRoundedEarth,
+                                color: Colors.white70,
+                                size: Responsive.scale(context, 40),
+                              )
+                              .animate(onPlay: (c) => c.repeat())
+                              .fadeIn(duration: 700.ms)
+                              .then()
+                              .fadeOut(duration: 700.ms),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
                       Text(
                         "Retrieving location...",
-                        style: GoogleFonts.manrope(
+                        style: GoogleFonts.spaceGrotesk(
                           fontSize: Responsive.font(context, 18),
                           color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ],

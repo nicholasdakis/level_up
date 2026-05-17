@@ -1658,3 +1658,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made operator buttons in the calculator bigger
 - Added an outline border in the calculator for the inner section
 - Added a back button to the calculator
+- Replaced the spinner in the Explore tab with a pulsing globe icon
