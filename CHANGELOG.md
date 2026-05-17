@@ -1660,3 +1660,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a back button to the calculator
 - Replaced the spinner in the Explore tab with a pulsing globe icon
 - Made the app color luminance threshold lower and the multiplier higher to prevent lighter theme colors even more drastically
+- Fixed the border between the app bar and the body of the screens being obscured by the gradient with a Stack with the border on top of the screens
+- Fixed the double border bug on the update app color dialog

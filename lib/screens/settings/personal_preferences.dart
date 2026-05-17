@@ -201,68 +201,82 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
         insetPadding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 24),
           vertical: Responsive.height(context, 40),
         ),
         child: IntrinsicWidth(
-          child: frostedGlassCard(
-            context,
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 28),
-              vertical: Responsive.height(context, 32),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 20),
+              ),
+              border: Border.all(
+                color: Colors.white.withAlpha(120),
+                width: Responsive.width(context, 1),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Pick a theme color \n (Very light colors are not recommended)',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 15),
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+            child: frostedGlassCard(
+              context,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 28),
+                vertical: Responsive.height(context, 32),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Pick a theme color \n (Very light colors are not recommended)',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                SizedBox(height: Responsive.height(context, 16)),
-                ColorPicker(
-                  pickerColor: pickerColor,
-                  onColorChanged: (color) {
-                    pickerColor = color;
-                  },
-                  colorPickerWidth: 280,
-                  labelTypes: [],
-                  enableAlpha: false, // disable the alpha slider
-                  pickerAreaHeightPercent: 0.8,
-                ),
-                SizedBox(height: Responsive.height(context, 16)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Cancel selection
-                    TextButton(
-                      child: Text('Cancel'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    // Reset to default app color
-                    TextButton(
-                      child: Text('Default'),
-                      onPressed: () async {
-                        await applyAppColor(Color.fromARGB(255, 45, 45, 45));
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    // Confirm selection
-                    TextButton(
-                      child: Text('Select'),
-                      onPressed: () async {
-                        await applyAppColor(pickerColor);
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                  SizedBox(height: Responsive.height(context, 16)),
+                  ColorPicker(
+                    pickerColor: pickerColor,
+                    onColorChanged: (color) {
+                      pickerColor = color;
+                    },
+                    colorPickerWidth: 280,
+                    labelTypes: [],
+                    enableAlpha: false, // disable the alpha slider
+                    pickerAreaHeightPercent: 0.8,
+                  ),
+                  SizedBox(height: Responsive.height(context, 16)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Cancel selection
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      // Reset to default app color
+                      TextButton(
+                        child: Text('Default'),
+                        onPressed: () async {
+                          await applyAppColor(Color.fromARGB(255, 45, 45, 45));
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      // Confirm selection
+                      TextButton(
+                        child: Text('Select'),
+                        onPressed: () async {
+                          await applyAppColor(pickerColor);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
