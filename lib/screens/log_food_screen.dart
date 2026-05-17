@@ -846,7 +846,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           ),
         ),
         SizedBox(width: Responsive.width(context, 8)),
-        calcSuffixIcon(context, servingAmountController),
+        calcSuffixIcon(
+          context,
+          servingAmountController,
+          onSet: _onServingChanged,
+        ),
       ],
     );
   }

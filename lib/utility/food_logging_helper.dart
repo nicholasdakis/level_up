@@ -129,7 +129,12 @@ class FoodLoggingHelper {
 }
 
 // Calculator icon button for serving size fields
-Widget calcSuffixIcon(BuildContext context, TextEditingController controller) {
+// onSet is called after the result is pasted in to trigger any recalculating food details based on the new amount
+Widget calcSuffixIcon(
+  BuildContext context,
+  TextEditingController controller, {
+  VoidCallback? onSet,
+}) {
   return GestureDetector(
     onTap: () async {
       final result = await showCalcDialog(
@@ -142,6 +147,8 @@ Widget calcSuffixIcon(BuildContext context, TextEditingController controller) {
           offset:
               result.length, // move cursor to end so it doesn't look selected
         );
+        onSet
+            ?.call(); // trigger recalculation since setting text programmatically doesn't fire onChanged
       }
     },
     child: Padding(
@@ -170,7 +177,7 @@ Future<String?> showCalcDialog(
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
     ['1', '2', '3', '-'],
-    ['Clear', '0', '.', '+'],
+    ['C', '0', '.', '+'],
   ];
 
   return showFrostedDialog<String>(
@@ -179,7 +186,13 @@ Future<String?> showCalcDialog(
       builder: (context, setState) {
         void press(String val) {
           setState(() {
-            if (val == 'Clear') {
+            if (val == '⌫') {
+              // remove the last character from the expression
+              if (expression.isNotEmpty) {
+                expression = expression.substring(0, expression.length - 1);
+                display = expression.isEmpty ? '0' : expression;
+              }
+            } else if (val == 'C') {
               // clear resets both the display and the running expression
               expression = '';
               display = '0';
@@ -208,6 +221,7 @@ Future<String?> showCalcDialog(
                 int i = 0;
                 while (i < ops.length) {
                   if (ops[i] == '*' || ops[i] == '/') {
+                    if (ops[i] == '/' && nums[i + 1] == 0) throw Exception();
                     final res = ops[i] == '*'
                         ? nums[i] * nums[i + 1]
                         : nums[i] / nums[i + 1];
@@ -227,6 +241,7 @@ Future<String?> showCalcDialog(
                     result -= nums[j + 1];
                   }
                 }
+                if (result < 0) result = 0; // serving sizes can't be negative
                 // drop the trailing .0 if the result is a whole number
                 display = result % 1 == 0
                     ? result.toInt().toString()
@@ -267,15 +282,34 @@ Future<String?> showCalcDialog(
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 10),
                 ),
-              ),
-              child: Text(
-                display,
-                textAlign: TextAlign.right,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 24),
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                border: Border.all(
+                  color: Colors.white.withAlpha(40),
+                  width: Responsive.width(context, 1),
                 ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      display,
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 24),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 8)),
+                  GestureDetector(
+                    onTap: () => press('⌫'),
+                    child: Icon(
+                      Icons.backspace_outlined,
+                      color: Colors.white38,
+                      size: Responsive.scale(context, 18),
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: Responsive.height(context, 12)),
@@ -310,7 +344,10 @@ Future<String?> showCalcDialog(
                               btn,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 16),
+                                fontSize: Responsive.font(
+                                  context,
+                                  ['+', '-', '×', '÷'].contains(btn) ? 22 : 16,
+                                ),
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),

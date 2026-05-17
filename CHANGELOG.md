@@ -1652,3 +1652,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated the Privacy Policy to make sure it is as accurate as possible
 - Removed enablePersistence() call in index.html as Firestore is no longer used for backend
 - Self-hosted cropper.js so Edge's tracking prevention stops blocking it
+- Added an onSet callback to calcSuffixIcon so it can update the nutrition info in the serving card when the user calculates a new serving amount
+- Made negative values in the calculator clamp to 0
+- Guarded division by 0 in the calculator
+- Made operator buttons in the calculator bigger
+- Added an outline border in the calculator for the inner section
+- Added a back button to the calculator
