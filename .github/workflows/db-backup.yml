@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout level_up repo
+        uses: actions/checkout@v4
+
       - name: Checkout backup repo
         uses: actions/checkout@v4
         with:
