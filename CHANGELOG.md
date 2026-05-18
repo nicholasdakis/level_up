@@ -1664,3 +1664,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed the double border bug on the update app color dialog
 - Added a workflow for auto daily database backups
 - Added get_public_tables to functions.sql so the workflow can dynamically get all the tables instead of having to manually update it with new ones every time
+
+## 2026-05-18
+- Replaced the plain underline TabBar in Badges, Food Analytics, and Calorie Results with a frosted pill-style indicator using a BoxDecoration with rounded corners and a subtle border
+- Moved the tab bar out of the AppBar bottom and into the body as a Column so it inherits the gradient background instead of the AppBar color
+- Made the tab bar center on desktop and left-align on mobile using TabAlignment
+- Applied a matching pill-shaped splash/hover radius so the ripple effect stays within the pill bounds
+- Increased tab font size from 13 to 15 and kept Manrope font consistent across all tab bars

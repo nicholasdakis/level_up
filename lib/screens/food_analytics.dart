@@ -517,61 +517,94 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
           ),
           title: createTitle("Food Analytics", context),
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(
-              Responsive.height(context, 1) + Responsive.height(context, 48),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  height: Responsive.height(context, 3),
-                  color: Colors.white.withAlpha(25),
-                ),
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.white,
-                  indicatorWeight: Responsive.height(context, 2),
-                  dividerColor: Colors.transparent,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white38,
-                  labelStyle: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  tabs: const [
-                    Tab(text: "Daily"),
-                    Tab(text: "Range"),
-                  ],
-                ),
-              ],
+            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
+            child: Container(
+              height: Responsive.height(context, 3),
+              color: Colors.white.withAlpha(25),
             ),
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
+        body: Column(
           children: [
-            // Daily tab
-            _DailyTab(
-              context: context,
-              totalCal: totalCal,
-              breakfastCal: breakfastCal,
-              lunchCal: lunchCal,
-              dinnerCal: dinnerCal,
-              snacksCal: snacksCal,
-              macros: macros,
-              totalMacroCal: totalMacroCal,
-              currentDate: currentDate,
-              onDateChanged: _changeDate,
-              animationKey: _animationKey,
-              mealBarChart: _mealBarChart,
-              macroBarChart: _macroBarChart,
-              emptyState: _emptyState,
+            // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 12),
+                vertical: Responsive.height(context, 8),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: Responsive.isDesktop(context)
+                    ? TabAlignment.center
+                    : TabAlignment.start,
+                labelPadding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 16)),
+                dividerColor: Colors.transparent,
+                indicator: BoxDecoration(
+                  color: Colors.white.withAlpha(
+                    45,
+                  ), // frosted pill for selected tab
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(60),
+                    width: Responsive.width(context, 1),
+                  ),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                overlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.hovered) ||
+                      states.contains(WidgetState.pressed)) {
+                    return Colors.white.withAlpha(15);
+                  }
+                  return Colors.transparent;
+                }),
+                splashBorderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ), // clips ripple to pill shape
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white38,
+                labelStyle: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w700,
+                ),
+                unselectedLabelStyle: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: const [
+                  Tab(text: "Daily"),
+                  Tab(text: "Range"),
+                ],
+              ),
             ),
-            // Range tab
-            _buildRangeTab(context),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Daily tab
+                  _DailyTab(
+                    context: context,
+                    totalCal: totalCal,
+                    breakfastCal: breakfastCal,
+                    lunchCal: lunchCal,
+                    dinnerCal: dinnerCal,
+                    snacksCal: snacksCal,
+                    macros: macros,
+                    totalMacroCal: totalMacroCal,
+                    currentDate: currentDate,
+                    onDateChanged: _changeDate,
+                    animationKey: _animationKey,
+                    mealBarChart: _mealBarChart,
+                    macroBarChart: _macroBarChart,
+                    emptyState: _emptyState,
+                  ),
+                  // Range tab
+                  _buildRangeTab(context),
+                ],
+              ),
+            ),
           ],
         ),
       ),

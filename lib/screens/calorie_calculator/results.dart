@@ -463,118 +463,162 @@ class _ResultsState extends State<Results> {
             ),
             title: createTitle("Calorie Results", context),
             bottom: PreferredSize(
-              preferredSize: Size.fromHeight(Responsive.height(context, 48)),
-              child: Column(
-                children: [
-                  Container(
-                    height: Responsive.height(context, 3),
-                    color: Colors.white.withAlpha(25),
-                  ),
-                  // Tab bar with one tab per section
-                  TabBar(
-                    indicatorColor: Colors.white,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white38,
-                    labelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 13),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    unselectedLabelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 13),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    tabs: const [
-                      Tab(text: "Results"),
-                      Tab(text: "Overview"),
-                      Tab(text: "Formulas"),
-                    ],
-                  ),
-                ],
+              preferredSize: Size.fromHeight(Responsive.height(context, 3)),
+              child: Container(
+                height: Responsive.height(context, 3),
+                color: Colors.white.withAlpha(25),
               ),
             ),
           ),
-          body: TabBarView(
+          body: Column(
             children: [
-              // Tab 1: User results
-              _tab([
-                _sectionWithIcon("YOUR BMR", HugeIcons.strokeRoundedHeartCheck),
-                _statCard(
-                  bmr,
-                  "calories / day at rest",
-                  "${_bmrEquationText()} = $bmr",
-                  note:
-                      "What your body burns just to stay alive. Does not include any physical activity.",
+              // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 12),
+                  vertical: Responsive.height(context, 8),
                 ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon("YOUR TDEE", HugeIcons.strokeRoundedFire),
-                _statCard(
-                  tdee.toString(),
-                  "calories / day total",
-                  "$bmr × ${calculateActivityLevel()} = $tdee",
-                  note:
-                      "Your real daily burn based on how active you are. This is the number to use for your goals.",
+                child: TabBar(
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.center,
+                  labelPadding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                  ),
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: Colors.white.withAlpha(
+                      45,
+                    ), // frosted pill for selected tab
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(60),
+                      width: Responsive.width(context, 1),
+                    ),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered) ||
+                        states.contains(WidgetState.pressed)) {
+                      return Colors.white.withAlpha(15);
+                    }
+                    return Colors.transparent;
+                  }),
+                  splashBorderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ), // clips ripple to pill shape
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white38,
+                  labelStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w700,
+                  ),
+                  unselectedLabelStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  tabs: const [
+                    Tab(text: "Results"),
+                    Tab(text: "Overview"),
+                    Tab(text: "Formulas"),
+                  ],
                 ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon(
-                  "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
-                  HugeIcons.strokeRoundedFlag01,
-                ),
-                _infoCard(calculateGoal()),
-                SizedBox(height: Responsive.height(context, 40)),
-              ]),
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    // Tab 1: User results
+                    _tab([
+                      _sectionWithIcon(
+                        "YOUR BMR",
+                        HugeIcons.strokeRoundedHeartCheck,
+                      ),
+                      _statCard(
+                        bmr,
+                        "calories / day at rest",
+                        "${_bmrEquationText()} = $bmr",
+                        note:
+                            "What your body burns just to stay alive. Does not include any physical activity.",
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _sectionWithIcon(
+                        "YOUR TDEE",
+                        HugeIcons.strokeRoundedFire,
+                      ),
+                      _statCard(
+                        tdee.toString(),
+                        "calories / day total",
+                        "$bmr × ${calculateActivityLevel()} = $tdee",
+                        note:
+                            "Your real daily burn based on how active you are. This is the number to use for your goals.",
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _sectionWithIcon(
+                        "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
+                        HugeIcons.strokeRoundedFlag01,
+                      ),
+                      _infoCard(calculateGoal()),
+                      SizedBox(height: Responsive.height(context, 40)),
+                    ]),
 
-              // Tab 2: Educational section
-              _tab([
-                _sectionWithIcon(
-                  "WHAT IS BMR?",
-                  HugeIcons.strokeRoundedInformationCircle,
-                ),
-                _infoCard(
-                  widget.equation == "Mifflin-St Jeor"
-                      ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
-                      : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
-                ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon("WHAT IS TDEE?", HugeIcons.strokeRoundedFire),
-                _infoCard(
-                  "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
-                ),
-                SizedBox(height: Responsive.height(context, 40)),
-              ]),
+                    // Tab 2: Educational section
+                    _tab([
+                      _sectionWithIcon(
+                        "WHAT IS BMR?",
+                        HugeIcons.strokeRoundedInformationCircle,
+                      ),
+                      _infoCard(
+                        widget.equation == "Mifflin-St Jeor"
+                            ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
+                            : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _sectionWithIcon(
+                        "WHAT IS TDEE?",
+                        HugeIcons.strokeRoundedFire,
+                      ),
+                      _infoCard(
+                        "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
+                      ),
+                      SizedBox(height: Responsive.height(context, 40)),
+                    ]),
 
-              // Tab 3: Full BMR formulas for reference
-              _tab([
-                _sectionWithIcon(
-                  "BMR FORMULAS",
-                  HugeIcons.strokeRoundedCalculate,
-                ),
-                _formulaCard(
-                  _bmrFormulaText("Male"),
-                  "Male",
-                  Colors.lightBlueAccent,
-                  HugeIcons.strokeRoundedMaleSymbol,
-                ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _formulaCard(
-                  _bmrFormulaText("Female"),
-                  "Female",
-                  Colors.pinkAccent,
-                  HugeIcons.strokeRoundedFemaleSymbol,
-                ),
-                SizedBox(height: Responsive.height(context, 20)),
-                _sectionWithIcon(
-                  "ACTIVITY LEVEL MULTIPLIERS",
-                  HugeIcons.strokeRoundedMultiplicationSign,
-                ),
+                    // Tab 3: Full BMR formulas for reference
+                    _tab([
+                      _sectionWithIcon(
+                        "BMR FORMULAS",
+                        HugeIcons.strokeRoundedCalculate,
+                      ),
+                      _formulaCard(
+                        _bmrFormulaText("Male"),
+                        "Male",
+                        Colors.lightBlueAccent,
+                        HugeIcons.strokeRoundedMaleSymbol,
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _formulaCard(
+                        _bmrFormulaText("Female"),
+                        "Female",
+                        Colors.pinkAccent,
+                        HugeIcons.strokeRoundedFemaleSymbol,
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _sectionWithIcon(
+                        "ACTIVITY LEVEL MULTIPLIERS",
+                        HugeIcons.strokeRoundedMultiplicationSign,
+                      ),
 
-                _infoCard(
-                  "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
-                  addDivider: true,
-                  aboveDividerText: "TDEE = BMR × Activity Multiplier",
+                      _infoCard(
+                        "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
+                        addDivider: true,
+                        aboveDividerText: "TDEE = BMR × Activity Multiplier",
+                      ),
+                      SizedBox(height: Responsive.height(context, 40)),
+                    ]),
+                  ],
                 ),
-                SizedBox(height: Responsive.height(context, 40)),
-              ]),
+              ),
             ],
           ),
         ),

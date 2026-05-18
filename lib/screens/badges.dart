@@ -570,65 +570,111 @@ class _BadgesState extends State<Badges> {
               ),
               title: createTitle("Badges", context),
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(
-                  Responsive.height(context, 3) + kTextTabBarHeight,
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: Responsive.height(context, 3),
-                      color: Colors.white.withAlpha(25),
-                    ),
-                    TabBar(
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      indicatorColor: Colors.white,
-                      indicatorWeight: Responsive.height(context, 3),
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white38,
-                      dividerColor: Colors.transparent,
-                      labelStyle: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 13),
-                        fontWeight: FontWeight.w700,
-                      ),
-                      unselectedLabelStyle: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 13),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      tabs: [for (final label in tabLabels) Tab(text: label)],
-                    ),
-                  ],
+                preferredSize: Size.fromHeight(Responsive.height(context, 3)),
+                child: Container(
+                  height: Responsive.height(context, 3),
+                  color: Colors.white.withAlpha(25),
                 ),
               ),
             ),
-            body: Stack(
+            body: Column(
               children: [
-                TabBarView(
-                  children: [
-                    for (final section in tabSections)
-                      SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.centeredHorizontalPadding(
-                              context,
-                              50,
+                // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 12),
+                    vertical: Responsive.height(context, 8),
+                  ),
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: Responsive.isDesktop(context)
+                        ? TabAlignment.center
+                        : TabAlignment
+                              .start, // center on desktop, left-align on mobile
+                    labelPadding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                    ),
+                    dividerColor: Colors
+                        .transparent, // hide the default underline divider
+                    indicator: BoxDecoration(
+                      color: Colors.white.withAlpha(
+                        45,
+                      ), // frosted pill background for selected tab
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 20),
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(
+                          60,
+                        ), // subtle border to define the pill shape
+                        width: Responsive.width(context, 1),
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize
+                        .tab, // pill covers the full tab width not just the label
+                    overlayColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.hovered) ||
+                          states.contains(WidgetState.pressed)) {
+                        return Colors.white.withAlpha(
+                          15,
+                        ); // hover/press tint matches the pill shape
+                      }
+                      return Colors.transparent;
+                    }),
+                    splashBorderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ), // clips ripple to the pill shape
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white38,
+                    labelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    tabs: [for (final label in tabLabels) Tab(text: label)],
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      TabBarView(
+                        children: [
+                          for (final section in tabSections)
+                            SingleChildScrollView(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      Responsive.centeredHorizontalPadding(
+                                        context,
+                                        50,
+                                      ),
+                                  vertical: Responsive.height(context, 24),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    ..._buildCardsForSection(section),
+                                    SizedBox(
+                                      height: Responsive.height(context, 40),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            vertical: Responsive.height(context, 24),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              ..._buildCardsForSection(section),
-                              SizedBox(height: Responsive.height(context, 40)),
-                            ],
-                          ),
+                        ],
+                      ),
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: buildDailyRewardConfetti(
+                          badgesConfettiController,
                         ),
                       ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: buildDailyRewardConfetti(badgesConfettiController),
+                    ],
+                  ),
                 ),
               ],
             ),
