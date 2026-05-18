@@ -443,8 +443,23 @@ class _ExploreState extends State<Explore> {
             options: MapOptions(
               initialCenter: userLocation ?? const LatLng(0, 0),
               initialZoom: 15,
-              minZoom: 2,
+              minZoom: 12,
               maxZoom: 19,
+              // Restrict panning so the user can't drag the map to another country
+              cameraConstraint: userLocation != null
+                  ? CameraConstraint.containCenter(
+                      bounds: LatLngBounds(
+                        LatLng(
+                          userLocation!.latitude - 0.5,
+                          userLocation!.longitude - 0.5,
+                        ),
+                        LatLng(
+                          userLocation!.latitude + 0.5,
+                          userLocation!.longitude + 0.5,
+                        ),
+                      ),
+                    )
+                  : CameraConstraint.unconstrained(),
               // Store the user's zoom level
               onPositionChanged: (position, hasGesture) {
                 if (hasGesture) _currentZoom = position.zoom;

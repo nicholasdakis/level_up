@@ -1675,3 +1675,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced BMR and TDEE text with the full name
 - Made the male and female icons use appColor instead of hardcoded colors
 - Made the TDEE formula appear in its own card instead of being a line in the Activity Multiplier card
+- Tightened the constraints for minimum zoom and added panning to the Explore map
