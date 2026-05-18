@@ -101,39 +101,106 @@ class _ResultsState extends State<Results> {
               .toStringAsFixed(0); // Male and Imperial and Harris
   }
 
-  String calculateGoal() {
-    int userTDEE = calculateTDEE(bmr, calculateActivityLevel());
+  // Builds the goal section as a styled card with big calorie targets and rate breakdowns
+  Widget _goalCard() {
+    final userTDEE = calculateTDEE(bmr, calculateActivityLevel());
+    final imperial = widget.units == "Imperial";
+
     // Case 1: Goal is to maintain
     if (widget.goal == "Maintain Weight") {
-      return "Consume $userTDEE calories per day to maintain your weight.";
+      return _statCard(
+        userTDEE.toString(),
+        "calories / day",
+        "TDEE = $userTDEE",
+        note: "Eating this amount keeps your weight stable.",
+      );
     }
-    StringBuffer sb = StringBuffer();
+
+    final bool losing = widget.goal == "Lose Weight";
+
     // Case 2: Goal is to lose
-    if (widget.goal == "Lose Weight") {
-      if (widget.units == "Imperial") {
-        sb.write("A healthy weight loss rate is 0.5-2 pounds per week.\n\n");
-        sb.write("- Lose 0.5 lbs/week -> ${userTDEE - 250} cal/day\n");
-        sb.write("- Lose 1 lb/week -> ${userTDEE - 500} cal/day\n");
-        sb.write("- Lose 1.5 lbs/week -> ${userTDEE - 750} cal/day\n");
-        sb.write("- Lose 2 lbs/week -> ${userTDEE - 1000} cal/day");
-      } else {
-        sb.write("A healthy weight loss rate is 0.23-0.9 kg per week.\n\n");
-        sb.write("- Lose 0.23 kg/week -> ${userTDEE - 250} cal/day\n");
-        sb.write("- Lose 0.45 kg/week -> ${userTDEE - 500} cal/day\n");
-        sb.write("- Lose 0.68 kg/week -> ${userTDEE - 750} cal/day\n");
-        sb.write("- Lose 0.9 kg/week -> ${userTDEE - 1000} cal/day");
-      }
-      // Case 3: Goal is to gain
-    } else if (widget.units == "Imperial" && widget.goal == "Gain Weight") {
-      sb.write("A healthy weight gain rate is 0.5-1 pound per week.\n\n");
-      sb.write("- Gain 0.5 lbs/week -> ${userTDEE + 250} cal/day\n");
-      sb.write("- Gain 1 lb/week -> ${userTDEE + 500} cal/day");
-    } else {
-      sb.write("A healthy weight gain rate is 0.23-0.45 kg per week.\n\n");
-      sb.write("- Gain 0.23 kg/week -> ${userTDEE + 250} cal/day\n");
-      sb.write("- Gain 0.45 kg/week -> ${userTDEE + 500} cal/day");
-    }
-    return sb.toString();
+    final String healthyRange = losing
+        ? (imperial
+              ? "A healthy loss rate is 0.5–2 lbs per week."
+              : "A healthy loss rate is 0.23–0.9 kg per week.")
+        // Case 3: Goal is to gain
+        : (imperial
+              ? "A healthy gain rate is 0.5–1 lb per week."
+              : "A healthy gain rate is 0.23–0.45 kg per week.");
+
+    final List<({String rate, int calories})> rates = losing
+        ? imperial
+              ? [
+                  (rate: "Lose 0.5 lbs / week", calories: userTDEE - 250),
+                  (rate: "Lose 1 lb / week", calories: userTDEE - 500),
+                  (rate: "Lose 1.5 lbs / week", calories: userTDEE - 750),
+                  (rate: "Lose 2 lbs / week", calories: userTDEE - 1000),
+                ]
+              : [
+                  (rate: "Lose 0.23 kg / week", calories: userTDEE - 250),
+                  (rate: "Lose 0.45 kg / week", calories: userTDEE - 500),
+                  (rate: "Lose 0.68 kg / week", calories: userTDEE - 750),
+                  (rate: "Lose 0.9 kg / week", calories: userTDEE - 1000),
+                ]
+        : imperial
+        ? [
+            (rate: "Gain 0.5 lbs / week", calories: userTDEE + 250),
+            (rate: "Gain 1 lb / week", calories: userTDEE + 500),
+          ]
+        : [
+            (rate: "Gain 0.23 kg / week", calories: userTDEE + 250),
+            (rate: "Gain 0.45 kg / week", calories: userTDEE + 500),
+          ];
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.all(Responsive.scale(context, 18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            healthyRange,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              color: Colors.white54,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          for (final entry in rates) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  entry.rate,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    color: Colors.white54,
+                  ),
+                ),
+                ShaderMask(
+                  shaderCallback: (bounds) => subtleTextGradient().createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  ),
+                  child: Text(
+                    "${entry.calories} cal/day",
+                    style: GoogleFonts.dangrek(
+                      fontSize: Responsive.font(context, 22),
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (entry != rates.last)
+              Divider(
+                color: Colors.white.withAlpha(20),
+                height: Responsive.height(context, 24),
+              ),
+          ],
+        ],
+      ),
+    );
   }
 
   double calculateActivityLevel() {
@@ -531,7 +598,7 @@ class _ResultsState extends State<Results> {
                     // Tab 1: User results
                     _tab([
                       _sectionWithIcon(
-                        "YOUR BMR",
+                        "YOUR BASAL METABOLIC RATE",
                         HugeIcons.strokeRoundedHeartCheck,
                       ),
                       _statCard(
@@ -543,7 +610,7 @@ class _ResultsState extends State<Results> {
                       ),
                       SizedBox(height: Responsive.height(context, 20)),
                       _sectionWithIcon(
-                        "YOUR TDEE",
+                        "YOUR TOTAL DAILY ENERGY EXPENDITURE",
                         HugeIcons.strokeRoundedFire,
                       ),
                       _statCard(
@@ -558,14 +625,14 @@ class _ResultsState extends State<Results> {
                         "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
                         HugeIcons.strokeRoundedFlag01,
                       ),
-                      _infoCard(calculateGoal()),
+                      _goalCard(),
                       SizedBox(height: Responsive.height(context, 40)),
                     ]),
 
                     // Tab 2: Educational section
                     _tab([
                       _sectionWithIcon(
-                        "WHAT IS BMR?",
+                        "WHAT IS BASAL METABOLIC RATE?",
                         HugeIcons.strokeRoundedInformationCircle,
                       ),
                       _infoCard(
@@ -575,7 +642,7 @@ class _ResultsState extends State<Results> {
                       ),
                       SizedBox(height: Responsive.height(context, 20)),
                       _sectionWithIcon(
-                        "WHAT IS TDEE?",
+                        "WHAT IS TOTAL DAILY ENERGY EXPENDITURE?",
                         HugeIcons.strokeRoundedFire,
                       ),
                       _infoCard(
@@ -593,14 +660,14 @@ class _ResultsState extends State<Results> {
                       _formulaCard(
                         _bmrFormulaText("Male"),
                         "Male",
-                        Colors.lightBlueAccent,
+                        lightenColor(appColorNotifier.value, 0.3),
                         HugeIcons.strokeRoundedMaleSymbol,
                       ),
                       SizedBox(height: Responsive.height(context, 20)),
                       _formulaCard(
                         _bmrFormulaText("Female"),
                         "Female",
-                        Colors.pinkAccent,
+                        lightenColor(appColorNotifier.value, 0.3),
                         HugeIcons.strokeRoundedFemaleSymbol,
                       ),
                       SizedBox(height: Responsive.height(context, 20)),
@@ -611,8 +678,47 @@ class _ResultsState extends State<Results> {
 
                       _infoCard(
                         "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
-                        addDivider: true,
-                        aboveDividerText: "TDEE = BMR × Activity Multiplier",
+                      ),
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _sectionWithIcon(
+                        "TDEE FORMULA",
+                        HugeIcons.strokeRoundedFire,
+                      ),
+                      frostedGlassCard(
+                        context,
+                        padding: EdgeInsets.all(Responsive.scale(context, 18)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) =>
+                                  subtleTextGradient().createShader(
+                                    Rect.fromLTWH(
+                                      0,
+                                      0,
+                                      bounds.width,
+                                      bounds.height,
+                                    ),
+                                  ),
+                              child: Text(
+                                "TDEE = BMR × Activity Multiplier",
+                                style: GoogleFonts.dangrek(
+                                  fontSize: Responsive.font(context, 28),
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.height(context, 8)),
+                            Text(
+                              "Multiply your BMR by your activity level to get the total calories your body burns each day.",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: Colors.white54,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: Responsive.height(context, 40)),
                     ]),

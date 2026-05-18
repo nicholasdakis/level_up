@@ -1671,3 +1671,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the tab bar center on desktop and left-align on mobile using TabAlignment
 - Applied a matching pill-shaped splash/hover radius so the ripple effect stays within the pill bounds
 - Increased tab font size from 13 to 15 and kept Manrope font consistent across all tab bars
+- Updated the "how to _____ weight" card in Results so it matches the UI with the other cards
+- Replaced BMR and TDEE text with the full name
+- Made the male and female icons use appColor instead of hardcoded colors
+- Made the TDEE formula appear in its own card instead of being a line in the Activity Multiplier card
