@@ -452,6 +452,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     ].every((m) => (dayData?[m] ?? []).isNotEmpty);
     if (allMealsFilled) trackTrivialAchievement("food_full_day");
 
+    // time-based achievements based on the hour the food was logged
+    final hour = DateTime.now().hour;
+    if (hour >= 23) trackTrivialAchievement("night_owl"); // after 11pm
+    if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
+
     widget.onFoodLogged();
     if (mounted) context.pop();
   }

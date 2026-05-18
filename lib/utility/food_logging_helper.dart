@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
+import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'responsive.dart';
 
 class FoodLoggingHelper {
@@ -167,6 +168,9 @@ Future<String?> showCalcDialog(
   BuildContext context, {
   String initialValue = '',
 }) {
+  trackTrivialAchievement(
+    'serving_calculator',
+  ); // fire once each time the calc is opened
   String expression = initialValue; // tracks the raw input string (e.g. "35x7")
   String display = initialValue.isNotEmpty
       ? initialValue
