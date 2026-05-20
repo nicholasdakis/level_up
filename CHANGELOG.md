@@ -1683,3 +1683,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - 0 is used for unlimited, using a const unlimited = 0
 - Added a button in Personal Preferences to update the number of stored recent foods
 - Edited Recent Tab searches to also make the brand name searchable
+- Overhauled the registration/login screen UI
+- Replaced "Welcome" title with "Level Up!" and updated the subtitle
+- Replaced the frosted glass Log In/Sign Up buttons with an orange gradient button with a matching border
+- Increased input field height via content padding for better tap targets
+- Replaced moving background orbs with two subtle static radial gradient blooms
+- Moved "Continue as guest" below the Google button inside an IntrinsicWidth so both buttons share the same width
+- Replaced "Continue as guest" with OutlinedButton.icon using the anonymous Hugeicons icon

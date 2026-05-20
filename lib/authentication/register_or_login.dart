@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,8 +6,9 @@ import '../guest.dart';
 import '../router.dart';
 import 'auth_services.dart';
 import '../utility/responsive.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,8 +19,7 @@ class RegisterOrLogin extends StatefulWidget {
   State<RegisterOrLogin> createState() => _RegisterOrLoginState();
 }
 
-class _RegisterOrLoginState extends State<RegisterOrLogin>
-    with SingleTickerProviderStateMixin {
+class _RegisterOrLoginState extends State<RegisterOrLogin> {
   // Keep track of entered email and password fields
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -34,85 +33,42 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
   // Tracks whether the user has agreed to the privacy policy and terms, required before sign up
   bool agreedToTerms = false;
 
-  late final AnimationController
-  bgController; // AnimationController for the orbs in the bg
-
   @override
   void initState() {
     super.initState();
-    // Make the animation of the orbs
-    bgController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 18),
-    )..repeat(); // Repeats forever
   }
 
-  // To prevent memory leaks
   @override
   void dispose() {
-    bgController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
-  // Method that makes the orbs that float in the background
   Widget buildAnimatedBackground() {
-    return AnimatedBuilder(
-      animation: bgController, // repeats every frame so the animation updates
-      builder: (context, _) {
-        final size = MediaQuery.sizeOf(context);
-        final t =
-            bgController.value *
-            2 *
-            pi; // scales bgController's [0,1] value to [0, 2pi]
-        // Stack that creates the orbs that move in sine-wave patterns
-        return Stack(
-          children: [
-            // First orb, drifts near the top of the screen
-            Positioned(
-              left: size.width * (0.15 + 0.35 * sin(t)),
-              top: size.height * (0.05 + 0.15 * cos(t)),
-              child: buildGlowOrb(
-                color: const Color(0xFF4B2E83),
-                size: size.width * 0.9,
-              ),
-            ),
-            // Second orb, drifts near the bottom of the screen
-            Positioned(
-              right: size.width * (0.1 + 0.3 * cos(t)),
-              bottom: size.height * (0.08 + 0.15 * sin(t)),
-              child: buildGlowOrb(
-                color: const Color(0xFF8A2E5C),
-                size: size.width * 0.85,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Method to build an individual orb
-  Widget buildGlowOrb({required Color color, required double size}) {
-    // IgnorePointer to not be tappable
     return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          // Add alpha to the colors so they don't interfere with the form
-          gradient: RadialGradient(
-            // RadialGradient to smoothen the orb color
-            colors: [
-              color.withValues(alpha: 0.12),
-              color.withValues(alpha: 0.05),
-              Colors.transparent,
-            ],
-            stops: const [0.0, 0.5, 1.0],
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(-0.6, -0.8),
+                radius: 1.1,
+                colors: [Color(0x1A4B2E83), Colors.transparent],
+              ),
+            ),
           ),
-        ),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0.8, 0.9),
+                radius: 1.0,
+                colors: [Color(0x148A2E5C), Colors.transparent],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -168,7 +124,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     if (isActive) {
       textColor = Colors.white;
     } else {
-      textColor = Colors.white54;
+      textColor = Colors.white60;
     }
     return GestureDetector(
       onTap: () {
@@ -202,23 +158,20 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     bool obscure = false,
     Widget? suffix,
   }) {
-    // Shared rounded corners for every border state
     final radius = BorderRadius.circular(Responsive.scale(context, 14));
-    // No default underline
     final defaultBorder = OutlineInputBorder(
       borderRadius: radius,
       borderSide: BorderSide.none,
     );
-    // Faint border when the field is idle
     final enabledBorder = OutlineInputBorder(
       borderRadius: radius,
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
     );
-    // Thicker and brighter border when the field has focus so the user sees active input
+    // Amber glow on focus so the active field is unmistakable
     final focusedBorder = OutlineInputBorder(
       borderRadius: radius,
       borderSide: BorderSide(
-        color: Colors.white.withValues(alpha: 0.35),
+        color: const Color(0xFFFFA726).withValues(alpha: 0.7),
         width: Responsive.scale(context, 1.5),
       ),
     );
@@ -228,7 +181,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
       style: GoogleFonts.manrope(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.manrope(color: Colors.white54),
+        labelStyle: GoogleFonts.manrope(color: Colors.white60),
         prefixIcon: Icon(icon, color: Colors.white54),
         suffixIcon: suffix,
         filled: true,
@@ -236,6 +189,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
         border: defaultBorder,
         enabledBorder: enabledBorder,
         focusedBorder: focusedBorder,
+        contentPadding: EdgeInsets.symmetric(
+          vertical: Responsive.height(context, 18),
+          horizontal: Responsive.width(context, 16),
+        ),
       ),
     );
   }
@@ -284,14 +241,25 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     }
     return GestureDetector(
       onTap: onTapHandler,
-      child: frostedGlassCard(
-        context,
-        baseRadius: 14,
-        padding: EdgeInsets.symmetric(
-          vertical: Responsive.height(context, 16),
-          horizontal: Responsive.width(context, 24),
+      child: AnimatedOpacity(
+        opacity: isSubmitting ? 0.7 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 17),
+            horizontal: Responsive.width(context, 24),
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFB300), Color(0xFFE65100)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            border: Border.all(color: Color(0xFFFF7043), width: 1.5),
+          ),
+          child: buttonChild,
         ),
-        child: buttonChild,
       ),
     );
   }
@@ -467,17 +435,26 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           ),
         ),
         SizedBox(height: Responsive.padding(context, 14)),
-        // Title text
-        createTitle("Welcome", context),
-        SizedBox(height: Responsive.padding(context, 8)),
-        // Subtitle
+        // Title
         Text(
-          "Turn your daily habits into measurable progress",
+          "Level Up!",
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
-            color: Colors.white54,
-            fontSize: Responsive.font(context, 16),
-            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            fontSize: Responsive.font(context, 38),
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
+          ),
+        ),
+        SizedBox(height: Responsive.padding(context, 10)),
+        Text(
+          "Track your habits. Improve yourself. Level Up!",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            color: Colors.white60,
+            fontSize: Responsive.font(context, 14),
+            fontWeight: FontWeight.w400,
+            letterSpacing: 0.3,
           ),
         ),
       ],
@@ -527,7 +504,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     // Need an email to send the reset link to
     if (emailController.text.isEmpty) {
       setState(() {
-        notifyingMessage = "Enter your email to reset password.";
+        notifyingMessage =
+            "Enter your email in the email field above to reset your password.";
       });
       return;
     }
@@ -556,7 +534,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
           child: Text(
             "Forgot Password?",
             style: GoogleFonts.manrope(
-              color: Colors.white54,
+              color: const Color(0xFFFFB300),
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w500,
             ),
@@ -604,7 +582,48 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
         SizedBox(height: Responsive.padding(context, 20)),
         buildSocialDivider(),
         SizedBox(height: Responsive.padding(context, 16)),
-        buildGoogleButton(),
+        Center(
+          child: IntrinsicWidth(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                buildGoogleButton(),
+                SizedBox(height: Responsive.padding(context, 16)),
+                OutlinedButton.icon(
+                  onPressed: _handleContinueAsGuest,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: Colors.white54,
+                      width: Responsive.scale(context, 1.5),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 14),
+                      ),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 17),
+                      horizontal: Responsive.width(context, 20),
+                    ),
+                  ),
+                  icon: Icon(
+                    HugeIcons.strokeRoundedAnonymous,
+                    color: Colors.white70,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  label: Text(
+                    "Continue as guest",
+                    style: GoogleFonts.manrope(
+                      color: Colors.white70,
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -694,45 +713,21 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
     );
   }
 
-  // Method that builds the bottom section with the error message and guest button
+  // Method that builds the bottom section with the error message
   Widget buildBottomSection() {
+    if (notifyingMessage == null) return const SizedBox.shrink();
     return Column(
       children: [
-        if (notifyingMessage != null) ...[
-          Text(
-            notifyingMessage!,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.manrope(
-              color: Colors.redAccent.shade100,
-              fontSize: Responsive.font(context, 13),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: Responsive.padding(context, 12)),
-        ],
-        OutlinedButton(
-          onPressed: _handleContinueAsGuest,
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: Colors.white24),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 30),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              vertical: Responsive.height(context, 14),
-              horizontal: Responsive.width(context, 32),
-            ),
-          ),
-          child: Text(
-            "Continue as guest",
-            style: GoogleFonts.manrope(
-              color: Colors.white38,
-              fontSize: Responsive.font(context, 13),
-              fontWeight: FontWeight.w500,
-            ),
+        Text(
+          notifyingMessage!,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            color: Colors.redAccent.shade100,
+            fontSize: Responsive.font(context, 13),
+            fontWeight: FontWeight.w500,
           ),
         ),
+        SizedBox(height: Responsive.padding(context, 12)),
       ],
     );
   }
@@ -769,10 +764,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(height: Responsive.padding(context, 24)),
+                      SizedBox(height: Responsive.padding(context, 4)),
                       // Top section fades in first
                       buildTopSection()
                           .animate()
@@ -782,7 +777,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin>
                             duration: 500.ms,
                             curve: Curves.easeOutCubic,
                           ),
-                      SizedBox(height: Responsive.padding(context, 32)),
+                      SizedBox(height: Responsive.padding(context, 20)),
                       // Middle section fades in shortly after the top
                       Center(
                         child: ConstrainedBox(
