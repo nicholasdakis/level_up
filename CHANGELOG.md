@@ -1690,3 +1690,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced moving background orbs with two subtle static radial gradient blooms
 - Moved "Continue as guest" below the Google button inside an IntrinsicWidth so both buttons share the same width
 - Replaced "Continue as guest" with OutlinedButton.icon using the anonymous Hugeicons icon
+- Removed the Set Reminder button from the Reminders tab. Reminders are set when the time is chosen
+- Moved the notes section of the Reminders tab into an alert dialog that opens when a help button is pressed in the top right of the reminders screen
+- Added a border around the Enter Reminder Time box
