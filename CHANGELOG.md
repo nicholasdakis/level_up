@@ -1677,3 +1677,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the TDEE formula appear in its own card instead of being a line in the Activity Multiplier card
 - Tightened the constraints for minimum zoom and added panning to the Explore map
 - Added some new achievements for food logging: Using the serving calculator, night owl, early bird
+
+## 2026-05-19
+- Made the number of Recent Foods that are stored customizable instead of being fixed at 30
+- 0 is used for unlimited, using a const unlimited = 0
+- Added a button in Personal Preferences to update the number of stored recent foods
+- Edited Recent Tab searches to also make the brand name searchable

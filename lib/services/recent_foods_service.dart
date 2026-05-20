@@ -1,11 +1,23 @@
 import '../utility/shared_preferences/shared_prefs_async.dart';
 
 class RecentFoodsService {
-  // Maximum number of recent foods to store
-  static const int _maxRecent = 30;
+  // Default max if the user hasn't set a preference
+  static const int _defaultMax = 30;
+  // Sentinel value meaning no limit on recent foods
+  static const int unlimited = 0;
 
   // Centralized cache wrapper for SharedPreferences
   final SharedPrefsService _prefs = SharedPrefsService();
+
+  // Returns the user's configured recent foods max, 0 means unlimited, null means not set (use default)
+  Future<int?> getRecentFoodsMax() async {
+    return await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
+  }
+
+  // Saves the user's recent foods max preference, pass 0 for unlimited
+  Future<void> setRecentFoodsMax(int max) async {
+    await _prefs.setInt(SharedPreferencesKey.recentFoodsMax, max);
+  }
 
   // Load the recent foods from local storage as a list of maps that represents each food
   Future<List<Map<String, dynamic>>> getRecentFoods() async {
@@ -27,8 +39,11 @@ class RecentFoodsService {
       Map<String, dynamic>.from(food),
     ); // insert the new food at the start so it shows as the most recent
 
-    if (recents.length > _maxRecent) {
-      recents.removeRange(_maxRecent, recents.length);
+    // Respect user's max setting, 0 means unlimited so no trimming, null means use default
+    final stored = await getRecentFoodsMax();
+    final max = stored ?? _defaultMax;
+    if (max != unlimited && recents.length > max) {
+      recents.removeRange(max, recents.length);
     } // if list exceeds the max size, remove the oldest entries from the end
 
     await _prefs.setJsonList(SharedPreferencesKey.recentFoods, recents);

@@ -130,7 +130,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     final matches = _recentFoods.where((f) {
       final name = (f['food_name'] as String? ?? '').toLowerCase();
-      return name.contains(query);
+      final brand = (f['brand_name'] as String? ?? '').toLowerCase();
+      return name.contains(query) || brand.contains(query);
     }).toList();
 
     if (matches.isNotEmpty) {

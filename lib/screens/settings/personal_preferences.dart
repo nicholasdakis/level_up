@@ -11,6 +11,7 @@ import '/guest.dart';
 import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
+import '/services/recent_foods_service.dart';
 import 'dart:math';
 
 Future<void> showUsernameDialogBox(
@@ -90,6 +91,19 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       currentUserData?.notificationsEnabled ??
       true; // tracks the notification toggle state
   bool _cropLoading = false;
+  int _recentFoodsMax =
+      30; // current max, RecentFoodsService.unlimited (0) = unlimited
+
+  final _recentFoodsService = RecentFoodsService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load the user's stored recent foods max
+    _recentFoodsService.getRecentFoodsMax().then((val) {
+      if (mounted && val != null) setState(() => _recentFoodsMax = val);
+    });
+  }
 
   Future pickProfileImage() async {
     if (isGuest) {
@@ -704,6 +718,125 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                 "${currentUserData?.fatGoal != null ? '${currentUserData!.fatGoal}g fat' : 'no set fat goal'}  ·  "
                                 "${currentUserData?.weightGoalType != null ? 'goal: ${currentUserData!.weightGoalType}' : 'no weight goal'}",
                             onTap: showGoalsDialog,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 28)),
+
+                    // Food Logging section
+                    sectionHeader(
+                      "FOOD LOGGING",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      ),
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: HugeIcons.strokeRoundedClock01,
+                            label: "Recent Foods Limit",
+                            subtitle:
+                                _recentFoodsMax == RecentFoodsService.unlimited
+                                ? "Unlimited"
+                                : "$_recentFoodsMax foods",
+                            onTap: () async {
+                              if (isGuest) {
+                                Guest.block(context);
+                                return;
+                              }
+                              final options = [
+                                10,
+                                20,
+                                30,
+                                50,
+                                100,
+                                RecentFoodsService.unlimited,
+                              ];
+                              final labels = [
+                                "10",
+                                "20",
+                                "30",
+                                "50",
+                                "100",
+                                "Unlimited",
+                              ];
+                              await showFrostedAlertDialog<void>(
+                                context: context,
+                                title: "Recent Foods Limit",
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    for (int i = 0; i < options.length; i++)
+                                      GestureDetector(
+                                        onTap: () async {
+                                          await _recentFoodsService
+                                              .setRecentFoodsMax(options[i]);
+                                          if (mounted) {
+                                            setState(
+                                              () =>
+                                                  _recentFoodsMax = options[i],
+                                            );
+                                          }
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: Responsive.height(
+                                              context,
+                                              10,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                labels[i],
+                                                style: GoogleFonts.manrope(
+                                                  fontSize: Responsive.font(
+                                                    context,
+                                                    15,
+                                                  ),
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              if (_recentFoodsMax == options[i])
+                                                Icon(
+                                                  Icons.check,
+                                                  color: lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.3,
+                                                  ),
+                                                  size: Responsive.scale(
+                                                    context,
+                                                    18,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(
+                                      "Cancel",
+                                      style: TextStyle(color: Colors.white54),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
