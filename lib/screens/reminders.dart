@@ -903,13 +903,6 @@ class _RemindersState extends State<Reminders> {
                 ),
               ),
             ),
-
-            // Loading overlay
-            if (isLoading)
-              Container(
-                color: Colors.black54,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
           ],
         ),
       ),
