@@ -282,6 +282,12 @@ class ProgressionService: # Service class to handle all progression-related busi
         reminders = self._reminder_repo.get_reminders(uid)
         goals = self._repo.get_goals(uid)
 
+        streaks = self._repo.get_streaks(uid)
+        daily_streak = next(
+            (s["streak"] for s in streaks if s["streak_type"] == "daily_consecutive_streak"),
+            1,
+        )
+
         return {
             "level": user.get("level", 1),
             "exp_points": user.get("exp_points", 0),
@@ -292,7 +298,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "fcm_tokens": user.get("fcm_tokens") or [],
             "notifications_enabled": user.get("notifications_enabled", True),
             "last_daily_claim": user.get("last_daily_claim"),
-            "daily_streak": user.get("daily_streak", 1),
+            "daily_streak": daily_streak,
             "food_logs": food_logs,
             "reminders": reminders,
             "goals": goals,
