@@ -577,6 +577,7 @@ Widget frostedGlassCard(
   double baseRadius = 20, // corner radius, scaled responsively
   EdgeInsetsGeometry? padding,
   Color? backgroundColor, // optional override for the card fill color
+  BoxBorder? border, // optional override for the card border
 }) {
   final cardRadius = BorderRadius.circular(
     Responsive.scale(context, baseRadius),
@@ -594,10 +595,12 @@ Widget frostedGlassCard(
               backgroundColor ??
               Colors.white.withAlpha(18), // translucent white fill
           borderRadius: cardRadius,
-          border: Border.all(
-            color: Colors.white.withAlpha(30), // subtle white border
-            width: Responsive.width(context, 1),
-          ),
+          border:
+              border ??
+              Border.all(
+                color: Colors.white.withAlpha(30), // subtle white border
+                width: Responsive.width(context, 1),
+              ),
         ),
         padding: padding,
         child: child,

@@ -1,5 +1,6 @@
 // home_screen.dart
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,7 +17,6 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
-import 'services/recent_foods_service.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -43,20 +43,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
-  List<Map<String, dynamic>> _recentFoods = [];
   double _lastRenderedExp = 0;
-  // Picked once per app launch so it stays stable across rebuilds
-  final int _greetingIndex = DateTime.now().millisecondsSinceEpoch % 8;
+  late String _greeting;
+  bool _greetingIsQuestion = false;
 
   @override
   void initState() {
     super.initState();
+    _greeting = _buildGreeting();
 
     _appColorListener = () {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
-    foodLogNotifier.addListener(_onFoodLogged);
+    foodLogNotifier.addListener(_onFoodChanged);
     WidgetsBinding.instance.addObserver(this);
 
     confettiControllerinit();
@@ -78,8 +78,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _onFoodLogged() {
-    _loadRecentFoods();
+  void _onFoodChanged() {
     if (mounted) setState(() {});
   }
 
@@ -88,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void activate() {
     super.activate();
     if (appReadyNotifier.value) {
-      _loadRecentFoods();
       _updateCountdown();
       if (mounted) setState(() {});
     }
@@ -99,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && appReadyNotifier.value) {
       _updateCountdown();
-      _loadRecentFoods();
       if (mounted) setState(() {});
       if (canClaimDailyReward() && !isGuest && !isNewUser) {
         buildDailyRewardDialog();
@@ -111,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     initializeUser();
     _startCountdown();
-    _loadRecentFoods();
     Future.delayed(const Duration(milliseconds: 850), () {
       _HomeAnimationState.dashboardAnimated = true;
     });
@@ -129,17 +125,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (last == null) return;
     final next = last.add(const Duration(hours: 23));
     final remaining = next.difference(DateTime.now().toUtc());
-    if (mounted) {
-      setState(
-        () =>
-            _timeUntilReward = remaining.isNegative ? Duration.zero : remaining,
-      );
-    }
-  }
-
-  Future<void> _loadRecentFoods() async {
-    final foods = await RecentFoodsService().getRecentFoods();
-    if (mounted) setState(() => _recentFoods = foods.take(3).toList());
+    final newValue = remaining.isNegative ? Duration.zero : remaining;
+    if (newValue.inMinutes == _timeUntilReward.inMinutes) return;
+    if (mounted) setState(() => _timeUntilReward = newValue);
   }
 
   @override
@@ -147,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
     appColorNotifier.removeListener(_appColorListener);
-    foodLogNotifier.removeListener(_onFoodLogged);
+    foodLogNotifier.removeListener(_onFoodChanged);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
@@ -183,7 +171,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
       if (mounted) {
-        setState(() {}); // refresh greeting and drawer with the new username
+        setState(
+          () => _greeting = _buildGreeting(),
+        ); // refresh greeting and drawer with the new username
       }
       if (canClaimDailyReward() && mounted) {
         await buildDailyRewardDialog();
@@ -224,7 +214,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (mounted) {
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        _greeting = _buildGreeting();
+      });
       if (kIsWeb &&
           !isNewUser &&
           web_fcm.getNotificationPermission() != 'granted' &&
@@ -263,60 +256,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool get _tourActive => _tourStep != -1;
 
   // Builds a greeting based on time of day plus a random variant from that pool
-  String _buildGreeting(String? username) {
-    final hour = DateTime.now().hour;
-    final name = username != null ? ", $username" : "";
-
-    final List<String> greetings;
-    if (hour < 12) {
-      greetings = [
-        "Good morning$name!",
-        "Morning$name!",
-        "Hey$name, good morning!",
-        "Rise and shine$name!",
-        "What's on the agenda today$name?",
-        "Ready to level up$name?",
-        "New day, new goals$name!",
-        "Let's make today count$name!",
-      ];
-    } else if (hour < 17) {
-      greetings = [
-        "Good afternoon$name!",
-        "Hey$name, good afternoon!",
-        "Welcome back$name!",
-        "Hey$name!",
-        "Back for more$name?",
-        "What's on the agenda$name?",
-        "Have you tried the Explore tab$name?",
-        "Any achievements to unlock today$name?",
-      ];
-    } else if (hour < 21) {
-      greetings = [
-        "Good evening$name!",
-        "Hey$name, good evening!",
-        "Evening$name!",
-        "Welcome back$name!",
-        "Back for more$name?",
-        "How's the day been$name?",
-        "Log your dinner$name?",
-        "Any achievements left to unlock$name?",
-      ];
-    } else {
-      greetings = [
-        "Hey$name, up late?",
-        "Still at it$name?",
-        "Good night$name!",
-        "Hey$name!",
-        "Burning the midnight oil$name?",
-        "Log a late night snack$name?",
-        "Night owl energy$name!",
-        "Back for more$name?",
-      ];
-    }
-
-    // Use the day of year as seed so it changes daily but stays consistent within a day
-    return greetings[_greetingIndex % greetings.length];
-  }
 
   // Calculates total calories logged today
   int _todayCalories() {
@@ -335,6 +274,60 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   int _foodLogStreak() => currentUserData?.foodLogStreak ?? 0;
+
+  String _buildGreeting() {
+    final hour = DateTime.now().hour;
+    final rng = Random();
+
+    const universal = [
+      ("BACK FOR MORE", true),
+      ("WHAT'S ON TODAY'S AGENDA", true),
+      ("MAKING MOVES", false),
+      ("LET'S GET IT", false),
+    ];
+
+    final timeSlot = <(String, bool)>[];
+    if (hour < 5) {
+      timeSlot.addAll([
+        ("STILL UP", true),
+        ("LATE NIGHT GRIND", false),
+        ("OWL MODE", false),
+        ("UP LATE", true),
+      ]);
+    } else if (hour < 12) {
+      timeSlot.addAll([
+        ("GOOD MORNING", false),
+        ("RISE & SHINE", false),
+        ("MORNING", false),
+        ("HOW'S IT GOING", true),
+      ]);
+    } else if (hour < 17) {
+      timeSlot.addAll([
+        ("GOOD AFTERNOON", false),
+        ("AFTERNOON", false),
+        ("KEEP IT UP", false),
+      ]);
+    } else if (hour < 21) {
+      timeSlot.addAll([
+        ("GOOD EVENING", false),
+        ("EVENING", false),
+        ("WINDING DOWN", true),
+      ]);
+    } else {
+      timeSlot.addAll([
+        ("UP LATE", true),
+        ("NIGHT OWL", true),
+        ("STILL GOING", false),
+      ]);
+    }
+
+    final pool = [...timeSlot, ...universal];
+    final (base, isQ) = pool[rng.nextInt(pool.length)];
+    _greetingIsQuestion = isQ;
+    return "$base,";
+  }
+
+  String _timeOfDayLabel() => _greeting;
 
   // Reads the daily claim streak from the backend-populated UserData field
   int _dailyClaimStreak() => currentUserData?.dailyClaimStreak ?? 0;
@@ -384,12 +377,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ],
                 ),
               ),
-              Text(
-                count == 1 ? "1 day" : "$count days",
-                style: GoogleFonts.manrope(
-                  color: accentColor,
-                  fontSize: Responsive.font(context, 15),
-                  fontWeight: FontWeight.w800,
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "$count",
+                      style: GoogleFonts.manrope(
+                        color: accentColor,
+                        fontSize: Responsive.font(context, 20),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    TextSpan(
+                      text: " ${count == 1 ? 'day' : 'days'}",
+                      style: GoogleFonts.manrope(
+                        color: accentColor.withAlpha(180),
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -643,12 +650,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
-            if (canClaim && !isGuest)
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: accentColor,
-                size: Responsive.scale(context, 18),
-              ),
+            HugeIcon(
+              icon: canClaim && !isGuest
+                  ? HugeIcons.strokeRoundedArrowRight01
+                  : HugeIcons.strokeRoundedCheckmarkCircle02,
+              color: canClaim && !isGuest ? accentColor : Colors.white24,
+              size: Responsive.scale(context, 18),
+            ),
           ],
         ),
       ),
@@ -690,7 +698,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Row(
                     children: [
                       HugeIcon(
-                        icon: HugeIcons.strokeRoundedRestaurant03,
+                        icon: HugeIcons.strokeRoundedFire,
                         color: Colors.white38,
                         size: Responsive.scale(context, 14),
                       ),
@@ -791,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                       SizedBox(width: Responsive.width(context, 5)),
                       Text(
-                        "Foods logged",
+                        "Logs today",
                         style: GoogleFonts.manrope(
                           color: Colors.white38,
                           fontSize: Responsive.font(context, 11),
@@ -805,89 +813,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     "$foodCount",
                     style: GoogleFonts.manrope(
                       color: Colors.white,
-                      fontSize: Responsive.font(context, 22),
+                      fontSize: Responsive.font(context, 40),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (_recentFoods.isNotEmpty)
-                    Text(
-                      "Latest Log: ${_recentFoods.first['food_name'] ?? ''}",
-                      style: GoogleFonts.manrope(
-                        color: Colors.white38,
-                        fontSize: Responsive.font(context, 11),
-                      ),
-                      softWrap: true,
-                    ),
                 ],
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  // Recent activity section using local recent foods cache
-  Widget _buildRecentActivity() {
-    if (_recentFoods.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        sectionHeader("RECENTLY LOGGED", context),
-        frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 16),
-            vertical: Responsive.height(context, 4),
-          ),
-          child: Column(
-            children: List.generate(_recentFoods.length, (i) {
-              final food = _recentFoods[i];
-              final name = food['food_name']?.toString() ?? '';
-              final cal = food['calories']?.toString() ?? '—';
-              return Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.height(context, 10),
-                    ),
-                    child: Row(
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedRestaurant03,
-                          color: Colors.white24,
-                          size: Responsive.scale(context, 16),
-                        ),
-                        SizedBox(width: Responsive.width(context, 12)),
-                        Expanded(
-                          child: Text(
-                            name,
-                            style: GoogleFonts.manrope(
-                              color: Colors.white70,
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          "$cal kcal",
-                          style: GoogleFonts.manrope(
-                            color: Colors.white38,
-                            fontSize: Responsive.font(context, 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (i < _recentFoods.length - 1)
-                    Divider(color: Colors.white.withAlpha(15), height: 1),
-                ],
-              );
-            }),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1016,98 +951,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
             backgroundColor: Colors.transparent,
-            appBar: PreferredSize(
-              preferredSize: Size.fromHeight(Responsive.height(context, 201)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppBar(
-                    automaticallyImplyLeading: false,
-                    scrolledUnderElevation: 0,
-                    backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-                    centerTitle: true,
-                    toolbarHeight: Responsive.buttonHeight(context, 120),
-                    elevation: 0,
-                    actions: [
-                      SettingsIconButton(
-                        onTap: () => _scaffoldKey.currentState?.openDrawer(),
-                      ),
-                    ],
-                    flexibleSpace: Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: kIsWeb
-                              ? Responsive.width(context, 30)
-                              : Responsive.height(context, 20) +
-                                    MediaQuery.paddingOf(context).top * 1.5,
-                          left: Responsive.width(context, 70),
-                          right: Responsive.width(context, 70),
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: ShaderMask(
-                            shaderCallback: (bounds) =>
-                                subtleTextGradient().createShader(
-                                  Rect.fromLTWH(
-                                    0,
-                                    0,
-                                    bounds.width,
-                                    bounds.height,
-                                  ),
-                                ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Text(
-                                  "LEVEL UP!",
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: Responsive.font(context, 55),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: Responsive.scale(context, 2),
-                                    foreground: Paint()
-                                      ..style = PaintingStyle.stroke
-                                      ..strokeWidth = Responsive.scale(
-                                        context,
-                                        3,
-                                      )
-                                      ..color = Colors.black.withAlpha(180),
-                                  ),
-                                ),
-                                Text(
-                                  "LEVEL UP!",
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: Responsive.font(context, 55),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: Responsive.scale(context, 2),
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        offset: const Offset(0, 0),
-                                        blurRadius: Responsive.scale(
-                                          context,
-                                          25,
-                                        ),
-                                        color: appColorNotifier.value.withAlpha(
-                                          200,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: Responsive.height(context, 3),
-                    color: Colors.white.withAlpha(25),
-                  ),
-                ],
-              ),
-            ),
             body: Stack(
               children: [
                 ScrollConfiguration(
@@ -1115,12 +958,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.centeredHorizontalPadding(
+                      padding: EdgeInsets.only(
+                        left: Responsive.centeredHorizontalPadding(context, 24),
+                        right: Responsive.centeredHorizontalPadding(
                           context,
                           24,
                         ),
-                        vertical: Responsive.height(context, 20),
+                        top:
+                            MediaQuery.paddingOf(context).top +
+                            Responsive.height(context, 16),
+                        bottom: Responsive.height(context, 20),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1131,15 +978,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             SizedBox(height: Responsive.height(context, 16)),
                           ],
 
-                          // Greeting
+                          // Greeting: time of day small + name big, settings icon top right
                           _maybeAnimate(
-                            Text(
-                              _buildGreeting(username),
-                              style: GoogleFonts.manrope(
-                                color: Colors.white,
-                                fontSize: Responsive.font(context, 22),
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _timeOfDayLabel(),
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white38,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            14,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: Responsive.scale(
+                                            context,
+                                            1.2,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 2),
+                                      ),
+                                      Text(
+                                        "${username ?? "Hey there"}${_greetingIsQuestion ? "?" : "!"}",
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            26,
+                                          ),
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SettingsIconButton(
+                                  onTap: () =>
+                                      _scaffoldKey.currentState?.openDrawer(),
+                                ),
+                              ],
                             ),
                             0.ms,
                           ),
@@ -1184,7 +1070,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           16,
                                         ),
                                       ),
-                                      child: Row(
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.3,
+                                        ).withAlpha(120),
+                                        width: Responsive.scale(context, 1.5),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           HugeIcon(
                                             icon: HugeIcons
@@ -1193,12 +1088,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               appColorNotifier.value,
                                               0.3,
                                             ),
-                                            size: Responsive.scale(context, 20),
+                                            size: Responsive.scale(context, 26),
                                           ),
                                           SizedBox(
-                                            width: Responsive.width(
+                                            height: Responsive.height(
                                               context,
-                                              10,
+                                              8,
                                             ),
                                           ),
                                           Text(
@@ -1238,7 +1133,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           16,
                                         ),
                                       ),
-                                      child: Row(
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.3,
+                                        ).withAlpha(120),
+                                        width: Responsive.scale(context, 1.5),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           HugeIcon(
                                             icon: HugeIcons
@@ -1247,25 +1151,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               appColorNotifier.value,
                                               0.3,
                                             ),
-                                            size: Responsive.scale(context, 20),
+                                            size: Responsive.scale(context, 26),
                                           ),
                                           SizedBox(
-                                            width: Responsive.width(
+                                            height: Responsive.height(
                                               context,
-                                              10,
+                                              8,
                                             ),
                                           ),
-                                          Flexible(
-                                            child: Text(
-                                              "Calorie Calculator",
-                                              style: GoogleFonts.manrope(
-                                                color: Colors.white,
-                                                fontSize: Responsive.font(
-                                                  context,
-                                                  14,
-                                                ),
-                                                fontWeight: FontWeight.w600,
+                                          Text(
+                                            "Calorie Calculator",
+                                            style: GoogleFonts.manrope(
+                                              color: Colors.white,
+                                              fontSize: Responsive.font(
+                                                context,
+                                                14,
                                               ),
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
@@ -1277,11 +1179,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                             240.ms,
                           ),
-
-                          SizedBox(height: Responsive.height(context, 20)),
-
-                          // Recent activity
-                          _maybeAnimate(_buildRecentActivity(), 300.ms),
 
                           // Extra bottom space so content clears the floating nav bar
                           SizedBox(height: Responsive.height(context, 100)),

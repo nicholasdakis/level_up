@@ -1739,3 +1739,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Since fetchStreaks() already gets all the streak data, added dailyClaimStreakBest and foodLogStreakBest to UserData to store highest_streak to be shown on the home screen dashboard in the streaks section
 - Daily claim streak now updates immediately in currentUserData after claiming since the value is already in the claim response, so the home screen reflects it on the next setState without a reload
 - Food log streak refetches from the backend only when today's date differs from foodLogStreakLastDate (stored in UserData from the streak row on load), since the streak only changes on a new consecutive day
+- Redesigned the home screen header: removed the standalone app bar and replaced it with a two-line greeting inline with the screen and time of day in small caps above the username in bold
+- Removed the recently logged section from the home screen since it doesn't provide useful information and reads from local device cache rather than actual food log history, making it inaccurate
+- Daily reward card now shows a checkmark on the right when claimed instead of hiding the trailing icon
+- Calories today icon changed from fork and knife to fire, foods logged label changed to logs today, and streak day count is now larger than the days label
+- foodLogNotifier increments on food delete and edit in addition to log, so all mutations trigger a home screen refresh

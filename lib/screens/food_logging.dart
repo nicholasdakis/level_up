@@ -197,6 +197,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
     });
     await _saveFoodData("delete");
+    foodLogNotifier.value++;
   }
 
   // Opens a dialog letting the user change the serving amount for a logged food
@@ -295,6 +296,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
     });
     await _saveFoodData("edit"); // store the changes
+    foodLogNotifier.value++;
   }
 
   Future<void> _saveFoodData(String addOrDelete) async {

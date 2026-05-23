@@ -781,6 +781,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 );
                 if (confirmed != true) return;
                 await _recentFoodsService.removeRecentFood(food['food_name']);
+                foodLogNotifier.value++;
                 await _loadRecentFoods();
               },
               child: Padding(
