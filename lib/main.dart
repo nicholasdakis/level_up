@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
@@ -13,6 +14,17 @@ import 'utility/remove_splash_stub.dart'
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    // extend flutter's canvas behind the status bar and nav bar
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // make both bars fully transparent so app content shows through
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    );
+  }
   // Removes the # from URLs so paths look like /food-logging instead of /#/food-logging
   usePathUrlStrategy();
   // Initialize PWA install prompt so users can install the app from the settings drawer

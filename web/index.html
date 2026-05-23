@@ -360,18 +360,22 @@
 
   <script>
 
+    function patchViewport() {
+      var vp = document.querySelector('meta[flt-viewport]') || document.querySelector('meta[name="viewport"]');
+      if (vp && !vp.content.includes('viewport-fit=cover')) {
+        vp.content += ', viewport-fit=cover';
+      }
+    }
+
     window.addEventListener('load', function (ev) {
 
-      // Watch for Flutter replacing the viewport tag and immediately patch viewport-fit=cover back.
-      // Flutter bug #157858: initializeEngine() replaces the viewport tag and strips viewport-fit=cover,
-      // which prevents iOS from exposing safe area insets to Flutter (SafeArea/MediaQuery.paddingOf return 0).
+      // Flutter bug #157858: initializeEngine() replaces the viewport tag with its own (flt-viewport)
+      // and strips viewport-fit=cover, so iOS never exposes safe area insets to Flutter.
+      // The MutationObserver catches the moment Flutter inserts its tag and patches it immediately.
       var observer = new MutationObserver(function () {
-        var vp = document.querySelector('meta[name="viewport"]');
-        if (vp && !vp.content.includes('viewport-fit=cover')) {
-          vp.content += ', viewport-fit=cover';
-        }
+        patchViewport();
       });
-      observer.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['content'] });
+      observer.observe(document.head, { childList: true, subtree: true, attributes: true });
 
       _flutter.loader.load({
 
@@ -380,6 +384,8 @@
           const appRunner = await engineInitializer.initializeEngine();
           await appRunner.runApp();
 
+          // Patch once more after runApp in case the tag was added after observer fired
+          patchViewport();
           observer.disconnect();
         }
       });
