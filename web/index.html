@@ -63,6 +63,7 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* splash screen overlay covers everything before flutter loads */
@@ -361,6 +362,17 @@
 
     window.addEventListener('load', function (ev) {
 
+      // Watch for Flutter replacing the viewport tag and immediately patch viewport-fit=cover back.
+      // Flutter bug #157858: initializeEngine() replaces the viewport tag and strips viewport-fit=cover,
+      // which prevents iOS from exposing safe area insets to Flutter (SafeArea/MediaQuery.paddingOf return 0).
+      var observer = new MutationObserver(function () {
+        var vp = document.querySelector('meta[name="viewport"]');
+        if (vp && !vp.content.includes('viewport-fit=cover')) {
+          vp.content += ', viewport-fit=cover';
+        }
+      });
+      observer.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['content'] });
+
       _flutter.loader.load({
 
         onEntrypointLoaded: async function (engineInitializer) {
@@ -368,12 +380,7 @@
           const appRunner = await engineInitializer.initializeEngine();
           await appRunner.runApp();
 
-          // Flutter replaces the viewport tag and strips viewport-fit=cover (Flutter bug #157858).
-          // Patch it back so iOS exposes safe area insets and the app fills the notch.
-          var vp = document.querySelector('meta[name="viewport"]');
-          if (vp && !vp.content.includes('viewport-fit=cover')) {
-            vp.content += ', viewport-fit=cover';
-          }
+          observer.disconnect();
         }
       });
     });
