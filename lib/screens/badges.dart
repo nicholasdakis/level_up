@@ -513,19 +513,14 @@ class _BadgesState extends State<Badges> {
         decoration: BoxDecoration(gradient: buildThemeGradient()),
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-            centerTitle: true,
-            toolbarHeight: Responsive.height(context, 100),
-            automaticallyImplyLeading: false,
-            title: createTitle("Badges", context),
-          ),
-          body: Center(
-            child: Text(
-              "Sign up to track your badges",
-              style: GoogleFonts.manrope(
-                color: Colors.white70,
-                fontSize: Responsive.font(context, 16),
+          body: SafeArea(
+            child: Center(
+              child: Text(
+                "Sign up to track your badges",
+                style: GoogleFonts.manrope(
+                  color: Colors.white70,
+                  fontSize: Responsive.font(context, 16),
+                ),
               ),
             ),
           ),
@@ -545,23 +540,10 @@ class _BadgesState extends State<Badges> {
           length: tabSections.length,
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-              centerTitle: true,
-              toolbarHeight: Responsive.height(context, 100),
-              automaticallyImplyLeading: false,
-              title: createTitle("Badges", context),
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-                child: Container(
-                  height: Responsive.height(context, 3),
-                  color: Colors.white.withAlpha(25),
-                ),
-              ),
-            ),
             body: Column(
               children: [
-                // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
+                SizedBox(height: MediaQuery.paddingOf(context).top),
+                // Pill-style tab bar in the body so it sits on the gradient
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 12),

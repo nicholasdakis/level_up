@@ -947,56 +947,6 @@ class _FoodLoggingState extends State<FoodLogging> {
           decoration: BoxDecoration(gradient: buildThemeGradient()),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              scrolledUnderElevation: 0,
-              backgroundColor: darkenColor(appColor, 0.025),
-              centerTitle: true,
-              toolbarHeight: Responsive.buttonHeight(context, 120),
-              automaticallyImplyLeading: false,
-              title: createTitle("Food Logging", context),
-              actions: [
-                Padding(
-                  padding: EdgeInsets.all(Responsive.padding(context, 8)),
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      _loadUserDataFuture = _refreshAndLoadFood();
-                    }),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
-                        border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.refresh,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-                child: Container(
-                  height: Responsive.height(context, 3),
-                  color: Colors.white.withAlpha(25),
-                ),
-              ),
-            ),
             body: Skeletonizer(
               enabled: isLoading,
               effect: ShimmerEffect(
@@ -1005,17 +955,59 @@ class _FoodLoggingState extends State<FoodLogging> {
                 duration: const Duration(milliseconds: 1200),
               ),
               child: ListView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
-                  vertical: Responsive.height(context, 12),
+                padding: EdgeInsets.only(
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                  right: Responsive.centeredHorizontalPadding(context, 20),
+                  top:
+                      MediaQuery.paddingOf(context).top +
+                      Responsive.height(context, 16),
+                  bottom: Responsive.height(context, 12),
                 ),
                 children: [
-                  DateNavigationRow(
-                    currentDate: currentDate,
-                    onDateChanged: (date) {
-                      setState(() => currentDate = date);
-                      loadFoodForDate(date);
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DateNavigationRow(
+                          currentDate: currentDate,
+                          onDateChanged: (date) {
+                            setState(() => currentDate = date);
+                            loadFoodForDate(date);
+                          },
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _loadUserDataFuture = _refreshAndLoadFood();
+                        }),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.refresh,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   SizedBox(height: Responsive.height(context, 16)),

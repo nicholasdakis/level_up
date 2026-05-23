@@ -245,58 +245,6 @@ class _LeaderboardState extends State<Leaderboard> {
       child: Scaffold(
         backgroundColor: Colors.transparent, // Body color
         // Header box
-        appBar: AppBar(
-          backgroundColor: darkenColor(
-            appColorNotifier.value,
-            0.025,
-          ), // Header color
-          centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(context, 120),
-          automaticallyImplyLeading: false,
-          title: createTitle("Leaderboard", context),
-          scrolledUnderElevation:
-              0, // So the appBar does not change color when the user scrolls down
-          actions: [
-            Padding(
-              padding: EdgeInsets.all(Responsive.padding(context, 8)),
-              child: GestureDetector(
-                onTap: _refreshLeaderboard,
-                child: Container(
-                  padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.1,
-                    ).withAlpha(20),
-                    border: Border.all(
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.refresh,
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    size: Responsive.font(context, 13),
-                  ),
-                ),
-              ),
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-            child: Container(
-              height: Responsive.height(context, 3),
-              color: Colors.white.withAlpha(25),
-            ),
-          ),
-        ),
         body: FutureBuilder<List<LeaderboardEntry>>(
           future: _leaderboardFuture,
           builder: (context, snapshot) {
@@ -342,18 +290,62 @@ class _LeaderboardState extends State<Leaderboard> {
                 padding: EdgeInsets.only(
                   left: Responsive.centeredHorizontalPadding(context, 20),
                   right: Responsive.centeredHorizontalPadding(context, 20),
-                  top: Responsive.height(context, 24),
+                  top:
+                      MediaQuery.paddingOf(context).top +
+                      Responsive.height(context, 16),
                   bottom: Responsive.height(context, 120),
                 ),
                 itemCount:
-                    leaderboardUsers.length >
-                        100 // Only shows up to the top 100
-                    ? 100
-                    : leaderboardUsers.length,
+                    (leaderboardUsers.length > 100
+                        ? 100
+                        : leaderboardUsers.length) +
+                    1,
                 itemBuilder: (context, i) {
-                  final user = leaderboardUsers[i];
+                  if (i == 0) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: _refreshLeaderboard,
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 12),
+                              ),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.1,
+                                ).withAlpha(20),
+                                border: Border.all(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.3,
+                                  ).withAlpha(180),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.refresh,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ).withAlpha(180),
+                                size: Responsive.font(context, 13),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  final user = leaderboardUsers[i - 1];
                   final isCurrentUser = user.uid == currentUserId;
-                  final card = _buildUserCard(user, i, isCurrentUser);
+                  final card = _buildUserCard(user, i - 1, isCurrentUser);
                   // Only the first 20 spots get the animation
                   if (isLoading || i >= 20 || _animatedIndices.contains(i)) {
                     return card;

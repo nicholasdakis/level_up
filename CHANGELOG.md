@@ -1744,3 +1744,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Daily reward card now shows a checkmark on the right when claimed instead of hiding the trailing icon
 - Calories today icon changed from fork and knife to fire, foods logged label changed to logs today, and streak day count is now larger than the days label
 - foodLogNotifier increments on food delete and edit in addition to log, so all mutations trigger a home screen refresh
+- Made the notch section of the Android version of the app transparent
+- Removed the appbar from the main tabs accessible through the bottom navigation bar
