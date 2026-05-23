@@ -62,8 +62,13 @@
       /* body uses the full gradient */
       margin: 0;
       padding: 0;
-      height: 100%;
-      padding-bottom: env(safe-area-inset-bottom);
+      min-height: calc(100% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+    }
+
+    /* force Flutter's canvas to fill the entire viewport including safe areas */
+    flt-glass-pane, flt-scene-host, flt-scene, canvas {
+      height: 100% !important;
+      min-height: 100% !important;
     }
 
     /* splash screen overlay covers everything before flutter loads */
