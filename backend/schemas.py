@@ -240,6 +240,7 @@ class GetUserDataResponse(BaseModel):
     notifications_enabled: bool = True
     last_daily_claim: str | None = None  # ISO string
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
+    daily_streak: int = 1
     food_logs: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
     goals: GoalsResponse | None = None
