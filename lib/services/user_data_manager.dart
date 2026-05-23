@@ -221,6 +221,27 @@ class UserDataManager {
 
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
+
+      // fetch current and best streaks from the streaks table
+      try {
+        final streaks = await fetchStreaks();
+        final foodRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'food_streak',
+          orElse: () => {},
+        );
+        final claimRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'daily_consecutive_streak',
+          orElse: () => {},
+        );
+        currentUserData?.foodLogStreak = (foodRow['streak'] as int?) ?? 0;
+        currentUserData?.foodLogStreakBest =
+            (foodRow['highest_streak'] as int?) ?? 0;
+        currentUserData?.foodLogStreakLastDate =
+            foodRow['last_date'] as String?;
+        currentUserData?.dailyClaimStreakBest =
+            (claimRow['highest_streak'] as int?) ?? 0;
+      } catch (_) {}
+
       lastLoadFailed = false;
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading user data: $e');
@@ -449,12 +470,15 @@ class UserDataManager {
       currentUserData!.canClaimDailyReward = false;
       currentUserData!.lastDailyClaim = DateTime.now().toUtc();
 
-      // Return XP gained, base XP, daily streak, and streak multiplier
       final xpGained = result['xp_gained'] as int;
       final baseXp = (result['base_xp'] ?? xpGained) as int;
       final streak = (result['daily_streak'] ?? 1) as int;
       final multiplier = ((result['streak_multiplier'] ?? 1.0) as num)
           .toDouble();
+
+      // Keep local streak in sync so home screen reflects the new value immediately
+      currentUserData!.dailyClaimStreak = streak;
+
       return (xpGained, baseXp, streak, multiplier);
     } catch (e) {
       if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
@@ -784,6 +808,27 @@ class UserDataManager {
           throw Exception(
             'upsert_food_log failed: ${response.statusCode} ${response.body}',
           );
+        }
+      }
+
+      // Only refetch streak if today is a new day since the last logged date
+      if (!isBeingDeleted) {
+        final today = DateTime.now();
+        final todayKey =
+            '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+        if (currentUserData?.foodLogStreakLastDate != todayKey) {
+          try {
+            final streaks = await fetchStreaks();
+            final foodRow = streaks.firstWhere(
+              (s) => s['streak_type'] == 'food_streak',
+              orElse: () => {},
+            );
+            currentUserData?.foodLogStreak = (foodRow['streak'] as int?) ?? 0;
+            currentUserData?.foodLogStreakBest =
+                (foodRow['highest_streak'] as int?) ?? 0;
+            currentUserData?.foodLogStreakLastDate =
+                foodRow['last_date'] as String?;
+          } catch (_) {}
         }
       }
 

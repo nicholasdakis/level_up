@@ -11,6 +11,10 @@ class UserData {
   bool notificationsEnabled;
   DateTime? lastDailyClaim;
   int dailyClaimStreak;
+  int dailyClaimStreakBest;
+  int foodLogStreak;
+  int foodLogStreakBest;
+  String? foodLogStreakLastDate;
   List<ReminderData> reminders;
   String? username;
   Color appColor;
@@ -32,6 +36,9 @@ class UserData {
     this.notificationsEnabled = true,
     this.lastDailyClaim,
     this.dailyClaimStreak = 1,
+    this.dailyClaimStreakBest = 0,
+    this.foodLogStreak = 0,
+    this.foodLogStreakBest = 0,
     this.appColor = defaultAppColor,
     Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,
     String? username,

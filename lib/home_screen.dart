@@ -33,7 +33,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late VoidCallback _appColorListener;
@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
   List<Map<String, dynamic>> _recentFoods = [];
+  double _lastRenderedExp = 0;
   // Picked once per app launch so it stays stable across rebuilds
   final int _greetingIndex = DateTime.now().millisecondsSinceEpoch % 8;
 
@@ -55,6 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
+    foodLogNotifier.addListener(_onFoodLogged);
+    WidgetsBinding.instance.addObserver(this);
 
     confettiControllerinit();
 
@@ -75,6 +78,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onFoodLogged() {
+    _loadRecentFoods();
+    if (mounted) setState(() {});
+  }
+
   // Called every time this tab becomes active again, not just on first build
   @override
   void activate() {
@@ -83,6 +91,19 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadRecentFoods();
       _updateCountdown();
       if (mounted) setState(() {});
+    }
+  }
+
+  // Called when the app resumes from background
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && appReadyNotifier.value) {
+      _updateCountdown();
+      _loadRecentFoods();
+      if (mounted) setState(() {});
+      if (canClaimDailyReward() && !isGuest && !isNewUser) {
+        buildDailyRewardDialog();
+      }
     }
   }
 
@@ -123,8 +144,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
     appColorNotifier.removeListener(_appColorListener);
+    foodLogNotifier.removeListener(_onFoodLogged);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
@@ -145,6 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       dailyRewardConfettiController,
     );
+    if (mounted) {
+      _updateCountdown();
+      setState(() {});
+    }
   }
 
   Future<void> _onTourTap() async {
@@ -307,23 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return total;
   }
 
-  // Counts consecutive days with at least one food logged, going back from today
-  int _foodLogStreak() {
-    final data = currentUserData?.foodDataByDate;
-    if (data == null || data.isEmpty) return 0;
-    int streak = 0;
-    var day = DateTime.now();
-    while (true) {
-      final key =
-          '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-      final meals = data[key];
-      final hasFood = meals != null && meals.values.any((f) => f.isNotEmpty);
-      if (!hasFood) break;
-      streak++;
-      day = day.subtract(const Duration(days: 1));
-    }
-    return streak;
-  }
+  int _foodLogStreak() => currentUserData?.foodLogStreak ?? 0;
 
   // Reads the daily claim streak from the backend-populated UserData field
   int _dailyClaimStreak() => currentUserData?.dailyClaimStreak ?? 0;
@@ -332,6 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required int count,
+    required int best,
     required Color accentColor,
     required bool isLast,
   }) {
@@ -350,13 +362,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(width: Responsive.width(context, 14)),
               Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.manrope(
-                    color: Colors.white70,
-                    fontSize: Responsive.font(context, 14),
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.manrope(
+                        color: Colors.white70,
+                        fontSize: Responsive.font(context, 14),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (best > 0)
+                      Text(
+                        "Best: $best ${best == 1 ? 'day' : 'days'}",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white30,
+                          fontSize: Responsive.font(context, 11),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Text(
@@ -394,6 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: HugeIcons.strokeRoundedFire,
               label: "Food logging streak",
               count: foodStreak,
+              best: currentUserData?.foodLogStreakBest ?? 0,
               accentColor: accentColor,
               isLast: claimStreak == 0,
             ),
@@ -402,6 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: HugeIcons.strokeRoundedCalendar02,
               label: "Daily reward claimed",
               count: claimStreak,
+              best: currentUserData?.dailyClaimStreakBest ?? 0,
               accentColor: accentColor,
               isLast: true,
             ),
@@ -468,9 +495,10 @@ class _HomeScreenState extends State<HomeScreen> {
             vertical: Responsive.height(context, 16),
           ),
           child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: exp.toDouble()),
+            tween: Tween(begin: _lastRenderedExp, end: exp.toDouble()),
             duration: const Duration(milliseconds: 800),
             curve: Curves.easeOut,
+            onEnd: () => _lastRenderedExp = exp.toDouble(),
             builder: (context, animatedExp, _) {
               final needed = (userManager.experienceNeeded ?? 1).toDouble();
               final progress = (animatedExp / needed).clamp(0.0, 1.0);
@@ -1229,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           Flexible(
                                             child: Text(
-                                              "Calculator",
+                                              "Calorie Calculator",
                                               style: GoogleFonts.manrope(
                                                 color: Colors.white,
                                                 fontSize: Responsive.font(

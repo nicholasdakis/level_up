@@ -1728,3 +1728,14 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed greeting changing on every rebuild by storing the random index once at widget creation time using millisecondsSinceEpoch
 - Fixed Log Food and Food Analytics screens crashing when opened by adding parentNavigatorKey pointing to the root navigator so they push over the shell instead of inside the branch navigator
 - Added a root navigator key to GoRouter so sub-routes can reference it via parentNavigatorKey to push over the shell
+
+## 2026-05-23
+- Fixed daily reward dialog not appearing when resuming the app from background by implementing WidgetsBindingObserver and didChangeAppLifecycleState
+- Fixed daily reward card continuing to show "ready to claim" state after the reward was already claimed by adding a setState after the dialog resolves
+- Fixed XP bar re-animating from zero on every rebuild by tracking the last rendered XP value and using it as the animation start point
+- Fixed recently logged foods not updating on the home screen after logging a new food by introducing a global foodLogNotifier that the home screen listens to
+- Fixed food logging streak resetting to zero mid-day when no food had been logged yet by starting the streak calculation from yesterday if today is empty
+- Replaced the home screen's food log streak being calculated client-side with a backend fetch because the client-side method is inaccurate and may count unvalidated streaks created client-side that don't match the real stored streaks
+- Since fetchStreaks() already gets all the streak data, added dailyClaimStreakBest and foodLogStreakBest to UserData to store highest_streak to be shown on the home screen dashboard in the streaks section
+- Daily claim streak now updates immediately in currentUserData after claiming since the value is already in the claim response, so the home screen reflects it on the next setState without a reload
+- Food log streak refetches from the backend only when today's date differs from foodLogStreakLastDate (stored in UserData from the streak row on load), since the streak only changes on a new consecutive day

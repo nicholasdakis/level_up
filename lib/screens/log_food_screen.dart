@@ -458,6 +458,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     if (hour >= 23) trackTrivialAchievement("night_owl"); // after 11pm
     if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
 
+    foodLogNotifier.value++;
     widget.onFoodLogged();
     if (mounted) context.pop();
   }

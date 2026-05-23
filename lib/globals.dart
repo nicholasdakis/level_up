@@ -32,6 +32,9 @@ ValueNotifier<bool> guestNotifier = ValueNotifier<bool>(false);
 // for updating HomeScreen when app color is updated
 ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 
+// incremented each time a food is logged so home screen can refresh
+ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
+
 UserData?
 currentUserData; // global current user-specific variable (not Firestore-dependent)
 final UserDataManager userManager =
