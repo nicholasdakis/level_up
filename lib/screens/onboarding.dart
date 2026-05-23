@@ -102,7 +102,7 @@ Future<void> showWelcomeTourDialog(BuildContext context) async {
 Future<void> showUsernameSetupDialog(BuildContext context) async {
   await showDialog(
     context: context,
-    barrierDismissible: false,
+    useRootNavigator: true,
     builder: (dialogContext) => const _UsernameSetupDialog(),
   );
 }

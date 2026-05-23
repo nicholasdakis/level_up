@@ -100,9 +100,15 @@ class _ExploreState extends State<Explore> {
     _refreshClosestCheckinPOI();
   }
 
+  late final VoidCallback _colorListener;
+
   @override
   void initState() {
     super.initState();
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
     _poiService.cleanupOldVisits();
     if (isGuest) {
       // For guest users
@@ -114,6 +120,7 @@ class _ExploreState extends State<Explore> {
 
   @override
   void dispose() {
+    appColorNotifier.removeListener(_colorListener);
     _mapController.dispose();
     _positionStream?.cancel();
     super.dispose();

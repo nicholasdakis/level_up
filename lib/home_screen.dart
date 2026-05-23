@@ -44,6 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
   List<Map<String, dynamic>> _recentFoods = [];
+  // Picked once per app launch so it stays stable across rebuilds
+  final int _greetingIndex = DateTime.now().millisecondsSinceEpoch % 8;
 
   @override
   void initState() {
@@ -106,11 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (last == null) return;
     final next = last.add(const Duration(hours: 23));
     final remaining = next.difference(DateTime.now().toUtc());
-    if (mounted)
+    if (mounted) {
       setState(
         () =>
             _timeUntilReward = remaining.isNegative ? Duration.zero : remaining,
       );
+    }
   }
 
   Future<void> _loadRecentFoods() async {
@@ -152,8 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (_tourStep == 2) {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
-      if (mounted)
+      if (mounted) {
         setState(() {}); // refresh greeting and drawer with the new username
+      }
       if (canClaimDailyReward() && mounted) {
         await buildDailyRewardDialog();
         if (mounted) await requestNotificationPermissionIfNeeded(context);
@@ -284,10 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Use the day of year as seed so it changes daily but stays consistent within a day
-    final dayOfYear = DateTime.now()
-        .difference(DateTime(DateTime.now().year))
-        .inDays;
-    return greetings[dayOfYear % greetings.length];
+    return greetings[_greetingIndex % greetings.length];
   }
 
   // Calculates total calories logged today
@@ -782,12 +783,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   if (_recentFoods.isNotEmpty)
                     Text(
-                      "Last: ${_recentFoods.first['food_name'] ?? ''}",
+                      "Latest Log: ${_recentFoods.first['food_name'] ?? ''}",
                       style: GoogleFonts.manrope(
                         color: Colors.white38,
                         fontSize: Responsive.font(context, 11),
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
                     ),
                 ],
               ),

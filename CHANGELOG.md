@@ -1722,3 +1722,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the guest banner from a sticky footer to a card at the top of the home dashboard
 - Updated the onboarding tour tooltip text to describe the new dashboard and floating nav bar instead of the old button grid and footer
 - Fixed app color not updating on persistent tabs by wrapping AppShell in a ValueListenableBuilder on appColorNotifier, forcing all tabs to rebuild when the color changes
+- Reverted the AppShell ValueListenableBuilder after it caused a MediaQuery crash in dialogs opened from push routes over the shell
+- Fixed app color not updating on persistent tabs by adding appColorNotifier listeners directly to Food Logging, Leaderboard, Badges, and Explore state classes
+- Fixed "Maybe Later" in the guest block dialog crashing by using Navigator.of(context, rootNavigator: true).pop() and added useRootNavigator: true to showFrostedDialog
+- Fixed greeting changing on every rebuild by storing the random index once at widget creation time using millisecondsSinceEpoch
+- Fixed Log Food and Food Analytics screens crashing when opened by adding parentNavigatorKey pointing to the root navigator so they push over the shell instead of inside the branch navigator
+- Added a root navigator key to GoRouter so sub-routes can reference it via parentNavigatorKey to push over the shell

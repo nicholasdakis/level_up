@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'floating_nav_bar.dart';
-import '../globals.dart';
 import '../utility/responsive.dart';
 
 class AppShell extends StatefulWidget {
@@ -18,34 +17,29 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final selectedIndex = widget.navigationShell.currentIndex;
 
-    // Rebuild the entire shell when app color changes so all persistent tabs
-    // reflect the new color immediately without needing to navigate away and back
-    return ValueListenableBuilder<Color>(
-      valueListenable: appColorNotifier,
-      builder: (context, _, child) => Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            // Tab content, each branch keeps its own navigator alive
-            widget.navigationShell,
-            // Floating nav bar, hidden on Explore (index 2) since it covers the map
-            if (selectedIndex != 2)
-              Positioned(
-                bottom: Responsive.padding(context, 16),
-                left: Responsive.padding(context, 24),
-                right: Responsive.padding(context, 24),
-                child: FloatingNavBar(
-                  selectedIndex: selectedIndex,
-                  onTap: (index) {
-                    widget.navigationShell.goBranch(
-                      index,
-                      initialLocation: index == selectedIndex,
-                    );
-                  },
-                ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Tab content, each branch keeps its own navigator alive
+          widget.navigationShell,
+          // Floating nav bar, hidden on Explore (index 2) since it covers the map
+          if (selectedIndex != 2)
+            Positioned(
+              bottom: Responsive.padding(context, 16),
+              left: Responsive.padding(context, 24),
+              right: Responsive.padding(context, 24),
+              child: FloatingNavBar(
+                selectedIndex: selectedIndex,
+                onTap: (index) {
+                  widget.navigationShell.goBranch(
+                    index,
+                    initialLocation: index == selectedIndex,
+                  );
+                },
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

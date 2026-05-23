@@ -47,11 +47,23 @@ class _LeaderboardState extends State<Leaderboard> {
     return exp;
   }
 
+  late final VoidCallback _colorListener;
+
   @override
   void initState() {
     super.initState();
     _leaderboardFuture = leaderboardService.fetchLeaderboard();
     if (isGuest) Guest.blockOnOpen(context); // For guest users
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
+  }
+
+  @override
+  void dispose() {
+    appColorNotifier.removeListener(_colorListener);
+    super.dispose();
   }
 
   void _refreshLeaderboard() {

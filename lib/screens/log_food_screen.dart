@@ -761,14 +761,16 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).pop(false),
                       child: const Text(
                         "Cancel",
                         style: TextStyle(color: Colors.white54),
                       ),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context, true),
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).pop(true),
                       child: const Text(
                         "Remove",
                         style: TextStyle(color: Colors.redAccent),

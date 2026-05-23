@@ -76,13 +76,25 @@ class _FoodLoggingState extends State<FoodLogging> {
       currentUserData?.caloriesGoal !=
       null; // true only if the user has set at least a calorie goal
 
+  late final VoidCallback _colorListener;
+
   @override
   void initState() {
     super.initState();
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
     _loadCollapsedState();
     _loadUserDataFuture = _loadUserDataAndInit();
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
+  }
+
+  @override
+  void dispose() {
+    appColorNotifier.removeListener(_colorListener);
+    super.dispose();
   }
 
   Future<void> _loadUserDataAndInit() async {
@@ -164,11 +176,12 @@ class _FoodLoggingState extends State<FoodLogging> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
           child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
           child: const Text(
             "Delete",
             style: TextStyle(color: Colors.redAccent),

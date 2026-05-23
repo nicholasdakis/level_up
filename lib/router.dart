@@ -35,6 +35,9 @@ class _AuthNotifier extends ChangeNotifier {
 
 final _authNotifier = _AuthNotifier();
 
+// Root navigator key, used so sub-routes can push over the shell
+final _rootNavKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 // Navigator keys, one per shell branch
 final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
@@ -81,6 +84,7 @@ Page _slideUpPage({required LocalKey key, required Widget child}) {
 }
 
 final GoRouter appRouter = GoRouter(
+  navigatorKey: _rootNavKey,
   initialLocation: '/loading',
   debugLogDiagnostics: kDebugMode,
   routerNeglect: false,
@@ -158,6 +162,7 @@ final GoRouter appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'analytics',
+                  parentNavigatorKey: _rootNavKey,
                   redirect: (context, state) =>
                       state.extra == null ? '/food-logging' : null,
                   pageBuilder: (context, state) {
@@ -174,6 +179,7 @@ final GoRouter appRouter = GoRouter(
                 ),
                 GoRoute(
                   path: 'log',
+                  parentNavigatorKey: _rootNavKey,
                   redirect: (context, state) =>
                       state.extra == null ? '/food-logging' : null,
                   pageBuilder: (context, state) {

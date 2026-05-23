@@ -134,9 +134,15 @@ class _BadgesState extends State<Badges> {
         ),
   ];
 
+  late final VoidCallback _colorListener;
+
   @override
   void initState() {
     super.initState();
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
     if (isGuest) {
       // For guest users
       Guest.blockOnOpen(context);
@@ -144,6 +150,12 @@ class _BadgesState extends State<Badges> {
       return;
     }
     _fetchBadgesData();
+  }
+
+  @override
+  void dispose() {
+    appColorNotifier.removeListener(_colorListener);
+    super.dispose();
   }
 
   // Fetches all achievement progress, claimed tiers, and streaks from the backend in parallel
