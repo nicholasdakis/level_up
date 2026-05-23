@@ -171,6 +171,7 @@ Future<T?> showFrostedDialog<T>({
 }) {
   return showDialog<T>(
     context: context,
+    useRootNavigator: true,
     barrierDismissible: dismissible,
     builder: (ctx) => Dialog(
       backgroundColor: Colors.transparent,

@@ -1693,3 +1693,32 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the Set Reminder button from the Reminders tab. Reminders are set when the time is chosen
 - Moved the notes section of the Reminders tab into an alert dialog that opens when a help button is pressed in the top right of the reminders screen
 - Added a border around the Enter Reminder Time box
+
+## 2026-05-22
+- Created app_shell.dart, a persistent shell widget that wraps all 5 tab screens and hosts the floating nav bar
+- Created floating_nav_bar.dart, the frosted glass pill nav bar with icons, labels, and animated active state
+- Replaced the home screen button grid with a dashboard layout
+- Added a floating frosted glass bottom navigation bar with 5 persistent tabs: Home, Food Logging, Explore, Leaderboard, Badges
+- Refactored the router to use StatefulShellRoute.indexedStack so each tab keeps its own navigation stack and scroll position
+- Reminders and Calorie Calculator moved to compact tool tiles on the home dashboard
+- Home dashboard shows a greeting, XP progress card, daily reward card with countdown timer, streak card, quick stats, and recent activity
+- XP card is the same as how it was in footer, but changed its outline to match the style of the screen better
+- Daily reward card shows countdown timer to the next available claim
+- Streak card shows food logging streak and daily claim streaks
+- Added daily_streak field to get_user_data backend response and GetUserDataResponse schema
+- Added dailyClaimStreak field to UserData model so the data can be cached in memory
+- Quick stats row shows calories today with a mini progress bar and food items logged today
+- Calories progress bar styled to match food logging screen
+- Recent activity section shows last 3 foods logged from local cache
+- Back buttons removed from Food Logging, Leaderboard, and Badges since they are now persistent tabs
+- Explore tab back button changed to navigate home instead of popping
+- Nav bar is hidden on Explore tab to keep the map unobstructed
+- Nav bar labels shown for all 5 tabs, and the active tab label is larger and bolder
+- Daily and Range tabs in Food Analytics now fill the full width on mobile instead of aligning at the center
+- Added subtle border around XP bar, calorie bar in food logging, and calorie bar on home screen
+- Refreshed the settings drawer after the onboarding flow so a new user immediately sees their chosen name in the drawer instead of "Unnamed"
+- Since Home Screen is now persistent and doesn't rebuild when navigated to, added activate() that refreshes its contents when teh user goes back to the home screen so that it stays up-to-date
+- Added a few random greetings based on time to make them feel more personalized
+- Moved the guest banner from a sticky footer to a card at the top of the home dashboard
+- Updated the onboarding tour tooltip text to describe the new dashboard and floating nav bar instead of the old button grid and footer
+- Fixed app color not updating on persistent tabs by wrapping AppShell in a ValueListenableBuilder on appColorNotifier, forcing all tabs to rebuild when the color changes

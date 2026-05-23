@@ -1,0 +1,147 @@
+import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '../globals.dart';
+import '../utility/responsive.dart';
+
+// Routes matching each tab index, order must match _navIcons and _navLabels
+const _navRoutes = [
+  '/',
+  '/food-logging',
+  '/explore',
+  '/leaderboard',
+  '/badges',
+];
+
+// icons for each tab
+const _navIcons = [
+  HugeIcons.strokeRoundedHome09,
+  HugeIcons.strokeRoundedPencil,
+  HugeIcons.strokeRoundedLocation01,
+  HugeIcons.strokeRoundedMedal01,
+  HugeIcons.strokeRoundedCrown,
+];
+
+// Labels shown below each icon, active label is slightly larger and bolder
+const _navLabels = ['Home', 'Food', 'Explore', 'Leaderboard', 'Badges'];
+
+// Floating frosted glass bottom navigation bar with 5 persistent tabs
+class FloatingNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const FloatingNavBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  // Maps a router location string to a tab index, iterates in reverse so
+  // nested routes like /food-logging/log correctly resolve to the food tab
+  static int indexForLocation(String location) {
+    for (int i = _navRoutes.length - 1; i >= 0; i--) {
+      if (location.startsWith(_navRoutes[i])) return i;
+    }
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Rebuild when the app color changes so active icons stay in sync with the theme
+    return ValueListenableBuilder<Color>(
+      valueListenable: appColorNotifier,
+      builder: (context, appColor, _) {
+        return SafeArea(
+          // SafeArea prevents the bar from overlapping the home indicator on iOS
+          child: Center(
+            child: ConstrainedBox(
+              // Cap the width so the bar doesn't stretch too wide on tablets/desktop
+              constraints: BoxConstraints(
+                maxWidth: Responsive.scale(context, 360),
+              ),
+              child: frostedGlassCard(
+                context,
+                baseRadius: 30,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.padding(context, 8),
+                  vertical: Responsive.padding(context, 10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: List.generate(_navIcons.length, (i) {
+                    return _NavItem(
+                      icon: _navIcons[i],
+                      label: _navLabels[i],
+                      isActive: selectedIndex == i,
+                      appColor: appColor,
+                      onTap: () => onTap(i),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// A single tab item in the nav bar, icon grows and label brightens when active
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final Color appColor;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.appColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = lightenColor(appColor, 0.3);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque, // makes the full padding area tappable
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.padding(context, 10),
+          vertical: Responsive.padding(context, 4),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon grows when active to emphasize selected tab
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 350),
+              child: HugeIcon(
+                icon: icon,
+                color: isActive ? activeColor : Colors.white38,
+                size: Responsive.scale(context, isActive ? 28 : 23),
+              ),
+            ),
+            SizedBox(height: Responsive.scale(context, 3)),
+            // Label animates color and weight, invisible on inactive tabs
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                color: isActive ? activeColor : Colors.white24,
+                fontSize: isActive
+                    ? Responsive.font(context, 11)
+                    : Responsive.font(context, 10),
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                fontFamily: 'Manrope',
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -534,11 +534,13 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
               ),
               child: TabBar(
                 controller: _tabController,
-                isScrollable: true,
+                isScrollable: Responsive.isDesktop(context),
                 tabAlignment: Responsive.isDesktop(context)
                     ? TabAlignment.center
-                    : TabAlignment.start,
-                labelPadding: EdgeInsets.symmetric(horizontal: Responsive.width(context, 16)),
+                    : TabAlignment.fill,
+                labelPadding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 16),
+                ),
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
                   color: Colors.white.withAlpha(

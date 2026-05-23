@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
 import 'authentication/register_or_login.dart';
+import 'screens/app_shell.dart';
 import 'screens/calorie_calculator.dart';
 import 'screens/calorie_calculator/results.dart';
 import 'screens/food_logging.dart';
@@ -33,6 +34,13 @@ class _AuthNotifier extends ChangeNotifier {
 }
 
 final _authNotifier = _AuthNotifier();
+
+// Navigator keys, one per shell branch
+final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
+final _exploreNavKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
+final _leaderboardNavKey = GlobalKey<NavigatorState>(debugLabel: 'leaderboard');
+final _badgesNavKey = GlobalKey<NavigatorState>(debugLabel: 'badges');
 
 // slides in from the right on push, instant on pop
 Page _slidePage({required LocalKey key, required Widget child}) {
@@ -80,7 +88,7 @@ final GoRouter appRouter = GoRouter(
   refreshListenable: _authNotifier,
   redirect: (context, state) {
     if (suppressAuthRedirect) {
-      return null; // TOS check in progress — hold position
+      return null; // TOS check in progress
     }
     final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
     final onLogin = state.matchedLocation == '/login';
@@ -117,10 +125,120 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) =>
           NoTransitionPage(key: state.pageKey, child: const AppInitScreen()),
     ),
+
+    // Shell wrapping the 5 persistent tabs
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          AppShell(navigationShell: navigationShell),
+      branches: [
+        // Home tab
+        StatefulShellBranch(
+          navigatorKey: _homeNavKey,
+          routes: [
+            GoRoute(
+              path: '/',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const HomeScreen(),
+              ),
+            ),
+          ],
+        ),
+
+        // Food Logging tab
+        StatefulShellBranch(
+          navigatorKey: _foodNavKey,
+          routes: [
+            GoRoute(
+              path: '/food-logging',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const FoodLogging(),
+              ),
+              routes: [
+                GoRoute(
+                  path: 'analytics',
+                  redirect: (context, state) =>
+                      state.extra == null ? '/food-logging' : null,
+                  pageBuilder: (context, state) {
+                    final p = state.extra as Map<String, dynamic>;
+                    return _slideUpPage(
+                      key: state.pageKey,
+                      child: FoodAnalyticsScreen(
+                        initialDate: p['initialDate'] as DateTime,
+                        onDateChanged:
+                            p['onDateChanged'] as void Function(DateTime)?,
+                      ),
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'log',
+                  redirect: (context, state) =>
+                      state.extra == null ? '/food-logging' : null,
+                  pageBuilder: (context, state) {
+                    final p = state.extra as Map<String, dynamic>;
+                    return _slideUpPage(
+                      key: state.pageKey,
+                      child: LogFoodScreen(
+                        meal: p['meal'] as String,
+                        currentDate: p['currentDate'] as DateTime,
+                        onFoodLogged: p['onFoodLogged'] as VoidCallback,
+                        achievementId: p['achievementId'] as String?,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Explore tab
+        StatefulShellBranch(
+          navigatorKey: _exploreNavKey,
+          routes: [
+            GoRoute(
+              path: '/explore',
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const Explore()),
+            ),
+          ],
+        ),
+
+        // Leaderboard tab
+        StatefulShellBranch(
+          navigatorKey: _leaderboardNavKey,
+          routes: [
+            GoRoute(
+              path: '/leaderboard',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const Leaderboard(),
+              ),
+            ),
+          ],
+        ),
+
+        // Badges tab
+        StatefulShellBranch(
+          navigatorKey: _badgesNavKey,
+          routes: [
+            GoRoute(
+              path: '/badges',
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const Badges()),
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // Push routes over the shell (no nav bar visible on these)
     GoRoute(
-      path: '/',
+      path: '/reminders',
       pageBuilder: (context, state) =>
-          NoTransitionPage(key: state.pageKey, child: const HomeScreen()),
+          _slidePage(key: state.pageKey, child: const Reminders()),
     ),
     GoRoute(
       path: '/calorie-calculator',
@@ -129,8 +247,6 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'results',
-          // redirect back to calculator if the screen is accessed directly
-          // (the Results widget needs params that can't come from a URL)
           redirect: (context, state) =>
               state.extra == null ? '/calorie-calculator' : null,
           pageBuilder: (context, state) {
@@ -152,66 +268,6 @@ final GoRouter appRouter = GoRouter(
           },
         ),
       ],
-    ),
-    GoRoute(
-      path: '/food-logging',
-      pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const FoodLogging()),
-      routes: [
-        GoRoute(
-          path: 'analytics',
-          // redirect back if accessed directly without params
-          redirect: (context, state) =>
-              state.extra == null ? '/food-logging' : null,
-          pageBuilder: (context, state) {
-            final p = state.extra as Map<String, dynamic>;
-            return _slideUpPage(
-              key: state.pageKey,
-              child: FoodAnalyticsScreen(
-                initialDate: p['initialDate'] as DateTime,
-                onDateChanged: p['onDateChanged'] as void Function(DateTime)?,
-              ),
-            );
-          },
-        ),
-        GoRoute(
-          path: 'log',
-          redirect: (context, state) =>
-              state.extra == null ? '/food-logging' : null,
-          pageBuilder: (context, state) {
-            final p = state.extra as Map<String, dynamic>;
-            return _slideUpPage(
-              key: state.pageKey,
-              child: LogFoodScreen(
-                meal: p['meal'] as String,
-                currentDate: p['currentDate'] as DateTime,
-                onFoodLogged: p['onFoodLogged'] as VoidCallback,
-                achievementId: p['achievementId'] as String?,
-              ),
-            );
-          },
-        ),
-      ],
-    ),
-    GoRoute(
-      path: '/reminders',
-      pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const Reminders()),
-    ),
-    GoRoute(
-      path: '/badges',
-      pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const Badges()),
-    ),
-    GoRoute(
-      path: '/leaderboard',
-      pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const Leaderboard()),
-    ),
-    GoRoute(
-      path: '/explore',
-      pageBuilder: (context, state) =>
-          _slidePage(key: state.pageKey, child: const Explore()),
     ),
     GoRoute(
       path: '/settings/preferences',

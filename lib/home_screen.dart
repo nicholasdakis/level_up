@@ -1,12 +1,13 @@
 // home_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:level_up/utility/confetti.dart';
 import 'screens/settings/settings_icon_button.dart';
 import 'screens/settings.dart';
-import 'screens/footer.dart';
 import 'screens/daily_rewards.dart';
 import 'authentication/auth_services.dart';
 import 'globals.dart';
@@ -15,13 +16,14 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/recent_foods_service.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
     as web_fcm;
 
 class _HomeAnimationState {
-  static bool buttonsAnimated = false;
+  static bool dashboardAnimated = false;
 }
 
 class HomeScreen extends StatefulWidget {
@@ -36,24 +38,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late VoidCallback _appColorListener;
 
-  // 0 = buttons step, 1 = footer step, 2 = settings step, -1 = tour not active
+  // 0 = dashboard step, 1 = nav bar step, 2 = settings step, -1 = tour not active
   int _tourStep = -1;
+
+  Timer? _countdownTimer;
+  Duration _timeUntilReward = Duration.zero;
+  List<Map<String, dynamic>> _recentFoods = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Update the HomeScreen with the updated app color
     _appColorListener = () {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_appColorListener);
 
-    // Initialize confetti controllers before _onAppReady
     confettiControllerinit();
 
-    // If data is already loaded and the user doesn't need onboarding, skip the skeleton entirely
-    // New users keep isLoading = true so the skeleton shows instead of a flash of home content
     final needsOnboarding =
         currentUserData?.username != null &&
         currentUserData?.username == currentUserData?.uid;
@@ -71,17 +73,54 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Called every time this tab becomes active again, not just on first build
+  @override
+  void activate() {
+    super.activate();
+    if (appReadyNotifier.value) {
+      _loadRecentFoods();
+      _updateCountdown();
+      if (mounted) setState(() {});
+    }
+  }
+
   void _onAppReady() {
     if (!mounted) return;
     initializeUser();
+    _startCountdown();
+    _loadRecentFoods();
     Future.delayed(const Duration(milliseconds: 850), () {
-      _HomeAnimationState.buttonsAnimated = true;
+      _HomeAnimationState.dashboardAnimated = true;
     });
   }
 
-  // To prevent memory leaks
+  void _startCountdown() {
+    _updateCountdown();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _updateCountdown();
+    });
+  }
+
+  void _updateCountdown() {
+    final last = currentUserData?.lastDailyClaim;
+    if (last == null) return;
+    final next = last.add(const Duration(hours: 23));
+    final remaining = next.difference(DateTime.now().toUtc());
+    if (mounted)
+      setState(
+        () =>
+            _timeUntilReward = remaining.isNegative ? Duration.zero : remaining,
+      );
+  }
+
+  Future<void> _loadRecentFoods() async {
+    final foods = await RecentFoodsService().getRecentFoods();
+    if (mounted) setState(() => _recentFoods = foods.take(3).toList());
+  }
+
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     appColorNotifier.removeListener(_appColorListener);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
@@ -89,26 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Method so the skeletonizer works for the buttons before they fade and slide in
-  Widget buildPlaceholderButton() {
-    return simpleCustomButton(
-      "Placeholder",
-      48,
-      160,
-      750,
-      context,
-      onPressed: () {},
-      baseColor: appColorNotifier.value,
-    );
-  }
-
   bool get isNewUser =>
       currentUserData?.username != null &&
       currentUserData?.username == currentUserData?.uid;
 
   bool canClaimDailyReward() {
-    return currentUserData?.canClaimDailyReward ??
-        true; // reads from currentUserData because upon loading, it calls the backend to get the most up-to-date value
+    return currentUserData?.canClaimDailyReward ?? true;
   }
 
   Future<void> buildDailyRewardDialog() async {
@@ -119,7 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Advances the tour step on tap, finishing after the settings step
   Future<void> _onTourTap() async {
     if (_tourStep == 0) {
       setState(() => _tourStep = 1);
@@ -128,16 +152,15 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (_tourStep == 2) {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
+      if (mounted)
+        setState(() {}); // refresh greeting and drawer with the new username
       if (canClaimDailyReward() && mounted) {
         await buildDailyRewardDialog();
-        // Ask for notification permission after the first reward so the user understands why
         if (mounted) await requestNotificationPermissionIfNeeded(context);
       }
     }
   }
 
-  // AppShell already loaded user data, updated UTC offset, synced XP, and
-  // initialized FCM. HomeScreen only needs to show the home-specific dialogs.
   Future<void> initializeUser() async {
     if (currentUserData == null) return;
 
@@ -180,18 +203,16 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
       if (isNewUser) {
-        // Wait for the frame after isLoading = false so all targets are visible
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
           await showWelcomeTourDialog(context);
           if (!mounted) return;
-          setState(() => _tourStep = 0); // start the tour on the buttons step
+          setState(() => _tourStep = 0);
         });
       }
     }
   }
 
-  // Method that retries loading user data after a failed fetch
   Future<void> _retry() async {
     if (!mounted) return;
     setState(() {
@@ -210,76 +231,643 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get _tourActive => _tourStep != -1;
 
-  // Guest user footer
-  Widget _buildGuestFooter() {
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    return GestureDetector(
-      onTap: () async {
-        await authService.value.signOut(); // clears guest state
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(
-          Responsive.width(context, 24),
-          Responsive.height(context, 16),
-          Responsive.width(context, 24),
-          Responsive.height(context, 16) + bottomInset,
+  // Builds a greeting based on time of day plus a random variant from that pool
+  String _buildGreeting(String? username) {
+    final hour = DateTime.now().hour;
+    final name = username != null ? ", $username" : "";
+
+    final List<String> greetings;
+    if (hour < 12) {
+      greetings = [
+        "Good morning$name!",
+        "Morning$name!",
+        "Hey$name, good morning!",
+        "Rise and shine$name!",
+        "What's on the agenda today$name?",
+        "Ready to level up$name?",
+        "New day, new goals$name!",
+        "Let's make today count$name!",
+      ];
+    } else if (hour < 17) {
+      greetings = [
+        "Good afternoon$name!",
+        "Hey$name, good afternoon!",
+        "Welcome back$name!",
+        "Hey$name!",
+        "Back for more$name?",
+        "What's on the agenda$name?",
+        "Have you tried the Explore tab$name?",
+        "Any achievements to unlock today$name?",
+      ];
+    } else if (hour < 21) {
+      greetings = [
+        "Good evening$name!",
+        "Hey$name, good evening!",
+        "Evening$name!",
+        "Welcome back$name!",
+        "Back for more$name?",
+        "How's the day been$name?",
+        "Log your dinner$name?",
+        "Any achievements left to unlock$name?",
+      ];
+    } else {
+      greetings = [
+        "Hey$name, up late?",
+        "Still at it$name?",
+        "Good night$name!",
+        "Hey$name!",
+        "Burning the midnight oil$name?",
+        "Log a late night snack$name?",
+        "Night owl energy$name!",
+        "Back for more$name?",
+      ];
+    }
+
+    // Use the day of year as seed so it changes daily but stays consistent within a day
+    final dayOfYear = DateTime.now()
+        .difference(DateTime(DateTime.now().year))
+        .inDays;
+    return greetings[dayOfYear % greetings.length];
+  }
+
+  // Calculates total calories logged today
+  int _todayCalories() {
+    final today = DateTime.now();
+    final key =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final meals = currentUserData?.foodDataByDate[key];
+    if (meals == null) return 0;
+    int total = 0;
+    for (final foods in meals.values) {
+      for (final food in foods) {
+        total += (num.tryParse(food['calories'].toString()) ?? 0).toInt();
+      }
+    }
+    return total;
+  }
+
+  // Counts consecutive days with at least one food logged, going back from today
+  int _foodLogStreak() {
+    final data = currentUserData?.foodDataByDate;
+    if (data == null || data.isEmpty) return 0;
+    int streak = 0;
+    var day = DateTime.now();
+    while (true) {
+      final key =
+          '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+      final meals = data[key];
+      final hasFood = meals != null && meals.values.any((f) => f.isNotEmpty);
+      if (!hasFood) break;
+      streak++;
+      day = day.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
+  // Reads the daily claim streak from the backend-populated UserData field
+  int _dailyClaimStreak() => currentUserData?.dailyClaimStreak ?? 0;
+
+  Widget _buildStreakRow({
+    required IconData icon,
+    required String label,
+    required int count,
+    required Color accentColor,
+    required bool isLast,
+  }) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 10),
+          ),
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: icon,
+                color: accentColor,
+                size: Responsive.scale(context, 22),
+              ),
+              SizedBox(width: Responsive.width(context, 14)),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    color: Colors.white70,
+                    fontSize: Responsive.font(context, 14),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Text(
+                count == 1 ? "1 day" : "$count days",
+                style: GoogleFonts.manrope(
+                  color: accentColor,
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
         ),
-        decoration: BoxDecoration(
-          color: darkenColor(appColorNotifier.value, 0.025),
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withAlpha(25),
-              width: Responsive.height(context, 3),
+        if (!isLast) Divider(color: Colors.white.withAlpha(15), height: 1),
+      ],
+    );
+  }
+
+  // Streak card showing food log streak and daily claim streak
+  Widget _buildStreakCard() {
+    final foodStreak = _foodLogStreak();
+    final claimStreak = _dailyClaimStreak();
+    if (foodStreak == 0 && claimStreak == 0) return const SizedBox.shrink();
+    final accentColor = lightenColor(appColorNotifier.value, 0.3);
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 20),
+        vertical: Responsive.height(context, 4),
+      ),
+      child: Column(
+        children: [
+          if (foodStreak > 0)
+            _buildStreakRow(
+              icon: HugeIcons.strokeRoundedFire,
+              label: "Food logging streak",
+              count: foodStreak,
+              accentColor: accentColor,
+              isLast: claimStreak == 0,
+            ),
+          if (claimStreak > 0)
+            _buildStreakRow(
+              icon: HugeIcons.strokeRoundedCalendar02,
+              label: "Daily reward claimed",
+              count: claimStreak,
+              accentColor: accentColor,
+              isLast: true,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Guest banner card
+  Widget _buildGuestBanner() {
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "You're in guest mode",
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(context, 14),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  "Create an account to save your progress",
+                  style: GoogleFonts.manrope(
+                    color: Colors.white54,
+                    fontSize: Responsive.font(context, 12),
+                  ),
+                ),
+              ],
             ),
           ),
+          SizedBox(width: Responsive.width(context, 12)),
+          frostedButton(
+            "Sign Up",
+            context,
+            onPressed: () async {
+              await authService.value.signOut();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // XP bar card (moved from footer.dart)
+  Widget _buildXpCard() {
+    return ValueListenableBuilder<int>(
+      valueListenable: expNotifier,
+      builder: (context, exp, _) {
+        return frostedGlassCard(
+          context,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 20),
+            vertical: Responsive.height(context, 16),
+          ),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: exp.toDouble()),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOut,
+            builder: (context, animatedExp, _) {
+              final needed = (userManager.experienceNeeded ?? 1).toDouble();
+              final progress = (animatedExp / needed).clamp(0.0, 1.0);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Level ${currentUserData?.level ?? 1}",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 16),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white54,
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  // XP bar, styled to match the calorie bar in food logging
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 7),
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(45),
+                        width: Responsive.scale(context, 1),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 6),
+                      ),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: Responsive.height(context, 10),
+                            width: double.infinity,
+                            color: Colors.white.withAlpha(18),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: progress,
+                            child: Container(
+                              height: Responsive.height(context, 10),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 6),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  // XP to next level
+                  Builder(
+                    builder: (context) {
+                      final needed = userManager.experienceNeeded ?? 0;
+                      final remaining = (needed - animatedExp.round()).clamp(
+                        0,
+                        needed,
+                      );
+                      return Text(
+                        "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(context, 11),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // Daily reward card
+  Widget _buildDailyRewardCard() {
+    final canClaim = canClaimDailyReward();
+    final accentColor = lightenColor(appColorNotifier.value, 0.3);
+    return GestureDetector(
+      onTap: canClaim && !isGuest ? () => buildDailyRewardDialog() : null,
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 16),
         ),
         child: Row(
           children: [
+            HugeIcon(
+              icon: canClaim
+                  ? HugeIcons.strokeRoundedGift
+                  : HugeIcons.strokeRoundedCalendar02,
+              color: canClaim ? accentColor : Colors.white38,
+              size: Responsive.scale(context, 24),
+            ),
+            SizedBox(width: Responsive.width(context, 14)),
             Expanded(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "You're in guest mode",
+                    canClaim
+                        ? "Daily reward ready!"
+                        : "Daily reward claimed today!",
                     style: GoogleFonts.manrope(
-                      color: Colors.white,
+                      color: canClaim ? Colors.white : Colors.white54,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
-                    "Create an account to save your progress",
+                    canClaim
+                        ? "Tap to claim your XP bonus"
+                        : _timeUntilReward.inSeconds > 0
+                        ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
+                        : "You've already claimed today's reward",
                     style: GoogleFonts.manrope(
-                      color: Colors.white54,
+                      color: Colors.white38,
                       fontSize: Responsive.font(context, 12),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: Responsive.width(context, 12)),
-            frostedButton(
-              "Sign Up",
-              context,
-              onPressed: () async {
-                await authService.value
-                    .signOut(); // exits guest mode and redirects to login
-              },
-            ),
+            if (canClaim && !isGuest)
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: accentColor,
+                size: Responsive.scale(context, 18),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _maybeAnimate(Widget button, Duration delay) {
-    if (_HomeAnimationState.buttonsAnimated) return button;
-    return button
+  // Counts total food items logged today across all meals
+  int _todayFoodCount() {
+    final today = DateTime.now();
+    final key =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final meals = currentUserData?.foodDataByDate[key];
+    if (meals == null) return 0;
+    return meals.values.fold(0, (sum, foods) => sum + foods.length);
+  }
+
+  // Quick stats row: calories with progress bar + foods logged today
+  Widget _buildQuickStats() {
+    final calories = _todayCalories();
+    final goal = currentUserData?.caloriesGoal ?? 0;
+    final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
+    final foodCount = _todayFoodCount();
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Calories card with mini progress bar
+          Expanded(
+            child: frostedGlassCard(
+              context,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedRestaurant03,
+                        color: Colors.white38,
+                        size: Responsive.scale(context, 14),
+                      ),
+                      SizedBox(width: Responsive.width(context, 5)),
+                      Text(
+                        "Calories today",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(context, 11),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    "$calories",
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 22),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (goal > 0) ...[
+                    Text(
+                      "/ $goal goal",
+                      style: GoogleFonts.manrope(
+                        color: Colors.white38,
+                        fontSize: Responsive.font(context, 11),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 8)),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 7),
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(45),
+                          width: Responsive.scale(context, 1),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 6),
+                        ),
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: Responsive.height(context, 8),
+                              width: double.infinity,
+                              color: Colors.white.withAlpha(18),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                height: Responsive.height(context, 8),
+                                decoration: BoxDecoration(
+                                  color: calories > goal
+                                      ? Colors.redAccent
+                                      : lightenColor(
+                                          appColorNotifier.value,
+                                          0.3,
+                                        ),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 12)),
+          // Foods logged today
+          Expanded(
+            child: frostedGlassCard(
+              context,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedNote,
+                        color: Colors.white38,
+                        size: Responsive.scale(context, 14),
+                      ),
+                      SizedBox(width: Responsive.width(context, 5)),
+                      Text(
+                        "Foods logged",
+                        style: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(context, 11),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    "$foodCount",
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 22),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (_recentFoods.isNotEmpty)
+                    Text(
+                      "Last: ${_recentFoods.first['food_name'] ?? ''}",
+                      style: GoogleFonts.manrope(
+                        color: Colors.white38,
+                        fontSize: Responsive.font(context, 11),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Recent activity section using local recent foods cache
+  Widget _buildRecentActivity() {
+    if (_recentFoods.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        sectionHeader("RECENTLY LOGGED", context),
+        frostedGlassCard(
+          context,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 4),
+          ),
+          child: Column(
+            children: List.generate(_recentFoods.length, (i) {
+              final food = _recentFoods[i];
+              final name = food['food_name']?.toString() ?? '';
+              final cal = food['calories']?.toString() ?? '—';
+              return Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 10),
+                    ),
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedRestaurant03,
+                          color: Colors.white24,
+                          size: Responsive.scale(context, 16),
+                        ),
+                        SizedBox(width: Responsive.width(context, 12)),
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: GoogleFonts.manrope(
+                              color: Colors.white70,
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          "$cal kcal",
+                          style: GoogleFonts.manrope(
+                            color: Colors.white38,
+                            fontSize: Responsive.font(context, 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (i < _recentFoods.length - 1)
+                    Divider(color: Colors.white.withAlpha(15), height: 1),
+                ],
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _maybeAnimate(Widget widget, Duration delay) {
+    if (_HomeAnimationState.dashboardAnimated) return widget;
+    return widget
         .animate()
         .fadeIn(delay: delay, duration: 400.ms)
-        .slideY(begin: 0.2, duration: 400.ms, curve: Curves.easeOutCubic);
+        .slideY(begin: 0.15, duration: 400.ms, curve: Curves.easeOutCubic);
   }
 
   @override
@@ -287,7 +875,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Stack(
       children: [
         IgnorePointer(ignoring: loadFailed, child: _buildBody()),
-        // Full-screen tap catcher that advances the tour when active
         if (_tourActive)
           DefaultTextStyle(
             style: const TextStyle(decoration: TextDecoration.none),
@@ -297,9 +884,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: _onTourTap,
                 child: Stack(
                   children: [
-                    // Semi-transparent overlay so the UI behind is still visible
                     Container(color: Colors.black.withAlpha(120)),
-                    // Step 2 on mobile: left-anchored narrow card so the gear icon stays visible
                     Positioned(
                       left: Responsive.width(context, 16),
                       right: (_tourStep == 2 && Responsive.isMobile(context))
@@ -309,7 +894,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? Responsive.height(context, 16)
                           : null,
                       bottom: _tourStep == 1
-                          ? Responsive.height(context, 100)
+                          ? Responsive.height(context, 120)
                           : null,
                       child: (_tourStep == 2 && Responsive.isMobile(context))
                           ? ConstrainedBox(
@@ -336,20 +921,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: buildShowcaseTooltip(
                                   context,
                                   title: _tourStep == 0
-                                      ? 'Main Features'
+                                      ? 'Your Dashboard'
                                       : _tourStep == 1
-                                      ? 'Footer'
+                                      ? 'Navigation Bar'
                                       : 'Settings',
                                   description: _tourStep == 0
-                                      ? 'Below are your six main tabs: Food Logging, Explore, Leaderboard, Badges, Reminders, and Calorie Calculator.'
+                                      ? 'This is your dashboard — your XP progress, daily reward, and quick stats all live here. Use the tool buttons below to access Reminders and the Calorie Calculator.'
                                       : _tourStep == 1
-                                      ? 'Below is your footer bar which contains your level, XP bar, and profile picture. Tapping your profile picture takes you to your Personal Preferences tab.'
+                                      ? 'The floating bar at the bottom lets you switch between your five main tabs: Home, Food Logging, Explore, Leaderboard, and Badges.'
                                       : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
                                 ).animate(key: ValueKey(_tourStep)).fadeIn(duration: 200.ms),
                               ),
                             ),
                     ),
-                    // Tap hint at the bottom
                     Positioned(
                       bottom: Responsive.height(context, 12),
                       left: 0,
@@ -375,10 +959,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody() {
+    final username =
+        (currentUserData?.username == null ||
+            currentUserData?.username == currentUserData?.uid)
+        ? null
+        : currentUserData!.username!;
+
     return IgnorePointer(
-      ignoring:
-          _tourActive, // clicks are disregarded when the tutorial tour is showing
-      // Show loading if user data not loaded yet
+      ignoring: _tourActive,
       child: Skeletonizer(
         enabled: isLoading,
         effect: ShimmerEffect(
@@ -393,32 +981,23 @@ class _HomeScreenState extends State<HomeScreen> {
             drawer: buildSettingsDrawer(
               context,
               scaffoldKey: _scaffoldKey,
-              // rebuild on pfp image update
               onProfileImageUpdated: () {
                 if (!mounted) return;
-                setState(() {}); // rebuild HomeScreen
+                setState(() {});
               },
             ),
             backgroundColor: Colors.transparent,
-            // Body + Header
             appBar: PreferredSize(
-              preferredSize: Size.fromHeight(
-                Responsive.height(context, 201),
-              ), // Alter default appBar size
+              preferredSize: Size.fromHeight(Responsive.height(context, 201)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppBar(
-                    automaticallyImplyLeading:
-                        false, // Prevent the automatic hamburger icon from appearing
-                    scrolledUnderElevation:
-                        0, // So the appBar does not change color when the user scrolls down
+                    automaticallyImplyLeading: false,
+                    scrolledUnderElevation: 0,
                     backgroundColor: darkenColor(appColorNotifier.value, 0.025),
                     centerTitle: true,
-                    toolbarHeight: Responsive.buttonHeight(
-                      context,
-                      120,
-                    ), // Prevent the icon from cutting in half
+                    toolbarHeight: Responsive.buttonHeight(context, 120),
                     elevation: 0,
                     actions: [
                       SettingsIconButton(
@@ -428,17 +1007,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     flexibleSpace: Center(
                       child: Padding(
                         padding: EdgeInsets.only(
-                          // On web use the original padding; on native add status bar height since flexibleSpace renders behind it
                           top: kIsWeb
                               ? Responsive.width(context, 30)
-                              : Responsive.height(context, 20) + MediaQuery.paddingOf(context).top * 1.5,
-                          // Reserve space for the settings button on the right so the title never overlaps it
+                              : Responsive.height(context, 20) +
+                                    MediaQuery.paddingOf(context).top * 1.5,
                           left: Responsive.width(context, 70),
                           right: Responsive.width(context, 70),
                         ),
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          // Manually make the title text, since appBar is already being used
                           child: ShaderMask(
                             shaderCallback: (bounds) =>
                                 subtleTextGradient().createShader(
@@ -447,12 +1024,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     0,
                                     bounds.width,
                                     bounds.height,
-                                  ), // Make a rectangle the same size as the text so the gradient covers it
+                                  ),
                                 ),
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
-                                // Stroke / outline
                                 Text(
                                   "LEVEL UP!",
                                   style: GoogleFonts.spaceGrotesk(
@@ -468,7 +1044,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ..color = Colors.black.withAlpha(180),
                                   ),
                                 ),
-                                // Fill + glow
                                 Text(
                                   "LEVEL UP!",
                                   style: GoogleFonts.spaceGrotesk(
@@ -478,7 +1053,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.white,
                                     shadows: [
                                       Shadow(
-                                        offset: Offset(0, 0),
+                                        offset: const Offset(0, 0),
                                         blurRadius: Responsive.scale(
                                           context,
                                           25,
@@ -497,7 +1072,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  // Separator between header and body
                   Container(
                     height: Responsive.height(context, 3),
                     color: Colors.white.withAlpha(25),
@@ -506,212 +1080,188 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             body: Stack(
-              // Stack for confetti to appear on top
               children: [
-                Column(
-                  children: [
-                    // Middle body
-                    Expanded(
-                      child: ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          child: Padding(
-                            padding: EdgeInsets.all(
-                              Responsive.height(context, 5),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 16),
-                              ),
-                              child: Align(
-                                alignment: Alignment.topCenter,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // room above first button
-                                    SizedBox(
-                                      height: Responsive.height(context, 8),
-                                    ),
-                                    // MAIN TABS
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // FOOD LOGGING TAB
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Food Logging",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "open_food_logging",
-                                                    );
-                                                    context.push(
-                                                      '/food-logging',
-                                                    );
-                                                  },
-                                                ),
-                                                0.ms,
-                                              ),
-                                        SizedBox(
-                                          height: Responsive.height(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                        // EXPLORE TAB
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Explore",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "open_explore",
-                                                    );
-                                                    context.push('/explore');
-                                                  },
-                                                ),
-                                                80.ms,
-                                              ),
-                                        SizedBox(
-                                          height: Responsive.height(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                        // LEADERBOARD TAB
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Leaderboard",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "open_leaderboard",
-                                                    );
-                                                    context.push(
-                                                      '/leaderboard',
-                                                    );
-                                                  },
-                                                ),
-                                                160.ms,
-                                              ),
-                                        SizedBox(
-                                          height: Responsive.height(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                        // BADGES TAB
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Badges",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "open_badges",
-                                                    );
-                                                    context.push('/badges');
-                                                  },
-                                                ),
-                                                240.ms,
-                                              ),
-                                        SizedBox(
-                                          height: Responsive.height(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                        // REMINDERS TAB
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Reminders",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "open_reminders",
-                                                    );
-                                                    context.push('/reminders');
-                                                  },
-                                                ),
-                                                320.ms,
-                                              ),
-                                        SizedBox(
-                                          height: Responsive.height(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                        // CALORIE CALCULATOR BUTTON
-                                        isLoading
-                                            ? buildPlaceholderButton()
-                                            : _maybeAnimate(
-                                                customButton(
-                                                  "Calorie Calculator",
-                                                  48,
-                                                  160,
-                                                  750,
-                                                  context,
-                                                  onPressed: () {
-                                                    trackTrivialAchievement(
-                                                      "calorie_calculator",
-                                                    );
-                                                    context.push(
-                                                      '/calorie-calculator',
-                                                    );
-                                                  },
-                                                ),
-                                                400.ms,
-                                              ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.centeredHorizontalPadding(
+                          context,
+                          24,
                         ),
+                        vertical: Responsive.height(context, 20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Guest banner
+                          if (isGuest) ...[
+                            _buildGuestBanner(),
+                            SizedBox(height: Responsive.height(context, 16)),
+                          ],
+
+                          // Greeting
+                          _maybeAnimate(
+                            Text(
+                              _buildGreeting(username),
+                              style: GoogleFonts.manrope(
+                                color: Colors.white,
+                                fontSize: Responsive.font(context, 22),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            0.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 16)),
+
+                          sectionHeader("PROGRESS", context),
+                          _maybeAnimate(_buildXpCard(), 60.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader("DAILY REWARD", context),
+                          _maybeAnimate(_buildDailyRewardCard(), 120.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader("STREAKS", context),
+                          _maybeAnimate(_buildStreakCard(), 180.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader("STATS", context),
+                          _maybeAnimate(_buildQuickStats(), 220.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader("TOOLS", context),
+                          // Tool tiles row
+                          _maybeAnimate(
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      trackTrivialAchievement("open_reminders");
+                                      context.push('/reminders');
+                                    },
+                                    child: frostedGlassCard(
+                                      context,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          16,
+                                        ),
+                                        vertical: Responsive.height(
+                                          context,
+                                          16,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          HugeIcon(
+                                            icon: HugeIcons
+                                                .strokeRoundedAlarmClock,
+                                            color: lightenColor(
+                                              appColorNotifier.value,
+                                              0.3,
+                                            ),
+                                            size: Responsive.scale(context, 20),
+                                          ),
+                                          SizedBox(
+                                            width: Responsive.width(
+                                              context,
+                                              10,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Reminders",
+                                            style: GoogleFonts.manrope(
+                                              color: Colors.white,
+                                              fontSize: Responsive.font(
+                                                context,
+                                                14,
+                                              ),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: Responsive.width(context, 12)),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      trackTrivialAchievement(
+                                        "calorie_calculator",
+                                      );
+                                      context.push('/calorie-calculator');
+                                    },
+                                    child: frostedGlassCard(
+                                      context,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          16,
+                                        ),
+                                        vertical: Responsive.height(
+                                          context,
+                                          16,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          HugeIcon(
+                                            icon: HugeIcons
+                                                .strokeRoundedCalculate,
+                                            color: lightenColor(
+                                              appColorNotifier.value,
+                                              0.3,
+                                            ),
+                                            size: Responsive.scale(context, 20),
+                                          ),
+                                          SizedBox(
+                                            width: Responsive.width(
+                                              context,
+                                              10,
+                                            ),
+                                          ),
+                                          Flexible(
+                                            child: Text(
+                                              "Calculator",
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  14,
+                                                ),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            240.ms,
+                          ),
+
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          // Recent activity
+                          _maybeAnimate(_buildRecentActivity(), 300.ms),
+
+                          // Extra bottom space so content clears the floating nav bar
+                          SizedBox(height: Responsive.height(context, 100)),
+                        ],
                       ),
                     ),
-                    // Footer: show sign-up prompt for guests, normal XP footer for real users
-                    if (isGuest)
-                      _buildGuestFooter()
-                    else
-                      Footer(
-                        profilePicture: userManager.insertProfilePicture(),
-                        // Rebuild footer with correct Profile Picture
-                        onProfileImageUpdated: () {
-                          if (!mounted) return;
-                          setState(() {}); // safely rebuild HomeScreen
-                        }, // Current state required for rebuilding Home Screen if the user clicks the profile picture for redirection to Personal Preferences
-                      ),
-                  ],
+                  ),
                 ),
-                // Align Widget must be the last child of this Stack so it appears above all other widgets
+                // Confetti on top
                 Align(
                   alignment: Alignment.topCenter,
                   child: buildDailyRewardConfetti(

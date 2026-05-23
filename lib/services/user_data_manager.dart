@@ -170,6 +170,8 @@ class UserDataManager {
         currentUserData?.appColor = Color(data['app_color'] as int);
       }
 
+      currentUserData?.dailyClaimStreak = data['daily_streak'] ?? 1;
+
       // Compute canClaimDailyReward directly from last_daily_claim (23-hour cooldown)
       if (data['last_daily_claim'] != null) {
         currentUserData?.lastDailyClaim = DateTime.parse(

@@ -2,7 +2,6 @@ import "package:flutter/material.dart";
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
-import "package:go_router/go_router.dart";
 import "package:google_fonts/google_fonts.dart";
 import "/globals.dart";
 import "/guest.dart";
@@ -506,10 +505,7 @@ class _BadgesState extends State<Badges> {
             backgroundColor: darkenColor(appColorNotifier.value, 0.025),
             centerTitle: true,
             toolbarHeight: Responsive.height(context, 100),
-            leading: GestureDetector(
-              onTap: () => context.pop(),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            ),
+            automaticallyImplyLeading: false,
             title: createTitle("Badges", context),
           ),
           body: Center(
@@ -541,36 +537,7 @@ class _BadgesState extends State<Badges> {
               backgroundColor: darkenColor(appColorNotifier.value, 0.025),
               centerTitle: true,
               toolbarHeight: Responsive.height(context, 100),
-              leading: GestureDetector(
-                onTap: () => context.pop(),
-                child: Center(
-                  child: Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.1,
-                      ).withAlpha(20),
-                      border: Border.all(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
-                      size: Responsive.font(context, 13),
-                    ),
-                  ),
-                ),
-              ),
+              automaticallyImplyLeading: false,
               title: createTitle("Badges", context),
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(Responsive.height(context, 3)),
@@ -662,7 +629,7 @@ class _BadgesState extends State<Badges> {
                                   children: [
                                     ..._buildCardsForSection(section),
                                     SizedBox(
-                                      height: Responsive.height(context, 40),
+                                      height: Responsive.height(context, 120),
                                     ),
                                   ],
                                 ),

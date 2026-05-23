@@ -1,5 +1,4 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
 import '../guest.dart';
@@ -241,36 +240,7 @@ class _LeaderboardState extends State<Leaderboard> {
           ), // Header color
           centerTitle: true,
           toolbarHeight: Responsive.buttonHeight(context, 120),
-          leading: GestureDetector(
-            onTap: () => context.pop(),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.1,
-                  ).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.3,
-                  ).withAlpha(180),
-                  size: Responsive.font(context, 13),
-                ),
-              ),
-            ),
-          ),
+          automaticallyImplyLeading: false,
           title: createTitle("Leaderboard", context),
           scrolledUnderElevation:
               0, // So the appBar does not change color when the user scrolls down
@@ -357,9 +327,11 @@ class _LeaderboardState extends State<Leaderboard> {
                 duration: const Duration(milliseconds: 1200),
               ),
               child: ListView.builder(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
-                  vertical: Responsive.height(context, 24),
+                padding: EdgeInsets.only(
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                  right: Responsive.centeredHorizontalPadding(context, 20),
+                  top: Responsive.height(context, 24),
+                  bottom: Responsive.height(context, 120),
                 ),
                 itemCount:
                     leaderboardUsers.length >

@@ -59,7 +59,7 @@ class Guest {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           child: Text(
             "Maybe Later",
             style: GoogleFonts.manrope(color: Colors.white38),

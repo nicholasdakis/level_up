@@ -640,7 +640,7 @@ class _ExploreState extends State<Explore> {
                           ), // pushed down on mobile to avoid the nearby spots card
                     left: 0,
                     child: GestureDetector(
-                      onTap: () => context.pop(),
+                      onTap: () => context.go('/'),
                       child: ClipOval(
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
@@ -1082,7 +1082,7 @@ class _ExploreState extends State<Explore> {
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 40),
+                          bottom: Responsive.height(context, 140),
                         ),
 
                         child: GestureDetector(
