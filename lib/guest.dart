@@ -31,7 +31,7 @@ class Guest {
   // Called on sign out or when the guest taps "Sign Up" in the block dialog,clears all guest state and sends the router back to login
   static void exit() {
     isGuest = false;
-    currentUserData = null;
+    userDataNotifier.value = null;
     appInitialized = false;
     guestNotifier.value = false;
   }

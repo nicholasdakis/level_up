@@ -105,7 +105,7 @@ class UserDataManager {
     initConnectivity();
 
     if (isGuest) {
-      currentUserData = Guest.defaultUserData;
+      userDataNotifier.value = Guest.defaultUserData;
       return;
     }
 
@@ -114,7 +114,7 @@ class UserDataManager {
     if (uid != null) {
       // Initialize currentUserData if it's null or has the wrong UID (safety guard that gets overwritten)
       if (currentUserData == null || currentUserData!.uid != uid) {
-        currentUserData = UserData(
+        userDataNotifier.value = UserData(
           uid: uid,
           pfpBase64: null,
           level: 1,
@@ -222,6 +222,9 @@ class UserDataManager {
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
 
+      // ping the notifier so ValueListenableBuilders rebuild with fresh data
+      userDataNotifier.notifyListeners();
+
       // fetch current and best streaks from the streaks table
       try {
         final streaks = await fetchStreaks();
@@ -240,6 +243,7 @@ class UserDataManager {
             foodRow['last_date'] as String?;
         currentUserData?.dailyClaimStreakBest =
             (claimRow['highest_streak'] as int?) ?? 0;
+        userDataNotifier.notifyListeners();
       } catch (_) {}
 
       lastLoadFailed = false;
@@ -249,6 +253,7 @@ class UserDataManager {
           null; // signals fetch failed so username dialog is not shown
       currentUserData?.canClaimDailyReward =
           true; // let the backend decide on claim attempt
+      userDataNotifier.notifyListeners();
       lastLoadFailed = true;
     }
     stopwatch.stop();
@@ -389,7 +394,7 @@ class UserDataManager {
       }
 
       // Update currentUserData with the complete stored variables with the updated profile picture
-      currentUserData = UserData(
+      userDataNotifier.value = UserData(
         uid: currentUserData!.uid,
         pfpBase64: base64String,
         level: currentUserData!.level,
@@ -478,6 +483,7 @@ class UserDataManager {
 
       // Keep local streak in sync so home screen reflects the new value immediately
       currentUserData!.dailyClaimStreak = streak;
+      userDataNotifier.notifyListeners();
 
       return (xpGained, baseXp, streak, multiplier);
     } catch (e) {
@@ -526,6 +532,7 @@ class UserDataManager {
       else if (response.statusCode == 200) {
         // Update locally so the UI reflects the change immediately
         currentUserData!.username = updatedUsername;
+        userDataNotifier.notifyListeners();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Success! Username updated."),
@@ -576,6 +583,7 @@ class UserDataManager {
       if (currentUserData != null &&
           !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
+        userDataNotifier.notifyListeners();
       }
 
       await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
@@ -595,6 +603,7 @@ class UserDataManager {
       if (currentUserData != null &&
           !currentUserData!.fcmTokens.contains(deviceToken)) {
         currentUserData!.fcmTokens.add(deviceToken);
+        userDataNotifier.notifyListeners();
       }
 
       await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
@@ -609,6 +618,7 @@ class UserDataManager {
     try {
       // Remove token from local list
       currentUserData!.fcmTokens.remove(deviceToken);
+      userDataNotifier.notifyListeners();
 
       await authenticatedPost('remove_fcm_token', body: {'token': deviceToken});
     } catch (e) {
@@ -626,6 +636,7 @@ class UserDataManager {
       return;
     }
     currentUserData!.notificationsEnabled = enabled;
+    userDataNotifier.notifyListeners();
     try {
       final response = await http
           .post(
@@ -707,6 +718,7 @@ class UserDataManager {
       return;
     }
     currentUserData!.appColor = newColor;
+    userDataNotifier.notifyListeners();
     try {
       // Convert color to int
       final int argbInt = newColor.toARGB32();
@@ -783,6 +795,7 @@ class UserDataManager {
     try {
       // Update locally so the UI reflects the change immediately
       currentUserData?.foodDataByDate.addAll(newFoodData);
+      userDataNotifier.notifyListeners();
 
       // Write each date as its own row in Postgres via the backend
       for (final entry in newFoodData.entries) {
@@ -828,6 +841,7 @@ class UserDataManager {
                 (foodRow['highest_streak'] as int?) ?? 0;
             currentUserData?.foodLogStreakLastDate =
                 foodRow['last_date'] as String?;
+            userDataNotifier.notifyListeners();
           } catch (_) {}
         }
       }
@@ -919,6 +933,7 @@ class UserDataManager {
         currentUserData!.carbsGoal = carbsGoal;
         currentUserData!.fatGoal = fatGoal;
         currentUserData!.weightGoalType = weightGoalType;
+        userDataNotifier.notifyListeners();
       }
 
       if (context != null) {

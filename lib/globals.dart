@@ -10,9 +10,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
 
-ValueNotifier<int> expNotifier = ValueNotifier<int>(
-  currentUserData?.expPoints ?? 0,
-);
+ValueNotifier<int> expNotifier = ValueNotifier<int>(0);
 
 // Flips to true when AppInitScreen finishes loading user data
 ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
@@ -35,8 +33,20 @@ ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 // incremented each time a food is logged so home screen can refresh
 ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
 
-UserData?
-currentUserData; // global current user-specific variable (not Firestore-dependent)
+// Subclass exposes notifyListeners() publicly so callers can ping it after
+// mutating fields on the existing UserData object without replacing the reference
+class UserDataNotifier extends ValueNotifier<UserData?> {
+  UserDataNotifier(super.value);
+
+  @override
+  void notifyListeners() => super.notifyListeners();
+}
+
+// Notifier so any widget can rebuild automatically when user data changes
+final UserDataNotifier userDataNotifier = UserDataNotifier(null);
+
+// Getter so all existing reads of currentUserData require zero changes
+UserData? get currentUserData => userDataNotifier.value;
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
 

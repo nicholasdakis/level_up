@@ -4,7 +4,7 @@ import json
 import random
 import logging
 import requests
-from datetime import timedelta, timezone, datetime, date
+from datetime import timedelta, timezone, datetime
 from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from pydantic import ValidationError

@@ -1747,3 +1747,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the notch section of the Android version of the app transparent
 - Removed the appbar from the main tabs accessible through the bottom navigation bar
 - Added guest-specific placeholder text to the home screen
+
+## 2026-05-24
+- Replaced currentUserData with a ValueNotifier so that whenever userData updates, the screens automatically update rather than having to manually remember to create ValueNotifiers for the necessary data changes
+- This creates one source of truth rather than possibly forgetting to update separate screens that depend on actions that happened in another screen
+- Subclassed ValueNotifier into UserDataNotifier to expose notifyListeners() publicly, since ValueNotifier only fires listeners when the object reference changes and UserData is mutated in place rather than replaced
