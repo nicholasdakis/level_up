@@ -54,7 +54,6 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      min-height: calc(100% + env(safe-area-inset-top));
     }
 
     body {
@@ -62,13 +61,16 @@
       /* body uses the full gradient */
       margin: 0;
       padding: 0;
-      min-height: calc(100% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+      min-height: 100%;
     }
 
-    /* force Flutter's canvas to fill the entire viewport including safe areas */
-    flt-glass-pane, flt-scene-host, flt-scene, canvas {
-      height: 100% !important;
-      min-height: 100% !important;
+    /* anchor Flutter's canvas to the full screen including behind the status bar */
+    flt-glass-pane {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
     }
 
     /* splash screen overlay covers everything before flutter loads */
@@ -233,7 +235,8 @@
       applyAppColor(value);
     };
 
-  </script>
+
+</script>
 
   <!-- cropperjs (self-hosted to avoid tracking prevention blocks) -->
   <link rel="stylesheet" href="cropper.css" />
