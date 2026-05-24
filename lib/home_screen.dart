@@ -409,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Streak card showing food log streak and daily claim streak
   Widget _buildStreakCard() {
+    if (isGuest) return const SizedBox.shrink();
     final foodStreak = _foodLogStreak();
     final claimStreak = _dailyClaimStreak();
     if (foodStreak == 0 && claimStreak == 0) return const SizedBox.shrink();
@@ -516,21 +517,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Level ${currentUserData?.level ?? 1}",
+                        isGuest
+                            ? "Sign up to level up"
+                            : "Level ${currentUserData?.level ?? 1}",
                         style: GoogleFonts.manrope(
-                          color: Colors.white,
+                          color: isGuest ? Colors.white54 : Colors.white,
                           fontSize: Responsive.font(context, 16),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Text(
-                        "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
-                        style: GoogleFonts.manrope(
-                          color: Colors.white54,
-                          fontSize: Responsive.font(context, 13),
-                          fontWeight: FontWeight.w500,
+                      if (!isGuest)
+                        Text(
+                          "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
+                          style: GoogleFonts.manrope(
+                            color: Colors.white54,
+                            fontSize: Responsive.font(context, 13),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   SizedBox(height: Responsive.height(context, 10)),
@@ -574,23 +578,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                   SizedBox(height: Responsive.height(context, 6)),
                   // XP to next level
-                  Builder(
-                    builder: (context) {
-                      final needed = userManager.experienceNeeded ?? 0;
-                      final remaining = (needed - animatedExp.round()).clamp(
-                        0,
-                        needed,
-                      );
-                      return Text(
-                        "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
-                        style: GoogleFonts.manrope(
-                          color: Colors.white38,
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    },
-                  ),
+                  if (!isGuest)
+                    Builder(
+                      builder: (context) {
+                        final needed = userManager.experienceNeeded ?? 0;
+                        final remaining = (needed - animatedExp.round()).clamp(
+                          0,
+                          needed,
+                        );
+                        return Text(
+                          "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
+                          style: GoogleFonts.manrope(
+                            color: Colors.white38,
+                            fontSize: Responsive.font(context, 11),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      },
+                    ),
                 ],
               );
             },
@@ -627,17 +632,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    canClaim
+                    isGuest
+                        ? "Sign up to claim daily rewards"
+                        : canClaim
                         ? "Daily reward ready!"
                         : "Daily reward claimed today!",
                     style: GoogleFonts.manrope(
-                      color: canClaim ? Colors.white : Colors.white54,
+                      color: isGuest
+                          ? Colors.white54
+                          : canClaim
+                          ? Colors.white
+                          : Colors.white54,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
-                    canClaim
+                    isGuest
+                        ? "Create an account to start earning XP"
+                        : canClaim
                         ? "Tap to claim your XP bonus"
                         : _timeUntilReward.inSeconds > 0
                         ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
@@ -1039,9 +1052,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _maybeAnimate(_buildDailyRewardCard(), 120.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 
-                          sectionHeader("STREAKS", context),
-                          _maybeAnimate(_buildStreakCard(), 180.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
+                          if (!isGuest) ...[
+                            sectionHeader("STREAKS", context),
+                            _maybeAnimate(_buildStreakCard(), 180.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                          ],
 
                           sectionHeader("STATS", context),
                           _maybeAnimate(_buildQuickStats(), 220.ms),

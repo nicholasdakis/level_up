@@ -1746,3 +1746,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - foodLogNotifier increments on food delete and edit in addition to log, so all mutations trigger a home screen refresh
 - Made the notch section of the Android version of the app transparent
 - Removed the appbar from the main tabs accessible through the bottom navigation bar
+- Added guest-specific placeholder text to the home screen
