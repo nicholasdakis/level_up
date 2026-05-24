@@ -348,23 +348,7 @@ class _AppInitScreenState extends State<AppInitScreen> {
         final dark = darkenColor(base, 0.015);
         final mid = lightenColor(base, 0.015);
 
-        // Blend the app bar color (darkenColor(base,0.1).withAlpha(100)) over
-        // both the dark edge and mid center of the gradient to produce a matching gradient
-        const alpha = 100 / 255;
-        int ch(Color c, int shift) => (c.toARGB32() >> shift) & 0xFF;
-        Color blendOver(Color fg, Color bg) => Color.fromARGB(
-          255,
-          (ch(fg, 16) * alpha + ch(bg, 16) * (1 - alpha)).round(),
-          (ch(fg, 8) * alpha + ch(bg, 8) * (1 - alpha)).round(),
-          (ch(fg, 0) * alpha + ch(bg, 0) * (1 - alpha)).round(),
-        );
-        final appBarBase = darkenColor(base, 0.1);
-        final notchEdge = toHex(blendOver(appBarBase, dark));
-        final notchMid = toHex(blendOver(appBarBase, mid));
-
-        web_fcm.setAppColor(
-          '${toHex(dark)}|${toHex(mid)}|$notchEdge|$notchMid',
-        );
+        web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|${toHex(dark)}');
       } catch (e) {
         if (kDebugMode) debugPrint('setAppColor failed: $e');
       }
