@@ -1755,3 +1755,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed the logout confirmation dialog: the cancel button was popping the drawer instead of the dialog because the dialog was shown without await and without rootNavigator: true, leaving the navigation stack broken
 - Cancel now correctly dismisses only the dialog and confirm closes the drawer before signing out
 - Moved the app version text so it does not get blocked by the bottom navigation bar
+- Wrapped the settings drawer icon in backdrop blur so it matches the theme of the rest of the home screen
+- Added a slight appColor tone to the settings drawer icon so it is not fuly white

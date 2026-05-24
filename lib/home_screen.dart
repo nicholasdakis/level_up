@@ -469,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 Text(
-                  "Create an account to save your progress",
+                  "Create an account for the full experience",
                   style: GoogleFonts.manrope(
                     color: Colors.white54,
                     fontSize: Responsive.font(context, 12),

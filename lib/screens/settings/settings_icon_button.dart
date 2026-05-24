@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:level_up/utility/responsive.dart';
 import 'package:level_up/globals.dart';
@@ -60,49 +61,54 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
             scale: _isPressed ? 0.92 : 1.0, // press-down feel on tap
             duration: const Duration(milliseconds: 120),
             curve: Curves.easeOut,
-            child: Container(
-              padding: EdgeInsets.all(Responsive.width(context, 11)),
-              decoration: BoxDecoration(
-                // Mirrors _frostedButtonShell fill pattern
-                color: darkenColor(
-                  color,
-                  0.075,
-                ).withValues(alpha: 0.16 + _glowAnimation.value * 0.12),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 16),
-                ),
-                border: Border.all(
-                  // Same brightness as customButton border
-                  color: lightenColor(
-                    color,
-                    0.30,
-                  ).withValues(alpha: 0.30 + _glowAnimation.value * 0.45),
-                  width: Responsive.scale(context, 1.5),
-                ),
-                boxShadow: [
-                  // Strong app color glow on tap
-                  BoxShadow(
-                    color: color.withValues(
-                      alpha: 0.25 + _glowAnimation.value * 0.60,
-                    ),
-                    blurRadius: Responsive.scale(context, 24),
-                    spreadRadius:
-                        Responsive.scale(context, 4) * _glowAnimation.value,
-                  ),
-                  // Depth shadow that mirrors _frostedButtonShell boxShadow
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: Responsive.scale(context, 16),
-                    offset: Offset(0, Responsive.scale(context, 4)),
-                    spreadRadius: 0,
-                  ),
-                ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 16),
               ),
-              // Icon alpha matches customButton icon pattern
-              child: Icon(
-                Icons.manage_accounts_outlined,
-                size: Responsive.font(context, 46),
-                color: Colors.white.withAlpha(200),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: Responsive.scale(context, 12),
+                  sigmaY: Responsive.scale(context, 12),
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(Responsive.width(context, 11)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(
+                      alpha: 0.07 + _glowAnimation.value * 0.06,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 16),
+                    ),
+                    border: Border.all(
+                      color: lightenColor(
+                        color,
+                        0.30,
+                      ).withValues(alpha: 0.30 + _glowAnimation.value * 0.45),
+                      width: Responsive.scale(context, 1.5),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(
+                          alpha: 0.25 + _glowAnimation.value * 0.60,
+                        ),
+                        blurRadius: Responsive.scale(context, 24),
+                        spreadRadius:
+                            Responsive.scale(context, 4) * _glowAnimation.value,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: Responsive.scale(context, 16),
+                        offset: Offset(0, Responsive.scale(context, 4)),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.manage_accounts_outlined,
+                    size: Responsive.font(context, 46),
+                    color: lightenColor(color, 0.3),
+                  ),
+                ),
               ),
             ),
           ),
