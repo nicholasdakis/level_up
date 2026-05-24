@@ -258,23 +258,30 @@ Widget buildSettingsDrawer(
                   showChevron: false,
                   onTap: () async {
                     // Dialog box for confirming logout
-                    showFrostedAlertDialog(
+                    final confirmed = await showFrostedAlertDialog<bool>(
                       context: context,
                       title: "Confirm Logout",
                       actions: [
                         TextButton(
                           child: Text("CANCEL"),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).pop(false),
                         ),
                         TextButton(
                           child: Text("CONFIRM"),
-                          onPressed: () async {
-                            Navigator.pop(context);
-                            await authService.value.signOut();
-                          },
+                          onPressed: () => Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).pop(true),
                         ),
                       ],
                     );
+                    if (confirmed == true) {
+                      Navigator.pop(context); // close drawer on confirm
+                      await authService.value.signOut();
+                    }
                   },
                 ),
               ],
@@ -284,7 +291,10 @@ Widget buildSettingsDrawer(
           Padding(
             padding: EdgeInsets.only(
               top: Responsive.height(context, 8),
-              bottom: Responsive.height(context, 24),
+              bottom:
+                  Responsive.height(context, 24) +
+                  MediaQuery.of(context).padding.bottom +
+                  Responsive.height(context, 80),
             ),
             child: Center(
               child: Container(
@@ -303,7 +313,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 child: Text(
-                  "BETA 05.23",
+                  "BETA 05.24",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 11),
                     color: Colors.white.withAlpha(80),

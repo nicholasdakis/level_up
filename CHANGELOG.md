@@ -1752,3 +1752,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced currentUserData with a ValueNotifier so that whenever userData updates, the screens automatically update rather than having to manually remember to create ValueNotifiers for the necessary data changes
 - This creates one source of truth rather than possibly forgetting to update separate screens that depend on actions that happened in another screen
 - Subclassed ValueNotifier into UserDataNotifier to expose notifyListeners() publicly, since ValueNotifier only fires listeners when the object reference changes and UserData is mutated in place rather than replaced
+- Fixed the logout confirmation dialog: the cancel button was popping the drawer instead of the dialog because the dialog was shown without await and without rootNavigator: true, leaving the navigation stack broken
+- Cancel now correctly dismisses only the dialog and confirm closes the drawer before signing out
+- Moved the app version text so it does not get blocked by the bottom navigation bar
