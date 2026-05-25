@@ -7,27 +7,19 @@ from pydantic import BaseModel, Field
 # Request schemas
 # ==============================================================================
 
-class CheckUserExistsRequest(BaseModel):
-    # Sent by Flutter before Google Sign-In to check if the account exists without creating it
-    id_token: str = Field(..., min_length=1)
-
 class UpdateUsernameRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     username: str = Field(..., min_length=1, max_length=20)
 
 class SearchFoodRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     food_name: str = Field(..., min_length=1)
 
 class NearbyPOIRequest(BaseModel):
     # Sent by Flutter when the user opens the Explore screen and needs nearby points of interest
-    id_token: str = Field(..., min_length=1)
     lat: float = Field(..., ge=-90, le=90, description="User's latitude")    # ge/le constrain to valid coordinate range
     lng: float = Field(..., ge=-180, le=180, description="User's longitude")  # same for longitude
 
 class CheckInPOIRequest(BaseModel):
     # Sent by Flutter when the user taps the Check In button near a POI
-    id_token: str = Field(..., min_length=1)
     poi_name: str = Field(..., min_length=1)          # name of the POI the user wants to check into
     poi_category: str = Field(..., min_length=1)      # category of the POI (e.g. 'restaurant', 'park')
     poi_lat: float = Field(..., ge=-90, le=90)        # latitude of the POI
@@ -36,27 +28,21 @@ class CheckInPOIRequest(BaseModel):
     user_lng: float = Field(..., ge=-180, le=180)     # user's current longitude
 
 class UpdatePfpRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     pfp_base64: str = Field(..., min_length=1)
 
 class UpdateAppColorRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     app_color: int  # stored as ARGB bigint, matching Flutter's Color.toARGB32()
 
 class UpdateNotificationsRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     enabled: bool
 
 class AddFcmTokenRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     token: str = Field(..., min_length=1)
 
 class RemoveFcmTokenRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     token: str = Field(..., min_length=1)
 
 class UpsertFoodLogRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     date: str = Field(..., min_length=1)  # e.g. "2025-04-13"
     breakfast: list = Field(default_factory=list)
     lunch: list = Field(default_factory=list)
@@ -64,30 +50,24 @@ class UpsertFoodLogRequest(BaseModel):
     snack: list = Field(default_factory=list)
 
 class SetReminderRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)
     notification_id: int
 
 class DeleteReminderRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     reminder_id: str = Field(..., min_length=1)
 
 class ClaimAchievementRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     achievement_id: str = Field(..., min_length=1)
     tier: int
 
 class ClaimTrivialAchievementRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
     achievement_id: str = Field(..., min_length=1)
 
 class UpdateUtcOffsetRequest(BaseModel):
-    id_token: str
     utc_offset: int
 
 class UpdateGoalsRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
 
     calories_goal: int | None = None
     protein_goal: int | None = None
