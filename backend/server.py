@@ -17,8 +17,6 @@ from backend.token_manager import TokenManager
 from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
 from backend.services import ProgressionService, FoodService, POIService, SnapshotService
 from backend.schemas import (
-    ClaimDailyRewardRequest,
-    GetProgressRequest,
     DailyRewardResponse,
     ProgressResponse,
     UpdateUsernameRequest,
@@ -29,7 +27,6 @@ from backend.schemas import (
     POIItem,
     CheckInPOIRequest,
     CheckInPOIResponse,
-    GetUserDataRequest,
     GetUserDataResponse,
     UpdatePfpRequest,
     UpdateAppColorRequest,
@@ -38,15 +35,12 @@ from backend.schemas import (
     RemoveFcmTokenRequest,
     UpsertFoodLogRequest,
     SimpleSuccessResponse,
-    GetLeaderboardRequest,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
-    GetRemindersRequest,
     SetReminderRequest,
     ReminderItem,
     GetRemindersResponse,
     DeleteReminderRequest,
-    GetAchievementsRequest,
     GetAchievementsResponse,
     AchievementProgressEntry,
     AchievementClaimEntry,
@@ -55,7 +49,6 @@ from backend.schemas import (
     UpdateUtcOffsetRequest,
     UpdateGoalsRequest,
     GetStreaksResponse,
-    GetStreaksRequest,
     StreakEntry,
     AchievementDefItem,
 )
@@ -113,23 +106,36 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
 
-# Helper method for verifying the user's JWT token
+def _get_token():
+    auth = request.headers.get("Authorization", "")  # e.g. "Bearer 12345..."
+    if not auth.startswith("Bearer "):  # reject if header is missing or malformed
+        return None, (jsonify({"error": "Missing or invalid Authorization header"}), 401)
+    return auth.removeprefix("Bearer ").strip(), None  # strip the "Bearer " prefix to get the raw token
+
+def _parse_body(schema):
+    try:
+        return schema(**request.get_json(force=True)), None
+    except (ValidationError, TypeError) as e:
+        return None, (jsonify({"error": "Invalid request", "details": str(e)}), 400)
+
 def _try_verify_token(id_token: str):
     try:
         return verify_token(id_token), None  # (uid, no error)
     except ValueError as e:
         return None, (jsonify({"error": str(e)}), 401)  # (no uid, 401 error response)
 
-# Helper method for deserializing the JSON request body into the appropriate schema and verifying the user's identity
-def _parse_and_auth(schema):
-    # Parse the JSON into the schema
-    try:
-        body = schema(**request.get_json(force=True))
-    except (ValidationError, TypeError) as e:
-        return None, None, (jsonify({"error": "Invalid request", "details": str(e)}), 400)
+def _parse_and_auth(schema=None):
+    token, err = _get_token()
+    if err:
+        return None, None, err
 
-    # Verify the JWT
-    uid, err = _try_verify_token(body.id_token)
+    body = None
+    if schema is not None:
+        body, err = _parse_body(schema)
+        if err:
+            return None, None, err
+
+    uid, err = _try_verify_token(token)
     if err:
         return None, None, err
     g.uid = uid  # stored so after_request can log it for every route
@@ -403,7 +409,7 @@ def check_in_poi():
     status = 200 if result["success"] else 409 # 409 = conflict
     return jsonify(response.model_dump()), status
 
-@app.route("/update_username", methods=["POST"]) # POST because the route is for modifying data
+@app.route("/update_username", methods=["POST"])
 def update_username():
     # Step 1: Validate request body and verify the user's identity
     uid, body, err = _parse_and_auth(UpdateUsernameRequest)
@@ -423,10 +429,10 @@ def update_username():
         return jsonify(response.model_dump()), 409 # The update was unsuccessful since success = False, so give a separate response
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
 
-@app.route("/claim_daily_reward", methods=["POST"]) # POST because the route is for modifying data
+@app.route("/claim_daily_reward", methods=["POST"])
 def claim_daily_reward():
     # Step 1: Validate request body and verify the user's identity
-    uid, body, err = _parse_and_auth(ClaimDailyRewardRequest)
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -448,10 +454,10 @@ def claim_daily_reward():
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts
 
 
-@app.route("/get_progress", methods=["POST"]) # POST because the id_token is sent in the request body
+@app.route("/progress", methods=["GET"])
 def get_progress():
-    # Step 1: Validate request body and verify the user's identity
-    uid, body, err = _parse_and_auth(GetProgressRequest)
+    # Step 1: Verify the user's identity from the Authorization header
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -462,17 +468,17 @@ def get_progress():
     response = ProgressResponse(**result)
     return jsonify(response.model_dump()), 200
 
-@app.route("/get_user_data", methods=["POST"])
+@app.route("/user_data", methods=["GET"])
 def get_user_data():
-    # Method that returns all user data in a single call
-    uid, body, err = _parse_and_auth(GetUserDataRequest)
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
     # Extract email from the Firebase token to store on new user creation
     from firebase_admin import auth as fb_auth
+    token, _ = _get_token()
     try:
-        decoded = fb_auth.verify_id_token(body.id_token)
+        decoded = fb_auth.verify_id_token(token)
         email = decoded.get("email")
     except Exception:
         email = None
@@ -481,10 +487,10 @@ def get_user_data():
     response = GetUserDataResponse(**result)
     return jsonify(response.model_dump()), 200
 
-@app.route("/get_streaks", methods=["POST"])
+@app.route("/streaks", methods=["GET"])
 def get_streaks():
-    # Step 1: Validate request body and verify the user's identity
-    uid, body, err = _parse_and_auth(GetStreaksRequest)
+    # Step 1: Verify the user's identity from the Authorization header
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -569,10 +575,9 @@ def upsert_food_log():
     )
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
-@app.route("/get_leaderboard", methods=["POST"]) # POST because the id_token is sent in the request body
+@app.route("/leaderboard", methods=["GET"])
 def get_leaderboard():
-    # Method that returns all users sorted by level and XP descending for the leaderboard
-    uid, body, err = _parse_and_auth(GetLeaderboardRequest)
+    _, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -599,22 +604,15 @@ def set_reminder():
 
     return jsonify({"success": True}), 200
 
-@app.route("/get_reminders", methods=["POST"])  # Endpoint to get the user's reminders
+@app.route("/reminders", methods=["GET"])
 def get_reminders():
-    # Parse JSON body into Pydantic schema and verify Firebase ID token
-    uid, body, err = _parse_and_auth(GetRemindersRequest)
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
-    # fetch from service
     result = progression_service.get_reminders(uid=uid)
-
-    # map DB rows → Pydantic models
     reminders = [ReminderItem(**r) for r in result]
-    
     response = GetRemindersResponse(reminders=reminders)
-
-    # Return all reminders
     return jsonify(response.model_dump()), 200
 
 @app.route("/delete_reminder", methods=["POST"])
@@ -626,10 +624,10 @@ def delete_reminder():
     progression_service.delete_reminder(uid, body.reminder_id)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
-@app.route("/get_achievements", methods=["POST"])  # POST because the id_token is sent in the request body
+@app.route("/achievements", methods=["GET"])
 def get_achievements():
-    # Step 1: Validate request body and verify the user's identity
-    uid, body, err = _parse_and_auth(GetAchievementsRequest)
+    # Step 1: Verify the user's identity from the Authorization header
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -651,7 +649,7 @@ def get_achievement_defs():
     return jsonify([d.model_dump() for d in defs]), 200
 
 
-@app.route("/claim_achievement", methods=["POST"]) # POST because the id_token is sent in the request body
+@app.route("/claim_achievement", methods=["POST"])
 def claim_achievement():
     # Step 1: Validate request body and verify the user's identity
     uid, body, err = _parse_and_auth(ClaimAchievementRequest)
@@ -660,7 +658,7 @@ def claim_achievement():
 
     # Step 2: Call the method and get the new progress response
     try:
-        result = progression_service.claim_achievement(uid, body.achievement_id, body.tier)
+        progression_service.claim_achievement(uid, body.achievement_id, body.tier)
     except ValueError as e: # error if the user's progress isn't high enough
         return jsonify({"error": str(e)}), 409
 

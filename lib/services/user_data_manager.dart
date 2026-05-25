@@ -34,8 +34,7 @@ Future<String> getIdToken() async {
   return token;
 }
 
-// Sends an authenticated POST to a backend endpoint, automatically attaching the id_token
-// Extra fields in body are merged with the id_token so callers only pass what's specific to their request
+// Sends an authenticated POST to a backend endpoint, automatically attaching the token as a Bearer header
 Future<http.Response> authenticatedPost(
   String endpoint, {
   Map<String, dynamic> body = const {},
@@ -45,8 +44,25 @@ Future<http.Response> authenticatedPost(
   return http
       .post(
         Uri.parse('$backendBaseUrl/$endpoint'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id_token': token, ...body}),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      )
+      .timeout(timeout);
+}
+
+// Sends an authenticated GET to a backend endpoint with the token as a Bearer header
+Future<http.Response> authenticatedGet(
+  String endpoint, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final token = await getIdToken();
+  return http
+      .get(
+        Uri.parse('$backendBaseUrl/$endpoint'),
+        headers: {'Authorization': 'Bearer $token'},
       )
       .timeout(timeout);
 }
@@ -55,17 +71,10 @@ Future<http.Response> authenticatedPost(
 void trackTrivialAchievement(String achievementId) async {
   if (isGuest) return;
   try {
-    final token = await getIdToken();
-    await http
-        .post(
-          Uri.parse('$backendBaseUrl/claim_trivial_achievement'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'id_token': token,
-            'achievement_id': achievementId,
-          }),
-        )
-        .timeout(const Duration(seconds: 5));
+    await authenticatedPost(
+      'claim_trivial_achievement',
+      body: {'achievement_id': achievementId},
+    );
   } catch (e) {
     if (kDebugMode) {
       debugPrint('Failed to track trivial achievement $achievementId: $e');
@@ -135,11 +144,11 @@ class UserDataManager {
     stopwatch.stop();
   }
 
-  // Calls the backend /get_user_data endpoint to load all user fields at once, with no fallback since Firestore is no longer the source of truth
+  // Calls the backend /user_data endpoint to load all user fields at once, with no fallback since Firestore is no longer the source of truth
   Future<void> _fetchUserDataSafely() async {
     final stopwatch = Stopwatch()..start();
     try {
-      final response = await authenticatedPost('get_user_data');
+      final response = await authenticatedGet('user_data');
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -267,17 +276,10 @@ class UserDataManager {
         .toList();
   }
 
-  // Calls the backend /get_progress endpoint to get the user's level, XP, and reward status
+  // Calls the backend /progress endpoint to get the user's level, XP, and reward status
   // Separated into its own method so it can be called on pull-to-refresh and the leaderboard
   static Future<Map<String, dynamic>> fetchProgress() async {
-    final token = await getIdToken();
-    final response = await http
-        .post(
-          Uri.parse('$backendBaseUrl/get_progress'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': token}),
-        )
-        .timeout(Duration(seconds: 5));
+    final response = await authenticatedGet('progress');
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -376,16 +378,11 @@ class UserDataManager {
       }
 
       // Send the Base64 string to the backend to store in Postgres
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_pfp'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'pfp_base64': base64String,
-            }),
-          )
-          .timeout(Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'update_pfp',
+        body: {'pfp_base64': base64String},
+        timeout: Duration(seconds: 5),
+      );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -505,16 +502,10 @@ class UserDataManager {
 
     try {
       // Call the backend to check uniqueness and update the username atomically
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_username'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'username': updatedUsername,
-            }),
-          )
-          .timeout(Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'update_username',
+        body: {'username': updatedUsername},
+      );
 
       final result = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -638,16 +629,10 @@ class UserDataManager {
     currentUserData!.notificationsEnabled = enabled;
     userDataNotifier.notifyListeners();
     try {
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_notifications'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'enabled': enabled,
-            }),
-          )
-          .timeout(Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'update_notifications',
+        body: {'enabled': enabled},
+      );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -696,16 +681,10 @@ class UserDataManager {
     if (isGuest) return;
     try {
       final offset = DateTime.now().timeZoneOffset.inMinutes;
-      await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_utc_offset_minutes'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'utc_offset': offset,
-            }),
-          )
-          .timeout(Duration(seconds: 5));
+      await authenticatedPost(
+        'update_utc_offset_minutes',
+        body: {'utc_offset': offset},
+      );
     } catch (e) {
       if (kDebugMode) debugPrint('Error updating utc offset: $e');
     }
@@ -726,16 +705,10 @@ class UserDataManager {
       // Flag for checking if the chosen color is the default app color
       bool isDefaultColor = argbInt == defaultAppColor.toARGB32();
 
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_app_color'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'app_color': argbInt,
-            }),
-          )
-          .timeout(Duration(seconds: 5));
+      final response = await authenticatedPost(
+        'update_app_color',
+        body: {'app_color': argbInt},
+      );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -802,20 +775,17 @@ class UserDataManager {
         final dateKey = entry.key;
         final meals = entry.value;
 
-        final response = await http
-            .post(
-              Uri.parse('$backendBaseUrl/upsert_food_log'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'id_token': await getIdToken(),
-                'date': dateKey,
-                'breakfast': meals['breakfast'] ?? [],
-                'lunch': meals['lunch'] ?? [],
-                'dinner': meals['dinner'] ?? [],
-                'snack': meals['snacks'] ?? [],
-              }),
-            )
-            .timeout(Duration(seconds: 10));
+        final response = await authenticatedPost(
+          'upsert_food_log',
+          body: {
+            'date': dateKey,
+            'breakfast': meals['breakfast'] ?? [],
+            'lunch': meals['lunch'] ?? [],
+            'dinner': meals['dinner'] ?? [],
+            'snack': meals['snacks'] ?? [],
+          },
+          timeout: Duration(seconds: 10),
+        );
 
         if (response.statusCode != 200) {
           throw Exception(
@@ -905,20 +875,17 @@ class UserDataManager {
       return;
     }
     try {
-      final response = await http
-          .post(
-            Uri.parse('$backendBaseUrl/update_goals'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'id_token': await getIdToken(),
-              'calories_goal': caloriesGoal,
-              'protein_goal': proteinGoal,
-              'carbs_goal': carbsGoal,
-              'fat_goal': fatGoal,
-              'weight_goal_type': weightGoalType,
-            }),
-          )
-          .timeout(const Duration(seconds: 2));
+      final response = await authenticatedPost(
+        'update_goals',
+        body: {
+          'calories_goal': caloriesGoal,
+          'protein_goal': proteinGoal,
+          'carbs_goal': carbsGoal,
+          'fat_goal': fatGoal,
+          'weight_goal_type': weightGoalType,
+        },
+        timeout: const Duration(seconds: 2),
+      );
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -959,14 +926,7 @@ class UserDataManager {
   // Fetches the user's streak data from the backend
   static Future<List<Map<String, dynamic>>> fetchStreaks() async {
     if (isGuest) return [];
-    final token = await getIdToken();
-    final response = await http
-        .post(
-          Uri.parse('$backendBaseUrl/get_streaks'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': token}),
-        )
-        .timeout(const Duration(seconds: 5));
+    final response = await authenticatedGet('streaks');
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -999,14 +959,7 @@ class UserDataManager {
 
   // Fetches the user's achievement progress and claims from the backend
   static Future<Map<String, dynamic>> fetchAchievements() async {
-    final token = await getIdToken();
-    final response = await http
-        .post(
-          Uri.parse('$backendBaseUrl/get_achievements'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_token': token}),
-        )
-        .timeout(const Duration(seconds: 5));
+    final response = await authenticatedGet('achievements');
 
     if (response.statusCode != 200) {
       throw Exception(

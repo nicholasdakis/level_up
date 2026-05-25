@@ -1759,5 +1759,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a slight appColor tone to the settings drawer icon so it is not fully white
 
 ## 2026-05-25
-- Replaced all Navigator.pop() in dialogs that only close the dialog itself with Navigator.of(context, rootNavigator: true).pop()
-- Added a Builder into the daily reward dialog so it does not use the stale BuildContext when trying to close the dialog
+- Fixed blank screen when pressing Claim on the daily reward dialog by wrapping the button in a Builder so it closes using the dialog's own context rather than the stale outer context
+- Migrated the backend toward RESTful conventions: read-only endpoints (progress, user_data, streaks, leaderboard, reminders, achievements) are now GET routes with noun-only paths
+- Firebase ID token moved from the request body to the Authorization header on all routes
+- _parse_and_auth was split into _get_token, _parse_body, and _try_verify_token helpers
+- Removed request schemas that only existed to carry id_token, since auth is now handled entirely by the header
+- Added authenticatedGet helper in Flutter alongside authenticatedPost
+- Both attach the token as a Bearer header instead of in the body

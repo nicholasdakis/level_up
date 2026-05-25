@@ -11,22 +11,6 @@ class CheckUserExistsRequest(BaseModel):
     # Sent by Flutter before Google Sign-In to check if the account exists without creating it
     id_token: str = Field(..., min_length=1)
 
-class ClaimDailyRewardRequest(BaseModel):
-    # Sent by Flutter when the user tries to claim their daily reward
-    id_token: str = Field(
-        ...,  # ... means the token is required
-        min_length=1,  # token can't be empty
-        description="Firebase Auth ID token for verifying the user's identity",
-    )
-
-class GetProgressRequest(BaseModel):
-    # Sent by Flutter when it wants to fetch the user's current XP, level, and reward status (on app startup)
-    id_token: str = Field(
-        ...,  # required
-        min_length=1,  # non-empty
-        description="Firebase Auth ID token for verifying the user's identity",
-    )
-
 class UpdateUsernameRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     username: str = Field(..., min_length=1, max_length=20)
@@ -50,9 +34,6 @@ class CheckInPOIRequest(BaseModel):
     poi_lng: float = Field(..., ge=-180, le=180)      # longitude of the POI
     user_lat: float = Field(..., ge=-90, le=90)       # user's current latitude (verified server-side)
     user_lng: float = Field(..., ge=-180, le=180)     # user's current longitude
-
-class GetUserDataRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
 
 class UpdatePfpRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
@@ -82,12 +63,6 @@ class UpsertFoodLogRequest(BaseModel):
     dinner: list = Field(default_factory=list)
     snack: list = Field(default_factory=list)
 
-class GetLeaderboardRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
-
-class GetRemindersRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
-
 class SetReminderRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     message: str = Field(..., min_length=1)
@@ -97,10 +72,6 @@ class SetReminderRequest(BaseModel):
 class DeleteReminderRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
     reminder_id: str = Field(..., min_length=1)
-
-class GetAchievementsRequest(BaseModel):
-    # Sent by Flutter when the badges screen opens to fetch all achievement data
-    id_token: str = Field(..., min_length=1)
 
 class ClaimAchievementRequest(BaseModel):
     id_token: str = Field(..., min_length=1)
@@ -127,9 +98,6 @@ class UpdateGoalsRequest(BaseModel):
         default=None,
         description="lose | gain | maintain"
     )
-
-class GetStreaksRequest(BaseModel):
-    id_token: str = Field(..., min_length=1)
 
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)

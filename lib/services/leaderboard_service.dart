@@ -7,7 +7,7 @@ class LeaderboardService {
   // Fetches the leaderboard data from the backend
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
     if (isGuest) return [];
-    final response = await authenticatedPost('get_leaderboard');
+    final response = await authenticatedGet('leaderboard');
 
     if (response.statusCode != 200) {
       throw Exception(

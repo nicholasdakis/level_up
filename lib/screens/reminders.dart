@@ -75,7 +75,10 @@ class _RemindersState extends State<Reminders> {
         ),
         TextButton(
           onPressed: () async {
-            Navigator.of(context, rootNavigator: true).pop(); // close dialog first
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pop(); // close dialog first
             await userManager.updateNotificationsEnabled(true, context);
 
             if (kIsWeb) {
@@ -109,7 +112,7 @@ class _RemindersState extends State<Reminders> {
 
   // Loads reminders from the Supabase Postgres db and removes past ones
   Future<List<ReminderData>> _loadReminders() async {
-    final response = await authenticatedPost('get_reminders');
+    final response = await authenticatedGet('reminders');
 
     if (response.statusCode != 200) {
       throw Exception('getReminders failed: ${response.body}');
@@ -287,7 +290,8 @@ class _RemindersState extends State<Reminders> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
                   child: const Text(
                     "Cancel",
                     style: TextStyle(color: Colors.white54),
@@ -610,7 +614,10 @@ class _RemindersState extends State<Reminders> {
                       Expanded(
                         child: Center(
                           child: TextButton(
-                            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+                            onPressed: () => Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pop(),
                             child: const Text(
                               "Dismiss",
                               style: TextStyle(color: Colors.white),
