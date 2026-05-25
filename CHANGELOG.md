@@ -1756,4 +1756,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Cancel now correctly dismisses only the dialog and confirm closes the drawer before signing out
 - Moved the app version text so it does not get blocked by the bottom navigation bar
 - Wrapped the settings drawer icon in backdrop blur so it matches the theme of the rest of the home screen
-- Added a slight appColor tone to the settings drawer icon so it is not fuly white
+- Added a slight appColor tone to the settings drawer icon so it is not fully white
+
+## 2026-05-25
+- Replaced all Navigator.pop() in dialogs that only close the dialog itself with Navigator.of(context, rootNavigator: true).pop()
+- Added a Builder into the daily reward dialog so it does not use the stale BuildContext when trying to close the dialog

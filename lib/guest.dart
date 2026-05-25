@@ -73,7 +73,7 @@ class Guest {
           context,
           baseColor: defaultAppColor,
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.of(context, rootNavigator: true).pop();
             exit();
           },
         ),

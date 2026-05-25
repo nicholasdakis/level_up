@@ -184,10 +184,12 @@ class DailyRewardDialog {
       actions: [
         Expanded(
           child: Center(
-            child: TextButton(
-              // just a visual button; the claiming is already done
-              onPressed: () => Navigator.pop(context),
-              child: Text("CLAIM"),
+            child: Builder(
+              builder: (dialogContext) => TextButton(
+                // just a visual button; the claiming is already done
+                onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                child: Text("CLAIM"),
+              ),
             ),
           ),
         ),

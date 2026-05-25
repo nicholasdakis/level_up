@@ -70,12 +70,12 @@ class _RemindersState extends State<Reminders> {
       content: Text("Enable notifications to receive reminders."),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           child: Text("Dismiss"),
         ),
         TextButton(
           onPressed: () async {
-            Navigator.pop(context); // close dialog first
+            Navigator.of(context, rootNavigator: true).pop(); // close dialog first
             await userManager.updateNotificationsEnabled(true, context);
 
             if (kIsWeb) {
@@ -287,7 +287,7 @@ class _RemindersState extends State<Reminders> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
                   child: const Text(
                     "Cancel",
                     style: TextStyle(color: Colors.white54),
@@ -295,7 +295,7 @@ class _RemindersState extends State<Reminders> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context, rootNavigator: true).pop();
                     _setReminder();
                   },
                   child: const Text(
@@ -610,7 +610,7 @@ class _RemindersState extends State<Reminders> {
                       Expanded(
                         child: Center(
                           child: TextButton(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
                             child: const Text(
                               "Dismiss",
                               style: TextStyle(color: Colors.white),

@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.of(context, rootNavigator: true).pop();
               _retry();
             },
             child: const Text("Retry"),
@@ -210,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (canClaimDailyReward() && mounted && !isNewUser && !isGuest) {
-      buildDailyRewardDialog();
+      await buildDailyRewardDialog();
     }
 
     if (mounted) {

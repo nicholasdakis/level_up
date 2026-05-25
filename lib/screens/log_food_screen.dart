@@ -492,7 +492,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
             child: const Text(
               "Go Back",
               style: TextStyle(color: Colors.white54),
@@ -500,7 +500,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.of(context, rootNavigator: true).pop();
               await _submitManualEntry(name, calories, fat, carbs, protein);
             },
             child: const Text(
@@ -656,11 +656,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(controller.text.trim()),
           child: const Text("Log", style: TextStyle(color: Colors.white)),
         ),
       ],
@@ -1850,7 +1850,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                           actions: [
                                             TextButton(
                                               onPressed: () =>
-                                                  Navigator.pop(context),
+                                                  Navigator.of(context, rootNavigator: true).pop(),
                                               child: const Text(
                                                 "Cancel",
                                                 style: TextStyle(
@@ -1869,7 +1869,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                                         custom,
                                                   );
                                                 }
-                                                Navigator.pop(context);
+                                                Navigator.of(context, rootNavigator: true).pop();
                                               },
                                               child: const Text(
                                                 "OK",

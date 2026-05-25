@@ -42,7 +42,7 @@ Future<void> showUsernameDialogBox(
     actions: [
       TextButton(
         // close if canceled
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         child: Text("CANCEL"),
       ),
       TextButton(
@@ -54,7 +54,7 @@ Future<void> showUsernameDialogBox(
             updatedUsername,
             context,
           )) {
-            Navigator.pop(context);
+            Navigator.of(context, rootNavigator: true).pop();
           }
         },
         child: Text("CONFIRM"),
