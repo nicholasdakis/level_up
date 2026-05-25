@@ -258,13 +258,24 @@ class _FoodLoggingState extends State<FoodLogging> {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+        Builder(
+          builder: (dialogContext) => TextButton(
+            onPressed: () =>
+                Navigator.of(dialogContext, rootNavigator: true).pop(),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
         ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, controller.text.trim()),
-          child: const Text("Save", style: TextStyle(color: Colors.white)),
+        Builder(
+          builder: (dialogContext) => TextButton(
+            onPressed: () => Navigator.of(
+              dialogContext,
+              rootNavigator: true,
+            ).pop(controller.text.trim()),
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
+          ),
         ),
       ],
     );
