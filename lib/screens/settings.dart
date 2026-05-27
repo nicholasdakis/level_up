@@ -34,12 +34,14 @@ Widget buildSettingsDrawer(
       : currentUserData!.username!;
 
   // Consistent tile for items that show a dialog or external action instead of navigating
+  final accentColor = lightenColor(appColorNotifier.value, 0.45);
+
   Widget buildActionTile({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    Color iconColor = Colors.white,
-    Color textColor = Colors.white,
+    Color? iconColor,
+    Color? textColor,
     bool showChevron = true,
     String? tooltip,
   }) {
@@ -48,24 +50,24 @@ Widget buildSettingsDrawer(
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 20),
-          vertical: Responsive.height(context, 2),
+          vertical: Responsive.height(context, 6),
         ),
         leading: HugeIcon(
           icon: icon,
-          color: iconColor,
+          color: iconColor ?? accentColor,
           size: Responsive.scale(context, 22),
         ),
         title: Text(
           label,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 16),
-            color: textColor,
+            color: textColor ?? accentColor,
           ),
         ),
         trailing: showChevron
             ? HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,
-                color: Colors.white38,
+                color: accentColor,
                 size: Responsive.scale(context, 20),
               )
             : null,
@@ -119,13 +121,13 @@ Widget buildSettingsDrawer(
                   child: Row(
                     children: [
                       Container(
-                        width: Responsive.scale(context, 52),
-                        height: Responsive.scale(context, 52),
+                        width: Responsive.scale(context, 60),
+                        height: Responsive.scale(context, 60),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.black,
                           border: Border.all(
-                            color: Colors.white.withAlpha(60),
+                            color: darkenColor(appColorNotifier.value, 0.06),
                             width: Responsive.scale(context, 2),
                           ),
                         ),
@@ -141,7 +143,7 @@ Widget buildSettingsDrawer(
                             username,
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 16),
-                              color: Colors.white,
+                              color: accentColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -150,7 +152,7 @@ Widget buildSettingsDrawer(
                             "Level ${currentUserData?.level ?? 1}",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 12),
-                              color: Colors.white54,
+                              color: accentColor,
                             ),
                           ),
                         ],
@@ -164,7 +166,7 @@ Widget buildSettingsDrawer(
                   ),
                   child: Divider(
                     color: Colors.white.withAlpha(25),
-                    thickness: 3,
+                    thickness: 1,
                   ),
                 ),
                 buildActionTile(
@@ -247,7 +249,7 @@ Widget buildSettingsDrawer(
                   ),
                   child: Divider(
                     color: Colors.white.withAlpha(25),
-                    thickness: 3,
+                    thickness: 1,
                   ),
                 ),
                 buildActionTile(
@@ -313,7 +315,7 @@ Widget buildSettingsDrawer(
                   ),
                 ),
                 child: Text(
-                  "BETA 05.25",
+                  "BETA 05.26",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 11),
                     color: Colors.white.withAlpha(80),

@@ -217,7 +217,7 @@ class _LeaderboardState extends State<Leaderboard> {
               borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
               child: LinearProgressIndicator(
                 value: progressFraction,
-                minHeight: Responsive.height(context, 5),
+                minHeight: Responsive.height(context, 8),
                 backgroundColor: Colors.white.withAlpha(20),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   appColorNotifier.value,

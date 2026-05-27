@@ -73,9 +73,10 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
                 child: Container(
                   padding: EdgeInsets.all(Responsive.width(context, 11)),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(
-                      alpha: 0.07 + _glowAnimation.value * 0.06,
-                    ),
+                    color: lightenColor(
+                      color,
+                      0.18,
+                    ).withValues(alpha: 0.22 + _glowAnimation.value * 0.06),
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 16),
                     ),

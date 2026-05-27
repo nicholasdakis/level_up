@@ -17,6 +17,9 @@ class LeaderboardService {
 
     final List<dynamic> data = jsonDecode(response.body)['users'];
     // Map backend response to LeaderboardEntry objects
-    return data.map((entry) => LeaderboardEntry.fromJson(entry)).toList();
+    return data
+        .map((entry) => LeaderboardEntry.fromJson(entry))
+        .where((entry) => entry.username != 'tester_account')
+        .toList();
   }
 }

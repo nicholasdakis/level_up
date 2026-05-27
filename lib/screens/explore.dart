@@ -340,7 +340,7 @@ class _ExploreState extends State<Explore> {
 
         return Padding(
           padding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 4),
+            vertical: Responsive.height(context, 10),
           ),
           child: Row(
             children: [
@@ -369,6 +369,10 @@ class _ExploreState extends State<Explore> {
                     // Remove the _ from POIs (e.g. fast_food becomes fast food), split them, capitalize the first word, then merge back together
                     Text(
                       poi.displayCategory, // capitalize the first letter then concatinate it with the rest of the string
+                      style: GoogleFonts.manrope(
+                        color: visited ? Colors.white24 : Colors.white54,
+                        fontSize: Responsive.font(context, 12),
+                      ),
                     ),
                   ],
                 ),

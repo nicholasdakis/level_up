@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'models/user_data.dart';
 import 'services/user_data_manager.dart';
 import 'dart:ui';
@@ -569,7 +570,7 @@ Widget sectionHeader(
       text,
       style: GoogleFonts.manrope(
         fontSize: Responsive.font(context, baseFontSize),
-        color: Colors.white38,
+        color: lightenColor(appColorNotifier.value, 0.45),
         fontWeight: FontWeight.w700,
         letterSpacing: 1.4,
       ),
@@ -656,37 +657,40 @@ class DateNavigationRow extends StatelessWidget {
       'November',
       'December',
     ];
+    final accent = lightenColor(appColorNotifier.value, 0.45);
     return Row(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        IconButton(
-          icon: Icon(Icons.arrow_left, color: Colors.white),
-          onPressed: () =>
+        GestureDetector(
+          onTap: () =>
               onDateChanged(currentDate.subtract(const Duration(days: 1))),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: accent,
+            size: Responsive.scale(context, 20),
+          ),
         ),
-        InkWell(
-          splashColor: appColorNotifier.value.withAlpha(100),
+        SizedBox(width: Responsive.width(context, 16)),
+        GestureDetector(
           onTap: () => _pickDate(context),
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 12),
-              vertical: Responsive.height(context, 6),
-            ),
-            child: Text(
-              "${months[currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 18),
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+          child: Text(
+            "${months[currentDate.month - 1]} ${currentDate.day}, ${currentDate.year}",
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 17),
+              color: accent,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        IconButton(
-          icon: Icon(Icons.arrow_right, color: Colors.white),
-          onPressed: () =>
-              onDateChanged(currentDate.add(const Duration(days: 1))),
+        SizedBox(width: Responsive.width(context, 16)),
+        GestureDetector(
+          onTap: () => onDateChanged(currentDate.add(const Duration(days: 1))),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            color: accent,
+            size: Responsive.scale(context, 20),
+          ),
         ),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
@@ -73,12 +74,23 @@ void showBrowserBlockedDialog(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          createTitle('Browser Notifications are Disabled', ctx),
+          Text(
+            'Browser Notifications Disabled',
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(ctx, 17),
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
           SizedBox(height: Responsive.height(ctx, 16)),
           Text(
             'In-app notifications are enabled, but your browser is blocking them.\n\n'
             'Click "Enable" to request notification permissions from your browser.',
-            style: TextStyle(fontSize: Responsive.font(ctx, 15)),
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(ctx, 14),
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: Responsive.height(ctx, 24)),
@@ -89,7 +101,10 @@ void showBrowserBlockedDialog(BuildContext context) {
                 onPressed: () => Navigator.of(ctx).pop(),
                 child: Text(
                   'Cancel',
-                  style: TextStyle(fontSize: Responsive.font(ctx, 16)),
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(ctx, 15),
+                  ),
                 ),
               ),
               TextButton(
@@ -118,7 +133,11 @@ void showBrowserBlockedDialog(BuildContext context) {
                 },
                 child: Text(
                   'Enable',
-                  style: TextStyle(fontSize: Responsive.font(ctx, 16)),
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(ctx, 15),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

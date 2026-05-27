@@ -289,10 +289,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final timeSlot = <(String, bool)>[];
     if (hour < 5) {
       timeSlot.addAll([
-        ("STILL UP", true),
+        ("STILL UP", false),
         ("LATE NIGHT GRIND", false),
         ("OWL MODE", false),
-        ("UP LATE", true),
+        ("UP LATE", false),
       ]);
     } else if (hour < 12) {
       timeSlot.addAll([
@@ -315,8 +315,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ]);
     } else {
       timeSlot.addAll([
-        ("UP LATE", true),
-        ("NIGHT OWL", true),
+        ("UP LATE", false),
+        ("NIGHT OWL", false),
         ("STILL GOING", false),
       ]);
     }
@@ -361,16 +361,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Text(
                       label,
                       style: GoogleFonts.manrope(
-                        color: Colors.white70,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     if (best > 0)
                       Text(
                         "Best: $best ${best == 1 ? 'day' : 'days'}",
                         style: GoogleFonts.manrope(
-                          color: Colors.white30,
+                          color: lightenColor(appColorNotifier.value, 0.45),
                           fontSize: Responsive.font(context, 11),
                         ),
                       ),
@@ -391,8 +391,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     TextSpan(
                       text: " ${count == 1 ? 'day' : 'days'}",
                       style: GoogleFonts.manrope(
-                        color: accentColor.withAlpha(180),
-                        fontSize: Responsive.font(context, 12),
+                        color: accentColor,
+                        fontSize: Responsive.font(context, 15),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -413,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final foodStreak = _foodLogStreak();
     final claimStreak = _dailyClaimStreak();
     if (foodStreak == 0 && claimStreak == 0) return const SizedBox.shrink();
-    final accentColor = lightenColor(appColorNotifier.value, 0.3);
+    final accentColor = lightenColor(appColorNotifier.value, 0.45);
     return frostedGlassCard(
       context,
       padding: EdgeInsets.symmetric(
@@ -433,8 +433,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           if (claimStreak > 0)
             _buildStreakRow(
-              icon: HugeIcons.strokeRoundedCalendar02,
-              label: "Daily reward claimed",
+              icon: HugeIcons.strokeRoundedChartIncrease,
+              label: "Daily reward streak",
               count: claimStreak,
               best: currentUserData?.dailyClaimStreakBest ?? 0,
               accentColor: accentColor,
@@ -463,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Text(
                   "You're in guest mode",
                   style: GoogleFonts.manrope(
-                    color: Colors.white,
+                    color: lightenColor(appColorNotifier.value, 0.45),
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
                   ),
@@ -521,7 +521,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ? "Sign up to level up"
                             : "Level ${currentUserData?.level ?? 1}",
                         style: GoogleFonts.manrope(
-                          color: isGuest ? Colors.white54 : Colors.white,
+                          color: isGuest
+                              ? Colors.white54
+                              : lightenColor(appColorNotifier.value, 0.45),
                           fontSize: Responsive.font(context, 16),
                           fontWeight: FontWeight.w700,
                         ),
@@ -530,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         Text(
                           "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
                           style: GoogleFonts.manrope(
-                            color: Colors.white54,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             fontSize: Responsive.font(context, 13),
                             fontWeight: FontWeight.w500,
                           ),
@@ -565,7 +567,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             child: Container(
                               height: Responsive.height(context, 10),
                               decoration: BoxDecoration(
-                                color: Colors.blue,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ),
                                 borderRadius: BorderRadius.circular(
                                   Responsive.scale(context, 6),
                                 ),
@@ -589,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         return Text(
                           "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
                           style: GoogleFonts.manrope(
-                            color: Colors.white38,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             fontSize: Responsive.font(context, 11),
                             fontWeight: FontWeight.w500,
                           ),
@@ -608,7 +613,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Daily reward card
   Widget _buildDailyRewardCard() {
     final canClaim = canClaimDailyReward();
-    final accentColor = lightenColor(appColorNotifier.value, 0.3);
+    final accentColor = lightenColor(appColorNotifier.value, 0.45);
     return GestureDetector(
       onTap: canClaim && !isGuest ? () => buildDailyRewardDialog() : null,
       child: frostedGlassCard(
@@ -623,7 +628,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: canClaim
                   ? HugeIcons.strokeRoundedGift
                   : HugeIcons.strokeRoundedCalendar02,
-              color: canClaim ? accentColor : Colors.white38,
+              color: lightenColor(appColorNotifier.value, 0.45),
               size: Responsive.scale(context, 24),
             ),
             SizedBox(width: Responsive.width(context, 14)),
@@ -641,8 +646,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       color: isGuest
                           ? Colors.white54
                           : canClaim
-                          ? Colors.white
-                          : Colors.white54,
+                          ? lightenColor(appColorNotifier.value, 0.45)
+                          : lightenColor(appColorNotifier.value, 0.45),
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w700,
                     ),
@@ -656,7 +661,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
                         : "You've already claimed today's reward",
                     style: GoogleFonts.manrope(
-                      color: Colors.white38,
+                      color: isGuest
+                          ? Colors.white38
+                          : lightenColor(appColorNotifier.value, 0.45),
                       fontSize: Responsive.font(context, 12),
                     ),
                   ),
@@ -712,16 +719,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedFire,
-                        color: Colors.white38,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         size: Responsive.scale(context, 14),
                       ),
                       SizedBox(width: Responsive.width(context, 5)),
                       Text(
                         "Calories today",
                         style: GoogleFonts.manrope(
-                          color: Colors.white38,
+                          color: lightenColor(appColorNotifier.value, 0.45),
                           fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -730,7 +737,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Text(
                     "$calories",
                     style: GoogleFonts.manrope(
-                      color: Colors.white,
+                      color: lightenColor(appColorNotifier.value, 0.45),
                       fontSize: Responsive.font(context, 22),
                       fontWeight: FontWeight.w700,
                     ),
@@ -739,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Text(
                       "/ $goal goal",
                       style: GoogleFonts.manrope(
-                        color: Colors.white38,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         fontSize: Responsive.font(context, 11),
                       ),
                     ),
@@ -807,16 +814,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedNote,
-                        color: Colors.white38,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         size: Responsive.scale(context, 14),
                       ),
                       SizedBox(width: Responsive.width(context, 5)),
                       Text(
                         "Logs today",
                         style: GoogleFonts.manrope(
-                          color: Colors.white38,
+                          color: lightenColor(appColorNotifier.value, 0.45),
                           fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -825,9 +832,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Text(
                     "$foodCount",
                     style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 40),
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontSize: Responsive.font(context, 22),
                       fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    foodCount == 1 ? "item" : "items",
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontSize: Responsive.font(context, 11),
                     ),
                   ),
                 ],
@@ -948,7 +962,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         enabled: isLoading,
         effect: ShimmerEffect(
           baseColor: darkenColor(appColorNotifier.value, 0.1),
-          highlightColor: lightenColor(appColorNotifier.value, 0.2),
+          highlightColor: lightenColor(appColorNotifier.value, 0.45),
           duration: const Duration(milliseconds: 1200),
         ),
         child: Container(
@@ -1004,7 +1018,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       Text(
                                         _timeOfDayLabel(),
                                         style: GoogleFonts.manrope(
-                                          color: Colors.white38,
+                                          color: lightenColor(
+                                            appColorNotifier.value,
+                                            0.45,
+                                          ),
                                           fontSize: Responsive.font(
                                             context,
                                             14,
@@ -1022,7 +1039,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       Text(
                                         "${username ?? "Hey there"}${_greetingIsQuestion ? "?" : "!"}",
                                         style: GoogleFonts.manrope(
-                                          color: Colors.white,
+                                          color: lightenColor(
+                                            appColorNotifier.value,
+                                            0.45,
+                                          ),
                                           fontSize: Responsive.font(
                                             context,
                                             26,
@@ -1075,6 +1095,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     },
                                     child: frostedGlassCard(
                                       context,
+                                      baseRadius: 14,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: Responsive.width(
                                           context,
@@ -1082,42 +1103,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         ),
                                         vertical: Responsive.height(
                                           context,
-                                          16,
+                                          14,
                                         ),
                                       ),
-                                      border: Border.all(
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.3,
-                                        ).withAlpha(120),
-                                        width: Responsive.scale(context, 1.5),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           HugeIcon(
                                             icon: HugeIcons
                                                 .strokeRoundedAlarmClock,
                                             color: lightenColor(
                                               appColorNotifier.value,
-                                              0.3,
+                                              0.35,
                                             ),
-                                            size: Responsive.scale(context, 26),
+                                            size: Responsive.scale(context, 20),
                                           ),
                                           SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              8,
-                                            ),
+                                            width: Responsive.width(context, 8),
                                           ),
                                           Text(
                                             "Reminders",
                                             style: GoogleFonts.manrope(
-                                              color: Colors.white,
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.45,
+                                              ),
                                               fontSize: Responsive.font(
                                                 context,
-                                                14,
+                                                13,
                                               ),
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -1138,6 +1152,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     },
                                     child: frostedGlassCard(
                                       context,
+                                      baseRadius: 14,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: Responsive.width(
                                           context,
@@ -1145,42 +1160,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         ),
                                         vertical: Responsive.height(
                                           context,
-                                          16,
+                                          14,
                                         ),
                                       ),
-                                      border: Border.all(
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.3,
-                                        ).withAlpha(120),
-                                        width: Responsive.scale(context, 1.5),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           HugeIcon(
                                             icon: HugeIcons
                                                 .strokeRoundedCalculate,
                                             color: lightenColor(
                                               appColorNotifier.value,
-                                              0.3,
+                                              0.35,
                                             ),
-                                            size: Responsive.scale(context, 26),
+                                            size: Responsive.scale(context, 20),
                                           ),
                                           SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              8,
-                                            ),
+                                            width: Responsive.width(context, 8),
                                           ),
                                           Text(
                                             "Calorie Calculator",
                                             style: GoogleFonts.manrope(
-                                              color: Colors.white,
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.45,
+                                              ),
                                               fontSize: Responsive.font(
                                                 context,
-                                                14,
+                                                13,
                                               ),
                                               fontWeight: FontWeight.w600,
                                             ),

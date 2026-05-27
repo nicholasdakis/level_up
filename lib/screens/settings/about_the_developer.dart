@@ -89,7 +89,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           "Hi, I'm Nicholas Dakis — a Computer Science student at Queens College.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 14),
-                            color: Colors.white70,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             height: 1.6,
                           ),
                         ),
@@ -98,7 +98,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           "I built Level Up! to get experience working on a real project end to end. It taught me a lot: Flutter, Python, backend development, databases, deployment, and all the tools and decisions that come with shipping something real.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 14),
-                            color: Colors.white70,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             height: 1.6,
                           ),
                         ),
@@ -155,7 +155,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           "Have a suggestion or found a bug? I read every message.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 14),
-                            color: Colors.white54,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             height: 1.5,
                           ),
                         ),
@@ -184,7 +184,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                               children: [
                                 HugeIcon(
                                   icon: HugeIcons.strokeRoundedMail01,
-                                  color: Colors.white70,
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
                                   size: Responsive.scale(context, 20),
                                 ),
                                 SizedBox(width: Responsive.width(context, 12)),
@@ -193,14 +196,20 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                                     "Send feedback",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 14),
-                                      color: Colors.white70,
+                                      color: lightenColor(
+                                        appColorNotifier.value,
+                                        0.45,
+                                      ),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                                 HugeIcon(
                                   icon: HugeIcons.strokeRoundedArrowRight01,
-                                  color: Colors.white38,
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
                                   size: Responsive.scale(context, 20),
                                 ),
                               ],
@@ -226,7 +235,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           "If you've been enjoying the app and want to support it, any contribution is appreciated.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 14),
-                            color: Colors.white54,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                             height: 1.5,
                           ),
                         ),
@@ -253,7 +262,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                               children: [
                                 HugeIcon(
                                   icon: HugeIcons.strokeRoundedFavourite,
-                                  color: Colors.white70,
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
                                   size: Responsive.scale(context, 20),
                                 ),
                                 SizedBox(width: Responsive.width(context, 12)),
@@ -262,14 +274,20 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                                     "Donate via PayPal",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 14),
-                                      color: Colors.white70,
+                                      color: lightenColor(
+                                        appColorNotifier.value,
+                                        0.45,
+                                      ),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                                 HugeIcon(
                                   icon: HugeIcons.strokeRoundedArrowRight01,
-                                  color: Colors.white38,
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
                                   size: Responsive.scale(context, 20),
                                 ),
                               ],

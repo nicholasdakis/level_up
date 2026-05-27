@@ -350,7 +350,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       parts.join(' - '),
       style: GoogleFonts.manrope(
         fontSize: Responsive.font(context, 12),
-        color: Colors.white54,
+        color: lightenColor(appColorNotifier.value, 0.45),
       ),
     );
   }
@@ -421,7 +421,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 36),
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: lightenColor(appColorNotifier.value, 0.45),
                   height: 1,
                 ),
               ),
@@ -431,7 +431,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   " / ${_goalCalories.round()} kcal",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
-                    color: Colors.white38,
+                    color: lightenColor(appColorNotifier.value, 0.45),
                   ),
                 ),
               ),
@@ -454,7 +454,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     "daily goal",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: Colors.white24,
+                      color: lightenColor(appColorNotifier.value, 0.45),
                     ),
                   ),
                 ],
@@ -564,29 +564,43 @@ class _FoodLoggingState extends State<FoodLogging> {
     final progress = (current / goal).clamp(0.0, 1.0);
     final gaugeSize = Responsive.scale(context, 90);
 
+    final pct = (progress * 100).round();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           width: gaugeSize,
           height: gaugeSize * 0.6,
-          child: ClipRect(
-            child: Align(
-              alignment: Alignment.topCenter,
-              heightFactor: 0.65,
-              child: SizedBox(
-                width: gaugeSize,
-                height: gaugeSize,
-                child: CustomPaint(
-                  painter: _SemiDonutPainter(
-                    progress: progress,
-                    trackColor: Colors.white.withAlpha(18),
-                    fillColor: color,
-                    strokeWidth: Responsive.scale(context, 10),
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              ClipRect(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  heightFactor: 0.65,
+                  child: SizedBox(
+                    width: gaugeSize,
+                    height: gaugeSize,
+                    child: CustomPaint(
+                      painter: _SemiDonutPainter(
+                        progress: progress,
+                        trackColor: Colors.white.withAlpha(18),
+                        fillColor: color,
+                        strokeWidth: Responsive.scale(context, 10),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              Text(
+                "$pct%",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 12),
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(height: Responsive.height(context, 6)),
@@ -595,21 +609,21 @@ class _FoodLoggingState extends State<FoodLogging> {
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: lightenColor(appColorNotifier.value, 0.45),
           ),
         ),
         Text(
           label,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: Colors.white38,
+            color: lightenColor(appColorNotifier.value, 0.45),
           ),
         ),
         Text(
           "/ ${goal.toStringAsFixed(0)}g",
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 10),
-            color: Colors.white24,
+            color: lightenColor(appColorNotifier.value, 0.45),
           ),
         ),
       ],
@@ -724,7 +738,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   "${title.toUpperCase()} (${foods.length})",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 14),
-                    color: Colors.white54,
+                    color: lightenColor(appColorNotifier.value, 0.45),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
                   ),
@@ -748,7 +762,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                           text: " kcal",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
-                            color: Colors.white38,
+                            color: lightenColor(appColorNotifier.value, 0.45),
                           ),
                         ),
                       ],
@@ -761,7 +775,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   duration: const Duration(milliseconds: 200),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowDown01,
-                    color: Colors.white38,
+                    color: lightenColor(appColorNotifier.value, 0.45),
                     size: Responsive.scale(context, 20),
                   ),
                 ),
@@ -790,7 +804,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     "No foods logged",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: Colors.white24,
+                      color: lightenColor(appColorNotifier.value, 0.45),
                     ),
                   ),
                 )
@@ -861,7 +875,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                               // Edit serving size button
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedEdit03,
-                                color: Colors.white54,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.45,
+                                ),
                                 size: Responsive.scale(context, 18),
                               ),
                               onPressed: () =>

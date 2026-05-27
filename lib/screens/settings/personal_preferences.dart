@@ -504,7 +504,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       label,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 15),
-                        color: Colors.white,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -514,7 +514,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         subtitle,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: Colors.white54,
+                          color: lightenColor(appColorNotifier.value, 0.45),
                         ),
                       ),
                     ],
@@ -527,7 +527,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
               else if (onTap != null)
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: Colors.white38,
+                  color: lightenColor(appColorNotifier.value, 0.45),
                   size: Responsive.scale(context, 20),
                 ),
             ],
@@ -811,10 +811,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                               if (_recentFoodsMax == options[i])
                                                 Icon(
                                                   Icons.check,
-                                                  color: lightenColor(
-                                                    appColorNotifier.value,
-                                                    0.3,
-                                                  ),
+                                                  color: Colors.white,
                                                   size: Responsive.scale(
                                                     context,
                                                     18,
@@ -829,7 +826,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: const Text(
+                                    child: Text(
                                       "Cancel",
                                       style: TextStyle(color: Colors.white54),
                                     ),

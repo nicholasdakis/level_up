@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import 'dart:ui';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -283,11 +284,11 @@ class _BadgesState extends State<Badges> {
 
     if (claimed) {
       chipColor = appColorNotifier.value.withAlpha(80);
-      textColor = Colors.white;
+      textColor = Colors.white38;
       statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
       chipColor = appColorNotifier.value.withAlpha(160);
-      textColor = Colors.white;
+      textColor = Colors.white38;
       statusIcon = HugeIcons.strokeRoundedStar;
     } else {
       chipColor = Colors.white.withAlpha(12);
@@ -295,41 +296,53 @@ class _BadgesState extends State<Badges> {
       statusIcon = HugeIcons.strokeRoundedLockKey;
     }
 
+    final borderColor = claimed
+        ? lightenColor(appColorNotifier.value, 0.25).withAlpha(80)
+        : reachable
+        ? lightenColor(appColorNotifier.value, 0.3).withAlpha(200)
+        : Colors.white.withAlpha(20);
+
     final chip = GestureDetector(
       onTap: (reachable && !claimed) ? () => _claimTier(def, tier) : null,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 12),
-          vertical: Responsive.height(context, 8),
-        ),
-        decoration: BoxDecoration(
-          color: chipColor,
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
-          border: (reachable && !claimed)
-              ? Border.all(
-                  color: appColorNotifier.value,
-                  width: Responsive.width(context, 1.5),
-                )
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: statusIcon,
-              color: textColor,
-              size: Responsive.scale(context, 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 12),
+              vertical: Responsive.height(context, 8),
             ),
-            SizedBox(width: Responsive.width(context, 6)),
-            Text(
-              "$tier",
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                color: textColor,
-                fontWeight: FontWeight.w600,
+            decoration: BoxDecoration(
+              color: chipColor,
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 10),
+              ),
+              border: Border.all(
+                color: borderColor,
+                width: Responsive.width(context, 1.5),
               ),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(
+                  icon: statusIcon,
+                  color: textColor,
+                  size: Responsive.scale(context, 14),
+                ),
+                SizedBox(width: Responsive.width(context, 6)),
+                Text(
+                  "$tier",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -387,6 +400,10 @@ class _BadgesState extends State<Badges> {
       progressFraction = currentProgress / nextTier;
     }
 
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accentDim = lightenColor(appColorNotifier.value, 0.35);
+    final barColor = lightenColor(appColorNotifier.value, 0.3);
+
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
       child: frostedGlassCard(
@@ -400,29 +417,21 @@ class _BadgesState extends State<Badges> {
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                  padding: EdgeInsets.all(Responsive.scale(context, 10)),
                   decoration: BoxDecoration(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.05,
-                    ).withAlpha(80),
+                    color: Colors.white.withAlpha(12),
                     borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 10),
+                      Responsive.scale(context, 12),
                     ),
                     border: Border.all(
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.25,
-                      ).withAlpha(60),
-                      width: Responsive.width(context, 2),
+                      color: barColor.withAlpha(100),
+                      width: Responsive.width(context, 1.5),
                     ),
                   ),
                   child: HugeIcon(
                     icon: def.icon,
-                    color: appColorNotifier.value == defaultAppColor
-                        ? Colors.white70
-                        : lightenColor(appColorNotifier.value, 0.2),
-                    size: Responsive.scale(context, 24),
+                    color: barColor,
+                    size: Responsive.scale(context, 26),
                   ),
                 ),
                 SizedBox(width: Responsive.width(context, 14)),
@@ -433,9 +442,9 @@ class _BadgesState extends State<Badges> {
                       Text(
                         def.name,
                         style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 16),
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                          fontSize: Responsive.font(context, 18),
+                          color: lightenColor(appColorNotifier.value, 0.45),
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 2)),
@@ -443,7 +452,7 @@ class _BadgesState extends State<Badges> {
                         def.description,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: Colors.white38,
+                          color: accentDim,
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 2)),
@@ -453,7 +462,8 @@ class _BadgesState extends State<Badges> {
                             : "$currentProgress / $nextTier ${def.unit}",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: Colors.white60,
+                          color: accent,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -471,9 +481,7 @@ class _BadgesState extends State<Badges> {
                 value: progressFraction.clamp(0.0, 1.0),
                 minHeight: Responsive.height(context, 8),
                 backgroundColor: Colors.white.withAlpha(20),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  appColorNotifier.value,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(barColor),
               ),
             ),
 

@@ -139,6 +139,19 @@ class _NavItem extends StatelessWidget {
               ),
               child: Text(label),
             ),
+            SizedBox(height: Responsive.scale(context, 3)),
+            // Accent dot under active tab
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: isActive ? Responsive.scale(context, 16) : 0,
+              height: Responsive.scale(context, 3),
+              decoration: BoxDecoration(
+                color: activeColor,
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 2),
+                ),
+              ),
+            ),
           ],
         ),
       ),

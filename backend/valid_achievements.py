@@ -4,7 +4,7 @@
 ACHIEVEMENT_DEFINITIONS = [
     # Progression
     {"id": "level",              "name": "Level Up",         "description": "Reach the specified level",                                        "tiers": [3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100], "unit": "levels",                    "section": "PROGRESSION", "server_tracked": True},
-    {"id": "daily_claims",       "name": "Daily Claims",     "description": "Claim your daily reward the specified number of times",             "tiers": [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 365],                         "unit": "claims",                    "section": "PROGRESSION", "server_tracked": True},
+    {"id": "daily_claims",       "name": "Daily Claims",     "description": "Claim your daily reward N times",             "tiers": [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200, 250, 300, 365],                         "unit": "claims",                    "section": "PROGRESSION", "server_tracked": True},
     {"id": "daily_claim_streak", "name": "On a Roll",        "description": "Claim your daily reward for the specified consecutive days",        "tiers": [3, 5, 10, 15, 20, 25, 30],                   "unit": "consecutive days",          "section": "PROGRESSION", "server_tracked": True},
     # Explore
     {"id": "poi_visits",         "name": "Just Checking In", "description": "Check in at the specified number of spots",                        "tiers": [1, 5, 10, 15, 20, 25, 50, 75, 100, 150, 200], "unit": "spots visited",             "section": "EXPLORE",     "server_tracked": True},

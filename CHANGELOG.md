@@ -1766,3 +1766,21 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed request schemas that only existed to carry id_token, since auth is now handled entirely by the header
 - Added authenticatedGet helper in Flutter alongside authenticatedPost
 - Both attach the token as a Bearer header instead of in the body
+
+## 2026-05-26
+- Updated the Browser Notification dialog to appear consistent with other dialogs
+- Replaced hard-coded white colors with user app color variants
+- Tweaked sizes of borders / text
+- Added a font to POI categories in Explore tab
+- Made the Tools section of the Home Screen have a different shape to differentiate itself
+- Added animated accent dot under the active nav bar tab
+- Replaced date navigation row card wrapper with plain inline arrows using HugeIcons
+- Made sectionHeader use app color instead of gray
+- Settings icon button fill now uses a lightened app color tint instead of near-invisible white
+- Profile picture border in the settings drawer now uses a darkened app color instead of plain white
+- Added percentage labels centered inside each macro gauge on the food logging screen
+- Filtered tester_account out of the leaderboard
+- Improved achievement card visuals: progress bar fill uses a lighter app color, description and progress count use accent color, icon container has a more defined tinted background
+- Achievement title is now larger, bolder, and uses the accent color
+- Tier chips now have a frosted glass look with backdrop blur and colored borders
+- Achievement icon container uses a plain tinted border matching the icon color
