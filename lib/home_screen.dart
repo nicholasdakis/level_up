@@ -1190,18 +1190,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           SizedBox(
                                             width: Responsive.width(context, 8),
                                           ),
-                                          Text(
-                                            "Calorie Calculator",
-                                            style: GoogleFonts.manrope(
-                                              color: lightenColor(
-                                                appColorNotifier.value,
-                                                0.45,
+                                          Flexible(
+                                            child: Text(
+                                              "Calorie Calculator",
+                                              style: GoogleFonts.manrope(
+                                                color: lightenColor(
+                                                  appColorNotifier.value,
+                                                  0.45,
+                                                ),
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  13,
+                                                ),
+                                                fontWeight: FontWeight.w600,
                                               ),
-                                              fontSize: Responsive.font(
-                                                context,
-                                                13,
-                                              ),
-                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],

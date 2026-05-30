@@ -146,7 +146,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       lastInput = DateTime.now();
       checkTimer?.cancel();
       checkTimer = Timer(
-        const Duration(milliseconds: 750),
+        const Duration(milliseconds: 1750),
         () => handleApiCall(lastInput, value),
       );
     }
@@ -660,7 +660,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context, rootNavigator: true).pop(controller.text.trim()),
+          onPressed: () => Navigator.of(
+            context,
+            rootNavigator: true,
+          ).pop(controller.text.trim()),
           child: const Text("Log", style: TextStyle(color: Colors.white)),
         ),
       ],
@@ -1849,8 +1852,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                           ),
                                           actions: [
                                             TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(context, rootNavigator: true).pop(),
+                                              onPressed: () => Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop(),
                                               child: const Text(
                                                 "Cancel",
                                                 style: TextStyle(
@@ -1869,7 +1874,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                                         custom,
                                                   );
                                                 }
-                                                Navigator.of(context, rootNavigator: true).pop();
+                                                Navigator.of(
+                                                  context,
+                                                  rootNavigator: true,
+                                                ).pop();
                                               },
                                               child: const Text(
                                                 "OK",
