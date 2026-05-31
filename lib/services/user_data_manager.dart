@@ -190,7 +190,8 @@ class UserDataManager {
             .toUtc()
             .difference(currentUserData!.lastDailyClaim!.toUtc())
             .inSeconds;
-        currentUserData!.canClaimDailyReward = secondsSince >= dailyRewardCooldown.inSeconds;
+        currentUserData!.canClaimDailyReward =
+            secondsSince >= dailyRewardCooldown.inSeconds;
       } else {
         currentUserData!.canClaimDailyReward = true;
       }
@@ -316,7 +317,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Profile picture update cancelled."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return;
@@ -334,7 +335,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Profile picture update cancelled."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return;
@@ -406,7 +407,7 @@ class UserDataManager {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Profile picture successfully updated."),
-          duration: Duration(milliseconds: 1500),
+          duration: snackBarDuration,
         ),
       );
       // Call callback when the UI must rebuild
@@ -417,7 +418,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("No connection. Please try again when online."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return;
@@ -431,10 +432,7 @@ class UserDataManager {
         message = "Profile picture update unsuccessful: $e";
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: Duration(milliseconds: 1500),
-        ),
+        SnackBar(content: Text(message), duration: snackBarDuration),
       );
     }
   }
@@ -511,7 +509,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error: This username is already taken."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return false; // false to keep the dialog box open
@@ -524,7 +522,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Success! Username updated."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return true;
@@ -533,7 +531,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['error'] ?? "Error updating username."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return false;
@@ -546,7 +544,7 @@ class UserDataManager {
             content: Text(
               "Error updating username. Check your connection and try again.",
             ),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return true; // to close the dialog
@@ -556,7 +554,7 @@ class UserDataManager {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error updating username: $e"),
-          duration: Duration(milliseconds: 1500),
+          duration: snackBarDuration,
         ),
       );
       return false;
@@ -650,7 +648,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("No connection. Please try again when online."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return;
@@ -665,10 +663,7 @@ class UserDataManager {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: Duration(milliseconds: 1500),
-        ),
+        SnackBar(content: Text(message), duration: snackBarDuration),
       );
     }
   }
@@ -720,7 +715,7 @@ class UserDataManager {
             // conditionally mention whether it was updated to a custom color or reset
             isDefaultColor ? "Theme color reset!" : "Theme color updated!",
           ),
-          duration: Duration(milliseconds: 1500),
+          duration: snackBarDuration,
         ),
       );
     } catch (e) {
@@ -729,7 +724,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("No connection. Please try again when online."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
         return;
@@ -744,10 +739,7 @@ class UserDataManager {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: Duration(milliseconds: 1500),
-        ),
+        SnackBar(content: Text(message), duration: snackBarDuration),
       );
     }
   }
@@ -821,7 +813,7 @@ class UserDataManager {
           : "Food logged successfully.";
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), duration: Duration(milliseconds: 1500)),
+          SnackBar(content: Text(msg), duration: snackBarDuration),
         );
       }
     } catch (e) {
@@ -831,7 +823,7 @@ class UserDataManager {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("No connection. Please try again when online."),
-              duration: Duration(milliseconds: 1500),
+              duration: snackBarDuration,
             ),
           );
           return;
@@ -839,7 +831,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error updating food data: $e"),
-            duration: const Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
       }
@@ -904,7 +896,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Goals updated successfully."),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
       }
@@ -913,7 +905,7 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error updating goals: $e"),
-            duration: const Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
       }

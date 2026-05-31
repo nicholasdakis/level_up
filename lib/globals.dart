@@ -12,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 final leaderboardService = LeaderboardService();
 
 const Duration dailyRewardCooldown = Duration(hours: 23);
+const Duration snackBarDuration = Duration(milliseconds: 1500);
+const Duration snackBarDurationImportant = Duration(seconds: 3);
 
 ValueNotifier<int> expNotifier = ValueNotifier<int>(0);
 

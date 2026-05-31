@@ -224,7 +224,7 @@ Widget buildSettingsDrawer(
                               content: Text(
                                 "This app is already installed. Check your home screen or app drawer.",
                               ),
-                              duration: Duration(seconds: 3),
+                              duration: snackBarDurationImportant,
                             ),
                           );
                         }

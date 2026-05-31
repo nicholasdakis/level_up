@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../globals.dart';
 
 class ProfileImageService {
   // 750 KB size limit in bytes (to meet the 1 MB Postgres limit when converted to base64)
@@ -49,7 +50,7 @@ class ProfileImageService {
               content: Text(
                 "Profile picture must be 0.75 MB or less. This image is ${sizeInMbWeb.toStringAsFixed(2)} MB after compression.",
               ),
-              duration: Duration(milliseconds: 1500),
+              duration: snackBarDuration,
             ),
           );
           return false; // file too large
@@ -72,7 +73,7 @@ class ProfileImageService {
             content: Text(
               "Profile picture must be 0.75 MB or less. This image is ${sizeInMbMobile.toStringAsFixed(2)} MB after compression.",
             ),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
       }

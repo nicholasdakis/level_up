@@ -1789,3 +1789,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed daily reward card not being claimable without restarting the app if the user's cooldown passed while the app was already initialized
 - canClaimDailyReward now recalculates live instead of relying on the cached value set at initialization
 - Replaced magic numbers for the daily cooldown in seconds with variables in both frontend and backend
+- Replaced hardcoded snackbar durations with a snackBarDuration variables and made all snackbars use the variable for consistent snackbar durations

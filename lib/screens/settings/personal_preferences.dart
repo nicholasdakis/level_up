@@ -152,7 +152,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Failed to update profile picture: $e"),
-            duration: Duration(milliseconds: 1500),
+            duration: snackBarDuration,
           ),
         );
       }
@@ -190,7 +190,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
             content: Text(
               "The selected color was too light, so it has been slightly darkened to improve visibility.",
             ),
-            duration: Duration(seconds: 3),
+            duration: snackBarDurationImportant,
           ),
         );
       }
