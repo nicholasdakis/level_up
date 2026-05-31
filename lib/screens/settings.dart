@@ -88,22 +88,23 @@ Widget buildSettingsDrawer(
     return tile;
   }
 
+  final navBarHeight = !Responsive.isDesktop(context)
+      ? Responsive.height(context, 160) + MediaQuery.of(context).padding.bottom
+      : 0.0;
+
   return Drawer(
-    backgroundColor: Colors.transparent, // Transparent so gradient shows
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topRight: Radius.circular(28),
-        bottomRight: Radius.circular(28),
-      ),
-      side: BorderSide(color: Colors.white.withAlpha(25), width: 3),
-    ),
-    child: Container(
+    backgroundColor: Colors.transparent,
+    shape: const RoundedRectangleBorder(),
+    child: Padding(
+      padding: EdgeInsets.only(bottom: navBarHeight),
+      child: Container(
       decoration: BoxDecoration(
         gradient: buildThemeGradient(),
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(28),
           bottomRight: Radius.circular(28),
         ),
+        border: Border.all(color: Colors.white.withAlpha(25), width: 3),
       ),
       child: Column(
         children: [
@@ -307,10 +308,7 @@ Widget buildSettingsDrawer(
           Padding(
             padding: EdgeInsets.only(
               top: Responsive.height(context, 8),
-              bottom:
-                  Responsive.height(context, 24) +
-                  MediaQuery.of(context).padding.bottom +
-                  Responsive.height(context, 80),
+              bottom: Responsive.height(context, 24),
             ),
             child: Center(
               child: Container(
@@ -342,6 +340,7 @@ Widget buildSettingsDrawer(
           ),
         ],
       ),
+    ),
     ),
   );
 }

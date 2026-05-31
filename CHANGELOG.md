@@ -1797,3 +1797,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a web fallback for the review button to directly open a link to the app on Google Play
 - Added a "Leave a Review" button in the Settings dialog which directly opens the Google Play page for the app (as there are API limits for natively prompting users for a review)
 - Fixed the double border dialog bug on the onboarding dialogs
+- Made the settings drawer shorter on mobile and tablet screens to prevent it from intersecting with the bottom nav bar
