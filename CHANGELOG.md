@@ -1784,3 +1784,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Achievement title is now larger, bolder, and uses the accent color
 - Tier chips now have a frosted glass look with backdrop blur and colored borders
 - Achievement icon container uses a plain tinted border matching the icon color
+
+## 2026-05-31
+- Fixed daily reward card not being claimable without restarting the app if the user's cooldown passed while the app was already initialized
+- canClaimDailyReward now recalculates live instead of relying on the cached value set at initialization 

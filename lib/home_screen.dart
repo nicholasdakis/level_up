@@ -147,7 +147,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       currentUserData?.username == currentUserData?.uid;
 
   bool canClaimDailyReward() {
-    return currentUserData?.canClaimDailyReward ?? true;
+    final last = currentUserData?.lastDailyClaim;
+    if (last == null) return true;
+    final secondsSince = DateTime.now()
+        .toUtc()
+        .difference(last.toUtc())
+        .inSeconds;
+    return secondsSince >= 82800;
   }
 
   Future<void> buildDailyRewardDialog() async {
