@@ -106,8 +106,9 @@ class AuthService {
       }
 
       // User exists or TOS accepted — safe to sign into Firebase
-      if (!exists)
-        FirebaseAnalytics.instance.logSignUp(signUpMethod: 'google.com');
+      if (!exists) {
+        await FirebaseAnalytics.instance.logSignUp(signUpMethod: 'google.com');
+      }
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -127,6 +128,7 @@ class AuthService {
       password: password,
     );
     await FirebaseAuth.instance.currentUser!.reload();
+    await FirebaseAnalytics.instance.logSignUp(signUpMethod: 'email');
     return credential;
   }
 

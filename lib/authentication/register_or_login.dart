@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
 import '../guest.dart';
@@ -377,7 +376,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         successMessage = "Login successful";
       } else {
         successMessage = "Registration successful";
-        await FirebaseAnalytics.instance.logSignUp(signUpMethod: 'email');
       }
       setState(() {
         notifyingMessage = successMessage;
