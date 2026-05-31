@@ -1033,7 +1033,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _timeOfDayLabel(),
+                                        username != null
+                                            ? _timeOfDayLabel()
+                                            : "WELCOME TO LEVEL UP!",
                                         style: GoogleFonts.manrope(
                                           color: lightenColor(
                                             appColorNotifier.value,
@@ -1054,7 +1056,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         height: Responsive.height(context, 2),
                                       ),
                                       Text(
-                                        "${username ?? "Hey there"}${_greetingIsQuestion ? "?" : "!"}",
+                                        username != null
+                                            ? "$username${_greetingIsQuestion ? "?" : "!"}"
+                                            : "",
                                         style: GoogleFonts.manrope(
                                           color: lightenColor(
                                             appColorNotifier.value,
