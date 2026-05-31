@@ -121,6 +121,9 @@ dependencies:
   # calendar widget for date range picking
   table_calendar: ^3.1.3
 
+  # native in-app review prompt
+  in_app_review: ^2.0.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

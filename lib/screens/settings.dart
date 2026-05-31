@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:pwa_install/pwa_install.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import '../globals.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
@@ -198,6 +199,19 @@ Widget buildSettingsDrawer(
                       context,
                       "n1ch0lasd4k1s@gmail.com",
                       "Feedback for Level up!",
+                    );
+                  },
+                ),
+                buildActionTile(
+                  icon: HugeIcons.strokeRoundedStar,
+                  label: "Leave a Review",
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await url_launcher.launchUrl(
+                      Uri.parse(
+                        'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+                      ),
+                      mode: url_launcher.LaunchMode.externalApplication,
                     );
                   },
                 ),

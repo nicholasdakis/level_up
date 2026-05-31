@@ -1,8 +1,11 @@
 // onboarding.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import '/globals.dart';
 import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
@@ -15,6 +18,9 @@ Future<void> showWelcomeTourDialog(BuildContext context) async {
     barrierDismissible: false,
     builder: (ctx) => Dialog(
       backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: frostedGlassCard(
@@ -104,6 +110,72 @@ Future<void> showUsernameSetupDialog(BuildContext context) async {
     context: context,
     useRootNavigator: true,
     builder: (dialogContext) => const _UsernameSetupDialog(),
+  );
+}
+
+// Shown after username setup, telling new users the app is new and asks for a review
+Future<void> showNewUserAppReviewDialog(BuildContext context) async {
+  final accentColor = lightenColor(appColorNotifier.value, 0.45);
+  await showFrostedAlertDialog(
+    context: context,
+    title: "One Last Thing",
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(height: Responsive.height(context, 8)),
+        Text(
+          "Level Up! is a brand new app and your feedback means everything right now.",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white70,
+            height: 1.5,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Text(
+          "If you're enjoying it, leaving a quick review on the Play Store would help a lot!",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white70,
+            height: 1.5,
+          ),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        child: Text("Maybe Later", style: TextStyle(color: Colors.white38)),
+      ),
+      TextButton(
+        onPressed: () async {
+          Navigator.of(context, rootNavigator: true).pop();
+          if (kIsWeb) {
+            await url_launcher.launchUrl(
+              Uri.parse(
+                'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+              ),
+              mode: url_launcher.LaunchMode.externalApplication,
+            );
+          } else {
+            final review = InAppReview.instance;
+            if (await review.isAvailable()) {
+              await review.requestReview();
+            } else {
+              await review.openStoreListing(
+                appStoreId: 'com.nicholasdakis.levelup',
+              );
+            }
+          }
+        },
+        child: Text(
+          "Leave a Review",
+          style: TextStyle(color: accentColor, fontWeight: FontWeight.w700),
+        ),
+      ),
+    ],
   );
 }
 
@@ -237,6 +309,9 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
       insetPadding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 24),
         vertical: Responsive.height(context, 40),
@@ -270,7 +345,7 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
                 ),
               ),
               SizedBox(height: Responsive.height(context, 20)),
-              createTitle("One last thing!", context),
+              createTitle("Choose your name!", context),
               SizedBox(height: Responsive.height(context, 10)),
               Text(
                 "What do you go by?",

@@ -1790,4 +1790,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - canClaimDailyReward now recalculates live instead of relying on the cached value set at initialization
 - Replaced magic numbers for the daily cooldown in seconds with variables in both frontend and backend
 - Replaced hardcoded snackbar durations with a snackBarDuration variables and made all snackbars use the variable for consistent snackbar durations
+- Added sign_up event handling for Firebase Analytics
 - Edited the greeting text to specifically show a welcome greeting for new users
+- Used the in_app_reviews package and added a new dialog into the onboarding flow that prompts new users to review the app
+- Added status bar height to the onboarding dialog padding to "Your dashboard" and "Settings" dialogs so they don't intersect with notch bar on Android
+- Added a web fallback for the review button to directly open a link to the app on Google Play
+- Added a "Leave a Review" button in the Settings dialog which directly opens the Google Play page for the app (as there are API limits for natively prompting users for a review)
+- Fixed the double border dialog bug on the onboarding dialogs

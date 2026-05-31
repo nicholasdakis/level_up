@@ -180,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         setState(
           () => _greeting = _buildGreeting(),
         ); // refresh greeting and drawer with the new username
+        await showNewUserAppReviewDialog(context);
       }
       if (canClaimDailyReward() && mounted) {
         await buildDailyRewardDialog();
@@ -899,7 +900,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ? null
                           : Responsive.width(context, 16),
                       top: (_tourStep == 0 || _tourStep == 2)
-                          ? Responsive.height(context, 16)
+                          ? Responsive.height(context, 16) +
+                                MediaQuery.of(context).padding.top
                           : null,
                       bottom: _tourStep == 1
                           ? Responsive.height(context, 120)
