@@ -1787,4 +1787,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-05-31
 - Fixed daily reward card not being claimable without restarting the app if the user's cooldown passed while the app was already initialized
-- canClaimDailyReward now recalculates live instead of relying on the cached value set at initialization 
+- canClaimDailyReward now recalculates live instead of relying on the cached value set at initialization
+- Replaced magic numbers for the daily cooldown in seconds with variables in both frontend and backend

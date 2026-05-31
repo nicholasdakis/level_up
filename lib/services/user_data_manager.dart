@@ -190,7 +190,7 @@ class UserDataManager {
             .toUtc()
             .difference(currentUserData!.lastDailyClaim!.toUtc())
             .inSeconds;
-        currentUserData!.canClaimDailyReward = secondsSince >= 82800;
+        currentUserData!.canClaimDailyReward = secondsSince >= dailyRewardCooldown.inSeconds;
       } else {
         currentUserData!.canClaimDailyReward = true;
       }

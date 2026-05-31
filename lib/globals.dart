@@ -11,6 +11,8 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
 
+const Duration dailyRewardCooldown = Duration(hours: 23);
+
 ValueNotifier<int> expNotifier = ValueNotifier<int>(0);
 
 // Flips to true when AppInitScreen finishes loading user data

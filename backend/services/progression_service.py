@@ -8,6 +8,8 @@ from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS, VALID_ACHIEVEMENT
 
 logger = logging.getLogger(__name__)
 
+DAILY_REWARD_COOLDOWN_SECONDS = 82800  # 23 hours
+
 
 def experience_needed(level: int):
     # Calculate the XP required to reach the next level based on the formula in user_data_manager.dart
@@ -67,7 +69,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         if last_claim is None:
             return True
         seconds_since = (datetime.now(timezone.utc) - to_utc_datetime(last_claim)).total_seconds()
-        return seconds_since >= 82800
+        return seconds_since >= DAILY_REWARD_COOLDOWN_SECONDS
 
     def is_moving_too_fast_for_poi(self, uid: str, lat: float, lng: float):
 

@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _updateCountdown() {
     final last = currentUserData?.lastDailyClaim;
     if (last == null) return;
-    final next = last.add(const Duration(hours: 23));
+    final next = last.add(dailyRewardCooldown);
     final remaining = next.difference(DateTime.now().toUtc());
     final newValue = remaining.isNegative ? Duration.zero : remaining;
     if (newValue.inMinutes == _timeUntilReward.inMinutes) return;
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .toUtc()
         .difference(last.toUtc())
         .inSeconds;
-    return secondsSince >= 82800;
+    return secondsSince >= dailyRewardCooldown.inSeconds;
   }
 
   Future<void> buildDailyRewardDialog() async {
