@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -105,6 +106,8 @@ class AuthService {
       }
 
       // User exists or TOS accepted — safe to sign into Firebase
+      if (!exists)
+        FirebaseAnalytics.instance.logSignUp(signUpMethod: 'google.com');
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
