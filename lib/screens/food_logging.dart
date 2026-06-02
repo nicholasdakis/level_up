@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'log_food_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
@@ -242,6 +243,7 @@ class _FoodLoggingState extends State<FoodLogging> {
             controller: controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [LogFoodScreen.decimalFormatter()],
             style: GoogleFonts.manrope(color: Colors.white),
             decoration: InputDecoration(
               suffixText: unit,

@@ -36,6 +36,18 @@ class LogFoodScreen extends StatefulWidget {
 
   @override
   State<LogFoodScreen> createState() => _LogFoodScreenState();
+
+  // Allows up to 5 digits with an optional decimal up to decimalPlaces places
+  static TextInputFormatter decimalFormatter({int decimalPlaces = 2}) {
+    return TextInputFormatter.withFunction((oldValue, newValue) {
+      if (newValue.text.isEmpty) return newValue;
+      return RegExp(
+            '^\\d{0,5}(\\.\\d{0,$decimalPlaces})?\$',
+          ).hasMatch(newValue.text)
+          ? newValue
+          : oldValue;
+    });
+  }
 }
 
 class _LogFoodScreenState extends State<LogFoodScreen>
@@ -187,18 +199,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     manualProteinController.dispose();
     manualServingAmountController.dispose();
     super.dispose();
-  }
-
-  // Allows up to 5 digits with an optional decimal up to decimalPlaces places
-  static TextInputFormatter _decimalFormatter({int decimalPlaces = 2}) {
-    return TextInputFormatter.withFunction((oldValue, newValue) {
-      if (newValue.text.isEmpty) return newValue;
-      return RegExp(
-            '^\\d{0,5}(\\.\\d{0,$decimalPlaces})?\$',
-          ).hasMatch(newValue.text)
-          ? newValue
-          : oldValue;
-    });
   }
 
   // Helper method for snackbars
@@ -639,6 +639,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             controller: controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [LogFoodScreen.decimalFormatter()],
             style: GoogleFonts.manrope(color: Colors.white),
             decoration: InputDecoration(
               suffixText: unit,
@@ -824,7 +825,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           child: TextField(
             controller: servingAmountController,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [_decimalFormatter()],
+            inputFormatters: [LogFoodScreen.decimalFormatter()],
             style: GoogleFonts.manrope(
               color: Colors.white,
               fontSize: Responsive.font(context, 14),
@@ -1620,7 +1621,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                   keyboardType: TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
-                                  inputFormatters: [_decimalFormatter()],
+                                  inputFormatters: [
+                                    LogFoodScreen.decimalFormatter(),
+                                  ],
                                 ),
                               ),
                               SizedBox(width: Responsive.width(context, 12)),
@@ -1941,7 +1944,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             "Calories (kcal)",
                             keyboardType: TextInputType.number,
                             inputFormatters: [
-                              _decimalFormatter(decimalPlaces: 3),
+                              LogFoodScreen.decimalFormatter(decimalPlaces: 3),
                             ],
                           ),
                           SizedBox(height: Responsive.height(context, 14)),
@@ -1961,7 +1964,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               decimal: true,
                             ),
                             inputFormatters: [
-                              _decimalFormatter(decimalPlaces: 3),
+                              LogFoodScreen.decimalFormatter(decimalPlaces: 3),
                             ],
                           ),
                           _buildManualField(
@@ -1971,7 +1974,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               decimal: true,
                             ),
                             inputFormatters: [
-                              _decimalFormatter(decimalPlaces: 3),
+                              LogFoodScreen.decimalFormatter(decimalPlaces: 3),
                             ],
                           ),
                           _buildManualField(
@@ -1981,7 +1984,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               decimal: true,
                             ),
                             inputFormatters: [
-                              _decimalFormatter(decimalPlaces: 3),
+                              LogFoodScreen.decimalFormatter(decimalPlaces: 3),
                             ],
                           ),
                         ],
