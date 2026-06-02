@@ -143,10 +143,15 @@ Widget calcSuffixIcon(
         initialValue: controller.text.trim(),
       );
       if (result != null) {
-        controller.text = result;
+        // clamp to 99999 to match the 5-digit cap on the text field formatter
+        final clamped = (double.tryParse(result) ?? 0).clamp(0, 99999);
+        final clampedStr = clamped % 1 == 0
+            ? clamped.toInt().toString()
+            : clamped.toStringAsFixed(2);
+        controller.text = clampedStr;
         controller.selection = TextSelection.collapsed(
-          offset:
-              result.length, // move cursor to end so it doesn't look selected
+          offset: clampedStr
+              .length, // move cursor to end so it doesn't look selected
         );
         onSet
             ?.call(); // trigger recalculation since setting text programmatically doesn't fire onChanged
