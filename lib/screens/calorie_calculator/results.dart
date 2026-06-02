@@ -497,7 +497,7 @@ class _ResultsState extends State<Results> {
             ), // Header color
             scrolledUnderElevation: 0,
             centerTitle: true,
-            toolbarHeight: Responsive.buttonHeight(context, 120),
+            toolbarHeight: Responsive.appBarHeight(context, 120),
             leading: GestureDetector(
               onTap: () => context.pop(),
               child: Center(

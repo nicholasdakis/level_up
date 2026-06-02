@@ -135,6 +135,15 @@ class Responsive {
     return type == ScreenType.mobile ? raw.clamp(0, 140) : raw;
   }
 
+  // AppBar toolbar height that accounts for the status bar on mobile so the header doesn't appear oversized
+  static double appBarHeight(BuildContext context, double baseHeight) {
+    final base = buttonHeight(context, baseHeight);
+    if (isMobile(context)) {
+      return (base - MediaQuery.of(context).padding.top).clamp(48, 140);
+    }
+    return base;
+  }
+
   static double font(BuildContext context, double baseFontSize) {
     final type = screenType(context);
     final scaled = type == ScreenType.mobile

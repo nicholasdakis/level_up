@@ -998,7 +998,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           scrolledUnderElevation: 0,
           backgroundColor: darkenColor(appColor, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(context, 120),
+          toolbarHeight: Responsive.appBarHeight(context, 120),
           leading: GestureDetector(
             onTap: () => setState(() => scannerActive = false),
             child: Center(
@@ -1093,7 +1093,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           scrolledUnderElevation: 0,
           backgroundColor: darkenColor(appColor, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(context, 120),
+          toolbarHeight: Responsive.appBarHeight(context, 120),
           leading: GestureDetector(
             onTap: () => context.pop(),
             child: Center(

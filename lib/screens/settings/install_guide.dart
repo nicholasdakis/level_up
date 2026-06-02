@@ -121,7 +121,7 @@ class InstallGuide extends StatelessWidget {
           scrolledUnderElevation: 0,
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.height(context, 100),
+          toolbarHeight: Responsive.appBarHeight(context, 100),
           leading: GestureDetector(
             onTap: () => context.pop(),
             child: Center(

@@ -25,7 +25,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
           scrolledUnderElevation: 0,
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.buttonHeight(context, 120),
+          toolbarHeight: Responsive.appBarHeight(context, 120),
           leading: GestureDetector(
             onTap: () => context.pop(),
             child: Center(

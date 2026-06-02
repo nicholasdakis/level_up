@@ -524,7 +524,7 @@ class _RemindersState extends State<Reminders> {
         appBar: AppBar(
           backgroundColor: darkenColor(appColorNotifier.value, 0.025),
           centerTitle: true,
-          toolbarHeight: Responsive.height(context, 100),
+          toolbarHeight: Responsive.appBarHeight(context, 100),
           leading: GestureDetector(
             onTap: () => context.pop(),
             child: Center(
