@@ -179,6 +179,14 @@ class UserRepository:
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()
 
+    def update_user_xp(self, uid: str, new_level: int, new_exp: int):
+        # Uses award_ad_xp RPC for row-level locking to prevent double-awarding from concurrent SSV callbacks
+        self._supabase.rpc("award_ad_xp", {
+            "p_uid": uid,
+            "p_new_level": new_level,
+            "p_new_exp": new_exp,
+        }).execute()
+
     def upsert_goals(self, uid: str, data: dict):
         # Insert or update goals row for this user
         self._supabase.table("goals").upsert({

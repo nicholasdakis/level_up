@@ -394,6 +394,18 @@ class ProgressionService: # Service class to handle all progression-related busi
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         return result
 
+    def award_ad_xp(self, uid: str) -> int:
+        user = self._repo.get_user(uid)
+        if not user:
+            raise ValueError(f"User {uid} not found")
+        needed = experience_needed(user["level"])
+        xp_gained = int(needed * random.uniform(0.05, 0.10))  # 5-10% of XP needed for next level
+        new_level, new_exp = calculate_level_up(user["level"], user["exp_points"], xp_gained)
+        self._repo.update_user_xp(uid, new_level, new_exp)
+        if new_level > user["level"]:
+            self._achievement_repo.set_achievement_progress(uid, "level", new_level)
+        return xp_gained
+
     def update_goals(
         self,
         uid: str,

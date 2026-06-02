@@ -679,5 +679,67 @@ def claim_trivial_achievement():
     achievement_repo.upsert_achievement_progress(uid, body.achievement_id, 1)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
+@app.route("/admob_ssv", methods=["GET"])
+def admob_ssv():
+    try:
+        # Extract required params from Google's SSV callback
+        query_string = request.query_string.decode("utf-8")
+        signature = request.args.get("signature")
+        key_id = request.args.get("key_id")
+        uid = request.args.get("custom_data")  # the Flutter client passes the user's UID as custom_data
+
+        if not signature or not key_id:
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        # Fetch Google's public keys for SSV verification
+        keys_response = requests.get(
+            "https://gstatic.com/admob/reward/verifier-keys.json",
+            timeout=5
+        )
+        if keys_response.status_code != 200:
+            logger.error("Failed to fetch AdMob verifier keys")
+            return jsonify({"error": "Could not verify signature"}), 500
+
+        keys = keys_response.json()["keys"]
+        public_key_pem = None
+        for key in keys:
+            if str(key["keyId"]) == str(key_id):
+                public_key_pem = key["pem"]
+                break
+
+        if not public_key_pem:
+            return jsonify({"error": "Key not found"}), 400
+
+        # Verify the ECDSA signature, the message is everything before &signature=
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.exceptions import InvalidSignature
+        import base64
+
+        msg_end = query_string.rfind("&signature=")
+        message = query_string[:msg_end].encode("utf-8")
+        sig_bytes = base64.urlsafe_b64decode(signature + "==")
+
+        public_key = serialization.load_pem_public_key(public_key_pem.encode())
+        logger.info(f"[admob_ssv] message={message} key_id={key_id} sig_len={len(sig_bytes)}")
+        public_key.verify(sig_bytes, message, ec.ECDSA(hashes.SHA256()))
+
+        # Signature valid, only award XP if uid is present
+        if not uid:
+            logger.info("[admob_ssv] Signature verified but no uid (test request)")
+            return jsonify({"success": True, "xp_gained": 0}), 200
+
+        xp_gained = progression_service.award_ad_xp(uid)
+        logger.info(f"[admob_ssv] Awarded {xp_gained} XP to {uid}")
+        return jsonify({"success": True, "xp_gained": xp_gained}), 200
+
+    except InvalidSignature:
+        logger.warning("[admob_ssv] Invalid signature")
+        return jsonify({"error": "Invalid signature"}), 400
+    except Exception as e:
+        logger.error(f"[admob_ssv] Error: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)

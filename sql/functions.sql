@@ -379,3 +379,21 @@ BEGIN
     END IF;
 END
 $$ LANGUAGE plpgsql;
+
+-- award_ad_xp: Atomically awards XP for a verified rewarded ad watch
+-- Called only by the AdMob SSV backend route, never by the client directly
+CREATE OR REPLACE FUNCTION award_ad_xp(
+    p_uid TEXT,
+    p_new_level INTEGER,
+    p_new_exp INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    -- Lock the row so two simultaneous SSV callbacks can't double-award
+    PERFORM uid FROM users WHERE uid = p_uid FOR UPDATE;
+
+    UPDATE users
+    SET level = p_new_level, exp_points = p_new_exp
+    WHERE uid = p_uid;
+END
+$$ LANGUAGE plpgsql;
