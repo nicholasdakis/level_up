@@ -721,7 +721,6 @@ def admob_ssv():
         sig_bytes = base64.urlsafe_b64decode(signature + "==")
 
         public_key = serialization.load_pem_public_key(public_key_pem.encode())
-        logger.info(f"[admob_ssv] message={message} key_id={key_id} sig_len={len(sig_bytes)}")
         public_key.verify(sig_bytes, message, ec.ECDSA(hashes.SHA256()))
 
         # Signature valid, only award XP if uid is present

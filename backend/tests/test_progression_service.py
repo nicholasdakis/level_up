@@ -472,3 +472,52 @@ def test_haversine_is_symmetric():
     a = service._haversine(40.7, -74.0, 34.0, -118.2)
     b = service._haversine(34.0, -118.2, 40.7, -74.0)
     assert a == pytest.approx(b)
+
+# award_ad_xp tests -----------------
+
+# XP awarded must be 5-10% of the XP needed for the user's current level
+def test_award_ad_xp_range(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_user.return_value = {"level": 10, "exp_points": 0}
+    fake_achievement_repo = mocker.Mock()
+    service = ProgressionService(fake_repo, None, fake_achievement_repo)
+
+    xp = service.award_ad_xp("user_123")
+
+    needed = experience_needed(10)
+    assert int(needed * 0.05) <= xp <= int(needed * 0.10)
+
+# When the user doesn't level up, the level achievement must not be tracked
+def test_award_ad_xp_no_level_up_no_achievement(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_user.return_value = {"level": 5, "exp_points": 0}
+    fake_achievement_repo = mocker.Mock()
+    mocker.patch("backend.services.progression_service.random.uniform", return_value=0.05)
+    service = ProgressionService(fake_repo, None, fake_achievement_repo)
+
+    service.award_ad_xp("user_123")
+
+    fake_achievement_repo.set_achievement_progress.assert_not_called()
+
+# When the awarded XP causes a level-up, the level achievement must be tracked with the new level
+def test_award_ad_xp_level_up_tracks_achievement(mocker):
+    fake_repo = mocker.Mock()
+    needed = experience_needed(5)
+    fake_repo.get_user.return_value = {"level": 5, "exp_points": needed - 1}
+    fake_achievement_repo = mocker.Mock()
+    mocker.patch("backend.services.progression_service.random.uniform", return_value=0.10)
+    service = ProgressionService(fake_repo, None, fake_achievement_repo)
+
+    service.award_ad_xp("user_123")
+
+    fake_achievement_repo.set_achievement_progress.assert_called_once_with("user_123", "level", 6)
+
+# A missing user must raise before touching the repo's XP update
+def test_award_ad_xp_user_not_found_raises(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_user.return_value = None
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    with pytest.raises(ValueError):
+        service.award_ad_xp("user_123")
+
