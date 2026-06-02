@@ -581,7 +581,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildAttributionLink(
-          "https://www.fatsecret.com",
+          "https://platform.fatsecret.com",
           "Powered by FatSecret",
         ),
         Text(
@@ -593,7 +593,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         ),
         _buildAttributionLink(
           "https://openfoodfacts.org",
-          "Powered by Open Food Facts",
+          "Open Food Facts (ODbL)",
         ),
       ],
     );
@@ -1065,7 +1065,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               child: Center(
                 child: _buildAttributionLink(
                   "https://openfoodfacts.org",
-                  "Powered by Open Food Facts",
+                  "Open Food Facts (ODbL)",
                 ),
               ),
             ),
@@ -1245,6 +1245,16 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
             // Legal attribution — tiny and unobtrusive below the search bar
             Center(child: _buildAttributionRow()),
+            SizedBox(height: Responsive.height(context, 4)),
+            Center(
+              child: Text(
+                "Nutritional info is not a substitute for medical advice.",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 10),
+                  color: Colors.white12,
+                ),
+              ),
+            ),
 
             SizedBox(height: Responsive.height(context, 20)),
 
