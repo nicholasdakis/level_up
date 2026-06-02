@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -428,6 +429,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       child: TextField(
         controller: ctrl,
         keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(4),
+        ],
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.white54),
@@ -785,6 +790,21 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                           }
                                           if (context.mounted) {
                                             Navigator.pop(context);
+                                            final label =
+                                                options[i] ==
+                                                    RecentFoodsService.unlimited
+                                                ? "Unlimited"
+                                                : "${options[i]} foods";
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Recent foods limit set to $label",
+                                                ),
+                                                duration: snackBarDuration,
+                                              ),
+                                            );
                                           }
                                         },
                                         child: Padding(
@@ -824,11 +844,17 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                                   ],
                                 ),
                                 actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(
-                                      "Cancel",
-                                      style: TextStyle(color: Colors.white54),
+                                  Expanded(
+                                    child: Center(
+                                      child: TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
