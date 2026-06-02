@@ -356,9 +356,23 @@ RETURNS void as $$
 DECLARE
     v_progress INTEGER; -- To store the user's progress cell for this achievement
     v_rows INTEGER;     -- How many rows the INSERT actually affected (0 if DO NOTHING fired)
+    v_streak_type TEXT; -- Mapped streak_type for streak-based achievements
 BEGIN
-    -- Lock the progress row so no other transaction can claim at the same time
-    SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id FOR UPDATE;
+    -- Streak achievements must check highest_streak (not current progress) so a broken streak
+    -- doesn't block claiming a tier the user legitimately reached in the past
+    v_streak_type := CASE p_achievement_id
+        WHEN 'daily_claim_streak' THEN 'daily_consecutive_streak'
+        WHEN 'food_streak'        THEN 'food_streak'
+        ELSE NULL
+    END;
+
+    IF v_streak_type IS NOT NULL THEN
+        SELECT highest_streak INTO v_progress FROM streaks WHERE uid = p_uid AND streak_type = v_streak_type;
+    ELSE
+        -- Lock the progress row so no other transaction can claim at the same time
+        SELECT progress INTO v_progress FROM achievement_progress WHERE uid = p_uid AND achievement_id = p_achievement_id FOR UPDATE;
+    END IF;
+
     -- make sure progress >= tier to ensure the claim is eligible but has not occurred
     IF v_progress >= p_tier THEN
         -- valid, so carry out the claim
