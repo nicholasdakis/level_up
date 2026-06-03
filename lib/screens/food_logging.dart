@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'log_food_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -1059,6 +1060,52 @@ class _FoodLoggingState extends State<FoodLogging> {
                   _buildMealSection("snacks", "Snacks", snacksFoods, colors[3]),
 
                   SizedBox(height: Responsive.height(context, 24)),
+
+                  // FatSecret terms require attribution to be visible without login
+                  if (isGuest)
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse("https://platform.fatsecret.com"),
+                            ),
+                            child: Text(
+                              "Powered by FatSecret",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white24,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            "  ·  ",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white24,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse("https://openfoodfacts.org"),
+                            ),
+                            child: Text(
+                              "Open Food Facts (ODbL)",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Extra space so content clears the floating nav bar
                   SizedBox(height: Responsive.height(context, 100)),
                 ],
