@@ -344,6 +344,163 @@ RETURNS void AS $$
     WHERE uid = p_uid;
 $$ LANGUAGE sql;
 
+-- experience_needed: mirrors the Dart/Python formula so SQL can calculate XP thresholds
+CREATE OR REPLACE FUNCTION experience_needed(p_level INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    v_raw FLOAT;
+BEGIN
+    v_raw := 100.0 * POWER(1.25, p_level - 0.5) * 1.05 + (p_level * 10);
+    RETURN (ROUND(v_raw / 10.0) * 10)::INTEGER;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- use_referral: atomically validates and inserts a referral, awards XP to the referee, ensures one-way relationships and no duplicate referrals
+CREATE OR REPLACE FUNCTION use_referral(p_referee_uid TEXT, p_referral_code TEXT)
+RETURNS JSONB AS $$
+DECLARE
+    v_referrer_uid TEXT;
+    v_mutual_exists BOOLEAN;
+    v_referee_level INTEGER;
+    v_referee_exp INTEGER;
+    v_xp_needed INTEGER;
+    v_xp_award INTEGER;
+    v_new_level INTEGER;
+    v_new_exp INTEGER;
+BEGIN
+    -- Check the referee exists and has reached level 3, lock their row
+    SELECT level, exp_points INTO v_referee_level, v_referee_exp
+    FROM users WHERE uid = p_referee_uid FOR UPDATE;
+
+    IF v_referee_level IS NULL THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+    IF v_referee_level < 3 THEN
+        RAISE EXCEPTION 'You must reach level 3 before using a referral code';
+    END IF;
+
+    -- Check the referee hasn't already used a referral code
+    IF EXISTS (SELECT 1 FROM referrals WHERE referee_uid = p_referee_uid) THEN
+        RAISE EXCEPTION 'You have already used a referral code';
+    END IF;
+
+    -- Lock the referrer's row and check for mutual referral in one query
+    SELECT u.uid, (r.referee_uid IS NOT NULL)
+    INTO v_referrer_uid, v_mutual_exists
+    FROM users u
+    LEFT JOIN referrals r ON r.referrer_uid = p_referee_uid AND r.referee_uid = u.uid
+    WHERE u.referral_code = p_referral_code
+    FOR UPDATE OF u;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invalid referral code';
+    END IF;
+
+    IF v_referrer_uid = p_referee_uid THEN
+        RAISE EXCEPTION 'Cannot use your own referral code';
+    END IF;
+
+    IF v_mutual_exists THEN
+        RAISE EXCEPTION 'Mutual referrals are not allowed';
+    END IF;
+
+    -- Calculate XP award: max(500, xp_needed_for_next_level * 0.75)
+    v_xp_needed := experience_needed(v_referee_level);
+    v_xp_award := GREATEST(500, (v_xp_needed * 0.75)::INTEGER);
+
+    -- Apply XP and handle level-ups
+    v_new_exp := v_referee_exp + v_xp_award;
+    v_new_level := v_referee_level;
+    WHILE v_new_exp >= experience_needed(v_new_level) LOOP
+        v_new_exp := v_new_exp - experience_needed(v_new_level);
+        v_new_level := v_new_level + 1;
+    END LOOP;
+
+    -- Update referee's level and XP
+    UPDATE users SET level = v_new_level, exp_points = v_new_exp WHERE uid = p_referee_uid;
+
+    -- Update level achievement progress for referee
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_referee_uid, 'level', v_new_level)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = v_new_level;
+
+    -- Insert the referral row with referee_xp_awarded = true
+    INSERT INTO referrals (referee_uid, referrer_uid, referral_code, referee_xp_awarded)
+    VALUES (p_referee_uid, v_referrer_uid, p_referral_code, true);
+
+    -- Increment the referrer's referrals achievement progress
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (v_referrer_uid, 'referrals', 1)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = achievement_progress.progress + 1;
+
+    RETURN jsonb_build_object(
+        'new_level', v_new_level,
+        'new_exp', v_new_exp,
+        'xp_awarded', v_xp_award
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- claim_referral_reward: atomically awards XP to the referrer and marks the referral as fully complete
+CREATE OR REPLACE FUNCTION claim_referral_reward(p_referrer_uid TEXT, p_referee_uid TEXT)
+RETURNS JSONB AS $$
+DECLARE
+    v_referrer_level INTEGER;
+    v_referrer_exp INTEGER;
+    v_xp_needed INTEGER;
+    v_xp_award INTEGER;
+    v_new_level INTEGER;
+    v_new_exp INTEGER;
+BEGIN
+    -- Lock the referrer's row and verify the referral exists and hasn't been claimed yet
+    SELECT level, exp_points INTO v_referrer_level, v_referrer_exp
+    FROM users WHERE uid = p_referrer_uid FOR UPDATE;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM referrals
+        WHERE referrer_uid = p_referrer_uid
+          AND referee_uid = p_referee_uid
+          AND referee_xp_awarded = true
+          AND referrer_xp_awarded = false
+    ) THEN
+        RAISE EXCEPTION 'No pending referral reward found';
+    END IF;
+
+    -- Calculate XP award: max(500, xp_needed * 0.75)
+    v_xp_needed := experience_needed(v_referrer_level);
+    v_xp_award := GREATEST(500, (v_xp_needed * 0.75)::INTEGER);
+
+    -- Apply XP and handle level-ups
+    v_new_exp := v_referrer_exp + v_xp_award;
+    v_new_level := v_referrer_level;
+    WHILE v_new_exp >= experience_needed(v_new_level) LOOP
+        v_new_exp := v_new_exp - experience_needed(v_new_level);
+        v_new_level := v_new_level + 1;
+    END LOOP;
+
+    -- Update referrer's level and XP
+    UPDATE users SET level = v_new_level, exp_points = v_new_exp WHERE uid = p_referrer_uid;
+
+    -- Update level achievement progress
+    INSERT INTO achievement_progress (uid, achievement_id, progress)
+    VALUES (p_referrer_uid, 'level', v_new_level)
+    ON CONFLICT (uid, achievement_id) DO UPDATE
+    SET progress = v_new_level;
+
+    -- Mark the referral as fully complete
+    UPDATE referrals SET referrer_xp_awarded = true, referrer_notified = true
+    WHERE referrer_uid = p_referrer_uid AND referee_uid = p_referee_uid;
+
+    RETURN jsonb_build_object(
+        'new_level', v_new_level,
+        'new_exp', v_new_exp,
+        'xp_awarded', v_xp_award
+    );
+END;
+$$ LANGUAGE plpgsql;
+
 -- claim_achievement: atomically claims the achievement by creating a row for the specified achievement in achievement_claims table
 -- if the row creation is successful, it means the achievement was not added before and was now added and thus claimed.
 -- if the row creation is unsuccessful, it means the achievement is already claimed, so it won't be claimed again

@@ -1822,3 +1822,36 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-06
 - Made the "Best" text for streaks on the home dashboard refresh if the user claimed their daily reward to achieve a new best streak rather than showing the stale value
 - Sorted the leaderboards by UID to make it deterministic
+
+## 2026-06-07
+- Added a referrals table to track referral relationships between users
+- Added referral_code column to the users table, generated lazily on first request with collision checking
+- Added GET /referral_code and POST /referral_code backend endpoints: GET returns the existing code, POST generates and stores a unique 8-character alphanumeric code as a fallback when none exists
+- Added ReferralCodeResponse schema for the above endpoints
+- Added get_referral_code, create_referral_code, referral_code_exists, and store_referral_code methods to the service and repository layers
+- Added referral_code to GetUserDataResponse schema, get_user_data service method, and UserData model so the code is available on app load
+- Added an Earn XP section to the home dashboard with two side-by-side cards: Watch an Ad and Refer a Friend
+- Watch an Ad card shows a "coming soon" dialog on Android and a "get the app" dialog on web
+- Refer a Friend card shows the user's referral code (fetched live with a GET/POST fallback), a copy button, referred count, and a field for new users to enter a code they received
+- Added instructions to the referral dialog stating the referred user must reach level 3 for both users to gain XP
+- Added achievements for referring users (1, 2, 3 referred)
+- Added a use_referral route that is responsible for validating and using the referral code
+- /use_referral calls use_referral in services.py which calls use_referral in repository.py which calls the use_referral RPC method which has row-level locking to ensure atomicity
+- The RPC method also ensures that if user A refers user B, user B can't refer user A, and ensures a user can't refer themselves
+- The RPC method also ensures the referred user is a high enough level (level 3 or above) and that the user who owns the referral_code has their achievement progress for referrals incremented
+- Wired up the modal so that users can type in a code and press submit to call the /use_referral route
+- Limited the input code to strictly allow up to 8 alphanumeric characters
+- Added UseReferralRequest schema for the /use_referral route
+- Added a Social tab to the Badges screen with the new referrals achievement
+- Updated use_referral RPC to award XP to the referee atomically on code submission, using max(500, xp_needed * 0.75), handling level-ups and updating achievement progress
+- Added experience_needed SQL function mirroring the Dart/Python formula so the RPC can calculate XP thresholds server-side
+- Added referee_xp_awarded, referrer_xp_awarded, and referrer_notified columns to the referrals table
+- Added GET /pending_referral_reward and POST /claim_referral_reward endpoints for the referrer reward flow
+- Added claim_referral_reward RPC that atomically awards XP to the referrer and marks the referral as complete
+- Added a referral reward popup that appears on app load after the daily reward dialog, showing who used the referrer's code with a claim button
+- Claiming the referral reward updates the XP bar and level immediately on the client
+- Referee's XP bar and level update immediately on successful code submission
+- Service layer wraps Postgres exceptions from use_referral and claim_referral_reward as ValueError for clean 409 responses
+- Moved referral-related code from home screen to a new referrals.dart file
+- Added UseReferralResponse, ClaimReferralRewardRequest, and ClaimReferralRewardResponse schemas
+- Wrote unit tests for get_referral_code, create_referral_code, use_referral, and claim_referral_reward service methods

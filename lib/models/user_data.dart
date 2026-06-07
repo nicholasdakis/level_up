@@ -25,6 +25,7 @@ class UserData {
   int? carbsGoal;
   int? fatGoal;
   String? weightGoalType;
+  String? referralCode;
 
   // constructor
   UserData({
@@ -49,6 +50,7 @@ class UserData {
     this.carbsGoal,
     this.fatGoal,
     this.weightGoalType,
+    this.referralCode,
   }) : foodDataByDate = foodDataByDate ?? {},
        reminders = reminders ?? [],
        fcmTokens = fcmTokens ?? [],

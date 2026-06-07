@@ -26,7 +26,19 @@ CREATE TABLE users (
     last_daily_claim TIMESTAMPTZ,     -- when the user last claimed their daily reward
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,   -- whether the user has push notifications turned on
     utc_offset_minutes SMALLINT DEFAULT NULL,  -- user's UTC offset in minutes for snapshot scheduling
-    email TEXT                           -- user's email address, nullable for existing users who signed up before this column was added
+    email TEXT,                          -- user's email address, nullable for existing users who signed up before this column was added
+    referral_code TEXT UNIQUE            -- unique referral code, generated lazily on first request
+);
+
+-- Tracks referrals between users; referee_uid is the primary key so a user can only be referred once
+CREATE TABLE referrals (
+    referee_uid TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE, -- the new user who signed up via the code
+    referrer_uid TEXT REFERENCES users(uid) ON DELETE CASCADE,            -- the user who shared their code
+    referral_code TEXT NOT NULL,                                          -- the code that was used
+    referred_at TIMESTAMPTZ DEFAULT NOW(),                                -- when the referral happened
+    referee_xp_awarded BOOLEAN NOT NULL DEFAULT false,                   -- whether the referee has received their XP bonus
+    referrer_xp_awarded BOOLEAN NOT NULL DEFAULT false,                  -- whether the referrer has received their XP bonus
+    referrer_notified BOOLEAN NOT NULL DEFAULT false                      -- whether the referrer has seen the notification popup
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays

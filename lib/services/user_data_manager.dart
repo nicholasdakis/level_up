@@ -229,6 +229,8 @@ class UserDataManager {
         currentUserData?.weightGoalType = data['goals']['weight_goal_type'];
       }
 
+      currentUserData?.referralCode = data['referral_code'];
+
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
 

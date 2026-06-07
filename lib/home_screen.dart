@@ -10,6 +10,7 @@ import 'package:level_up/utility/confetti.dart';
 import 'screens/settings/settings_icon_button.dart';
 import 'screens/settings.dart';
 import 'screens/daily_rewards.dart';
+import 'screens/referrals.dart';
 import 'authentication/auth_services.dart';
 import 'globals.dart';
 import 'utility/responsive.dart';
@@ -18,6 +19,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
 import 'services/ad_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -219,6 +221,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (canClaimDailyReward() && mounted && !isNewUser && !isGuest) {
       await buildDailyRewardDialog();
+    }
+
+    if (!isGuest && !isNewUser && mounted) {
+      await checkPendingReferralReward(context, setState);
     }
 
     if (mounted) {
@@ -712,19 +718,63 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return meals.values.fold(0, (sum, foods) => sum + foods.length);
   }
 
+
   // Earn XP card: watch a rewarded ad for XP
   Widget _buildEarnXpCard() {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final accentDim = lightenColor(appColorNotifier.value, 0.3);
     return GestureDetector(
       onTap: () async {
-        if (kIsWeb) return;
+        if (kIsWeb) {
+          showFrostedAlertDialog(
+            context: context,
+            title: "Watch an Ad",
+            content: Text(
+              "This feature is only available on Android.",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 13),
+                color: Colors.white60,
+              ),
+            ),
+            actions: [
+              Expanded(
+                child: Center(
+                  child: Builder(
+                    builder: (ctx) => TextButton(
+                      onPressed: () async {
+                        Navigator.of(ctx, rootNavigator: true).pop();
+                        await launchUrl(
+                          Uri.parse(
+                            'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+                          ),
+                        );
+                      },
+                      child: const Text("Get the App"),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Builder(
+                    builder: (ctx) => TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(),
+                      child: const Text("Dismiss"),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+          return;
+        }
+        // disabled until AdMob account is approved
+        return;
+        // ignore: dead_code
         await adService.showRewardedAd(
           onRewarded: () async {
-            // XP is awarded server-side via AdMob SSV callback
-            await Future.delayed(
-              const Duration(seconds: 2),
-            ); // give SSV time to fire
+            await Future.delayed(const Duration(seconds: 2));
             await userManager.refreshUserData();
             if (mounted) setState(() {});
           },
@@ -749,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Earn XP",
+                    "Watch an Ad",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
                       color: accent,
@@ -757,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   Text(
-                    "Watch a short ad for bonus XP",
+                    "Coming soon",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 12),
                       color: accentDim,
@@ -1161,10 +1211,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _maybeAnimate(_buildDailyRewardCard(), 120.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 
-                          // hidden until AdMob account is approved
-                          if (false) ...[
+                          if (!isGuest) ...[
                             sectionHeader("EARN XP", context),
-                            _maybeAnimate(_buildEarnXpCard(), 150.ms),
+                            _maybeAnimate(
+                              IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(child: _buildEarnXpCard()),
+                                    SizedBox(
+                                      width: Responsive.width(context, 12),
+                                    ),
+                                    Expanded(child: buildReferralsCard(context)),
+                                  ],
+                                ),
+                              ),
+                              150.ms,
+                            ),
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 

@@ -49,6 +49,7 @@ const List<String> tabSections = [
   "FOOD",
   "REMINDERS",
   "PERSONALIZATION",
+  "SOCIAL",
   "META",
 ];
 
@@ -60,6 +61,7 @@ const List<String> tabLabels = [
   "Food",
   "Reminders",
   "Personal",
+  "Social",
   "Meta",
 ];
 
@@ -98,6 +100,7 @@ const Map<String, IconData> _achievementIcons = {
   "switch_imperial": HugeIcons.strokeRoundedRuler,
   "color_indecisive": HugeIcons.strokeRoundedColorPicker,
   "change_username": HugeIcons.strokeRoundedUserCircle,
+  "referrals": HugeIcons.strokeRoundedUserAdd01,
   "total_achievements": HugeIcons.strokeRoundedMedal02,
 };
 

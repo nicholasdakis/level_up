@@ -521,3 +521,108 @@ def test_award_ad_xp_user_not_found_raises(mocker):
     with pytest.raises(ValueError):
         service.award_ad_xp("user_123")
 
+# get_referral_code tests -----------------
+
+# Returns the code from the repo if one exists
+def test_get_referral_code_returns_existing(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_referral_code.return_value = "ABC12345"
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.get_referral_code("user_123")
+
+    assert result == "ABC12345"
+    fake_repo.get_referral_code.assert_called_once_with("user_123")
+
+# Returns None if no code exists yet
+def test_get_referral_code_returns_none_when_missing(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_referral_code.return_value = None
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.get_referral_code("user_123")
+
+    assert result is None
+
+# create_referral_code tests -----------------
+
+# Generates and stores a code on the first attempt when no collision
+def test_create_referral_code_success(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.referral_code_exists.return_value = False
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.create_referral_code("user_123")
+
+    assert len(result) == 8
+    assert result.isalnum()
+    fake_repo.store_referral_code.assert_called_once_with("user_123", result)
+
+# Retries on collision and succeeds on the second attempt
+def test_create_referral_code_retries_on_collision(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.referral_code_exists.side_effect = [True, False]
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.create_referral_code("user_123")
+
+    assert len(result) == 8
+    assert fake_repo.referral_code_exists.call_count == 2
+    fake_repo.store_referral_code.assert_called_once()
+
+# Raises after 10 consecutive collisions
+def test_create_referral_code_raises_after_max_retries(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.referral_code_exists.return_value = True
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    with pytest.raises(ValueError, match="Failed to generate"):
+        service.create_referral_code("user_123")
+
+    assert fake_repo.referral_code_exists.call_count == 10
+    fake_repo.store_referral_code.assert_not_called()
+
+# use_referral tests -----------------
+
+# A repo exception is wrapped as ValueError with the original message
+def test_use_referral_wraps_repo_exception(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.use_referral.side_effect = Exception("Cannot use your own referral code")
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    with pytest.raises(ValueError, match="Cannot use your own referral code"):
+        service.use_referral("user_123", "ABC12345")
+
+# A successful call returns the repo result
+def test_use_referral_success(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.use_referral.return_value = {"new_level": 3, "new_exp": 200, "xp_awarded": 500}
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.use_referral("user_123", "ABC12345")
+
+    assert result["xp_awarded"] == 500
+    fake_repo.use_referral.assert_called_once_with("user_123", "ABC12345")
+
+# claim_referral_reward tests -----------------
+
+# A repo exception is wrapped as ValueError
+def test_claim_referral_reward_wraps_repo_exception(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.claim_referral_reward.side_effect = Exception("No pending referral reward found")
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    with pytest.raises(ValueError, match="No pending referral reward found"):
+        service.claim_referral_reward("referrer_123", "referee_456")
+
+# A successful claim returns the repo result
+def test_claim_referral_reward_success(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.claim_referral_reward.return_value = {"new_level": 5, "new_exp": 100, "xp_awarded": 750}
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    result = service.claim_referral_reward("referrer_123", "referee_456")
+
+    assert result["xp_awarded"] == 750
+    fake_repo.claim_referral_reward.assert_called_once_with("referrer_123", "referee_456")
+
