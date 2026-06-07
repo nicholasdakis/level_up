@@ -246,11 +246,14 @@ Widget buildReferralsCard(BuildContext context) {
               height: Responsive.height(context, 32),
             ),
             if (currentUserData?.referralUsed == true) ...[
-              Text(
-                "You've already entered a referral code.",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  color: Colors.white38,
+              Center(
+                child: Text(
+                  "You've already entered a referral code.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    color: Colors.white38,
+                  ),
                 ),
               ),
             ] else ...[
