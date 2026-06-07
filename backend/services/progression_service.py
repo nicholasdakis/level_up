@@ -1,5 +1,6 @@
 import logging
 import random
+import string
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime, timezone
 from backend.utils import to_utc_datetime
@@ -304,6 +305,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "food_logs": food_logs,
             "reminders": reminders,
             "goals": goals,
+            "referral_code": user.get("referral_code"),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):
@@ -393,6 +395,19 @@ class ProgressionService: # Service class to handle all progression-related busi
             raise ValueError(f"Invalid tier {tier} for achievement {achievement_id}")
         result = self._achievement_repo.claim_achievement(uid, achievement_id, tier)
         return result
+
+    def get_referral_code(self, uid: str):
+        return self._repo.get_referral_code(uid)
+
+    def create_referral_code(self, uid: str) -> str:
+        # Generate an 8-character alphanumeric code, retrying on collision
+        chars = string.ascii_uppercase + string.digits
+        for _ in range(10):
+            code = ''.join(random.choices(chars, k=8))
+            if not self._repo.referral_code_exists(code):
+                self._repo.store_referral_code(uid, code)
+                return code
+        raise ValueError("Failed to generate a unique referral code after 10 attempts")
 
     def award_ad_xp(self, uid: str) -> int:
         user = self._repo.get_user(uid)

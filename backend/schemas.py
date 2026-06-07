@@ -192,6 +192,7 @@ class GetUserDataResponse(BaseModel):
     food_logs: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
     goals: GoalsResponse | None = None
+    referral_code: str | None = None
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
@@ -212,3 +213,6 @@ class GetAchievementsResponse(BaseModel):
 
 class GetStreaksResponse(BaseModel):
     streaks: list[StreakEntry] = []
+
+class ReferralCodeResponse(BaseModel):
+    referral_code: str

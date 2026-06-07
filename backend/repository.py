@@ -99,6 +99,21 @@ class UserRepository:
         result = self._supabase.table("streaks").select("streak_type, streak, highest_streak").eq("uid", uid).execute()
         return result.data
 
+    def get_referral_code(self, uid: str):
+        # Returns the user's referral code, or None if they don't have one yet
+        result = self._supabase.table("users").select("referral_code").eq("uid", uid).limit(1).execute()
+        if result.data:
+            return result.data[0]["referral_code"]
+        return None
+
+    def referral_code_exists(self, code: str) -> bool:
+        result = self._supabase.table("users").select("referral_code").eq("referral_code", code).limit(1).execute()
+        return len(result.data) > 0
+
+    def store_referral_code(self, uid: str, code: str):
+        # Stores the generated referral code on the user's row
+        self._supabase.table("users").update({"referral_code": code}).eq("uid", uid).execute()
+
     # Write operations
 
     # Method to update the user's data

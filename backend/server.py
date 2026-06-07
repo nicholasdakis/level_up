@@ -51,6 +51,7 @@ from backend.schemas import (
     GetStreaksResponse,
     StreakEntry,
     AchievementDefItem,
+    ReferralCodeResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -678,6 +679,32 @@ def claim_trivial_achievement():
 
     achievement_repo.upsert_achievement_progress(uid, body.achievement_id, 1)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/referral_code", methods=["GET"])
+def get_referral_code():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    referral_code = progression_service.get_referral_code(uid)
+    if referral_code is None:
+        return jsonify({"error": "No referral code found"}), 404
+
+    return jsonify(ReferralCodeResponse(referral_code=referral_code).model_dump()), 200
+
+
+@app.route("/referral_code", methods=["POST"])
+def create_referral_code():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    try:
+        referral_code = progression_service.create_referral_code(uid)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 409
+
+    return jsonify(ReferralCodeResponse(referral_code=referral_code).model_dump()), 201
 
 @app.route("/admob_ssv", methods=["GET"])
 def admob_ssv():
