@@ -43,6 +43,11 @@
             android:name="flutterEmbedding"
             android:value="2"/>
 
+        <!-- AdMob App ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4003172698560190~4846696249"/>
+
         <!-- FCM: receives messages when the app is in the background or killed -->
         <service
             android:name="com.google.firebase.messaging.FirebaseMessagingService"

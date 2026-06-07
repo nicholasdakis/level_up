@@ -612,7 +612,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                     size: Responsive.scale(context, 22),
                   ),
                   label: Text(
-                    "Continue as guest",
+                    "Continue as a guest",
                     style: GoogleFonts.manrope(
                       color: Colors.white70,
                       fontSize: Responsive.font(context, 13),

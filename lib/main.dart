@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'services/ad_service.dart';
 import 'firebase_options.dart';
 import 'globals.dart';
 import 'router.dart';
@@ -37,6 +39,10 @@ Future<void> main() async {
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseAnalytics.instance; // initialize analytics
+  if (!kIsWeb) {
+    await MobileAds.instance.initialize();
+    adService.loadRewardedAd();
+  }
 
   runApp(const MyApp());
 

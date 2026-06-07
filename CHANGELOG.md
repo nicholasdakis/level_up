@@ -1798,3 +1798,23 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a "Leave a Review" button in the Settings dialog which directly opens the Google Play page for the app (as there are API limits for natively prompting users for a review)
 - Fixed the double border dialog bug on the onboarding dialogs
 - Made the settings drawer shorter on mobile and tablet screens to prevent it from intersecting with the bottom nav bar
+
+## 2026-06-02
+- Integrated Google AdMob rewarded ads: added the package, AdMob App ID to AndroidManifest, and an AdService that preloads and shows rewarded ads
+- Added server-side verification via a /admob_ssv backend route that verifies Google's ECDSA signature before awarding XP, with an atomic SQL RPC to prevent double-awarding
+- XP awarded per ad is 5-10% of what the user needs to reach the next level
+- Added Earn XP card to the Home screen for Android users to watch ads for XP
+- Fixed app bar heights being too large on Android notch devices by subtracting the status bar height from the toolbar height
+- Fixed Reminders and Calorie Calculator tool cards having different heights by wrapping them in IntrinsicHeight
+- Added a Leave a Review button to the Settings drawer
+- Added an in-app review prompt at the end of the new user onboarding flow
+- Shortened the settings drawer on mobile and tablet so it clears the floating nav bar
+- Wrote tests for the new ad-related backend code
+- Fixed a bug where streak-based achievements (On a Roll, Consistency) could not be claimed after a streak broke, even if the user had previously reached the tier
+- Limited serving size input fields to 5 digits before the decimal and 2 after, preventing arbitrarily large values
+- Limited nutrition goal inputs (calories, protein, carbs, fat) to digits only with a 4-digit cap
+- Added a snackbar confirmation when changing the Recent Foods limit in settings
+- Made the food calculator limit to 5 digits to prevent bypassing the 5-digit limit
+- Updated Privacy Policy to disclose AdMob addition
+- Updated fatSecret and OpenFoodFacts attributions to fully comply with their terms
+- Added attribution text for Guests on the Food Logging screen to comply with fatSecret terms that attribution must be visible without logging in

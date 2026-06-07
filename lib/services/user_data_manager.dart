@@ -958,4 +958,26 @@ class UserDataManager {
 
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+
+  // Awards XP for watching a rewarded ad
+  Future<void> claimAdXp(BuildContext context) async {
+    try {
+      final response = await authenticatedPost('claim_ad_xp');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final xpGained = data['xp_gained'] ?? 0;
+        await refreshUserData();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("+$xpGained XP earned!"),
+              duration: snackBarDuration,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('claimAdXp failed: $e');
+    }
+  }
 }

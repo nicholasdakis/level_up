@@ -17,6 +17,7 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/ad_service.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -711,6 +712,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return meals.values.fold(0, (sum, foods) => sum + foods.length);
   }
 
+  // Earn XP card: watch a rewarded ad for XP
+  Widget _buildEarnXpCard() {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accentDim = lightenColor(appColorNotifier.value, 0.3);
+    return GestureDetector(
+      onTap: () async {
+        if (kIsWeb) return;
+        await adService.showRewardedAd(
+          onRewarded: () async {
+            // XP is awarded server-side via AdMob SSV callback
+            await Future.delayed(
+              const Duration(seconds: 2),
+            ); // give SSV time to fire
+            await userManager.refreshUserData();
+            if (mounted) setState(() {});
+          },
+        );
+      },
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 16),
+          vertical: Responsive.height(context, 14),
+        ),
+        child: Row(
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedPlayCircle,
+              color: accentDim,
+              size: Responsive.scale(context, 28),
+            ),
+            SizedBox(width: Responsive.width(context, 14)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Earn XP",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    "Watch a short ad for bonus XP",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: accentDim,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: accent,
+              size: Responsive.scale(context, 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Quick stats row: calories with progress bar + foods logged today
   Widget _buildQuickStats() {
     final calories = _todayCalories();
@@ -1095,6 +1161,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _maybeAnimate(_buildDailyRewardCard(), 120.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 
+                          // hidden until AdMob account is approved
+                          if (false) ...[
+                            sectionHeader("EARN XP", context),
+                            _maybeAnimate(_buildEarnXpCard(), 150.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                          ],
+
                           if (!isGuest) ...[
                             sectionHeader("STREAKS", context),
                             _maybeAnimate(_buildStreakCard(), 180.ms),
@@ -1108,103 +1181,55 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           sectionHeader("TOOLS", context),
                           // Tool tiles row
                           _maybeAnimate(
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      trackTrivialAchievement("open_reminders");
-                                      context.push('/reminders');
-                                    },
-                                    child: frostedGlassCard(
-                                      context,
-                                      baseRadius: 14,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          16,
-                                        ),
-                                        vertical: Responsive.height(
-                                          context,
-                                          14,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          HugeIcon(
-                                            icon: HugeIcons
-                                                .strokeRoundedAlarmClock,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.35,
-                                            ),
-                                            size: Responsive.scale(context, 20),
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        trackTrivialAchievement(
+                                          "open_reminders",
+                                        );
+                                        context.push('/reminders');
+                                      },
+                                      child: frostedGlassCard(
+                                        context,
+                                        baseRadius: 14,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Responsive.width(
+                                            context,
+                                            16,
                                           ),
-                                          SizedBox(
-                                            width: Responsive.width(context, 8),
+                                          vertical: Responsive.height(
+                                            context,
+                                            14,
                                           ),
-                                          Text(
-                                            "Reminders",
-                                            style: GoogleFonts.manrope(
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedAlarmClock,
                                               color: lightenColor(
                                                 appColorNotifier.value,
-                                                0.45,
+                                                0.35,
                                               ),
-                                              fontSize: Responsive.font(
+                                              size: Responsive.scale(
                                                 context,
-                                                13,
+                                                20,
                                               ),
-                                              fontWeight: FontWeight.w600,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: Responsive.width(context, 12)),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      trackTrivialAchievement(
-                                        "calorie_calculator",
-                                      );
-                                      context.push('/calorie-calculator');
-                                    },
-                                    child: frostedGlassCard(
-                                      context,
-                                      baseRadius: 14,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          16,
-                                        ),
-                                        vertical: Responsive.height(
-                                          context,
-                                          14,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          HugeIcon(
-                                            icon: HugeIcons
-                                                .strokeRoundedCalculate,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.35,
+                                            SizedBox(
+                                              width: Responsive.width(
+                                                context,
+                                                8,
+                                              ),
                                             ),
-                                            size: Responsive.scale(context, 20),
-                                          ),
-                                          SizedBox(
-                                            width: Responsive.width(context, 8),
-                                          ),
-                                          Flexible(
-                                            child: Text(
-                                              "Calorie Calculator",
+                                            Text(
+                                              "Reminders",
                                               style: GoogleFonts.manrope(
                                                 color: lightenColor(
                                                   appColorNotifier.value,
@@ -1217,13 +1242,80 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        trackTrivialAchievement(
+                                          "calorie_calculator",
+                                        );
+                                        context.push('/calorie-calculator');
+                                      },
+                                      child: frostedGlassCard(
+                                        context,
+                                        baseRadius: 14,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Responsive.width(
+                                            context,
+                                            16,
+                                          ),
+                                          vertical: Responsive.height(
+                                            context,
+                                            14,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedCalculate,
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.35,
+                                              ),
+                                              size: Responsive.scale(
+                                                context,
+                                                20,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: Responsive.width(
+                                                context,
+                                                8,
+                                              ),
+                                            ),
+                                            Flexible(
+                                              child: Text(
+                                                "Calorie Calculator",
+                                                style: GoogleFonts.manrope(
+                                                  color: lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.45,
+                                                  ),
+                                                  fontSize: Responsive.font(
+                                                    context,
+                                                    13,
+                                                  ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             240.ms,
                           ),
