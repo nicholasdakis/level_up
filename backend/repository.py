@@ -40,7 +40,7 @@ class UserRepository:
     
     def get_leaderboard(self):
         # Fetches all users ordered by level and XP descending for the leaderboard
-        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).execute()
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).execute()
         return result.data
 
     def get_users_by_offsets(self, offsets: list[int]):

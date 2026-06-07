@@ -1821,3 +1821,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-06
 - Made the "Best" text for streaks on the home dashboard refresh if the user claimed their daily reward to achieve a new best streak rather than showing the stale value
+- Sorted the leaderboards by UID to make it deterministic
