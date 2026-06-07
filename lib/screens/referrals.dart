@@ -280,9 +280,10 @@ Widget buildReferralsCard(BuildContext context) {
                     borderSide: BorderSide(color: Colors.white),
                   ),
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      Icons.check,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
                       color: lightenColor(appColorNotifier.value, 0.45),
+                      size: Responsive.scale(context, 20),
                     ),
                     onPressed: () async {
                       final entered = codeInputController.text
