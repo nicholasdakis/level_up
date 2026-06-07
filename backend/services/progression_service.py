@@ -403,7 +403,8 @@ class ProgressionService: # Service class to handle all progression-related busi
         try:
             self._repo.use_referral(uid, referral_code)
         except Exception as e:
-            raise ValueError(str(e)) from e
+            msg = getattr(e, 'message', None) or str(e)
+            raise ValueError(msg) from e
 
     def create_referral_code(self, uid: str) -> str:
         # Generate an 8-character alphanumeric code, retrying on collision
