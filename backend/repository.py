@@ -114,11 +114,26 @@ class UserRepository:
         # Stores the generated referral code on the user's row
         self._supabase.table("users").update({"referral_code": code}).eq("uid", uid).execute()
 
-    def use_referral(self, uid: str, referral_code: str):
-        self._supabase.rpc("use_referral", {
+    def get_pending_referral_reward(self, uid: str):
+        # Returns referrals where the referee used the code but the referrer hasn't received their XP yet
+        result = self._supabase.table("referrals").select(
+            "referee_uid, users!referrals_referee_uid_fkey(username)"
+        ).eq("referrer_uid", uid).eq("referee_xp_awarded", True).eq("referrer_xp_awarded", False).limit(1).execute()
+        return result.data
+
+    def claim_referral_reward(self, referrer_uid: str, referee_uid: str) -> dict:
+        result = self._supabase.rpc("claim_referral_reward", {
+            "p_referrer_uid": referrer_uid,
+            "p_referee_uid": referee_uid,
+        }).execute()
+        return result.data
+
+    def use_referral(self, uid: str, referral_code: str) -> dict:
+        result = self._supabase.rpc("use_referral", {
             "p_referee_uid": uid,
             "p_referral_code": referral_code,
         }).execute()
+        return result.data
 
     # Write operations
 

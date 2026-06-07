@@ -399,9 +399,19 @@ class ProgressionService: # Service class to handle all progression-related busi
     def get_referral_code(self, uid: str):
         return self._repo.get_referral_code(uid)
 
-    def use_referral(self, uid: str, referral_code: str):
+    def get_pending_referral_reward(self, uid: str):
+        return self._repo.get_pending_referral_reward(uid)
+
+    def claim_referral_reward(self, referrer_uid: str, referee_uid: str) -> dict:
         try:
-            self._repo.use_referral(uid, referral_code)
+            return self._repo.claim_referral_reward(referrer_uid, referee_uid)
+        except Exception as e:
+            msg = getattr(e, 'message', None) or str(e)
+            raise ValueError(msg) from e
+
+    def use_referral(self, uid: str, referral_code: str) -> dict:
+        try:
+            return self._repo.use_referral(uid, referral_code)
         except Exception as e:
             msg = getattr(e, 'message', None) or str(e)
             raise ValueError(msg) from e

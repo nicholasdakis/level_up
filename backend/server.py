@@ -53,6 +53,9 @@ from backend.schemas import (
     AchievementDefItem,
     ReferralCodeResponse,
     UseReferralRequest,
+    UseReferralResponse,
+    ClaimReferralRewardRequest,
+    ClaimReferralRewardResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -714,11 +717,38 @@ def use_referral():
         return err
 
     try:
-        progression_service.use_referral(uid, body.referral_code)
+        result = progression_service.use_referral(uid, body.referral_code)
     except ValueError as e:
         return jsonify({"error": str(e)}), 409
 
-    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+    return jsonify(UseReferralResponse(**result).model_dump()), 200
+
+@app.route("/pending_referral_reward", methods=["GET"])
+def pending_referral_reward():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    data = progression_service.get_pending_referral_reward(uid)
+    if not data:
+        return jsonify({"pending": False}), 200
+
+    row = data[0]
+    username = (row.get("users") or {}).get("username") or "Someone"
+    return jsonify({"pending": True, "referee_uid": row["referee_uid"], "referee_username": username}), 200
+
+@app.route("/claim_referral_reward", methods=["POST"])
+def claim_referral_reward():
+    uid, body, err = _parse_and_auth(ClaimReferralRewardRequest)
+    if err:
+        return err
+
+    try:
+        result = progression_service.claim_referral_reward(uid, body.referee_uid)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 409
+
+    return jsonify(ClaimReferralRewardResponse(**result).model_dump()), 200
 
 @app.route("/admob_ssv", methods=["GET"])
 def admob_ssv():

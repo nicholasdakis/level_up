@@ -118,6 +118,23 @@ class AchievementClaimEntry(BaseModel):
 class UseReferralRequest(BaseModel):
     referral_code: str
 
+class UseReferralResponse(BaseModel):
+    new_level: int
+    new_exp: int
+    xp_awarded: int
+
+class PendingReferralReward(BaseModel):
+    referee_uid: str
+    referee_username: str
+
+class ClaimReferralRewardRequest(BaseModel):
+    referee_uid: str
+
+class ClaimReferralRewardResponse(BaseModel):
+    new_level: int
+    new_exp: int
+    xp_awarded: int
+
 class StreakEntry(BaseModel):
     streak_type: str
     streak: int
