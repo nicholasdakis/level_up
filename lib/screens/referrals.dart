@@ -217,8 +217,8 @@ Widget buildReferralsCard(BuildContext context) {
                         ),
                       ),
                       SizedBox(width: Responsive.width(context, 10)),
-                      Icon(
-                        Icons.copy,
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedCopy01,
                         color: accentDim,
                         size: Responsive.scale(context, 16),
                       ),
