@@ -106,6 +106,10 @@ class UserRepository:
             return result.data[0]["referral_code"]
         return None
 
+    def get_referral_count(self, uid: str) -> int:
+        result = self._supabase.table("referrals").select("referee_uid", count="exact").eq("referrer_uid", uid).execute()
+        return result.count or 0
+
     def referral_code_exists(self, code: str) -> bool:
         result = self._supabase.table("users").select("referral_code").eq("referral_code", code).limit(1).execute()
         return len(result.data) > 0

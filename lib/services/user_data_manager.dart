@@ -230,6 +230,7 @@ class UserDataManager {
       }
 
       currentUserData?.referralCode = data['referral_code'];
+      currentUserData?.referralCount = data['referral_count'] ?? 0;
 
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;

@@ -306,6 +306,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "reminders": reminders,
             "goals": goals,
             "referral_code": user.get("referral_code"),
+            "referral_count": self._repo.get_referral_count(uid),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):

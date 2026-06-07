@@ -72,6 +72,10 @@ Future<void> checkPendingReferralReward(
                   currentUserData?.level = claimData['new_level'];
                   currentUserData?.expPoints = claimData['new_exp'];
                   expNotifier.value = claimData['new_exp'];
+                  if (currentUserData != null) {
+                    currentUserData!.referralCount =
+                        (currentUserData!.referralCount) + 1;
+                  }
                   userDataNotifier.notifyListeners();
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -230,7 +234,7 @@ Widget buildReferralsCard(BuildContext context) {
             SizedBox(height: Responsive.height(context, 12)),
             Center(
               child: Text(
-                "0 friends referred",
+                "${currentUserData?.referralCount ?? 0} friend${(currentUserData?.referralCount ?? 0) == 1 ? '' : 's'} referred",
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 12),
                   color: accentDim,
@@ -364,7 +368,7 @@ Widget buildReferralsCard(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "0",
+                "${currentUserData?.referralCount ?? 0}",
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 22),
                   color: accent,

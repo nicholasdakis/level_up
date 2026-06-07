@@ -213,6 +213,7 @@ class GetUserDataResponse(BaseModel):
     reminders: list[ReminderItem] = Field(default_factory=list)
     goals: GoalsResponse | None = None
     referral_code: str | None = None
+    referral_count: int = 0
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
