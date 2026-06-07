@@ -41,6 +41,8 @@ ACHIEVEMENT_DEFINITIONS = [
     {"id": "switch_imperial",    "name": "Freedom Units",    "description": "Switch your units to imperial in the Calorie Calculator tab",      "tiers": [1],                                           "unit": "switched to imperial",      "section": "PERSONALIZATION", "server_tracked": False},
     {"id": "color_indecisive",   "name": "Indecisive",       "description": "Change the app color 5 times",                                     "tiers": [5],                                           "unit": "color changes",             "section": "PERSONALIZATION", "server_tracked": True},
     {"id": "change_username",    "name": "Identity Crisis",  "description": "Change your username after setting it",                            "tiers": [1],                                           "unit": "username changed",          "section": "PERSONALIZATION", "server_tracked": True},
+    # Social
+    {"id": "referrals",          "name": "Recruiter",        "description": "Refer the specified number of friends",                            "tiers": [1, 2, 3],                                     "unit": "friends referred",          "section": "SOCIAL",      "server_tracked": True},
     # Meta
     {"id": "total_achievements", "name": "Completionist",    "description": "Unlock the specified number of achievements",                      "tiers": [5, 10, 15, 20, 25, 50],                                  "unit": "achievements unlocked",     "section": "META",        "server_tracked": True},
 ]

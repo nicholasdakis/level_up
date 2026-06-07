@@ -52,6 +52,7 @@ from backend.schemas import (
     StreakEntry,
     AchievementDefItem,
     ReferralCodeResponse,
+    UseReferralRequest,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -705,6 +706,19 @@ def create_referral_code():
         return jsonify({"error": str(e)}), 409
 
     return jsonify(ReferralCodeResponse(referral_code=referral_code).model_dump()), 201
+
+@app.route("/use_referral", methods=["POST"])
+def use_referral():
+    uid, body, err = _parse_and_auth(UseReferralRequest)
+    if err:
+        return err
+
+    try:
+        progression_service.use_referral(uid, body.referral_code)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 409
+
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/admob_ssv", methods=["GET"])
 def admob_ssv():

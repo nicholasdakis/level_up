@@ -115,6 +115,9 @@ class AchievementClaimEntry(BaseModel):
     tier: int
     claimed_at: str
 
+class UseReferralRequest(BaseModel):
+    referral_code: str
+
 class StreakEntry(BaseModel):
     streak_type: str
     streak: int

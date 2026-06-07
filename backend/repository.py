@@ -114,6 +114,12 @@ class UserRepository:
         # Stores the generated referral code on the user's row
         self._supabase.table("users").update({"referral_code": code}).eq("uid", uid).execute()
 
+    def use_referral(self, uid: str, referral_code: str):
+        self._supabase.rpc("use_referral", {
+            "p_referee_uid": uid,
+            "p_referral_code": referral_code,
+        }).execute()
+
     # Write operations
 
     # Method to update the user's data
