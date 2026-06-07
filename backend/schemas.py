@@ -214,6 +214,7 @@ class GetUserDataResponse(BaseModel):
     goals: GoalsResponse | None = None
     referral_code: str | None = None
     referral_count: int = 0
+    referral_used: bool = False
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success

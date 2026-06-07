@@ -74,7 +74,7 @@ Future<void> checkPendingReferralReward(
                   expNotifier.value = claimData['new_exp'];
                   if (currentUserData != null) {
                     currentUserData!.referralCount =
-                        (currentUserData!.referralCount) + 1;
+                        currentUserData!.referralCount + 1;
                   }
                   userDataNotifier.notifyListeners();
                   setState(() {});
@@ -245,80 +245,92 @@ Widget buildReferralsCard(BuildContext context) {
               color: Colors.white12,
               height: Responsive.height(context, 32),
             ),
-            Text(
-              "Have a referral code?",
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                color: Colors.white60,
+            if (currentUserData?.referralUsed == true) ...[
+              Text(
+                "You've already entered a referral code.",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: Colors.white38,
+                ),
               ),
-            ),
-            SizedBox(height: Responsive.height(context, 8)),
-            TextField(
-              controller: codeInputController,
-              style: GoogleFonts.manrope(color: Colors.white),
-              textCapitalization: TextCapitalization.characters,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
-                LengthLimitingTextInputFormatter(8),
-              ],
-              decoration: InputDecoration(
-                hintText: "Enter code",
-                hintStyle: GoogleFonts.manrope(color: Colors.white38),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white24),
+            ] else ...[
+              Text(
+                "Have a referral code?",
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: Colors.white60,
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    Icons.check,
-                    color: lightenColor(appColorNotifier.value, 0.45),
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              TextField(
+                controller: codeInputController,
+                style: GoogleFonts.manrope(color: Colors.white),
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                  LengthLimitingTextInputFormatter(8),
+                ],
+                decoration: InputDecoration(
+                  hintText: "Enter code",
+                  hintStyle: GoogleFonts.manrope(color: Colors.white38),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
                   ),
-                  onPressed: () async {
-                    final entered = codeInputController.text
-                        .trim()
-                        .toUpperCase();
-                    if (entered.isEmpty) return;
-                    final res = await authenticatedPost(
-                      'use_referral',
-                      body: {'referral_code': entered},
-                    );
-                    if (!context.mounted) return;
-                    if (res.statusCode == 200) {
-                      final data = jsonDecode(res.body) as Map<String, dynamic>;
-                      currentUserData?.level = data['new_level'];
-                      currentUserData?.expPoints = data['new_exp'];
-                      expNotifier.value = data['new_exp'];
-                      userDataNotifier.notifyListeners();
-                      Navigator.of(context, rootNavigator: true).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Referral code applied! +${data['xp_awarded']} XP",
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.check,
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                    ),
+                    onPressed: () async {
+                      final entered = codeInputController.text
+                          .trim()
+                          .toUpperCase();
+                      if (entered.isEmpty) return;
+                      final res = await authenticatedPost(
+                        'use_referral',
+                        body: {'referral_code': entered},
+                      );
+                      if (!context.mounted) return;
+                      if (res.statusCode == 200) {
+                        final data =
+                            jsonDecode(res.body) as Map<String, dynamic>;
+                        currentUserData?.level = data['new_level'];
+                        currentUserData?.expPoints = data['new_exp'];
+                        currentUserData?.referralUsed = true;
+                        expNotifier.value = data['new_exp'];
+                        userDataNotifier.notifyListeners();
+                        Navigator.of(context, rootNavigator: true).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Referral code applied! +${data['xp_awarded']} XP",
+                            ),
+                            duration: snackBarDuration,
                           ),
-                          duration: snackBarDuration,
-                        ),
-                      );
-                    } else {
-                      String error = 'Something went wrong';
-                      try {
-                        error =
-                            (jsonDecode(res.body)
-                                as Map<String, dynamic>)['error'] ??
-                            error;
-                      } catch (_) {}
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(error),
-                          duration: snackBarDuration,
-                        ),
-                      );
-                    }
-                  },
+                        );
+                      } else {
+                        String error = 'Something went wrong';
+                        try {
+                          error =
+                              (jsonDecode(res.body)
+                                  as Map<String, dynamic>)['error'] ??
+                              error;
+                        } catch (_) {}
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(error),
+                            duration: snackBarDuration,
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
         actions: [

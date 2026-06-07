@@ -1856,3 +1856,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added UseReferralResponse, ClaimReferralRewardRequest, and ClaimReferralRewardResponse schemas
 - Wrote unit tests for get_referral_code, create_referral_code, use_referral, and claim_referral_reward service methods
 - Replaced the hardcoded "0 friends referred" with the real amount received from the backend that is stored in UserData
+- Added a has_used_referral method to return if the user has used a referral code before
+- Replaced the "Have a referral code?" section for users who have already entered a referral code with text saying they've already used it for better UX

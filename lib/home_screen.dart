@@ -718,7 +718,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return meals.values.fold(0, (sum, foods) => sum + foods.length);
   }
 
-
   // Earn XP card: watch a rewarded ad for XP
   Widget _buildEarnXpCard() {
     final accent = lightenColor(appColorNotifier.value, 0.45);
@@ -1223,7 +1222,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     SizedBox(
                                       width: Responsive.width(context, 12),
                                     ),
-                                    Expanded(child: buildReferralsCard(context)),
+                                    Expanded(
+                                      child: ListenableBuilder(
+                                        listenable: userDataNotifier,
+                                        builder: (context, _) =>
+                                            buildReferralsCard(context),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
