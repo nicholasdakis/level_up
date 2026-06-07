@@ -475,6 +475,9 @@ class UserDataManager {
 
       // Keep local streak in sync so home screen reflects the new value immediately
       currentUserData!.dailyClaimStreak = streak;
+      if (streak > (currentUserData!.dailyClaimStreakBest)) {
+        currentUserData!.dailyClaimStreakBest = streak;
+      }
       userDataNotifier.notifyListeners();
 
       return (xpGained, baseXp, streak, multiplier);

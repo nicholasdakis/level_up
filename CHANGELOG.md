@@ -1818,3 +1818,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated Privacy Policy to disclose AdMob addition
 - Updated fatSecret and OpenFoodFacts attributions to fully comply with their terms
 - Added attribution text for Guests on the Food Logging screen to comply with fatSecret terms that attribution must be visible without logging in
+
+## 2026-06-06
+- Made the "Best" text for streaks on the home dashboard refresh if the user claimed their daily reward to achieve a new best streak rather than showing the stale value
