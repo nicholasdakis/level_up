@@ -400,7 +400,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         return self._repo.get_referral_code(uid)
 
     def use_referral(self, uid: str, referral_code: str):
-        self._repo.use_referral(uid, referral_code)
+        try:
+            self._repo.use_referral(uid, referral_code)
+        except Exception as e:
+            raise ValueError(str(e)) from e
 
     def create_referral_code(self, uid: str) -> str:
         # Generate an 8-character alphanumeric code, retrying on collision
