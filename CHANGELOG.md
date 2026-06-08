@@ -1876,3 +1876,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Non-overpass errors (moving too fast, generic failures) now show an inline error message and a retry button in the Nearby Spots card instead of leaving it empty
 - Position stream fetches are no longer debounced so rapid location changes always trigger a fresh fetch
 - An empty cached POI list is treated as a cache miss so a fresh backend fetch is always attempted instead of silently showing nothing
+- Lowered Calorie Results appBar height to be consistent with other tabs
+- Added inline "Update weight goal" buttons into Calorie Results for convenience
+- Updated updateGoals() so it only updates non-null field changes

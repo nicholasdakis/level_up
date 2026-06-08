@@ -39,6 +39,8 @@ class Results extends StatefulWidget {
 class _ResultsState extends State<Results> {
   late final String bmr = calculateBMR();
   late final int tdee = calculateTDEE(bmr, calculateActivityLevel());
+  int?
+  _goalSetCalories; // calories value most recently set as goal, for confirmation
 
   String calculateBMR() {
     return // MIFFLIN CASES
@@ -101,6 +103,21 @@ class _ResultsState extends State<Results> {
               .toStringAsFixed(0); // Male and Imperial and Harris
   }
 
+  Future<void> _setCalorieGoal(int calories) async {
+    final goalType = widget.goal == "Lose Weight"
+        ? "lose"
+        : widget.goal == "Gain Weight"
+        ? "gain"
+        : "maintain";
+    await userManager.updateGoals(
+      caloriesGoal: calories,
+      weightGoalType: goalType,
+      context: context,
+    );
+    if (!mounted) return;
+    setState(() => _goalSetCalories = calories);
+  }
+
   // Builds the goal section as a styled card with big calorie targets and rate breakdowns
   Widget _goalCard() {
     final userTDEE = calculateTDEE(bmr, calculateActivityLevel());
@@ -108,11 +125,18 @@ class _ResultsState extends State<Results> {
 
     // Case 1: Goal is to maintain
     if (widget.goal == "Maintain Weight") {
-      return _statCard(
-        userTDEE.toString(),
-        "calories / day",
-        "TDEE = $userTDEE",
-        note: "Eating this amount keeps your weight stable.",
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _statCard(
+            userTDEE.toString(),
+            "calories / day",
+            "TDEE = $userTDEE",
+            note: "Eating this amount keeps your weight stable.",
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          _setGoalButton(userTDEE),
+        ],
       );
     }
 
@@ -171,25 +195,34 @@ class _ResultsState extends State<Results> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  entry.rate,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    color: Colors.white54,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.rate,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 13),
+                          color: Colors.white54,
+                        ),
+                      ),
+                      ShaderMask(
+                        shaderCallback: (bounds) =>
+                            subtleTextGradient().createShader(
+                              Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                            ),
+                        child: Text(
+                          "${entry.calories} cal/day",
+                          style: GoogleFonts.dangrek(
+                            fontSize: Responsive.font(context, 22),
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                ShaderMask(
-                  shaderCallback: (bounds) => subtleTextGradient().createShader(
-                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                  ),
-                  child: Text(
-                    "${entry.calories} cal/day",
-                    style: GoogleFonts.dangrek(
-                      fontSize: Responsive.font(context, 22),
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                _setGoalButton(entry.calories),
               ],
             ),
             if (entry != rates.last)
@@ -199,6 +232,53 @@ class _ResultsState extends State<Results> {
               ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _setGoalButton(int calories) {
+    final isSet = _goalSetCalories == calories;
+    return GestureDetector(
+      onTap: isSet ? null : () => _setCalorieGoal(calories),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 12),
+          vertical: Responsive.height(context, 6),
+        ),
+        decoration: BoxDecoration(
+          color: lightenColor(
+            appColorNotifier.value,
+            0.1,
+          ).withAlpha(isSet ? 60 : 30),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: lightenColor(
+              appColorNotifier.value,
+              0.35,
+            ).withAlpha(isSet ? 200 : 120),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSet ? Icons.check : Icons.flag_outlined,
+              color: lightenColor(appColorNotifier.value, 0.45),
+              size: Responsive.scale(context, 13),
+            ),
+            SizedBox(width: Responsive.width(context, 4)),
+            Text(
+              isSet ? "Goal set" : "Set goal",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w600,
+                color: lightenColor(appColorNotifier.value, 0.45),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -497,7 +577,7 @@ class _ResultsState extends State<Results> {
             ), // Header color
             scrolledUnderElevation: 0,
             centerTitle: true,
-            toolbarHeight: Responsive.appBarHeight(context, 120),
+            toolbarHeight: Responsive.appBarHeight(context, 100),
             leading: GestureDetector(
               onTap: () => context.pop(),
               child: Center(

@@ -889,13 +889,14 @@ class UserDataManager {
         );
       }
 
-      // update local state
+      // update local state for only the fields that were provided
       if (currentUserData != null) {
-        currentUserData!.caloriesGoal = caloriesGoal;
-        currentUserData!.proteinGoal = proteinGoal;
-        currentUserData!.carbsGoal = carbsGoal;
-        currentUserData!.fatGoal = fatGoal;
-        currentUserData!.weightGoalType = weightGoalType;
+        if (caloriesGoal != null) currentUserData!.caloriesGoal = caloriesGoal;
+        if (proteinGoal != null) currentUserData!.proteinGoal = proteinGoal;
+        if (carbsGoal != null) currentUserData!.carbsGoal = carbsGoal;
+        if (fatGoal != null) currentUserData!.fatGoal = fatGoal;
+        if (weightGoalType != null)
+          currentUserData!.weightGoalType = weightGoalType;
         userDataNotifier.notifyListeners();
       }
 
