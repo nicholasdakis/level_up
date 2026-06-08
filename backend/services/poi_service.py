@@ -1,4 +1,6 @@
 import logging
+import math
+import random
 import requests
 
 logger = logging.getLogger(__name__)
@@ -89,4 +91,45 @@ out body 100;
                 category=category,
             ))
 
+        return pois
+
+    def generate_fake_pois(self, lat: float, lng: float, count: int = 10):
+        from backend.schemas import POIItem
+
+        FAKE_POOL = [
+            ("Local Park", "park"),
+            ("Community Center", "community_centre"),
+            ("Nearby Café", "cafe"),
+            ("Public Library", "library"),
+            ("Sports Court", "pitch"),
+            ("Town Square", "plaza"),
+            ("Local Gym", "fitness_centre"),
+            ("Convenience Store", "convenience"),
+            ("Bike Path", "cycling"),
+            ("Picnic Area", "picnic_site"),
+            ("Walking Trail", "trail"),
+            ("Playground", "playground"),
+            ("Basketball Court", "pitch"),
+            ("Skate Park", "skateboard"),
+            ("Dog Park", "park"),
+        ]
+
+        # 1 degree of latitude ~ 111,000m; longitude varies by cos(lat)
+        lat_per_meter = 1 / 111000
+        lng_per_meter = 1 / (111000 * math.cos(math.radians(lat)))
+
+        selected = random.sample(FAKE_POOL, min(count, len(FAKE_POOL)))
+        pois = []
+        for name, category in selected:
+            # Random offset within 400m radius
+            distance = random.uniform(100, 400)
+            angle = random.uniform(0, 2 * math.pi)
+            fake_lat = lat + distance * math.cos(angle) * lat_per_meter
+            fake_lng = lng + distance * math.sin(angle) * lng_per_meter
+            pois.append(POIItem(
+                name=name,
+                lat=round(fake_lat, 6),
+                lng=round(fake_lng, 6),
+                category=category,
+            ))
         return pois

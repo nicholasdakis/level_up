@@ -391,6 +391,16 @@ def get_nearby_pois():
     response = NearbyPOIResponse(pois=all_pois)
     return jsonify(response.model_dump()), 200
 
+@app.route("/generate_fake_pois", methods=["POST"])
+def get_fake_pois():
+    _, body, err = _parse_and_auth(NearbyPOIRequest)
+    if err:
+        return err
+
+    pois = poi_service.generate_fake_pois(body.lat, body.lng)
+    response = NearbyPOIResponse(pois=pois)
+    return jsonify(response.model_dump()), 200
+
 @app.route("/check_in_poi", methods=["POST"])
 def check_in_poi():
     # Step 1: Validate request body and verify the user's identity
