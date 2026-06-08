@@ -44,6 +44,11 @@ class _ExploreState extends State<Explore> {
   int?
   xpAwarded; // XP gained from the last check-in (shown briefly in the button)
   String? poiError; // error message if fetching POIs fails
+  CameraConstraint _cameraConstraint = CameraConstraint.unconstrained();
+  bool _usingFakePOIs =
+      false; // true when fake POIs are loaded, skips real fetch on re-entry
+  bool _overpassDialogShown =
+      false; // prevents the dialog from stacking on repeated screen visits
   List<POI> nearbyPOIs = []; // the list of POIs to display
   POI? nearestPOI; // the closest unvisited POI within check-in range
   POI? _tappedPOI; // POI whose tooltip is currently showing on the map
@@ -94,9 +99,9 @@ class _ExploreState extends State<Explore> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _mapController.move(loc, 15);
       setState(() => _buttonPositionReady = true);
     });
-    _mapController.move(loc, 15);
     _refreshClosestCheckinPOI();
   }
 
@@ -165,6 +170,12 @@ class _ExploreState extends State<Explore> {
     // First setState: duration is zero so the button snaps instantly to its loaded position
     setState(() {
       userLocation = LatLng(position.latitude, position.longitude);
+      _cameraConstraint = CameraConstraint.containCenter(
+        bounds: LatLngBounds(
+          LatLng(position.latitude - 0.5, position.longitude - 0.5),
+          LatLng(position.latitude + 0.5, position.longitude + 0.5),
+        ),
+      );
     });
 
     // Second setState (next frame): re-enable animation so card open/close slides smoothly
@@ -185,20 +196,40 @@ class _ExploreState extends State<Explore> {
             accuracy: LocationAccuracy.high,
             distanceFilter: 250,
           ),
-        ).listen((position) {
-          if (!mounted) return;
-          setState(() {
-            userLocation = LatLng(position.latitude, position.longitude);
-          });
-          _loadPOIs(position.latitude, position.longitude);
-        });
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            final newLoc = LatLng(position.latitude, position.longitude);
+            final prevLoc = userLocation;
+            setState(() => userLocation = newLoc);
+
+            // Skip if moved less than 250m (catches browsers that ignore distanceFilter)
+            if (prevLoc != null &&
+                _poiService.haversine(
+                      prevLoc.latitude,
+                      prevLoc.longitude,
+                      newLoc.latitude,
+                      newLoc.longitude,
+                    ) <
+                    250) {
+              return;
+            }
+
+            _loadPOIs(newLoc.latitude, newLoc.longitude, clearExisting: true);
+          },
+          onError: (_) {}, // stream errors are non-fatal (e.g. web platform jitter)
+        );
   }
 
   // Fetch POIs from the backend (or cache) and update the UI
-  Future<void> _loadPOIs(double lat, double lng) async {
+  // clearExisting: true when the user has moved far enough that old POIs are stale
+  Future<void> _loadPOIs(double lat, double lng, {bool clearExisting = false}) async {
+    if (loadingPOIs) return; // prevent concurrent fetches
     setState(() {
-      loadingPOIs = true; // show loading state
-      poiError = null; // clear any previous error
+      loadingPOIs = true;
+      poiError = null;
+      // Don't clear fake POIs upfront; if the fetch fails they should stay visible
+      if (clearExisting && !_usingFakePOIs) nearbyPOIs = [];
     });
 
     try {
@@ -225,6 +256,8 @@ class _ExploreState extends State<Explore> {
       setState(() {
         nearbyPOIs = pois; // update the list
         loadingPOIs = false;
+        _usingFakePOIs = false;
+        poiError = null;
       });
 
       // Check if the user is close enough to any POI to check in
@@ -233,18 +266,98 @@ class _ExploreState extends State<Explore> {
       if (!mounted) return;
       // Match the known code from the service layer to show a tailored error message
       final isMovingTooFast = e.toString().contains(movingTooFastCode);
-      final isOverpassDown = e.toString().contains('overpass_unavailable');
+      final isOverpassDown =
+          e.toString().contains('overpass_unavailable') ||
+          e.toString().contains('TimeoutException');
+      // If fake POIs are already showing, silently swallow the error and keep them
+      if (_usingFakePOIs && (isOverpassDown || isMovingTooFast)) {
+        setState(() => loadingPOIs = false);
+        return;
+      }
       setState(() {
         poiError = isMovingTooFast
             ? 'Moving too fast. Please try again.'
             : isOverpassDown
-            ? 'Location data is unavailable right now. Overpass is slow. Try again later.'
+            ? 'Location data is unavailable right now.'
             : 'Failed to load locations. Please try again later.';
+        if (!isMovingTooFast) {
+          nearbyPOIs = [];
+          _usingFakePOIs = false;
+        }
         loadingPOIs = false;
         fillingCache = false;
         cardIsOpen = true;
       });
+      if (isOverpassDown && mounted && !_overpassDialogShown) {
+        _overpassDialogShown = true;
+        _showOverpassFallbackDialog();
+      }
     }
+  }
+
+  Future<void> _generateFakePOIs() async {
+    if (userLocation == null) return;
+    setState(() => loadingPOIs = true);
+    try {
+      final pois = await _poiService.generateFakePOIs(
+        userLocation!.latitude,
+        userLocation!.longitude,
+      );
+      if (!mounted) return;
+      setState(() {
+        nearbyPOIs = pois;
+        poiError = null;
+        loadingPOIs = false;
+        cardIsOpen = true;
+        _usingFakePOIs = true;
+      });
+      _refreshClosestCheckinPOI();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        loadingPOIs = false;
+        poiError = 'Failed to generate spots. Please try again.';
+      });
+    }
+  }
+
+  void _showOverpassFallbackDialog() {
+    showFrostedAlertDialog(
+      context: context,
+      title: "Couldn't Find Spots",
+      content: Text(
+        "Real location data is unavailable right now. Would you like to generate nearby spots instead? They work the same way.",
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 13),
+          color: Colors.white70,
+        ),
+      ),
+      actions: [
+        Expanded(
+          child: Center(
+            child: Builder(
+              builder: (ctx) => TextButton(
+                onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                child: const Text("No thanks"),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: Builder(
+              builder: (ctx) => TextButton(
+                onPressed: () {
+                  Navigator.of(ctx, rootNavigator: true).pop();
+                  _generateFakePOIs();
+                },
+                child: const Text("Generate"),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   // Check which unvisited POI is closest and update nearestPOI
@@ -457,20 +570,7 @@ class _ExploreState extends State<Explore> {
               minZoom: 12,
               maxZoom: 19,
               // Restrict panning so the user can't drag the map to another country
-              cameraConstraint: userLocation != null
-                  ? CameraConstraint.containCenter(
-                      bounds: LatLngBounds(
-                        LatLng(
-                          userLocation!.latitude - 0.5,
-                          userLocation!.longitude - 0.5,
-                        ),
-                        LatLng(
-                          userLocation!.latitude + 0.5,
-                          userLocation!.longitude + 0.5,
-                        ),
-                      ),
-                    )
-                  : CameraConstraint.unconstrained(),
+              cameraConstraint: _cameraConstraint,
               // Store the user's zoom level
               onPositionChanged: (position, hasGesture) {
                 if (hasGesture) _currentZoom = position.zoom;
@@ -503,7 +603,7 @@ class _ExploreState extends State<Explore> {
                 ),
               ),
 
-              // User location layer — real GPS stream, not used when location is simulated
+              // User location layer (real GPS stream, not used when location is simulated)
               if (!(_isTestAccount && userLocation != null))
                 CurrentLocationLayer(
                   style: LocationMarkerStyle(
@@ -801,6 +901,66 @@ class _ExploreState extends State<Explore> {
                                                 ],
                                               ),
                                             ),
+                                          if (poiError ==
+                                                      'Location data is unavailable right now.' &&
+                                                  nearbyPOIs.isEmpty ||
+                                              _usingFakePOIs)
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: Responsive.height(
+                                                  context,
+                                                  8,
+                                                ),
+                                                horizontal: Responsive.width(
+                                                  context,
+                                                  10,
+                                                ),
+                                              ),
+                                              child: Center(
+                                                child: MouseRegion(
+                                                  cursor:
+                                                      SystemMouseCursors.click,
+                                                  child: GestureDetector(
+                                                    onTap: _generateFakePOIs,
+                                                    child: frostedGlassCard(
+                                                      context,
+                                                      baseRadius: 12,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            vertical:
+                                                                Responsive.height(
+                                                                  context,
+                                                                  8,
+                                                                ),
+                                                            horizontal:
+                                                                Responsive.width(
+                                                                  context,
+                                                                  16,
+                                                                ),
+                                                          ),
+                                                      child: Text(
+                                                        "Generate nearby spots",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style:
+                                                            GoogleFonts.manrope(
+                                                              fontSize:
+                                                                  Responsive.font(
+                                                                    context,
+                                                                    13,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ClipRect(
                                             child: AnimatedSize(
                                               duration: const Duration(
@@ -913,7 +1073,8 @@ class _ExploreState extends State<Explore> {
                                                           ),
                                                         ),
                                                       )
-                                                    // Show error message if fetching failed and there are no POIs to fall back on
+                                                    // Overpass error is handled by the generate button above the card
+                                                    // Other errors (e.g. moving too fast) show inline
                                                     else if (poiError != null &&
                                                         nearbyPOIs.isEmpty)
                                                       Padding(
@@ -923,18 +1084,94 @@ class _ExploreState extends State<Explore> {
                                                             10,
                                                           ),
                                                         ),
-                                                        child: Text(
-                                                          poiError!,
-                                                          style: GoogleFonts.manrope(
-                                                            color: Colors
-                                                                .redAccent,
-                                                            fontSize:
-                                                                Responsive.width(
-                                                                  context,
-                                                                  14,
-                                                                ),
-                                                          ),
-                                                        ),
+                                                        child: poiError ==
+                                                                'Location data is unavailable right now.'
+                                                            ? const SizedBox.shrink()
+                                                            : Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .center,
+                                                                children: [
+                                                                  Text(
+                                                                    poiError!,
+                                                                    style: GoogleFonts.manrope(
+                                                                      color: Colors
+                                                                          .white70,
+                                                                      fontSize:
+                                                                          Responsive.font(
+                                                                            context,
+                                                                            13,
+                                                                          ),
+                                                                    ),
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .center,
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height:
+                                                                        Responsive.height(
+                                                                          context,
+                                                                          8,
+                                                                        ),
+                                                                  ),
+                                                                  Center(
+                                                                    child: MouseRegion(
+                                                                    cursor:
+                                                                        SystemMouseCursors
+                                                                            .click,
+                                                                    child: GestureDetector(
+                                                                      onTap: () {
+                                                                        if (userLocation !=
+                                                                            null) {
+                                                                          _loadPOIs(
+                                                                            userLocation!
+                                                                                .latitude,
+                                                                            userLocation!
+                                                                                .longitude,
+                                                                          );
+                                                                        }
+                                                                      },
+                                                                      child: frostedGlassCard(
+                                                                        context,
+                                                                        baseRadius:
+                                                                            12,
+                                                                        padding: EdgeInsets.symmetric(
+                                                                          vertical:
+                                                                              Responsive.height(
+                                                                                context,
+                                                                                8,
+                                                                              ),
+                                                                          horizontal:
+                                                                              Responsive.width(
+                                                                                context,
+                                                                                16,
+                                                                              ),
+                                                                        ),
+                                                                        child: Text(
+                                                                          "Try again",
+                                                                          style:
+                                                                              GoogleFonts.manrope(
+                                                                                fontSize:
+                                                                                    Responsive.font(
+                                                                                      context,
+                                                                                      13,
+                                                                                    ),
+                                                                                fontWeight:
+                                                                                    FontWeight
+                                                                                        .w600,
+                                                                                color:
+                                                                                    Colors.white,
+                                                                              ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                       )
                                                     // Show message if no POIs found
                                                     else if (nearbyPOIs.isEmpty)
@@ -945,19 +1182,72 @@ class _ExploreState extends State<Explore> {
                                                             10,
                                                           ),
                                                         ),
-                                                        child: Text(
-                                                          isGuest
-                                                              ? "Sign up to explore nearby spots"
-                                                              : "No spots found nearby",
-                                                          style: GoogleFonts.manrope(
-                                                            color:
-                                                                Colors.white70,
-                                                            fontSize:
-                                                                Responsive.width(
-                                                                  context,
-                                                                  14,
+                                                        child: Column(
+                                                          children: [
+                                                            Text(
+                                                              isGuest
+                                                                  ? "Sign up to explore nearby spots"
+                                                                  : "No spots found nearby",
+                                                              style: GoogleFonts.manrope(
+                                                                color: Colors
+                                                                    .white70,
+                                                                fontSize:
+                                                                    Responsive.width(
+                                                                      context,
+                                                                      14,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                            if (!isGuest) ...[
+                                                              SizedBox(
+                                                                height:
+                                                                    Responsive.height(
+                                                                      context,
+                                                                      8,
+                                                                    ),
+                                                              ),
+                                                              Center(
+                                                                child: MouseRegion(
+                                                                  cursor:
+                                                                      SystemMouseCursors
+                                                                          .click,
+                                                                  child: GestureDetector(
+                                                                    onTap:
+                                                                        _generateFakePOIs,
+                                                                    child: frostedGlassCard(
+                                                                      context,
+                                                                      baseRadius:
+                                                                          12,
+                                                                      padding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            Responsive.height(
+                                                                              context,
+                                                                              8,
+                                                                            ),
+                                                                        horizontal: Responsive.width(
+                                                                          context,
+                                                                          16,
+                                                                        ),
+                                                                      ),
+                                                                      child: Text(
+                                                                        "Generate nearby spots",
+                                                                        style: GoogleFonts.manrope(
+                                                                          fontSize: Responsive.font(
+                                                                            context,
+                                                                            13,
+                                                                          ),
+                                                                          fontWeight:
+                                                                              FontWeight.w600,
+                                                                          color:
+                                                                              Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
                                                                 ),
-                                                          ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
                                                       )
                                                     // Show the list of POIs in a scrollable container
@@ -1049,7 +1339,9 @@ class _ExploreState extends State<Explore> {
                                                           ],
                                                         ),
                                                       ),
-                                                  ] else
+                                                  ] else if (poiError !=
+                                                          'Location data is unavailable right now.' &&
+                                                      !_usingFakePOIs)
                                                     SizedBox(
                                                       height: Responsive.height(
                                                         context,

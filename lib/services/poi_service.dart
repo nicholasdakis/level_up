@@ -25,7 +25,7 @@ class POIService {
   }) async {
     if (isGuest) return [];
     final cached = await _getCachedPOIs(lat, lng);
-    if (cached != null) {
+    if (cached != null && cached.isNotEmpty) {
       if (onSupplement != null) {
         // Only attempt a fill (and show the indicator) if the cache count is
         // below the last known backend count
@@ -151,6 +151,21 @@ class POIService {
     await _prefs.setDouble(SharedPreferencesKey.cachedPoiLng, lng);
   }
 
+  Future<List<POI>> generateFakePOIs(double lat, double lng) async {
+    final response = await authenticatedPost(
+      'generate_fake_pois',
+      body: {'lat': lat, 'lng': lng},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to generate fake POIs: ${response.statusCode}');
+    }
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final List<dynamic> poisJson = data['pois'];
+    return poisJson
+        .map((item) => POI.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   // Call the backend endpoint to get POIs from Overpass
   Future<List<POI>> _fetchFromBackend(double lat, double lng) async {
     // POST to the backend with the user's coordinates and auth token
@@ -158,7 +173,7 @@ class POIService {
     final response = await authenticatedPost(
       'get_nearby_pois',
       body: {'lat': lat, 'lng': lng},
-      timeout: const Duration(seconds: 20),
+      timeout: const Duration(seconds: 28),
     );
 
     // Backend flagged this request as too fast between fetches

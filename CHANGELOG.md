@@ -634,7 +634,7 @@ Developmental progress by date is stored in this file.
 - Replaced the flutter_local_notifications setup for daily reward notifications using FCM
 - Removed all flutter_local_notifications-related code and initializations as this package isn't being used anymore
 
-# 2026-04-02
+## 2026-04-02
 - Edited Food Logging to have 3 tabs: Search, Barcode, Manual using TabControllers
 - Made barcode scanning format foods in the same way Fatsecret API does
 - Using OpenFoodFacts API to handle barcode scanning, so added attribution text as per their terms
@@ -1860,5 +1860,19 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the "Have a referral code?" section for users who have already entered a referral code with text saying they've already used it for better UX
 
 ## 2026-06-08
-- Replaced the ElevatedButton with frostedButton for the "Get Results" button
-- Height and weight sliders in Calorie Calculator now show "Slide to choose" when null instead of defaulting to wrong values
+- Replaced the ElevatedButton with frostedButton for the "Get Results" button in Calorie Calculator
+- Height and weight sliders in Calorie Calculator now show "Slide to choose" when null instead of defaulting to a preset value
+- Added a _showOverpassFallbackDialog method that appears when all Overpass endpoints fail (503), prompting the user to generate server-side fake POIs instead
+- Added a "Generate nearby spots" button in the Nearby Spots card that shows when Overpass is unavailable or when a real fetch returns no results
+- Added POST /generate_fake_pois backend route and generate_fake_pois service method that creates 10 plausible named POIs with randomized coordinates within 400m of the user
+- Added generateFakePOIs method to the Flutter POI service that calls the new endpoint and returns POI objects in the same format as real POIs
+- Wired up the Generate button to call generateFakePOIs, populate the POI list, open the card, and add markers to the map
+- Changed createTitle font from spaceGrotesk to manrope for consistency with the rest of the app
+- Added BILLING permission to AndroidManifest for in-app purchases
+- Added a usingFakePOIs flag so fake POIs are preserved across location changes until a real fetch succeeds
+- Added an overpassDialogShown flag to prevent the dialog from stacking multiple copies
+- Edited timeout duration for Overpass calls
+- Stale cached POIs are cleared immediately when the position stream fires a new location so the skeleton shows instead of showing the old list while fetching
+- Non-overpass errors (moving too fast, generic failures) now show an inline error message and a retry button in the Nearby Spots card instead of leaving it empty
+- Position stream fetches are no longer debounced so rapid location changes always trigger a fresh fetch
+- An empty cached POI list is treated as a cache miss so a fresh backend fetch is always attempted instead of silently showing nothing

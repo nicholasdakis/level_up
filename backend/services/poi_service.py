@@ -42,7 +42,7 @@ out body 100;
         # Try each URL in order as Overpass's fair-use policy prohibits parallel requests
         for url in self.OVERPASS_URLS:
             try:
-                r = requests.post(url, data={"data": query}, headers=self.HEADERS, timeout=15)
+                r = requests.post(url, data={"data": query}, headers=self.HEADERS, timeout=8)
                 if r.status_code == 200:
                     return r.json()
                 logger.warning(f"Overpass error ({url}): HTTP {r.status_code}")
