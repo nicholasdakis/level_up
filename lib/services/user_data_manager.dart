@@ -895,8 +895,9 @@ class UserDataManager {
         if (proteinGoal != null) currentUserData!.proteinGoal = proteinGoal;
         if (carbsGoal != null) currentUserData!.carbsGoal = carbsGoal;
         if (fatGoal != null) currentUserData!.fatGoal = fatGoal;
-        if (weightGoalType != null)
+        if (weightGoalType != null) {
           currentUserData!.weightGoalType = weightGoalType;
+        }
         userDataNotifier.notifyListeners();
       }
 

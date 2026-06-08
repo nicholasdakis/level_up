@@ -217,13 +217,18 @@ class _ExploreState extends State<Explore> {
 
             _loadPOIs(newLoc.latitude, newLoc.longitude, clearExisting: true);
           },
-          onError: (_) {}, // stream errors are non-fatal (e.g. web platform jitter)
+          onError:
+              (_) {}, // stream errors are non-fatal (e.g. web platform jitter)
         );
   }
 
   // Fetch POIs from the backend (or cache) and update the UI
   // clearExisting: true when the user has moved far enough that old POIs are stale
-  Future<void> _loadPOIs(double lat, double lng, {bool clearExisting = false}) async {
+  Future<void> _loadPOIs(
+    double lat,
+    double lng, {
+    bool clearExisting = false,
+  }) async {
     if (loadingPOIs) return; // prevent concurrent fetches
     setState(() {
       loadingPOIs = true;
@@ -728,7 +733,14 @@ class _ExploreState extends State<Explore> {
 
           Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.all(Responsive.height(context, 25)),
+              padding: EdgeInsets.only(
+                top:
+                    Responsive.height(context, 25) +
+                    (!kIsWeb ? MediaQuery.viewPaddingOf(context).top * 0.5 : 0),
+                left: Responsive.height(context, 25),
+                right: Responsive.height(context, 25),
+                bottom: Responsive.height(context, 25),
+              ),
               child: Stack(
                 children: [
                   // Back button
@@ -1084,7 +1096,8 @@ class _ExploreState extends State<Explore> {
                                                             10,
                                                           ),
                                                         ),
-                                                        child: poiError ==
+                                                        child:
+                                                            poiError ==
                                                                 'Location data is unavailable right now.'
                                                             ? const SizedBox.shrink()
                                                             : Column(
@@ -1119,56 +1132,46 @@ class _ExploreState extends State<Explore> {
                                                                   ),
                                                                   Center(
                                                                     child: MouseRegion(
-                                                                    cursor:
-                                                                        SystemMouseCursors
-                                                                            .click,
-                                                                    child: GestureDetector(
-                                                                      onTap: () {
-                                                                        if (userLocation !=
-                                                                            null) {
-                                                                          _loadPOIs(
-                                                                            userLocation!
-                                                                                .latitude,
-                                                                            userLocation!
-                                                                                .longitude,
-                                                                          );
-                                                                        }
-                                                                      },
-                                                                      child: frostedGlassCard(
-                                                                        context,
-                                                                        baseRadius:
-                                                                            12,
-                                                                        padding: EdgeInsets.symmetric(
-                                                                          vertical:
-                                                                              Responsive.height(
+                                                                      cursor: SystemMouseCursors
+                                                                          .click,
+                                                                      child: GestureDetector(
+                                                                        onTap: () {
+                                                                          if (userLocation !=
+                                                                              null) {
+                                                                            _loadPOIs(
+                                                                              userLocation!.latitude,
+                                                                              userLocation!.longitude,
+                                                                            );
+                                                                          }
+                                                                        },
+                                                                        child: frostedGlassCard(
+                                                                          context,
+                                                                          baseRadius:
+                                                                              12,
+                                                                          padding: EdgeInsets.symmetric(
+                                                                            vertical: Responsive.height(
+                                                                              context,
+                                                                              8,
+                                                                            ),
+                                                                            horizontal: Responsive.width(
+                                                                              context,
+                                                                              16,
+                                                                            ),
+                                                                          ),
+                                                                          child: Text(
+                                                                            "Try again",
+                                                                            style: GoogleFonts.manrope(
+                                                                              fontSize: Responsive.font(
                                                                                 context,
-                                                                                8,
+                                                                                13,
                                                                               ),
-                                                                          horizontal:
-                                                                              Responsive.width(
-                                                                                context,
-                                                                                16,
-                                                                              ),
-                                                                        ),
-                                                                        child: Text(
-                                                                          "Try again",
-                                                                          style:
-                                                                              GoogleFonts.manrope(
-                                                                                fontSize:
-                                                                                    Responsive.font(
-                                                                                      context,
-                                                                                      13,
-                                                                                    ),
-                                                                                fontWeight:
-                                                                                    FontWeight
-                                                                                        .w600,
-                                                                                color:
-                                                                                    Colors.white,
-                                                                              ),
+                                                                              fontWeight: FontWeight.w600,
+                                                                              color: Colors.white,
+                                                                            ),
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                  ),
                                                                   ),
                                                                 ],
                                                               ),

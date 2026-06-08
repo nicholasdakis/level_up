@@ -769,6 +769,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           return;
         }
         // disabled until AdMob account is approved
+        showFrostedAlertDialog(
+          context: context,
+          title: "Coming Soon",
+          content: Text(
+            "This feature will be available soon!",
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              color: Colors.white60,
+            ),
+          ),
+          actions: [
+            Expanded(
+              child: Center(
+                child: Builder(
+                  builder: (ctx) => TextButton(
+                    onPressed: () =>
+                        Navigator.of(ctx, rootNavigator: true).pop(),
+                    child: const Text("OK"),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
         return;
         // ignore: dead_code
         await adService.showRewardedAd(
@@ -779,48 +803,51 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
         );
       },
-      child: frostedGlassCard(
-        context,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 16),
-          vertical: Responsive.height(context, 14),
-        ),
-        child: Row(
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedPlayCircle,
-              color: accentDim,
-              size: Responsive.scale(context, 28),
-            ),
-            SizedBox(width: Responsive.width(context, 14)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Watch an Ad",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 15),
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    "Coming soon",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 12),
-                      color: accentDim,
-                    ),
-                  ),
-                ],
+      child: Opacity(
+        opacity: 0.45,
+        child: frostedGlassCard(
+          context,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
+          ),
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedPlayCircle,
+                color: accentDim,
+                size: Responsive.scale(context, 28),
               ),
-            ),
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              color: accent,
-              size: Responsive.scale(context, 20),
-            ),
-          ],
+              SizedBox(width: Responsive.width(context, 14)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Watch an Ad",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 15),
+                        color: accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      "Coming soon",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 12),
+                        color: accentDim,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: accent,
+                size: Responsive.scale(context, 20),
+              ),
+            ],
+          ),
         ),
       ),
     );

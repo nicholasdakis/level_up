@@ -1879,3 +1879,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Lowered Calorie Results appBar height to be consistent with other tabs
 - Added inline "Update weight goal" buttons into Calorie Results for convenience
 - Updated updateGoals() so it only updates non-null field changes
+- Watch an Ad card is dimmed and shows a "Coming Soon" dialog on tap until AdMob is approved
+- Refer a Friend count repositioned to the bottom right of the card
+- Referral code reuse message updated to clarify each account can only enter a code once but can refer unlimited friends
+- Nearby Spots card top padding now accounts for the Android status bar height to prevent overlap with the notch

@@ -248,7 +248,7 @@ Widget buildReferralsCard(BuildContext context) {
             if (currentUserData?.referralUsed == true) ...[
               Center(
                 child: Text(
-                  "You've already entered a referral code.",
+                  "Each account can only enter a referral code once, but you can refer as many friends as you'd like.",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
@@ -368,6 +368,7 @@ Widget buildReferralsCard(BuildContext context) {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Refer a Friend",
@@ -377,28 +378,31 @@ Widget buildReferralsCard(BuildContext context) {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "${currentUserData?.referralCount ?? 0}",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 22),
+                          color: accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        "referred",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 10),
+                          color: accentDim,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "${currentUserData?.referralCount ?? 0}",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 22),
-                  color: accent,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                "referred",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 10),
-                  color: accentDim,
-                ),
-              ),
-            ],
           ),
         ],
       ),
