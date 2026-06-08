@@ -1858,3 +1858,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the hardcoded "0 friends referred" with the real amount received from the backend that is stored in UserData
 - Added a has_used_referral method to return if the user has used a referral code before
 - Replaced the "Have a referral code?" section for users who have already entered a referral code with text saying they've already used it for better UX
+
+## 2026-06-08
+- Replaced the ElevatedButton with frostedButton for the "Get Results" button
+- Height and weight sliders in Calorie Calculator now show "Slide to choose" when null instead of defaulting to wrong values

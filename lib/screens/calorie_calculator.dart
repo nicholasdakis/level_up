@@ -197,6 +197,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     required int divisions,
     required String Function(double) valueLabel,
     required void Function(double) onChanged,
+    bool isSet = true,
   }) {
     void decrement() {
       if (value > min) onChanged((value - 1).clamp(min, max));
@@ -238,11 +239,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
               ),
               child: Text(
-                valueLabel(value),
+                isSet ? valueLabel(value) : "Slide to choose",
                 style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  color: lightenColor(appColorNotifier.value, 0.5),
-                  fontWeight: FontWeight.w700,
+                  fontSize: Responsive.font(context, isSet ? 13 : 11),
+                  color: isSet
+                      ? lightenColor(appColorNotifier.value, 0.5)
+                      : Colors.white38,
+                  fontWeight: isSet ? FontWeight.w700 : FontWeight.w400,
                 ),
               ),
             ),
@@ -578,6 +581,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         valueLabel: (v) => "${v.round()} yrs",
                         onChanged: (value) =>
                             setState(() => age = value.round()),
+                        isSet: age != null,
                       ),
 
                       SizedBox(height: Responsive.height(context, 8)),
@@ -606,6 +610,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                             }
                           });
                         },
+                        isSet: isMetric
+                            ? heightCm != null
+                            : heightInches != null,
                       ),
 
                       SizedBox(height: Responsive.height(context, 16)),
@@ -791,96 +798,71 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 SizedBox(height: Responsive.height(context, 28)),
 
                 // RESULTS BUTTON
-                SizedBox(
-                  height: Responsive.height(context, 54),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Validity checks — all fields must be filled
-                      if (units == null ||
-                          equation == null ||
-                          sex == null ||
-                          age == null ||
-                          weight == null ||
-                          (heightCm == null && heightInches == null) ||
-                          goal == null ||
-                          activityLevel == null) {
-                        if (resultsSnackbarActive == true) {
-                          return; // a snackbar is already opened
-                        }
-                        resultsSnackbarActive = true;
-                        // Let the user know that not all fields are filled out
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedInformationCircle,
-                                      color: Colors.white,
-                                      size: Responsive.scale(context, 20),
-                                    ),
-                                    SizedBox(
-                                      width: Responsive.width(context, 10),
-                                    ),
-                                    const Text("All fields must be filled."),
-                                  ],
-                                ),
-                              ),
-                            )
-                            .closed
-                            .then((_) {
-                              resultsSnackbarActive =
-                                  false; // reset the flag (prevent many snackbars from stacking)
-                            });
-                        return;
+                frostedButton(
+                  "Get Results",
+                  context,
+                  onPressed: () {
+                    // Validity checks: all fields must be filled
+                    if (units == null ||
+                        equation == null ||
+                        sex == null ||
+                        age == null ||
+                        weight == null ||
+                        (heightCm == null && heightInches == null) ||
+                        goal == null ||
+                        activityLevel == null) {
+                      if (resultsSnackbarActive == true) {
+                        return; // a snackbar is already opened
                       }
-                      // NO EARLY RETURN SO THE TAP WAS SUCCESSFUL
+                      resultsSnackbarActive = true;
+                      // Let the user know that not all fields are filled out
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons
+                                        .strokeRoundedInformationCircle,
+                                    color: Colors.white,
+                                    size: Responsive.scale(context, 20),
+                                  ),
+                                  SizedBox(
+                                    width: Responsive.width(context, 10),
+                                  ),
+                                  const Text("All fields must be filled."),
+                                ],
+                              ),
+                            ),
+                          )
+                          .closed
+                          .then((_) {
+                            resultsSnackbarActive =
+                                false; // reset the flag (prevent many snackbars from stacking)
+                          });
+                      return;
+                    }
+                    // NO EARLY RETURN SO THE TAP WAS SUCCESSFUL
 
-                      // Store the results to the user's device
-                      saveCalculatorDataToPrefs();
+                    // Store the results to the user's device
+                    saveCalculatorDataToPrefs();
 
-                      // Pass in variables to the same-named variables in Results
-                      context.push(
-                        '/calorie-calculator/results',
-                        extra: {
-                          'units': units ?? "0",
-                          'goal': goal ?? "0",
-                          'activityLevel': activityLevel ?? "0",
-                          'equation': equation ?? "0",
-                          'age': age ?? 0,
-                          'sex': sex ?? "0",
-                          'heightCm': heightCm ?? 0,
-                          'heightInches': heightInches ?? 0,
-                          'weight': weight ?? 0,
-                        },
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: lightenColor(
-                        appColorNotifier.value,
-                        0.1,
-                      ).withAlpha(180),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 14),
-                        ),
-                        side: BorderSide(
-                          color: Colors.white.withAlpha(30),
-                          width: Responsive.scale(context, 1),
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      "Get Results",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 16),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                    // Pass in variables to the same-named variables in Results
+                    context.push(
+                      '/calorie-calculator/results',
+                      extra: {
+                        'units': units ?? "0",
+                        'goal': goal ?? "0",
+                        'activityLevel': activityLevel ?? "0",
+                        'equation': equation ?? "0",
+                        'age': age ?? 0,
+                        'sex': sex ?? "0",
+                        'heightCm': heightCm ?? 0,
+                        'heightInches': heightInches ?? 0,
+                        'weight': weight ?? 0,
+                      },
+                    );
+                  },
                 ),
 
                 SizedBox(height: Responsive.height(context, 40)),
