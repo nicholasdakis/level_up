@@ -327,7 +327,7 @@ Widget buildSettingsDrawer(
                     ),
                   ),
                   child: Text(
-                    "Release 1.0.1",
+                    "Release 1.1.0",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
                       color: Colors.white.withAlpha(80),

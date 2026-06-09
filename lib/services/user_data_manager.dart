@@ -511,13 +511,11 @@ class UserDataManager {
 
       final result = jsonDecode(response.body) as Map<String, dynamic>;
 
-      // Username is taken
+      // Username is rejected
       if (response.statusCode == 409) {
+        final error = result['error'] as String? ?? 'Error updating username.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: This username is already taken."),
-            duration: snackBarDuration,
-          ),
+          SnackBar(content: Text("Error: $error"), duration: snackBarDuration),
         );
         return false; // false to keep the dialog box open
       }

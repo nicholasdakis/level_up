@@ -1883,3 +1883,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Refer a Friend count repositioned to the bottom right of the card
 - Referral code reuse message updated to clarify each account can only enter a code once but can refer unlimited friends
 - Nearby Spots card top padding now accounts for the Android status bar height to prevent overlap with the notch
+
+## 2026-06-09
+- Added a profanity filter for usernames
