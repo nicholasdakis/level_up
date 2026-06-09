@@ -1304,38 +1304,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedAlarmClock,
+                                            Row(
+                                              children: [
+                                                HugeIcon(
+                                                  icon: HugeIcons
+                                                      .strokeRoundedAlarmClock,
+                                                  color: lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.35,
+                                                  ),
+                                                  size: Responsive.scale(
+                                                    context,
+                                                    20,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: Responsive.width(
+                                                    context,
+                                                    8,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "Reminders",
+                                                  style: GoogleFonts.manrope(
+                                                    color: lightenColor(
+                                                      appColorNotifier.value,
+                                                      0.45,
+                                                    ),
+                                                    fontSize: Responsive.font(
+                                                      context,
+                                                      13,
+                                                    ),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Icon(
+                                              Icons.chevron_right,
                                               color: lightenColor(
                                                 appColorNotifier.value,
-                                                0.35,
+                                                0.3,
                                               ),
                                               size: Responsive.scale(
                                                 context,
-                                                20,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: Responsive.width(
-                                                context,
-                                                8,
-                                              ),
-                                            ),
-                                            Text(
-                                              "Reminders",
-                                              style: GoogleFonts.manrope(
-                                                color: lightenColor(
-                                                  appColorNotifier.value,
-                                                  0.45,
-                                                ),
-                                                fontSize: Responsive.font(
-                                                  context,
-                                                  13,
-                                                ),
-                                                fontWeight: FontWeight.w600,
+                                                18,
                                               ),
                                             ),
                                           ],
@@ -1369,40 +1384,61 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedCalculate,
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  HugeIcon(
+                                                    icon: HugeIcons
+                                                        .strokeRoundedCalculate,
+                                                    color: lightenColor(
+                                                      appColorNotifier.value,
+                                                      0.35,
+                                                    ),
+                                                    size: Responsive.scale(
+                                                      context,
+                                                      20,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      8,
+                                                    ),
+                                                  ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      "Calorie Calculator",
+                                                      style:
+                                                          GoogleFonts.manrope(
+                                                            color: lightenColor(
+                                                              appColorNotifier
+                                                                  .value,
+                                                              0.45,
+                                                            ),
+                                                            fontSize:
+                                                                Responsive.font(
+                                                                  context,
+                                                                  13,
+                                                                ),
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.chevron_right,
                                               color: lightenColor(
                                                 appColorNotifier.value,
-                                                0.35,
+                                                0.3,
                                               ),
                                               size: Responsive.scale(
                                                 context,
-                                                20,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: Responsive.width(
-                                                context,
-                                                8,
-                                              ),
-                                            ),
-                                            Flexible(
-                                              child: Text(
-                                                "Calorie Calculator",
-                                                style: GoogleFonts.manrope(
-                                                  color: lightenColor(
-                                                    appColorNotifier.value,
-                                                    0.45,
-                                                  ),
-                                                  fontSize: Responsive.font(
-                                                    context,
-                                                    13,
-                                                  ),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                                18,
                                               ),
                                             ),
                                           ],

@@ -1886,3 +1886,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-09
 - Added a profanity filter for usernames
+- Added chevrons to the Tools cards in the Home screen
+- Wrapped "Calorie Calculator" card in Flexible to prevent "Calculator" text from clipping sometimes
