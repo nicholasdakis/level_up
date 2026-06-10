@@ -1908,3 +1908,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed unused _skeletonDefs and moved skeleton rendering to a _buildSkeletonCard method
 - Moved the refresh button above the tabs in Badges
 - Made refreshing the Badges tab stay on the currently selected tab with a tabController variable instead of defaulting to the first tab
+- Updated the profanity filter to directly use the library's contains_profanity method

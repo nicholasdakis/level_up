@@ -112,11 +112,8 @@ class ProgressionService: # Service class to handle all progression-related busi
         except Exception as e:
             logger.error(f"[achievements] Failed to track {achievement_id} for {uid}: {e}")
 
-    def is_username_clean(self, username: str):
-        return username == profanity.censor(username)
-
     def update_username(self, uid: str, username: str):
-        if not self.is_username_clean(username):
+        if profanity.contains_profanity(username):
             return {"success": False, "error": "Inappropriate username"}
         if self._repo.username_exists(uid, username):
             return {"success": False, "error": "Username taken"} # Reads via the repository class and returns early without ever writing the update
