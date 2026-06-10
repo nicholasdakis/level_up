@@ -1920,3 +1920,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed .fadeIn from the Badges entrance to remove the scroll overlay issue upon entrance
 - Increased the slide amount on the Badges entrance
 - Made the Badges animation only play one time in total instead of once per tab switch
+- Decreased max desktop width from 900px to 800px
+- Increased max size of the tier chip holder on desktop

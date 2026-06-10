@@ -1109,7 +1109,7 @@ class _TierCarouselState extends State<_TierCarousel> {
           : Alignment.centerLeft,
       child: ConstrainedBox(
         // cap width so chips don't spread across the full card on wide screens
-        constraints: BoxConstraints(maxWidth: Responsive.scale(context, 400)),
+        constraints: BoxConstraints(maxWidth: Responsive.scale(context, 600)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

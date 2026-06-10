@@ -6,7 +6,7 @@ class Responsive {
   static const double _baseScreenWidth = 400;
 
   // Max content width on desktop so layouts don't stretch across the full screen
-  static const double desktopContentMaxWidth = 900;
+  static const double desktopContentMaxWidth = 800;
 
   // Returns horizontal padding that centers content at desktopContentMaxWidth on desktop
   // On mobile/tablet returns the base padding value as normal
