@@ -1888,3 +1888,21 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a profanity filter for usernames
 - Added chevrons to the Tools cards in the Home screen
 - Wrapped "Calorie Calculator" card in Flexible to prevent "Calculator" text from clipping sometimes
+- Overhauled the Badges tab UI: cards now use a deep frosted glass container with a colored left accent bar that reflects claim state (bright when claimable, dim when locked, tinted when complete)
+- Replaced the tier chip Wrap with a horizontally swipeable PageView carousel using a frosted glass pill container styled like the bottom nav bar
+- Single-tier achievements render the chip inline
+- Tier chips redesigned as circles with an icon and number
+- Claimable tier chips pulse with alternating phase: even-index chips use one shared AnimationController and odd-index chips use another started 600ms later
+- Added an animated progress bar that fills from zero on load using a dedicated AnimationController with easeOutCubic curve
+- Added milestone marker ticks on the progress bar at each tier threshold using LayoutBuilder for accurate pixel positioning
+- Progress label now shows both current/next count and a percentage on the right
+- Added "X to claim" frosted pill badge in the card header when unclaimed tiers are available
+- Added a checkmark icon in the header when all tiers are complete
+- Added an empty state for sections with no achievements
+- Wrapped all cards in Skeleton.ignore to prevent skeletonizer from crashing on BackdropFilter widgets
+- Added a refresh button to the Badges tab styled consistently with the leaderboard refresh button
+- Replaced the skeletonizer placeholder with a custom skeleton card matching the new card layout
+- Added dot indicators below the tier carousel to show scrollability
+- Carousel capped at a max width on desktop and centered so it doesn't stretch across the full card
+- Category tabs swipe between sections, single-tier achievements skip the carousel entirely and render the chip inline centered
+- Removed unused _skeletonDefs and moved skeleton rendering to a _buildSkeletonCard method

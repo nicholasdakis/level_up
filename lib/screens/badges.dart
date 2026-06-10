@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import 'dart:ui';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
@@ -113,7 +113,7 @@ class Badges extends StatefulWidget {
   }
 }
 
-class _BadgesState extends State<Badges> {
+class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   bool _isLoading = true; // for the skeletonizer
   // Populated from the backend on init
   List<AchievementDef> _achievementDefs = [];
@@ -124,21 +124,10 @@ class _BadgesState extends State<Badges> {
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
 
-  static final List<AchievementDef> _skeletonDefs = [
-    for (int s = 0; s < tabSections.length; s++)
-      for (int i = 0; i < 4; i++)
-        AchievementDef(
-          id: 'skeleton_${s}_$i',
-          name: BoneMock.name,
-          description: BoneMock.name,
-          icon: HugeIcons.strokeRoundedStar,
-          tiers: [1, 5, 10],
-          unit: BoneMock.name,
-          section: tabSections[s],
-        ),
-  ];
-
   late final VoidCallback _colorListener;
+  // Shared controllers so all even-index chips pulse together and all odd-index chips pulse together
+  late final AnimationController _evenPulse;
+  late final AnimationController _oddPulse;
 
   @override
   void initState() {
@@ -147,6 +136,21 @@ class _BadgesState extends State<Badges> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+
+    _evenPulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _oddPulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    // Start odd controller half a cycle late so even and odd chips alternate phase
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) _oddPulse.repeat(reverse: true);
+    });
+
     if (isGuest) {
       // For guest users
       Guest.blockOnOpen(context);
@@ -159,11 +163,14 @@ class _BadgesState extends State<Badges> {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    _evenPulse.dispose();
+    _oddPulse.dispose();
     super.dispose();
   }
 
   // Fetches all achievement progress, claimed tiers, and streaks from the backend in parallel
   Future<void> _fetchBadgesData() async {
+    setState(() => _isLoading = true);
     try {
       // fetch in parallel for faster retrieval
       final results = await Future.wait([
@@ -264,83 +271,75 @@ class _BadgesState extends State<Badges> {
   }
 
   // Builds a single tier chip showing the milestone, its status, and a claim button if ready
-  Widget _buildTierChip(AchievementDef def, int tier) {
+  Widget _buildTierChip(AchievementDef def, int tier, {int index = 0}) {
     final currentProgress =
         progress[def.id] ??
         0; // reads the progress in the achievement_progress table
-
-    // For streak achievements, use the highest ever streak for claimability
-    // so breaking a streak doesn't lock previously reached tiers
+    // Use highest ever streak for streak achievements so a broken streak doesn't lock tiers the user already earned
     final reachableProgress = highestStreaks.containsKey(def.id)
         ? (highestStreaks[def.id] ?? 0)
         : currentProgress;
+    final claimed =
+        claimedTiers[def.id]?.contains(tier) ??
+        false; // whether this tier has already been claimed by the user
+    final reachable =
+        reachableProgress >=
+        tier; // whether the user has reached this tier (claimable if not already claimed)
 
-    // Whether this tier has already been claimed by the user
-    final claimed = claimedTiers[def.id]?.contains(tier) ?? false;
-
-    // Whether the user has reached this tier (claimable if not already claimed)
-    final reachable = reachableProgress >= tier;
-
-    Color chipColor;
-    Color textColor;
-    IconData statusIcon;
+    final Color bgColor;
+    final Color labelColor;
+    final Color borderColor;
+    final IconData statusIcon;
 
     if (claimed) {
-      chipColor = appColorNotifier.value.withAlpha(80);
-      textColor = Colors.white38;
+      bgColor = appColorNotifier.value.withAlpha(60);
+      labelColor = Colors.white38;
+      borderColor = lightenColor(appColorNotifier.value, 0.25).withAlpha(60);
       statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
-      chipColor = appColorNotifier.value.withAlpha(160);
-      textColor = Colors.white38;
-      statusIcon = HugeIcons.strokeRoundedStar;
+      bgColor = appColorNotifier.value.withAlpha(180);
+      labelColor = Colors.white;
+      borderColor = lightenColor(appColorNotifier.value, 0.4).withAlpha(220);
+      statusIcon = HugeIcons.strokeRoundedGift;
     } else {
-      chipColor = Colors.white.withAlpha(12);
-      textColor = Colors.white38;
+      bgColor = Colors.white.withAlpha(22);
+      labelColor = Colors.white38;
+      borderColor = Colors.white.withAlpha(40);
       statusIcon = HugeIcons.strokeRoundedLockKey;
     }
 
-    final borderColor = claimed
-        ? lightenColor(appColorNotifier.value, 0.25).withAlpha(80)
-        : reachable
-        ? lightenColor(appColorNotifier.value, 0.3).withAlpha(200)
-        : Colors.white.withAlpha(20);
-
+    final size = Responsive.scale(context, 72);
     final chip = GestureDetector(
       onTap: (reachable && !claimed) ? () => _claimTier(def, tier) : null,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+      child: ClipOval(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 12),
-              vertical: Responsive.height(context, 8),
-            ),
+            width: size,
+            height: size,
             decoration: BoxDecoration(
-              color: chipColor,
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 10),
-              ),
+              shape: BoxShape.circle,
+              color: bgColor,
               border: Border.all(
                 color: borderColor,
                 width: Responsive.width(context, 1.5),
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 HugeIcon(
                   icon: statusIcon,
-                  color: textColor,
+                  color: labelColor,
                   size: Responsive.scale(context, 14),
                 ),
-                SizedBox(width: Responsive.width(context, 6)),
+                SizedBox(height: Responsive.height(context, 2)),
                 Text(
                   "$tier",
                   style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
+                    fontSize: Responsive.font(context, 12),
+                    color: labelColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -351,13 +350,14 @@ class _BadgesState extends State<Badges> {
     );
 
     if (reachable && !claimed) {
+      final controller = index.isOdd ? _oddPulse : _evenPulse;
+      // autoPlay: false because the shared controller is already running, letting it autoPlay would restart it
+      // autoPlay: false because the shared controller is already running, letting it autoPlay would restart it
       return chip
-          .animate(
-            onPlay: (c) => c.repeat(reverse: true),
-          ) // loops forward then backward forever
+          .animate(controller: controller, autoPlay: false)
           .scaleXY(
-            begin: 0.92,
-            end: 1.08, // goes between slightly smaller and larger sizes
+            begin: 0.95,
+            end: 1.05, // goes between slightly smaller and larger sizes
             duration: 1200.ms,
             curve: Curves.easeInOut,
           )
@@ -367,7 +367,7 @@ class _BadgesState extends State<Badges> {
               0.3,
             ), // lightened app color for contrast against the chip
             begin: 0.0,
-            end: 0.4, // pulses toward a lighter version of the theme color
+            end: 0.35, // pulses toward a lighter version of the theme color
             duration: 1200.ms,
             curve: Curves.easeInOut,
           );
@@ -397,105 +397,333 @@ class _BadgesState extends State<Badges> {
       }
     }
 
-    // Fill the bar fully if all tiers are done, otherwise show partial progress
-    double progressFraction = 1.0;
-    if (!allClaimed) {
-      progressFraction = currentProgress / nextTier;
-    }
+    final unclaimedCount = def.tiers.where((t) {
+      final reached =
+          (highestStreaks.containsKey(def.id)
+              ? (highestStreaks[def.id] ?? 0)
+              : currentProgress) >=
+          t;
+      final claimed = claimedTiers[def.id]?.contains(t) ?? false;
+      return reached && !claimed;
+    }).length;
 
+    // Fill the bar fully if all tiers are done, otherwise show partial progress toward the next tier
+    final progressFraction = allClaimed
+        ? 1.0
+        : (currentProgress / nextTier).clamp(0.0, 1.0);
     final accent = lightenColor(appColorNotifier.value, 0.45);
-    final accentDim = lightenColor(appColorNotifier.value, 0.35);
     final barColor = lightenColor(appColorNotifier.value, 0.3);
 
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
+      child: Skeleton.ignore(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 18)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              decoration: BoxDecoration(
+                color: allClaimed
+                    ? appColorNotifier.value.withAlpha(40)
+                    : Colors.white.withAlpha(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 18),
+                ),
+                border: Border.all(
+                  color: Colors.white.withAlpha(18),
+                  width: Responsive.width(context, 1),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  // Colored left accent bar
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: Responsive.width(context, 3),
+                      decoration: BoxDecoration(
+                        color: allClaimed
+                            ? lightenColor(
+                                appColorNotifier.value,
+                                0.35,
+                              ).withAlpha(180)
+                            : unclaimedCount > 0
+                            ? lightenColor(
+                                appColorNotifier.value,
+                                0.4,
+                              ).withAlpha(200)
+                            : Colors.white.withAlpha(30),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(
+                            Responsive.scale(context, 18),
+                          ),
+                          bottomLeft: Radius.circular(
+                            Responsive.scale(context, 18),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      Responsive.scale(context, 20),
+                      Responsive.scale(context, 16),
+                      Responsive.scale(context, 16),
+                      Responsive.scale(context, 16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header row: icon + name + unclaimed pill
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 10),
+                              ),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 9),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: appColorNotifier.value.withAlpha(50),
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 10),
+                                    ),
+                                    border: Border.all(
+                                      color: barColor.withAlpha(80),
+                                      width: Responsive.width(context, 1),
+                                    ),
+                                  ),
+                                  child: HugeIcon(
+                                    icon: def.icon,
+                                    color: barColor,
+                                    size: Responsive.scale(context, 22),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: Responsive.width(context, 12)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    def.name,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 16),
+                                      color: accent,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  Text(
+                                    def.description,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 11),
+                                      color: lightenColor(
+                                        appColorNotifier.value,
+                                        0.35,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (unclaimedCount > 0) ...[
+                              SizedBox(width: Responsive.width(context, 8)),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 20),
+                                ),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 8,
+                                    sigmaY: 8,
+                                  ),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: Responsive.width(context, 8),
+                                      vertical: Responsive.height(context, 4),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: lightenColor(
+                                        appColorNotifier.value,
+                                        0.3,
+                                      ).withAlpha(60),
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(context, 20),
+                                      ),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.4,
+                                        ).withAlpha(160),
+                                        width: Responsive.width(context, 1),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "$unclaimedCount to claim",
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 10),
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.45,
+                                        ),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (allClaimed) ...[
+                              SizedBox(width: Responsive.width(context, 8)),
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.4,
+                                ),
+                                size: Responsive.scale(context, 18),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        SizedBox(height: Responsive.height(context, 12)),
+
+                        // Progress label + bar
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              allClaimed
+                                  ? "All tiers complete!"
+                                  : "$currentProgress / $nextTier ${def.unit}",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              "${(progressFraction * 100).toStringAsFixed(0)}%",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: barColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Responsive.height(context, 6)),
+                        _AnimatedProgressBar(
+                          fraction: progressFraction,
+                          barColor: barColor,
+                          tiers: def.tiers,
+                          maxTier: def.tiers.last,
+                        ),
+
+                        SizedBox(height: Responsive.height(context, 12)),
+
+                        // Tier chips row: single tier renders inline, multiple tiers use swipeable carousel
+                        if (def.tiers.length == 1)
+                          Center(
+                            child: _buildTierChip(
+                              def,
+                              def.tiers.first,
+                              index: 0,
+                            ),
+                          )
+                        else
+                          _TierCarousel(
+                            def: def,
+                            tierChipBuilder: _buildTierChip,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
       child: frostedGlassCard(
         context,
-        baseRadius: 16,
-        padding: EdgeInsets.all(Responsive.scale(context, 18)),
+        baseRadius: 18,
+        padding: EdgeInsets.all(Responsive.scale(context, 16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: icon, name, and progress count
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(Responsive.scale(context, 10)),
+                  width: Responsive.scale(context, 40),
+                  height: Responsive.scale(context, 40),
                   decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(12),
+                    color: Colors.white.withAlpha(30),
                     borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 12),
+                      Responsive.scale(context, 10),
                     ),
-                    border: Border.all(
-                      color: barColor.withAlpha(100),
-                      width: Responsive.width(context, 1.5),
-                    ),
-                  ),
-                  child: HugeIcon(
-                    icon: def.icon,
-                    color: barColor,
-                    size: Responsive.scale(context, 26),
                   ),
                 ),
-                SizedBox(width: Responsive.width(context, 14)),
+                SizedBox(width: Responsive.width(context, 12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        def.name,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 18),
-                          color: lightenColor(appColorNotifier.value, 0.45),
-                          fontWeight: FontWeight.w800,
-                        ),
+                      Container(
+                        height: Responsive.height(context, 14),
+                        width: Responsive.width(context, 120),
+                        color: Colors.white.withAlpha(30),
                       ),
-                      SizedBox(height: Responsive.height(context, 2)),
-                      Text(
-                        def.description,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 12),
-                          color: accentDim,
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 2)),
-                      Text(
-                        allClaimed
-                            ? "All tiers complete!"
-                            : "$currentProgress / $nextTier ${def.unit}",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 12),
-                          color: accent,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      SizedBox(height: Responsive.height(context, 6)),
+                      Container(
+                        height: Responsive.height(context, 10),
+                        width: Responsive.width(context, 180),
+                        color: Colors.white.withAlpha(20),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-
-            SizedBox(height: Responsive.height(context, 14)),
-
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-              child: LinearProgressIndicator(
-                value: progressFraction.clamp(0.0, 1.0),
-                minHeight: Responsive.height(context, 8),
-                backgroundColor: Colors.white.withAlpha(20),
-                valueColor: AlwaysStoppedAnimation<Color>(barColor),
+            SizedBox(height: Responsive.height(context, 16)),
+            Container(
+              height: Responsive.height(context, 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(20),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 6),
+                ),
               ),
             ),
-
-            SizedBox(height: Responsive.height(context, 14)),
-
-            // Tier chips row
-            Wrap(
-              spacing: Responsive.width(context, 8),
-              runSpacing: Responsive.height(context, 8),
+            SizedBox(height: Responsive.height(context, 16)),
+            Row(
               children: [
-                for (final tier in def.tiers) _buildTierChip(def, tier),
+                for (int i = 0; i < 3; i++) ...[
+                  if (i > 0) SizedBox(width: Responsive.width(context, 8)),
+                  Container(
+                    width: Responsive.scale(context, 56),
+                    height: Responsive.scale(context, 56),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withAlpha(20),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
@@ -506,12 +734,49 @@ class _BadgesState extends State<Badges> {
 
   // Returns the list of achievement cards for a given section
   List<Widget> _buildCardsForSection(String section) {
-    final defs = _isLoading ? _skeletonDefs : _achievementDefs;
+    if (_isLoading) {
+      return [for (int i = 0; i < 4; i++) _buildSkeletonCard()];
+    }
     List<Widget> cards = [];
-    for (final def in defs) {
+    for (final def in _achievementDefs) {
       if (def.section == section) {
         cards.add(_buildAchievementCard(def));
       }
+    }
+    if (cards.isEmpty && !_isLoading) {
+      cards.add(
+        Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 48),
+          ),
+          child: Column(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedCrown,
+                color: Colors.white24,
+                size: Responsive.scale(context, 40),
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+              Text(
+                "No achievements here yet",
+                style: GoogleFonts.manrope(
+                  color: Colors.white30,
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 4)),
+              Text(
+                "Keep using the app to unlock them",
+                style: GoogleFonts.manrope(
+                  color: Colors.white24,
+                  fontSize: Responsive.font(context, 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return cards;
   }
@@ -554,62 +819,95 @@ class _BadgesState extends State<Badges> {
             body: Column(
               children: [
                 SizedBox(height: MediaQuery.paddingOf(context).top),
-                // Pill-style tab bar in the body so it sits on the gradient
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 12),
                     vertical: Responsive.height(context, 8),
                   ),
-                  child: TabBar(
-                    isScrollable: true,
-                    tabAlignment: Responsive.isDesktop(context)
-                        ? TabAlignment.center
-                        : TabAlignment
-                              .start, // center on desktop, left-align on mobile
-                    labelPadding: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 16),
-                    ),
-                    dividerColor: Colors
-                        .transparent, // hide the default underline divider
-                    indicator: BoxDecoration(
-                      color: Colors.white.withAlpha(
-                        45,
-                      ), // frosted pill background for selected tab
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TabBar(
+                          isScrollable: true,
+                          tabAlignment: Responsive.isDesktop(context)
+                              ? TabAlignment.center
+                              : TabAlignment.start,
+                          labelPadding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 16),
+                          ),
+                          dividerColor: Colors.transparent,
+                          indicator: BoxDecoration(
+                            color: Colors.white.withAlpha(45),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(60),
+                              width: Responsive.width(context, 1),
+                            ),
+                          ),
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          overlayColor: WidgetStateProperty.resolveWith((
+                            states,
+                          ) {
+                            if (states.contains(WidgetState.hovered) ||
+                                states.contains(WidgetState.pressed)) {
+                              return Colors.white.withAlpha(15);
+                            }
+                            return Colors.transparent;
+                          }),
+                          splashBorderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 20),
+                          ),
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white38,
+                          labelStyle: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 15),
+                            fontWeight: FontWeight.w700,
+                          ),
+                          unselectedLabelStyle: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 15),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          tabs: [
+                            for (final label in tabLabels) Tab(text: label),
+                          ],
+                        ),
                       ),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(
-                          60,
-                        ), // subtle border to define the pill shape
-                        width: Responsive.width(context, 1),
+                      GestureDetector(
+                        onTap: _fetchBadgesData,
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            left: Responsive.width(context, 8),
+                          ),
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 10),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.refresh,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
+                        ),
                       ),
-                    ),
-                    indicatorSize: TabBarIndicatorSize
-                        .tab, // pill covers the full tab width not just the label
-                    overlayColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.hovered) ||
-                          states.contains(WidgetState.pressed)) {
-                        return Colors.white.withAlpha(
-                          15,
-                        ); // hover/press tint matches the pill shape
-                      }
-                      return Colors.transparent;
-                    }),
-                    splashBorderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 20),
-                    ), // clips ripple to the pill shape
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white38,
-                    labelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w700,
-                    ),
-                    unselectedLabelStyle: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    tabs: [for (final label in tabLabels) Tab(text: label)],
+                    ],
                   ),
                 ),
                 Expanded(
@@ -654,6 +952,257 @@ class _BadgesState extends State<Badges> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Animated progress bar with milestone markers at each tier threshold
+class _AnimatedProgressBar extends StatefulWidget {
+  final double fraction;
+  final Color barColor;
+  final List<int> tiers;
+  final int maxTier;
+
+  const _AnimatedProgressBar({
+    required this.fraction,
+    required this.barColor,
+    required this.tiers,
+    required this.maxTier,
+  });
+
+  @override
+  State<_AnimatedProgressBar> createState() => _AnimatedProgressBarState();
+}
+
+class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedProgressBar old) {
+    super.didUpdateWidget(old);
+    if (old.fraction != widget.fraction) {
+      _animation = Tween<double>(begin: old.fraction, end: widget.fraction)
+          .animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+          );
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final barHeight = Responsive.height(context, 8);
+    final markerColor = Colors.white.withAlpha(60);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barWidth = constraints.maxWidth;
+        return AnimatedBuilder(
+          animation: _animation,
+          builder: (context, _) {
+            final value = (_animation.value * widget.fraction).clamp(0.0, 1.0);
+            return SizedBox(
+              height: barHeight,
+              child: Stack(
+                children: [
+                  // Background track
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 6),
+                    ),
+                    child: Container(
+                      height: barHeight,
+                      color: Colors.white.withAlpha(18),
+                    ),
+                  ),
+                  // Filled portion
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 6),
+                    ),
+                    child: FractionallySizedBox(
+                      widthFactor: value,
+                      child: Container(
+                        height: barHeight,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              widget.barColor.withAlpha(180),
+                              widget.barColor,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Tier milestone markers, only between tiers not at the end
+                  for (final tier in widget.tiers)
+                    if (tier < widget.maxTier)
+                      Positioned(
+                        left:
+                            (tier / widget.maxTier) * barWidth -
+                            Responsive.width(context, 0.75),
+                        top: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: Responsive.width(context, 1.5),
+                          color: markerColor,
+                        ),
+                      ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// Horizontally swipeable carousel of tier chips, styled like the frosted nav bar
+class _TierCarousel extends StatefulWidget {
+  final AchievementDef def;
+  final Widget Function(AchievementDef, int, {int index}) tierChipBuilder;
+
+  const _TierCarousel({required this.def, required this.tierChipBuilder});
+
+  @override
+  State<_TierCarousel> createState() => _TierCarouselState();
+}
+
+class _TierCarouselState extends State<_TierCarousel> {
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.28);
+    // Force a rebuild after first frame so the initial active dot renders at full width
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tiers = widget.def.tiers;
+
+    return Align(
+      alignment: Responsive.isDesktop(context)
+          ? Alignment.center
+          : Alignment.centerLeft,
+      child: ConstrainedBox(
+        // cap width so chips don't spread across the full card on wide screens
+        constraints: BoxConstraints(maxWidth: Responsive.scale(context, 400)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 16),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  height: Responsive.scale(context, 88),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(16),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 16),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(28),
+                      width: Responsive.width(context, 1),
+                    ),
+                  ),
+                  child: PageView.builder(
+                    controller: _pageController,
+                    padEnds: false,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
+                    scrollBehavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                      },
+                    ),
+                    itemCount: tiers.length,
+                    itemBuilder: (context, i) => Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 6),
+                        vertical: Responsive.height(context, 10),
+                      ),
+                      child: widget.tierChipBuilder(
+                        widget.def,
+                        tiers[i],
+                        index: i,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (tiers.length > 1) ...[
+              SizedBox(height: Responsive.height(context, 6)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (int i = 0; i < tiers.length; i++) ...[
+                    if (i > 0) SizedBox(width: Responsive.width(context, 4)),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      width: Responsive.scale(
+                        context,
+                        _currentPage == i ? 16 : 6,
+                      ),
+                      height: Responsive.scale(context, 6),
+                      decoration: BoxDecoration(
+                        color: _currentPage == i
+                            ? lightenColor(
+                                appColorNotifier.value,
+                                0.4,
+                              ).withAlpha(220)
+                            : Colors.white.withAlpha(50),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 3),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ],
         ),
       ),
     );
