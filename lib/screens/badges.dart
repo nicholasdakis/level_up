@@ -123,6 +123,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
+  // Whether the entrance animation has already played once
+  bool _entranceAnimationPlayed = false;
 
   late final TabController _tabController;
   late final VoidCallback _colorListener;
@@ -177,7 +179,10 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   // Fetches all achievement progress, claimed tiers, and streaks from the backend in parallel
   Future<void> _fetchBadgesData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _entranceAnimationPlayed = false;
+    });
     try {
       // fetch in parallel for faster retrieval
       final results = await Future.wait([
@@ -801,22 +806,25 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     if (_isLoading) {
       return [for (int i = 0; i < 4; i++) _buildSkeletonCard()];
     }
+    final isActiveTab = tabSections[_tabController.index] == section;
+    final animate = !_entranceAnimationPlayed && isActiveTab;
+    if (animate) _entranceAnimationPlayed = true;
     List<Widget> cards = [];
     int cardIndex = 0;
     for (final def in _achievementDefs) {
       if (def.section == section) {
         final delay = (cardIndex * 60).ms;
+        final card = _buildAchievementCard(def);
         cards.add(
-          _buildAchievementCard(def)
-              .animate()
-              .fadeIn(delay: delay, duration: 300.ms)
-              .slideY(
-                begin: 0.08,
-                end: 0,
-                delay: delay,
-                duration: 300.ms,
-                curve: Curves.easeOutCubic,
-              ),
+          animate
+              ? card.animate().slideY(
+                  begin: 0.25,
+                  end: 0,
+                  delay: delay,
+                  duration: 350.ms,
+                  curve: Curves.easeOutCubic,
+                )
+              : card,
         );
         cardIndex++;
       }

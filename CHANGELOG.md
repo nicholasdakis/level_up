@@ -1917,3 +1917,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-10
 - Desktop layout now scales height values by 1.6x so spacing and cards feel proportional on wide screens
+- Removed .fadeIn from the Badges entrance to remove the scroll overlay issue upon entrance
+- Increased the slide amount on the Badges entrance
+- Made the Badges animation only play one time in total instead of once per tab switch
