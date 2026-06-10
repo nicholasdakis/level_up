@@ -1914,3 +1914,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Badge cards slide in with a staggered fade when a section loads
 - Made badge tiers freely scrollable
 - Added NoGlowScrollBehavior class to Badges to prevent widgets lightening up
+
+## 2026-06-10
+- Desktop layout now scales height values by 1.6x so spacing and cards feel proportional on wide screens

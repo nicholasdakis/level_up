@@ -25,6 +25,7 @@ class Responsive {
   // Scale factors applied on top of proportional scaling
   static const double _tabletScale = 0.90;
   static const double _desktopScale = 0.85;
+  static const double _desktopHeightScale = 1.6;
 
   // Breakpoints
   static const double _tabletBreakpoint = 600;
@@ -115,14 +116,19 @@ class Responsive {
   // Clamped to 90% of screen height
   static double height(BuildContext context, double baseHeight) {
     final size = _safeSize(context);
-    return _scaleValue(
+    final type = screenType(context);
+    final scaled = _scaleValue(
       base: baseHeight,
       screenDimension: size.height,
       baseDimension: _baseScreenHeight,
-      type: screenType(context),
+      type: type,
       clampMin: 0,
       clampMax: size.height * 0.9,
     );
+    if (type == ScreenType.desktop) {
+      return (scaled * _desktopHeightScale).clamp(0, size.height * 0.9);
+    }
+    return scaled;
   }
 
   // Scales a button height against screen width
