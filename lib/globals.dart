@@ -23,6 +23,9 @@ ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
 // set to true by AppInitScreen once init completes, reset to false on logout
 bool appInitialized = false;
 
+// Captured in main() before runApp so the original browser URL is preserved
+Uri appLaunchUri = Uri();
+
 // set to true when the user chooses "Continue as Guest" — skips auth and backend writes
 bool isGuest = false;
 

@@ -111,9 +111,11 @@ final GoRouter appRouter = GoRouter(
     // restores sub-route on web page refresh (e.g. /food-logging), falls back to /
     if (isLoggedIn && onLoading && appInitialized) {
       if (isGuest) return '/';
-      final uri = Uri.base;
-      final path = uri.path.replaceFirst('/level_up', '');
-      return (path.isNotEmpty && path != '/loading') ? path : '/';
+      final path = appLaunchUri.path.replaceFirst('/level_up', '');
+      final query = appLaunchUri.query.isNotEmpty
+          ? '?${appLaunchUri.query}'
+          : '';
+      return (path.isNotEmpty && path != '/loading') ? '$path$query' : '/';
     }
 
     return null; // no redirect needed

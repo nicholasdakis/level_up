@@ -1922,3 +1922,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the Badges animation only play one time in total instead of once per tab switch
 - Decreased max desktop width from 900px to 800px
 - Increased max size of the tier chip holder on desktop
+- Refreshing the browser now restores the current screen instead of redirecting to the home tab
+- Moved confetti controller initialization to main() so it works when landing directly on any screen

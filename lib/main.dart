@@ -11,6 +11,7 @@ import 'services/ad_service.dart';
 import 'firebase_options.dart';
 import 'globals.dart';
 import 'router.dart';
+import 'utility/confetti.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
     adService.loadRewardedAd();
   }
 
+  confettiControllerinit();
+  appLaunchUri = Uri.base;
   runApp(const MyApp());
 
   // wait until the first frame is fully painted before fading out the splash
