@@ -629,7 +629,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                           ],
                         ),
                         SizedBox(height: Responsive.height(context, 6)),
-                        _AnimatedProgressBar(
+                        _ProgressBar(
                           fraction: progressFraction,
                           barColor: barColor,
                           tiers: def.tiers,
@@ -801,9 +801,23 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
       return [for (int i = 0; i < 4; i++) _buildSkeletonCard()];
     }
     List<Widget> cards = [];
+    int cardIndex = 0;
     for (final def in _achievementDefs) {
       if (def.section == section) {
-        cards.add(_buildAchievementCard(def));
+        final delay = (cardIndex * 60).ms;
+        cards.add(
+          _buildAchievementCard(def)
+              .animate()
+              .fadeIn(delay: delay, duration: 300.ms)
+              .slideY(
+                begin: 0.08,
+                end: 0,
+                delay: delay,
+                duration: 300.ms,
+                curve: Curves.easeOutCubic,
+              ),
+        );
+        cardIndex++;
       }
     }
     if (cards.isEmpty && !_isLoading) {
@@ -975,14 +989,14 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   }
 }
 
-// Animated progress bar with milestone markers at each tier threshold
-class _AnimatedProgressBar extends StatefulWidget {
+// Progress bar with milestone marker ticks at each tier threshold
+class _ProgressBar extends StatelessWidget {
   final double fraction;
   final Color barColor;
   final List<int> tiers;
   final int maxTier;
 
-  const _AnimatedProgressBar({
+  const _ProgressBar({
     required this.fraction,
     required this.barColor,
     required this.tiers,
@@ -990,110 +1004,61 @@ class _AnimatedProgressBar extends StatefulWidget {
   });
 
   @override
-  State<_AnimatedProgressBar> createState() => _AnimatedProgressBarState();
-}
-
-class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
-    _controller.forward();
-  }
-
-  @override
-  void didUpdateWidget(_AnimatedProgressBar old) {
-    super.didUpdateWidget(old);
-    if (old.fraction != widget.fraction) {
-      _animation = Tween<double>(begin: old.fraction, end: widget.fraction)
-          .animate(
-            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-          );
-      _controller.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final barHeight = Responsive.height(context, 8);
     final markerColor = Colors.white.withAlpha(60);
+    final value = fraction.clamp(0.0, 1.0);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final barWidth = constraints.maxWidth;
-        return AnimatedBuilder(
-          animation: _animation,
-          builder: (context, _) {
-            final value = (_animation.value * widget.fraction).clamp(0.0, 1.0);
-            return SizedBox(
-              height: barHeight,
-              child: Stack(
-                children: [
-                  // Background track
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 6),
-                    ),
-                    child: Container(
-                      height: barHeight,
-                      color: Colors.white.withAlpha(18),
-                    ),
-                  ),
-                  // Filled portion
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 6),
-                    ),
-                    child: FractionallySizedBox(
-                      widthFactor: value,
-                      child: Container(
-                        height: barHeight,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              widget.barColor.withAlpha(180),
-                              widget.barColor,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Tier milestone markers, only between tiers not at the end
-                  for (final tier in widget.tiers)
-                    if (tier < widget.maxTier)
-                      Positioned(
-                        left:
-                            (tier / widget.maxTier) * barWidth -
-                            Responsive.width(context, 0.75),
-                        top: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: Responsive.width(context, 1.5),
-                          color: markerColor,
-                        ),
-                      ),
-                ],
+        return SizedBox(
+          height: barHeight,
+          child: Stack(
+            children: [
+              // Background track
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 6),
+                ),
+                child: Container(
+                  height: barHeight,
+                  color: Colors.white.withAlpha(18),
+                ),
               ),
-            );
-          },
+              // Filled portion
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 6),
+                ),
+                child: FractionallySizedBox(
+                  widthFactor: value,
+                  child: Container(
+                    height: barHeight,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [barColor.withAlpha(180), barColor],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Tier milestone markers, only between tiers not at the end
+              for (final tier in tiers)
+                if (tier < maxTier)
+                  Positioned(
+                    left:
+                        (tier / maxTier) * barWidth -
+                        Responsive.width(context, 0.75),
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: Responsive.width(context, 1.5),
+                      color: markerColor,
+                    ),
+                  ),
+            ],
+          ),
         );
       },
     );
