@@ -1906,3 +1906,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Carousel capped at a max width on desktop and centered so it doesn't stretch across the full card
 - Category tabs swipe between sections, single-tier achievements skip the carousel entirely and render the chip inline centered
 - Removed unused _skeletonDefs and moved skeleton rendering to a _buildSkeletonCard method
+- Moved the refresh button above the tabs in Badges
+- Made refreshing the Badges tab stay on the currently selected tab with a tabController variable instead of defaulting to the first tab

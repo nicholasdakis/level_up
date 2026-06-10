@@ -124,6 +124,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   // Tracks which tiers are currently being claimed to prevent double taps
   final Set<String> _claimingInProgress = {};
 
+  late final TabController _tabController;
   late final VoidCallback _colorListener;
   // Shared controllers so all even-index chips pulse together and all odd-index chips pulse together
   late final AnimationController _evenPulse;
@@ -132,6 +133,11 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: tabSections.length, vsync: this);
+    // Rebuild when tab changes so the fade hides when the last tab is selected
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _colorListener = () {
       if (mounted) setState(() {});
     };
@@ -163,6 +169,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    _tabController.dispose();
     _evenPulse.dispose();
     _oddPulse.dispose();
     super.dispose();
@@ -732,6 +739,62 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildCategoryTabBar(BuildContext context) {
+    final tabBar = TabBar(
+      controller: _tabController,
+      isScrollable: true,
+      physics: const BouncingScrollPhysics(),
+      tabAlignment: Responsive.isDesktop(context)
+          ? TabAlignment.center
+          : TabAlignment.start,
+      labelPadding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+      ),
+      dividerColor: Colors.transparent,
+      indicator: BoxDecoration(
+        color: Colors.white.withAlpha(45),
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+        border: Border.all(
+          color: Colors.white.withAlpha(60),
+          width: Responsive.width(context, 1),
+        ),
+      ),
+      indicatorSize: TabBarIndicatorSize.tab,
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered) ||
+            states.contains(WidgetState.pressed)) {
+          return Colors.white.withAlpha(15);
+        }
+        return Colors.transparent;
+      }),
+      splashBorderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+      labelColor: Colors.white,
+      unselectedLabelColor: Colors.white38,
+      labelStyle: GoogleFonts.manrope(
+        fontSize: Responsive.font(context, 15),
+        fontWeight: FontWeight.w700,
+      ),
+      unselectedLabelStyle: GoogleFonts.manrope(
+        fontSize: Responsive.font(context, 15),
+        fontWeight: FontWeight.w500,
+      ),
+      tabs: [for (final label in tabLabels) Tab(text: label)],
+    );
+    // On mobile fade the right edge only when there are tabs scrolled out of view to the right
+    final isAtEnd = _tabController.index >= tabSections.length - 2;
+    if (Responsive.isDesktop(context) || isAtEnd) return tabBar;
+    return ShaderMask(
+      shaderCallback: (bounds) => const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [Colors.white, Colors.white, Colors.transparent],
+        stops: [0.0, 0.95, 1.0],
+      ).createShader(bounds),
+      blendMode: BlendMode.dstIn,
+      child: tabBar,
+    );
+  }
+
   // Returns the list of achievement cards for a given section
   List<Widget> _buildCardsForSection(String section) {
     if (_isLoading) {
@@ -812,145 +875,99 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
       ),
       child: Container(
         decoration: BoxDecoration(gradient: buildThemeGradient()),
-        child: DefaultTabController(
-          length: tabSections.length,
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Column(
-              children: [
-                SizedBox(height: MediaQuery.paddingOf(context).top),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 12),
-                    vertical: Responsive.height(context, 8),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TabBar(
-                          isScrollable: true,
-                          tabAlignment: Responsive.isDesktop(context)
-                              ? TabAlignment.center
-                              : TabAlignment.start,
-                          labelPadding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 16),
-                          ),
-                          dividerColor: Colors.transparent,
-                          indicator: BoxDecoration(
-                            color: Colors.white.withAlpha(45),
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 20),
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(60),
-                              width: Responsive.width(context, 1),
-                            ),
-                          ),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          overlayColor: WidgetStateProperty.resolveWith((
-                            states,
-                          ) {
-                            if (states.contains(WidgetState.hovered) ||
-                                states.contains(WidgetState.pressed)) {
-                              return Colors.white.withAlpha(15);
-                            }
-                            return Colors.transparent;
-                          }),
-                          splashBorderRadius: BorderRadius.circular(
-                            Responsive.scale(context, 20),
-                          ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.white38,
-                          labelStyle: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            fontWeight: FontWeight.w700,
-                          ),
-                          unselectedLabelStyle: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          tabs: [
-                            for (final label in tabLabels) Tab(text: label),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _fetchBadgesData,
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            left: Responsive.width(context, 8),
-                          ),
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 10),
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
-                            border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.refresh,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Column(
+            children: [
+              SizedBox(height: MediaQuery.paddingOf(context).top),
+              // Refresh button row
+              Padding(
+                padding: EdgeInsets.only(
+                  top: Responsive.height(context, 16),
+                  bottom: Responsive.height(context, 12),
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                  right: Responsive.centeredHorizontalPadding(context, 20),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: _fetchBadgesData,
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.1,
+                          ).withAlpha(20),
+                          border: Border.all(
                             color: lightenColor(
                               appColorNotifier.value,
                               0.3,
                             ).withAlpha(180),
-                            size: Responsive.font(context, 13),
+                            width: 1.5,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      TabBarView(
-                        children: [
-                          for (final section in tabSections)
-                            SingleChildScrollView(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      Responsive.centeredHorizontalPadding(
-                                        context,
-                                        50,
-                                      ),
-                                  vertical: Responsive.height(context, 24),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    ..._buildCardsForSection(section),
-                                    SizedBox(
-                                      height: Responsive.height(context, 120),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: buildDailyRewardConfetti(
-                          badgesConfettiController,
+                        child: Icon(
+                          Icons.refresh,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          size: Responsive.font(context, 13),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // Category tab bar
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 12),
+                  vertical: Responsive.height(context, 8),
+                ),
+                child: _buildCategoryTabBar(context),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    TabBarView(
+                      controller: _tabController,
+                      children: [
+                        for (final section in tabSections)
+                          SingleChildScrollView(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    Responsive.centeredHorizontalPadding(
+                                      context,
+                                      50,
+                                    ),
+                                vertical: Responsive.height(context, 24),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  ..._buildCardsForSection(section),
+                                  SizedBox(
+                                    height: Responsive.height(context, 120),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: buildDailyRewardConfetti(badgesConfettiController),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
