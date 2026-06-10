@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -401,7 +402,11 @@ class _ExploreState extends State<Explore> {
       if (result['success'] == true) {
         // Update the local XP state so the XP bar updates
         if (result['new_level'] != null) {
+          final prevLevel = currentUserData!.level;
           currentUserData!.level = result['new_level'];
+          if (prevLevel < 3 && currentUserData!.level >= 3) {
+            FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+          }
         }
         if (result['new_exp'] != null) {
           currentUserData!.expPoints = result['new_exp'];

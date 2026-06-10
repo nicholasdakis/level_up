@@ -13,6 +13,7 @@ import '../utility/image_crop_handler.dart';
 import 'profile_image_service.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
@@ -466,8 +467,12 @@ class UserDataManager {
       }
 
       // Update local state from the backend response
+      final prevLevel = currentUserData!.level;
       currentUserData!.level = result['new_level'];
       currentUserData!.expPoints = result['new_exp'];
+      if (prevLevel < 3 && currentUserData!.level >= 3) {
+        FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+      }
       currentUserData!.canClaimDailyReward = false;
       currentUserData!.lastDailyClaim = DateTime.now().toUtc();
 

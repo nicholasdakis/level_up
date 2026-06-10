@@ -1909,3 +1909,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the refresh button above the tabs in Badges
 - Made refreshing the Badges tab stay on the currently selected tab with a tabController variable instead of defaulting to the first tab
 - Updated the profanity filter to directly use the library's contains_profanity method
+- Added firebase analytics event for reaching level 3

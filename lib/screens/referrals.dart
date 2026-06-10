@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,9 +70,13 @@ Future<void> checkPendingReferralReward(
                 if (claimRes.statusCode == 200) {
                   final claimData =
                       jsonDecode(claimRes.body) as Map<String, dynamic>;
+                  final prevLevel = currentUserData?.level ?? 0;
                   currentUserData?.level = claimData['new_level'];
                   currentUserData?.expPoints = claimData['new_exp'];
                   expNotifier.value = claimData['new_exp'];
+                  if (prevLevel < 3 && (currentUserData?.level ?? 0) >= 3) {
+                    FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+                  }
                   if (currentUserData != null) {
                     currentUserData!.referralCount =
                         currentUserData!.referralCount + 1;
@@ -301,9 +306,13 @@ Widget buildReferralsCard(BuildContext context) {
                       if (res.statusCode == 200) {
                         final data =
                             jsonDecode(res.body) as Map<String, dynamic>;
+                        final prevLevel2 = currentUserData?.level ?? 0;
                         currentUserData?.level = data['new_level'];
                         currentUserData?.expPoints = data['new_exp'];
                         currentUserData?.referralUsed = true;
+                        if (prevLevel2 < 3 && (currentUserData?.level ?? 0) >= 3) {
+                          FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+                        }
                         expNotifier.value = data['new_exp'];
                         userDataNotifier.notifyListeners();
                         Navigator.of(context, rootNavigator: true).pop();
