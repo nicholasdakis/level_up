@@ -744,6 +744,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
       controller: _tabController,
       isScrollable: true,
       physics: const BouncingScrollPhysics(),
+      dividerHeight: 0,
       tabAlignment: Responsive.isDesktop(context)
           ? TabAlignment.center
           : TabAlignment.start,
@@ -891,97 +892,105 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
         decoration: BoxDecoration(gradient: buildThemeGradient()),
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: Column(
-            children: [
-              SizedBox(height: MediaQuery.paddingOf(context).top),
-              // Refresh button row
-              Padding(
-                padding: EdgeInsets.only(
-                  top: Responsive.height(context, 16),
-                  bottom: Responsive.height(context, 12),
-                  left: Responsive.centeredHorizontalPadding(context, 20),
-                  right: Responsive.centeredHorizontalPadding(context, 20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: _fetchBadgesData,
-                      child: Container(
-                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.1,
-                          ).withAlpha(20),
-                          border: Border.all(
+          body: ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.paddingOf(context).top),
+                // Refresh button row
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: Responsive.height(context, 16),
+                    bottom: Responsive.height(context, 12),
+                    left: Responsive.centeredHorizontalPadding(context, 20),
+                    right: Responsive.centeredHorizontalPadding(context, 20),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: _fetchBadgesData,
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.refresh,
                             color: lightenColor(
                               appColorNotifier.value,
                               0.3,
                             ).withAlpha(180),
-                            width: 1.5,
+                            size: Responsive.font(context, 13),
                           ),
-                        ),
-                        child: Icon(
-                          Icons.refresh,
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
-                          size: Responsive.font(context, 13),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // Category tab bar
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 12),
-                  vertical: Responsive.height(context, 8),
+                // Category tab bar
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 12),
+                    vertical: Responsive.height(context, 8),
+                  ),
+                  child: _buildCategoryTabBar(context),
                 ),
-                child: _buildCategoryTabBar(context),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    TabBarView(
-                      controller: _tabController,
-                      children: [
-                        for (final section in tabSections)
-                          SingleChildScrollView(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    Responsive.centeredHorizontalPadding(
-                                      context,
-                                      50,
+                Expanded(
+                  child: Stack(
+                    children: [
+                      TabBarView(
+                        controller: _tabController,
+                        children: [
+                          for (final section in tabSections)
+                            SingleChildScrollView(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      Responsive.centeredHorizontalPadding(
+                                        context,
+                                        50,
+                                      ),
+                                  vertical: Responsive.height(context, 24),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    ..._buildCardsForSection(section),
+                                    SizedBox(
+                                      height: Responsive.height(context, 120),
                                     ),
-                                vertical: Responsive.height(context, 24),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  ..._buildCardsForSection(section),
-                                  SizedBox(
-                                    height: Responsive.height(context, 120),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: buildDailyRewardConfetti(badgesConfettiController),
-                    ),
-                  ],
+                        ],
+                      ),
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: buildDailyRewardConfetti(
+                          badgesConfettiController,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1077,23 +1086,9 @@ class _TierCarousel extends StatefulWidget {
 }
 
 class _TierCarouselState extends State<_TierCarousel> {
-  late final PageController _pageController;
-  int _currentPage = 0;
-
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.28);
-    // Force a rebuild after first frame so the initial active dot renders at full width
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -1128,62 +1123,40 @@ class _TierCarouselState extends State<_TierCarousel> {
                       width: Responsive.width(context, 1),
                     ),
                   ),
-                  child: PageView.builder(
-                    controller: _pageController,
-                    padEnds: false,
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    scrollBehavior: ScrollConfiguration.of(context).copyWith(
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
                       dragDevices: {
                         PointerDeviceKind.touch,
                         PointerDeviceKind.mouse,
                       },
                     ),
-                    itemCount: tiers.length,
-                    itemBuilder: (context, i) => Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 6),
-                        vertical: Responsive.height(context, 10),
-                      ),
-                      child: widget.tierChipBuilder(
-                        widget.def,
-                        tiers[i],
-                        index: i,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const ClampingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          SizedBox(width: Responsive.width(context, 6)),
+                          for (int i = 0; i < tiers.length; i++) ...[
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 6),
+                                vertical: Responsive.height(context, 10),
+                              ),
+                              child: widget.tierChipBuilder(
+                                widget.def,
+                                tiers[i],
+                                index: i,
+                              ),
+                            ),
+                          ],
+                          SizedBox(width: Responsive.width(context, 6)),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-            if (tiers.length > 1) ...[
-              SizedBox(height: Responsive.height(context, 6)),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (int i = 0; i < tiers.length; i++) ...[
-                    if (i > 0) SizedBox(width: Responsive.width(context, 4)),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: Responsive.scale(
-                        context,
-                        _currentPage == i ? 16 : 6,
-                      ),
-                      height: Responsive.scale(context, 6),
-                      decoration: BoxDecoration(
-                        color: _currentPage == i
-                            ? lightenColor(
-                                appColorNotifier.value,
-                                0.4,
-                              ).withAlpha(220)
-                            : Colors.white.withAlpha(50),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 3),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
           ],
         ),
       ),

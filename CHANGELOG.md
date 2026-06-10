@@ -1912,3 +1912,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added firebase analytics event for reaching level 3
 - Progress bar in badge cards is now static instead of animating on every tab switch
 - Badge cards slide in with a staggered fade when a section loads
+- Made badge tiers freely scrollable
+- Added NoGlowScrollBehavior class to Badges to prevent widgets lightening up
