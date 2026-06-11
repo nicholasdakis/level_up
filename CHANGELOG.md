@@ -1930,3 +1930,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the app icon with a new pixelated heart design across Android, iOS, and web
 - Configured adaptive icon layers for Android with separate background and foreground PNGs
 - Updated registration page colors to align with the new logo
+- Added the desktop centeredHorzontalPadding to the Install as PWA page

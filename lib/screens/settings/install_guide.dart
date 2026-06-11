@@ -164,31 +164,19 @@ class InstallGuide extends StatelessWidget {
         body: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: Responsive.width(context, 50),
+              horizontal: Responsive.centeredHorizontalPadding(context, 20),
               vertical: Responsive.height(context, 24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // App logo section
                 Center(
                   child: Image.asset(
                     'assets/app_logo_transparent_bg.png',
-                    height: Responsive.height(context, 200),
+                    height: Responsive.height(context, 80),
                   ),
                 ),
-                SizedBox(height: Responsive.height(context, 8)),
-                Center(
-                  child: Text(
-                    "Install Level Up! for a more convenient experience!",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 14),
-                      color: Colors.white38,
-                    ),
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 28)),
+                SizedBox(height: Responsive.height(context, 20)),
 
                 // Chromium section
                 sectionHeader("CHROMIUM-BASED BROWSERS (RECOMMENDED)", context),

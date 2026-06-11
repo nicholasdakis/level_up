@@ -41,7 +41,9 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
 
   // Pulse the glow forward and back on tap, then open the drawer
   void _handleTap() {
-    _controller.forward(from: 0).then((_) => _controller.reverse());
+    _controller.forward(from: 0).then((_) {
+      if (mounted) _controller.reverse();
+    });
     widget.onTap();
   }
 

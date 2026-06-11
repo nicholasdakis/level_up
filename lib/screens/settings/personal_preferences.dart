@@ -276,7 +276,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                       TextButton(
                         child: Text('Default'),
                         onPressed: () async {
-                          await applyAppColor(Color.fromARGB(255, 45, 45, 45));
+                          await applyAppColor(defaultAppColor);
                           Navigator.of(context).pop();
                         },
                       ),
