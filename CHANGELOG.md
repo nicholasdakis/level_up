@@ -1924,3 +1924,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Increased max size of the tier chip holder on desktop
 - Refreshing the browser now restores the current screen instead of redirecting to the home tab
 - Moved confetti controller initialization to main() so it works when landing directly on any screen
+- Added a changelog screen accessible by tapping the version text in the settings drawer
+- Added a chevron to the version text to show it is clickable
+- Added a route connecting to the changelog screen

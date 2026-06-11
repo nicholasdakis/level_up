@@ -311,28 +311,42 @@ Widget buildSettingsDrawer(
                 bottom: Responsive.height(context, 24),
               ),
               child: Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 10),
-                    vertical: Responsive.height(context, 4),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(12),
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 20),
+                child: GestureDetector(
+                  onTap: () => context.push('/settings/changelog'),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 10),
+                      vertical: Responsive.height(context, 4),
                     ),
-                    border: Border.all(
-                      color: Colors.white.withAlpha(20),
-                      width: 1,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(12),
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 20),
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(20),
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    "Release 1.1.1",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 11),
-                      color: Colors.white.withAlpha(80),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Release 1.1.1",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: Colors.white.withAlpha(80),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 4)),
+                        Icon(
+                          Icons.chevron_right,
+                          color: Colors.white.withAlpha(80),
+                          size: Responsive.font(context, 13),
+                        ),
+                      ],
                     ),
                   ),
                 ),

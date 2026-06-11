@@ -16,6 +16,7 @@ import 'screens/explore.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
+import 'screens/settings/changelog.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
 import 'screens/log_food_screen.dart';
@@ -295,6 +296,11 @@ final GoRouter appRouter = GoRouter(
       path: '/settings/install',
       pageBuilder: (context, state) =>
           _slidePage(key: state.pageKey, child: const InstallGuide()),
+    ),
+    GoRoute(
+      path: '/settings/changelog',
+      pageBuilder: (context, state) =>
+          _slidePage(key: state.pageKey, child: const ChangelogScreen()),
     ),
   ],
 );
