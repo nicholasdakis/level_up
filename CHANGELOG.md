@@ -1924,10 +1924,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Increased max size of the tier chip holder on desktop
 - Refreshing the browser now restores the current screen instead of redirecting to the home tab
 - Moved confetti controller initialization to main() so it works when landing directly on any screen
-- Added a changelog screen accessible by tapping the version text in the settings drawer
+- Added a changelog screen accessible by tapping the version text in the settings drawer (this screen!)
 - Added a chevron to the version text to show it is clickable
 - Added a route connecting to the changelog screen
 - Replaced the app icon with a new pixelated heart design across Android, iOS, and web
 - Configured adaptive icon layers for Android with separate background and foreground PNGs
 - Updated registration page colors to align with the new logo
 - Added the desktop centeredHorzontalPadding to the Install as PWA page
+- Added a "total xp" text to the progress bar card in the home screen
+- Added a totalXpEarned method
+- Added a formatNumber method to shrink big numbers

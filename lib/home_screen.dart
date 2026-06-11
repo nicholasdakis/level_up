@@ -81,6 +81,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  String _formatNumber(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return n.toString();
+  }
+
   void _onFoodChanged() {
     if (mounted) setState(() {});
   }
@@ -607,7 +613,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   SizedBox(height: Responsive.height(context, 6)),
-                  // XP to next level
+                  // XP to next level + total XP earned
                   if (!isGuest)
                     Builder(
                       builder: (context) {
@@ -616,13 +622,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           0,
                           needed,
                         );
-                        return Text(
-                          "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
-                          style: GoogleFonts.manrope(
-                            color: lightenColor(appColorNotifier.value, 0.45),
-                            fontSize: Responsive.font(context, 11),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
+                              style: GoogleFonts.manrope(
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.45,
+                                ),
+                                fontSize: Responsive.font(context, 11),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
+                              style: GoogleFonts.manrope(
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.35,
+                                ),
+                                fontSize: Responsive.font(context, 11),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),

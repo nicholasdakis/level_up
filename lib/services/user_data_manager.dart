@@ -108,6 +108,17 @@ class UserDataManager {
     return (exp / 10).round() * 10;
   }
 
+  // Calculates total lifetime XP by summing the XP needed for each completed level plus current progress
+  int? get totalXpEarned {
+    if (currentUserData == null) return null;
+    int total = 0;
+    for (int level = 1; level < currentUserData!.level; level++) {
+      int exp = (100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)).round();
+      total += (exp / 10).round() * 10;
+    }
+    return total + (currentUserData!.expPoints);
+  }
+
   // Loads all user data from the backend in a single call
   Future<void> loadUserData() async {
     final stopwatch = Stopwatch()..start();

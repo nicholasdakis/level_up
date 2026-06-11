@@ -62,6 +62,19 @@ class ChangelogScreen extends StatelessWidget {
           children: [
             _buildChangelogCard(
               context,
+              date: 'June 11, 2026',
+              version: '1.1.2',
+              changes: [
+                'New app icon: a pixelated heart design',
+                'Added a changelog screen (this one!) to view a history of changes — tap the version number in the settings drawer to open it',
+                'Badge cards now slide in on first load instead of replaying the animation on every tab switch',
+                'Login screen updated to match the new brand colors',
+                'Total lifetime XP is now shown on the home screen next to the progress bar',
+                'Bug fixes and performance improvements',
+              ],
+            ),
+            _buildChangelogCard(
+              context,
               date: 'June 9, 2026',
               version: '1.1.1',
               changes: [
