@@ -165,13 +165,12 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
     );
     final enabledBorder = OutlineInputBorder(
       borderRadius: radius,
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
+      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
     );
-    // Amber glow on focus so the active field is unmistakable
     final focusedBorder = OutlineInputBorder(
       borderRadius: radius,
       borderSide: BorderSide(
-        color: const Color(0xFFFFA726).withValues(alpha: 0.7),
+        color: const Color(0xFFFF4D86).withValues(alpha: 0.7),
         width: Responsive.scale(context, 1.5),
       ),
     );
@@ -252,11 +251,11 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFB300), Color(0xFFE65100)],
+              colors: [Color(0xFFFF6BA8), Color(0xFFFF2D6B)],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
-            border: Border.all(color: Color(0xFFFF7043), width: 1.5),
+            border: Border.all(color: Color(0xFFFF4D86), width: 1.5),
           ),
           child: buttonChild,
         ),
@@ -451,7 +450,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
           "Track your habits. Improve yourself. Level Up!",
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
-            color: Colors.white60,
+            color: Colors.white38,
             fontSize: Responsive.font(context, 14),
             fontWeight: FontWeight.w400,
             letterSpacing: 0.3,
@@ -531,10 +530,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         alignment: Alignment.centerRight,
         child: TextButton(
           onPressed: handleForgotPassword,
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF4D86)),
           child: Text(
             "Forgot Password?",
             style: GoogleFonts.manrope(
-              color: const Color(0xFFFFB300),
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w500,
             ),
