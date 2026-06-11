@@ -5,10 +5,18 @@ description: "A health application that motivates you to workout."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 flutter_launcher_icons:
-  android: true
+  image_path: "assets/icon/ios-universal-1024.png"
   ios: true
-  image_path: "assets/app_logo_transparent_bg.png"
   remove_alpha_ios: true
+  android: true
+  adaptive_icon_background: "assets/icon/android-background-1024.png"
+  adaptive_icon_foreground: "assets/icon/android-foreground-1024.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon/ios-universal-1024.png"
+    background_color: "#FF4D86"
+    theme_color: "#FF4D86"
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43

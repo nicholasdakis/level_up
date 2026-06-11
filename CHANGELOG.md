@@ -1927,3 +1927,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a changelog screen accessible by tapping the version text in the settings drawer
 - Added a chevron to the version text to show it is clickable
 - Added a route connecting to the changelog screen
+- Replaced the app icon with a new pixelated heart design across Android, iOS, and web
+- Configured adaptive icon layers for Android with separate background and foreground PNGs
