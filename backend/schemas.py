@@ -73,7 +73,7 @@ class UpdateGoalsRequest(BaseModel):
     protein_goal: int | None = None
     carbs_goal: int | None = None
     fat_goal: int | None = None
-    weekly_workout_goal: int | None = None
+    weekly_workouts_goal: int | None = None
 
     weight_goal_type: str | None = Field(
         default=None,

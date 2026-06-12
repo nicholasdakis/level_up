@@ -25,7 +25,7 @@ class UserData {
   int? carbsGoal;
   int? fatGoal;
   String? weightGoalType;
-  int? weeklyWorkoutGoal;
+  int? weeklyWorkoutsGoal;
   String? referralCode;
   int referralCount = 0;
   bool referralUsed = false;
@@ -53,7 +53,7 @@ class UserData {
     this.carbsGoal,
     this.fatGoal,
     this.weightGoalType,
-    this.weeklyWorkoutGoal,
+    this.weeklyWorkoutsGoal,
     this.referralCode,
     this.referralCount = 0,
     this.referralUsed = false,

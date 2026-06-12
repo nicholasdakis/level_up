@@ -451,7 +451,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         carbs_goal: int | None,
         fat_goal: int | None,
         weight_goal_type: str | None,
-        weekly_workout_goal: int | None,
+        weekly_workouts_goal: int | None,
     ):
         data = {
             "calories_goal": calories_goal,
@@ -459,7 +459,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "carbs_goal": carbs_goal,
             "fat_goal": fat_goal,
             "weight_goal_type": weight_goal_type,
-            "weekly_workout_goal": weekly_workout_goal,
+            "weekly_workouts_goal": weekly_workouts_goal,
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 

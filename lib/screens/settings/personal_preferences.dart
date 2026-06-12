@@ -319,7 +319,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       text: currentUserData?.fatGoal?.toString() ?? '',
     );
     final workoutGoalCtrl = TextEditingController(
-      text: currentUserData?.weeklyWorkoutGoal?.toString() ?? '',
+      text: currentUserData?.weeklyWorkoutsGoal?.toString() ?? '',
     );
     String? weightGoal = currentUserData?.weightGoalType;
 
@@ -412,7 +412,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         carbsGoal: int.tryParse(carbCtrl.text.trim()),
                         fatGoal: int.tryParse(fatCtrl.text.trim()),
                         weightGoalType: weightGoal,
-                        weeklyWorkoutGoal: int.tryParse(
+                        weeklyWorkoutsGoal: int.tryParse(
                           workoutGoalCtrl.text.trim(),
                         ),
                         context:
