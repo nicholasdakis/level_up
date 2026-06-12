@@ -130,3 +130,54 @@ CREATE TABLE goals (
     weight_goal_type TEXT CHECK (weight_goal_type IN ('lose', 'gain', 'maintain')),
     last_updated TIMESTAMPTZ NOT NULL
 );
+
+-- A single workout session logged by a user
+CREATE TABLE workouts (
+    workout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    name TEXT,                              -- optional name (e.g. "Push Day")
+    date DATE NOT NULL,
+    duration_minutes INTEGER,               -- total session duration
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Links exercises to a workout session, one row per exercise in the session
+CREATE TABLE workout_exercises (
+    workout_exercise_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workout_id UUID NOT NULL REFERENCES workouts(workout_id) ON DELETE CASCADE,
+    exercise_id INTEGER NOT NULL,           -- Wger API exercise ID
+    exercise_name TEXT NOT NULL,            -- cached at log time so it survives API changes
+    exercise_order INTEGER NOT NULL         -- display order within the session
+);
+
+-- Individual sets within a workout exercise entry
+CREATE TABLE workout_sets (
+    set_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workout_exercise_id UUID NOT NULL REFERENCES workout_exercises(workout_exercise_id) ON DELETE CASCADE,
+    set_number INTEGER NOT NULL,
+    reps INTEGER,                           -- nullable: not used for cardio
+    weight_kg NUMERIC(6, 2),               -- nullable: not used for bodyweight or cardio
+    duration_seconds INTEGER,              -- nullable: used for timed exercises and cardio
+    distance_km NUMERIC(6, 3)              -- nullable: used for cardio
+);
+
+-- Saved workout templates (reusable routines a user can start from)
+CREATE TABLE workout_templates (
+    template_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,  -- owner of the template
+    name TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Exercises within a saved template, with default values pre-filled when the user starts a workout
+CREATE TABLE workout_template_exercises (
+    template_exercise_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id UUID NOT NULL REFERENCES workout_templates(template_id) ON DELETE CASCADE,
+    exercise_id INTEGER NOT NULL,           -- Wger API exercise ID
+    exercise_name TEXT NOT NULL,            -- cached so it survives API changes
+    exercise_order INTEGER NOT NULL,        -- display order within the template
+    default_sets INTEGER,                   -- pre-filled set count when starting a workout
+    default_reps INTEGER,                   -- pre-filled rep count
+    default_weight_kg NUMERIC(6, 2)         -- pre-filled weight
+);
