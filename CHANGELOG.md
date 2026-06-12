@@ -1944,3 +1944,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added cards in the progression tab leading to Badges and Leaderboard screens
 - Created push routes for Badges and Leaderboard as they are now accessible through cards in the Progress tab
 - Added back buttons to Badges and Leaderboard tabs
+- Added workout-related SQL tables (workout tables: 1 for each workout, workout_exercises table: 1 for each exercise in each workout, workout_sets: 1 for each set of each exercise in each workout)
+- Added SQL tables for workout templates for reusable routines
+- Added weekly_workout_goal to the goals table
+- Added a card for setting weekly_workout_goal in Personal Preferences
+- Limited the workout goal entry to 1-3 digits
+- Added weeklyWorkoutGoal to UserData
+- Edited updatedGoals method to also include weeklyWorkoutGoal
+- Edited update_goals in the backend to accept weekly_workout_goal
+- Edited user_data in the backend to load weekly_workout_goal
+- Edited UpdateGoalsRequest to handle the weekly workout goal

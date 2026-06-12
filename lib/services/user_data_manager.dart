@@ -239,6 +239,8 @@ class UserDataManager {
         currentUserData?.carbsGoal = data['goals']['carbs_goal'];
         currentUserData?.fatGoal = data['goals']['fat_goal'];
         currentUserData?.weightGoalType = data['goals']['weight_goal_type'];
+        currentUserData?.weeklyWorkoutGoal =
+            data['goals']['weekly_workout_goal'];
       }
 
       currentUserData?.referralCode = data['referral_code'];
@@ -878,6 +880,7 @@ class UserDataManager {
     int? carbsGoal,
     int? fatGoal,
     String? weightGoalType,
+    int? weeklyWorkoutGoal,
     BuildContext? context,
   }) async {
     if (isGuest) {
@@ -893,6 +896,7 @@ class UserDataManager {
           'carbs_goal': carbsGoal,
           'fat_goal': fatGoal,
           'weight_goal_type': weightGoalType,
+          'weekly_workout_goal': weeklyWorkoutGoal,
         },
         timeout: const Duration(seconds: 2),
       );
@@ -911,6 +915,9 @@ class UserDataManager {
         if (fatGoal != null) currentUserData!.fatGoal = fatGoal;
         if (weightGoalType != null) {
           currentUserData!.weightGoalType = weightGoalType;
+        }
+        if (weeklyWorkoutGoal != null) {
+          currentUserData!.weeklyWorkoutGoal = weeklyWorkoutGoal;
         }
         userDataNotifier.notifyListeners();
       }

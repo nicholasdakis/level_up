@@ -128,6 +128,7 @@ CREATE TABLE goals (
     carbs_goal INTEGER,
     fat_goal INTEGER,
     weight_goal_type TEXT CHECK (weight_goal_type IN ('lose', 'gain', 'maintain')),
+    weekly_workout_goal INTEGER,         -- target number of workouts per week, nullable if not set
     last_updated TIMESTAMPTZ NOT NULL
 );
 

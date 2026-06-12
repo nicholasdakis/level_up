@@ -352,6 +352,7 @@ def update_goals():
         carbs_goal=body.carbs_goal,
         fat_goal=body.fat_goal,
         weight_goal_type=body.weight_goal_type,
+        weekly_workout_goal=body.weekly_workout_goal,
     )
 
     # Step 3: Return updated state

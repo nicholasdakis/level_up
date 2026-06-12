@@ -318,6 +318,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
     final fatCtrl = TextEditingController(
       text: currentUserData?.fatGoal?.toString() ?? '',
     );
+    final workoutGoalCtrl = TextEditingController(
+      text: currentUserData?.weeklyWorkoutGoal?.toString() ?? '',
+    );
     String? weightGoal = currentUserData?.weightGoalType;
 
     await showFrostedDialog(
@@ -345,6 +348,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     _goalField(proCtrl, "Protein (g)"),
                     _goalField(carbCtrl, "Carbs (g)"),
                     _goalField(fatCtrl, "Fat (g)"),
+                    _goalField(
+                      workoutGoalCtrl,
+                      "Weekly Workouts",
+                      maxLength: 3,
+                    ),
                     SizedBox(height: Responsive.height(context, 16)),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -404,6 +412,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                         carbsGoal: int.tryParse(carbCtrl.text.trim()),
                         fatGoal: int.tryParse(fatCtrl.text.trim()),
                         weightGoalType: weightGoal,
+                        weeklyWorkoutGoal: int.tryParse(
+                          workoutGoalCtrl.text.trim(),
+                        ),
                         context:
                             context, // dialogContext so snackbar works after popping
                       );
@@ -423,7 +434,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   }
 
   // single text field used inside the goals dialog
-  Widget _goalField(TextEditingController ctrl, String hint) {
+  Widget _goalField(
+    TextEditingController ctrl,
+    String hint, {
+    int maxLength = 4,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextField(
@@ -431,7 +446,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         keyboardType: TextInputType.number,
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(4),
+          LengthLimitingTextInputFormatter(maxLength),
         ],
         decoration: InputDecoration(
           hintText: hint,
