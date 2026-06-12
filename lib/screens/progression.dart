@@ -1,0 +1,177 @@
+import 'package:flutter/material.dart';
+import 'dart:ui';
+import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '/globals.dart';
+import '/utility/responsive.dart';
+
+class Progression extends StatefulWidget {
+  const Progression({super.key});
+
+  @override
+  State<Progression> createState() => _ProgressionState();
+}
+
+class _ProgressionState extends State<Progression> {
+  late final VoidCallback _colorListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _colorListener = () {
+      if (mounted) setState(() {});
+    };
+    appColorNotifier.addListener(_colorListener);
+  }
+
+  @override
+  void dispose() {
+    appColorNotifier.removeListener(_colorListener);
+    super.dispose();
+  }
+
+  Widget _buildCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final barColor = lightenColor(appColorNotifier.value, 0.3);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 18)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 18),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(18), width: 1),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 20),
+                vertical: Responsive.height(context, 20),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                        decoration: BoxDecoration(
+                          color: appColorNotifier.value.withAlpha(50),
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 12),
+                          ),
+                          border: Border.all(
+                            color: barColor.withAlpha(80),
+                            width: 1,
+                          ),
+                        ),
+                        child: HugeIcon(
+                          icon: icon,
+                          color: barColor,
+                          size: Responsive.scale(context, 26),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 16)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 16),
+                            color: accent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: Responsive.height(context, 3)),
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: dim,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: Colors.white24,
+                    size: Responsive.scale(context, 20),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: ScrollConfiguration(
+          behavior: NoGlowScrollBehavior(),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.centeredHorizontalPadding(context, 20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height:
+                        MediaQuery.paddingOf(context).top +
+                        Responsive.height(context, 24),
+                  ),
+                  sectionHeader("BADGES", context),
+                  SizedBox(height: Responsive.height(context, 12)),
+                  _buildCard(
+                    icon: HugeIcons.strokeRoundedCrown,
+                    title: "Badges",
+                    subtitle: "Track achievements and claim tier rewards",
+                    onTap: () => context.push('/badges'),
+                  ),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  sectionHeader("LEADERBOARD", context),
+                  SizedBox(height: Responsive.height(context, 12)),
+                  _buildCard(
+                    icon: HugeIcons.strokeRoundedMedal01,
+                    title: "Leaderboard",
+                    subtitle: "See how you rank against other players",
+                    onTap: () => context.push('/leaderboard'),
+                  ),
+                  SizedBox(height: Responsive.height(context, 120)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

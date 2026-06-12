@@ -23,8 +23,8 @@ class _AppShellState extends State<AppShell> {
         children: [
           // Tab content, each branch keeps its own navigator alive
           widget.navigationShell,
-          // Floating nav bar, hidden on Explore (index 2) since it covers the map
-          if (selectedIndex != 2)
+          // Floating nav bar, hidden on Explore (index 4) since it covers the map
+          if (selectedIndex != 4)
             Positioned(
               bottom: Responsive.padding(context, 16),
               left: Responsive.padding(context, 24),

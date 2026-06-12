@@ -7,22 +7,22 @@ import '../utility/responsive.dart';
 const _navRoutes = [
   '/',
   '/food-logging',
+  '/workout',
+  '/progression',
   '/explore',
-  '/leaderboard',
-  '/badges',
 ];
 
 // icons for each tab
 const _navIcons = [
   HugeIcons.strokeRoundedHome09,
   HugeIcons.strokeRoundedPencil,
+  HugeIcons.strokeRoundedDumbbell01,
+  HugeIcons.strokeRoundedMedal02,
   HugeIcons.strokeRoundedLocation01,
-  HugeIcons.strokeRoundedMedal01,
-  HugeIcons.strokeRoundedCrown,
 ];
 
 // Labels shown below each icon, active label is slightly larger and bolder
-const _navLabels = ['Home', 'Food', 'Explore', 'Leaderboard', 'Badges'];
+const _navLabels = ['Home', 'Food', 'Workout', 'Progress', 'Explore'];
 
 // Floating frosted glass bottom navigation bar with 5 persistent tabs
 class FloatingNavBar extends StatelessWidget {

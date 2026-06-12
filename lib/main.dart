@@ -17,7 +17,6 @@ import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
 
 Future<void> main() async {
-  final stopwatch = Stopwatch()..start();
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     // extend flutter's canvas behind the status bar and nav bar

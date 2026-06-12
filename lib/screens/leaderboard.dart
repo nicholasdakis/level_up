@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
 import '../guest.dart';
@@ -243,8 +244,7 @@ class _LeaderboardState extends State<Leaderboard> {
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
-        backgroundColor: Colors.transparent, // Body color
-        // Header box
+        backgroundColor: Colors.transparent,
         body: FutureBuilder<List<LeaderboardEntry>>(
           future: _leaderboardFuture,
           builder: (context, snapshot) {
@@ -307,8 +307,38 @@ class _LeaderboardState extends State<Leaderboard> {
                         bottom: Responsive.height(context, 12),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 12),
+                              ),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.1,
+                                ).withAlpha(20),
+                                border: Border.all(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.3,
+                                  ).withAlpha(180),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ).withAlpha(180),
+                                size: Responsive.font(context, 13),
+                              ),
+                            ),
+                          ),
                           GestureDetector(
                             onTap: _refreshLeaderboard,
                             child: Container(

@@ -10,6 +10,7 @@ import "/utility/responsive.dart";
 import '/utility/confetti.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../services/user_data_manager.dart';
+import 'package:go_router/go_router.dart';
 
 // Achievement definition with tiers for the UI
 class AchievementDef {
@@ -905,7 +906,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
             child: Column(
               children: [
                 SizedBox(height: MediaQuery.paddingOf(context).top),
-                // Refresh button row
+                // Back button + refresh button row
                 Padding(
                   padding: EdgeInsets.only(
                     top: Responsive.height(context, 16),
@@ -914,8 +915,38 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                     right: Responsive.centeredHorizontalPadding(context, 20),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
+                        ),
+                      ),
                       GestureDetector(
                         onTap: _fetchBadgesData,
                         child: Container(

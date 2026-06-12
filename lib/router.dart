@@ -12,6 +12,7 @@ import 'screens/food_analytics.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
+import 'screens/progression.dart';
 import 'screens/explore.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
@@ -44,7 +45,7 @@ final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
 final _exploreNavKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
 final _leaderboardNavKey = GlobalKey<NavigatorState>(debugLabel: 'leaderboard');
-final _badgesNavKey = GlobalKey<NavigatorState>(debugLabel: 'badges');
+final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
 
 // slides in from the right on push, instant on pop
 Page _slidePage({required LocalKey key, required Widget child}) {
@@ -203,6 +204,34 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
 
+        // Workout tab
+        StatefulShellBranch(
+          navigatorKey: _workoutNavKey,
+          routes: [
+            GoRoute(
+              path: '/workout',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const Placeholder(),
+              ),
+            ),
+          ],
+        ),
+
+        // Progression tab
+        StatefulShellBranch(
+          navigatorKey: _leaderboardNavKey,
+          routes: [
+            GoRoute(
+              path: '/progression',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const Progression(),
+              ),
+            ),
+          ],
+        ),
+
         // Explore tab
         StatefulShellBranch(
           navigatorKey: _exploreNavKey,
@@ -214,36 +243,20 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-
-        // Leaderboard tab
-        StatefulShellBranch(
-          navigatorKey: _leaderboardNavKey,
-          routes: [
-            GoRoute(
-              path: '/leaderboard',
-              pageBuilder: (context, state) => NoTransitionPage(
-                key: state.pageKey,
-                child: const Leaderboard(),
-              ),
-            ),
-          ],
-        ),
-
-        // Badges tab
-        StatefulShellBranch(
-          navigatorKey: _badgesNavKey,
-          routes: [
-            GoRoute(
-              path: '/badges',
-              pageBuilder: (context, state) =>
-                  NoTransitionPage(key: state.pageKey, child: const Badges()),
-            ),
-          ],
-        ),
       ],
     ),
 
     // Push routes over the shell (no nav bar visible on these)
+    GoRoute(
+      path: '/badges',
+      pageBuilder: (context, state) =>
+          _slidePage(key: state.pageKey, child: const Badges()),
+    ),
+    GoRoute(
+      path: '/leaderboard',
+      pageBuilder: (context, state) =>
+          _slidePage(key: state.pageKey, child: const Leaderboard()),
+    ),
     GoRoute(
       path: '/reminders',
       pageBuilder: (context, state) =>

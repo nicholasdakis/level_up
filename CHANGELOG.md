@@ -1937,3 +1937,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-12
 - Deferred AdMob initialization to after runApp so it no longer blocks the app's cold start time
+- Created a progression screen
+- Added a Progress tab in the nav bar which replaces the Badges and Leaderboard tabs
+- Added a Workout tab to the bottom nav bar leading to a currently empty workout screen
+- Rearranged the bottom nav bar tabs
+- Added cards in the progression tab leading to Badges and Leaderboard screens
+- Created push routes for Badges and Leaderboard as they are now accessible through cards in the Progress tab
+- Added back buttons to Badges and Leaderboard tabs
