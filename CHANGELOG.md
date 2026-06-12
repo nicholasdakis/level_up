@@ -1934,3 +1934,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a "total xp" text to the progress bar card in the home screen
 - Added a totalXpEarned method
 - Added a formatNumber method to shrink big numbers
+
+## 2026-06-12
+- Deferred AdMob initialization to after runApp so it no longer blocks the app's cold start time

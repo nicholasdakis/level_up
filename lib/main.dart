@@ -17,6 +17,7 @@ import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
 
 Future<void> main() async {
+  final stopwatch = Stopwatch()..start();
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     // extend flutter's canvas behind the status bar and nav bar
@@ -40,14 +41,13 @@ Future<void> main() async {
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseAnalytics.instance; // initialize analytics
-  if (!kIsWeb) {
-    await MobileAds.instance.initialize();
-    adService.loadRewardedAd();
-  }
-
   confettiControllerinit();
   appLaunchUri = Uri.base;
   runApp(const MyApp());
+
+  if (!kIsWeb) {
+    MobileAds.instance.initialize().then((_) => adService.loadRewardedAd());
+  }
 
   // wait until the first frame is fully painted before fading out the splash
   WidgetsBinding.instance.addPostFrameCallback((_) {
