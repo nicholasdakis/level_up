@@ -1,12 +1,27 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 
 // Tutorial screen for installing the app as a PWA on browsers that don't support
-class InstallGuide extends StatelessWidget {
+class InstallGuide extends StatefulWidget {
   const InstallGuide({super.key});
+
+  @override
+  State<InstallGuide> createState() => _InstallGuideState();
+}
+
+class _InstallGuideState extends State<InstallGuide> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/settings/install',
+      screenClass: 'InstallGuide',
+    );
+  }
 
   Widget _buildStep(BuildContext context, String number, String text) {
     return Padding(

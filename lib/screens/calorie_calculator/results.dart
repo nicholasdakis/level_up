@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +38,15 @@ class Results extends StatefulWidget {
 }
 
 class _ResultsState extends State<Results> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/calorie-calculator/results',
+      screenClass: 'Results',
+    );
+  }
+
   late final String bmr = calculateBMR();
   late final int tdee = calculateTDEE(bmr, calculateActivityLevel());
   int?

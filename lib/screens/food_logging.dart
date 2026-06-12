@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'log_food_screen.dart';
@@ -83,6 +84,10 @@ class _FoodLoggingState extends State<FoodLogging> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/food-logging',
+      screenClass: 'FoodLogging',
+    );
     _colorListener = () {
       if (mounted) setState(() {});
     };

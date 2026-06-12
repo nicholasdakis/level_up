@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -369,6 +370,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/calorie-calculator',
+      screenClass: 'CalorieCalculator',
+    );
     restoreCalculatorDataFromPrefs().catchError((e) {
       if (kDebugMode) {
         debugPrint('Failed to restore calculator data ${e.runtimeType}');

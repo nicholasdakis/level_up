@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -15,6 +16,15 @@ class AboutTheDeveloper extends StatefulWidget {
 }
 
 class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/settings/developer',
+      screenClass: 'AboutTheDeveloper',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(

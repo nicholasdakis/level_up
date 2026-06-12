@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
 import '../globals.dart';
@@ -53,6 +54,10 @@ class _LeaderboardState extends State<Leaderboard> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/leaderboard',
+      screenClass: 'Leaderboard',
+    );
     _leaderboardFuture = leaderboardService.fetchLeaderboard();
     if (isGuest) Guest.blockOnOpen(context); // For guest users
     _colorListener = () {

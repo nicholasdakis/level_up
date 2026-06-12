@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -115,6 +116,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/food-logging/log',
+      screenClass: 'LogFoodScreen',
+    );
     _loadRecentFoods();
     _loadRecentExpanded();
     _voiceSearch.init(() {

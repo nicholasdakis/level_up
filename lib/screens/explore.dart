@@ -111,6 +111,10 @@ class _ExploreState extends State<Explore> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/explore',
+      screenClass: 'Explore',
+    );
     _colorListener = () {
       if (mounted) setState(() {});
     };

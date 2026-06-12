@@ -1,4 +1,5 @@
-﻿import 'dart:math';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'dart:math';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,6 +47,10 @@ class _RemindersState extends State<Reminders> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/reminders',
+      screenClass: 'Reminders',
+    );
     reminders = List.from(
       currentUserData?.reminders ?? [],
     ); // show cached data instantly

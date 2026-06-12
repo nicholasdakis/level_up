@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -52,6 +53,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/food-logging/analytics',
+      screenClass: 'FoodAnalyticsScreen',
+    );
     _tabController = TabController(length: 2, vsync: this);
     currentDate = widget.initialDate;
     _loadForDate(currentDate);

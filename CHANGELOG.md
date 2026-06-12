@@ -1960,3 +1960,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a count_users_above_rank RPC function to efficiently calculate users above a specific user for calculating the user's rank
 - Added cards in the Progress tab showing the user's current rank out of the current total user count
 - Added skeletonizers for the cards above
+- Added Firebase Analytics screen tracking for all tab screens and push routes so Firebase reports actual screen names instead of only MainActivity

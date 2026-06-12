@@ -1,11 +1,26 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ChangelogScreen extends StatelessWidget {
+class ChangelogScreen extends StatefulWidget {
   const ChangelogScreen({super.key});
+
+  @override
+  State<ChangelogScreen> createState() => _ChangelogScreenState();
+}
+
+class _ChangelogScreenState extends State<ChangelogScreen> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/settings/changelog',
+      screenClass: 'ChangelogScreen',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

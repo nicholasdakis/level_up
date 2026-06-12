@@ -1,4 +1,5 @@
 // home_screen.dart
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -53,6 +54,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/',
+      screenClass: 'HomeScreen',
+    );
     _greeting = _buildGreeting();
 
     _appColorListener = () {

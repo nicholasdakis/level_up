@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -100,6 +101,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/settings/preferences',
+      screenClass: 'PersonalPreferences',
+    );
     // Load the user's stored recent foods max
     _recentFoodsService.getRecentFoodsMax().then((val) {
       if (mounted && val != null) setState(() => _recentFoodsMax = val);

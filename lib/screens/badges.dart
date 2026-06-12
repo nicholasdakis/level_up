@@ -1,4 +1,5 @@
-﻿import "package:flutter/material.dart";
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import "package:flutter/material.dart";
 import 'dart:ui';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
@@ -136,6 +137,10 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/badges',
+      screenClass: 'Badges',
+    );
     _tabController = TabController(length: tabSections.length, vsync: this);
     // Rebuild when tab changes so the fade hides when the last tab is selected
     _tabController.addListener(() {
