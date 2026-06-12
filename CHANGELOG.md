@@ -1954,3 +1954,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Edited update_goals in the backend to accept weekly_workout_goal
 - Edited user_data in the backend to load weekly_workout_goal
 - Edited UpdateGoalsRequest to handle the weekly workout goal
+- Added a /leaderboard_standing GET endpoint with accompanying methods for getting the user's leadederboard rank and # of total users
+- Added tests for the above methods
+- Added indexing to users by rank to efficiently get ranks
+- Added a count_users_above_rank RPC function to efficiently calculate users above a specific user for calculating the user's rank
+- Added cards in the Progress tab showing the user's current rank out of the current total user count
+- Added skeletonizers for the cards above

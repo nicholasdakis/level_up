@@ -551,6 +551,18 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- count_users_above_rank: counts how many users are ranked strictly above the given user
+-- rank is determined by: level DESC, exp_points DESC, uid ASC (same order as the leaderboard query)
+-- the uid tiebreaker ensures users with identical level and XP get a consistent, deterministic rank
+-- adding 1 to the result gives the user's rank (e.g. 0 users above = rank 1)
+CREATE OR REPLACE FUNCTION count_users_above_rank(p_level INT, p_exp_points INT, p_uid TEXT)
+RETURNS BIGINT AS $$
+  SELECT COUNT(*) FROM users
+  WHERE level > p_level                                                          -- strictly higher level
+     OR (level = p_level AND exp_points > p_exp_points)                         -- same level, more XP
+     OR (level = p_level AND exp_points = p_exp_points AND uid < p_uid);        -- exact tie, lower uid wins
+$$ LANGUAGE sql STABLE;
+
 -- award_ad_xp: Atomically awards XP for a verified rewarded ad watch
 -- Called only by the AdMob SSV backend route, never by the client directly
 CREATE OR REPLACE FUNCTION award_ad_xp(

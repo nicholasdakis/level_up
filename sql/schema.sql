@@ -182,3 +182,6 @@ CREATE TABLE workout_template_exercises (
     default_reps INTEGER,                   -- pre-filled rep count
     default_weight_kg NUMERIC(6, 2)         -- pre-filled weight
 );
+
+-- Index to speed up leaderboard rank queries at scale, matches sort order: level DESC, exp_points DESC, uid ASC
+CREATE INDEX idx_users_rank ON users (level DESC, exp_points DESC, uid ASC);
