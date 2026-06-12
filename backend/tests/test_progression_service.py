@@ -447,6 +447,56 @@ def test_update_goals_strips_none_values(mocker):
     assert "calories_goal" in call_data
     assert "protein_goal" not in call_data  # None was stripped
 
+# get_leaderboard_standing tests -----------------
+
+# User with no one above them should be rank 1
+def test_leaderboard_standing_first_place(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_leaderboard_standing.return_value = {"rank": 1, "total": 50}
+    service = ProgressionService(fake_repo, None, None)
+
+    result = service.get_leaderboard_standing("user_123")
+
+    assert result["rank"] == 1
+    assert result["total"] == 50
+    fake_repo.get_leaderboard_standing.assert_called_once_with("user_123")
+
+# User with others above them should reflect correct rank
+def test_leaderboard_standing_mid_table(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_leaderboard_standing.return_value = {"rank": 12, "total": 50}
+    service = ProgressionService(fake_repo, None, None)
+
+    result = service.get_leaderboard_standing("user_123")
+
+    assert result["rank"] == 12
+
+# Returns None when user does not exist
+def test_leaderboard_standing_user_not_found(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.get_leaderboard_standing.return_value = None
+    service = ProgressionService(fake_repo, None, None)
+
+    result = service.get_leaderboard_standing("nonexistent_user")
+
+    assert result is None
+
+# Two users with identical level and XP must get different ranks via uid tiebreaker (lower uid = higher rank)
+def test_leaderboard_standing_tie_broken_by_uid(mocker):
+    fake_repo = mocker.Mock()
+
+    # "aaa_user" has a lower uid so should be ranked higher (rank 1 vs rank 2)
+    fake_repo.get_leaderboard_standing.side_effect = lambda uid: (
+        {"rank": 1, "total": 2} if uid == "aaa_user" else {"rank": 2, "total": 2}
+    )
+    service = ProgressionService(fake_repo, None, None)
+
+    rank_aaa = service.get_leaderboard_standing("aaa_user")
+    rank_zzz = service.get_leaderboard_standing("zzz_user")
+
+    assert rank_aaa["rank"] < rank_zzz["rank"]  # lower uid = better rank
+    assert rank_aaa["rank"] != rank_zzz["rank"]  # tied stats must never produce the same rank
+
 # _haversine tests -----------------
 
 # Two identical points have zero distance

@@ -38,6 +38,29 @@ class UserRepository:
             return None
         return result.data[0].get("fcm_tokens") or []
     
+    def get_leaderboard_standing(self, uid: str):
+        # Returns the user's rank and total player count using a single SQL query
+        user = self._supabase.table("users").select("level, exp_points").eq("uid", uid).single().execute().data
+        if not user:
+            return None
+
+        level = user["level"]
+        exp_points = user["exp_points"]
+
+        # Count users ranked strictly above using the same tiebreaker as the leaderboard (level DESC, exp_points DESC, uid ASC)
+        above = self._supabase.rpc("count_users_above_rank", {
+            "p_level": level,
+            "p_exp_points": exp_points,
+            "p_uid": uid,
+        }).execute().data
+
+        total = self._supabase.table("users").select("uid", count="exact").execute().count
+
+        return {
+            "rank": (above or 0) + 1,
+            "total": total,
+        }
+
     def get_leaderboard(self):
         # Fetches all users ordered by level and XP descending for the leaderboard
         result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).execute()

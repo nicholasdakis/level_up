@@ -603,6 +603,18 @@ def get_leaderboard():
     )
     return jsonify(response.model_dump()), 200
 
+@app.route("/leaderboard_standing", methods=["GET"])
+def get_leaderboard_standing():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    result = progression_service.get_leaderboard_standing(uid)
+    if result is None:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify(result), 200
+
 @app.route("/set_reminder", methods=["POST"])  # Endpoint to create a new reminder
 def set_reminder():
     # Parse JSON body into Pydantic schema and verify Firebase ID token

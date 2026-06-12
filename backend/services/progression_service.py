@@ -380,6 +380,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Returns all users sorted by level and XP for the leaderboard
         return self._repo.get_leaderboard()
 
+    def get_leaderboard_standing(self, uid: str):
+        # Returns the user's rank and total player count
+        return self._repo.get_leaderboard_standing(uid)
+
     def get_streaks(self, uid: str):
         # Fetches all streak rows for the user from the streaks table
         return self._repo.get_streaks(uid)
