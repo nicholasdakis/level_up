@@ -704,23 +704,8 @@ class DateNavigationRow extends StatelessWidget {
   }
 }
 
+// Returns a flat "gradient" so all screens use a solid background
 Gradient buildThemeGradient() {
   final base = appColorNotifier.value;
-  final darkEdge = darkenColor(base, 0.015); // dark sides
-  final mid = lightenColor(base, 0.015); // center lighter
-
-  return LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      darkEdge,
-      darkEdge,
-      mid, // center stripe
-      darkEdge,
-      darkEdge,
-    ],
-    stops: [
-      0.0, 0.1, 0.5, 0.9, 1.0, // positions of each stripe
-    ],
-  );
+  return LinearGradient(colors: [base, base]);
 }
