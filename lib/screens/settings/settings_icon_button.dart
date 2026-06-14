@@ -73,7 +73,7 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
                   sigmaY: Responsive.scale(context, 12),
                 ),
                 child: Container(
-                  padding: EdgeInsets.all(Responsive.width(context, 11)),
+                  padding: EdgeInsets.all(Responsive.width(context, 8)),
                   decoration: BoxDecoration(
                     color: lightenColor(
                       color,
@@ -108,7 +108,7 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
                   ),
                   child: Icon(
                     Icons.manage_accounts_outlined,
-                    size: Responsive.font(context, 46),
+                    size: Responsive.font(context, 26),
                     color: lightenColor(color, 0.3),
                   ),
                 ),
