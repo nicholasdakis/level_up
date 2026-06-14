@@ -598,119 +598,105 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   padding: EdgeInsets.only(
                     top: Responsive.padding(context, 18),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final chipMargin = constraints.maxWidth / 10;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _featureChip(
+                                HugeIcons.strokeRoundedNote,
+                                "Track",
+                              ),
+                              _featureChip(
+                                HugeIcons.strokeRoundedChartIncrease,
+                                "Progress",
+                              ),
+                              _featureChip(
+                                HugeIcons.strokeRoundedMedal01,
+                                "Compete",
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: Responsive.padding(context, 20)),
+                          Container(
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: chipMargin,
+                            ),
+                            padding: EdgeInsets.all(
+                              Responsive.scale(context, 16),
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 16),
+                              ),
+                              color: Colors.white.withValues(alpha: 0.06),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                _featureChip(
-                                  HugeIcons.strokeRoundedNote,
-                                  "Track",
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Level 1",
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white70,
+                                        fontSize: Responsive.font(context, 13),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      "0 / 130 XP",
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white38,
+                                        fontSize: Responsive.font(context, 12),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                _featureChip(
-                                  HugeIcons.strokeRoundedChartIncrease,
-                                  "Progress",
+                                SizedBox(height: Responsive.height(context, 8)),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 4),
+                                  ),
+                                  child: LinearProgressIndicator(
+                                    value: 0.0,
+                                    minHeight: Responsive.height(context, 7),
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF3B82F6),
+                                        ),
+                                  ),
                                 ),
-                                _featureChip(
-                                  HugeIcons.strokeRoundedMedal01,
-                                  "Compete",
+                                SizedBox(height: Responsive.height(context, 8)),
+                                Text(
+                                  "Your journey starts at Level 1",
+                                  style: GoogleFonts.manrope(
+                                    color: Colors.white38,
+                                    fontSize: Responsive.font(context, 11),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: Responsive.padding(context, 20)),
-                            Container(
-                              width: double.infinity,
-                              margin: Responsive.isDesktop(context)
-                                  ? EdgeInsets.zero
-                                  : EdgeInsets.symmetric(
-                                      horizontal:
-                                          MediaQuery.sizeOf(context).width / 8,
-                                    ),
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 16),
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 16),
-                                ),
-                                color: Colors.white.withValues(alpha: 0.06),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Level 1",
-                                        style: GoogleFonts.manrope(
-                                          color: Colors.white70,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            13,
-                                          ),
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      Text(
-                                        "0 / 130 XP",
-                                        style: GoogleFonts.manrope(
-                                          color: Colors.white38,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 8),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                      Responsive.scale(context, 4),
-                                    ),
-                                    child: LinearProgressIndicator(
-                                      value: 0.0,
-                                      minHeight: Responsive.height(context, 7),
-                                      backgroundColor: Colors.white.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                            Color(0xFF3B82F6),
-                                          ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 8),
-                                  ),
-                                  Text(
-                                    "Your journey starts at Level 1",
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white38,
-                                      fontSize: Responsive.font(context, 11),
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 )
               : const SizedBox(width: double.infinity),
