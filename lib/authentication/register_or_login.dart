@@ -624,10 +624,12 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             SizedBox(height: Responsive.padding(context, 20)),
                             Container(
                               width: double.infinity,
-                              margin: EdgeInsets.symmetric(
-                                horizontal:
-                                    MediaQuery.sizeOf(context).width / 8,
-                              ),
+                              margin: Responsive.isDesktop(context)
+                                  ? EdgeInsets.zero
+                                  : EdgeInsets.symmetric(
+                                      horizontal:
+                                          MediaQuery.sizeOf(context).width / 8,
+                                    ),
                               padding: EdgeInsets.all(
                                 Responsive.scale(context, 16),
                               ),
