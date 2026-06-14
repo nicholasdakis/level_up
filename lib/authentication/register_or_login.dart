@@ -541,7 +541,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
 
   // Method that builds the main content, switching between the initial view and the email form
   Widget buildScreen() {
-    const dur = Duration(milliseconds: 350);
+    const dur = Duration(milliseconds: 750);
     const curve = Curves.easeOutCubic;
 
     // TOP: logo, title, tagline, feature chips, email form
