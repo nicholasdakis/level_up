@@ -32,7 +32,7 @@ class _ProgressionState extends State<Progression> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
-    _fetchStanding();
+    if (!isGuest) _fetchStanding();
   }
 
   Future<void> _fetchStanding() async {
@@ -124,6 +124,8 @@ class _ProgressionState extends State<Progression> {
         : _total == null
         ? "?"
         : "$_total";
+
+    if (isGuest) return const SizedBox.shrink();
 
     return Skeletonizer(
       enabled: _standingLoading,

@@ -689,6 +689,10 @@ class _ExploreState extends State<Explore> {
                         "Find nearby spots",
                         context,
                         onPressed: () {
+                          if (isGuest) {
+                            Guest.block(context);
+                            return;
+                          }
                           setState(() => _locationRequested = true);
                           _initLocation();
                         },

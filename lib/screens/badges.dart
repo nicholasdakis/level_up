@@ -881,16 +881,55 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
         decoration: BoxDecoration(gradient: buildThemeGradient()),
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            child: Center(
-              child: Text(
-                "Sign up to track your badges",
-                style: GoogleFonts.manrope(
-                  color: Colors.white70,
-                  fontSize: Responsive.font(context, 16),
+          body: Column(
+            children: [
+              SizedBox(height: MediaQuery.paddingOf(context).top),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: Responsive.height(context, 16),
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(20),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        size: Responsive.font(context, 13),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    "Sign up to track your badges",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );

@@ -272,14 +272,60 @@ class _LeaderboardState extends State<Leaderboard> {
                 : snapshot.data!;
 
             if (!isLoading && leaderboardUsers.isEmpty) {
-              return Center(
-                child: Text(
-                  isGuest
-                      ? "Create an account to see the leaderboard"
-                      : "No users found",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70),
-                ),
+              return Column(
+                children: [
+                  SizedBox(height: MediaQuery.paddingOf(context).top),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: Responsive.height(context, 16),
+                      left: Responsive.centeredHorizontalPadding(context, 20),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        isGuest
+                            ? "Create an account to see the leaderboard"
+                            : "No users found",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
 
