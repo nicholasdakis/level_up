@@ -1961,3 +1961,17 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added cards in the Progress tab showing the user's current rank out of the current total user count
 - Added skeletonizers for the cards above
 - Added Firebase Analytics screen tracking for all tab screens and push routes so Firebase reports actual screen names instead of only MainActivity
+
+## 2026-06-14
+- Updated app logo color to a blue gradient
+- Completely redesigned the login/register screen layout and visual style
+- Replaced the old single-page email form with a two-mode flow: an initial landing view and an expandable email form
+- Added a "Continue with Google" button and "Continue as a guest" button to the landing view
+- Added a "Continue with email instead" link that slides in the full email/password form
+- Added a segmented Log In / Sign Up toggle that animates between modes with a sliding pill highlight
+- Added animated feature chips (Track, Progress, Compete) to the landing view
+- Added an XP preview card on the landing view showing Level 1 and 0 / 130 XP to preview the progression system
+- Google sign-in gates users behind a TOS checkbox that slides in on first tap before proceeding
+- The TOS checkbox auto-triggers Google sign-in once checked on the landing view
+- Replaced the pink/magenta color scheme with a blue gradient (cyan to dark blue) to match the new app logo color
+- Replaced the SVG-based Google button with a custom styled button using the Google logo PNG asset
