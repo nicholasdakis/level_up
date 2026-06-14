@@ -549,6 +549,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        SizedBox(height: Responsive.padding(context, 20)),
         Center(
           child: AnimatedContainer(
             duration: dur,
@@ -620,7 +621,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: Responsive.padding(context, 32)),
+                            SizedBox(height: Responsive.padding(context, 20)),
                             Container(
                               width: double.infinity,
                               margin: EdgeInsets.symmetric(
@@ -819,7 +820,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (!showEmailForm) ...[
-          SizedBox(height: Responsive.padding(context, 32)),
+          SizedBox(height: Responsive.padding(context, 20)),
           Row(
             children: [
               Expanded(child: Container(height: 1, color: Colors.white12)),
@@ -907,18 +908,25 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
             ),
           ),
         ],
+        SizedBox(height: Responsive.padding(context, 20)),
       ],
     );
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.centeredHorizontalPadding(context, 24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
-        children: [topGroup, bottomGroup],
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.centeredHorizontalPadding(context, 24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            topGroup,
+            SizedBox(height: Responsive.padding(context, 20)),
+            bottomGroup,
+          ],
+        ),
       ),
     );
   }
@@ -936,16 +944,14 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                   MediaQuery.paddingOf(context).top -
                   MediaQuery.paddingOf(context).bottom,
             ),
-            child: IntrinsicHeight(
-              child: buildScreen()
-                  .animate()
-                  .fadeIn(duration: 500.ms)
-                  .slideY(
-                    begin: 0.12,
-                    duration: 500.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
-            ),
+            child: buildScreen()
+                .animate()
+                .fadeIn(duration: 500.ms)
+                .slideY(
+                  begin: 0.12,
+                  duration: 500.ms,
+                  curve: Curves.easeOutCubic,
+                ),
           ),
         ),
       ),
