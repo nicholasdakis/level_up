@@ -427,7 +427,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          vertical: Responsive.height(context, 14),
+          vertical: Responsive.height(
+            context,
+            Responsive.isDesktop(context) ? 20 : 14,
+          ),
           horizontal: Responsive.width(context, 24),
         ),
         decoration: BoxDecoration(
@@ -585,7 +588,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
             ),
           ),
         ),
-        // Feature chips, collapse when email form opens
+        // Feature chips + XP card share the same width via a Row>Expanded>Column
         AnimatedSize(
           duration: dur,
           curve: curve,
@@ -595,14 +598,115 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                     top: Responsive.padding(context, 18),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _featureChip(HugeIcons.strokeRoundedNote, "Track"),
-                      _featureChip(
-                        HugeIcons.strokeRoundedChartIncrease,
-                        "Progress",
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _featureChip(
+                                  HugeIcons.strokeRoundedNote,
+                                  "Track",
+                                ),
+                                _featureChip(
+                                  HugeIcons.strokeRoundedChartIncrease,
+                                  "Progress",
+                                ),
+                                _featureChip(
+                                  HugeIcons.strokeRoundedMedal01,
+                                  "Compete",
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: Responsive.padding(context, 32)),
+                            Container(
+                              width: double.infinity,
+                              margin: EdgeInsets.symmetric(
+                                horizontal:
+                                    MediaQuery.sizeOf(context).width / 8,
+                              ),
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 16),
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 16),
+                                ),
+                                color: Colors.white.withValues(alpha: 0.06),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Level 1",
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white70,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            13,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(
+                                        "0 / 130 XP",
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white38,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: Responsive.height(context, 8),
+                                  ),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 4),
+                                    ),
+                                    child: LinearProgressIndicator(
+                                      value: 0.0,
+                                      minHeight: Responsive.height(context, 7),
+                                      backgroundColor: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFF3B82F6),
+                                          ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: Responsive.height(context, 8),
+                                  ),
+                                  Text(
+                                    "Your journey starts at Level 1",
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white38,
+                                      fontSize: Responsive.font(context, 11),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      _featureChip(HugeIcons.strokeRoundedMedal01, "Compete"),
                     ],
                   ),
                 )
@@ -709,78 +813,35 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       ],
     );
 
-    // MIDDLE: XP preview card, only shown on initial view
-    final xpCard = !showEmailForm
-        ? Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(Responsive.scale(context, 16)),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 16),
-              ),
-              color: Colors.white.withValues(alpha: 0.06),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.12),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Level 1",
-                      style: GoogleFonts.manrope(
-                        color: Colors.white70,
-                        fontSize: Responsive.font(context, 13),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      "0 / 130 XP",
-                      style: GoogleFonts.manrope(
-                        color: Colors.white38,
-                        fontSize: Responsive.font(context, 12),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: Responsive.height(context, 8)),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 4),
-                  ),
-                  child: LinearProgressIndicator(
-                    value: 0.0,
-                    minHeight: Responsive.height(context, 7),
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF3B82F6),
-                    ),
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 8)),
-                Text(
-                  "Your journey starts at Level 1",
-                  style: GoogleFonts.manrope(
-                    color: Colors.white38,
-                    fontSize: Responsive.font(context, 11),
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          )
-        : const SizedBox.shrink();
-
     // BOTTOM: Google, guest, email link
     final bottomGroup = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (!showEmailForm) ...[
+          SizedBox(height: Responsive.padding(context, 32)),
+          Row(
+            children: [
+              Expanded(child: Container(height: 1, color: Colors.white12)),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.padding(context, 12),
+                ),
+                child: Text(
+                  "GET STARTED",
+                  style: GoogleFonts.manrope(
+                    color: Colors.white24,
+                    fontSize: Responsive.font(context, 11),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+              Expanded(child: Container(height: 1, color: Colors.white12)),
+            ],
+          ),
+          SizedBox(height: Responsive.padding(context, 16)),
+        ],
         buildGoogleButton(),
         // TOS checkbox slides in below the Google button on the first tap
         AnimatedSize(
@@ -851,19 +912,13 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: Responsive.padding(context, 24),
+        horizontal: Responsive.centeredHorizontalPadding(context, 24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
-        children: [
-          topGroup,
-          if (!showEmailForm) SizedBox(height: Responsive.padding(context, 32)),
-          xpCard,
-          if (!showEmailForm) SizedBox(height: Responsive.padding(context, 32)),
-          bottomGroup,
-        ],
+        children: [topGroup, bottomGroup],
       ),
     );
   }
