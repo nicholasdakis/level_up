@@ -50,7 +50,25 @@ Future<void> showUsernameDialogBox(
       TextButton(
         // Handle username update
         onPressed: () async {
-          String updatedUsername = usernameController.text.trim();
+          final updatedUsername = usernameController.text.trim();
+          if (updatedUsername.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Please enter a username."),
+                duration: snackBarDuration,
+              ),
+            );
+            return;
+          }
+          if (updatedUsername.length > 20) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Username must be 20 characters or fewer."),
+                duration: snackBarDuration,
+              ),
+            );
+            return;
+          }
           // Only pop if successful
           if (await UserDataManager().updateUsername(
             updatedUsername,

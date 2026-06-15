@@ -291,7 +291,8 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
 
   // Only pops if the username update succeeds
   Future<void> _confirm() async {
-    if (_controller.text.trim().isEmpty) {
+    final trimmed = _controller.text.trim();
+    if (trimmed.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Please enter a username."),
@@ -300,10 +301,16 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
       );
       return;
     }
-    if (await UserDataManager().updateUsername(
-      _controller.text.trim(),
-      context,
-    )) {
+    if (trimmed.length > 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Username must be 20 characters or fewer."),
+          duration: snackBarDuration,
+        ),
+      );
+      return;
+    }
+    if (await UserDataManager().updateUsername(trimmed, context)) {
       if (mounted) Navigator.pop(context);
     }
   }
