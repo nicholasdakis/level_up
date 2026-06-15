@@ -859,19 +859,22 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
     );
 
     return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.centeredHorizontalPadding(context, 24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            topGroup,
-            SizedBox(height: Responsive.padding(context, 20)),
-            bottomGroup,
-          ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              topGroup,
+              SizedBox(height: Responsive.padding(context, 20)),
+              bottomGroup,
+            ],
+          ),
         ),
       ),
     );
