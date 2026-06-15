@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -205,26 +206,28 @@ Future<T?> showFrostedDialog<T>({
       ),
       child: SizedBox(
         width: Responsive.dialogWidth(context, maxWidth: maxWidth),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(
-              Responsive.scale(context, baseRadius),
-            ),
-            border: Border.all(
-              color: Colors.white.withAlpha(120),
-              width: Responsive.width(context, 1),
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Responsive.scale(context, baseRadius),
           ),
-          child: frostedGlassCard(
-            context,
-            baseRadius: baseRadius,
-            padding:
-                padding ??
-                EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 28),
-                  vertical: Responsive.height(context, 32),
-                ),
-            child: child,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: frostedGlassCard(
+              context,
+              baseRadius: baseRadius,
+              backgroundColor: Colors.white.withAlpha(18),
+              border: Border.all(
+                color: Colors.white.withAlpha(30),
+                width: Responsive.width(context, 1),
+              ),
+              padding:
+                  padding ??
+                  EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 28),
+                    vertical: Responsive.height(context, 32),
+                  ),
+              child: child,
+            ),
           ),
         ),
       ),
@@ -280,6 +283,105 @@ Color lightenColor(Color color, [double amount = .1]) {
   final hsl = HSLColor.fromColor(color);
   final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
   return hslLight.toColor();
+}
+
+// sRGB gamma expansion (IEC 61966-2-1)
+double _linearize(double c) =>
+    c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4).toDouble();
+
+// Relative luminance per WCAG 2.x, correctly weights red/green/blue for human vision
+double _relativeLuminance(Color c) {
+  final r = _linearize((c.r * 255).round() / 255);
+  final g = _linearize((c.g * 255).round() / 255);
+  final b = _linearize((c.b * 255).round() / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+// Convert sRGB Color to Oklab [L, a, b]
+// Oklab is perceptually uniform: equal L steps look equal to the eye on any hue
+List<double> _toOklab(Color c) {
+  final r = _linearize((c.r * 255).round() / 255);
+  final g = _linearize((c.g * 255).round() / 255);
+  final b = _linearize((c.b * 255).round() / 255);
+  final l = pow(
+    0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
+    1 / 3,
+  ).toDouble();
+  final m = pow(
+    0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
+    1 / 3,
+  ).toDouble();
+  final s = pow(
+    0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b,
+    1 / 3,
+  ).toDouble();
+  return [
+    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+  ];
+}
+
+// Convert Oklab [L, a, b] to sRGB Color, clamping to valid range
+Color _fromOklab(List<double> lab) {
+  final l = lab[0], a = lab[1], b = lab[2];
+  final lc = l + 0.3963377774 * a + 0.2158037573 * b;
+  final mc = l - 0.1055613458 * a - 0.0638541728 * b;
+  final sc = l - 0.0894841775 * a - 1.2914855480 * b;
+  final ll = lc * lc * lc, mm = mc * mc * mc, ss = sc * sc * sc;
+  double toSrgb(double x) {
+    final linear = x <= 0.0031308
+        ? 12.92 * x
+        : 1.055 * pow(x.clamp(0.0, 1.0), 1 / 2.4) - 0.055;
+    return linear.clamp(0.0, 1.0);
+  }
+
+  return Color.from(
+    alpha: 1.0,
+    red: toSrgb(4.0767416621 * ll - 3.3077115913 * mm + 0.2309699292 * ss),
+    green: toSrgb(-1.2684380046 * ll + 2.6097574011 * mm - 0.3413193965 * ss),
+    blue: toSrgb(-0.0041960863 * ll - 0.7034186147 * mm + 1.7076147010 * ss),
+  );
+}
+
+// Shift a color's Oklab L channel by [amount] (positive = lighter, negative = darker)
+Color _oklabShift(Color color, double amount) {
+  final lab = _toOklab(color);
+  lab[0] = (lab[0] + amount).clamp(0.0, 1.0);
+  return _fromOklab(lab);
+}
+
+// Consistent card surface colors using perceptually uniform Oklab shifts
+// Branches on relative luminance (not HSL lightness) so red/pink/purple are handled correctly
+({
+  List<Color> gradient,
+  Color border,
+  Color iconBox,
+  Color splashColor,
+  Color highlightColor,
+  Color onCard, // text and icon color that stays readable on the card surface
+})
+cardColors(Color base) {
+  // Relative luminance correctly identifies red (~0.06) as dark even though HSL calls it mid-tone
+  final isDark = _relativeLuminance(base) < 0.18;
+  return (
+    gradient: isDark
+        ? [_oklabShift(base, 0.15), _oklabShift(base, 0.10)]
+        : [_oklabShift(base, -0.08), _oklabShift(base, -0.05)],
+    border: isDark
+        ? _oklabShift(base, 0.20).withAlpha(180)
+        : _oklabShift(base, -0.16).withAlpha(180),
+    iconBox: isDark
+        ? _oklabShift(base, 0.18).withAlpha(160)
+        : _oklabShift(base, -0.14).withAlpha(160),
+    splashColor: isDark
+        ? _oklabShift(base, 0.25).withAlpha(60)
+        : _oklabShift(base, -0.20).withAlpha(60),
+    highlightColor: isDark
+        ? _oklabShift(base, 0.25).withAlpha(30)
+        : _oklabShift(base, -0.20).withAlpha(30),
+    onCard: lightenColor(base, 0.45),
+  );
 }
 
 // Frosted glass tappable button
@@ -586,9 +688,7 @@ Widget sectionHeader(
 }
 
 // FROSTED GLASS CARD used across the app (reminders, preferences, etc.)
-// ClipRRect clips the blur to the card's rounded corners,
-// BackdropFilter blurs whatever is behind the card,
-// and the Container adds a translucent white fill + border for the glass look
+// Uses the same gradient + shadow style as the action tiles for visual consistency
 Widget frostedGlassCard(
   BuildContext context, {
   required Widget child,
@@ -596,33 +696,37 @@ Widget frostedGlassCard(
   EdgeInsetsGeometry? padding,
   Color? backgroundColor, // optional override for the card fill color
   BoxBorder? border, // optional override for the card border
+  bool shadow = false, // only action tiles need the drop shadow
 }) {
   final cardRadius = BorderRadius.circular(
     Responsive.scale(context, baseRadius),
   );
-  return ClipRRect(
-    borderRadius: cardRadius,
-    child: BackdropFilter(
-      filter: ImageFilter.blur(
-        sigmaX: Responsive.scale(context, 12),
-        sigmaY: Responsive.scale(context, 12),
-      ), // blur intensity
-      child: Container(
-        decoration: BoxDecoration(
-          color:
-              backgroundColor ??
-              Colors.white.withAlpha(18), // translucent white fill
-          borderRadius: cardRadius,
-          border:
-              border ??
-              Border.all(
-                color: Colors.white.withAlpha(30), // subtle white border
-                width: Responsive.width(context, 1),
+  final c = cardColors(appColorNotifier.value);
+  return DecoratedBox(
+    decoration: BoxDecoration(
+      borderRadius: cardRadius,
+      gradient: backgroundColor != null
+          ? null
+          : LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: c.gradient,
+            ),
+      color: backgroundColor,
+      border: border ?? Border.all(color: c.border, width: 1),
+      boxShadow: shadow
+          ? [
+              BoxShadow(
+                color: Colors.black.withAlpha(60),
+                blurRadius: Responsive.scale(context, 12),
+                offset: Offset(0, Responsive.scale(context, 4)),
               ),
-        ),
-        padding: padding,
-        child: child,
-      ),
+            ]
+          : null,
+    ),
+    child: ClipRRect(
+      borderRadius: cardRadius,
+      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     ),
   );
 }
@@ -704,8 +808,9 @@ class DateNavigationRow extends StatelessWidget {
   }
 }
 
-// Returns a flat "gradient" so all screens use a solid background
+// Returns a flat solid background using the chosen theme color
 Gradient buildThemeGradient() {
-  final base = appColorNotifier.value;
-  return LinearGradient(colors: [base, base]);
+  return LinearGradient(
+    colors: [appColorNotifier.value, appColorNotifier.value],
+  );
 }

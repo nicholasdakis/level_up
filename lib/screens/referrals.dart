@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -75,7 +75,9 @@ Future<void> checkPendingReferralReward(
                   currentUserData?.expPoints = claimData['new_exp'];
                   expNotifier.value = claimData['new_exp'];
                   if (prevLevel < 3 && (currentUserData?.level ?? 0) >= 3) {
-                    FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+                    FirebaseAnalytics.instance.logEvent(
+                      name: 'reached_level_3',
+                    );
                   }
                   if (currentUserData != null) {
                     currentUserData!.referralCount =
@@ -102,319 +104,369 @@ Future<void> checkPendingReferralReward(
 
 // Referrals card widget for the home dashboard
 Widget buildReferralsCard(BuildContext context) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final accentDim = lightenColor(appColorNotifier.value, 0.3);
-  return GestureDetector(
-    onTap: () async {
-      final codeInputController = TextEditingController();
-      // Use cached code or fetch/generate one
-      String? code = currentUserData?.referralCode;
-      if (code == null) {
-        final getRes = await authenticatedGet('referral_code');
-        if (getRes.statusCode == 200) {
-          code =
-              (jsonDecode(getRes.body) as Map<String, dynamic>)['referral_code']
-                  as String;
-        } else if (getRes.statusCode == 404) {
-          final postRes = await authenticatedPost('referral_code');
-          if (postRes.statusCode == 201) {
-            code =
-                (jsonDecode(postRes.body)
-                        as Map<String, dynamic>)['referral_code']
-                    as String;
-          }
-        }
-        if (code != null) currentUserData?.referralCode = code;
-      }
-      if (!context.mounted) return;
-      showFrostedAlertDialog(
-        context: context,
-        title: "Refer a Friend",
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...[
-              ("1", "Share your code with a friend"),
-              ("2", "They sign up and enter your code"),
-              ("3", "Once they reach level 3, you both earn XP"),
-            ].map(
-              (step) => Padding(
-                padding: EdgeInsets.only(bottom: Responsive.height(context, 8)),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: Responsive.scale(context, 22),
-                      height: Responsive.scale(context, 22),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: appColorNotifier.value.withAlpha(80),
-                        border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(160),
+  // Square action tile matching the Watch an Ad card layout
+  return Builder(
+    builder: (context) {
+      final base = appColorNotifier.value;
+      final radius = BorderRadius.circular(Responsive.scale(context, 16));
+      final referralCount = currentUserData?.referralCount ?? 0;
+      final c = cardColors(base);
+      final accent = c.onCard;
+      final accentDim = c.onCard.withAlpha(180);
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: c.gradient,
+          ),
+          border: Border.all(color: c.border, width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              splashColor: c.splashColor,
+              highlightColor: c.highlightColor,
+              onTap: () async {
+                final codeInputController = TextEditingController();
+                // Use cached code or fetch/generate one
+                String? code = currentUserData?.referralCode;
+                if (code == null) {
+                  final getRes = await authenticatedGet('referral_code');
+                  if (getRes.statusCode == 200) {
+                    code =
+                        (jsonDecode(getRes.body)
+                                as Map<String, dynamic>)['referral_code']
+                            as String;
+                  } else if (getRes.statusCode == 404) {
+                    final postRes = await authenticatedPost('referral_code');
+                    if (postRes.statusCode == 201) {
+                      code =
+                          (jsonDecode(postRes.body)
+                                  as Map<String, dynamic>)['referral_code']
+                              as String;
+                    }
+                  }
+                  if (code != null) currentUserData?.referralCode = code;
+                }
+                if (!context.mounted) return;
+                showFrostedAlertDialog(
+                  context: context,
+                  title: "Refer a Friend",
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...[
+                        ("1", "Share your code with a friend"),
+                        ("2", "They sign up and enter your code"),
+                        ("3", "Once they reach level 3, you both earn XP"),
+                      ].map(
+                        (step) => Padding(
+                          padding: EdgeInsets.only(
+                            bottom: Responsive.height(context, 8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: Responsive.scale(context, 22),
+                                height: Responsive.scale(context, 22),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: appColorNotifier.value.withAlpha(80),
+                                  border: Border.all(
+                                    color: lightenColor(
+                                      appColorNotifier.value,
+                                      0.3,
+                                    ).withAlpha(160),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    step.$1,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 11),
+                                      color: accent,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: Responsive.width(context, 10)),
+                              Expanded(
+                                child: Text(
+                                  step.$2,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 13),
+                                    color: Colors.white60,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      child: Center(
+                      SizedBox(height: Responsive.height(context, 8)),
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (code != null) {
+                              Clipboard.setData(ClipboardData(text: code));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Referral code copied!"),
+                                  duration: snackBarDuration,
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 20),
+                              vertical: Responsive.height(context, 10),
+                            ),
+                            decoration: BoxDecoration(
+                              color: appColorNotifier.value.withAlpha(60),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 12),
+                              ),
+                              border: Border.all(
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ).withAlpha(160),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  code ?? "â€”",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 18),
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                SizedBox(width: Responsive.width(context, 10)),
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCopy01,
+                                  color: accentDim,
+                                  size: Responsive.scale(context, 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 12)),
+                      Center(
                         child: Text(
-                          step.$1,
+                          "${currentUserData?.referralCount ?? 0} friend${(currentUserData?.referralCount ?? 0) == 1 ? '' : 's'} referred",
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: accent,
-                            fontWeight: FontWeight.w700,
+                            fontSize: Responsive.font(context, 12),
+                            color: accentDim,
+                          ),
+                        ),
+                      ),
+                      Divider(
+                        color: Colors.white12,
+                        height: Responsive.height(context, 32),
+                      ),
+                      if (currentUserData?.referralUsed == true) ...[
+                        Center(
+                          child: Text(
+                            "Each account can only enter a referral code once, but you can refer as many friends as you'd like.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 13),
+                              color: Colors.white38,
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        Text(
+                          "Have a referral code?",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white60,
+                          ),
+                        ),
+                        SizedBox(height: Responsive.height(context, 8)),
+                        TextField(
+                          controller: codeInputController,
+                          style: GoogleFonts.manrope(color: Colors.white),
+                          textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9]'),
+                            ),
+                            LengthLimitingTextInputFormatter(8),
+                          ],
+                          decoration: InputDecoration(
+                            hintText: "Enter code",
+                            hintStyle: GoogleFonts.manrope(
+                              color: Colors.white38,
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white24),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: HugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowRight01,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.45,
+                                ),
+                                size: Responsive.scale(context, 20),
+                              ),
+                              onPressed: () async {
+                                final entered = codeInputController.text
+                                    .trim()
+                                    .toUpperCase();
+                                if (entered.isEmpty) return;
+                                final res = await authenticatedPost(
+                                  'use_referral',
+                                  body: {'referral_code': entered},
+                                );
+                                if (!context.mounted) return;
+                                if (res.statusCode == 200) {
+                                  final data =
+                                      jsonDecode(res.body)
+                                          as Map<String, dynamic>;
+                                  final prevLevel2 =
+                                      currentUserData?.level ?? 0;
+                                  currentUserData?.level = data['new_level'];
+                                  currentUserData?.expPoints = data['new_exp'];
+                                  currentUserData?.referralUsed = true;
+                                  if (prevLevel2 < 3 &&
+                                      (currentUserData?.level ?? 0) >= 3) {
+                                    FirebaseAnalytics.instance.logEvent(
+                                      name: 'reached_level_3',
+                                    );
+                                  }
+                                  expNotifier.value = data['new_exp'];
+                                  userDataNotifier.notifyListeners();
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Referral code applied! +${data['xp_awarded']} XP",
+                                      ),
+                                      duration: snackBarDuration,
+                                    ),
+                                  );
+                                } else {
+                                  String error = 'Something went wrong';
+                                  try {
+                                    error =
+                                        (jsonDecode(res.body)
+                                            as Map<String, dynamic>)['error'] ??
+                                        error;
+                                  } catch (_) {}
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(error),
+                                      duration: snackBarDuration,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  actions: [
+                    Expanded(
+                      child: Center(
+                        child: Builder(
+                          builder: (ctx) => TextButton(
+                            onPressed: () =>
+                                Navigator.of(ctx, rootNavigator: true).pop(),
+                            child: const Text("Close"),
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: Responsive.width(context, 10)),
-                    Expanded(
-                      child: Text(
-                        step.$2,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 13),
-                          color: Colors.white60,
+                  ],
+                );
+              },
+              child: Padding(
+                padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize
+                      .max, // stretches to match sibling tile height via IntrinsicHeight
+                  children: [
+                    // Icon at the top of the tile
+                    Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                      decoration: BoxDecoration(
+                        color: c.iconBox,
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 10),
                         ),
                       ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserAdd01,
+                        color: accent,
+                        size: Responsive.scale(context, 22),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 12)),
+                    Text(
+                      "Refer a Friend",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 14),
+                        color: accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    // Spacer pushes the count row to the bottom to match the Watch an Ad tile height
+                    const Spacer(),
+                    // Referral count sits at the bottom right like the reference
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "${referralCount == 1 ? '1 friend' : '$referralCount friends'} referred",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: accentDim,
+                          ),
+                        ),
+                        if (referralCount > 0)
+                          Text(
+                            "$referralCount",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 22),
+                              color: accent,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: Responsive.height(context, 8)),
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  if (code != null) {
-                    Clipboard.setData(ClipboardData(text: code));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Referral code copied!"),
-                        duration: snackBarDuration,
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 20),
-                    vertical: Responsive.height(context, 10),
-                  ),
-                  decoration: BoxDecoration(
-                    color: appColorNotifier.value.withAlpha(60),
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 12),
-                    ),
-                    border: Border.all(
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(160),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        code ?? "—",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 18),
-                          fontWeight: FontWeight.w700,
-                          color: accent,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      SizedBox(width: Responsive.width(context, 10)),
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedCopy01,
-                        color: accentDim,
-                        size: Responsive.scale(context, 16),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: Responsive.height(context, 12)),
-            Center(
-              child: Text(
-                "${currentUserData?.referralCount ?? 0} friend${(currentUserData?.referralCount ?? 0) == 1 ? '' : 's'} referred",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 12),
-                  color: accentDim,
-                ),
-              ),
-            ),
-            Divider(
-              color: Colors.white12,
-              height: Responsive.height(context, 32),
-            ),
-            if (currentUserData?.referralUsed == true) ...[
-              Center(
-                child: Text(
-                  "Each account can only enter a referral code once, but you can refer as many friends as you'd like.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    color: Colors.white38,
-                  ),
-                ),
-              ),
-            ] else ...[
-              Text(
-                "Have a referral code?",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  color: Colors.white60,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 8)),
-              TextField(
-                controller: codeInputController,
-                style: GoogleFonts.manrope(color: Colors.white),
-                textCapitalization: TextCapitalization.characters,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
-                  LengthLimitingTextInputFormatter(8),
-                ],
-                decoration: InputDecoration(
-                  hintText: "Enter code",
-                  hintStyle: GoogleFonts.manrope(color: Colors.white38),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      size: Responsive.scale(context, 20),
-                    ),
-                    onPressed: () async {
-                      final entered = codeInputController.text
-                          .trim()
-                          .toUpperCase();
-                      if (entered.isEmpty) return;
-                      final res = await authenticatedPost(
-                        'use_referral',
-                        body: {'referral_code': entered},
-                      );
-                      if (!context.mounted) return;
-                      if (res.statusCode == 200) {
-                        final data =
-                            jsonDecode(res.body) as Map<String, dynamic>;
-                        final prevLevel2 = currentUserData?.level ?? 0;
-                        currentUserData?.level = data['new_level'];
-                        currentUserData?.expPoints = data['new_exp'];
-                        currentUserData?.referralUsed = true;
-                        if (prevLevel2 < 3 && (currentUserData?.level ?? 0) >= 3) {
-                          FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
-                        }
-                        expNotifier.value = data['new_exp'];
-                        userDataNotifier.notifyListeners();
-                        Navigator.of(context, rootNavigator: true).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Referral code applied! +${data['xp_awarded']} XP",
-                            ),
-                            duration: snackBarDuration,
-                          ),
-                        );
-                      } else {
-                        String error = 'Something went wrong';
-                        try {
-                          error =
-                              (jsonDecode(res.body)
-                                  as Map<String, dynamic>)['error'] ??
-                              error;
-                        } catch (_) {}
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error),
-                            duration: snackBarDuration,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          Expanded(
-            child: Center(
-              child: Builder(
-                builder: (ctx) => TextButton(
-                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                  child: const Text("Close"),
-                ),
-              ),
-            ),
           ),
-        ],
+        ),
       );
     },
-    child: frostedGlassCard(
-      context,
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 14),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedUserAdd01,
-            color: accentDim,
-            size: Responsive.scale(context, 28),
-          ),
-          SizedBox(width: Responsive.width(context, 14)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Refer a Friend",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 15),
-                    color: accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "${currentUserData?.referralCount ?? 0}",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 22),
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        "referred",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 10),
-                          color: accentDim,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
   );
 }

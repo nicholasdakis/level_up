@@ -1,4 +1,4 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -86,7 +86,6 @@ class _ProgressionState extends State<Progression> {
           vertical: Responsive.height(context, 16),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,57 +174,90 @@ class _ProgressionState extends State<Progression> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
-    final barColor = lightenColor(appColorNotifier.value, 0.3);
+    final base = appColorNotifier.value;
+    final c = cardColors(base);
+    final accent = c.onCard;
+    final dim = c.onCard.withAlpha(180);
+    final radius = BorderRadius.circular(Responsive.scale(context, 20));
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
-        child: frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
-            vertical: Responsive.height(context, 20),
+    return Padding(
+      padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: c.gradient,
           ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: icon,
-                color: barColor,
-                size: Responsive.scale(context, 26),
-              ),
-              SizedBox(width: Responsive.width(context, 16)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          border: Border.all(color: c.border, width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              splashColor: c.splashColor,
+              highlightColor: c.highlightColor,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 20),
+                  vertical: Responsive.height(context, 20),
+                ),
+                child: Row(
                   children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 16),
+                    Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 11)),
+                      decoration: BoxDecoration(
+                        color: c.iconBox,
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 13),
+                        ),
+                        border: Border.all(
+                          color: lightenColor(base, 0.35).withAlpha(80),
+                          width: 1,
+                        ),
+                      ),
+                      child: HugeIcon(
+                        icon: icon,
                         color: accent,
-                        fontWeight: FontWeight.w800,
+                        size: Responsive.scale(context, 22),
                       ),
                     ),
-                    SizedBox(height: Responsive.height(context, 3)),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: dim,
+                    SizedBox(width: Responsive.width(context, 16)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 16),
+                              color: accent,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 3)),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 12),
+                              color: dim,
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      color: lightenColor(base, 0.35).withAlpha(200),
+                      size: Responsive.scale(context, 20),
                     ),
                   ],
                 ),
               ),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: Colors.white24,
-                size: Responsive.scale(context, 20),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -272,10 +304,7 @@ class _ProgressionState extends State<Progression> {
                   ),
                   SizedBox(height: Responsive.height(context, 12)),
                   // Standing stat cards showing rank and total players
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _buildStandingCard(context),
-                  ),
+                  _buildStandingCard(context),
                   SizedBox(height: Responsive.height(context, 120)),
                 ],
               ),

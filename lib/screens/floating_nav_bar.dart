@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
@@ -58,24 +59,45 @@ class FloatingNavBar extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: Responsive.scale(context, 360),
               ),
-              child: frostedGlassCard(
-                context,
-                baseRadius: 30,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.padding(context, 8),
-                  vertical: Responsive.padding(context, 10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 30),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(_navIcons.length, (i) {
-                    return _NavItem(
-                      icon: _navIcons[i],
-                      label: _navLabels[i],
-                      isActive: selectedIndex == i,
-                      appColor: appColor,
-                      onTap: () => onTap(i),
-                    );
-                  }),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: frostedGlassCard(
+                    context,
+                    baseRadius: 30,
+                    // Navbar fill and border adapt to background lightness so it always pops
+                    backgroundColor: appColor.computeLuminance() < 0.18
+                        ? Colors.white.withAlpha(30)
+                        : Colors.white.withAlpha(80),
+                    border: appColor.computeLuminance() < 0.18
+                        ? Border.all(
+                            color: Colors.white.withAlpha(60),
+                            width: Responsive.width(context, 1.5),
+                          )
+                        : Border.all(
+                            color: Colors.white.withAlpha(140),
+                            width: Responsive.width(context, 1.5),
+                          ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.padding(context, 8),
+                      vertical: Responsive.padding(context, 10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(_navIcons.length, (i) {
+                        return _NavItem(
+                          icon: _navIcons[i],
+                          label: _navLabels[i],
+                          isActive: selectedIndex == i,
+                          appColor: appColor,
+                          onTap: () => onTap(i),
+                        );
+                      }),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -104,7 +126,16 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = lightenColor(appColor, 0.3);
+    final isLight = appColor.computeLuminance() >= 0.18;
+    final activeColor = isLight
+        ? darkenColor(appColor, 0.35)
+        : lightenColor(appColor, 0.3);
+    final inactiveColor = isLight
+        ? Colors.black.withAlpha(100)
+        : Colors.white38;
+    final inactiveLabelColor = isLight
+        ? Colors.black.withAlpha(80)
+        : Colors.white24;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque, // makes the full padding area tappable
@@ -121,7 +152,7 @@ class _NavItem extends StatelessWidget {
               duration: const Duration(milliseconds: 350),
               child: HugeIcon(
                 icon: icon,
-                color: isActive ? activeColor : Colors.white38,
+                color: isActive ? activeColor : inactiveColor,
                 size: Responsive.scale(context, isActive ? 28 : 23),
               ),
             ),
@@ -130,7 +161,7 @@ class _NavItem extends StatelessWidget {
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                color: isActive ? activeColor : Colors.white24,
+                color: isActive ? activeColor : inactiveLabelColor,
                 fontSize: isActive
                     ? Responsive.font(context, 11)
                     : Responsive.font(context, 10),

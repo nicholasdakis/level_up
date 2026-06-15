@@ -1,4 +1,4 @@
-// home_screen.dart
+﻿// home_screen.dart
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:math';
@@ -47,7 +47,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
-  double _lastRenderedExp = 0;
+  double _lastRenderedExp =
+      0; // reset on each load so the bar always animates in
   late String _greeting;
   bool _greetingIsQuestion = false;
 
@@ -119,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _onAppReady() {
+    debugPrint('[Home] _onAppReady fired, mounted=$mounted');
     if (!mounted) return;
     initializeUser();
     _startCountdown();
@@ -157,6 +159,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   bool get isNewUser =>
+      appReadyNotifier
+          .value && // guard against stub username matching uid before loadUserData finishes
       currentUserData?.username != null &&
       currentUserData?.username == currentUserData?.uid;
 
@@ -194,7 +198,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         setState(
           () => _greeting = _buildGreeting(),
         ); // refresh greeting and drawer with the new username
-        await showNewUserAppReviewDialog(context);
       }
       if (canClaimDailyReward() && mounted) {
         await buildDailyRewardDialog();
@@ -527,212 +530,296 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // XP bar card (moved from footer.dart)
+  // XP bar card: hero layout with level badge on the left and XP count on the right
   Widget _buildXpCard() {
+    final base = appColorNotifier.value;
+    final c = cardColors(base);
+    final accent = c.onCard;
+    final dim = c.onCard.withAlpha(180);
+    final level = currentUserData?.level ?? 1;
+
     return ValueListenableBuilder<int>(
       valueListenable: expNotifier,
       builder: (context, exp, _) {
-        return frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
-            vertical: Responsive.height(context, 16),
+        return TweenAnimationBuilder<double>(
+          key: ValueKey(
+            isLoading,
+          ), // forces tween to restart from 0 once loading finishes
+          tween: Tween(
+            begin: _lastRenderedExp,
+            end: isLoading ? 0.0 : exp.toDouble(),
           ),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: _lastRenderedExp, end: exp.toDouble()),
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOut,
-            onEnd: () => _lastRenderedExp = exp.toDouble(),
-            builder: (context, animatedExp, _) {
-              final needed = (userManager.experienceNeeded ?? 1).toDouble();
-              final progress = (animatedExp / needed).clamp(0.0, 1.0);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isGuest
-                            ? "Sign up to level up"
-                            : "Level ${currentUserData?.level ?? 1}",
-                        style: GoogleFonts.manrope(
-                          color: isGuest
-                              ? Colors.white54
-                              : lightenColor(appColorNotifier.value, 0.45),
-                          fontSize: Responsive.font(context, 16),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (!isGuest)
-                        Text(
-                          "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
-                          style: GoogleFonts.manrope(
-                            color: lightenColor(appColorNotifier.value, 0.45),
-                            fontSize: Responsive.font(context, 13),
-                            fontWeight: FontWeight.w500,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeOut,
+          onEnd: () => _lastRenderedExp = exp.toDouble(),
+          builder: (context, animatedExp, _) {
+            final needed = (userManager.experienceNeeded ?? 1).toDouble();
+            final progress = (animatedExp / needed).clamp(0.0, 1.0);
+            final remaining = ((needed - animatedExp).ceil()).clamp(
+              0,
+              needed.toInt(),
+            );
+
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: c.gradient,
+                ),
+                border: Border.all(color: c.border, width: 1),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 20),
+                  vertical: Responsive.height(context, 16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Level badge: white bg so it always pops as a focal point
+                        Container(
+                          width: Responsive.scale(context, 44),
+                          height: Responsive.scale(context, 44),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(220),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: Responsive.height(context, 10)),
-                  // XP bar, styled to match the calorie bar in food logging
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 7),
-                      ),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(45),
-                        width: Responsive.scale(context, 1),
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 6),
-                      ),
-                      child: Stack(
-                        children: [
-                          Container(
-                            height: Responsive.height(context, 10),
-                            width: double.infinity,
-                            color: Colors.white.withAlpha(18),
-                          ),
-                          FractionallySizedBox(
-                            widthFactor: progress,
-                            child: Container(
-                              height: Responsive.height(context, 10),
-                              decoration: BoxDecoration(
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.3,
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 6),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "LVL",
+                                style: GoogleFonts.manrope(
+                                  color: darkenColor(base, 0.05),
+                                  fontSize: Responsive.font(context, 8),
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
+                              Text(
+                                "$level",
+                                style: GoogleFonts.manrope(
+                                  color: darkenColor(base, 0.05),
+                                  fontSize: Responsive.font(context, 18),
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 14)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    isGuest
+                                        ? "Sign up to level up"
+                                        : "Level $level",
+                                    style: GoogleFonts.manrope(
+                                      color: isGuest ? Colors.white54 : accent,
+                                      fontSize: Responsive.font(context, 15),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  if (!isGuest)
+                                    Text(
+                                      "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
+                                      style: GoogleFonts.manrope(
+                                        color: dim,
+                                        fontSize: Responsive.font(context, 12),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              if (!isGuest) ...[
+                                SizedBox(height: Responsive.height(context, 4)),
+                                Text(
+                                  "Keep it up!",
+                                  style: GoogleFonts.manrope(
+                                    color: dim,
+                                    fontSize: Responsive.font(context, 11),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: Responsive.height(context, 14)),
+                    // XP bar, styled to match the calorie bar in food logging
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 7),
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(45),
+                          width: Responsive.scale(context, 1),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 6),
+                        ),
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: Responsive.height(context, 10),
+                              width: double.infinity,
+                              color: Colors.white.withAlpha(18),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: progress,
+                              child: Container(
+                                height: Responsive.height(context, 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withAlpha(200),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 6)),
+                    // XP to next level + total XP earned
+                    if (!isGuest)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "$remaining XP to Level ${level + 1}",
+                            style: GoogleFonts.manrope(
+                              color: accent,
+                              fontSize: Responsive.font(context, 11),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
+                            style: GoogleFonts.manrope(
+                              color: dim,
+                              fontSize: Responsive.font(context, 11),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  // XP to next level + total XP earned
-                  if (!isGuest)
-                    Builder(
-                      builder: (context) {
-                        final needed = userManager.experienceNeeded ?? 0;
-                        final remaining = (needed - animatedExp.round()).clamp(
-                          0,
-                          needed,
-                        );
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "$remaining XP to Level ${(currentUserData?.level ?? 1) + 1}",
-                              style: GoogleFonts.manrope(
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.45,
-                                ),
-                                fontSize: Responsive.font(context, 11),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
-                              style: GoogleFonts.manrope(
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.35,
-                                ),
-                                fontSize: Responsive.font(context, 11),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                ],
-              );
-            },
-          ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  // Daily reward card
+  // Daily reward card: same gradient tile style as the earn XP cards
   Widget _buildDailyRewardCard() {
+    final base = appColorNotifier.value;
     final canClaim = canClaimDailyReward();
-    final accentColor = lightenColor(appColorNotifier.value, 0.45);
-    return GestureDetector(
-      onTap: canClaim && !isGuest ? () => buildDailyRewardDialog() : null,
-      child: frostedGlassCard(
-        context,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 20),
-          vertical: Responsive.height(context, 16),
+    final c = cardColors(base);
+    final accent = c.onCard;
+    final dim = c.onCard.withAlpha(180);
+    final radius = BorderRadius.circular(Responsive.scale(context, 16));
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: c.gradient,
         ),
-        child: Row(
-          children: [
-            HugeIcon(
-              icon: canClaim
-                  ? HugeIcons.strokeRoundedGift
-                  : HugeIcons.strokeRoundedCalendar02,
-              color: lightenColor(appColorNotifier.value, 0.45),
-              size: Responsive.scale(context, 24),
-            ),
-            SizedBox(width: Responsive.width(context, 14)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        border: Border.all(color: c.border, width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: canClaim && !isGuest ? () => buildDailyRewardDialog() : null,
+            splashColor: c.splashColor,
+            highlightColor: c.highlightColor,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 20),
+                vertical: Responsive.height(context, 16),
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    isGuest
-                        ? "Sign up to claim daily rewards"
-                        : canClaim
-                        ? "Daily reward ready!"
-                        : "Daily reward claimed today!",
-                    style: GoogleFonts.manrope(
-                      color: isGuest
-                          ? Colors.white54
-                          : canClaim
-                          ? lightenColor(appColorNotifier.value, 0.45)
-                          : lightenColor(appColorNotifier.value, 0.45),
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w700,
+                  HugeIcon(
+                    icon: canClaim
+                        ? HugeIcons.strokeRoundedGift
+                        : HugeIcons.strokeRoundedCalendar02,
+                    color: accent,
+                    size: Responsive.scale(context, 24),
+                  ),
+                  SizedBox(width: Responsive.width(context, 14)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isGuest
+                              ? "Sign up to claim daily rewards"
+                              : canClaim
+                              ? "Daily reward ready!"
+                              : "Daily reward claimed today!",
+                          style: GoogleFonts.manrope(
+                            color: isGuest ? dim : accent,
+                            fontSize: Responsive.font(context, 14),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          isGuest
+                              ? "Create an account to start earning XP"
+                              : canClaim
+                              ? "Tap to claim your XP bonus"
+                              : _timeUntilReward.inSeconds > 0
+                              ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
+                              : "You've already claimed today's reward",
+                          style: GoogleFonts.manrope(
+                            color: dim,
+                            fontSize: Responsive.font(context, 12),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    isGuest
-                        ? "Create an account to start earning XP"
-                        : canClaim
-                        ? "Tap to claim your XP bonus"
-                        : _timeUntilReward.inSeconds > 0
-                        ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
-                        : "You've already claimed today's reward",
-                    style: GoogleFonts.manrope(
-                      color: isGuest
-                          ? Colors.white38
-                          : lightenColor(appColorNotifier.value, 0.45),
-                      fontSize: Responsive.font(context, 12),
-                    ),
+                  HugeIcon(
+                    icon: canClaim && !isGuest
+                        ? HugeIcons.strokeRoundedArrowRight01
+                        : HugeIcons.strokeRoundedCheckmarkCircle02,
+                    color: canClaim && !isGuest ? accent : dim,
+                    size: Responsive.scale(context, 18),
                   ),
                 ],
               ),
             ),
-            HugeIcon(
-              icon: canClaim && !isGuest
-                  ? HugeIcons.strokeRoundedArrowRight01
-                  : HugeIcons.strokeRoundedCheckmarkCircle02,
-              color: canClaim && !isGuest ? accentColor : Colors.white24,
-              size: Responsive.scale(context, 18),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -748,135 +835,124 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return meals.values.fold(0, (sum, foods) => sum + foods.length);
   }
 
-  // Earn XP card: watch a rewarded ad for XP
+  // Earn XP card: square action tile with icon on top and label below
   Widget _buildEarnXpCard() {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final accentDim = lightenColor(appColorNotifier.value, 0.3);
-    return GestureDetector(
-      onTap: () async {
-        if (kIsWeb) {
-          showFrostedAlertDialog(
-            context: context,
-            title: "Watch an Ad",
-            content: Text(
-              "This feature is only available on Android.",
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                color: Colors.white60,
-              ),
-            ),
-            actions: [
-              Expanded(
-                child: Center(
-                  child: Builder(
-                    builder: (ctx) => TextButton(
-                      onPressed: () async {
-                        Navigator.of(ctx, rootNavigator: true).pop();
-                        await launchUrl(
-                          Uri.parse(
-                            'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+    final base = appColorNotifier.value;
+    final c = cardColors(base);
+    final accent = c.onCard;
+    final dim = c.onCard.withAlpha(180);
+    final radius = BorderRadius.circular(Responsive.scale(context, 16));
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: c.gradient,
+        ),
+        border: Border.all(color: c.border, width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            splashColor: c.splashColor,
+            highlightColor: c.highlightColor,
+            onTap: () async {
+              if (kIsWeb) {
+                showFrostedAlertDialog(
+                  context: context,
+                  title: "Watch an Ad",
+                  content: Text(
+                    "This feature is only available on Android.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white60,
+                    ),
+                  ),
+                  actions: [
+                    Expanded(
+                      child: Center(
+                        child: Builder(
+                          builder: (ctx) => TextButton(
+                            onPressed: () async {
+                              Navigator.of(ctx, rootNavigator: true).pop();
+                              await launchUrl(
+                                Uri.parse(
+                                  'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+                                ),
+                              );
+                            },
+                            child: const Text("Get the App"),
                           ),
-                        );
-                      },
-                      child: const Text("Get the App"),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Builder(
-                    builder: (ctx) => TextButton(
-                      onPressed: () =>
-                          Navigator.of(ctx, rootNavigator: true).pop(),
-                      child: const Text("Dismiss"),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-          return;
-        }
-        // disabled until AdMob account is approved
-        showFrostedAlertDialog(
-          context: context,
-          title: "Coming Soon",
-          content: Text(
-            "This feature will be available soon!",
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 13),
-              color: Colors.white60,
-            ),
-          ),
-          actions: [
-            Expanded(
-              child: Center(
-                child: Builder(
-                  builder: (ctx) => TextButton(
-                    onPressed: () =>
-                        Navigator.of(ctx, rootNavigator: true).pop(),
-                    child: const Text("OK"),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-        return;
-        // ignore: dead_code
-        await adService.showRewardedAd(
-          onRewarded: () async {
-            await Future.delayed(const Duration(seconds: 2));
-            await userManager.refreshUserData();
-            if (mounted) setState(() {});
-          },
-        );
-      },
-      child: Opacity(
-        opacity: 0.45,
-        child: frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 16),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedPlayCircle,
-                color: accentDim,
-                size: Responsive.scale(context, 28),
-              ),
-              SizedBox(width: Responsive.width(context, 14)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Watch an Ad",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 15),
-                        color: accent,
-                        fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                    Text(
-                      "Coming soon",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: accentDim,
+                    Expanded(
+                      child: Center(
+                        child: Builder(
+                          builder: (ctx) => TextButton(
+                            onPressed: () =>
+                                Navigator.of(ctx, rootNavigator: true).pop(),
+                            child: const Text("Dismiss"),
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ),
+                );
+                return;
+              }
+              await adService.showRewardedAd(
+                onRewarded: () async {
+                  await userManager.claimAdXp(context);
+                  if (mounted) setState(() {});
+                },
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.all(Responsive.scale(context, 12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize
+                    .max, // stretches to match sibling tile height via IntrinsicHeight
+                children: [
+                  // Icon at the top of the tile
+                  Container(
+                    padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                    decoration: BoxDecoration(
+                      color: c.iconBox,
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 10),
+                      ),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedPlayCircle,
+                      color: accent,
+                      size: Responsive.scale(context, 22),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 12)),
+                  Text(
+                    "Watch an Ad",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    "Coming soon",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 11),
+                      color: dim,
+                    ),
+                  ),
+                ],
               ),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: accent,
-                size: Responsive.scale(context, 20),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1108,7 +1184,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       ? 'Navigation Bar'
                                       : 'Settings',
                                   description: _tourStep == 0
-                                      ? 'This is your dashboard — your XP progress, daily reward, and quick stats all live here. Use the tool buttons below to access Reminders and the Calorie Calculator.'
+                                      ? 'This is your dashboard: your XP progress, daily reward, and quick stats all live here. Use the tool buttons below to access Reminders and the Calorie Calculator.'
                                       : _tourStep == 1
                                       ? 'The floating bar at the bottom lets you switch between your five main tabs: Home, Food Logging, Explore, Leaderboard, and Badges.'
                                       : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
@@ -1152,8 +1228,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Skeletonizer(
         enabled: isLoading,
         effect: ShimmerEffect(
-          baseColor: darkenColor(appColorNotifier.value, 0.1),
-          highlightColor: lightenColor(appColorNotifier.value, 0.45),
+          baseColor: lightenColor(appColorNotifier.value, 0.10),
+          highlightColor: lightenColor(appColorNotifier.value, 0.22),
           duration: const Duration(milliseconds: 1200),
         ),
         child: Container(
@@ -1263,10 +1339,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _maybeAnimate(_buildXpCard(), 60.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 
-                          sectionHeader("DAILY REWARD", context),
-                          _maybeAnimate(_buildDailyRewardCard(), 120.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-
                           if (!isGuest) ...[
                             sectionHeader("EARN XP", context),
                             _maybeAnimate(
@@ -1289,18 +1361,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   ],
                                 ),
                               ),
-                              150.ms,
+                              120.ms,
                             ),
+                            SizedBox(height: Responsive.height(context, 12)),
+                            // Daily reward sits below the earn XP tiles as a slim full-width row
+                            _maybeAnimate(_buildDailyRewardCard(), 150.ms),
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 
-                          if (!isGuest) ...[
-                            sectionHeader("STREAKS", context),
-                            _maybeAnimate(_buildStreakCard(), 180.ms),
+                          if (isGuest) ...[
+                            sectionHeader("DAILY REWARD", context),
+                            _maybeAnimate(_buildDailyRewardCard(), 120.ms),
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 
-                          sectionHeader("STATS", context),
+                          // Streaks and stats merged into one section
+                          sectionHeader("STREAKS & STATS", context),
+                          _maybeAnimate(_buildStreakCard(), 180.ms),
+                          if (!isGuest)
+                            SizedBox(height: Responsive.height(context, 12)),
                           _maybeAnimate(_buildQuickStats(), 220.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 

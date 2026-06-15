@@ -1963,6 +1963,18 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added Firebase Analytics screen tracking for all tab screens and push routes so Firebase reports actual screen names instead of only MainActivity
 
 ## 2026-06-14
+- Set up Unity Ads to be used as mediation when AdMob is not available
+- Added a /unity_ssv route for verifying the Unity Ads-specific ads
+- The verification route will be wired up when approved
+- Edited ad_service.dart to handle the Unity fallback
+- Moved ad service initialization into ad_service.dart
+- Removed the Coming Soon text on the Ad card
+- Added a fallback to the ad card when no Ads load
+- Hid "Your Rank" and "Total Users" cards from guests
+- Added back buttons in the Badges and Leaderboard tabs for guests
+- Blocked guests from initializing location in the Explore tab
+- Removed the app theme gradient for a cleaner look
+- Made the settings button smaller to be more proportional to the greeting text
 - Updated app logo color to a blue gradient
 - Completely redesigned the login/register screen layout and visual style
 - Replaced the old single-page email form with a two-mode flow: an initial landing view and an expandable email form
@@ -1975,3 +1987,25 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The TOS checkbox auto-triggers Google sign-in once checked on the landing view
 - Replaced the pink/magenta color scheme with a blue gradient (cyan to dark blue) to match the new app logo color
 - Replaced the SVG-based Google button with a custom styled button using the Google logo PNG asset
+- Added desktop padding to the login screen
+- Tweaked the progress bar on the login screen to be narrower than the continue buttons
+- Added a divider between the progress bar on the login screen and the continue buttons
+- Removed IntrinsicHeight to fix overflow errors
+- Added top and bottom padding to the initial registration UI so components don't touch the top and bottom on small screens
+- Fixed overflow error in settings drawer for long usernames
+- Added a guard to prevent sending blank usernames on onboarding
+- Made error messages for usernames that are too long specific instead of showing generic "Invalid request"
+- Fixed an overflow error on Android in onboarding when the user's keyboard appeared for entering their username
+- Removed the prompt to review in onboarding (the function still exists in case it will be used at another time)
+- Merged "Your Rank" and "Total Users" into one card and added a new percentage component to it, stating "Top X% of users"
+
+## 2026-06-15
+- Made the XP bar in the Home Screen only fill in after the skeletonizer finishes loading
+- Redesigned the home screen action cards (Watch an Ad, Refer a Friend, Daily Reward) to use a gradient fill with a subtle border and no frosted glass, giving them a more distinct and elevated appearance
+- Added a cardColors() utility in globals.dart that returns a consistent set of surface colors (gradient, border, icon box, splash, highlight, onCard text) derived from the theme color using perceptually uniform Oklab color shifts
+- Implemented Oklab color space conversion in globals.dart (sRGB linearization, Oklab forward/inverse transforms) so card lightness steps look visually equal regardless of hue, fixing the issue where light cards appeared too similar to the background with HSL-only shifts
+- Branching logic in cardColors() now uses WCAG relative luminance instead of HSL lightness, correctly identifying saturated colors like red as perceptually dark rather than mid-tone
+- frostedGlassCard() updated to use the cardColors() gradient and border by default, so all informational cards across the app automatically match the action card style
+- The floating nav bar now adapts its fill, border, and icon/label colors based on the theme color's luminance, using a white glass overlay on dark themes and a white semi-transparent fill with darker text on light themes so it always reads clearly
+- Removed drop shadows from all cards for a cleaner, flatter look consistent across the whole screen
+- Fixed the floating nav bar's solid background panel that was misaligned on desktop by removing it and applying the blur directly to the nav bar widget itself
