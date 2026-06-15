@@ -93,13 +93,12 @@ final GoRouter appRouter = GoRouter(
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
-    if (suppressAuthRedirect) {
-      return null; // TOS check in progress
-    }
     final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';
-
+    if (suppressAuthRedirect) {
+      return null; // TOS check in progress
+    }
     // send logged-out users to login
     if (!isLoggedIn && !onLogin) return '/login';
 
@@ -117,7 +116,9 @@ final GoRouter appRouter = GoRouter(
       final query = appLaunchUri.query.isNotEmpty
           ? '?${appLaunchUri.query}'
           : '';
-      return (path.isNotEmpty && path != '/loading') ? '$path$query' : '/';
+      return (path.isNotEmpty && path != '/loading' && path != '/login')
+          ? '$path$query'
+          : '/';
     }
 
     return null; // no redirect needed
@@ -205,6 +206,7 @@ final GoRouter appRouter = GoRouter(
         ),
 
         // Workout tab
+        // TODO: replace placeholder with Workout() when the screen is ready
         StatefulShellBranch(
           navigatorKey: _workoutNavKey,
           routes: [
@@ -212,7 +214,15 @@ final GoRouter appRouter = GoRouter(
               path: '/workout',
               pageBuilder: (context, state) => NoTransitionPage(
                 key: state.pageKey,
-                child: const Placeholder(),
+                child: const Scaffold(
+                  backgroundColor: Color(0xFF0A0F1E),
+                  body: Center(
+                    child: Text(
+                      'Coming Soon',
+                      style: TextStyle(color: Colors.white54, fontSize: 16),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -348,6 +358,10 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _initApp() async {
+    // Navigate immediately so the skeletonizer shows instead of a blank loading screen
+    appInitialized = true;
+    Future.microtask(appRouter.refresh);
+
     await userManager.loadUserData();
 
     userManager.updateUtcOffset();
@@ -368,7 +382,6 @@ class _AppInitScreenState extends State<AppInitScreen> {
         final base = currentUserData!.appColor;
         final dark = darkenColor(base, 0.015);
         final mid = lightenColor(base, 0.015);
-
         final notch = darkenColor(base, 0.07);
         web_fcm.setAppColor('${toHex(dark)}|${toHex(mid)}|${toHex(notch)}');
       } catch (e) {
@@ -379,10 +392,6 @@ class _AppInitScreenState extends State<AppInitScreen> {
     if (mounted && !isGuest) FcmService.initialize(context);
 
     appReadyNotifier.value = true;
-
-    // set flag then refresh the router so the redirect rule sends the user to /
-    appInitialized = true;
-    appRouter.refresh();
   }
 
   @override

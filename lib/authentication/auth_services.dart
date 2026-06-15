@@ -54,22 +54,26 @@ class AuthService {
       googleProvider.setCustomParameters({'prompt': 'select_account'});
       suppressAuthRedirect = true;
       try {
-        if (agreedToTerms && firebaseAuth.currentUser != null) {
+        final user = firebaseAuth.currentUser;
+        final email = user?.email;
+        if (agreedToTerms && user != null && email != null) {
+          // TOS accepted and already signed in from previous popup — just register and proceed
           suppressAuthRedirect = false;
           return null;
         }
         final result = await firebaseAuth.signInWithPopup(googleProvider);
-        final email = result.user?.email;
-        if (email != null) {
+        final resultEmail = result.user?.email;
+        if (resultEmail != null) {
           final response = await http
               .post(
                 Uri.parse('$backendBaseUrl/check_user_email_exists'),
                 headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({'email': email}),
+                body: jsonEncode({'email': resultEmail}),
               )
               .timeout(const Duration(seconds: 5));
           final exists = jsonDecode(response.body)['exists'] == true;
-          if (!exists) {
+          if (!exists && !agreedToTerms) {
+            await firebaseAuth.signOut();
             throw FirebaseAuthException(code: 'new-user-no-tos');
           }
         }

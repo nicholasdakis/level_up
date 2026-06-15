@@ -30,8 +30,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
   bool agreedToTerms = false;
   // true once the user taps "Continue with email instead"
   bool showEmailForm = false;
-  // true once the user taps "Continue with Google" for the first time, slides in the TOS checkbox
-  bool _showGoogleTos = false;
 
   @override
   void dispose() {
@@ -203,7 +201,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
   }
 
   // Terms and privacy agreement row
-  Widget buildTermsCheckbox({VoidCallback? onAgreed}) {
+  Widget buildTermsCheckbox() {
     final baseTextStyle = GoogleFonts.manrope(
       color: Colors.white38,
       fontSize: Responsive.font(context, 12),
@@ -228,8 +226,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                 // clear any stale agreement-error
                 if (agreedToTerms) notifyingMessage = null;
               });
-              // if onAgreed is provided, call it right after so the caller can react to the checkbox being checked
-              if ((value ?? false) && onAgreed != null) onAgreed();
             },
             checkColor: Colors.black,
             activeColor: Colors.white,
@@ -367,23 +363,8 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
     }
   }
 
-  // Method that handles the Google sign in flow including TOS gating for new users
+  // Method to sign the user in with Google
   Future<void> handleGoogleSignIn() async {
-    if (!showEmailForm && !_showGoogleTos) {
-      setState(() => _showGoogleTos = true);
-      return;
-    }
-    if (!showEmailForm && _showGoogleTos && !agreedToTerms) {
-      setState(
-        () => notifyingMessage =
-            "Please agree to the Privacy Policy and Terms of Service to continue.",
-      );
-      return;
-    }
-    await _executeGoogleSignIn();
-  }
-
-  Future<void> _executeGoogleSignIn() async {
     try {
       await authService.value.signInWithGoogle(agreedToTerms: agreedToTerms);
       if (!mounted) return;
@@ -391,32 +372,33 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       if (e.code == 'new-user-no-tos') {
-        // new user tapped Google without accepting the TOS, show the checkbox
-        setState(() => _showGoogleTos = true);
+        await showFrostedAlertDialog(
+          context: context,
+          title: "One more step",
+          content: Text(
+            "Please agree to the Privacy Policy and Terms of Service before creating an account.",
+            style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Expanded(
+              child: Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Got it"),
+                ),
+              ),
+            ),
+          ],
+        );
       } else {
-        final code = e.code.toLowerCase();
-        // only show an error for real failures, not user cancellations
-        if (!code.contains('cancel') &&
-            !code.contains('sign_in_fail') &&
-            !code.contains('conflict')) {
-          setState(
-            () => notifyingMessage = "Google sign in failed. Please try again.",
-          );
-        }
+        setState(
+          () => notifyingMessage = "Google sign in failed: ${e.message}",
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      final msg = e.toString().toLowerCase();
-      // skip errors caused by the user closing the picker or network noise
-      if (msg.contains('cancel') ||
-          msg.contains('popup') ||
-          msg.contains('sign_in_fail') ||
-          msg.contains('conflict') ||
-          msg.contains('network_error'))
-        return;
-      setState(
-        () => notifyingMessage = "Google sign in failed. Please try again.",
-      );
+      setState(() => notifyingMessage = "Google sign in failed: $e");
     }
   }
 
@@ -734,18 +716,6 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             setState(() => hidePassword = !hidePassword),
                       ),
                     ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 260),
-                      curve: curve,
-                      child: !isLoginMode
-                          ? Padding(
-                              padding: EdgeInsets.only(
-                                top: Responsive.padding(context, 14),
-                              ),
-                              child: buildTermsCheckbox(),
-                            )
-                          : const SizedBox(width: double.infinity),
-                    ),
                     SizedBox(height: Responsive.padding(context, 16)),
                     buildPrimaryButton(),
                     AnimatedSize(
@@ -770,7 +740,9 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             )
                           : const SizedBox(width: double.infinity),
                     ),
-                    SizedBox(height: Responsive.padding(context, 8)),
+                    SizedBox(height: Responsive.padding(context, 12)),
+                    buildTermsCheckbox(),
+                    SizedBox(height: Responsive.padding(context, 12)),
                     // Divider separating the email form from the social auth options below
                     Row(
                       children: [
@@ -832,24 +804,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
           SizedBox(height: Responsive.padding(context, 16)),
         ],
         buildGoogleButton(),
-        // TOS checkbox slides in below the Google button on the first tap
-        AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          child: (!showEmailForm && _showGoogleTos)
-              ? Padding(
-                  padding: EdgeInsets.only(
-                    top: Responsive.padding(context, 12),
-                  ),
-                  child: buildTermsCheckbox(
-                    onAgreed: () async {
-                      await Future.delayed(const Duration(milliseconds: 150));
-                      if (mounted) await _executeGoogleSignIn();
-                    },
-                  ),
-                )
-              : const SizedBox(width: double.infinity),
-        ),
+        if (!showEmailForm) ...[
+          SizedBox(height: Responsive.padding(context, 12)),
+          buildTermsCheckbox(),
+        ],
         SizedBox(height: Responsive.padding(context, 12)),
         buildOutlinedButton(
           label: "Continue as a guest",
