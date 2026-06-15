@@ -385,11 +385,19 @@ cardColors(Color base) {
 }
 
 // Frosted glass tappable button
+// Pass a [color] to tint the button with the theme color, otherwise it uses a neutral white glass
 Widget frostedButton(
   String text,
   BuildContext context, {
   required Function() onPressed,
+  Color? color,
 }) {
+  final bg = color != null
+      ? cardColors(color).gradient.first.withAlpha(180)
+      : Colors.white.withAlpha(18);
+  final border = color != null
+      ? Border.all(color: lightenColor(color, 0.2).withAlpha(160), width: 1)
+      : Border.all(color: Colors.white.withAlpha(40), width: 1);
   return MouseRegion(
     cursor: SystemMouseCursors.click,
     child: GestureDetector(
@@ -397,6 +405,8 @@ Widget frostedButton(
       child: frostedGlassCard(
         context,
         baseRadius: 14,
+        backgroundColor: bg,
+        border: border,
         padding: EdgeInsets.symmetric(
           vertical: Responsive.height(context, 15),
           horizontal: Responsive.width(context, 24),
