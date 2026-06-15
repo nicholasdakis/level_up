@@ -340,7 +340,8 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
             horizontal: Responsive.width(context, 28),
             vertical: Responsive.height(context, 32),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Bolt icon badge
@@ -466,6 +467,7 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
               ),
             ],
           ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, duration: 350.ms),
+          ),
         ),
       ),
     );
