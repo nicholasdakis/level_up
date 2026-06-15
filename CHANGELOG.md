@@ -2010,3 +2010,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed drop shadows from all cards for a cleaner, flatter look consistent across the whole screen
 - Fixed the floating nav bar's solid background panel that was misaligned on desktop by removing it and applying the blur directly to the nav bar widget itself
 - Fixed a bug where entering as a guest, logging out, then logging into an existing account showed the onboarding flow by making Guest.exit() set appReadyNotifier to false (as it stayed true and then ran before the user's data was ready, which assumed the user was null and thus new)
+- Added the user's pfp (if it exists) behind the "LVL X" text of the progress bar card
+- Wrapped the pfp in an AnimatedSwitcher so it smoothly appears when ready rather than abruptly popping in

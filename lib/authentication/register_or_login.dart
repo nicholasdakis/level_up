@@ -810,7 +810,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         ],
         SizedBox(height: Responsive.padding(context, 12)),
         buildOutlinedButton(
-          label: "Continue as a guest",
+          label: "Browse as a guest",
           icon: HugeIcons.strokeRoundedAnonymous,
           onTap: Guest.enter,
         ),

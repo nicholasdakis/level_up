@@ -1,6 +1,7 @@
 ﻿// home_screen.dart
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -49,6 +50,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Duration _timeUntilReward = Duration.zero;
   double _lastRenderedExp =
       0; // reset on each load so the bar always animates in
+  Uint8List? _pfpBytes;
+  bool _pfpVisible = false;
   late String _greeting;
   bool _greetingIsQuestion = false;
 
@@ -242,10 +245,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (mounted) {
+      final pfp = currentUserData?.pfpBase64;
+      final bytes = pfp != null
+          ? (Uri.parse(pfp).data?.contentAsBytes() ?? base64Decode(pfp))
+          : null;
       setState(() {
         isLoading = false;
         _greeting = _buildGreeting();
+        _pfpBytes = bytes;
       });
+      if (bytes != null) {
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (mounted) setState(() => _pfpVisible = true);
+        });
+      }
       if (kIsWeb &&
           !isNewUser &&
           web_fcm.getNotificationPermission() != 'granted' &&
@@ -536,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final c = cardColors(base);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
-    final level = currentUserData?.level ?? 1;
+    final level = isGuest ? 0 : (currentUserData?.level ?? 1);
 
     return ValueListenableBuilder<int>(
       valueListenable: expNotifier,
@@ -583,39 +596,98 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Level badge: white bg so it always pops as a focal point
-                        Container(
-                          width: Responsive.scale(context, 44),
-                          height: Responsive.scale(context, 44),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(220),
-                            borderRadius: BorderRadius.circular(
+                        // Level badge: white fill always visible, pfp fades in on top once decoded
+                        Builder(
+                          builder: (context) {
+                            final hasPfp = _pfpBytes != null;
+                            final borderRadius = BorderRadius.circular(
                               Responsive.scale(context, 10),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "LVL",
-                                style: GoogleFonts.manrope(
-                                  color: darkenColor(base, 0.05),
-                                  fontSize: Responsive.font(context, 8),
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
+                            );
+                            return Container(
+                              decoration: BoxDecoration(
+                                borderRadius: borderRadius,
+                                border: hasPfp
+                                    ? Border.all(
+                                        color: Colors.white.withAlpha(180),
+                                        width: Responsive.width(context, 1.5),
+                                      )
+                                    : null,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: borderRadius,
+                                child: SizedBox(
+                                  width: Responsive.scale(context, 44),
+                                  height: Responsive.scale(context, 44),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Container(
+                                        color: Colors.white.withAlpha(220),
+                                      ),
+                                      if (hasPfp)
+                                        AnimatedOpacity(
+                                          opacity: _pfpVisible ? 1.0 : 0.0,
+                                          duration: const Duration(
+                                            milliseconds: 400,
+                                          ),
+                                          child: Image.memory(
+                                            _pfpBytes!,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                          ),
+                                        ),
+                                      // Scrim fades in with the pfp so text stays readable
+                                      if (hasPfp)
+                                        AnimatedOpacity(
+                                          opacity: _pfpVisible ? 1.0 : 0.0,
+                                          duration: const Duration(
+                                            milliseconds: 400,
+                                          ),
+                                          child: Container(
+                                            color: Colors.black.withAlpha(100),
+                                          ),
+                                        ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "LVL",
+                                            style: GoogleFonts.manrope(
+                                              color: hasPfp
+                                                  ? Colors.white
+                                                  : darkenColor(base, 0.05),
+                                              fontSize: Responsive.font(
+                                                context,
+                                                8,
+                                              ),
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                          Text(
+                                            "$level",
+                                            style: GoogleFonts.manrope(
+                                              color: hasPfp
+                                                  ? Colors.white
+                                                  : darkenColor(base, 0.05),
+                                              fontSize: Responsive.font(
+                                                context,
+                                                18,
+                                              ),
+                                              fontWeight: FontWeight.w800,
+                                              height: 1.1,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              Text(
-                                "$level",
-                                style: GoogleFonts.manrope(
-                                  color: darkenColor(base, 0.05),
-                                  fontSize: Responsive.font(context, 18),
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                         SizedBox(width: Responsive.width(context, 14)),
                         Expanded(
