@@ -117,7 +117,7 @@ Widget buildSettingsDrawer(
                     padding: EdgeInsets.fromLTRB(
                       Responsive.width(context, 20),
                       Responsive.height(context, 60),
-                      Responsive.width(context, 20),
+                      0,
                       Responsive.height(context, 20),
                     ),
                     child: Row(
@@ -138,26 +138,29 @@ Widget buildSettingsDrawer(
                           ),
                         ),
                         SizedBox(width: Responsive.width(context, 14)),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              username,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 16),
-                                color: accentColor,
-                                fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                username,
+                                softWrap: true,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 16),
+                                  color: accentColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: Responsive.height(context, 2)),
-                            Text(
-                              "Level ${currentUserData?.level ?? 1}",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 12),
-                                color: accentColor,
+                              SizedBox(height: Responsive.height(context, 2)),
+                              Text(
+                                "Level ${currentUserData?.level ?? 1}",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 12),
+                                  color: accentColor,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
