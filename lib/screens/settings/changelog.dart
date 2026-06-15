@@ -77,6 +77,21 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
           children: [
             _buildChangelogCard(
               context,
+              date: 'Coming soon',
+              version: '1.1.3',
+              changes: [
+                'The Leaderboard and Badges tabs have been replaced with the Progress tab, containing the removed tabs with more features planned ahead',
+                'The app logo has been updated with a blue gradient color scheme',
+                'Completely redesigned the login screen with a cleaner two-step flow and updated branding to match the new logo',
+                'Your leaderboard standing now shows as a card on the Progress tab, including what percentage of all players you are ahead of',
+                'All cards across the app now use a consistent style that adapts to your chosen theme color',
+                'Light and vibrant theme colors now look significantly better across the whole app',
+                'The floating nav bar now adapts its appearance for both dark and light theme colors so it always reads clearly',
+                'Bug fixes and visual consistency improvements',
+              ],
+            ),
+            _buildChangelogCard(
+              context,
               date: 'June 11, 2026',
               version: '1.1.2',
               changes: [
