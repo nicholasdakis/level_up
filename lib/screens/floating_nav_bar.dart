@@ -70,15 +70,15 @@ class FloatingNavBar extends StatelessWidget {
                     baseRadius: 30,
                     // Navbar fill and border adapt to background lightness so it always pops
                     backgroundColor: appColor.computeLuminance() < 0.18
-                        ? Colors.white.withAlpha(30)
-                        : Colors.white.withAlpha(80),
+                        ? Colors.white.withAlpha(18)
+                        : Colors.white.withAlpha(50),
                     border: appColor.computeLuminance() < 0.18
                         ? Border.all(
-                            color: Colors.white.withAlpha(60),
+                            color: Colors.white.withAlpha(35),
                             width: Responsive.width(context, 1.5),
                           )
                         : Border.all(
-                            color: Colors.white.withAlpha(140),
+                            color: Colors.white.withAlpha(90),
                             width: Responsive.width(context, 1.5),
                           ),
                     padding: EdgeInsets.symmetric(
