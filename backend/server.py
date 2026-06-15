@@ -834,5 +834,48 @@ def admob_ssv():
         return jsonify({"error": "Internal error"}), 500
 
 
+@app.route("/unity_ssv", methods=["GET"])
+def unity_ssv():
+    try:
+        import hmac
+        import hashlib
+
+        # Unity sends sid (user id), oid (offer id), and hmac as query params
+        sid = request.args.get("sid", "")
+        oid = request.args.get("oid", "")
+        received_hmac = request.args.get("hmac", "")
+
+        if not sid or not oid or not received_hmac:
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        # Secret key from Unity Ads Support — set as environment variable UNITY_ADS_SECRET
+        secret = os.environ.get("UNITY_ADS_SECRET", "")
+        if not secret:
+            logger.error("[unity_ssv] UNITY_ADS_SECRET not set")
+            return jsonify({"error": "Server misconfigured"}), 500
+
+        # Build the message: all params except hmac, sorted alphabetically, joined by commas
+        params = {k: v for k, v in request.args.items() if k != "hmac"}
+        message = ",".join(f"{k}={v}" for k, v in sorted(params.items()))
+
+        expected_hmac = hmac.new(
+            secret.encode("utf-8"),
+            message.encode("utf-8"),
+            hashlib.md5,
+        ).hexdigest()
+
+        if not hmac.compare_digest(received_hmac, expected_hmac):
+            logger.warning("[unity_ssv] Invalid HMAC")
+            return "1", 200  # Unity expects "1" even on failure to prevent retries
+
+        xp_gained = progression_service.award_ad_xp(sid)
+        logger.info(f"[unity_ssv] Awarded {xp_gained} XP to {sid}")
+        return "1", 200  # Unity requires body to be "1" on success
+
+    except Exception as e:
+        logger.error(f"[unity_ssv] Error: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+
 if __name__ == "__main__": # Only run when the application starts
     app.run(debug=False)
