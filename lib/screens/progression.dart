@@ -57,75 +57,20 @@ class _ProgressionState extends State<Progression> {
   }
 
   Widget _buildStandingCard(BuildContext context) {
+    if (isGuest) return const SizedBox.shrink();
+
     final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
 
-    Widget statCard(String title, String value, IconData icon) {
-      final dim = lightenColor(appColorNotifier.value, 0.35);
-      return Expanded(
-        child: frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 16),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: icon,
-                color: dim,
-                size: Responsive.scale(context, 28),
-              ),
-              SizedBox(width: Responsive.width(context, 14)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 15),
-                        color: accent,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            value,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 22),
-                              color: accent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final rankValue = _standingLoading
+    final rankLabel = _standingLoading
         ? "..."
         : _rank == null
         ? "?"
         : "#$_rank";
-    final totalValue = _standingLoading
-        ? "..."
-        : _total == null
-        ? "?"
-        : "$_total";
 
-    if (isGuest) return const SizedBox.shrink();
+    final topPercent = (_rank != null && _total != null && _total! > 0)
+        ? ((_rank! / _total!) * 100).ceil()
+        : null;
 
     return Skeletonizer(
       enabled: _standingLoading,
@@ -134,16 +79,89 @@ class _ProgressionState extends State<Progression> {
         highlightColor: lightenColor(appColorNotifier.value, 0.1),
         duration: const Duration(milliseconds: 1200),
       ),
-      child: IntrinsicHeight(
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 16),
+        ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            statCard("Your Rank", rankValue, HugeIcons.strokeRoundedMedal02),
-            SizedBox(width: Responsive.width(context, 12)),
-            statCard(
-              "Total Users",
-              totalValue,
-              HugeIcons.strokeRoundedUserGroup,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "YOUR RANK",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 10),
+                    color: dim,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 2)),
+                Text(
+                  rankLabel,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 32),
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                  ),
+                ),
+                if (_total != null)
+                  Text(
+                    "out of $_total",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 11),
+                      color: dim,
+                    ),
+                  ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 20),
+              ),
+              child: Container(
+                width: 1,
+                height: Responsive.height(context, 48),
+                color: Colors.white12,
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "TOP",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 10),
+                    color: dim,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 2)),
+                Text(
+                  topPercent != null ? "$topPercent%" : "...",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 32),
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                  ),
+                ),
+                Text(
+                  "of all players",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 11),
+                    color: dim,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -254,7 +272,10 @@ class _ProgressionState extends State<Progression> {
                   ),
                   SizedBox(height: Responsive.height(context, 12)),
                   // Standing stat cards showing rank and total players
-                  _buildStandingCard(context),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _buildStandingCard(context),
+                  ),
                   SizedBox(height: Responsive.height(context, 120)),
                 ],
               ),
