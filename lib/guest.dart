@@ -33,6 +33,7 @@ class Guest {
     isGuest = false;
     userDataNotifier.value = null;
     appInitialized = false;
+    appReadyNotifier.value = false;
     guestNotifier.value = false;
   }
 

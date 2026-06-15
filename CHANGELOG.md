@@ -2009,3 +2009,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The floating nav bar now adapts its fill, border, and icon/label colors based on the theme color's luminance, using a white glass overlay on dark themes and a white semi-transparent fill with darker text on light themes so it always reads clearly
 - Removed drop shadows from all cards for a cleaner, flatter look consistent across the whole screen
 - Fixed the floating nav bar's solid background panel that was misaligned on desktop by removing it and applying the blur directly to the nav bar widget itself
+- Fixed a bug where entering as a guest, logging out, then logging into an existing account showed the onboarding flow by making Guest.exit() set appReadyNotifier to false (as it stayed true and then ran before the user's data was ready, which assumed the user was null and thus new)
