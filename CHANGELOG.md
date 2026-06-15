@@ -2012,3 +2012,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where entering as a guest, logging out, then logging into an existing account showed the onboarding flow by making Guest.exit() set appReadyNotifier to false (as it stayed true and then ran before the user's data was ready, which assumed the user was null and thus new)
 - Added the user's pfp (if it exists) behind the "LVL X" text of the progress bar card
 - Wrapped the pfp in an AnimatedSwitcher so it smoothly appears when ready rather than abruptly popping in
+- Made dialog buttons consistent: Dismissing is on the left and Confirming is on the right

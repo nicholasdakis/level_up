@@ -949,6 +949,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       child: Center(
                         child: Builder(
                           builder: (ctx) => TextButton(
+                            onPressed: () =>
+                                Navigator.of(ctx, rootNavigator: true).pop(),
+                            child: const Text("Dismiss"),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Builder(
+                          builder: (ctx) => TextButton(
                             onPressed: () async {
                               Navigator.of(ctx, rootNavigator: true).pop();
                               await launchUrl(
@@ -958,17 +969,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               );
                             },
                             child: const Text("Get the App"),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Builder(
-                          builder: (ctx) => TextButton(
-                            onPressed: () =>
-                                Navigator.of(ctx, rootNavigator: true).pop(),
-                            child: const Text("Dismiss"),
                           ),
                         ),
                       ),
