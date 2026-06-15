@@ -291,6 +291,15 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
 
   // Only pops if the username update succeeds
   Future<void> _confirm() async {
+    if (_controller.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Please enter a username."),
+          duration: snackBarDuration,
+        ),
+      );
+      return;
+    }
     if (await UserDataManager().updateUsername(
       _controller.text.trim(),
       context,
