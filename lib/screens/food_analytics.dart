@@ -1072,7 +1072,7 @@ Widget _statTilesRow({
           child: _statTile(
             context: context,
             icon: HugeIcons.strokeRoundedFire,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Calories",
             value: totalCal == 0 ? "—" : totalCal.round().toString(),
             unit: totalCal == 0 ? "" : "kcal",
@@ -1085,7 +1085,7 @@ Widget _statTilesRow({
           child: _statTile(
             context: context,
             icon: HugeIcons.strokeRoundedDumbbell01,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Protein",
             value: macros['protein'] == 0
                 ? "—"
@@ -1099,7 +1099,7 @@ Widget _statTilesRow({
           child: _statTile(
             context: context,
             icon: HugeIcons.strokeRoundedBread01,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Carbs",
             value: macros['carbs'] == 0
                 ? "—"
@@ -1113,7 +1113,7 @@ Widget _statTilesRow({
           child: _statTile(
             context: context,
             icon: HugeIcons.strokeRoundedDroplet,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Fat",
             value: macros['fat'] == 0 ? "—" : macros['fat']!.round().toString(),
             unit: macros['fat'] == 0 ? "" : "g",
@@ -1140,7 +1140,7 @@ Widget _rangeStatTilesRow({
           child: _rangeTile(
             context: context,
             icon: HugeIcons.strokeRoundedFire,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Calories",
             total: agg.totalCal == 0 ? "—" : agg.totalCal.round().toString(),
             unit: agg.totalCal == 0 ? "" : "kcal",
@@ -1155,7 +1155,7 @@ Widget _rangeStatTilesRow({
           child: _rangeTile(
             context: context,
             icon: HugeIcons.strokeRoundedDumbbell01,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Protein",
             total: agg.protein == 0 ? "—" : agg.protein.round().toString(),
             unit: agg.protein == 0 ? "" : "g",
@@ -1170,7 +1170,7 @@ Widget _rangeStatTilesRow({
           child: _rangeTile(
             context: context,
             icon: HugeIcons.strokeRoundedBread01,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Carbs",
             total: agg.carbs == 0 ? "—" : agg.carbs.round().toString(),
             unit: agg.carbs == 0 ? "" : "g",
@@ -1183,7 +1183,7 @@ Widget _rangeStatTilesRow({
           child: _rangeTile(
             context: context,
             icon: HugeIcons.strokeRoundedDroplet,
-            iconColor: lightenColor(base, 0.3),
+            iconColor: lightenColor(base, 0.45),
             label: "Fat",
             total: agg.fat == 0 ? "—" : agg.fat.round().toString(),
             unit: agg.fat == 0 ? "" : "g",

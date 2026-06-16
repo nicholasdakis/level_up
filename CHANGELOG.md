@@ -2029,3 +2029,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so the username dialog in onboarding cannot be dismissed or exited with a gesture
 - Edited the goals modal to show a label for chosen fields instead of just a number showing
 - Replaced the SegmentedButton for weight goal with frosted pill buttons
+- Made "Log Food" buttons bigger
+- Tweaked calorie card in Food Logging colors
+- Made macro text in Food Analytics more readable on darker themes
+- Made the selected tab look less muddy on darker themes
+- Made the "generate spots" button be clear instead of using the user's app color
+- Made it so the nearby spots card cannot be opened and so the chevron is hidden if the "generate spots" button is available in the card
+- Added consts to represent tab index cards

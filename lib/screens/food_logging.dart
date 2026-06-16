@@ -407,7 +407,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     final total = _totalCalories();
     final progress = (total / _goalCalories).clamp(0.0, 1.0);
     final remaining = (_goalCalories - total).round();
-    final barColor = lightenColor(appColor, 0.30);
+    final barColor = lightenColor(appColor, 0.45);
     final isOver = total > _goalCalories;
 
     return frostedGlassCard(
@@ -947,7 +947,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               label: Text(
                 "Log Food",
                 style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 14),
+                  fontSize: Responsive.font(context, 16),
                   color: accentColor,
                   fontWeight: FontWeight.w600,
                 ),

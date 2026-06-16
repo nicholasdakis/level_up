@@ -391,6 +391,7 @@ Widget frostedButton(
   BuildContext context, {
   required Function() onPressed,
   Color? color,
+  bool small = false,
 }) {
   final bg = color != null
       ? cardColors(color).gradient.first.withAlpha(180)
@@ -408,14 +409,14 @@ Widget frostedButton(
         backgroundColor: bg,
         border: border,
         padding: EdgeInsets.symmetric(
-          vertical: Responsive.height(context, 15),
-          horizontal: Responsive.width(context, 24),
+          vertical: Responsive.height(context, small ? 8 : 15),
+          horizontal: Responsive.width(context, small ? 14 : 24),
         ),
         child: Text(
           text,
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 18),
+            fontSize: Responsive.font(context, small ? 13 : 18),
             color: Colors.white,
             fontWeight: FontWeight.w500,
           ),

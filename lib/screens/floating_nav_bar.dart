@@ -4,13 +4,14 @@ import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
 
+// Tab index constants
+const kTabHome = 0;
+const kTabFood = 1;
+const kTabProgress = 2;
+const kTabExplore = 3;
+
 // Routes matching each tab index, order must match _navIcons and _navLabels
-const _navRoutes = [
-  '/',
-  '/food-logging',
-  '/progression',
-  '/explore',
-];
+const _navRoutes = ['/', '/food-logging', '/progression', '/explore'];
 
 // icons for each tab
 const _navIcons = [
@@ -127,7 +128,7 @@ class _NavItem extends StatelessWidget {
     final isLight = appColor.computeLuminance() >= 0.18;
     final activeColor = isLight
         ? darkenColor(appColor, 0.35)
-        : lightenColor(appColor, 0.3);
+        : lightenColor(appColor, 0.5);
     final inactiveColor = isLight
         ? Colors.black.withAlpha(100)
         : Colors.white38;

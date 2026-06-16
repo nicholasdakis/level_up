@@ -806,9 +806,13 @@ class _ExploreState extends State<Explore> {
                       alignment: Alignment.topCenter, // center the widget
                       child: GestureDetector(
                         onTap: () {
-                          setState(
-                            () => cardIsOpen = !cardIsOpen,
-                          ); // toggle open/close
+                          final generateVisible =
+                              (poiError ==
+                                      'Location data is unavailable right now.' ||
+                                  _usingFakePOIs) &&
+                              nearbyPOIs.isEmpty;
+                          if (generateVisible) return;
+                          setState(() => cardIsOpen = !cardIsOpen);
                         },
                         child: Padding(
                           padding: EdgeInsets.symmetric(
@@ -869,13 +873,18 @@ class _ExploreState extends State<Explore> {
                                                     10,
                                                   ),
                                                 ),
-                                                Icon(
-                                                  cardIsOpen
-                                                      ? Icons.keyboard_arrow_up
-                                                      : Icons
-                                                            .keyboard_arrow_down,
-                                                  color: Colors.white,
-                                                ),
+                                                if (!((poiError ==
+                                                            'Location data is unavailable right now.' ||
+                                                        _usingFakePOIs) &&
+                                                    nearbyPOIs.isEmpty))
+                                                  Icon(
+                                                    cardIsOpen
+                                                        ? Icons
+                                                              .keyboard_arrow_up
+                                                        : Icons
+                                                              .keyboard_arrow_down,
+                                                    color: Colors.white,
+                                                  ),
                                               ],
                                             ),
                                           ),
@@ -926,10 +935,10 @@ class _ExploreState extends State<Explore> {
                                                 ],
                                               ),
                                             ),
-                                          if (poiError ==
-                                                      'Location data is unavailable right now.' &&
-                                                  nearbyPOIs.isEmpty ||
-                                              _usingFakePOIs)
+                                          if ((poiError ==
+                                                      'Location data is unavailable right now.' ||
+                                                  _usingFakePOIs) &&
+                                              nearbyPOIs.isEmpty)
                                             Padding(
                                               padding: EdgeInsets.symmetric(
                                                 vertical: Responsive.height(
@@ -945,43 +954,12 @@ class _ExploreState extends State<Explore> {
                                                 child: MouseRegion(
                                                   cursor:
                                                       SystemMouseCursors.click,
-                                                  child: GestureDetector(
-                                                    onTap: _generateFakePOIs,
-                                                    child: frostedGlassCard(
-                                                      context,
-                                                      baseRadius: 12,
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            vertical:
-                                                                Responsive.height(
-                                                                  context,
-                                                                  8,
-                                                                ),
-                                                            horizontal:
-                                                                Responsive.width(
-                                                                  context,
-                                                                  16,
-                                                                ),
-                                                          ),
-                                                      child: Text(
-                                                        "Generate nearby spots",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style:
-                                                            GoogleFonts.manrope(
-                                                              fontSize:
-                                                                  Responsive.font(
-                                                                    context,
-                                                                    13,
-                                                                  ),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                      ),
-                                                    ),
+                                                  child: frostedButton(
+                                                    "Generate nearby spots",
+                                                    context,
+                                                    onPressed:
+                                                        _generateFakePOIs,
+                                                    small: true,
                                                   ),
                                                 ),
                                               ),
