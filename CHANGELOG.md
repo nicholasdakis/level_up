@@ -2021,3 +2021,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the red color of the Log Out text
 - Removed confirm logout dialog for guests
 - Replaced the lightning icon in the onboarding screen with the app logo
+- Fixed the onboarding dialogs from not having a glass-like effect
+- Added more random username generation possibilities to reduce collision chances
+- Replaced "Tap anywhere to finish" with a pulsing finger icon that appears 5 seconds after each onboarding dialog appears
+- Replaced all spaceGrotesk fonts with manrope

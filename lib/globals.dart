@@ -452,7 +452,7 @@ Widget createTitle(String text, BuildContext context) {
       fit: BoxFit.scaleDown,
       child: Text(
         text,
-        style: GoogleFonts.spaceGrotesk(
+        style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 40),
           fontWeight: FontWeight.w800,
           color: Colors.white,

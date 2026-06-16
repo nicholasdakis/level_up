@@ -550,7 +550,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         AnimatedDefaultTextStyle(
           duration: dur,
           curve: curve,
-          style: GoogleFonts.spaceGrotesk(
+          style: GoogleFonts.manrope(
             color: Colors.white,
             fontSize: Responsive.font(context, showEmailForm ? 24.0 : 36.0),
             fontWeight: FontWeight.w800,

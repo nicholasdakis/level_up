@@ -45,6 +45,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // 0 = dashboard step, 1 = nav bar step, 2 = settings step, -1 = tour not active
   int _tourStep = -1;
+  bool _tapHintVisible = false;
+  Timer? _tapHintTimer;
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
@@ -149,9 +151,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) setState(() => _timeUntilReward = newValue);
   }
 
+  void _startTapHintTimer() {
+    _tapHintTimer?.cancel();
+    if (mounted) setState(() => _tapHintVisible = false);
+    _tapHintTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) setState(() => _tapHintVisible = true);
+    });
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _tapHintTimer?.cancel();
     _countdownTimer?.cancel();
     appColorNotifier.removeListener(_appColorListener);
     foodLogNotifier.removeListener(_onFoodChanged);
@@ -190,10 +201,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _onTourTap() async {
+    _tapHintTimer?.cancel();
+    setState(() => _tapHintVisible = false);
     if (_tourStep == 0) {
       setState(() => _tourStep = 1);
+      _startTapHintTimer();
     } else if (_tourStep == 1) {
       setState(() => _tourStep = 2);
+      _startTapHintTimer();
     } else if (_tourStep == 2) {
       setState(() => _tourStep = -1);
       await showUsernameSetupDialog(context);
@@ -273,6 +288,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           await showWelcomeTourDialog(context);
           if (!mounted) return;
           setState(() => _tourStep = 0);
+          _startTapHintTimer();
         });
       }
     }
@@ -1269,21 +1285,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ),
                     ),
-                    Positioned(
-                      bottom: Responsive.height(context, 12),
-                      left: 0,
-                      right: 0,
-                      child: Text(
-                        _tourStep == 2
-                            ? 'Tap anywhere to finish'
-                            : 'Tap anywhere to continue',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 12),
-                          color: Colors.white38,
+                    if (_tapHintVisible)
+                      Positioned.fill(
+                        child: Center(
+                          child:
+                              HugeIcon(
+                                    icon: HugeIcons.strokeRoundedTouch01,
+                                    color: Colors.white70,
+                                    size: Responsive.scale(context, 56),
+                                  )
+                                  .animate(onPlay: (c) => c.repeat())
+                                  .fadeIn(duration: 300.ms)
+                                  .then()
+                                  .scaleXY(
+                                    end: 0.85,
+                                    duration: 600.ms,
+                                    curve: Curves.easeInOut,
+                                  )
+                                  .then()
+                                  .scaleXY(
+                                    end: 1.0,
+                                    duration: 600.ms,
+                                    curve: Curves.easeInOut,
+                                  ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

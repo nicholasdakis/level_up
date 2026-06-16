@@ -731,7 +731,7 @@ class _ExploreState extends State<Explore> {
                       SizedBox(height: Responsive.height(context, 20)),
                       Text(
                         "Retrieving location...",
-                        style: GoogleFonts.spaceGrotesk(
+                        style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 18),
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
