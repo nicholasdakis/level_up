@@ -34,23 +34,10 @@ Future<void> showWelcomeTourDialog(BuildContext context) async {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 16),
-                          ),
-                          decoration: BoxDecoration(
-                            color: appColorNotifier.value.withAlpha(60),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: accentColor.withAlpha(60),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.bolt_rounded,
-                            color: accentColor,
-                            size: Responsive.scale(context, 32),
-                          ),
+                        Image.asset(
+                          'assets/app_logo_circle.png',
+                          width: Responsive.scale(context, 72),
+                          height: Responsive.scale(context, 72),
                         ),
                         SizedBox(height: Responsive.height(context, 18)),
                         createTitle('Welcome to Level Up!', context),
@@ -342,131 +329,120 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
           ),
           child: SingleChildScrollView(
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Bolt icon badge
-              Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 18)),
-                decoration: BoxDecoration(
-                  color: appColorNotifier.value.withAlpha(60),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: accentColor.withAlpha(60),
-                    width: 1.5,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bolt icon badge
+                Image.asset(
+                  'assets/app_logo_circle.png',
+                  width: Responsive.scale(context, 72),
+                  height: Responsive.scale(context, 72),
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                createTitle("Choose your name!", context),
+                SizedBox(height: Responsive.height(context, 10)),
+                Text(
+                  "What do you go by?",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 14),
+                    color: Colors.white60,
                   ),
                 ),
-                child: Icon(
-                  Icons.bolt_rounded,
-                  color: accentColor,
-                  size: Responsive.scale(context, 36),
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              createTitle("Choose your name!", context),
-              SizedBox(height: Responsive.height(context, 10)),
-              Text(
-                "What do you go by?",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 14),
-                  color: Colors.white60,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 32)),
-              frostedGlassCard(
-                context,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 24),
-                  vertical: Responsive.height(context, 24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: _controller,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: Responsive.font(context, 15),
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter a username...',
-                        hintStyle: const TextStyle(color: Colors.white30),
-                        filled: true,
-                        fillColor: Colors.white.withAlpha(12),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: Colors.white.withAlpha(25),
+                SizedBox(height: Responsive.height(context, 32)),
+                frostedGlassCard(
+                  context,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 24),
+                    vertical: Responsive.height(context, 24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _controller,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 15),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Enter a username...',
+                          hintStyle: const TextStyle(color: Colors.white30),
+                          filled: true,
+                          fillColor: Colors.white.withAlpha(12),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: Colors.white.withAlpha(25),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: accentColor.withAlpha(180),
+                            ),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 14),
+                            vertical: Responsive.height(context, 13),
                           ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
+                      ),
+                      SizedBox(height: Responsive.height(context, 4)),
+                      // Shuffles in a new random username without clearing the field manually
+                      TextButton.icon(
+                        onPressed: _generate,
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 4),
+                          ),
+                        ),
+                        icon: Icon(
+                          Icons.shuffle_rounded,
+                          color: accentColor.withAlpha(180),
+                          size: Responsive.scale(context, 16),
+                        ),
+                        label: Text(
+                          'Generate a random name',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
                             color: accentColor.withAlpha(180),
                           ),
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 14),
-                          vertical: Responsive.height(context, 13),
-                        ),
                       ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 4)),
-                    // Shuffles in a new random username without clearing the field manually
-                    TextButton.icon(
-                      onPressed: _generate,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 4),
-                        ),
-                      ),
-                      icon: Icon(
-                        Icons.shuffle_rounded,
-                        color: accentColor.withAlpha(180),
-                        size: Responsive.scale(context, 16),
-                      ),
-                      label: Text(
-                        'Generate a random name',
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 13),
-                          color: accentColor.withAlpha(180),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: Responsive.height(context, 28)),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _confirm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColorNotifier.value,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.height(context, 16),
+                SizedBox(height: Responsive.height(context, 28)),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _confirm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: appColorNotifier.value,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 16),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: accentColor.withAlpha(80),
+                          width: 1,
+                        ),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(
-                        color: accentColor.withAlpha(80),
-                        width: 1,
+                    child: Text(
+                      "Let's go!",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 16),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  child: Text(
-                    "Let's go!",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 16),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
                 ),
-              ),
-            ],
-          ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, duration: 350.ms),
+              ],
+            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, duration: 350.ms),
           ),
         ),
       ),

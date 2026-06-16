@@ -2020,3 +2020,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the food streak card show even when the food streak is 0 and has never been set
 - Removed the red color of the Log Out text
 - Removed confirm logout dialog for guests
+- Replaced the lightning icon in the onboarding screen with the app logo
