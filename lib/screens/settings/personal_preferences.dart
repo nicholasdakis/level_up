@@ -291,7 +291,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Pick a theme color \n (Very light colors are not recommended)',
+                    'Pick a theme color',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 15),
