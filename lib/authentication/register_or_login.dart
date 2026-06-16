@@ -93,14 +93,17 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         Expanded(child: buildToggleOption("Sign Up", false)),
       ],
     );
-    return frostedGlassCard(
-      context,
-      baseRadius: 40,
-      padding: EdgeInsets.all(Responsive.padding(context, 4)),
-      child: SizedBox(
-        height: Responsive.buttonHeight(context, 44),
-        child: Stack(children: [thumb, labels]),
+    final radius = BorderRadius.circular(Responsive.scale(context, 40));
+    return Container(
+      height:
+          Responsive.buttonHeight(context, 44) + Responsive.padding(context, 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(18),
+        borderRadius: radius,
+        border: Border.all(color: Colors.white.withAlpha(30), width: 1),
       ),
+      padding: EdgeInsets.all(Responsive.padding(context, 4)),
+      child: Stack(children: [thumb, labels]),
     );
   }
 
@@ -558,19 +561,20 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
           ),
           child: const Text("Level Up!", textAlign: TextAlign.center),
         ),
-        Padding(
-          padding: EdgeInsets.only(top: Responsive.padding(context, 8)),
-          child: Text(
-            "Your health, gamified",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.manrope(
-              color: Colors.white54,
-              fontSize: Responsive.font(context, showEmailForm ? 12 : 15),
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.2,
+        if (!showEmailForm)
+          Padding(
+            padding: EdgeInsets.only(top: Responsive.padding(context, 8)),
+            child: Text(
+              "Gamify Your Health",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: Colors.white54,
+                fontSize: Responsive.font(context, 15),
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
-        ),
         // Feature chips + XP card share the same width via a Row>Expanded>Column
         AnimatedSize(
           duration: dur,
