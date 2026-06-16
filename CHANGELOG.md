@@ -2016,3 +2016,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-16
 - Split the your rank and top X% card into two square cards
+- Removed the workout tab button in nav bar in preparation for app updateg

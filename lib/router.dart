@@ -43,9 +43,9 @@ final _rootNavKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 // Navigator keys, one per shell branch
 final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
+// final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
 final _exploreNavKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
 final _leaderboardNavKey = GlobalKey<NavigatorState>(debugLabel: 'leaderboard');
-final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
 
 // slides in from the right on push, instant on pop
 Page _slidePage({required LocalKey key, required Widget child}) {
@@ -205,28 +205,27 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
 
-        // Workout tab
-        // TODO: replace placeholder with Workout() when the screen is ready
-        StatefulShellBranch(
-          navigatorKey: _workoutNavKey,
-          routes: [
-            GoRoute(
-              path: '/workout',
-              pageBuilder: (context, state) => NoTransitionPage(
-                key: state.pageKey,
-                child: const Scaffold(
-                  backgroundColor: Color(0xFF0A0F1E),
-                  body: Center(
-                    child: Text(
-                      'Coming Soon',
-                      style: TextStyle(color: Colors.white54, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        // Workout tab commented out until workouts are implemented
+        // StatefulShellBranch(
+        //   navigatorKey: _workoutNavKey,
+        //   routes: [
+        //     GoRoute(
+        //       path: '/workout',
+        //       pageBuilder: (context, state) => NoTransitionPage(
+        //         key: state.pageKey,
+        //         child: const Scaffold(
+        //           backgroundColor: Color(0xFF0A0F1E),
+        //           body: Center(
+        //             child: Text(
+        //               'Coming Soon',
+        //               style: TextStyle(color: Colors.white54, fontSize: 16),
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
 
         // Progression tab
         StatefulShellBranch(
