@@ -77,7 +77,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
           children: [
             _buildChangelogCard(
               context,
-              date: 'Coming soon',
+              date: 'June 16, 2026',
               version: '1.1.3',
               changes: [
                 'The Leaderboard and Badges tabs have been replaced with the Progress tab, containing the removed tabs with more features planned ahead',

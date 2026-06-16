@@ -131,7 +131,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     _colorAnimController =
         AnimationController(
           vsync: this,
-          duration: const Duration(milliseconds: 1200),
+          duration: const Duration(milliseconds: 2000),
         )..addListener(() {
           if (mounted) {
             // Animate appColorNotifier through intermediate colors for background/gradient,
