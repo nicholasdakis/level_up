@@ -273,10 +273,13 @@ Widget buildSettingsDrawer(
                   buildActionTile(
                     icon: HugeIcons.strokeRoundedLogout01,
                     label: "Log Out",
-                    iconColor: Colors.red.withAlpha(200),
-                    textColor: Colors.red.withAlpha(200),
                     showChevron: false,
                     onTap: () async {
+                      if (isGuest) {
+                        Navigator.pop(context);
+                        await authService.value.signOut();
+                        return;
+                      }
                       // Dialog box for confirming logout
                       final confirmed = await showFrostedAlertDialog<bool>(
                         context: context,

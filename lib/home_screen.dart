@@ -391,6 +391,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     required int best,
     required Color accentColor,
     required bool isLast,
+    String? overrideSubtitle,
   }) {
     return Column(
       children: [
@@ -418,14 +419,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (best > 0)
-                      Text(
-                        "Best: $best ${best == 1 ? 'day' : 'days'}",
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
-                          fontSize: Responsive.font(context, 11),
-                        ),
+                    Text(
+                      overrideSubtitle ??
+                          (best > 0
+                              ? "Best: $best ${best == 1 ? 'day' : 'days'}"
+                              : "No best yet"),
+                      style: GoogleFonts.manrope(
+                        color: lightenColor(appColorNotifier.value, 0.45),
+                        fontSize: Responsive.font(context, 11),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -461,11 +464,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Streak card showing food log streak and daily claim streak
   Widget _buildStreakCard() {
-    if (isGuest) return const SizedBox.shrink();
-    final foodStreak = _foodLogStreak();
-    final claimStreak = _dailyClaimStreak();
-    if (foodStreak == 0 && claimStreak == 0) return const SizedBox.shrink();
+    final foodStreak = isGuest ? 0 : _foodLogStreak();
+    final claimStreak = isGuest ? 0 : _dailyClaimStreak();
     final accentColor = lightenColor(appColorNotifier.value, 0.45);
+    final foodStreakBest = isGuest
+        ? 0
+        : (currentUserData?.foodLogStreakBest ?? 0);
+    final guestSubtitle = "Create an account to track your streaks";
     return frostedGlassCard(
       context,
       padding: EdgeInsets.symmetric(
@@ -474,24 +479,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       child: Column(
         children: [
-          if (foodStreak > 0)
-            _buildStreakRow(
-              icon: HugeIcons.strokeRoundedFire,
-              label: "Food logging streak",
-              count: foodStreak,
-              best: currentUserData?.foodLogStreakBest ?? 0,
-              accentColor: accentColor,
-              isLast: claimStreak == 0,
-            ),
-          if (claimStreak > 0)
-            _buildStreakRow(
-              icon: HugeIcons.strokeRoundedChartIncrease,
-              label: "Daily reward streak",
-              count: claimStreak,
-              best: currentUserData?.dailyClaimStreakBest ?? 0,
-              accentColor: accentColor,
-              isLast: true,
-            ),
+          _buildStreakRow(
+            icon: HugeIcons.strokeRoundedChartIncrease,
+            label: "Daily reward streak",
+            count: claimStreak,
+            best: isGuest ? -1 : (currentUserData?.dailyClaimStreakBest ?? 0),
+            accentColor: accentColor,
+            isLast: false,
+            overrideSubtitle: isGuest ? guestSubtitle : null,
+          ),
+          _buildStreakRow(
+            icon: HugeIcons.strokeRoundedFire,
+            label: "Food logging streak",
+            count: foodStreak,
+            best: foodStreakBest,
+            accentColor: accentColor,
+            isLast: true,
+            overrideSubtitle: isGuest ? guestSubtitle : null,
+          ),
         ],
       ),
     );
@@ -1450,8 +1455,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           // Streaks and stats merged into one section
                           sectionHeader("STREAKS & STATS", context),
                           _maybeAnimate(_buildStreakCard(), 180.ms),
-                          if (!isGuest)
-                            SizedBox(height: Responsive.height(context, 12)),
+                          SizedBox(height: Responsive.height(context, 12)),
                           _maybeAnimate(_buildQuickStats(), 220.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 

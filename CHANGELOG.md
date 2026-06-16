@@ -2016,4 +2016,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-16
 - Split the your rank and top X% card into two square cards
-- Removed the workout tab button in nav bar in preparation for app updateg
+- Removed the workout tab button in nav bar in preparation for app update
+- Made the food streak card show even when the food streak is 0 and has never been set
+- Removed the red color of the Log Out text
+- Removed confirm logout dialog for guests
