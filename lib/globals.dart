@@ -211,13 +211,13 @@ Future<T?> showFrostedDialog<T>({
             Responsive.scale(context, baseRadius),
           ),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: frostedGlassCard(
               context,
               baseRadius: baseRadius,
-              backgroundColor: Colors.white.withAlpha(18),
+              backgroundColor: Colors.white.withAlpha(10),
               border: Border.all(
-                color: Colors.white.withAlpha(30),
+                color: Colors.white.withAlpha(22),
                 width: Responsive.width(context, 1),
               ),
               padding:

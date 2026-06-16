@@ -2013,3 +2013,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the user's pfp (if it exists) behind the "LVL X" text of the progress bar card
 - Wrapped the pfp in an AnimatedSwitcher so it smoothly appears when ready rather than abruptly popping in
 - Made dialog buttons consistent: Dismissing is on the left and Confirming is on the right
+
+## 2026-06-16
+- Split the your rank and top X% card into two square cards

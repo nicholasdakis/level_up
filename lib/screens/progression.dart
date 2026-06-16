@@ -67,10 +67,61 @@ class _ProgressionState extends State<Progression> {
         : _rank == null
         ? "?"
         : "#$_rank";
-
     final topPercent = (_rank != null && _total != null && _total! > 0)
         ? ((_rank! / _total!) * 100).ceil()
         : null;
+    final topLabel = _standingLoading
+        ? "..."
+        : topPercent != null
+        ? "$topPercent%"
+        : "?";
+
+    Widget statCard({
+      required String label,
+      required String value,
+      required String sub,
+    }) {
+      return Expanded(
+        child: frostedGlassCard(
+          context,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 10),
+                  color: dim,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 4)),
+              Text(
+                value,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 28),
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+              ),
+              Text(
+                sub,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 11),
+                  color: dim,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Skeletonizer(
       enabled: _standingLoading,
@@ -79,88 +130,20 @@ class _ProgressionState extends State<Progression> {
         highlightColor: lightenColor(appColorNotifier.value, 0.1),
         duration: const Duration(milliseconds: 1200),
       ),
-      child: frostedGlassCard(
-        context,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 20),
-          vertical: Responsive.height(context, 16),
-        ),
+      child: IntrinsicHeight(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "YOUR RANK",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 10),
-                    color: dim,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 2)),
-                Text(
-                  rankLabel,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 32),
-                    color: accent,
-                    fontWeight: FontWeight.w800,
-                    height: 1.0,
-                  ),
-                ),
-                if (_total != null)
-                  Text(
-                    "out of $_total",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 11),
-                      color: dim,
-                    ),
-                  ),
-              ],
+            statCard(
+              label: "YOUR RANK",
+              value: rankLabel,
+              sub: _total != null ? "out of $_total" : "loading",
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 20),
-              ),
-              child: Container(
-                width: 1,
-                height: Responsive.height(context, 48),
-                color: Colors.white12,
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "TOP",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 10),
-                    color: dim,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 2)),
-                Text(
-                  topPercent != null ? "$topPercent%" : "...",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 32),
-                    color: accent,
-                    fontWeight: FontWeight.w800,
-                    height: 1.0,
-                  ),
-                ),
-                Text(
-                  "of all players",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 11),
-                    color: dim,
-                  ),
-                ),
-              ],
+            SizedBox(width: Responsive.width(context, 12)),
+            statCard(
+              label: "YOU'RE IN THE TOP",
+              value: topLabel,
+              sub: "of all players",
             ),
           ],
         ),
