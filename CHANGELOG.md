@@ -2037,3 +2037,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so the nearby spots card cannot be opened and so the chevron is hidden if the "generate spots" button is available in the card
 - Added consts to represent tab index cards
 - Added a glow pulse behind the "Retrieving location..." text
+- Made it so changing app color animates into the new color from the old color instead of happening instantly

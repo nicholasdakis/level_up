@@ -66,13 +66,10 @@ class Guest {
             style: GoogleFonts.manrope(color: Colors.white38),
           ),
         ),
-        simpleCustomButton(
+        frostedButton(
           "Sign Up",
-          14,
-          44,
-          110,
           context,
-          baseColor: defaultAppColor,
+          small: true,
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
             exit();

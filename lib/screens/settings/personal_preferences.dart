@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,12 +97,16 @@ class PersonalPreferences extends StatefulWidget {
   State<PersonalPreferences> createState() => _PersonalPreferencesState();
 }
 
-class _PersonalPreferencesState extends State<PersonalPreferences> {
+class _PersonalPreferencesState extends State<PersonalPreferences>
+    with SingleTickerProviderStateMixin {
   TextEditingController usernameController = TextEditingController();
+  late AnimationController _colorAnimController;
+  Color _animFromColor = appColorNotifier.value;
 
   @override
   void dispose() {
-    usernameController.dispose(); // free resources and prevent memory leaks
+    _colorAnimController.dispose();
+    usernameController.dispose();
     super.dispose();
   }
 
@@ -123,7 +128,22 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
       screenName: '/settings/preferences',
       screenClass: 'PersonalPreferences',
     );
-    // Load the user's stored recent foods max
+    _colorAnimController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 1200),
+        )..addListener(() {
+          if (mounted) {
+            // Animate appColorNotifier through intermediate colors for background/gradient,
+            // cards already have final color so they don't pop
+            final c = Color.lerp(
+              _animFromColor,
+              appColorNotifier.value,
+              _colorAnimController.value,
+            );
+            if (c != null) setState(() {});
+          }
+        });
     _recentFoodsService.getRecentFoodsMax().then((val) {
       if (mounted && val != null) setState(() => _recentFoodsMax = val);
     });
@@ -219,11 +239,15 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
         );
       }
     }
-    baseColor = color;
     currentUserData!.appColor = color;
-    appColorNotifier.value = color;
-    await userManager.updateAppColor(color, context);
-    setState(() {}); // refresh UI
+    unawaited(userManager.updateAppColor(color, context));
+
+    _animFromColor = appColorNotifier.value; // snapshot start color
+    appColorNotifier.value =
+        color; // set final color immediately so cards compute correctly
+    _colorAnimController.forward(from: 0); // animate setState for background
+    baseColor = color;
+    setState(() {});
   }
 
   void showColorPickerDialog() {
