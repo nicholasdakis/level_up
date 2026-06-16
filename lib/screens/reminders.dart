@@ -236,9 +236,9 @@ class _RemindersState extends State<Reminders> {
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text(
+          child: Text(
             "Delete",
-            style: TextStyle(color: Colors.redAccent),
+            style: TextStyle(color: lightenColor(appColorNotifier.value, 0.35)),
           ),
         ),
       ],
@@ -472,10 +472,30 @@ class _RemindersState extends State<Reminders> {
               ),
               child: Row(
                 children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedNotification01,
-                    color: appColorNotifier.value,
-                    size: Responsive.scale(context, 22),
+                  Container(
+                    padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.1,
+                      ).withAlpha(20),
+                      border: Border.all(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.3,
+                      ).withAlpha(180),
+                      size: Responsive.scale(context, 20),
+                    ),
                   ),
                   SizedBox(width: Responsive.width(context, 14)),
                   Expanded(
@@ -486,7 +506,7 @@ class _RemindersState extends State<Reminders> {
                           reminder.message,
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 15),
-                            color: Colors.white,
+                            color: cardColors(appColorNotifier.value).onCard,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -495,21 +515,24 @@ class _RemindersState extends State<Reminders> {
                           _formatDateTime(reminder.scheduledAt),
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: Colors.white60,
+                            color: cardColors(
+                              appColorNotifier.value,
+                            ).onCard.withAlpha(150),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: HugeIcon(
+                  GestureDetector(
+                    onTap: () => _deleteReminder(reminder),
+                    child: HugeIcon(
                       icon: HugeIcons.strokeRoundedDelete02,
-                      color: Colors.redAccent,
+                      color: lightenColor(
+                        appColorNotifier.value,
+                        0.3,
+                      ).withAlpha(180),
                       size: Responsive.scale(context, 20),
                     ),
-                    onPressed: () => _deleteReminder(reminder),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),

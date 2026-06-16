@@ -145,17 +145,15 @@ Widget _buildChangelogCard(
   required String version,
   required List<String> changes,
 }) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final c = cardColors(appColorNotifier.value);
+  final accent = c.onCard;
+  final dim = c.onCard.withAlpha(180);
 
   return Padding(
     padding: EdgeInsets.only(bottom: Responsive.height(context, 16)),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(14),
-        borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
-        border: Border.all(color: Colors.white.withAlpha(18), width: 1),
-      ),
+    child: frostedGlassCard(
+      context,
+      baseRadius: 16,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,11 +175,11 @@ Widget _buildChangelogCard(
                   vertical: Responsive.height(context, 3),
                 ),
                 decoration: BoxDecoration(
-                  color: appColorNotifier.value.withAlpha(60),
+                  color: c.iconBox,
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 20),
                   ),
-                  border: Border.all(color: dim.withAlpha(80), width: 1),
+                  border: Border.all(color: c.border, width: 1),
                 ),
                 child: Text(
                   'v$version',
@@ -218,7 +216,7 @@ Widget _buildChangelogCard(
                     change,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: Colors.white70,
+                      color: accent.withAlpha(200),
                       height: 1.5,
                     ),
                   ),

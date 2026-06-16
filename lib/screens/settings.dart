@@ -325,12 +325,12 @@ Widget buildSettingsDrawer(
                       vertical: Responsive.height(context, 4),
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(12),
+                      color: cardColors(appColorNotifier.value).iconBox,
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 20),
                       ),
                       border: Border.all(
-                        color: Colors.white.withAlpha(20),
+                        color: cardColors(appColorNotifier.value).border,
                         width: 1,
                       ),
                     ),
@@ -341,7 +341,7 @@ Widget buildSettingsDrawer(
                           "Release 1.1.3",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
-                            color: Colors.white.withAlpha(80),
+                            color: cardColors(appColorNotifier.value).onCard,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
                           ),
@@ -349,7 +349,7 @@ Widget buildSettingsDrawer(
                         SizedBox(width: Responsive.width(context, 4)),
                         Icon(
                           Icons.chevron_right,
-                          color: Colors.white.withAlpha(80),
+                          color: cardColors(appColorNotifier.value).onCard,
                           size: Responsive.font(context, 13),
                         ),
                       ],

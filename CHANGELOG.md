@@ -2038,3 +2038,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added consts to represent tab index cards
 - Added a glow pulse behind the "Retrieving location..." text
 - Made it so changing app color animates into the new color from the old color instead of happening instantly
+- Fixed a bottom overflow error in the "Update Goals" modal on Android
+- Replaced recentServingController with a state-level controller so its lifecycle is managed independently
+- Replaced red color on delete icons, trash icons, and confirm buttons across food logging and reminders screens with the app color
+- Added a circular bordered background behind the bell icon in reminder cards
+- Made reminder card text use the onCard color so it stays readable on light themes
+- Replaced the cards in changelog.dart to use frostedGlassCard so they remain readable on light themes
+- Made the "Release ..." text more readable on light themes

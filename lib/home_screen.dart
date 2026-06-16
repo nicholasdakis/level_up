@@ -1248,7 +1248,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   description: _tourStep == 0
                                       ? 'This is your dashboard: your XP progress, daily reward, and quick stats all live here. Use the tool buttons below to access Reminders and the Calorie Calculator.'
                                       : _tourStep == 1
-                                      ? 'The floating bar at the bottom lets you switch between your five main tabs: Home, Food Logging, Explore, Leaderboard, and Badges.'
+                                      ? 'The floating bar at the bottom lets you switch between your main app tabs.'
                                       : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
                                 ).animate(key: ValueKey(_tourStep)).fadeIn(duration: 200.ms),
                               ),

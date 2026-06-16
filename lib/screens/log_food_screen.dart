@@ -104,6 +104,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   final TextEditingController manualProteinController = TextEditingController();
   final TextEditingController manualServingAmountController =
       TextEditingController();
+  final TextEditingController _recentServingController =
+      TextEditingController();
   String manualSelectedUnit = 'serving';
 
   // Voice search
@@ -203,6 +205,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     manualCarbsController.dispose();
     manualProteinController.dispose();
     manualServingAmountController.dispose();
+    _recentServingController.dispose();
     super.dispose();
   }
 
@@ -622,11 +625,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final currentAmt = serving['amount'] as double;
     final unit = serving['unit'] as String;
 
-    final controller = TextEditingController(
-      text: currentAmt % 1 == 0
-          ? currentAmt.toInt().toString()
-          : currentAmt.toString(),
-    );
+    _recentServingController.text = currentAmt % 1 == 0
+        ? currentAmt.toInt().toString()
+        : currentAmt.toString();
 
     final newAmtStr = await showFrostedAlertDialog<String>(
       context: context,
@@ -641,7 +642,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           ),
           SizedBox(height: Responsive.height(context, 12)),
           TextField(
-            controller: controller,
+            controller: _recentServingController,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [LogFoodScreen.decimalFormatter()],
@@ -649,7 +650,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             decoration: InputDecoration(
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(color: Colors.white54),
-              suffixIcon: calcSuffixIcon(context, controller),
+              suffixIcon: calcSuffixIcon(context, _recentServingController),
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white38),
               ),
@@ -669,12 +670,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           onPressed: () => Navigator.of(
             context,
             rootNavigator: true,
-          ).pop(controller.text.trim()),
+          ).pop(_recentServingController.text.trim()),
           child: const Text("Log", style: TextStyle(color: Colors.white)),
         ),
       ],
     );
-    controller.dispose();
 
     if (newAmtStr == null || newAmtStr.isEmpty) return;
     final newAmt = double.tryParse(newAmtStr);
@@ -781,9 +781,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     TextButton(
                       onPressed: () =>
                           Navigator.of(context, rootNavigator: true).pop(true),
-                      child: const Text(
+                      child: Text(
                         "Remove",
-                        style: TextStyle(color: Colors.redAccent),
+                        style: TextStyle(
+                          color: lightenColor(appColorNotifier.value, 0.35),
+                        ),
                       ),
                     ),
                   ],
@@ -797,7 +799,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 padding: EdgeInsets.only(right: Responsive.width(context, 8)),
                 child: Icon(
                   Icons.delete_outline,
-                  color: Colors.white24,
+                  color: appColorNotifier.value.withAlpha(100),
                   size: Responsive.scale(context, 18),
                 ),
               ),

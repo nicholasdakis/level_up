@@ -189,9 +189,9 @@ class _FoodLoggingState extends State<FoodLogging> {
         ),
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
-          child: const Text(
+          child: Text(
             "Delete",
-            style: TextStyle(color: Colors.redAccent),
+            style: TextStyle(color: lightenColor(appColorNotifier.value, 0.35)),
           ),
         ),
       ],
@@ -287,7 +287,8 @@ class _FoodLoggingState extends State<FoodLogging> {
         ),
       ],
     );
-    controller.dispose();
+    // Defer dispose so the dialog's closing animation can finish before the controller is freed
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     // the user cancelled or typed something invalid
     if (newAmtStr == null || newAmtStr.isEmpty) return;
     final newAmt = double.tryParse(newAmtStr);
@@ -824,7 +825,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     key: ValueKey("${mealKey}_$idx${food['food_name']}"),
                     background: Container(
                       decoration: BoxDecoration(
-                        color: Colors.red.withAlpha(180),
+                        color: appColorNotifier.value.withAlpha(180),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 16),
                         ),
@@ -899,7 +900,10 @@ class _FoodLoggingState extends State<FoodLogging> {
                             IconButton(
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedDelete02,
-                                color: Colors.redAccent.withAlpha(180),
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.45,
+                                ),
                                 size: Responsive.scale(context, 18),
                               ),
                               onPressed: () => _deleteFood(mealKey, idx, foods),
