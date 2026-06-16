@@ -20,8 +20,6 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
-import 'services/ad_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -929,6 +927,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   // Earn XP card: square action tile with icon on top and label below
+  // Wrapped in a blur overlay while ads are unavailable
   Widget _buildEarnXpCard() {
     final base = appColorNotifier.value;
     final c = cardColors(base);
@@ -936,7 +935,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
 
-    return DecoratedBox(
+    final card = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: LinearGradient(
@@ -948,107 +947,77 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       child: ClipRRect(
         borderRadius: radius,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            splashColor: c.splashColor,
-            highlightColor: c.highlightColor,
-            onTap: () async {
-              if (kIsWeb) {
-                showFrostedAlertDialog(
-                  context: context,
-                  title: "Watch an Ad",
-                  content: Text(
-                    "This feature is only available on Android.",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 13),
-                      color: Colors.white60,
-                    ),
+        child: Padding(
+          padding: EdgeInsets.all(Responsive.scale(context, 12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                padding: EdgeInsets.all(Responsive.scale(context, 8)),
+                decoration: BoxDecoration(
+                  color: c.iconBox,
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 10),
                   ),
-                  actions: [
-                    Expanded(
-                      child: Center(
-                        child: Builder(
-                          builder: (ctx) => TextButton(
-                            onPressed: () =>
-                                Navigator.of(ctx, rootNavigator: true).pop(),
-                            child: const Text("Dismiss"),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Builder(
-                          builder: (ctx) => TextButton(
-                            onPressed: () async {
-                              Navigator.of(ctx, rootNavigator: true).pop();
-                              await launchUrl(
-                                Uri.parse(
-                                  'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
-                                ),
-                              );
-                            },
-                            child: const Text("Get the App"),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-                return;
-              }
-              await adService.showRewardedAd(
-                onRewarded: () async {
-                  await userManager.claimAdXp(context);
-                  if (mounted) setState(() {});
-                },
-              );
-            },
-            child: Padding(
-              padding: EdgeInsets.all(Responsive.scale(context, 12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize
-                    .max, // stretches to match sibling tile height via IntrinsicHeight
-                children: [
-                  // Icon at the top of the tile
-                  Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 8)),
-                    decoration: BoxDecoration(
-                      color: c.iconBox,
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 10),
-                      ),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedPlayCircle,
-                      color: accent,
-                      size: Responsive.scale(context, 22),
-                    ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 12)),
-                  Text(
-                    "Watch an Ad",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 14),
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    "Coming soon",
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 11),
-                      color: dim,
-                    ),
-                  ),
-                ],
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedPlayCircle,
+                  color: accent,
+                  size: Responsive.scale(context, 22),
+                ),
               ),
-            ),
+              SizedBox(height: Responsive.height(context, 8)),
+              Text(
+                "Watch an Ad",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 14),
+                  color: accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                "Coming soon",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 11),
+                  color: dim,
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+
+    return GestureDetector(
+      onTap: () => showFrostedAlertDialog(
+        context: context,
+        title: "Coming Soon",
+        content: Text(
+          "Rewarded ads are coming soon.",
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white60,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          Expanded(
+            child: Center(
+              child: Builder(
+                builder: (ctx) => TextButton(
+                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                  child: const Text("Got it"),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: Opacity(opacity: 0.4, child: card),
     );
   }
 
