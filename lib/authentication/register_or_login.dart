@@ -744,8 +744,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
                             )
                           : const SizedBox(width: double.infinity),
                     ),
-                    SizedBox(height: Responsive.padding(context, 12)),
-                    buildTermsCheckbox(),
+                    if (!isLoginMode) ...[
+                      SizedBox(height: Responsive.padding(context, 12)),
+                      buildTermsCheckbox(),
+                    ],
                     SizedBox(height: Responsive.padding(context, 12)),
                     // Divider separating the email form from the social auth options below
                     Row(

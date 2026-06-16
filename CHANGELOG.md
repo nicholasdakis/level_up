@@ -2025,3 +2025,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added more random username generation possibilities to reduce collision chances
 - Replaced "Tap anywhere to finish" with a pulsing finger icon that appears 5 seconds after each onboarding dialog appears
 - Replaced all spaceGrotesk fonts with manrope
+- Hid TOS checkbox on Log In page
+- Made it so the username dialog in onboarding cannot be dismissed or exited with a gesture

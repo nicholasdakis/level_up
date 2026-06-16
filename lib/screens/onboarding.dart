@@ -82,6 +82,7 @@ Future<void> showUsernameSetupDialog(BuildContext context) async {
   await showDialog(
     context: context,
     useRootNavigator: true,
+    barrierDismissible: false,
     builder: (dialogContext) => const _UsernameSetupDialog(),
   );
 }
@@ -373,7 +374,9 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
   Widget build(BuildContext context) {
     final accentColor = lightenColor(appColorNotifier.value, 0.3);
 
-    return Dialog(
+    return PopScope(
+      canPop: false,
+      child: Dialog(
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -525,6 +528,7 @@ class _UsernameSetupDialogState extends State<_UsernameSetupDialog> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
