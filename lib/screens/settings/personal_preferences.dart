@@ -373,44 +373,75 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
                     _goalField(fatCtrl, "Fat (g)"),
                     _goalField(
                       workoutGoalCtrl,
-                      "Weekly Workouts",
+                      "Weekly Workout Amount",
                       maxLength: 3,
                     ),
-                    SizedBox(height: Responsive.height(context, 16)),
+                    SizedBox(height: Responsive.height(context, 20)),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         "Weight Goal",
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: Responsive.font(context, 13),
+                        ),
                       ),
                     ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    // segmented button so only one weight goal type can be selected at a time
-                    SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'lose', label: Text('Lose')),
-                        ButtonSegment(
-                          value: 'maintain',
-                          label: Text('Maintain'),
-                        ),
-                        ButtonSegment(value: 'gain', label: Text('Gain')),
+                    SizedBox(height: Responsive.height(context, 8)),
+                    Row(
+                      children: [
+                        for (final option in ['lose', 'maintain', 'gain'])
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: option != 'gain'
+                                    ? Responsive.width(context, 8)
+                                    : 0,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => setDialogState(
+                                  () => weightGoal = weightGoal == option
+                                      ? null
+                                      : option,
+                                ),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: Responsive.height(context, 10),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: weightGoal == option
+                                        ? Colors.white.withAlpha(28)
+                                        : Colors.white.withAlpha(10),
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 10),
+                                    ),
+                                    border: Border.all(
+                                      color: weightGoal == option
+                                          ? Colors.white.withAlpha(80)
+                                          : Colors.white.withAlpha(25),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    option[0].toUpperCase() +
+                                        option.substring(1),
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.manrope(
+                                      color: weightGoal == option
+                                          ? Colors.white
+                                          : Colors.white54,
+                                      fontSize: Responsive.font(context, 14),
+                                      fontWeight: weightGoal == option
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
-                      selected: {if (weightGoal != null) weightGoal!},
-                      emptySelectionAllowed: true, // allow deselecting
-                      onSelectionChanged: (val) =>
-                          setDialogState(() => weightGoal = val.firstOrNull),
-                      style: ButtonStyle(
-                        foregroundColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? Colors.white
-                              : Colors.white54,
-                        ),
-                        backgroundColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? appColorNotifier.value
-                              : Colors.transparent,
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -472,8 +503,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences> {
           LengthLimitingTextInputFormatter(maxLength),
         ],
         decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.white54),
+          labelText: hint,
+          labelStyle: TextStyle(color: Colors.white54),
+          floatingLabelStyle: TextStyle(color: Colors.white70),
           enabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.white24),
           ),

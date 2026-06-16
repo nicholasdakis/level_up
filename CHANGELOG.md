@@ -2027,3 +2027,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced all spaceGrotesk fonts with manrope
 - Hid TOS checkbox on Log In page
 - Made it so the username dialog in onboarding cannot be dismissed or exited with a gesture
+- Edited the goals modal to show a label for chosen fields instead of just a number showing
+- Replaced the SegmentedButton for weight goal with frosted pill buttons

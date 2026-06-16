@@ -87,6 +87,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                 'All cards across the app now use a consistent style that adapts to your chosen theme color',
                 'Light and vibrant theme colors now look significantly better across the whole app',
                 'The floating nav bar now adapts its appearance for both dark and light theme colors so it always reads clearly',
+                'Added a Weekly Workout Amount goal to Personal Preferences, which will be used by the upcoming Workout tab',
                 'Bug fixes and visual consistency improvements',
               ],
             ),
