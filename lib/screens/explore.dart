@@ -730,14 +730,36 @@ class _ExploreState extends State<Explore> {
                       ),
                       SizedBox(height: Responsive.height(context, 20)),
                       Text(
-                        "Retrieving location...",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 18),
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
+                            "Retrieving location...",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 18),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                          .animate(
+                            onPlay: (c) => c.repeat(reverse: true),
+                          ) // loops forward then backward
+                          .custom(
+                            duration: 2000.ms, // 2s per pulse direction
+                            curve: Curves.easeInOut,
+                            builder: (context, value, child) => Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withAlpha(
+                                      (value * 30)
+                                          .round(), // max alpha 30, very subtle
+                                    ),
+                                    blurRadius: Responsive.scale(context, 14),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: child,
+                            ),
+                          ),
                     ],
                   ],
                 ),
