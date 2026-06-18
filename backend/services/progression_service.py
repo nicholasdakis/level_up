@@ -311,6 +311,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_code": user.get("referral_code"),
             "referral_count": self._repo.get_referral_count(uid),
             "referral_used": self._repo.has_used_referral(uid),
+            "units": user.get("units", "metric"),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):
@@ -327,6 +328,9 @@ class ProgressionService: # Service class to handle all progression-related busi
     def update_notifications_enabled(self, uid: str, enabled: bool):
         # Updates the user's notification preference
         self._repo.set_user_data(uid, {"notifications_enabled": enabled})
+
+    def update_units(self, uid: str, units: str):
+        self._repo.set_user_data(uid, {"units": units})
 
     def add_fcm_token(self, uid: str, token: str):
         # Adds an FCM token to the user's list

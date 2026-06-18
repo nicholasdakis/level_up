@@ -246,6 +246,7 @@ class UserDataManager {
       currentUserData?.referralCode = data['referral_code'];
       currentUserData?.referralCount = data['referral_count'] ?? 0;
       currentUserData?.referralUsed = data['referral_used'] ?? false;
+      currentUserData?.units = data['units'] ?? 'metric';
 
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
@@ -687,6 +688,42 @@ class UserDataManager {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), duration: snackBarDuration),
+      );
+    }
+  }
+
+  Future<void> updateUnits(String units, BuildContext context) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    currentUserData!.units = units;
+    userDataNotifier.notifyListeners();
+    try {
+      final response = await authenticatedPost(
+        'update_units',
+        body: {'units': units},
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_units failed: ${response.statusCode} ${response.body}',
+        );
+      }
+    } catch (e) {
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("No connection. Please try again when online."),
+            duration: snackBarDuration,
+          ),
+        );
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating unit preference."),
+          duration: snackBarDuration,
+        ),
       );
     }
   }

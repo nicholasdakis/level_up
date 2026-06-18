@@ -115,6 +115,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
   bool notificationsEnabled =
       currentUserData?.notificationsEnabled ??
       true; // tracks the notification toggle state
+  String _units = currentUserData?.units ?? 'metric';
   bool _cropLoading = false;
   int _recentFoodsMax =
       30; // current max, RecentFoodsService.unlimited (0) = unlimited
@@ -785,6 +786,99 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                 usernameController,
                               );
                             },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: Responsive.height(context, 28)),
+
+                    // Units section
+                    sectionHeader(
+                      "UNITS",
+                      context,
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 10),
+                        left: Responsive.width(context, 4),
+                      ),
+                    ),
+                    frostedGlassCard(
+                      context,
+                      child: Column(
+                        children: [
+                          buildPreferenceRow(
+                            icon: HugeIcons.strokeRoundedRuler,
+                            label: "Units",
+                            subtitle: _units == 'metric'
+                                ? "kg, ml, cm"
+                                : "lbs, oz, ft",
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final option in ['metric', 'imperial'])
+                                  GestureDetector(
+                                    onTap: () async {
+                                      if (isGuest) {
+                                        Guest.block(context);
+                                        return;
+                                      }
+                                      if (_units == option) return;
+                                      setState(() => _units = option);
+                                      await userManager.updateUnits(
+                                        option,
+                                        context,
+                                      );
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
+                                      margin: EdgeInsets.only(
+                                        left: option == 'imperial'
+                                            ? Responsive.width(context, 6)
+                                            : 0,
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          12,
+                                        ),
+                                        vertical: Responsive.height(context, 6),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _units == option
+                                            ? Colors.white.withAlpha(28)
+                                            : Colors.white.withAlpha(10),
+                                        borderRadius: BorderRadius.circular(
+                                          Responsive.scale(context, 8),
+                                        ),
+                                        border: Border.all(
+                                          color: _units == option
+                                              ? Colors.white.withAlpha(80)
+                                              : Colors.white.withAlpha(25),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        option == 'metric'
+                                            ? "Metric"
+                                            : "Imperial",
+                                        style: GoogleFonts.manrope(
+                                          color: _units == option
+                                              ? Colors.white
+                                              : Colors.white38,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            12,
+                                          ),
+                                          fontWeight: _units == option
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

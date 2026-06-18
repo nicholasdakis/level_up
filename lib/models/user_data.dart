@@ -29,6 +29,7 @@ class UserData {
   String? referralCode;
   int referralCount = 0;
   bool referralUsed = false;
+  String units;
 
   // constructor
   UserData({
@@ -57,6 +58,7 @@ class UserData {
     this.referralCode,
     this.referralCount = 0,
     this.referralUsed = false,
+    this.units = 'metric',
   }) : foodDataByDate = foodDataByDate ?? {},
        reminders = reminders ?? [],
        fcmTokens = fcmTokens ?? [],

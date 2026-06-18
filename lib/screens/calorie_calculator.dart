@@ -96,6 +96,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         applyCalculatorData(mappedData);
         weightController.text = weight?.toString() ?? '';
       });
+    } else if (currentUserData != null) {
+      setState(() {
+        units = currentUserData!.units == 'imperial' ? 'Imperial' : 'Metric';
+        currentUnits = units;
+        previousUnits = units;
+      });
     }
   }
 

@@ -36,6 +36,9 @@ class UpdateAppColorRequest(BaseModel):
 class UpdateNotificationsRequest(BaseModel):
     enabled: bool
 
+class UpdateUnitsRequest(BaseModel):
+    units: str
+
 class AddFcmTokenRequest(BaseModel):
     token: str = Field(..., min_length=1)
 
@@ -216,6 +219,7 @@ class GetUserDataResponse(BaseModel):
     referral_code: str | None = None
     referral_count: int = 0
     referral_used: bool = False
+    units: str = 'metric'
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success

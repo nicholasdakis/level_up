@@ -2045,3 +2045,11 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made reminder card text use the onCard color so it stays readable on light themes
 - Replaced the cards in changelog.dart to use frostedGlassCard so they remain readable on light themes
 - Made the "Release ..." text more readable on light themes
+
+## 2026-06-18
+- Added a units column to the users table that defaults to metric
+- Altered the /user_data GET and its schema to retrieve the units column
+- Altered UserData to store the units column
+- Added a /update_units endpoint with a schema
+- Added an option for selecting units in the Personal Preferences tab
+- Made calorie calculator units fallback to the stored units

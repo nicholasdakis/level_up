@@ -27,7 +27,8 @@ CREATE TABLE users (
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,   -- whether the user has push notifications turned on
     utc_offset_minutes SMALLINT DEFAULT NULL,  -- user's UTC offset in minutes for snapshot scheduling
     email TEXT,                          -- user's email address, nullable for existing users who signed up before this column was added
-    referral_code TEXT UNIQUE            -- unique referral code, generated lazily on first request
+    referral_code TEXT UNIQUE,           -- unique referral code, generated lazily on first request
+    units TEXT NOT NULL DEFAULT 'metric' -- display units preference: 'metric' or 'imperial'
 );
 
 -- Tracks referrals between users; referee_uid is the primary key so a user can only be referred once

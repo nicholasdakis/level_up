@@ -31,6 +31,7 @@ from backend.schemas import (
     UpdatePfpRequest,
     UpdateAppColorRequest,
     UpdateNotificationsRequest,
+    UpdateUnitsRequest,
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogRequest,
@@ -554,6 +555,14 @@ def update_notifications():
         return err
 
     progression_service.update_notifications_enabled(uid, body.enabled)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/update_units", methods=["POST"])
+def update_units():
+    uid, body, err = _parse_and_auth(UpdateUnitsRequest)
+    if err:
+        return err
+    progression_service.update_units(uid, body.units)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 
