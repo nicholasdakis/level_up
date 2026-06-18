@@ -902,14 +902,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                           buildPreferenceRow(
                             icon: HugeIcons.strokeRoundedTarget01,
                             label: "Nutrition and Weight Goals",
-                            // show a summary of current goals if they exist
-                            subtitle:
-                                "Current goals:  "
-                                "${currentUserData?.caloriesGoal != null ? '${currentUserData!.caloriesGoal} kcal' : 'no set calorie goal'}  ·  "
-                                "${currentUserData?.proteinGoal != null ? '${currentUserData!.proteinGoal}g protein' : 'no set protein goal'}  ·  "
-                                "${currentUserData?.carbsGoal != null ? '${currentUserData!.carbsGoal}g carbs' : 'no set carbs goal'}  ·  "
-                                "${currentUserData?.fatGoal != null ? '${currentUserData!.fatGoal}g fat' : 'no set fat goal'}  ·  "
-                                "${currentUserData?.weightGoalType != null ? 'goal: ${currentUserData!.weightGoalType}' : 'no weight goal'}",
+                            subtitle: "Update your goals",
                             onTap: showGoalsDialog,
                           ),
                         ],
@@ -936,8 +929,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                             label: "Recent Foods Limit",
                             subtitle:
                                 _recentFoodsMax == RecentFoodsService.unlimited
-                                ? "Unlimited"
-                                : "$_recentFoodsMax foods",
+                                ? "Current value: Unlimited"
+                                : "Current value: $_recentFoodsMax foods",
                             onTap: () async {
                               if (isGuest) {
                                 Guest.block(context);

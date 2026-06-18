@@ -709,6 +709,12 @@ class UserDataManager {
           'update_units failed: ${response.statusCode} ${response.body}',
         );
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Units updated successfully."),
+          duration: snackBarDuration,
+        ),
+      );
     } catch (e) {
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
