@@ -1021,159 +1021,198 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Quick stats row: calories with progress bar + foods logged today
-  Widget _buildQuickStats() {
+  Widget _buildLoggingCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required String subtext,
+    bool showPencil = false,
+    Widget? progressBar,
+  }) {
+    final accentColor = lightenColor(appColorNotifier.value, 0.45);
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: icon,
+                      color: accentColor,
+                      size: Responsive.scale(context, 14),
+                    ),
+                    SizedBox(width: Responsive.width(context, 5)),
+                    Text(
+                      label,
+                      style: GoogleFonts.manrope(
+                        color: accentColor,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Responsive.height(context, 6)),
+                Text(
+                  value,
+                  style: GoogleFonts.manrope(
+                    color: accentColor,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  subtext,
+                  style: GoogleFonts.manrope(
+                    color: accentColor,
+                    fontSize: Responsive.font(context, 11),
+                  ),
+                ),
+                if (progressBar != null) ...[
+                  SizedBox(height: Responsive.height(context, 8)),
+                  progressBar,
+                ],
+              ],
+            ),
+          ),
+          if (showPencil) ...[
+            SizedBox(width: Responsive.width(context, 8)),
+            GestureDetector(
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Coming soon"),
+                  duration: snackBarDuration,
+                ),
+              ),
+              child: Container(
+                width: Responsive.scale(context, 46),
+                height: Responsive.scale(context, 46),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(18),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(40),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.edit_outlined,
+                  color: accentColor,
+                  size: Responsive.scale(context, 22),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoggingCards() {
+    final isImperial = currentUserData?.units == 'imperial';
     final calories = _todayCalories();
     final goal = currentUserData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
     final foodCount = _todayFoodCount();
 
+    final progressBar = goal > 0
+        ? Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Responsive.scale(context, 7)),
+              border: Border.all(
+                color: Colors.white.withAlpha(45),
+                width: Responsive.scale(context, 1),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+              child: Stack(
+                children: [
+                  Container(
+                    height: Responsive.height(context, 8),
+                    width: double.infinity,
+                    color: Colors.white.withAlpha(18),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: progress,
+                    child: Container(
+                      height: Responsive.height(context, 8),
+                      decoration: BoxDecoration(
+                        color: calories > goal
+                            ? Colors.redAccent
+                            : lightenColor(appColorNotifier.value, 0.3),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 6),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : null;
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Calories card with mini progress bar
           Expanded(
-            child: frostedGlassCard(
-              context,
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 16),
-                vertical: Responsive.height(context, 14),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedFire,
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                        size: Responsive.scale(context, 14),
-                      ),
-                      SizedBox(width: Responsive.width(context, 5)),
-                      Text(
-                        "Calories today",
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+            child: Column(
+              children: [
+                Expanded(
+                  child: _buildLoggingCard(
+                    icon: HugeIcons.strokeRoundedFire,
+                    label: "Calories today",
+                    value: isGuest ? "--" : "$calories",
+                    subtext: goal > 0 ? "/ $goal goal" : "kcal",
+                    progressBar: progressBar,
                   ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  Text(
-                    "$calories",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontSize: Responsive.font(context, 22),
-                      fontWeight: FontWeight.w700,
-                    ),
+                ),
+                SizedBox(height: Responsive.height(context, 12)),
+                Expanded(
+                  child: _buildLoggingCard(
+                    icon: HugeIcons.strokeRoundedDroplet,
+                    label: "Water",
+                    value: isGuest ? "--" : "0",
+                    subtext: isImperial ? "oz today" : "ml today",
+                    showPencil: !isGuest,
                   ),
-                  if (goal > 0) ...[
-                    Text(
-                      "/ $goal goal",
-                      style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                        fontSize: Responsive.font(context, 11),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 8)),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 7),
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(45),
-                          width: Responsive.scale(context, 1),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 6),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: Responsive.height(context, 8),
-                              width: double.infinity,
-                              color: Colors.white.withAlpha(18),
-                            ),
-                            FractionallySizedBox(
-                              widthFactor: progress,
-                              child: Container(
-                                height: Responsive.height(context, 8),
-                                decoration: BoxDecoration(
-                                  color: calories > goal
-                                      ? Colors.redAccent
-                                      : lightenColor(
-                                          appColorNotifier.value,
-                                          0.3,
-                                        ),
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 6),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
-          // Foods logged today
           Expanded(
-            child: frostedGlassCard(
-              context,
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 16),
-                vertical: Responsive.height(context, 14),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedNote,
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                        size: Responsive.scale(context, 14),
-                      ),
-                      SizedBox(width: Responsive.width(context, 5)),
-                      Text(
-                        "Logs today",
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+            child: Column(
+              children: [
+                Expanded(
+                  child: _buildLoggingCard(
+                    icon: HugeIcons.strokeRoundedNote,
+                    label: "Logs today",
+                    value: isGuest ? "--" : "$foodCount",
+                    subtext: foodCount == 1 ? "item" : "items",
                   ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  Text(
-                    "$foodCount",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontSize: Responsive.font(context, 22),
-                      fontWeight: FontWeight.w700,
-                    ),
+                ),
+                SizedBox(height: Responsive.height(context, 12)),
+                Expanded(
+                  child: _buildLoggingCard(
+                    icon: HugeIcons.strokeRoundedWeightScale,
+                    label: "Weight",
+                    value: "--",
+                    subtext: isImperial ? "lbs" : "kg",
+                    showPencil: !isGuest,
                   ),
-                  Text(
-                    foodCount == 1 ? "item" : "items",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontSize: Responsive.font(context, 11),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1447,11 +1486,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 
-                          // Streaks and stats merged into one section
-                          sectionHeader("STREAKS & STATS", context),
+                          if (!isGuest) ...[
+                            sectionHeader("LOGGING", context),
+                            _maybeAnimate(
+                              ListenableBuilder(
+                                listenable: userDataNotifier,
+                                builder: (context, _) => _buildLoggingCards(),
+                              ),
+                              160.ms,
+                            ),
+                            SizedBox(height: Responsive.height(context, 20)),
+                          ],
+
+                          sectionHeader("STREAKS", context),
                           _maybeAnimate(_buildStreakCard(), 180.ms),
-                          SizedBox(height: Responsive.height(context, 12)),
-                          _maybeAnimate(_buildQuickStats(), 220.ms),
                           SizedBox(height: Responsive.height(context, 20)),
 
                           sectionHeader("TOOLS", context),

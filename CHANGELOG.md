@@ -2053,3 +2053,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a /update_units endpoint with a schema
 - Added an option for selecting units in the Personal Preferences tab
 - Made calorie calculator units fallback to the stored units
+- Added a logging section to the home dashboard with a card for Water and a card for Weight
+- Moved calories today and logs today to the logging section
+- Added a listener to update the units in the logging cards when the user changes units
