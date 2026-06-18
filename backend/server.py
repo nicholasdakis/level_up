@@ -35,6 +35,8 @@ from backend.schemas import (
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogRequest,
+    UpsertWaterLogRequest,
+    UpsertWeightLogRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -598,6 +600,22 @@ def upsert_food_log():
     progression_service.upsert_food_log(
         uid, body.date, body.breakfast, body.lunch, body.dinner, body.snack
     )
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/upsert_water_log", methods=["POST"])
+def upsert_water_log():
+    uid, body, err = _parse_and_auth(UpsertWaterLogRequest)
+    if err:
+        return err
+    progression_service.upsert_water_log(uid, body.date, body.entries_ml)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/upsert_weight_log", methods=["POST"])
+def upsert_weight_log():
+    uid, body, err = _parse_and_auth(UpsertWeightLogRequest)
+    if err:
+        return err
+    progression_service.upsert_weight_log(uid, body.date, body.weight_kg)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])

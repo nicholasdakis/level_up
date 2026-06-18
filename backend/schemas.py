@@ -52,6 +52,14 @@ class UpsertFoodLogRequest(BaseModel):
     dinner: list = Field(default_factory=list)
     snack: list = Field(default_factory=list)
 
+class UpsertWaterLogRequest(BaseModel):
+    date: str = Field(..., min_length=1)
+    entries_ml: list = Field(default_factory=list)  # list of {amount_ml: int}
+
+class UpsertWeightLogRequest(BaseModel):
+    date: str = Field(..., min_length=1)
+    weight_kg: float
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)
@@ -220,6 +228,8 @@ class GetUserDataResponse(BaseModel):
     referral_count: int = 0
     referral_used: bool = False
     units: str = 'metric'
+    water_logs: list = Field(default_factory=list)
+    weight_logs: list = Field(default_factory=list)
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success

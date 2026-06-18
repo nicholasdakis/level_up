@@ -53,6 +53,22 @@ CREATE TABLE food_logs (
     PRIMARY KEY (uid, date)            -- one log per user per day
 );
 
+-- Daily water intake logs per user, one row per day with individual entries as a JSONB array
+CREATE TABLE water_logs (
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+    date DATE,                         -- the calendar date for this log
+    entries_ml JSONB[],                -- array of {amount_ml: int} objects, one per log entry
+    PRIMARY KEY (uid, date)            -- one row per user per day, upserted on each log
+);
+
+-- Daily body weight logs per user, one row per day
+CREATE TABLE weight_logs (
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+    date DATE,                         -- the calendar date for this log
+    weight_kg NUMERIC(5, 2),           -- body weight in kg, converted from lbs if imperial
+    PRIMARY KEY (uid, date)            -- one row per user per day, overwritten on re-log
+);
+
 -- Scheduled push notification reminders set by the user
 CREATE TABLE reminders (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT, -- auto-generated unique ID

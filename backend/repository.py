@@ -228,6 +228,28 @@ class UserRepository:
             "snack": snack,
         }).execute()
 
+    def get_water_logs(self, uid: str):
+        result = self._supabase.table("water_logs").select("*").eq("uid", uid).execute()
+        return result.data
+
+    def upsert_water_log(self, uid: str, date: str, entries_ml: list):
+        self._supabase.table("water_logs").upsert({
+            "uid": uid,
+            "date": date,
+            "entries_ml": entries_ml,
+        }).execute()
+
+    def get_weight_logs(self, uid: str):
+        result = self._supabase.table("weight_logs").select("*").eq("uid", uid).execute()
+        return result.data
+
+    def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
+        self._supabase.table("weight_logs").upsert({
+            "uid": uid,
+            "date": date,
+            "weight_kg": weight_kg,
+        }).execute()
+
     def update_food_streak(self, uid: str):
         # Calls the update_food_streak RPC to compute and update the food logging streak
         result = self._supabase.rpc("update_food_streak", {

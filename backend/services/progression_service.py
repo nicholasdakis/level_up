@@ -285,6 +285,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             user = self._repo.get_user(uid)
 
         food_logs = self._repo.get_food_logs(uid)
+        water_logs = self._repo.get_water_logs(uid)
+        weight_logs = self._repo.get_weight_logs(uid)
         reminders = self._reminder_repo.get_reminders(uid)
         goals = self._repo.get_goals(uid)
 
@@ -312,6 +314,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_count": self._repo.get_referral_count(uid),
             "referral_used": self._repo.has_used_referral(uid),
             "units": user.get("units", "metric"),
+            "water_logs": water_logs,
+            "weight_logs": weight_logs,
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):
@@ -343,6 +347,12 @@ class ProgressionService: # Service class to handle all progression-related busi
     def get_food_logs(self, uid: str):
         # Returns all food logs for a user
         return self._repo.get_food_logs(uid)
+
+    def upsert_water_log(self, uid: str, date: str, entries_ml: list):
+        self._repo.upsert_water_log(uid, date, entries_ml)
+
+    def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
+        self._repo.upsert_weight_log(uid, date, weight_kg)
 
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
         # Upserts a food log for a specific date
