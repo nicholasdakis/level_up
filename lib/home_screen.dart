@@ -99,15 +99,57 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> _showWaterLogSheet() async {
     final isImperial = currentUserData?.units == 'imperial';
-    final dateKey = _todayDateKey();
-    final entries = List<int>.from(
-      currentUserData?.waterEntriesByDate[dateKey] ?? [],
-    );
+    DateTime selectedDate = DateTime.now();
     final customController = TextEditingController();
 
     String? feedback;
     String lastFeedback =
         'ok'; // retains last non-null value so text doesn't flicker during fade-out
+
+    String dateKeyFor(DateTime d) =>
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+    String labelFor(DateTime d) {
+      final today = DateTime.now();
+      if (d.year == today.year &&
+          d.month == today.month &&
+          d.day == today.day) {
+        return "Today";
+      }
+      final yesterday = today.subtract(const Duration(days: 1));
+      if (d.year == yesterday.year &&
+          d.month == yesterday.month &&
+          d.day == yesterday.day) {
+        return "Yesterday";
+      }
+      const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+      return '${months[d.month - 1]} ${d.day}';
+    }
+
+    // Last 7 days that have water logged, sorted newest first
+    List<MapEntry<String, List<int>>> recentEntries() {
+      final all =
+          currentUserData?.waterEntriesByDate.entries
+              .where((e) => (e.value as List).isNotEmpty)
+              .map((e) => MapEntry(e.key, List<int>.from(e.value as List)))
+              .toList() ??
+          [];
+      all.sort((a, b) => b.key.compareTo(a.key));
+      return all.take(7).toList();
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -116,29 +158,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       useRootNavigator: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
-          Future<void> save({bool isDelete = false}) async {
-            final ok = await userManager.updateWaterLog(dateKey, entries);
-            bool sheetMounted = true;
-            try {
-              // setSheet throws if the sheet was dismissed while the backend call was in flight
-              setSheet(() {
-                feedback = ok ? (isDelete ? 'deleted' : 'ok') : 'error';
-                lastFeedback = feedback!;
-              });
-            } catch (_) {
-              sheetMounted = false;
-            }
-            if (!sheetMounted) {
-              // Sheet already closed, just update the home card
-              if (mounted) setState(() {});
-              return;
-            }
-            await Future.delayed(const Duration(milliseconds: 1600));
-            try {
-              setSheet(() => feedback = null); // hide the pill
-            } catch (_) {}
-            if (mounted) setState(() {}); // refresh home card total
-          }
+          final dateKey = dateKeyFor(selectedDate);
+          final entries = List<int>.from(
+            currentUserData?.waterEntriesByDate[dateKey] ?? [],
+          );
 
           final c = cardColors(appColorNotifier.value);
           final onCard = c.onCard;
@@ -185,6 +208,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               letterSpacing: 1.1,
                             ),
                           ),
+                          SizedBox(height: Responsive.height(ctx, 12)),
+                          // Date navigation row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              GestureDetector(
+                                onTap: () => setSheet(() {
+                                  selectedDate = selectedDate.subtract(
+                                    const Duration(days: 1),
+                                  );
+                                  customController.clear();
+                                }),
+                                child: Icon(
+                                  Icons.chevron_left,
+                                  color: onCard,
+                                  size: Responsive.scale(ctx, 22),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: ctx,
+                                    initialDate: selectedDate,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime.now(),
+                                  );
+                                  if (picked != null) {
+                                    setSheet(() {
+                                      selectedDate = picked;
+                                      customController.clear();
+                                    });
+                                  }
+                                },
+                                child: Text(
+                                  labelFor(selectedDate),
+                                  style: GoogleFonts.manrope(
+                                    color: onCard,
+                                    fontSize: Responsive.font(ctx, 14),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap:
+                                    selectedDate.day == DateTime.now().day &&
+                                        selectedDate.month ==
+                                            DateTime.now().month &&
+                                        selectedDate.year == DateTime.now().year
+                                    ? null
+                                    : () => setSheet(() {
+                                        selectedDate = selectedDate.add(
+                                          const Duration(days: 1),
+                                        );
+                                        customController.clear();
+                                      }),
+                                child: Icon(
+                                  Icons.chevron_right,
+                                  color: selectedDate.day == DateTime.now().day
+                                      ? onCard.withAlpha(60)
+                                      : onCard,
+                                  size: Responsive.scale(ctx, 22),
+                                ),
+                              ),
+                            ],
+                          ),
                           SizedBox(height: Responsive.height(ctx, 16)),
                           Row(
                             children: [
@@ -202,8 +290,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         final ml = isImperial
                                             ? (amount * 29.5735).round()
                                             : amount;
-                                        setSheet(() => entries.add(ml));
-                                        await save();
+                                        entries.add(ml);
+                                        await userManager.updateWaterLog(
+                                          dateKey,
+                                          entries,
+                                        );
+                                        bool sheetMounted = true;
+                                        try {
+                                          setSheet(() {
+                                            feedback = 'ok';
+                                            lastFeedback = 'ok';
+                                          });
+                                        } catch (_) {
+                                          sheetMounted = false;
+                                        }
+                                        if (!sheetMounted) {
+                                          if (mounted) setState(() {});
+                                          return;
+                                        }
+                                        await Future.delayed(
+                                          const Duration(milliseconds: 1600),
+                                        );
+                                        try {
+                                          setSheet(() => feedback = null);
+                                        } catch (_) {}
+                                        if (mounted) setState(() {});
                                       },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
@@ -281,9 +392,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                             ) ??
                                             0;
                                   if (val > 0) {
-                                    setSheet(() => entries.add(val));
-                                    await save();
-                                    customController.clear();
+                                    entries.add(val);
+                                    await userManager.updateWaterLog(
+                                      dateKey,
+                                      entries,
+                                    );
+                                    bool sheetMounted = true;
+                                    try {
+                                      setSheet(() {
+                                        feedback = 'ok';
+                                        lastFeedback = 'ok';
+                                        customController.clear();
+                                      });
+                                    } catch (_) {
+                                      sheetMounted = false;
+                                    }
+                                    if (!sheetMounted) {
+                                      if (mounted) setState(() {});
+                                      return;
+                                    }
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 1600),
+                                    );
+                                    try {
+                                      setSheet(() => feedback = null);
+                                    } catch (_) {}
+                                    if (mounted) setState(() {});
                                   }
                                 },
                                 child: Text(
@@ -299,7 +433,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "TODAY",
+                                  "ENTRIES",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(ctx, 11),
                                     color: onCardDim,
@@ -334,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       i >= 0;
                                       i--
                                     ) ...[
-                                      if (i > 0)
+                                      if (i < entries.length - 1)
                                         Divider(
                                           color: onCard.withAlpha(20),
                                           height: 1,
@@ -378,8 +512,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                       title: "Remove Entry",
                                                       content: Text(
                                                         isImperial
-                                                            ? "Remove ${(entries[i] / 29.5735).toStringAsFixed(1)} oz from today's log?"
-                                                            : "Remove ${entries[i]} ml from today's log?",
+                                                            ? "Remove ${(entries[i] / 29.5735).toStringAsFixed(1)} oz from ${labelFor(selectedDate).toLowerCase()}?"
+                                                            : "Remove ${entries[i]} ml from ${labelFor(selectedDate).toLowerCase()}?",
                                                         style:
                                                             GoogleFonts.manrope(
                                                               color: Colors
@@ -419,10 +553,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                       ],
                                                     );
                                                 if (confirmed == true) {
-                                                  setSheet(
-                                                    () => entries.removeAt(i),
+                                                  entries.removeAt(i);
+                                                  await userManager
+                                                      .updateWaterLog(
+                                                        dateKey,
+                                                        entries,
+                                                      );
+                                                  bool sheetMounted = true;
+                                                  try {
+                                                    setSheet(() {
+                                                      feedback = 'deleted';
+                                                      lastFeedback = 'deleted';
+                                                    });
+                                                  } catch (_) {
+                                                    sheetMounted = false;
+                                                  }
+                                                  if (!sheetMounted) {
+                                                    if (mounted) {
+                                                      setState(() {});
+                                                    }
+                                                    return;
+                                                  }
+                                                  await Future.delayed(
+                                                    const Duration(
+                                                      milliseconds: 1600,
+                                                    ),
                                                   );
-                                                  await save(isDelete: true);
+                                                  try {
+                                                    setSheet(
+                                                      () => feedback = null,
+                                                    );
+                                                  } catch (_) {}
+                                                  if (mounted) setState(() {});
                                                 }
                                               },
                                               child: HugeIcon(
@@ -433,6 +595,104 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               ),
                                             ),
                                           ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (entries.isEmpty &&
+                              recentEntries().isNotEmpty) ...[
+                            SizedBox(height: Responsive.height(ctx, 20)),
+                            Text(
+                              "RECENT",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(ctx, 11),
+                                color: onCardDim,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                            SizedBox(height: Responsive.height(ctx, 8)),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(ctx).size.height * 0.25,
+                              ),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    for (
+                                      int i = 0;
+                                      i < recentEntries().length;
+                                      i++
+                                    ) ...[
+                                      if (i > 0)
+                                        Divider(
+                                          color: onCard.withAlpha(20),
+                                          height: 1,
+                                        ),
+                                      GestureDetector(
+                                        onTap: () => setSheet(() {
+                                          selectedDate = DateTime.parse(
+                                            recentEntries()[i].key,
+                                          );
+                                          customController.clear();
+                                        }),
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: Responsive.height(
+                                              ctx,
+                                              10,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedDroplet,
+                                                color: onCardDim,
+                                                size: Responsive.scale(ctx, 15),
+                                              ),
+                                              SizedBox(
+                                                width: Responsive.width(
+                                                  ctx,
+                                                  10,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  labelFor(
+                                                    DateTime.parse(
+                                                      recentEntries()[i].key,
+                                                    ),
+                                                  ),
+                                                  style: GoogleFonts.manrope(
+                                                    color: onCardDim,
+                                                    fontSize: Responsive.font(
+                                                      ctx,
+                                                      13,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Text(
+                                                isImperial
+                                                    ? "${(recentEntries()[i].value.fold(0, (s, e) => s + e) / 29.5735).toStringAsFixed(1)} oz"
+                                                    : "${recentEntries()[i].value.fold(0, (s, e) => s + e)} ml",
+                                                style: GoogleFonts.manrope(
+                                                  color: onCard,
+                                                  fontSize: Responsive.font(
+                                                    ctx,
+                                                    14,
+                                                  ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],

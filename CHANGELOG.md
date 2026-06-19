@@ -2081,3 +2081,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-19
 - Removed appbars from every screen with one to remove redundancy
+- Added the weight logging date picker code into the water logging one
