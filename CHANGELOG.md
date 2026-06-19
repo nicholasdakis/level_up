@@ -2067,3 +2067,14 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - On network failure, the optimistic UI update is rolled back so the displayed total stays accurate
 - Water card total on the home dashboard converts ml to oz automatically based on the stored units preference
 - Added a ListenableBuilder on userDataNotifier to the logging section so units and water totals update live when changed from preferences
+- Weight logging sheet supports date navigation with left/right arrows and a date picker, pre-fills the input with the existing value for the selected date, and shows Log or Update depending on whether a value already exists
+- Shows last 7 logged weight entries as a tappable history list, tapping a row jumps to that date and pre-fills the input
+- Each history row shows a trend icon (up/down/same) comparing the entry to the one before it
+- Weight card on the home dashboard shows today's logged value converted to lbs or kg based on units preference
+- Bottom sheet background updated to use a semi-transparent darkened color with backdrop blur for better readability on saturated themes
+- Applied same sheet background style to the food logging custom serving size sheet for consistency
+- Added /delete_weight_log endpoint with accompanying schema, service, and repository methods
+- Added deleteWeightLog() in user_data_manager.dart with optimistic removal and rollback on failure
+- Added a trash icon on each weight history row that confirms before deleting and shows a feedback pill
+- Water custom amount input now only accepts digits with a 5 character limit
+- Feedback pill in the weight sheet now shows "Updated!" when overwriting an existing entry, "Deleted!" on deletion, and "Logged!" for new entries

@@ -742,7 +742,8 @@ class UserDataManager {
     }
   }
 
-  Future<void> updateWeightLog(String dateKey, double weightKg) async {
+  Future<bool> updateWeightLog(String dateKey, double weightKg) async {
+    final previous = currentUserData?.weightByDate[dateKey];
     currentUserData?.weightByDate[dateKey] = weightKg;
     userDataNotifier.notifyListeners();
     try {
@@ -750,8 +751,32 @@ class UserDataManager {
         'upsert_weight_log',
         body: {'date': dateKey, 'weight_kg': weightKg},
       );
+      return true;
     } catch (e) {
+      // Roll back on failure
+      if (previous == null) {
+        currentUserData?.weightByDate.remove(dateKey);
+      } else {
+        currentUserData?.weightByDate[dateKey] = previous;
+      }
+      userDataNotifier.notifyListeners();
       debugPrint('[weight] Failed to upsert weight log: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteWeightLog(String dateKey) async {
+    final previous = currentUserData?.weightByDate[dateKey];
+    currentUserData?.weightByDate.remove(dateKey);
+    userDataNotifier.notifyListeners();
+    try {
+      await authenticatedPost('delete_weight_log', body: {'date': dateKey});
+      return true;
+    } catch (e) {
+      if (previous != null) currentUserData?.weightByDate[dateKey] = previous;
+      userDataNotifier.notifyListeners();
+      debugPrint('[weight] Failed to delete weight log: $e');
+      return false;
     }
   }
 
