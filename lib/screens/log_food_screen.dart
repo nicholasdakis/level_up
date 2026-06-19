@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -54,7 +53,6 @@ class LogFoodScreen extends StatefulWidget {
 class _LogFoodScreenState extends State<LogFoodScreen>
     with SingleTickerProviderStateMixin {
   String? _inlineError;
-  String? _manualInlineError;
   Map<String, dynamic>? selectedFood;
   bool userCanType = true;
   bool snackbarActive = false;
@@ -72,9 +70,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   bool scannerActive = false;
   bool barcodeLoading = false;
   String? barcodeError;
-
-  // Manual entry form visibility
-  bool manualExpanded = true;
 
   // Recent foods section visibility
   bool _recentExpanded = true;
@@ -471,56 +466,493 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     if (mounted) context.pop();
   }
 
-  // Validates the manual form and formats it like the other food types
-  Future<void> handleManualEntry() async {
-    final name = manualNameController.text.trim();
-    if (name.isEmpty ||
-        manualCaloriesController.text.trim().isEmpty ||
-        manualServingAmountController.text.trim().isEmpty ||
-        manualSelectedUnit.isEmpty) {
-      setState(
-        () => _manualInlineError =
-            "Food name, calories, and serving size are required.",
-      );
-      return;
-    }
+  Future<void> _showManualEntrySheet() async {
+    // Clear controllers each time the dialog opens
+    manualNameController.clear();
+    manualServingAmountController.clear();
+    manualCaloriesController.clear();
+    manualProteinController.clear();
+    manualCarbsController.clear();
+    manualFatController.clear();
+    manualSelectedUnit = 'serving';
+    String? dialogError;
 
-    final calories = int.tryParse(manualCaloriesController.text.trim()) ?? 0;
-    final fat = manualFatController.text.trim();
-    final carbs = manualCarbsController.text.trim();
-    final protein = manualProteinController.text.trim();
-
-    if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
-      showFrostedAlertDialog(
-        context: context,
-        title: "No macronutrients entered!",
-        content: Text(
-          "You haven't entered any fat, carbs, or protein. Log anyway?",
-          style: GoogleFonts.manrope(color: Colors.white70),
+    Widget goalField(
+      BuildContext ctx,
+      TextEditingController controller,
+      String hint, {
+      TextInputType keyboardType = TextInputType.text,
+      List<TextInputFormatter>? inputFormatters,
+    }) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: Responsive.height(ctx, 4)),
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(ctx, 15),
+            color: Colors.white,
+          ),
+          cursorColor: Colors.white,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.manrope(
+              color: Colors.white38,
+              fontSize: Responsive.font(ctx, 14),
+            ),
+            contentPadding: EdgeInsets.only(
+              top: Responsive.height(ctx, 13),
+              left: Responsive.width(ctx, 6),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white24),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: const Text(
-              "Go Back",
-              style: TextStyle(color: Colors.white54),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context, rootNavigator: true).pop();
-              await _submitManualEntry(name, calories, fat, carbs, protein);
-            },
-            child: const Text(
-              "Log Anyway",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
       );
-      return;
     }
-    await _submitManualEntry(name, calories, fat, carbs, protein);
+
+    await showFrostedDialog(
+      context: context,
+      child: StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  "Enter Manually",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 20),
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 16)),
+              SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "REQUIRED",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 11),
+                        color: Colors.white38,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    goalField(
+                      ctx,
+                      manualNameController,
+                      "Food Name",
+                      inputFormatters: [LengthLimitingTextInputFormatter(50)],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: goalField(
+                            ctx,
+                            manualServingAmountController,
+                            "Serving Amount",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [LogFoodScreen.decimalFormatter()],
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(ctx, 12)),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: Responsive.height(ctx, 4),
+                            ),
+                            child: GestureDetector(
+                              onTap: () async {
+                                // Pick unit via a second dialog stacked on top
+                                final picked = await showFrostedDialog<String>(
+                                  context: ctx,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Center(
+                                        child: Text(
+                                          "Unit",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(ctx, 20),
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(ctx, 12),
+                                      ),
+                                      // Standard units
+                                      ...allowedUnits.map(
+                                        (u) => InkWell(
+                                          onTap: () => Navigator.pop(ctx, u),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: Responsive.height(
+                                                ctx,
+                                                10,
+                                              ),
+                                              horizontal: Responsive.width(
+                                                ctx,
+                                                4,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    u,
+                                                    style: GoogleFonts.manrope(
+                                                      fontSize: Responsive.font(
+                                                        ctx,
+                                                        15,
+                                                      ),
+                                                      color:
+                                                          manualSelectedUnit ==
+                                                              u
+                                                          ? Colors.white
+                                                          : Colors.white60,
+                                                      fontWeight:
+                                                          manualSelectedUnit ==
+                                                              u
+                                                          ? FontWeight.w600
+                                                          : FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (manualSelectedUnit == u)
+                                                  Icon(
+                                                    Icons.check,
+                                                    color: Colors.white,
+                                                    size: Responsive.scale(
+                                                      ctx,
+                                                      16,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Divider(
+                                        color: Colors.white.withAlpha(25),
+                                      ),
+                                      InkWell(
+                                        onTap: () =>
+                                            Navigator.pop(ctx, '__custom__'),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: Responsive.height(
+                                              ctx,
+                                              10,
+                                            ),
+                                            horizontal: Responsive.width(
+                                              ctx,
+                                              4,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            "Custom...",
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                ctx,
+                                                15,
+                                              ),
+                                              color: Colors.white38,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (picked == '__custom__') {
+                                  _customUnitController.clear();
+                                  if (!mounted) return;
+                                  await showFrostedAlertDialog(
+                                    context: context,
+                                    title: "Custom Unit",
+                                    content: TextField(
+                                      controller: _customUnitController,
+                                      autofocus: true,
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            "e.g. a slice, a can, a bag...",
+                                        hintStyle: GoogleFonts.manrope(
+                                          color: Colors.white38,
+                                        ),
+                                        enabledBorder:
+                                            const UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Colors.white38,
+                                              ),
+                                            ),
+                                        focusedBorder:
+                                            const UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).pop(),
+                                        child: const Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          final custom = _customUnitController
+                                              .text
+                                              .trim();
+                                          if (custom.isNotEmpty)
+                                            setDialogState(
+                                              () => manualSelectedUnit = custom,
+                                            );
+                                          Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop();
+                                        },
+                                        child: const Text(
+                                          "OK",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                } else if (picked != null) {
+                                  setDialogState(
+                                    () => manualSelectedUnit = picked,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.only(
+                                  bottom: Responsive.height(ctx, 6),
+                                ),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(color: Colors.white24),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        manualSelectedUnit,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(ctx, 14),
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Colors.white38,
+                                      size: Responsive.scale(ctx, 16),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    goalField(
+                      ctx,
+                      manualCaloriesController,
+                      "Calories (kcal)",
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                      ],
+                    ),
+                    SizedBox(height: Responsive.height(ctx, 14)),
+                    Text(
+                      "OPTIONAL",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 11),
+                        color: Colors.white38,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    goalField(
+                      ctx,
+                      manualProteinController,
+                      "Protein (g)",
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                      ],
+                    ),
+                    goalField(
+                      ctx,
+                      manualCarbsController,
+                      "Carbs (g)",
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                      ],
+                    ),
+                    goalField(
+                      ctx,
+                      manualFatController,
+                      "Fat (g)",
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                      ],
+                    ),
+                    if (dialogError != null) ...[
+                      SizedBox(height: Responsive.height(ctx, 8)),
+                      Text(
+                        dialogError!,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white54,
+                          fontSize: Responsive.font(ctx, 13),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 24)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text(
+                      "CANCEL",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final name = manualNameController.text.trim();
+                      if (name.isEmpty ||
+                          manualCaloriesController.text.trim().isEmpty ||
+                          manualServingAmountController.text.trim().isEmpty) {
+                        setDialogState(
+                          () => dialogError =
+                              "Name, calories, and serving size are required.",
+                        );
+                        return;
+                      }
+                      final calories =
+                          int.tryParse(manualCaloriesController.text.trim()) ??
+                          0;
+                      final fat = manualFatController.text.trim();
+                      final carbs = manualCarbsController.text.trim();
+                      final protein = manualProteinController.text.trim();
+                      if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
+                        showFrostedAlertDialog(
+                          context: context,
+                          title: "No macronutrients entered!",
+                          content: Text(
+                            "You haven't entered any fat, carbs, or protein. Log anyway?",
+                            style: GoogleFonts.manrope(color: Colors.white70),
+                          ),
+                          actions: [
+                            // Dismiss alert only — manual entry dialog stays open
+                            TextButton(
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(),
+                              child: const Text(
+                                "Go Back",
+                                style: TextStyle(color: Colors.white54),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                // Pop alert then manual entry dialog, then submit
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                                Navigator.pop(ctx);
+                                await _submitManualEntry(
+                                  name,
+                                  calories,
+                                  fat,
+                                  carbs,
+                                  protein,
+                                );
+                              },
+                              child: const Text(
+                                "Log Anyway",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        );
+                        return;
+                      }
+                      Navigator.pop(ctx);
+                      await _submitManualEntry(
+                        name,
+                        calories,
+                        fat,
+                        carbs,
+                        protein,
+                      );
+                    },
+                    child: const Text(
+                      "LOG",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   // Method for formatting manual entries in the same way as the Search and Barcode expects it
@@ -575,9 +1007,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         text,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 11),
-          color: Colors.white24,
+          color: cardColors(appColorNotifier.value).onCard.withAlpha(120),
           decoration: TextDecoration.underline,
-          decorationColor: Colors.white24,
+          decorationColor: cardColors(
+            appColorNotifier.value,
+          ).onCard.withAlpha(120),
         ),
       ),
     );
@@ -596,7 +1030,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           "  ·  ",
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: Colors.white24,
+            color: cardColors(appColorNotifier.value).onCard.withAlpha(120),
           ),
         ),
         _buildAttributionLink(
@@ -718,7 +1152,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         child: Text(
           label,
           style: GoogleFonts.manrope(
-            color: active ? lightenColor(appColor, 0.2) : Colors.white38,
+            color: active
+                ? lightenColor(appColor, 0.2)
+                : cardColors(appColorNotifier.value).onCard.withAlpha(140),
             fontSize: Responsive.font(context, 11),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
@@ -748,9 +1184,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     food['brand_name'] != null
                         ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
                         : (food['food_name'] ?? ''),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
-                      color: Colors.white,
+                      color: cardColors(appColorNotifier.value).onCard,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -806,7 +1244,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             ),
             Icon(
               Icons.add_circle_outline,
-              color: Colors.white38,
+              color: cardColors(appColorNotifier.value).onCard.withAlpha(140),
               size: Responsive.scale(context, 20),
             ),
           ],
@@ -879,7 +1317,12 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   Widget _buildLogFoodButton({VoidCallback? onPressed}) {
     return SizedBox(
       width: double.infinity,
-      child: frostedButton("Log Food", context, onPressed: onPressed ?? () {}),
+      child: frostedButton(
+        "Log Food",
+        context,
+        onPressed: onPressed ?? () {},
+        color: appColorNotifier.value,
+      ),
     );
   }
 
@@ -892,7 +1335,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         children: [
           Icon(
             Icons.error_outline,
-            color: Colors.redAccent,
+            color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
             size: Responsive.font(context, 14),
           ),
           SizedBox(width: Responsive.width(context, 6)),
@@ -901,64 +1344,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               error,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 13),
-                color: Colors.redAccent,
+                color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // Shared underline text field used inside the manual entry form
-  Widget _buildManualField(
-    TextEditingController controller,
-    String hint, {
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 4)),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          textSelectionTheme: const TextSelectionThemeData(
-            cursorColor: Colors.white,
-          ),
-        ),
-        child: TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 15),
-            color: Colors.white,
-          ),
-          decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightenColor(appColorNotifier.value, 0.15),
-                width: Responsive.scale(context, 0.25),
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightenColor(appColorNotifier.value, 0.3),
-                width: Responsive.scale(context, 0.25),
-              ),
-            ),
-            hintText: hint,
-            contentPadding: EdgeInsets.only(
-              top: Responsive.height(context, 13),
-              left: Responsive.width(context, 6),
-            ),
-            hintStyle: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 14),
-              color: Colors.white38,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -990,7 +1380,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       parts.join(' - '),
       style: GoogleFonts.manrope(
         fontSize: Responsive.font(context, 11),
-        color: Colors.white54,
+        color: cardColors(appColorNotifier.value).onCard.withAlpha(140),
       ),
     );
   }
@@ -1141,7 +1531,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     Text(
                       "Log to $mealLabel",
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 18),
+                        fontSize: Responsive.font(context, 22),
                         fontWeight: FontWeight.w700,
                         color: lightenColor(appColorNotifier.value, 0.45),
                       ),
@@ -1262,7 +1652,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   "Nutritional info is not a substitute for medical advice.",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 10),
-                    color: Colors.white12,
+                    color: cardColors(
+                      appColorNotifier.value,
+                    ).onCard.withAlpha(100),
                   ),
                 ),
               ),
@@ -1292,7 +1684,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     children: [
                       Icon(
                         Icons.error_outline,
-                        color: Colors.redAccent,
+                        color: cardColors(
+                          appColorNotifier.value,
+                        ).onCard.withAlpha(160),
                         size: Responsive.font(context, 14),
                       ),
                       SizedBox(width: Responsive.width(context, 8)),
@@ -1300,7 +1694,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         child: Text(
                           barcodeError!,
                           style: GoogleFonts.manrope(
-                            color: Colors.redAccent,
+                            color: cardColors(
+                              appColorNotifier.value,
+                            ).onCard.withAlpha(160),
                             fontSize: Responsive.font(context, 13),
                           ),
                         ),
@@ -1338,9 +1734,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         selectedFood!['brand_name'] != null
                             ? '${selectedFood!['brand_name']} · ${selectedFood!['food_name'] ?? ''}'
                             : (selectedFood!['food_name'] ?? ''),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 16),
-                          color: Colors.white,
+                          color: cardColors(appColorNotifier.value).onCard,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1349,7 +1747,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         displayDescription,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 13),
-                          color: Colors.white54,
+                          color: cardColors(
+                            appColorNotifier.value,
+                          ).onCard.withAlpha(140),
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 14)),
@@ -1435,8 +1835,12 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               _recentMatches[i]['brand_name'] != null
                                   ? '${_recentMatches[i]['brand_name']} · ${_recentMatches[i]['food_name'] ?? ''}'
                                   : (_recentMatches[i]['food_name'] ?? ''),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.manrope(
-                                color: Colors.white,
+                                color: cardColors(
+                                  appColorNotifier.value,
+                                ).onCard,
                                 fontSize: Responsive.font(context, 14),
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1445,14 +1849,18 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             Text(
                               _recentMatches[i]['food_description'] ?? '',
                               style: GoogleFonts.manrope(
-                                color: Colors.white38,
+                                color: cardColors(
+                                  appColorNotifier.value,
+                                ).onCard.withAlpha(140),
                                 fontSize: Responsive.font(context, 12),
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 12)),
                             Container(
                               height: 1,
-                              color: Colors.white.withAlpha(12),
+                              color: cardColors(
+                                appColorNotifier.value,
+                              ).onCard.withAlpha(20),
                             ),
                           ],
                         ),
@@ -1493,8 +1901,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             food['brand_name'] != null
                                 ? '${food['brand_name']} · ${food['food_name'] ?? ''}'
                                 : (food['food_name'] ?? ''),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.manrope(
-                              color: Colors.white,
+                              color: cardColors(appColorNotifier.value).onCard,
                               fontSize: Responsive.font(context, 14),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1503,14 +1913,18 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                           Text(
                             food['food_description'] ?? '',
                             style: GoogleFonts.manrope(
-                              color: Colors.white38,
+                              color: cardColors(
+                                appColorNotifier.value,
+                              ).onCard.withAlpha(140),
                               fontSize: Responsive.font(context, 12),
                             ),
                           ),
                           SizedBox(height: Responsive.height(context, 12)),
                           Container(
                             height: 1,
-                            color: Colors.white.withAlpha(12),
+                            color: cardColors(
+                              appColorNotifier.value,
+                            ).onCard.withAlpha(20),
                           ),
                         ],
                       ),
@@ -1539,7 +1953,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                           _recentExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
-                          color: Colors.white38,
+                          color: cardColors(
+                            appColorNotifier.value,
+                          ).onCard.withAlpha(140),
                           size: Responsive.scale(context, 20),
                         ),
                       ),
@@ -1561,7 +1977,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             "Nothing logged recently",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 13),
-                              color: Colors.white24,
+                              color: cardColors(
+                                appColorNotifier.value,
+                              ).onCard.withAlpha(100),
                             ),
                           ),
                         )
@@ -1574,7 +1992,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                 if (i < _recentFoods.length - 1)
                                   Container(
                                     height: 1,
-                                    color: Colors.white.withAlpha(12),
+                                    color: cardColors(
+                                      appColorNotifier.value,
+                                    ).onCard.withAlpha(20),
                                   ),
                               ],
                             );
@@ -1585,474 +2005,38 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
                 _buildDivider(),
 
-                // ENTER MANUALLY section is collapsible
                 GestureDetector(
-                  onTap: () => setState(() {
-                    manualExpanded = !manualExpanded;
-                    _manualInlineError = null;
-                  }),
-                  child: Row(
-                    children: [
-                      Expanded(child: sectionHeader("ENTER MANUALLY", context)),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 12),
-                        ),
-                        child: Icon(
-                          manualExpanded
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: Colors.white38,
-                          size: Responsive.scale(context, 20),
-                        ),
+                  onTap: _showManualEntrySheet,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 14),
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 30),
                       ),
-                    ],
+                      border: Border.all(
+                        color: cardColors(
+                          appColorNotifier.value,
+                        ).onCard.withAlpha(60),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      "Enter Manually",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 15),
+                        fontWeight: FontWeight.w600,
+                        color: cardColors(
+                          appColorNotifier.value,
+                        ).onCard.withAlpha(160),
+                      ),
+                    ),
                   ),
                 ),
-
-                AnimatedCrossFade(
-                  duration: const Duration(milliseconds: 200),
-                  crossFadeState: manualExpanded
-                      ? CrossFadeState.showFirst
-                      : CrossFadeState.showSecond,
-                  firstChild: Column(
-                    children: [
-                      SizedBox(height: Responsive.height(context, 14)),
-                      frostedGlassCard(
-                        context,
-                        baseRadius: 16,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 20),
-                          vertical: Responsive.height(context, 16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "REQUIRED",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white38,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                            _buildManualField(
-                              manualNameController,
-                              "Food Name",
-                            ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: _buildManualField(
-                                    manualServingAmountController,
-                                    "Serving Amount",
-                                    keyboardType:
-                                        TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
-                                    inputFormatters: [
-                                      LogFoodScreen.decimalFormatter(),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: Responsive.width(context, 12)),
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: Responsive.height(context, 4),
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        final picked = await showModalBottomSheet<String>(
-                                          context: context,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (ctx) => ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.vertical(
-                                                  top: Radius.circular(24),
-                                                ),
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                sigmaX: 20,
-                                                sigmaY: 20,
-                                              ),
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: darkenColor(
-                                                    appColor,
-                                                    0.1,
-                                                  ).withAlpha(210),
-                                                  borderRadius:
-                                                      const BorderRadius.vertical(
-                                                        top: Radius.circular(
-                                                          24,
-                                                        ),
-                                                      ),
-                                                  border: Border(
-                                                    top: BorderSide(
-                                                      color: cardColors(
-                                                        appColor,
-                                                      ).border,
-                                                      width: 1,
-                                                    ),
-                                                  ),
-                                                ),
-                                                padding: EdgeInsets.fromLTRB(
-                                                  Responsive.width(ctx, 24),
-                                                  Responsive.height(ctx, 20),
-                                                  Responsive.width(ctx, 24),
-                                                  Responsive.height(ctx, 32),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      "UNIT",
-                                                      style:
-                                                          GoogleFonts.manrope(
-                                                            fontSize:
-                                                                Responsive.font(
-                                                                  ctx,
-                                                                  11,
-                                                                ),
-                                                            color:
-                                                                Colors.white38,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            letterSpacing: 1.1,
-                                                          ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: Responsive.height(
-                                                        ctx,
-                                                        12,
-                                                      ),
-                                                    ),
-                                                    // Standard units
-                                                    ...allowedUnits.map(
-                                                      (u) => Material(
-                                                        color:
-                                                            Colors.transparent,
-                                                        child: InkWell(
-                                                          onTap: () =>
-                                                              Navigator.pop(
-                                                                ctx,
-                                                                u,
-                                                              ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                12,
-                                                              ),
-                                                          child: Padding(
-                                                            padding: EdgeInsets.symmetric(
-                                                              vertical:
-                                                                  Responsive.height(
-                                                                    ctx,
-                                                                    12,
-                                                                  ),
-                                                              horizontal:
-                                                                  Responsive.width(
-                                                                    ctx,
-                                                                    8,
-                                                                  ),
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Expanded(
-                                                                  child: Text(
-                                                                    u,
-                                                                    style: GoogleFonts.manrope(
-                                                                      fontSize:
-                                                                          Responsive.font(
-                                                                            ctx,
-                                                                            16,
-                                                                          ),
-                                                                      color:
-                                                                          manualSelectedUnit ==
-                                                                              u
-                                                                          ? Colors.white
-                                                                          : Colors.white60,
-                                                                      fontWeight:
-                                                                          manualSelectedUnit ==
-                                                                              u
-                                                                          ? FontWeight.w600
-                                                                          : FontWeight.w400,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                if (manualSelectedUnit ==
-                                                                    u)
-                                                                  Icon(
-                                                                    Icons.check,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    size:
-                                                                        Responsive.scale(
-                                                                          ctx,
-                                                                          18,
-                                                                        ),
-                                                                  ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Divider(
-                                                      color: Colors.white
-                                                          .withAlpha(25),
-                                                      thickness: 1,
-                                                    ),
-                                                    // Custom unit option
-                                                    Material(
-                                                      color: Colors.transparent,
-                                                      child: InkWell(
-                                                        onTap: () =>
-                                                            Navigator.pop(
-                                                              ctx,
-                                                              '__custom__',
-                                                            ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              12,
-                                                            ),
-                                                        child: Padding(
-                                                          padding: EdgeInsets.symmetric(
-                                                            vertical:
-                                                                Responsive.height(
-                                                                  ctx,
-                                                                  12,
-                                                                ),
-                                                            horizontal:
-                                                                Responsive.width(
-                                                                  ctx,
-                                                                  8,
-                                                                ),
-                                                          ),
-                                                          child: Text(
-                                                            "Custom...",
-                                                            style: GoogleFonts.manrope(
-                                                              fontSize:
-                                                                  Responsive.font(
-                                                                    ctx,
-                                                                    16,
-                                                                  ),
-                                                              color: Colors
-                                                                  .white38,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                        if (picked == '__custom__') {
-                                          _customUnitController.clear();
-                                          if (!mounted) return;
-                                          showFrostedAlertDialog(
-                                            context: context,
-                                            title: "Custom Unit",
-                                            content: TextField(
-                                              controller: _customUnitController,
-                                              autofocus: true,
-                                              style: GoogleFonts.manrope(
-                                                color: Colors.white,
-                                              ),
-                                              decoration: InputDecoration(
-                                                hintText:
-                                                    "e.g. a slice, a can, a bag...",
-                                                hintStyle: GoogleFonts.manrope(
-                                                  color: Colors.white38,
-                                                ),
-                                                enabledBorder:
-                                                    const UnderlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                        color: Colors.white38,
-                                                      ),
-                                                    ),
-                                                focusedBorder:
-                                                    const UnderlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.of(
-                                                  context,
-                                                  rootNavigator: true,
-                                                ).pop(),
-                                                child: const Text(
-                                                  "Cancel",
-                                                  style: TextStyle(
-                                                    color: Colors.white54,
-                                                  ),
-                                                ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  final custom =
-                                                      _customUnitController.text
-                                                          .trim();
-                                                  if (custom.isNotEmpty) {
-                                                    setState(
-                                                      () => manualSelectedUnit =
-                                                          custom,
-                                                    );
-                                                  }
-                                                  Navigator.of(
-                                                    context,
-                                                    rootNavigator: true,
-                                                  ).pop();
-                                                },
-                                                child: const Text(
-                                                  "OK",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        } else if (picked != null) {
-                                          setState(
-                                            () => manualSelectedUnit = picked,
-                                          );
-                                        }
-                                      },
-                                      child: Container(
-                                        padding: EdgeInsets.only(
-                                          bottom: Responsive.height(context, 6),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color: lightenColor(
-                                                appColor,
-                                                0.15,
-                                              ),
-                                              width: Responsive.scale(
-                                                context,
-                                                0.25,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                manualSelectedUnit,
-                                                style: GoogleFonts.manrope(
-                                                  fontSize: Responsive.font(
-                                                    context,
-                                                    14,
-                                                  ),
-                                                  color: Colors.white38,
-                                                ),
-                                              ),
-                                            ),
-                                            Icon(
-                                              Icons.keyboard_arrow_down,
-                                              color: Colors.white38,
-                                              size: Responsive.scale(
-                                                context,
-                                                16,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _buildManualField(
-                              manualCaloriesController,
-                              "Calories (kcal)",
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                LogFoodScreen.decimalFormatter(
-                                  decimalPlaces: 3,
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: Responsive.height(context, 14)),
-                            Text(
-                              "OPTIONAL",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white38,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                            _buildManualField(
-                              manualProteinController,
-                              "Protein (g)",
-                              keyboardType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormatters: [
-                                LogFoodScreen.decimalFormatter(
-                                  decimalPlaces: 3,
-                                ),
-                              ],
-                            ),
-                            _buildManualField(
-                              manualCarbsController,
-                              "Carbs (g)",
-                              keyboardType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormatters: [
-                                LogFoodScreen.decimalFormatter(
-                                  decimalPlaces: 3,
-                                ),
-                              ],
-                            ),
-                            _buildManualField(
-                              manualFatController,
-                              "Fat (g)",
-                              keyboardType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormatters: [
-                                LogFoodScreen.decimalFormatter(
-                                  decimalPlaces: 3,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 14)),
-                      _buildInlineError(_manualInlineError),
-                      _buildLogFoodButton(
-                        onPressed: () async {
-                          setState(() => _manualInlineError = null);
-                          await handleManualEntry();
-                        },
-                      ),
-                      SizedBox(height: Responsive.height(context, 32)),
-                    ],
-                  ),
-                  secondChild: const SizedBox.shrink(),
-                ),
+                SizedBox(height: Responsive.height(context, 16)),
               ],
             ],
           ),

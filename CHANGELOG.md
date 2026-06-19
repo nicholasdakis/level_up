@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 Developmental progress by date is stored in this file.
 
@@ -2084,3 +2084,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the weight logging date picker code into the water logging one
 - Made the daily reward dialog only appear when the skeletonizer finishes
 - Made the daily reward dialog not dismissable by accident. It can now only be dismissed by pressing the dialog's button
+- Added a title next to the back button on the food logging screen showing which meal is being logged
+- Replaced the manual entry collapsible section with a button that opens a frosted dialog
+- Fixed text and icon colors in food logging to adapt to light and dark themes
+- Food names in search results, recent foods, and database results now truncate with ellipsis
+- Food name in manual entry capped at 50 characters
+- Attribution text in food logging is now readable on light themes
