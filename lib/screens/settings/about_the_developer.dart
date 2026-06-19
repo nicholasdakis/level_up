@@ -156,7 +156,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Have a suggestion or found a bug? I read every message",
+                            "Have a suggestion or found a bug? I read every message!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -194,7 +194,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "If you've been enjoying the app and want to support development, any contribution is appreciated",
+                            "If you've been enjoying the app and want to support development, any contribution is appreciated!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -216,10 +216,14 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             child: frostedGlassCard(
                               context,
                               baseRadius: 12,
-                              backgroundColor: darkenColor(
-                                appColorNotifier.value,
-                                0.06,
-                              ).withAlpha(40),
+                              backgroundColor:
+                                  appColorNotifier.value.computeLuminance() <
+                                      0.2
+                                  ? darkenColor(
+                                      appColorNotifier.value,
+                                      0.08,
+                                    ).withAlpha(60)
+                                  : Colors.white.withAlpha(40),
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 14),
                                 vertical: Responsive.height(context, 10),

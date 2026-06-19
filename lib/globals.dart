@@ -99,7 +99,9 @@ Widget socialLink({
     child: frostedGlassCard(
       context,
       baseRadius: 14,
-      backgroundColor: darkenColor(appColorNotifier.value, 0.06).withAlpha(40),
+      backgroundColor: appColorNotifier.value.computeLuminance() < 0.2
+          ? darkenColor(appColorNotifier.value, 0.08).withAlpha(60)
+          : Colors.white.withAlpha(40),
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 12),
