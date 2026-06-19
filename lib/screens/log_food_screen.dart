@@ -997,7 +997,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Full screen barcode scanner that dismisses on a successful scan or back tap
   Widget _buildBarcodeScanner() {
-    final appColor = appColorNotifier.value;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -1108,33 +1107,46 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   top: Responsive.height(context, 8),
                   bottom: Responsive.height(context, 12),
                 ),
-                child: GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.1,
-                      ).withAlpha(20),
-                      border: Border.all(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
-                        width: 1.5,
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.1,
+                          ).withAlpha(20),
+                          border: Border.all(
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          size: Responsive.font(context, 13),
+                        ),
                       ),
                     ),
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
-                      size: Responsive.font(context, 13),
+                    SizedBox(width: Responsive.width(context, 14)),
+                    Text(
+                      "Log to $mealLabel",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 18),
+                        fontWeight: FontWeight.w700,
+                        color: lightenColor(appColorNotifier.value, 0.45),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               // Search bar with mic and scan icons baked in
