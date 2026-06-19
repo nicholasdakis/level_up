@@ -2092,3 +2092,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Attribution text in food logging is now readable on light themes
 - Made the "view analytics" button stand out more on dark themes
 - Updated the log food button UI
+- Calorie calculator age and height sliders replaced with text inputs; height uses separate feet and inches fields in imperial mode
+- Goal and Activity Level split into separate sections in the calorie calculator, each using the same card toggle style as Basic Info
+- Get Results button now matches the ghost button style used throughout the app
+- About the Developer screen social link cards now have subtle contrast against the background card
+- Rewrote the About the Developer bio
+- Reduced padding between section headers and cards across settings screens to match the home screen
+- Color preview circle in Personal Preferences is now larger and has a visible border
+- Recent Foods Limit subtitle reworded from "Current value" to "Up to X foods"
+- Selected pill state in the calorie calculator is now visually distinct with a tinted border and background

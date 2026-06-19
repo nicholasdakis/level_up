@@ -22,6 +22,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   @override
   void dispose() {
     weightController.dispose();
+    ageController.dispose();
+    heightCmController.dispose();
+    heightFtController.dispose();
+    heightInController.dispose();
     super.dispose();
   }
 
@@ -40,11 +44,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
   double?
   weight; // One value for either Lbs or Kg -> Converted to a double -> Calculated based on units chosen
 
-  final TextEditingController weightController =
-      TextEditingController(); // To allow the user to type in their weight
+  final TextEditingController weightController = TextEditingController();
+  final TextEditingController ageController = TextEditingController();
+  final TextEditingController heightCmController = TextEditingController();
+  final TextEditingController heightFtController = TextEditingController();
+  final TextEditingController heightInController = TextEditingController();
 
-  bool resultsSnackbarActive =
-      false; // flag so only one snackbar shows at a time
+  bool resultsSnackbarActive = false;
 
   // Centralized cache wrapper for SharedPreferences
   final SharedPrefsService _prefs = SharedPrefsService();
@@ -122,16 +128,18 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 12),
-            color: Colors.white54,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 12),
+              color: Colors.white54,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
           ),
-        ),
-        SizedBox(height: Responsive.height(context, 8)),
+          SizedBox(height: Responsive.height(context, 8)),
+        ],
         Row(
           children: options.map((opt) {
             final isSelected = selectedValue == opt.value;
@@ -205,6 +213,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     required String Function(double) valueLabel,
     required void Function(double) onChanged,
     bool isSet = true,
+    bool sliderVisible = true,
+    VoidCallback? onReveal,
   }) {
     void decrement() {
       if (value > min) onChanged((value - 1).clamp(min, max));
@@ -229,62 +239,66 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 letterSpacing: 0.8,
               ),
             ),
-            // Pill showing the current slider value
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 10),
-                vertical: Responsive.height(context, 4),
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(15),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 20),
+            // Pill showing the current slider value, tappable to reveal slider
+            GestureDetector(
+              onTap: sliderVisible ? null : onReveal,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 10),
+                  vertical: Responsive.height(context, 4),
                 ),
-                border: Border.all(
-                  color: Colors.white.withAlpha(40),
-                  width: Responsive.scale(context, 1),
-                ),
-              ),
-              child: Text(
-                isSet ? valueLabel(value) : "Slide to choose",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, isSet ? 13 : 11),
-                  color: isSet
-                      ? lightenColor(appColorNotifier.value, 0.5)
-                      : Colors.white38,
-                  fontWeight: isSet ? FontWeight.w700 : FontWeight.w400,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            _sliderButton(HugeIcons.strokeRoundedRemove01, decrement),
-            Expanded(
-              child: SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: appColorNotifier.value,
-                  inactiveTrackColor: Colors.white.withAlpha(30),
-                  thumbColor: appColorNotifier.value,
-                  overlayColor: Colors.transparent,
-                  trackHeight: Responsive.scale(context, 3),
-                  thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: Responsive.scale(context, 7),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(15),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(40),
+                    width: Responsive.scale(context, 1),
                   ),
                 ),
-                child: Slider(
-                  value: value,
-                  min: min,
-                  max: max,
-                  divisions: null,
-                  onChanged: onChanged,
+                child: Text(
+                  isSet ? valueLabel(value) : "Tap to choose",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, isSet ? 13 : 11),
+                    color: isSet
+                        ? lightenColor(appColorNotifier.value, 0.5)
+                        : Colors.white38,
+                    fontWeight: isSet ? FontWeight.w700 : FontWeight.w400,
+                  ),
                 ),
               ),
             ),
-            _sliderButton(HugeIcons.strokeRoundedAdd01, increment),
           ],
         ),
+        if (sliderVisible)
+          Row(
+            children: [
+              _sliderButton(HugeIcons.strokeRoundedRemove01, decrement),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: appColorNotifier.value,
+                    inactiveTrackColor: Colors.white.withAlpha(30),
+                    thumbColor: appColorNotifier.value,
+                    overlayColor: Colors.transparent,
+                    trackHeight: Responsive.scale(context, 3),
+                    thumbShape: RoundSliderThumbShape(
+                      enabledThumbRadius: Responsive.scale(context, 7),
+                    ),
+                  ),
+                  child: Slider(
+                    value: value,
+                    min: min,
+                    max: max,
+                    divisions: null,
+                    onChanged: onChanged,
+                  ),
+                ),
+              ),
+              _sliderButton(HugeIcons.strokeRoundedAdd01, increment),
+            ],
+          ),
       ],
     );
   }
@@ -320,16 +334,18 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 12),
-            color: Colors.white54,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 12),
+              color: Colors.white54,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
           ),
-        ),
-        SizedBox(height: Responsive.height(context, 8)),
+          SizedBox(height: Responsive.height(context, 8)),
+        ],
         Wrap(
           spacing: Responsive.width(context, 8),
           runSpacing: Responsive.height(context, 8),
@@ -345,16 +361,19 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? appColorNotifier.value.withAlpha(200)
-                      : Colors.white.withAlpha(18),
+                      ? lightenColor(appColorNotifier.value, 0.3).withAlpha(80)
+                      : Colors.white.withAlpha(12),
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 30),
                   ),
                   border: Border.all(
                     color: isSelected
-                        ? appColorNotifier.value
-                        : Colors.white.withAlpha(30),
-                    width: 1,
+                        ? lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180)
+                        : Colors.white.withAlpha(25),
+                    width: 1.5,
                   ),
                 ),
                 child: Text(
@@ -362,7 +381,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.white54,
+                    color: isSelected
+                        ? lightenColor(appColorNotifier.value, 0.45)
+                        : Colors.white54,
                   ),
                 ),
               ),
@@ -387,16 +408,82 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
     });
   }
 
+  Widget _calcField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required String suffix,
+    required int maxLength,
+    required void Function(String) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 12),
+              color: Colors.white54,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+        ],
+        Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            textSelectionTheme: const TextSelectionThemeData(
+              cursorColor: Colors.white,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(maxLength),
+            ],
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(context, 16),
+            ),
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.manrope(
+                color: Colors.white38,
+                fontSize: Responsive.font(context, 16),
+              ),
+              suffix: Text(
+                suffix,
+                style: GoogleFonts.manrope(
+                  color: Colors.white54,
+                  fontSize: Responsive.font(context, 14),
+                ),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white54),
+              ),
+              contentPadding: EdgeInsets.only(
+                bottom: Responsive.height(context, 4),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Determine whether in metric or imperial mode. MetricDefault counts as metric
     final bool isMetric = units == "Metric" || units == "MetricDefault";
-
-    // Safe fallbacks so sliders always have a valid position before the user picks a value
-    final double ageSliderValue = (age ?? 25).toDouble().clamp(13, 120);
-    final double heightSliderValue = isMetric
-        ? (heightCm ?? 170).toDouble().clamp(100, 275)
-        : (heightInches ?? 68).toDouble().clamp(36, 107);
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -499,6 +586,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                   275,
                                 );
                                 heightInches = null;
+                                heightCmController.text = heightCm.toString();
+                                heightFtController.clear();
+                                heightInController.clear();
                               } else if (heightCm != null &&
                                   value == "Imperial") {
                                 int converted = (heightCm! / 2.54).round();
@@ -508,6 +598,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                   107,
                                 );
                                 heightCm = null;
+                                heightCmController.clear();
+                                heightFtController.text = (heightInches! ~/ 12)
+                                    .toString();
+                                heightInController.text = (heightInches! % 12)
+                                    .toString();
                               }
 
                               // WEIGHT CONVERSION
@@ -585,49 +680,82 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // CHOOSE YOUR AGE SLIDER
-                        buildSliderField(
+                        // AGE INPUT
+                        _calcField(
                           label: "AGE",
-                          value: ageSliderValue,
-                          min: 13,
-                          max: 120,
-                          divisions: 107,
-                          valueLabel: (v) => "${v.round()} yrs",
-                          onChanged: (value) =>
-                              setState(() => age = value.round()),
-                          isSet: age != null,
+                          controller: ageController,
+                          hint: "Enter your age",
+                          suffix: "yrs",
+                          maxLength: 3,
+                          onChanged: (v) =>
+                              setState(() => age = int.tryParse(v)),
                         ),
 
+                        SizedBox(height: Responsive.height(context, 16)),
+
+                        // HEIGHT INPUT
+                        Text(
+                          "HEIGHT",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: Colors.white54,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
                         SizedBox(height: Responsive.height(context, 8)),
-
-                        // CHOOSE YOUR HEIGHT SLIDER, range and display format adjusts based on units
-                        buildSliderField(
-                          label: "HEIGHT",
-                          value: heightSliderValue,
-                          min: isMetric ? 100 : 36,
-                          max: isMetric ? 275 : 107,
-                          divisions: isMetric ? 175 : 71,
-                          valueLabel: (v) {
-                            if (isMetric) return "${v.round()} cm";
-                            // Convert total inches to feet and inches for display
-                            final totalInches = v.round();
-                            final feet = totalInches ~/ 12;
-                            final inches = totalInches % 12;
-                            return "$feet'$inches\"";
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              if (isMetric) {
-                                heightCm = value.round();
-                              } else {
-                                heightInches = value.round();
-                              }
-                            });
-                          },
-                          isSet: isMetric
-                              ? heightCm != null
-                              : heightInches != null,
-                        ),
+                        if (isMetric)
+                          _calcField(
+                            label: "",
+                            controller: heightCmController,
+                            hint: "Enter your height",
+                            suffix: "cm",
+                            maxLength: 3,
+                            onChanged: (v) =>
+                                setState(() => heightCm = int.tryParse(v)),
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _calcField(
+                                  label: "",
+                                  controller: heightFtController,
+                                  hint: "Feet",
+                                  suffix: "ft",
+                                  maxLength: 1,
+                                  onChanged: (v) {
+                                    final ft = int.tryParse(v) ?? 0;
+                                    final inVal =
+                                        int.tryParse(heightInController.text) ??
+                                        0;
+                                    setState(
+                                      () => heightInches = ft * 12 + inVal,
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: Responsive.width(context, 12)),
+                              Expanded(
+                                child: _calcField(
+                                  label: "",
+                                  controller: heightInController,
+                                  hint: "Inches",
+                                  suffix: "in",
+                                  maxLength: 2,
+                                  onChanged: (v) {
+                                    final ft =
+                                        int.tryParse(heightFtController.text) ??
+                                        0;
+                                    final inVal = int.tryParse(v) ?? 0;
+                                    setState(
+                                      () => heightInches = ft * 12 + inVal,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
 
                         SizedBox(height: Responsive.height(context, 16)),
 
@@ -729,46 +857,54 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
 
                   SizedBox(height: Responsive.height(context, 24)),
 
-                  // SECTION: GOAL AND ACTIVITY
-                  sectionHeader("GOAL & ACTIVITY", context),
+                  // SECTION: GOAL
+                  sectionHeader("GOAL", context),
                   frostedGlassCard(
                     context,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // CHOOSE YOUR CALORIE GOAL
-                        buildPillSelector<String>(
-                          label: "CALORIE GOAL",
-                          selectedValue: goal,
-                          options: [
-                            (value: 'Lose Weight', label: 'Lose Weight'),
-                            (
-                              value: 'Maintain Weight',
-                              label: 'Maintain Weight',
-                            ),
-                            (value: 'Gain Weight', label: 'Gain Weight'),
-                          ],
-                          onChanged: (value) => setState(() => goal = value),
+                    child: buildSegmentedToggle<String>(
+                      label: "",
+                      selectedValue: goal,
+                      options: [
+                        (
+                          value: 'Lose Weight',
+                          label: 'Lose Weight',
+                          icon: null,
                         ),
-
-                        SizedBox(height: Responsive.height(context, 22)),
-
-                        // CHOOSE YOUR ACTIVITY LEVEL
-                        buildPillSelector<String>(
-                          label: "ACTIVITY LEVEL",
-                          selectedValue: activityLevel,
-                          options: [
-                            (value: 'Sedentary', label: 'Sedentary'),
-                            (value: 'Light', label: 'Light'),
-                            (value: 'Moderate', label: 'Moderate'),
-                            (value: 'Active', label: 'Active'),
-                            (value: 'Very Active', label: 'Very Active'),
-                          ],
-                          onChanged: (value) =>
-                              setState(() => activityLevel = value),
+                        (
+                          value: 'Maintain Weight',
+                          label: 'Maintain',
+                          icon: null,
+                        ),
+                        (
+                          value: 'Gain Weight',
+                          label: 'Gain Weight',
+                          icon: null,
                         ),
                       ],
+                      onChanged: (value) => setState(() => goal = value),
+                    ),
+                  ),
+
+                  SizedBox(height: Responsive.height(context, 24)),
+
+                  // SECTION: ACTIVITY LEVEL
+                  sectionHeader("ACTIVITY LEVEL", context),
+                  frostedGlassCard(
+                    context,
+                    padding: EdgeInsets.all(Responsive.scale(context, 20)),
+                    child: buildPillSelector<String>(
+                      label: "",
+                      selectedValue: activityLevel,
+                      options: [
+                        (value: 'Sedentary', label: 'Sedentary'),
+                        (value: 'Light', label: 'Light'),
+                        (value: 'Moderate', label: 'Moderate'),
+                        (value: 'Active', label: 'Active'),
+                        (value: 'Very Active', label: 'Very Active'),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => activityLevel = value),
                     ),
                   ),
 
@@ -815,10 +951,8 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 28)),
 
                   // RESULTS BUTTON
-                  frostedButton(
-                    "Get Results",
-                    context,
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       // Validity checks: all fields must be filled
                       if (units == null ||
                           equation == null ||
@@ -880,6 +1014,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         },
                       );
                     },
+                    child: frostedButton(
+                      "Get Results",
+                      context,
+                      onPressed: () {},
+                    ),
                   ),
 
                   SizedBox(height: Responsive.height(context, 40)),
@@ -917,7 +1056,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: "$level — ",
+                    text: "$level: ",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       color: Colors.white60,
