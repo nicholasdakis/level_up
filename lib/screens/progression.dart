@@ -269,7 +269,6 @@ class _ProgressionState extends State<Progression> {
                         Responsive.height(context, 24),
                   ),
                   sectionHeader("BADGES", context),
-                  SizedBox(height: Responsive.height(context, 12)),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedCrown,
                     title: "Badges",
@@ -278,7 +277,6 @@ class _ProgressionState extends State<Progression> {
                   ),
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("LEADERBOARD", context),
-                  SizedBox(height: Responsive.height(context, 12)),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedMedal01,
                     title: "Leaderboard",
