@@ -136,6 +136,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             if (mounted) setState(() {}); // refresh home card total
           }
 
+          final c = cardColors(appColorNotifier.value);
+          final onCard = c.onCard;
+          final onCardDim = c.onCard.withAlpha(140);
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -148,20 +151,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: cardColors(appColorNotifier.value).gradient,
-                    ),
+                    color: darkenColor(
+                      appColorNotifier.value,
+                      0.1,
+                    ).withAlpha(210),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
-                    border: Border(
-                      top: BorderSide(
-                        color: cardColors(appColorNotifier.value).border,
-                        width: 2,
-                      ),
-                    ),
+                    border: Border(top: BorderSide(color: c.border, width: 1)),
                   ),
                   padding: EdgeInsets.fromLTRB(
                     Responsive.width(ctx, 24),
@@ -179,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             "LOG WATER",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(ctx, 11),
-                              color: Colors.white38,
+                              color: onCardDim,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.1,
                             ),
@@ -209,12 +206,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           vertical: Responsive.height(ctx, 12),
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withAlpha(15),
+                                          color: onCard.withAlpha(15),
                                           borderRadius: BorderRadius.circular(
                                             Responsive.scale(ctx, 12),
                                           ),
                                           border: Border.all(
-                                            color: Colors.white.withAlpha(30),
+                                            color: onCard.withAlpha(40),
                                           ),
                                         ),
                                         child: Text(
@@ -223,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               : "+${amount}ml",
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.manrope(
-                                            color: Colors.white,
+                                            color: onCard,
                                             fontSize: Responsive.font(ctx, 14),
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -241,25 +238,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 child: TextField(
                                   controller: customController,
                                   keyboardType: TextInputType.number,
-                                  style: GoogleFonts.manrope(
-                                    color: Colors.white,
-                                  ),
+                                  style: GoogleFonts.manrope(color: onCard),
                                   decoration: InputDecoration(
                                     hintText: isImperial
                                         ? "Custom amount (oz)"
                                         : "Custom amount (ml)",
                                     hintStyle: GoogleFonts.manrope(
-                                      color: Colors.white38,
+                                      color: onCardDim,
                                     ),
-                                    enabledBorder: const UnderlineInputBorder(
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Colors.white24,
+                                        color: onCard.withAlpha(60),
                                       ),
                                     ),
-                                    focusedBorder: const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.white,
-                                      ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: onCard),
                                     ),
                                   ),
                                 ),
@@ -287,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 },
                                 child: Text(
                                   "Add",
-                                  style: TextStyle(color: Colors.white),
+                                  style: TextStyle(color: onCard),
                                 ),
                               ),
                             ],
@@ -301,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   "TODAY",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(ctx, 11),
-                                    color: Colors.white38,
+                                    color: onCardDim,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.1,
                                   ),
@@ -312,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       : "${entries.fold(0, (s, e) => s + e)} ml total",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(ctx, 12),
-                                    color: Colors.white,
+                                    color: onCard,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -335,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ) ...[
                                       if (i > 0)
                                         Divider(
-                                          color: Colors.white.withAlpha(12),
+                                          color: onCard.withAlpha(20),
                                           height: 1,
                                         ),
                                       Padding(
@@ -347,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                             HugeIcon(
                                               icon: HugeIcons
                                                   .strokeRoundedDroplet,
-                                              color: Colors.white54,
+                                              color: onCardDim,
                                               size: Responsive.scale(ctx, 15),
                                             ),
                                             SizedBox(
@@ -359,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     ? "${(entries[i] / 29.5735).toStringAsFixed(1)} oz"
                                                     : "${entries[i]} ml",
                                                 style: GoogleFonts.manrope(
-                                                  color: Colors.white,
+                                                  color: onCard,
                                                   fontSize: Responsive.font(
                                                     ctx,
                                                     14,
@@ -427,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               child: HugeIcon(
                                                 icon: HugeIcons
                                                     .strokeRoundedDelete02,
-                                                color: Colors.white24,
+                                                color: onCardDim,
                                                 size: Responsive.scale(ctx, 18),
                                               ),
                                             ),
@@ -466,12 +459,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 decoration: BoxDecoration(
                                   color: feedback == 'error'
                                       ? Colors.red.withAlpha(180)
-                                      : Colors.white.withAlpha(40),
+                                      : onCard.withAlpha(40),
                                   borderRadius: BorderRadius.circular(
                                     Responsive.scale(ctx, 20),
                                   ),
                                   border: Border.all(
-                                    color: Colors.white.withAlpha(40),
+                                    color: onCard.withAlpha(60),
                                   ),
                                 ),
                                 child: Row(
@@ -481,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       feedback == 'error'
                                           ? Icons.wifi_off
                                           : Icons.check,
-                                      color: Colors.white,
+                                      color: onCard,
                                       size: Responsive.scale(ctx, 13),
                                     ),
                                     SizedBox(width: Responsive.width(ctx, 5)),
@@ -492,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ? "Removed"
                                           : "Logged!",
                                       style: GoogleFonts.manrope(
-                                        color: Colors.white,
+                                        color: onCard,
                                         fontSize: Responsive.font(ctx, 12),
                                         fontWeight: FontWeight.w600,
                                       ),

@@ -1669,17 +1669,18 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                               decoration: BoxDecoration(
                                                 color: darkenColor(
                                                   appColor,
-                                                  0.025,
-                                                ).withAlpha(200),
+                                                  0.1,
+                                                ).withAlpha(210),
                                                 borderRadius:
                                                     const BorderRadius.vertical(
                                                       top: Radius.circular(24),
                                                     ),
                                                 border: Border(
                                                   top: BorderSide(
-                                                    color: Colors.white
-                                                        .withAlpha(25),
-                                                    width: 3,
+                                                    color: cardColors(
+                                                      appColor,
+                                                    ).border,
+                                                    width: 1,
                                                   ),
                                                 ),
                                               ),
