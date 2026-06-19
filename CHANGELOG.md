@@ -2090,3 +2090,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Food names in search results, recent foods, and database results now truncate with ellipsis
 - Food name in manual entry capped at 50 characters
 - Attribution text in food logging is now readable on light themes
+- Made the "view analytics" button stand out more on dark themes
+- Updated the log food button UI

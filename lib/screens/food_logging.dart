@@ -542,13 +542,17 @@ class _FoodLoggingState extends State<FoodLogging> {
                 ),
               ),
               style: TextButton.styleFrom(
-                backgroundColor: barColor.withAlpha(25),
+                backgroundColor: barColor.withAlpha(
+                  appColor.computeLuminance() < 0.2 ? 60 : 30,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
                   side: BorderSide(
-                    color: barColor.withAlpha(60),
+                    color: barColor.withAlpha(
+                      appColor.computeLuminance() < 0.2 ? 140 : 80,
+                    ),
                     width: Responsive.scale(context, 1),
                   ),
                 ),
@@ -926,8 +930,8 @@ class _FoodLoggingState extends State<FoodLogging> {
           padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
           child: SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
+            child: GestureDetector(
+              onTap: () {
                 if (isGuest) {
                   Guest.block(context);
                   return;
@@ -943,28 +947,38 @@ class _FoodLoggingState extends State<FoodLogging> {
                   },
                 );
               },
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                color: accentColor,
-                size: Responsive.font(context, 17),
-              ),
-              label: Text(
-                "Log Food",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 16),
-                  color: accentColor,
-                  fontWeight: FontWeight.w600,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 12),
                 ),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: accentColor.withAlpha(80), width: 1),
-                shape: RoundedRectangleBorder(
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 14),
                   ),
+                  border: Border.all(
+                    color: accentColor.withAlpha(80),
+                    width: 1,
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      color: accentColor,
+                      size: Responsive.font(context, 17),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Text(
+                      "Log Food",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 16),
+                        color: accentColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

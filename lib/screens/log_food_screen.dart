@@ -738,10 +738,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                           final custom = _customUnitController
                                               .text
                                               .trim();
-                                          if (custom.isNotEmpty)
+                                          if (custom.isNotEmpty) {
                                             setDialogState(
                                               () => manualSelectedUnit = custom,
                                             );
+                                          }
                                           Navigator.of(
                                             context,
                                             rootNavigator: true,
