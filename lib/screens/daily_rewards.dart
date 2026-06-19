@@ -73,6 +73,7 @@ class DailyRewardDialog {
     // Show claim Dialog after the backend XP is fetched
     await showFrostedAlertDialog(
       context: context,
+      dismissible: false,
       title: "Daily Reward!",
       content: Column(
         mainAxisSize: MainAxisSize.min,

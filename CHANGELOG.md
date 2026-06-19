@@ -2082,3 +2082,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-19
 - Removed appbars from every screen with one to remove redundancy
 - Added the weight logging date picker code into the water logging one
+- Made the daily reward dialog only appear when the skeletonizer finishes
+- Made the daily reward dialog not dismissable by accident. It can now only be dismissed by pressing the dialog's button

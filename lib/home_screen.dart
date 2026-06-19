@@ -1550,14 +1550,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
 
-    if (canClaimDailyReward() && mounted && !isNewUser && !isGuest) {
-      await buildDailyRewardDialog();
-    }
-
-    if (!isGuest && !isNewUser && mounted) {
-      await checkPendingReferralReward(context, setState);
-    }
-
     if (mounted) {
       final pfp = currentUserData?.pfpBase64;
       final bytes = pfp != null
@@ -1589,6 +1581,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           setState(() => _tourStep = 0);
           _startTapHintTimer();
         });
+      }
+
+      if (canClaimDailyReward() && !isNewUser && !isGuest) {
+        await buildDailyRewardDialog();
+      }
+
+      if (!isGuest && !isNewUser && mounted) {
+        await checkPendingReferralReward(context, setState);
       }
     }
   }
