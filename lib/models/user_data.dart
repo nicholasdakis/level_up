@@ -30,6 +30,8 @@ class UserData {
   int referralCount = 0;
   bool referralUsed = false;
   String units;
+  Map<String, List<int>> waterEntriesByDate;
+  Map<String, double> weightByDate;
 
   // constructor
   UserData({
@@ -59,7 +61,11 @@ class UserData {
     this.referralCount = 0,
     this.referralUsed = false,
     this.units = 'metric',
+    Map<String, List<int>>? waterEntriesByDate,
+    Map<String, double>? weightByDate,
   }) : foodDataByDate = foodDataByDate ?? {},
+       waterEntriesByDate = waterEntriesByDate ?? {},
+       weightByDate = weightByDate ?? {},
        reminders = reminders ?? [],
        fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID

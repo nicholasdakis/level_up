@@ -1,4 +1,5 @@
 ﻿// home_screen.dart
+import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -88,6 +89,430 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (mounted) _onAppReady();
       });
     }
+  }
+
+  String _todayDateKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _showWaterLogSheet() async {
+    final isImperial = currentUserData?.units == 'imperial';
+    final dateKey = _todayDateKey();
+    final entries = List<int>.from(
+      currentUserData?.waterEntriesByDate[dateKey] ?? [],
+    );
+    final customController = TextEditingController();
+
+    String? feedback;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          Future<void> save({bool isDelete = false}) async {
+            final ok = await userManager.updateWaterLog(dateKey, entries);
+            bool sheetMounted = true;
+            try {
+              // setSheet throws if the sheet was dismissed while the backend call was in flight
+              setSheet(
+                () => feedback = ok ? (isDelete ? 'deleted' : 'ok') : 'error',
+              );
+            } catch (_) {
+              sheetMounted = false;
+            }
+            if (!sheetMounted) {
+              // Sheet already closed, just update the home card
+              if (mounted) setState(() {});
+              return;
+            }
+            await Future.delayed(const Duration(milliseconds: 1600));
+            try {
+              setSheet(() => feedback = null); // hide the pill
+            } catch (_) {}
+            if (mounted) setState(() {}); // refresh home card total
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: cardColors(appColorNotifier.value).gradient,
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    border: Border(
+                      top: BorderSide(
+                        color: cardColors(appColorNotifier.value).border,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  padding: EdgeInsets.fromLTRB(
+                    Responsive.width(ctx, 24),
+                    Responsive.height(ctx, 20),
+                    Responsive.width(ctx, 24),
+                    Responsive.height(ctx, 32),
+                  ),
+                  child: Stack(
+                    children: [
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "LOG WATER",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(ctx, 11),
+                              color: Colors.white38,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(ctx, 16)),
+                          Row(
+                            children: [
+                              for (final amount
+                                  in isImperial ? [8, 12, 16] : [250, 500, 750])
+                                Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: amount != (isImperial ? 16 : 750)
+                                          ? Responsive.width(ctx, 8)
+                                          : 0,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final ml = isImperial
+                                            ? (amount * 29.5735).round()
+                                            : amount;
+                                        setSheet(() => entries.add(ml));
+                                        await save();
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: Responsive.height(ctx, 12),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withAlpha(15),
+                                          borderRadius: BorderRadius.circular(
+                                            Responsive.scale(ctx, 12),
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withAlpha(30),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          isImperial
+                                              ? "+${amount}oz"
+                                              : "+${amount}ml",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.manrope(
+                                            color: Colors.white,
+                                            fontSize: Responsive.font(ctx, 14),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: Responsive.height(ctx, 16)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: customController,
+                                  keyboardType: TextInputType.number,
+                                  style: GoogleFonts.manrope(
+                                    color: Colors.white,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: isImperial
+                                        ? "Custom amount (oz)"
+                                        : "Custom amount (ml)",
+                                    hintStyle: GoogleFonts.manrope(
+                                      color: Colors.white38,
+                                    ),
+                                    enabledBorder: const UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.white24,
+                                      ),
+                                    ),
+                                    focusedBorder: const UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: Responsive.width(ctx, 12)),
+                              TextButton(
+                                onPressed: () async {
+                                  final val = isImperial
+                                      ? ((double.tryParse(
+                                                      customController.text
+                                                          .trim(),
+                                                    ) ??
+                                                    0) *
+                                                29.5735)
+                                            .round()
+                                      : int.tryParse(
+                                              customController.text.trim(),
+                                            ) ??
+                                            0;
+                                  if (val > 0) {
+                                    setSheet(() => entries.add(val));
+                                    await save();
+                                    customController.clear();
+                                  }
+                                },
+                                child: Text(
+                                  "Add",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (entries.isNotEmpty) ...[
+                            SizedBox(height: Responsive.height(ctx, 20)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "TODAY",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(ctx, 11),
+                                    color: Colors.white38,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.1,
+                                  ),
+                                ),
+                                Text(
+                                  isImperial
+                                      ? "${(entries.fold(0, (s, e) => s + e) / 29.5735).toStringAsFixed(1)} oz total"
+                                      : "${entries.fold(0, (s, e) => s + e)} ml total",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(ctx, 12),
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: Responsive.height(ctx, 8)),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(ctx).size.height * 0.28,
+                              ),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    // Reversed so newest entry appears at top
+                                    for (
+                                      int i = entries.length - 1;
+                                      i >= 0;
+                                      i--
+                                    ) ...[
+                                      if (i > 0)
+                                        Divider(
+                                          color: Colors.white.withAlpha(12),
+                                          height: 1,
+                                        ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: Responsive.height(ctx, 10),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedDroplet,
+                                              color: Colors.white54,
+                                              size: Responsive.scale(ctx, 15),
+                                            ),
+                                            SizedBox(
+                                              width: Responsive.width(ctx, 10),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                isImperial
+                                                    ? "${(entries[i] / 29.5735).toStringAsFixed(1)} oz"
+                                                    : "${entries[i]} ml",
+                                                style: GoogleFonts.manrope(
+                                                  color: Colors.white,
+                                                  fontSize: Responsive.font(
+                                                    ctx,
+                                                    14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                final confirmed =
+                                                    await showFrostedAlertDialog<
+                                                      bool
+                                                    >(
+                                                      context: ctx,
+                                                      title: "Remove Entry",
+                                                      content: Text(
+                                                        isImperial
+                                                            ? "Remove ${(entries[i] / 29.5735).toStringAsFixed(1)} oz from today's log?"
+                                                            : "Remove ${entries[i]} ml from today's log?",
+                                                        style:
+                                                            GoogleFonts.manrope(
+                                                              color: Colors
+                                                                  .white54,
+                                                              fontSize: 13,
+                                                            ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                ctx,
+                                                                rootNavigator:
+                                                                    true,
+                                                              ).pop(false),
+                                                          child: const Text(
+                                                            "Cancel",
+                                                            style: TextStyle(
+                                                              color: Colors
+                                                                  .white54,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                ctx,
+                                                                rootNavigator:
+                                                                    true,
+                                                              ).pop(true),
+                                                          child: const Text(
+                                                            "Remove",
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                if (confirmed == true) {
+                                                  setSheet(
+                                                    () => entries.removeAt(i),
+                                                  );
+                                                  await save(isDelete: true);
+                                                }
+                                              },
+                                              child: HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedDelete02,
+                                                color: Colors.white24,
+                                                size: Responsive.scale(ctx, 18),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      // Pill anchored top-right, always in the tree so AnimatedOpacity/AnimatedSlide
+                      // can transition smoothly. Visibility driven by opacity, not conditional render
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IgnorePointer(
+                          child: AnimatedOpacity(
+                            opacity: feedback != null ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: AnimatedSlide(
+                              offset: feedback != null
+                                  ? Offset.zero
+                                  : const Offset(0, -0.5),
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOutCubic,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(ctx, 10),
+                                  vertical: Responsive.height(ctx, 5),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: feedback == 'error'
+                                      ? Colors.red.withAlpha(180)
+                                      : Colors.white.withAlpha(40),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(ctx, 20),
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withAlpha(40),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      feedback == 'error'
+                                          ? Icons.wifi_off
+                                          : Icons.check,
+                                      color: Colors.white,
+                                      size: Responsive.scale(ctx, 13),
+                                    ),
+                                    SizedBox(width: Responsive.width(ctx, 5)),
+                                    Text(
+                                      feedback == 'error'
+                                          ? "No connection"
+                                          : feedback == 'deleted'
+                                          ? "Removed"
+                                          : "Logged!",
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white,
+                                        fontSize: Responsive.font(ctx, 12),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   String _formatNumber(int n) {
@@ -1026,10 +1451,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     required String label,
     required String value,
     required String subtext,
-    bool showPencil = false,
+    bool showButtons = false,
+    VoidCallback? onAdd,
+    VoidCallback? onChart,
     Widget? progressBar,
   }) {
     final accentColor = lightenColor(appColorNotifier.value, 0.45);
+
+    Widget actionButton(IconData btnIcon, VoidCallback? onTap) =>
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: Responsive.scale(context, 34),
+            height: Responsive.scale(context, 34),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withAlpha(18),
+              border: Border.all(color: Colors.white.withAlpha(40), width: 1),
+            ),
+            child: Icon(
+              btnIcon,
+              color: accentColor,
+              size: Responsive.scale(context, 16),
+            ),
+          ),
+        );
+
     return frostedGlassCard(
       context,
       padding: EdgeInsets.symmetric(
@@ -1083,32 +1530,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ],
             ),
           ),
-          if (showPencil) ...[
+          if (showButtons) ...[
             SizedBox(width: Responsive.width(context, 8)),
-            GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Coming soon"),
-                  duration: snackBarDuration,
-                ),
-              ),
-              child: Container(
-                width: Responsive.scale(context, 46),
-                height: Responsive.scale(context, 46),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(18),
-                  border: Border.all(
-                    color: Colors.white.withAlpha(40),
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.edit_outlined,
-                  color: accentColor,
-                  size: Responsive.scale(context, 22),
-                ),
-              ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                actionButton(Icons.add, onAdd),
+                SizedBox(height: Responsive.height(context, 6)),
+                actionButton(HugeIcons.strokeRoundedAnalyticsUp, onChart),
+              ],
             ),
           ],
         ],
@@ -1182,9 +1612,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: _buildLoggingCard(
                     icon: HugeIcons.strokeRoundedDroplet,
                     label: "Water",
-                    value: isGuest ? "--" : "0",
+                    value: isGuest
+                        ? "--"
+                        : () {
+                            final total =
+                                (currentUserData
+                                            ?.waterEntriesByDate[_todayDateKey()] ??
+                                        [])
+                                    .fold(0, (s, e) => s + e);
+                            return isImperial
+                                ? (total / 29.5735).toStringAsFixed(1)
+                                : "$total";
+                          }(),
                     subtext: isImperial ? "oz today" : "ml today",
-                    showPencil: !isGuest,
+                    showButtons: !isGuest,
+                    onAdd: _showWaterLogSheet,
+                    onChart: () => ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Coming soon"),
+                        duration: snackBarDuration,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -1209,7 +1657,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     label: "Weight",
                     value: "--",
                     subtext: isImperial ? "lbs" : "kg",
-                    showPencil: !isGuest,
+                    showButtons: !isGuest,
                   ),
                 ),
               ],

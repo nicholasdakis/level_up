@@ -248,6 +248,32 @@ class UserDataManager {
       currentUserData?.referralUsed = data['referral_used'] ?? false;
       currentUserData?.units = data['units'] ?? 'metric';
 
+      if (data['water_logs'] != null) {
+        final Map<String, List<int>> waterData = {};
+        for (final row in (data['water_logs'] as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          final dateKey = map['date'] as String;
+          final entries = (map['entries_ml'] as List<dynamic>?) ?? [];
+          waterData[dateKey] = entries
+              .map(
+                (e) => (e as Map<String, dynamic>)['amount_ml'] as int,
+              ) // unwrap {amount_ml: x} to just x
+              .toList();
+        }
+        currentUserData?.waterEntriesByDate = waterData;
+      }
+
+      if (data['weight_logs'] != null) {
+        final Map<String, double> weightData = {};
+        for (final row in (data['weight_logs'] as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          final dateKey = map['date'] as String;
+          weightData[dateKey] = (map['weight_kg'] as num)
+              .toDouble(); // always kg, converted to lbs at display time
+        }
+        currentUserData?.weightByDate = weightData;
+      }
+
       // keep the notifier in sync so XP bar rebuilds immediately
       expNotifier.value = currentUserData!.expPoints;
 
@@ -689,6 +715,43 @@ class UserDataManager {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), duration: snackBarDuration),
       );
+    }
+  }
+
+  Future<bool> updateWaterLog(String dateKey, List<int> entriesMl) async {
+    final previous = List<int>.from(
+      currentUserData?.waterEntriesByDate[dateKey] ?? [],
+    );
+    currentUserData?.waterEntriesByDate[dateKey] = entriesMl;
+    userDataNotifier.notifyListeners();
+    try {
+      await authenticatedPost(
+        'upsert_water_log',
+        body: {
+          'date': dateKey,
+          'entries_ml': entriesMl.map((ml) => {'amount_ml': ml}).toList(),
+        },
+      );
+      return true;
+    } catch (e) {
+      // Roll back on failure so the UI reflects the actual saved state
+      currentUserData?.waterEntriesByDate[dateKey] = previous;
+      userDataNotifier.notifyListeners();
+      debugPrint('[water] Failed to upsert water log: $e');
+      return false;
+    }
+  }
+
+  Future<void> updateWeightLog(String dateKey, double weightKg) async {
+    currentUserData?.weightByDate[dateKey] = weightKg;
+    userDataNotifier.notifyListeners();
+    try {
+      await authenticatedPost(
+        'upsert_weight_log',
+        body: {'date': dateKey, 'weight_kg': weightKg},
+      );
+    } catch (e) {
+      debugPrint('[weight] Failed to upsert weight log: $e');
     }
   }
 

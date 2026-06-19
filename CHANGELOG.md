@@ -2050,9 +2050,20 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a units column to the users table that defaults to metric
 - Altered the /user_data GET and its schema to retrieve the units column
 - Altered UserData to store the units column
-- Added a /update_units endpoint with a schema
-- Added an option for selecting units in the Personal Preferences tab
-- Made calorie calculator units fallback to the stored units
-- Added a logging section to the home dashboard with a card for Water and a card for Weight
-- Moved calories today and logs today to the logging section
-- Added a listener to update the units in the logging cards when the user changes units
+- Added a /update_units endpoint with accompanying schema, service, and repository methods
+- Added updateUnits() in user_data_manager.dart which calls /update_units and shows a success snackbar
+- Added a UNITS section to Personal Preferences with a segmented picker (Metric / Imperial) that saves immediately on tap
+- Made calorie calculator units default to the stored units preference on first open when no calculator data is saved
+- Added water_logs and weight_logs tables to the database
+- Added /upsert_water_log and /upsert_weight_log endpoints with accompanying schemas, service, and repository methods
+- Added waterEntriesByDate and weightByDate fields to UserData, mapped from the /user_data response
+- Added updateWaterLog() and updateWeightLog() methods in user_data_manager.dart with optimistic UI updates and rollback on failure
+- Replaced the STREAKS & STATS section on the home dashboard with a LOGGING section containing a 2x2 grid: Calories Today, Logs Today, Water, and Weight
+- Moved Calories Today and Logs Today into the LOGGING section and moved Streaks below TOOLS
+- Water and Weight cards show + and chart buttons; + opens a logging sheet, chart shows a coming soon snackbar
+- Water logging sheet uses the card gradient style for visual consistency, supports quick-add buttons (+250ml / +500ml / +750ml or oz equivalents), custom amount input, and a scrollable entry list ordered newest-first
+- Each water entry shows the amount and a trash icon that confirms before deleting
+- The sheet shows an inline feedback pill (Logged! / Removed / No connection) that slides in and fades out after each action
+- On network failure, the optimistic UI update is rolled back so the displayed total stays accurate
+- Water card total on the home dashboard converts ml to oz automatically based on the stored units preference
+- Added a ListenableBuilder on userDataNotifier to the logging section so units and water totals update live when changed from preferences
