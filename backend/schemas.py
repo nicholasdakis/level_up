@@ -60,6 +60,9 @@ class UpsertWeightLogRequest(BaseModel):
     date: str = Field(..., min_length=1)
     weight_kg: float
 
+class DeleteWeightLogRequest(BaseModel):
+    date: str = Field(..., min_length=1)
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)

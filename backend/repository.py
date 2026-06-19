@@ -250,6 +250,9 @@ class UserRepository:
             "weight_kg": weight_kg,
         }).execute()
 
+    def delete_weight_log(self, uid: str, date: str):
+        self._supabase.table("weight_logs").delete().eq("uid", uid).eq("date", date).execute()
+
     def update_food_streak(self, uid: str):
         # Calls the update_food_streak RPC to compute and update the food logging streak
         result = self._supabase.rpc("update_food_streak", {

@@ -354,6 +354,9 @@ class ProgressionService: # Service class to handle all progression-related busi
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._repo.upsert_weight_log(uid, date, weight_kg)
 
+    def delete_weight_log(self, uid: str, date: str):
+        self._repo.delete_weight_log(uid, date)
+
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
         # Upserts a food log for a specific date
         self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)

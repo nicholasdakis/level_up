@@ -37,6 +37,7 @@ from backend.schemas import (
     UpsertFoodLogRequest,
     UpsertWaterLogRequest,
     UpsertWeightLogRequest,
+    DeleteWeightLogRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -616,6 +617,14 @@ def upsert_weight_log():
     if err:
         return err
     progression_service.upsert_weight_log(uid, body.date, body.weight_kg)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/delete_weight_log", methods=["POST"])
+def delete_weight_log():
+    uid, body, err = _parse_and_auth(DeleteWeightLogRequest)
+    if err:
+        return err
+    progression_service.delete_weight_log(uid, body.date)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])
