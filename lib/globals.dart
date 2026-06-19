@@ -82,50 +82,64 @@ class NoGlowScrollBehavior extends ScrollBehavior {
 
 // Tappable social link card with a logo and label
 Widget socialLink({
-  required String assetPath,
+  String? assetPath,
+  IconData? icon,
   required String label,
   required String url,
   required BuildContext context,
+  VoidCallback? onTap,
 }) {
   return InkWell(
     splashColor: appColorNotifier.value.withAlpha(60),
     borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
-    onTap: () => url_launcher.launchUrl(
+    onTap: onTap ?? () => url_launcher.launchUrl(
       Uri.parse(url),
       mode: url_launcher.LaunchMode.externalApplication,
     ),
     child: frostedGlassCard(
       context,
       baseRadius: 14,
+      backgroundColor: darkenColor(appColorNotifier.value, 0.06).withAlpha(40),
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 12),
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
-            child: Image.asset(
-              assetPath,
+          if (assetPath != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+              child: Image.asset(
+                assetPath,
+                width: Responsive.width(context, 36),
+                height: Responsive.width(context, 36),
+                filterQuality: FilterQuality.high,
+              ),
+            )
+          else if (icon != null)
+            Container(
               width: Responsive.width(context, 36),
               height: Responsive.width(context, 36),
-              filterQuality: FilterQuality.high,
+              decoration: BoxDecoration(
+                color: cardColors(appColorNotifier.value).iconBox,
+                borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+              ),
+              child: Icon(icon, color: cardColors(appColorNotifier.value).onCard, size: Responsive.scale(context, 20)),
             ),
-          ),
           SizedBox(width: Responsive.width(context, 12)),
           Expanded(
             child: Text(
               label,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 18),
-                color: Colors.white70,
+                color: cardColors(appColorNotifier.value).onCard,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           Icon(
             Icons.chevron_right,
-            color: Colors.white38,
+            color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
             size: Responsive.width(context, 22),
           ),
         ],

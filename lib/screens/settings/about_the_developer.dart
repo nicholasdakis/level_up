@@ -90,7 +90,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Hi, I'm Nicholas Dakis — a Computer Science student at Queens College.",
+                            "I'm Nicholas Dakis, a Computer Science student.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -99,7 +99,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           ),
                           SizedBox(height: Responsive.height(context, 10)),
                           Text(
-                            "I built Level Up! to get experience working on a real project end to end. It taught me a lot: Flutter, Python, backend development, databases, deployment, and all the tools and decisions that come with shipping something real.",
+                            "I built Level Up! as a solo project to put my skills into practice. It covers the full stack: Flutter, Python, Supabase, cloud deployment, and everything in between.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -156,7 +156,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Have a suggestion or found a bug? I read every message.",
+                            "Have a suggestion or found a bug? I read every message",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -164,11 +164,11 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             ),
                           ),
                           SizedBox(height: Responsive.height(context, 14)),
-                          InkWell(
-                            splashColor: appColorNotifier.value.withAlpha(60),
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 12),
-                            ),
+                          socialLink(
+                            icon: Icons.mail_outline_rounded,
+                            label: 'Send feedback',
+                            url: '',
+                            context: context,
                             onTap: () {
                               trackTrivialAchievement("send_feedback");
                               sendEmail(
@@ -177,50 +177,6 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                                 "Feedback for Level Up!",
                               );
                             },
-                            child: frostedGlassCard(
-                              context,
-                              baseRadius: 12,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 14),
-                                vertical: Responsive.height(context, 10),
-                              ),
-                              child: Row(
-                                children: [
-                                  HugeIcon(
-                                    icon: HugeIcons.strokeRoundedMail01,
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
-                                    ),
-                                    size: Responsive.scale(context, 20),
-                                  ),
-                                  SizedBox(
-                                    width: Responsive.width(context, 12),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      "Send feedback",
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 14),
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.45,
-                                        ),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  HugeIcon(
-                                    icon: HugeIcons.strokeRoundedArrowRight01,
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
-                                    ),
-                                    size: Responsive.scale(context, 20),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -238,7 +194,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "If you've been enjoying the app and want to support it, any contribution is appreciated.",
+                            "If you've been enjoying the app and want to support development, any contribution is appreciated",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
                               color: lightenColor(appColorNotifier.value, 0.45),
@@ -260,6 +216,10 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             child: frostedGlassCard(
                               context,
                               baseRadius: 12,
+                              backgroundColor: darkenColor(
+                                appColorNotifier.value,
+                                0.06,
+                              ).withAlpha(40),
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 14),
                                 vertical: Responsive.height(context, 10),
