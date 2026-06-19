@@ -579,243 +579,237 @@ class _ResultsState extends State<Results> {
         decoration: BoxDecoration(gradient: buildThemeGradient()),
         child: Scaffold(
           backgroundColor: Colors.transparent, // Body color
-          // Header box
-          appBar: AppBar(
-            backgroundColor: darkenColor(
-              appColorNotifier.value,
-              0.025,
-            ), // Header color
-            scrolledUnderElevation: 0,
-            centerTitle: true,
-            toolbarHeight: Responsive.appBarHeight(context, 100),
-            leading: GestureDetector(
-              onTap: () => context.pop(),
-              child: Center(
-                child: Container(
-                  padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.1,
-                    ).withAlpha(20),
-                    border: Border.all(
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
-                      width: 1.5,
-                    ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: Responsive.width(context, 16),
+                    top: Responsive.height(context, 8),
+                    bottom: Responsive.height(context, 12),
                   ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new,
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    size: Responsive.font(context, 13),
-                  ),
-                ),
-              ),
-            ),
-            title: createTitle("Calorie Results", context),
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-              child: Container(
-                height: Responsive.height(context, 3),
-                color: Colors.white.withAlpha(25),
-              ),
-            ),
-          ),
-          body: Column(
-            children: [
-              // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 12),
-                  vertical: Responsive.height(context, 8),
-                ),
-                child: TabBar(
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.center,
-                  labelPadding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 16),
-                  ),
-                  dividerColor: Colors.transparent,
-                  indicator: BoxDecoration(
-                    color: Colors.white.withAlpha(
-                      45,
-                    ), // frosted pill for selected tab
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 20),
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withAlpha(60),
-                      width: Responsive.width(context, 1),
-                    ),
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  overlayColor: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.hovered) ||
-                        states.contains(WidgetState.pressed)) {
-                      return Colors.white.withAlpha(15);
-                    }
-                    return Colors.transparent;
-                  }),
-                  splashBorderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 20),
-                  ), // clips ripple to pill shape
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white38,
-                  labelStyle: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 15),
-                    fontWeight: FontWeight.w700,
-                  ),
-                  unselectedLabelStyle: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 15),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  tabs: const [
-                    Tab(text: "Results"),
-                    Tab(text: "Overview"),
-                    Tab(text: "Formulas"),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    // Tab 1: User results
-                    _tab([
-                      _sectionWithIcon(
-                        "YOUR BASAL METABOLIC RATE",
-                        HugeIcons.strokeRoundedHeartCheck,
-                      ),
-                      _statCard(
-                        bmr,
-                        "calories / day at rest",
-                        "${_bmrEquationText()} = $bmr",
-                        note:
-                            "What your body burns just to stay alive. Does not include any physical activity.",
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _sectionWithIcon(
-                        "YOUR TOTAL DAILY ENERGY EXPENDITURE",
-                        HugeIcons.strokeRoundedFire,
-                      ),
-                      _statCard(
-                        tdee.toString(),
-                        "calories / day total",
-                        "$bmr × ${calculateActivityLevel()} = $tdee",
-                        note:
-                            "Your real daily burn based on how active you are. This is the number to use for your goals.",
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _sectionWithIcon(
-                        "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
-                        HugeIcons.strokeRoundedFlag01,
-                      ),
-                      _goalCard(),
-                      SizedBox(height: Responsive.height(context, 40)),
-                    ]),
-
-                    // Tab 2: Educational section
-                    _tab([
-                      _sectionWithIcon(
-                        "WHAT IS BASAL METABOLIC RATE?",
-                        HugeIcons.strokeRoundedInformationCircle,
-                      ),
-                      _infoCard(
-                        widget.equation == "Mifflin-St Jeor"
-                            ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
-                            : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _sectionWithIcon(
-                        "WHAT IS TOTAL DAILY ENERGY EXPENDITURE?",
-                        HugeIcons.strokeRoundedFire,
-                      ),
-                      _infoCard(
-                        "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
-                      ),
-                      SizedBox(height: Responsive.height(context, 40)),
-                    ]),
-
-                    // Tab 3: Full BMR formulas for reference
-                    _tab([
-                      _sectionWithIcon(
-                        "BMR FORMULAS",
-                        HugeIcons.strokeRoundedCalculate,
-                      ),
-                      _formulaCard(
-                        _bmrFormulaText("Male"),
-                        "Male",
-                        lightenColor(appColorNotifier.value, 0.3),
-                        HugeIcons.strokeRoundedMaleSymbol,
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _formulaCard(
-                        _bmrFormulaText("Female"),
-                        "Female",
-                        lightenColor(appColorNotifier.value, 0.3),
-                        HugeIcons.strokeRoundedFemaleSymbol,
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _sectionWithIcon(
-                        "ACTIVITY LEVEL MULTIPLIERS",
-                        HugeIcons.strokeRoundedMultiplicationSign,
-                      ),
-
-                      _infoCard(
-                        "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
-                      ),
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _sectionWithIcon(
-                        "TDEE FORMULA",
-                        HugeIcons.strokeRoundedFire,
-                      ),
-                      frostedGlassCard(
-                        context,
-                        padding: EdgeInsets.all(Responsive.scale(context, 18)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) =>
-                                  subtleTextGradient().createShader(
-                                    Rect.fromLTWH(
-                                      0,
-                                      0,
-                                      bounds.width,
-                                      bounds.height,
-                                    ),
-                                  ),
-                              child: Text(
-                                "TDEE = BMR × Activity Multiplier",
-                                style: GoogleFonts.dangrek(
-                                  fontSize: Responsive.font(context, 28),
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: Responsive.height(context, 8)),
-                            Text(
-                              "Multiply your BMR by your activity level to get the total calories your body burns each day.",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 13),
-                                color: Colors.white54,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.1,
+                          ).withAlpha(20),
+                          border: Border.all(
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          size: Responsive.font(context, 13),
                         ),
                       ),
-                      SizedBox(height: Responsive.height(context, 40)),
-                    ]),
-                  ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 12),
+                    vertical: Responsive.height(context, 8),
+                  ),
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    labelPadding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                    ),
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      color: Colors.white.withAlpha(
+                        45,
+                      ), // frosted pill for selected tab
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 20),
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(60),
+                        width: Responsive.width(context, 1),
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    overlayColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.hovered) ||
+                          states.contains(WidgetState.pressed)) {
+                        return Colors.white.withAlpha(15);
+                      }
+                      return Colors.transparent;
+                    }),
+                    splashBorderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ), // clips ripple to pill shape
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white38,
+                    labelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    tabs: const [
+                      Tab(text: "Results"),
+                      Tab(text: "Overview"),
+                      Tab(text: "Formulas"),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      // Tab 1: User results
+                      _tab([
+                        _sectionWithIcon(
+                          "YOUR BASAL METABOLIC RATE",
+                          HugeIcons.strokeRoundedHeartCheck,
+                        ),
+                        _statCard(
+                          bmr,
+                          "calories / day at rest",
+                          "${_bmrEquationText()} = $bmr",
+                          note:
+                              "What your body burns just to stay alive. Does not include any physical activity.",
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _sectionWithIcon(
+                          "YOUR TOTAL DAILY ENERGY EXPENDITURE",
+                          HugeIcons.strokeRoundedFire,
+                        ),
+                        _statCard(
+                          tdee.toString(),
+                          "calories / day total",
+                          "$bmr × ${calculateActivityLevel()} = $tdee",
+                          note:
+                              "Your real daily burn based on how active you are. This is the number to use for your goals.",
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _sectionWithIcon(
+                          "HOW TO ${widget.goal?.toUpperCase() ?? ''}",
+                          HugeIcons.strokeRoundedFlag01,
+                        ),
+                        _goalCard(),
+                        SizedBox(height: Responsive.height(context, 40)),
+                      ]),
+
+                      // Tab 2: Educational section
+                      _tab([
+                        _sectionWithIcon(
+                          "WHAT IS BASAL METABOLIC RATE?",
+                          HugeIcons.strokeRoundedInformationCircle,
+                        ),
+                        _infoCard(
+                          widget.equation == "Mifflin-St Jeor"
+                              ? "The ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. This formula is a revised version of the Harris-Benedict equation."
+                              : "The revised ${widget.equation} equation calculates your Basal Metabolic Rate (BMR) - the minimum calories your body needs for essential functions like breathing, cell repair, and blood circulation. The original formula was revised in 1984 by Roza and Shizgal for greater accuracy.",
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _sectionWithIcon(
+                          "WHAT IS TOTAL DAILY ENERGY EXPENDITURE?",
+                          HugeIcons.strokeRoundedFire,
+                        ),
+                        _infoCard(
+                          "Your Total Daily Energy Expenditure (TDEE) is the total calories you burn in a day. Consuming this amount maintains your current weight.\n\nTDEE = BMR × Activity Level",
+                        ),
+                        SizedBox(height: Responsive.height(context, 40)),
+                      ]),
+
+                      // Tab 3: Full BMR formulas for reference
+                      _tab([
+                        _sectionWithIcon(
+                          "BMR FORMULAS",
+                          HugeIcons.strokeRoundedCalculate,
+                        ),
+                        _formulaCard(
+                          _bmrFormulaText("Male"),
+                          "Male",
+                          lightenColor(appColorNotifier.value, 0.3),
+                          HugeIcons.strokeRoundedMaleSymbol,
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _formulaCard(
+                          _bmrFormulaText("Female"),
+                          "Female",
+                          lightenColor(appColorNotifier.value, 0.3),
+                          HugeIcons.strokeRoundedFemaleSymbol,
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _sectionWithIcon(
+                          "ACTIVITY LEVEL MULTIPLIERS",
+                          HugeIcons.strokeRoundedMultiplicationSign,
+                        ),
+
+                        _infoCard(
+                          "Sedentary = 1.2\nLight = 1.375\nModerate = 1.55\nActive = 1.725\nVery Active = 1.9",
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+                        _sectionWithIcon(
+                          "TDEE FORMULA",
+                          HugeIcons.strokeRoundedFire,
+                        ),
+                        frostedGlassCard(
+                          context,
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 18),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ShaderMask(
+                                shaderCallback: (bounds) =>
+                                    subtleTextGradient().createShader(
+                                      Rect.fromLTWH(
+                                        0,
+                                        0,
+                                        bounds.width,
+                                        bounds.height,
+                                      ),
+                                    ),
+                                child: Text(
+                                  "TDEE = BMR × Activity Multiplier",
+                                  style: GoogleFonts.dangrek(
+                                    fontSize: Responsive.font(context, 28),
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: Responsive.height(context, 8)),
+                              Text(
+                                "Multiply your BMR by your activity level to get the total calories your body burns each day.",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 13),
+                                  color: Colors.white54,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: Responsive.height(context, 40)),
+                      ]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

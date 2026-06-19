@@ -132,206 +132,209 @@ class _InstallGuideState extends State<InstallGuide> {
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-          centerTitle: true,
-          toolbarHeight: Responsive.appBarHeight(context, 100),
-          leading: GestureDetector(
-            onTap: () => context.pop(),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.1,
-                  ).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.3,
-                  ).withAlpha(180),
-                  size: Responsive.font(context, 13),
-                ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: Responsive.centeredHorizontalPadding(context, 20),
+                right: Responsive.centeredHorizontalPadding(context, 20),
+                bottom: Responsive.height(context, 24),
               ),
-            ),
-          ),
-          title: createTitle("Install App", context),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-            child: Container(
-              height: Responsive.height(context, 3),
-              color: Colors.white.withAlpha(25),
-            ),
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.centeredHorizontalPadding(context, 20),
-              vertical: Responsive.height(context, 24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/app_logo_transparent_bg.png',
-                    height: Responsive.height(context, 80),
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 20)),
-
-                // Chromium section
-                sectionHeader("CHROMIUM-BASED BROWSERS (RECOMMENDED)", context),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "e.g. Chrome, Edge, Brave, Opera - use one of these if possible",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: Colors.white38,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: Responsive.height(context, 8),
+                      bottom: Responsive.height(context, 12),
                     ),
-                    Text(
-                      "Note: These will not work for iPhone users",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: Colors.white38,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: Responsive.height(context, 10)),
-                _buildSection(
-                  context,
-                  icon: Icons.download_rounded,
-                  title: "Easiest Installation",
-                  subtitle: "One-click install supported",
-                  steps: [
-                    _buildStep(
-                      context,
-                      "1",
-                      "Open Level Up! in your Chromium-based browser.",
-                    ),
-                    _buildStep(
-                      context,
-                      "2",
-                      "Either press \"Install as a PWA\" in the Settings drawer, or look for the Install icon in the address bar (top right).",
-                    ),
-                    _buildStep(
-                      context,
-                      "3",
-                      "Confirm the installation prompt.",
-                    ),
-                    _buildStep(
-                      context,
-                      "4",
-                      "Level Up! will appear on your desktop or home screen.",
-                    ),
-                  ],
-                ),
-
-                // iPhone section
-                sectionHeader("IPHONE (SAFARI)", context),
-                Text(
-                  "Must use Safari - other browsers on iOS don't support PWA install. The \"Install as PWA\" button in the Settings drawer does not work on iPhone.",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 12),
-                    color: Colors.white38,
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 10)),
-                _buildSection(
-                  context,
-                  icon: Icons.phone_iphone,
-                  title: "Add to Home Screen",
-                  subtitle: "Safari required on iOS",
-                  steps: [
-                    _buildStep(context, "1", "Open Level Up! in Safari."),
-                    _buildStep(
-                      context,
-                      "2",
-                      "Tap the Share button at the bottom of the screen.",
-                    ),
-                    _buildStep(
-                      context,
-                      "3",
-                      "Scroll down and tap \"Add to Home Screen\".",
-                    ),
-                    _buildStep(
-                      context,
-                      "4",
-                      "Tap \"Add\" to confirm. Level Up! will appear on your home screen.",
-                    ),
-                  ],
-                ),
-
-                // Non-Chromium section
-                sectionHeader("OTHER BROWSERS", context),
-                Text(
-                  "e.g. Firefox, Samsung Internet - PWA install is not natively supported. Consider switching to a Chromium-based browser or installing an extension.",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 12),
-                    color: Colors.white38,
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 10)),
-                _buildSection(
-                  context,
-                  icon: Icons.public,
-                  title: "Install via Browser Menu",
-                  subtitle: "Steps may vary by browser",
-                  steps: [
-                    _buildStep(
-                      context,
-                      "1",
-                      "PWA install is not natively supported on non-Chromium browsers.",
-                    ),
-                    _buildStep(
-                      context,
-                      "2",
-                      "If your browser supports extensions, try installing a PWA extension to add support.",
-                    ),
-                  ],
-                  extras: [
-                    Divider(color: Colors.white.withAlpha(20), height: 1),
-                    SizedBox(height: Responsive.height(context, 12)),
-                    Padding(
-                      padding: EdgeInsets.all(Responsive.padding(context, 8.0)),
-                      child: Text(
-                        "For example, Firefox users may consider:",
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 13),
-                          color: Colors.white38,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.1,
+                            ).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColorNotifier.value,
+                                0.3,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            color: lightenColor(
+                              appColorNotifier.value,
+                              0.3,
+                            ).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
                         ),
                       ),
                     ),
-                    socialLink(
-                      assetPath: 'assets/firefox_transparent_bg.png',
-                      label:
-                          "Progressive Web Apps for Firefox by Filip Štamcar",
-                      url:
-                          "https://addons.mozilla.org/en-US/firefox/addon/pwas-for-firefox/",
-                      context: context,
+                  ),
+                  Center(
+                    child: Image.asset(
+                      'assets/app_logo_transparent_bg.png',
+                      height: Responsive.height(context, 80),
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 20)),
 
-                SizedBox(height: Responsive.height(context, 40)),
-              ],
+                  // Chromium section
+                  sectionHeader(
+                    "CHROMIUM-BASED BROWSERS (RECOMMENDED)",
+                    context,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "e.g. Chrome, Edge, Brave, Opera - use one of these if possible",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 12),
+                          color: Colors.white38,
+                        ),
+                      ),
+                      Text(
+                        "Note: These will not work for iPhone users",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 12),
+                          color: Colors.white38,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  _buildSection(
+                    context,
+                    icon: Icons.download_rounded,
+                    title: "Easiest Installation",
+                    subtitle: "One-click install supported",
+                    steps: [
+                      _buildStep(
+                        context,
+                        "1",
+                        "Open Level Up! in your Chromium-based browser.",
+                      ),
+                      _buildStep(
+                        context,
+                        "2",
+                        "Either press \"Install as a PWA\" in the Settings drawer, or look for the Install icon in the address bar (top right).",
+                      ),
+                      _buildStep(
+                        context,
+                        "3",
+                        "Confirm the installation prompt.",
+                      ),
+                      _buildStep(
+                        context,
+                        "4",
+                        "Level Up! will appear on your desktop or home screen.",
+                      ),
+                    ],
+                  ),
+
+                  // iPhone section
+                  sectionHeader("IPHONE (SAFARI)", context),
+                  Text(
+                    "Must use Safari - other browsers on iOS don't support PWA install. The \"Install as PWA\" button in the Settings drawer does not work on iPhone.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: Colors.white38,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  _buildSection(
+                    context,
+                    icon: Icons.phone_iphone,
+                    title: "Add to Home Screen",
+                    subtitle: "Safari required on iOS",
+                    steps: [
+                      _buildStep(context, "1", "Open Level Up! in Safari."),
+                      _buildStep(
+                        context,
+                        "2",
+                        "Tap the Share button at the bottom of the screen.",
+                      ),
+                      _buildStep(
+                        context,
+                        "3",
+                        "Scroll down and tap \"Add to Home Screen\".",
+                      ),
+                      _buildStep(
+                        context,
+                        "4",
+                        "Tap \"Add\" to confirm. Level Up! will appear on your home screen.",
+                      ),
+                    ],
+                  ),
+
+                  // Non-Chromium section
+                  sectionHeader("OTHER BROWSERS", context),
+                  Text(
+                    "e.g. Firefox, Samsung Internet - PWA install is not natively supported. Consider switching to a Chromium-based browser or installing an extension.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: Colors.white38,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  _buildSection(
+                    context,
+                    icon: Icons.public,
+                    title: "Install via Browser Menu",
+                    subtitle: "Steps may vary by browser",
+                    steps: [
+                      _buildStep(
+                        context,
+                        "1",
+                        "PWA install is not natively supported on non-Chromium browsers.",
+                      ),
+                      _buildStep(
+                        context,
+                        "2",
+                        "If your browser supports extensions, try installing a PWA extension to add support.",
+                      ),
+                    ],
+                    extras: [
+                      Divider(color: Colors.white.withAlpha(20), height: 1),
+                      SizedBox(height: Responsive.height(context, 12)),
+                      Padding(
+                        padding: EdgeInsets.all(
+                          Responsive.padding(context, 8.0),
+                        ),
+                        child: Text(
+                          "For example, Firefox users may consider:",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white38,
+                          ),
+                        ),
+                      ),
+                      socialLink(
+                        assetPath: 'assets/firefox_transparent_bg.png',
+                        label:
+                            "Progressive Web Apps for Firefox by Filip Štamcar",
+                        url:
+                            "https://addons.mozilla.org/en-US/firefox/addon/pwas-for-firefox/",
+                        context: context,
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: Responsive.height(context, 40)),
+                ],
+              ),
             ),
           ),
         ),

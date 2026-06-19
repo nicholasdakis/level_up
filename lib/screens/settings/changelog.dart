@@ -28,111 +28,110 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-          centerTitle: true,
-          toolbarHeight: Responsive.appBarHeight(context, 120),
-          leading: GestureDetector(
-            onTap: () => context.pop(),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.1,
-                  ).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    width: 1.5,
+        body: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.only(
+              left: Responsive.centeredHorizontalPadding(context, 20),
+              right: Responsive.centeredHorizontalPadding(context, 20),
+              bottom: Responsive.height(context, 24),
+            ),
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  top: Responsive.height(context, 8),
+                  bottom: Responsive.height(context, 12),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(20),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        size: Responsive.font(context, 13),
+                      ),
+                    ),
                   ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.3,
-                  ).withAlpha(180),
-                  size: Responsive.font(context, 13),
-                ),
               ),
-            ),
+              _buildChangelogCard(
+                context,
+                date: 'June 16, 2026',
+                version: '1.1.3',
+                changes: [
+                  'The Leaderboard and Badges tabs have been replaced with the new Progress tab, bringing them together in one place with more features planned ahead',
+                  'Updated the app logo with a new blue gradient design',
+                  'Completely redesigned the login screen with a cleaner two-step flow and refreshed branding',
+                  'Added two new Progress cards showing your current rank and the percentage of players you are ahead of',
+                  'All cards across the app now use a consistent style that adapts to your selected theme color',
+                  'Light and vibrant theme colors now look significantly better throughout the app',
+                  'The floating navigation bar now automatically adapts for both dark and light theme colors to improve readability',
+                  'Added a Weekly Workout Goal to Personal Preferences in preparation for the upcoming Workout feature',
+                  'Bug fixes and numerous visual consistency improvements',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                date: 'June 11, 2026',
+                version: '1.1.2',
+                changes: [
+                  'New app icon: a pixelated heart design',
+                  'Added a changelog screen (this one!) to view a history of changes — tap the version number in the settings drawer to open it',
+                  'Badge cards now slide in on first load instead of replaying the animation on every tab switch',
+                  'Login screen updated to match the new brand colors',
+                  'Total lifetime XP is now shown on the home screen next to the progress bar',
+                  'Bug fixes and performance improvements',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                date: 'June 9, 2026',
+                version: '1.1.1',
+                changes: [
+                  'The Badges tab has been redesigned with a new frosted glass look, circular tier chips in a swipeable carousel, and milestone markers on progress bars.',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                date: 'June 8, 2026',
+                version: '1.1.0',
+                changes: [
+                  'Added a referral system to invite friends and earn XP together',
+                  'New social achievements for referrals',
+                  'Earn XP category added (rewarded ads coming soon)',
+                  'Explore tab can now generate nearby locations when real data is unavailable',
+                  'Calorie goals can now be updated directly from the Calorie Results tab',
+                  'UI improvements and consistency fixes across multiple screens',
+                  'Various backend stability improvements and bug fixes',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                date: 'May 31, 2026',
+                version: '1.0.0',
+                changes: ['Initial release'],
+              ),
+            ],
           ),
-          title: createTitle("What's New", context),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Divider(height: 1, color: Colors.white.withAlpha(20)),
-          ),
-        ),
-        body: ListView(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.centeredHorizontalPadding(context, 20),
-            vertical: Responsive.height(context, 24),
-          ),
-          children: [
-            _buildChangelogCard(
-              context,
-              date: 'June 16, 2026',
-              version: '1.1.3',
-              changes: [
-                'The Leaderboard and Badges tabs have been replaced with the new Progress tab, bringing them together in one place with more features planned ahead',
-                'Updated the app logo with a new blue gradient design',
-                'Completely redesigned the login screen with a cleaner two-step flow and refreshed branding',
-                'Added two new Progress cards showing your current rank and the percentage of players you are ahead of',
-                'All cards across the app now use a consistent style that adapts to your selected theme color',
-                'Light and vibrant theme colors now look significantly better throughout the app',
-                'The floating navigation bar now automatically adapts for both dark and light theme colors to improve readability',
-                'Added a Weekly Workout Goal to Personal Preferences in preparation for the upcoming Workout feature',
-                'Bug fixes and numerous visual consistency improvements',
-              ],
-            ),
-            _buildChangelogCard(
-              context,
-              date: 'June 11, 2026',
-              version: '1.1.2',
-              changes: [
-                'New app icon: a pixelated heart design',
-                'Added a changelog screen (this one!) to view a history of changes — tap the version number in the settings drawer to open it',
-                'Badge cards now slide in on first load instead of replaying the animation on every tab switch',
-                'Login screen updated to match the new brand colors',
-                'Total lifetime XP is now shown on the home screen next to the progress bar',
-                'Bug fixes and performance improvements',
-              ],
-            ),
-            _buildChangelogCard(
-              context,
-              date: 'June 9, 2026',
-              version: '1.1.1',
-              changes: [
-                'The Badges tab has been redesigned with a new frosted glass look, circular tier chips in a swipeable carousel, and milestone markers on progress bars.',
-              ],
-            ),
-            _buildChangelogCard(
-              context,
-              date: 'June 8, 2026',
-              version: '1.1.0',
-              changes: [
-                'Added a referral system to invite friends and earn XP together',
-                'New social achievements for referrals',
-                'Earn XP category added (rewarded ads coming soon)',
-                'Explore tab can now generate nearby locations when real data is unavailable',
-                'Calorie goals can now be updated directly from the Calorie Results tab',
-                'UI improvements and consistency fixes across multiple screens',
-                'Various backend stability improvements and bug fixes',
-              ],
-            ),
-            _buildChangelogCard(
-              context,
-              date: 'May 31, 2026',
-              version: '1.0.0',
-              changes: ['Initial release'],
-            ),
-          ],
         ),
       ),
     );

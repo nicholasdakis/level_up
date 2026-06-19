@@ -666,477 +666,485 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-          centerTitle: true,
-          toolbarHeight: Responsive.appBarHeight(context, 100),
-          leading: GestureDetector(
-            onTap: () => context.pop(),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.1,
-                  ).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    width: 1.5,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.centeredHorizontalPadding(
+                      context,
+                      50,
+                    ),
+                    vertical: Responsive.height(context, 24),
                   ),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.3,
-                  ).withAlpha(180),
-                  size: Responsive.font(context, 13),
-                ),
-              ),
-            ),
-          ),
-          title: createTitle("Personal Preferences", context),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-            child: Container(
-              height: Responsive.height(context, 3),
-              color: Colors.white.withAlpha(25),
-            ),
-          ),
-        ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.centeredHorizontalPadding(context, 50),
-                  vertical: Responsive.height(context, 24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Appearance section
-                    sectionHeader(
-                      "APPEARANCE",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
-                      ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedPaintBoard,
-                            label: "App Theme Color",
-                            subtitle: "Customize your app's color scheme",
-                            trailing: colorPreview,
-                            onTap: showColorPickerDialog,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: Responsive.height(context, 28)),
-
-                    // Profile section
-                    sectionHeader(
-                      "PROFILE",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
-                      ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedCamera01,
-                            label: "Profile Picture",
-                            subtitle: "Update your profile picture",
-                            onTap: pickProfileImage,
-                          ),
-                          buildDivider(),
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedUserCircle,
-                            label: "Username",
-                            subtitle:
-                                currentUserData?.username !=
-                                    currentUserData?.uid
-                                ? "Current username: ${currentUserData?.username}"
-                                : "Set a display name",
-                            onTap: () {
-                              if (isGuest) {
-                                Guest.block(context);
-                                return;
-                              }
-                              showUsernameDialogBox(
-                                context,
-                                "Update your username",
-                                usernameController,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: Responsive.height(context, 28)),
-
-                    // Units section
-                    sectionHeader(
-                      "UNITS",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
-                      ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedRuler,
-                            label: "Units",
-                            subtitle: _units == 'metric'
-                                ? "kg, ml, cm"
-                                : "lbs, oz, ft",
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                for (final option in ['metric', 'imperial'])
-                                  GestureDetector(
-                                    onTap: () async {
-                                      if (isGuest) {
-                                        Guest.block(context);
-                                        return;
-                                      }
-                                      if (_units == option) return;
-                                      setState(() => _units = option);
-                                      await userManager.updateUnits(
-                                        option,
-                                        context,
-                                      );
-                                    },
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      margin: EdgeInsets.only(
-                                        left: option == 'imperial'
-                                            ? Responsive.width(context, 6)
-                                            : 0,
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          12,
-                                        ),
-                                        vertical: Responsive.height(context, 6),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _units == option
-                                            ? Colors.white.withAlpha(28)
-                                            : Colors.white.withAlpha(10),
-                                        borderRadius: BorderRadius.circular(
-                                          Responsive.scale(context, 8),
-                                        ),
-                                        border: Border.all(
-                                          color: _units == option
-                                              ? Colors.white.withAlpha(80)
-                                              : Colors.white.withAlpha(25),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        option == 'metric'
-                                            ? "Metric"
-                                            : "Imperial",
-                                        style: GoogleFonts.manrope(
-                                          color: _units == option
-                                              ? Colors.white
-                                              : Colors.white38,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            12,
-                                          ),
-                                          fontWeight: _units == option
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: Responsive.height(context, 8),
+                          bottom: Responsive.height(context, 12),
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 12),
+                              ),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.1,
+                                ).withAlpha(20),
+                                border: Border.all(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.3,
+                                  ).withAlpha(180),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ).withAlpha(180),
+                                size: Responsive.font(context, 13),
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-
-                    SizedBox(height: Responsive.height(context, 28)),
-
-                    // Goals section
-                    sectionHeader(
-                      "GOALS",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
+                      // Appearance section
+                      sectionHeader(
+                        "APPEARANCE",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
                       ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedTarget01,
-                            label: "Nutrition and Weight Goals",
-                            subtitle: "Update your goals",
-                            onTap: showGoalsDialog,
-                          ),
-                        ],
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedPaintBoard,
+                              label: "App Theme Color",
+                              subtitle: "Customize your app's color scheme",
+                              trailing: colorPreview,
+                              onTap: showColorPickerDialog,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    SizedBox(height: Responsive.height(context, 28)),
+                      SizedBox(height: Responsive.height(context, 28)),
 
-                    // Food Logging section
-                    sectionHeader(
-                      "FOOD LOGGING",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
+                      // Profile section
+                      sectionHeader(
+                        "PROFILE",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
                       ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: HugeIcons.strokeRoundedClock01,
-                            label: "Recent Foods Limit",
-                            subtitle:
-                                _recentFoodsMax == RecentFoodsService.unlimited
-                                ? "Current value: Unlimited"
-                                : "Current value: $_recentFoodsMax foods",
-                            onTap: () async {
-                              if (isGuest) {
-                                Guest.block(context);
-                                return;
-                              }
-                              final options = [
-                                10,
-                                20,
-                                30,
-                                50,
-                                100,
-                                RecentFoodsService.unlimited,
-                              ];
-                              final labels = [
-                                "10",
-                                "20",
-                                "30",
-                                "50",
-                                "100",
-                                "Unlimited",
-                              ];
-                              await showFrostedAlertDialog<void>(
-                                context: context,
-                                title: "Recent Foods Limit",
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    for (int i = 0; i < options.length; i++)
-                                      GestureDetector(
-                                        onTap: () async {
-                                          await _recentFoodsService
-                                              .setRecentFoodsMax(options[i]);
-                                          if (mounted) {
-                                            setState(
-                                              () =>
-                                                  _recentFoodsMax = options[i],
-                                            );
-                                          }
-                                          if (context.mounted) {
-                                            Navigator.pop(context);
-                                            final label =
-                                                options[i] ==
-                                                    RecentFoodsService.unlimited
-                                                ? "Unlimited"
-                                                : "${options[i]} foods";
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "Recent foods limit set to $label",
-                                                ),
-                                                duration: snackBarDuration,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: Responsive.height(
-                                              context,
-                                              10,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                labels[i],
-                                                style: GoogleFonts.manrope(
-                                                  fontSize: Responsive.font(
-                                                    context,
-                                                    15,
-                                                  ),
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              if (_recentFoodsMax == options[i])
-                                                Icon(
-                                                  Icons.check,
-                                                  color: Colors.white,
-                                                  size: Responsive.scale(
-                                                    context,
-                                                    18,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                actions: [
-                                  Expanded(
-                                    child: Center(
-                                      child: TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(
-                                          "Cancel",
-                                          style: TextStyle(
-                                            color: Colors.white54,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: Responsive.height(context, 28)),
-
-                    // Notifications section
-                    sectionHeader(
-                      "NOTIFICATIONS",
-                      context,
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
-                        left: Responsive.width(context, 4),
-                      ),
-                    ),
-                    frostedGlassCard(
-                      context,
-                      child: Column(
-                        children: [
-                          buildPreferenceRow(
-                            icon: notificationsEnabled
-                                ? HugeIcons.strokeRoundedNotification01
-                                : HugeIcons.strokeRoundedNotificationOff01,
-                            label: "Push Notifications",
-                            subtitle: notificationsEnabled
-                                ? "Enabled"
-                                : "Disabled",
-                            // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
-                            trailing: Switch.adaptive(
-                              value: notificationsEnabled,
-                              activeThumbColor:
-                                  appColorNotifier.value == defaultAppColor
-                                  ? Colors.white70
-                                  : lightenColor(appColorNotifier.value, 0.2),
-                              activeTrackColor: appColorNotifier.value
-                                  .withAlpha(100),
-                              inactiveThumbColor: Colors.white38,
-                              inactiveTrackColor: Colors.white.withAlpha(20),
-                              onChanged: (value) async {
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedCamera01,
+                              label: "Profile Picture",
+                              subtitle: "Update your profile picture",
+                              onTap: pickProfileImage,
+                            ),
+                            buildDivider(),
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedUserCircle,
+                              label: "Username",
+                              subtitle:
+                                  currentUserData?.username !=
+                                      currentUserData?.uid
+                                  ? "Current username: ${currentUserData?.username}"
+                                  : "Set a display name",
+                              onTap: () {
                                 if (isGuest) {
                                   Guest.block(context);
                                   return;
                                 }
-                                setState(() {
-                                  notificationsEnabled = value;
-                                });
-                                // Save the preference to Firestore and locally
-                                await userManager.updateNotificationsEnabled(
-                                  value,
+                                showUsernameDialogBox(
                                   context,
+                                  "Update your username",
+                                  usernameController,
                                 );
-                                currentUserData!.notificationsEnabled = value;
-
-                                // If enabling on web, also request browser permission and get FCM token
-                                if (value && kIsWeb) {
-                                  final token =
-                                      await requestNotificationAndToken();
-                                  if (token != null) {
-                                    await userManager.addFcmToken(token);
-                                  } else if (mounted) {
-                                    showBrowserBlockedDialog(
-                                      context,
-                                    ); // browser is blocking notifications
-                                  }
-                                }
                               },
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
 
-                    SizedBox(height: Responsive.height(context, 40)),
-                  ],
-                ),
-              ),
-            ),
-            if (_cropLoading)
-              Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: Responsive.height(context, 16)),
-                      Text(
-                        "Preparing image editor...",
-                        style: TextStyle(color: Colors.white),
+                      SizedBox(height: Responsive.height(context, 28)),
+
+                      // Units section
+                      sectionHeader(
+                        "UNITS",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
                       ),
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedRuler,
+                              label: "Units",
+                              subtitle: _units == 'metric'
+                                  ? "kg, ml, cm"
+                                  : "lbs, oz, ft",
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (final option in ['metric', 'imperial'])
+                                    GestureDetector(
+                                      onTap: () async {
+                                        if (isGuest) {
+                                          Guest.block(context);
+                                          return;
+                                        }
+                                        if (_units == option) return;
+                                        setState(() => _units = option);
+                                        await userManager.updateUnits(
+                                          option,
+                                          context,
+                                        );
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        margin: EdgeInsets.only(
+                                          left: option == 'imperial'
+                                              ? Responsive.width(context, 6)
+                                              : 0,
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Responsive.width(
+                                            context,
+                                            12,
+                                          ),
+                                          vertical: Responsive.height(
+                                            context,
+                                            6,
+                                          ),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _units == option
+                                              ? Colors.white.withAlpha(28)
+                                              : Colors.white.withAlpha(10),
+                                          borderRadius: BorderRadius.circular(
+                                            Responsive.scale(context, 8),
+                                          ),
+                                          border: Border.all(
+                                            color: _units == option
+                                                ? Colors.white.withAlpha(80)
+                                                : Colors.white.withAlpha(25),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          option == 'metric'
+                                              ? "Metric"
+                                              : "Imperial",
+                                          style: GoogleFonts.manrope(
+                                            color: _units == option
+                                                ? Colors.white
+                                                : Colors.white38,
+                                            fontSize: Responsive.font(
+                                              context,
+                                              12,
+                                            ),
+                                            fontWeight: _units == option
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 28)),
+
+                      // Goals section
+                      sectionHeader(
+                        "GOALS",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
+                      ),
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedTarget01,
+                              label: "Nutrition and Weight Goals",
+                              subtitle: "Update your goals",
+                              onTap: showGoalsDialog,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 28)),
+
+                      // Food Logging section
+                      sectionHeader(
+                        "FOOD LOGGING",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
+                      ),
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedClock01,
+                              label: "Recent Foods Limit",
+                              subtitle:
+                                  _recentFoodsMax ==
+                                      RecentFoodsService.unlimited
+                                  ? "Current value: Unlimited"
+                                  : "Current value: $_recentFoodsMax foods",
+                              onTap: () async {
+                                if (isGuest) {
+                                  Guest.block(context);
+                                  return;
+                                }
+                                final options = [
+                                  10,
+                                  20,
+                                  30,
+                                  50,
+                                  100,
+                                  RecentFoodsService.unlimited,
+                                ];
+                                final labels = [
+                                  "10",
+                                  "20",
+                                  "30",
+                                  "50",
+                                  "100",
+                                  "Unlimited",
+                                ];
+                                await showFrostedAlertDialog<void>(
+                                  context: context,
+                                  title: "Recent Foods Limit",
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      for (int i = 0; i < options.length; i++)
+                                        GestureDetector(
+                                          onTap: () async {
+                                            await _recentFoodsService
+                                                .setRecentFoodsMax(options[i]);
+                                            if (mounted) {
+                                              setState(
+                                                () => _recentFoodsMax =
+                                                    options[i],
+                                              );
+                                            }
+                                            if (context.mounted) {
+                                              Navigator.pop(context);
+                                              final label =
+                                                  options[i] ==
+                                                      RecentFoodsService
+                                                          .unlimited
+                                                  ? "Unlimited"
+                                                  : "${options[i]} foods";
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Recent foods limit set to $label",
+                                                  ),
+                                                  duration: snackBarDuration,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: Responsive.height(
+                                                context,
+                                                10,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  labels[i],
+                                                  style: GoogleFonts.manrope(
+                                                    fontSize: Responsive.font(
+                                                      context,
+                                                      15,
+                                                    ),
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                if (_recentFoodsMax ==
+                                                    options[i])
+                                                  Icon(
+                                                    Icons.check,
+                                                    color: Colors.white,
+                                                    size: Responsive.scale(
+                                                      context,
+                                                      18,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    Expanded(
+                                      child: Center(
+                                        child: TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: Text(
+                                            "Cancel",
+                                            style: TextStyle(
+                                              color: Colors.white54,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 28)),
+
+                      // Notifications section
+                      sectionHeader(
+                        "NOTIFICATIONS",
+                        context,
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 10),
+                          left: Responsive.width(context, 4),
+                        ),
+                      ),
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: notificationsEnabled
+                                  ? HugeIcons.strokeRoundedNotification01
+                                  : HugeIcons.strokeRoundedNotificationOff01,
+                              label: "Push Notifications",
+                              subtitle: notificationsEnabled
+                                  ? "Enabled"
+                                  : "Disabled",
+                              // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
+                              trailing: Switch.adaptive(
+                                value: notificationsEnabled,
+                                activeThumbColor:
+                                    appColorNotifier.value == defaultAppColor
+                                    ? Colors.white70
+                                    : lightenColor(appColorNotifier.value, 0.2),
+                                activeTrackColor: appColorNotifier.value
+                                    .withAlpha(100),
+                                inactiveThumbColor: Colors.white38,
+                                inactiveTrackColor: Colors.white.withAlpha(20),
+                                onChanged: (value) async {
+                                  if (isGuest) {
+                                    Guest.block(context);
+                                    return;
+                                  }
+                                  setState(() {
+                                    notificationsEnabled = value;
+                                  });
+                                  // Save the preference to Firestore and locally
+                                  await userManager.updateNotificationsEnabled(
+                                    value,
+                                    context,
+                                  );
+                                  currentUserData!.notificationsEnabled = value;
+
+                                  // If enabling on web, also request browser permission and get FCM token
+                                  if (value && kIsWeb) {
+                                    final token =
+                                        await requestNotificationAndToken();
+                                    if (token != null) {
+                                      await userManager.addFcmToken(token);
+                                    } else if (mounted) {
+                                      showBrowserBlockedDialog(
+                                        context,
+                                      ); // browser is blocking notifications
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 40)),
                     ],
                   ),
                 ),
               ),
-          ],
+              if (_cropLoading)
+                Container(
+                  color: Colors.black54,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: Colors.white),
+                        SizedBox(height: Responsive.height(context, 16)),
+                        Text(
+                          "Preparing image editor...",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

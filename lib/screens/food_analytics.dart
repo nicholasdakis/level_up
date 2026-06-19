@@ -485,134 +485,131 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          backgroundColor: darkenColor(appColorNotifier.value, 0.025),
-          centerTitle: true,
-          toolbarHeight: Responsive.appBarHeight(context, 100),
-          leading: GestureDetector(
-            onTap: () => context.pop(),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.1,
-                  ).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.3,
-                    ).withAlpha(180),
-                    width: 1.5,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Back button row sitting directly on the gradient
+              Padding(
+                padding: EdgeInsets.only(
+                  left: Responsive.width(context, 16),
+                  top: Responsive.height(context, 8),
+                  bottom: Responsive.height(context, 12),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(20),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.3,
+                          ).withAlpha(180),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.3,
+                        ).withAlpha(180),
+                        size: Responsive.font(context, 13),
+                      ),
+                    ),
                   ),
                 ),
-                child: Icon(
-                  Icons.arrow_back_ios_new,
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.3,
-                  ).withAlpha(180),
-                  size: Responsive.font(context, 13),
-                ),
               ),
-            ),
-          ),
-          title: createTitle("Food Analytics", context),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(Responsive.height(context, 3)),
-            child: Container(
-              height: Responsive.height(context, 3),
-              color: Colors.white.withAlpha(25),
-            ),
-          ),
-        ),
-        body: Column(
-          children: [
-            // Pill-style tab bar in the body so it sits on the gradient instead of the AppBar background
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 12),
-                vertical: Responsive.height(context, 8),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                isScrollable: Responsive.isDesktop(context),
-                tabAlignment: Responsive.isDesktop(context)
-                    ? TabAlignment.center
-                    : TabAlignment.fill,
-                labelPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 16),
+              // Pill-style tab bar sitting on the gradient
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 12),
+                  vertical: Responsive.height(context, 8),
                 ),
-                dividerColor: Colors.transparent,
-                indicator: BoxDecoration(
-                  color: Colors.white.withAlpha(
-                    45,
-                  ), // frosted pill for selected tab
-                  borderRadius: BorderRadius.circular(
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: Responsive.isDesktop(context),
+                  tabAlignment: Responsive.isDesktop(context)
+                      ? TabAlignment.center
+                      : TabAlignment.fill,
+                  labelPadding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                  ),
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: Colors.white.withAlpha(
+                      45,
+                    ), // frosted pill for selected tab
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(60),
+                      width: Responsive.width(context, 1),
+                    ),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered) ||
+                        states.contains(WidgetState.pressed)) {
+                      return Colors.white.withAlpha(15);
+                    }
+                    return Colors.transparent;
+                  }),
+                  splashBorderRadius: BorderRadius.circular(
                     Responsive.scale(context, 20),
+                  ), // clips ripple to pill shape
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white38,
+                  labelStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w700,
                   ),
-                  border: Border.all(
-                    color: Colors.white.withAlpha(60),
-                    width: Responsive.width(context, 1),
+                  unselectedLabelStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w500,
                   ),
+                  tabs: const [
+                    Tab(text: "Daily"),
+                    Tab(text: "Range"),
+                  ],
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                overlayColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.hovered) ||
-                      states.contains(WidgetState.pressed)) {
-                    return Colors.white.withAlpha(15);
-                  }
-                  return Colors.transparent;
-                }),
-                splashBorderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 20),
-                ), // clips ripple to pill shape
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white38,
-                labelStyle: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 15),
-                  fontWeight: FontWeight.w700,
-                ),
-                unselectedLabelStyle: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 15),
-                  fontWeight: FontWeight.w500,
-                ),
-                tabs: const [
-                  Tab(text: "Daily"),
-                  Tab(text: "Range"),
-                ],
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Daily tab
-                  _DailyTab(
-                    context: context,
-                    totalCal: totalCal,
-                    breakfastCal: breakfastCal,
-                    lunchCal: lunchCal,
-                    dinnerCal: dinnerCal,
-                    snacksCal: snacksCal,
-                    macros: macros,
-                    totalMacroCal: totalMacroCal,
-                    currentDate: currentDate,
-                    onDateChanged: _changeDate,
-                    animationKey: _animationKey,
-                    mealBarChart: _mealBarChart,
-                    macroBarChart: _macroBarChart,
-                    emptyState: _emptyState,
-                  ),
-                  // Range tab
-                  _buildRangeTab(context),
-                ],
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Daily tab
+                    _DailyTab(
+                      context: context,
+                      totalCal: totalCal,
+                      breakfastCal: breakfastCal,
+                      lunchCal: lunchCal,
+                      dinnerCal: dinnerCal,
+                      snacksCal: snacksCal,
+                      macros: macros,
+                      totalMacroCal: totalMacroCal,
+                      currentDate: currentDate,
+                      onDateChanged: _changeDate,
+                      animationKey: _animationKey,
+                      mealBarChart: _mealBarChart,
+                      macroBarChart: _macroBarChart,
+                      emptyState: _emptyState,
+                    ),
+                    // Range tab
+                    _buildRangeTab(context),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

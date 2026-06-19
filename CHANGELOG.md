@@ -2078,3 +2078,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a trash icon on each weight history row that confirms before deleting and shows a feedback pill
 - Water custom amount input now only accepts digits with a 5 character limit
 - Feedback pill in the weight sheet now shows "Updated!" when overwriting an existing entry, "Deleted!" on deletion, and "Logged!" for new entries
+
+## 2026-06-19
+- Removed appbars from every screen with one to remove redundancy
