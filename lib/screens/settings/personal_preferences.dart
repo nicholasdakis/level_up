@@ -653,12 +653,12 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
   Widget build(BuildContext context) {
     // Color swatch preview for the theme color row
     final colorPreview = Container(
-      width: Responsive.scale(context, 24),
-      height: Responsive.scale(context, 24),
+      width: Responsive.scale(context, 32),
+      height: Responsive.scale(context, 32),
       decoration: BoxDecoration(
         color: baseColor,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white38, width: 1.5),
+        border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
       ),
     );
 
@@ -725,7 +725,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "APPEARANCE",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
@@ -751,7 +751,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "PROFILE",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
@@ -797,7 +797,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "UNITS",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
@@ -893,7 +893,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "GOALS",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
@@ -918,7 +918,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "FOOD LOGGING",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
@@ -932,8 +932,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               subtitle:
                                   _recentFoodsMax ==
                                       RecentFoodsService.unlimited
-                                  ? "Current value: Unlimited"
-                                  : "Current value: $_recentFoodsMax foods",
+                                  ? "No limit"
+                                  : "Up to $_recentFoodsMax foods",
                               onTap: () async {
                                 if (isGuest) {
                                   Guest.block(context);
@@ -1060,7 +1060,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         "NOTIFICATIONS",
                         context,
                         padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
                         ),
                       ),
