@@ -2122,3 +2122,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Calories card now has a chevron button that navigates to food logging and an analytics button that opens food analytics
 - Removed the recent section from water logging
 - Added "no entries today" text on days with no water logs
+- Referral card bottom text changed from "X friends referred" to "X referred" with no floating number
+- Guest mode logging section now shows a dimmed preview of all four cards with a lock icon and sign up prompt
+- Tapping Badges or Leaderboard as a guest now shows the sign up dialog instead of opening the screen

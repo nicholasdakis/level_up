@@ -2413,6 +2413,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildGuestLoggingCard() {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    return GestureDetector(
+      onTap: () async => authService.value.signOut(),
+      child: Stack(
+        children: [
+          IgnorePointer(
+            child: Opacity(opacity: 0.35, child: _buildLoggingCards()),
+          ),
+          Positioned.fill(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedLockPassword,
+                    color: accent,
+                    size: Responsive.scale(context, 28),
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    "Sign up to unlock",
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoggingCards() {
     final isImperial = currentUserData?.units == 'imperial';
     final calories = _todayCalories();
@@ -2878,17 +2915,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 
-                          if (!isGuest) ...[
-                            sectionHeader("LOGGING", context),
-                            _maybeAnimate(
-                              ListenableBuilder(
-                                listenable: userDataNotifier,
-                                builder: (context, _) => _buildLoggingCards(),
-                              ),
-                              160.ms,
-                            ),
-                            SizedBox(height: Responsive.height(context, 20)),
-                          ],
+                          sectionHeader("LOGGING", context),
+                          _maybeAnimate(
+                            isGuest
+                                ? _buildGuestLoggingCard()
+                                : ListenableBuilder(
+                                    listenable: userDataNotifier,
+                                    builder: (context, _) =>
+                                        _buildLoggingCards(),
+                                  ),
+                            160.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
 
                           sectionHeader("STREAKS", context),
                           _maybeAnimate(_buildStreakCard(), 180.ms),

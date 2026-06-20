@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
+import '/guest.dart';
 import '/utility/responsive.dart';
 import '/services/user_data_manager.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -273,7 +274,9 @@ class _ProgressionState extends State<Progression> {
                     icon: HugeIcons.strokeRoundedCrown,
                     title: "Badges",
                     subtitle: "Track achievements and claim tier rewards",
-                    onTap: () => context.push('/badges'),
+                    onTap: isGuest
+                        ? () => Guest.block(context)
+                        : () => context.push('/badges'),
                   ),
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("LEADERBOARD", context),
@@ -281,7 +284,9 @@ class _ProgressionState extends State<Progression> {
                     icon: HugeIcons.strokeRoundedMedal01,
                     title: "Leaderboard",
                     subtitle: "See how you rank against other players",
-                    onTap: () => context.push('/leaderboard'),
+                    onTap: isGuest
+                        ? () => Guest.block(context)
+                        : () => context.push('/leaderboard'),
                   ),
                   SizedBox(height: Responsive.height(context, 12)),
                   // Standing stat cards showing rank and total players
