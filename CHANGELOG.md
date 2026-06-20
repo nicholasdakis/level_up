@@ -2115,6 +2115,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Weight goal dialog includes goal type selector and a unit-aware target weight field
 - Water goal dialog stores in ml internally but displays in oz for imperial users
 - Home screen water card now shows a progress bar and goal subtext when a water goal is set
-- Weight card subtext shows how far the logged weight is from the goal
+- Weight card falls back to the most recent logged weight if none is logged today
+- Weight card subtext is goal-type aware: shows how far you are from your goal, "You're at your goal weight!" if reached or passed in the right direction, or "No weight goal set" if no goal exists
+- Fixed calorie calculator Get Results button not firing due to a GestureDetector wrapping a frostedButton with its own onPressed
 - Replaced the Logs Today card with a Macros card showing today's protein, carbs, and fat against goals
 - Calories card now has a chevron button that navigates to food logging and an analytics button that opens food analytics
+- Removed the recent section from water logging
+- Added "no entries today" text on days with no water logs

@@ -139,18 +139,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return '${months[d.month - 1]} ${d.day}';
     }
 
-    // Last 7 days that have water logged, sorted newest first
-    List<MapEntry<String, List<int>>> recentEntries() {
-      final all =
-          currentUserData?.waterEntriesByDate.entries
-              .where((e) => (e.value as List).isNotEmpty)
-              .map((e) => MapEntry(e.key, List<int>.from(e.value as List)))
-              .toList() ??
-          [];
-      all.sort((a, b) => b.key.compareTo(a.key));
-      return all.take(7).toList();
-    }
-
     await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -427,20 +415,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ],
                           ),
-                          if (entries.isNotEmpty) ...[
-                            SizedBox(height: Responsive.height(ctx, 20)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "ENTRIES",
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(ctx, 11),
-                                    color: onCardDim,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.1,
-                                  ),
+                          SizedBox(height: Responsive.height(ctx, 20)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "ENTRIES",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(ctx, 11),
+                                  color: onCardDim,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
                                 ),
+                              ),
+                              if (entries.isNotEmpty)
                                 Text(
                                   isImperial
                                       ? "${(entries.fold(0, (s, e) => s + e) / 29.5735).toStringAsFixed(1)} oz total"
@@ -451,9 +439,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
-                            ),
-                            SizedBox(height: Responsive.height(ctx, 8)),
+                            ],
+                          ),
+                          SizedBox(height: Responsive.height(ctx, 8)),
+                          if (entries.isEmpty)
+                            Text(
+                              "No entries today",
+                              style: GoogleFonts.manrope(
+                                color: onCardDim,
+                                fontSize: Responsive.font(ctx, 13),
+                              ),
+                            )
+                          else
                             ConstrainedBox(
                               constraints: BoxConstraints(
                                 maxHeight:
@@ -569,9 +566,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     sheetMounted = false;
                                                   }
                                                   if (!sheetMounted) {
-                                                    if (mounted) {
+                                                    if (mounted)
                                                       setState(() {});
-                                                    }
                                                     return;
                                                   }
                                                   await Future.delayed(
@@ -602,105 +598,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                               ),
                             ),
-                          ],
-                          if (entries.isEmpty &&
-                              recentEntries().isNotEmpty) ...[
-                            SizedBox(height: Responsive.height(ctx, 20)),
-                            Text(
-                              "RECENT",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(ctx, 11),
-                                color: onCardDim,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                            SizedBox(height: Responsive.height(ctx, 8)),
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(ctx).size.height * 0.25,
-                              ),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    for (
-                                      int i = 0;
-                                      i < recentEntries().length;
-                                      i++
-                                    ) ...[
-                                      if (i > 0)
-                                        Divider(
-                                          color: onCard.withAlpha(20),
-                                          height: 1,
-                                        ),
-                                      GestureDetector(
-                                        onTap: () => setSheet(() {
-                                          selectedDate = DateTime.parse(
-                                            recentEntries()[i].key,
-                                          );
-                                          customController.clear();
-                                        }),
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: Responsive.height(
-                                              ctx,
-                                              10,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              HugeIcon(
-                                                icon: HugeIcons
-                                                    .strokeRoundedDroplet,
-                                                color: onCardDim,
-                                                size: Responsive.scale(ctx, 15),
-                                              ),
-                                              SizedBox(
-                                                width: Responsive.width(
-                                                  ctx,
-                                                  10,
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Text(
-                                                  labelFor(
-                                                    DateTime.parse(
-                                                      recentEntries()[i].key,
-                                                    ),
-                                                  ),
-                                                  style: GoogleFonts.manrope(
-                                                    color: onCardDim,
-                                                    fontSize: Responsive.font(
-                                                      ctx,
-                                                      13,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Text(
-                                                isImperial
-                                                    ? "${(recentEntries()[i].value.fold(0, (s, e) => s + e) / 29.5735).toStringAsFixed(1)} oz"
-                                                    : "${recentEntries()[i].value.fold(0, (s, e) => s + e)} ml",
-                                                style: GoogleFonts.manrope(
-                                                  color: onCard,
-                                                  fontSize: Responsive.font(
-                                                    ctx,
-                                                    14,
-                                                  ),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                       // Pill anchored top-right, always in the tree so AnimatedOpacity/AnimatedSlide
@@ -2649,30 +2546,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     icon: HugeIcons.strokeRoundedWeightScale,
                     label: "Weight",
                     value: () {
-                      final kg = currentUserData?.weightByDate[_todayDateKey()];
+                      // use today's entry, or fall back to the most recent logged weight
+                      final byDate = currentUserData?.weightByDate ?? {};
+                      final kg =
+                          byDate[_todayDateKey()] ??
+                          (byDate.entries.toList()
+                                ..sort((a, b) => b.key.compareTo(a.key)))
+                              .firstOrNull
+                              ?.value;
                       if (kg == null) return "--";
                       return isImperial
                           ? (kg * 2.20462).toStringAsFixed(1)
                           : kg.toStringAsFixed(1);
                     }(),
                     subtext: () {
-                      final type = currentUserData?.weightGoalType;
+                      final byDate = currentUserData?.weightByDate ?? {};
+                      // same fallback logic as the value above
+                      final currentKg =
+                          byDate[_todayDateKey()] ??
+                          (byDate.entries.toList()
+                                ..sort((a, b) => b.key.compareTo(a.key)))
+                              .firstOrNull
+                              ?.value;
                       final goalKg = currentUserData?.weightKgGoal;
-                      if (type == null && goalKg == null) {
-                        return isImperial ? "lbs" : "kg";
+                      final type = currentUserData?.weightGoalType;
+                      // no goal at all
+                      if (goalKg == null && type == null)
+                        return "No weight goal set";
+                      // goal type set but missing either a logged weight or a target weight
+                      if (currentKg == null || goalKg == null) {
+                        final label = isImperial ? "lbs" : "kg";
+                        return type != null
+                            ? "${type[0].toUpperCase()}${type.substring(1)} · $label"
+                            : label;
                       }
-                      final typePart = type != null
-                          ? type[0].toUpperCase() + type.substring(1)
-                          : null;
-                      final goalPart = goalKg != null
-                          ? isImperial
-                                ? "${(goalKg * 2.20462).toStringAsFixed(1)} lbs goal"
-                                : "${goalKg.toStringAsFixed(1)} kg goal"
-                          : null;
-                      return [
-                        typePart,
-                        goalPart,
-                      ].whereType<String>().join(' · ');
+                      // how far the current weight is from the target, always positive
+                      final delta = (currentKg - goalKg).abs();
+                      final deltaDisplay = isImperial
+                          ? "${(delta * 2.20462).toStringAsFixed(1)} lbs"
+                          : "${delta.toStringAsFixed(1)} kg";
+                      // direction-aware check: losing means at/under target, gaining means at/over, maintain is exact
+                      final bool atOrPastGoal = type == 'lose'
+                          ? currentKg <= goalKg
+                          : type == 'gain'
+                          ? currentKg >= goalKg
+                          : currentKg == goalKg;
+                      if (atOrPastGoal) return "You're at your goal weight!";
+                      return "You're $deltaDisplay away from your goal";
                     }(),
                     showButtons: !isGuest,
                     onAdd: _showWeightLogSheet,
