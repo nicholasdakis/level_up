@@ -437,28 +437,14 @@ Widget buildReferralsCard(BuildContext context) {
                     ),
                     // Spacer pushes the count row to the bottom to match the Watch an Ad tile height
                     const Spacer(),
-                    // Referral count sits at the bottom right like the reference
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          "${referralCount == 1 ? '1 friend' : '$referralCount friends'} referred",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: accentDim,
-                          ),
-                        ),
-                        if (referralCount > 0)
-                          Text(
-                            "$referralCount",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 22),
-                              color: accent,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                      ],
+                    Text(
+                      referralCount == 1
+                          ? '1 referred'
+                          : '$referralCount referred',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 11),
+                        color: accentDim,
+                      ),
                     ),
                   ],
                 ),
