@@ -75,6 +75,20 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                date: 'Coming Soon',
+                version: '1.1.4',
+                changes: [
+                  'Metric and Imperial unit preferences',
+                  'Water logging with quick-add buttons, custom amounts, and per-entry deletion',
+                  'Weight logging with date navigation and entry history',
+                  'New goal types: Water intake and target weight',
+                  'Logs Today card replaced with a Macros card',
+                  'Calories card now has shortcuts to logging and analytics screens',
+                  'Numerous UI and usability polishing across all screens',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
                 date: 'June 16, 2026',
                 version: '1.1.3',
                 changes: [
