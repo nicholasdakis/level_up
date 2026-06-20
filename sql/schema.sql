@@ -146,6 +146,8 @@ CREATE TABLE goals (
     fat_goal INTEGER,
     weight_goal_type TEXT CHECK (weight_goal_type IN ('lose', 'gain', 'maintain')),
     weekly_workouts_goal INTEGER,        -- target number of workouts per week, nullable if not set
+    water_ml_goal INTEGER,               -- daily water intake goal in ml, nullable if not set
+    weight_kg_goal NUMERIC(5,2),         -- target body weight in kg, nullable if not set
     last_updated TIMESTAMPTZ NOT NULL
 );
 

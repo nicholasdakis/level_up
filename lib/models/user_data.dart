@@ -26,6 +26,8 @@ class UserData {
   int? fatGoal;
   String? weightGoalType;
   int? weeklyWorkoutsGoal;
+  int? waterMlGoal;
+  double? weightKgGoal;
   String? referralCode;
   int referralCount = 0;
   bool referralUsed = false;
@@ -57,6 +59,8 @@ class UserData {
     this.fatGoal,
     this.weightGoalType,
     this.weeklyWorkoutsGoal,
+    this.waterMlGoal,
+    this.weightKgGoal,
     this.referralCode,
     this.referralCount = 0,
     this.referralUsed = false,

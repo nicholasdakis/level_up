@@ -241,6 +241,11 @@ class UserDataManager {
         currentUserData?.weightGoalType = data['goals']['weight_goal_type'];
         currentUserData?.weeklyWorkoutsGoal =
             data['goals']['weekly_workouts_goal'];
+        currentUserData?.waterMlGoal = data['goals']['water_ml_goal'];
+        final rawWeightKgGoal = data['goals']['weight_kg_goal'];
+        currentUserData?.weightKgGoal = rawWeightKgGoal != null
+            ? (rawWeightKgGoal as num).toDouble()
+            : null;
       }
 
       currentUserData?.referralCode = data['referral_code'];
@@ -1066,6 +1071,196 @@ class UserDataManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error updating goals: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateNutritionGoals({
+    int? caloriesGoal,
+    int? proteinGoal,
+    int? carbsGoal,
+    int? fatGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    try {
+      final response = await authenticatedPost(
+        'update_nutrition_goals',
+        body: {
+          'calories_goal': caloriesGoal,
+          'protein_goal': proteinGoal,
+          'carbs_goal': carbsGoal,
+          'fat_goal': fatGoal,
+        },
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_nutrition_goals failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      if (currentUserData != null) {
+        if (caloriesGoal != null) currentUserData!.caloriesGoal = caloriesGoal;
+        if (proteinGoal != null) currentUserData!.proteinGoal = proteinGoal;
+        if (carbsGoal != null) currentUserData!.carbsGoal = carbsGoal;
+        if (fatGoal != null) currentUserData!.fatGoal = fatGoal;
+        userDataNotifier.notifyListeners();
+      }
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Nutrition goals updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating nutrition goals: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWeightGoal({
+    String? weightGoalType,
+    double? weightKgGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    try {
+      final response = await authenticatedPost(
+        'update_weight_goal',
+        body: {
+          'weight_goal_type': weightGoalType,
+          'weight_kg_goal': weightKgGoal,
+        },
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_weight_goal failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      if (currentUserData != null) {
+        if (weightGoalType != null) {
+          currentUserData!.weightGoalType = weightGoalType;
+        }
+        if (weightKgGoal != null) currentUserData!.weightKgGoal = weightKgGoal;
+        userDataNotifier.notifyListeners();
+      }
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Weight goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating weight goal: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWaterGoal({
+    int? waterMlGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    try {
+      final response = await authenticatedPost(
+        'update_water_goal',
+        body: {'water_ml_goal': waterMlGoal},
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_water_goal failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      if (currentUserData != null && waterMlGoal != null) {
+        currentUserData!.waterMlGoal = waterMlGoal;
+        userDataNotifier.notifyListeners();
+      }
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Water goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating water goal: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWeeklyWorkoutsGoal({
+    int? weeklyWorkoutsGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    try {
+      final response = await authenticatedPost(
+        'update_weekly_workouts_goal',
+        body: {'weekly_workouts_goal': weeklyWorkoutsGoal},
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_weekly_workouts_goal failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      if (currentUserData != null && weeklyWorkoutsGoal != null) {
+        currentUserData!.weeklyWorkoutsGoal = weeklyWorkoutsGoal;
+        userDataNotifier.notifyListeners();
+      }
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Workout goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating workout goal: $e"),
             duration: snackBarDuration,
           ),
         );

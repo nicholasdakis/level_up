@@ -2101,3 +2101,11 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Color preview circle in Personal Preferences is now larger and has a visible border
 - Recent Foods Limit subtitle reworded from "Current value" to "Up to X foods"
 - Selected pill state in the calorie calculator is now visually distinct with a tinted border and background
+
+## 2026-06-20
+- Updated the goals table to store water and weight goals
+- Added endpoints and methods to handle updating water and weight goals
+- Edited user data get to load water and weight goals
+- Wired up water and weight goals to the frontend loading
+- Added buttons for setting water and weight goals
+- Split nutrition and weight goals into separate cards: Nutrition, Weight goals (goal weight and weight goal type), Weekly workout

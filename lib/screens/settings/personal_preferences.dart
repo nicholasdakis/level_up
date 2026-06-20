@@ -347,8 +347,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     );
   }
 
-  // opens a dialog to update the user's nutrition and weight goals
-  Future<void> showGoalsDialog() async {
+  // opens a dialog to update the user's nutrition (calorie + macro) goals
+  Future<void> showNutritionGoalsDialog() async {
     if (isGuest) {
       Guest.block(context);
       return;
@@ -366,153 +366,222 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     final fatCtrl = TextEditingController(
       text: currentUserData?.fatGoal?.toString() ?? '',
     );
-    final workoutGoalCtrl = TextEditingController(
-      text: currentUserData?.weeklyWorkoutsGoal?.toString() ?? '',
-    );
-    String? weightGoal = currentUserData?.weightGoalType;
 
-    await showFrostedDialog(
+    await showFrostedAlertDialog(
       context: context,
-      child: StatefulBuilder(
-        // StatefulBuilder so the segmented button can update without rebuilding the whole screen
+      title: "Nutrition Goals",
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _goalField(calCtrl, "Daily Calories (kcal)", maxLength: 5),
+            _goalField(proCtrl, "Protein (g)"),
+            _goalField(carbCtrl, "Carbs (g)"),
+            _goalField(fatCtrl, "Fat (g)"),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        TextButton(
+          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          onPressed: () async {
+            await userManager.updateNutritionGoals(
+              caloriesGoal: int.tryParse(calCtrl.text.trim()),
+              proteinGoal: int.tryParse(proCtrl.text.trim()),
+              carbsGoal: int.tryParse(carbCtrl.text.trim()),
+              fatGoal: int.tryParse(fatCtrl.text.trim()),
+              context: context,
+            );
+            if (mounted) setState(() {}); // refresh subtitle with new values
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  // opens a dialog to update the user's weight goal type and target weight
+  Future<void> showWeightGoalDialog() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    String? weightGoalType = currentUserData?.weightGoalType;
+    final bool isMetric = (_units == 'metric');
+    final double? currentKg = currentUserData?.weightKgGoal;
+    String initialWeight = '';
+    // convert stored kg to the user's preferred unit for display
+    if (currentKg != null) {
+      initialWeight = isMetric
+          ? currentKg.toStringAsFixed(1)
+          : (currentKg * 2.20462).toStringAsFixed(1);
+    }
+    final weightCtrl = TextEditingController(text: initialWeight);
+
+    await showFrostedAlertDialog(
+      context: context,
+      title: "Weight Goal",
+      content: StatefulBuilder(
+        // StatefulBuilder so the goal type selector can update without rebuilding the whole dialog
         builder: (sbContext, setDialogState) {
           return Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Update Goals",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 20),
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                "Goal type",
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: Responsive.font(context, 13),
                 ),
               ),
-              SizedBox(height: Responsive.height(context, 16)),
-              SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _goalField(calCtrl, "Daily Calories (kcal)"),
-                    _goalField(proCtrl, "Protein (g)"),
-                    _goalField(carbCtrl, "Carbs (g)"),
-                    _goalField(fatCtrl, "Fat (g)"),
-                    _goalField(
-                      workoutGoalCtrl,
-                      "Weekly Workout Amount",
-                      maxLength: 3,
-                    ),
-                    SizedBox(height: Responsive.height(context, 20)),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Weight Goal",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: Responsive.font(context, 13),
+              SizedBox(height: Responsive.height(context, 8)),
+              Row(
+                children: [
+                  for (final option in ['lose', 'maintain', 'gain'])
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: option != 'gain'
+                              ? Responsive.width(context, 8)
+                              : 0,
                         ),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 8)),
-                    Row(
-                      children: [
-                        for (final option in ['lose', 'maintain', 'gain'])
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                right: option != 'gain'
-                                    ? Responsive.width(context, 8)
-                                    : 0,
+                        child: GestureDetector(
+                          onTap: () => setDialogState(
+                            () => weightGoalType = weightGoalType == option
+                                ? null
+                                : option,
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: EdgeInsets.symmetric(
+                              vertical: Responsive.height(context, 10),
+                            ),
+                            decoration: BoxDecoration(
+                              color: weightGoalType == option
+                                  ? Colors.white.withAlpha(28)
+                                  : Colors.white.withAlpha(10),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 10),
                               ),
-                              child: GestureDetector(
-                                onTap: () => setDialogState(
-                                  () => weightGoal = weightGoal == option
-                                      ? null
-                                      : option,
-                                ),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: Responsive.height(context, 10),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: weightGoal == option
-                                        ? Colors.white.withAlpha(28)
-                                        : Colors.white.withAlpha(10),
-                                    borderRadius: BorderRadius.circular(
-                                      Responsive.scale(context, 10),
-                                    ),
-                                    border: Border.all(
-                                      color: weightGoal == option
-                                          ? Colors.white.withAlpha(80)
-                                          : Colors.white.withAlpha(25),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    option[0].toUpperCase() +
-                                        option.substring(1),
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      color: weightGoal == option
-                                          ? Colors.white
-                                          : Colors.white54,
-                                      fontSize: Responsive.font(context, 14),
-                                      fontWeight: weightGoal == option
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
+                              border: Border.all(
+                                color: weightGoalType == option
+                                    ? Colors.white.withAlpha(80)
+                                    : Colors.white.withAlpha(25),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              option[0].toUpperCase() + option.substring(1),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                color: weightGoalType == option
+                                    ? Colors.white
+                                    : Colors.white54,
+                                fontSize: Responsive.font(context, 14),
+                                fontWeight: weightGoalType == option
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 24)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    child: Text(
-                      "CANCEL",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  TextButton(
-                    child: Text("SAVE", style: TextStyle(color: Colors.white)),
-                    onPressed: () async {
-                      await userManager.updateGoals(
-                        caloriesGoal: int.tryParse(calCtrl.text.trim()),
-                        proteinGoal: int.tryParse(proCtrl.text.trim()),
-                        carbsGoal: int.tryParse(carbCtrl.text.trim()),
-                        fatGoal: int.tryParse(fatCtrl.text.trim()),
-                        weightGoalType: weightGoal,
-                        weeklyWorkoutsGoal: int.tryParse(
-                          workoutGoalCtrl.text.trim(),
                         ),
-                        context:
-                            context, // dialogContext so snackbar works after popping
-                      );
-                      if (mounted) {
-                        setState(() {}); // refresh subtitle with new values
-                      }
-                      Navigator.pop(context);
-                    },
-                  ),
+                      ),
+                    ),
                 ],
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              _decimalGoalField(
+                weightCtrl,
+                isMetric ? "Target weight (kg)" : "Target weight (lbs)",
               ),
             ],
           );
         },
       ),
+      actions: [
+        TextButton(
+          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        TextButton(
+          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          onPressed: () async {
+            double? weightKg;
+            final parsed = double.tryParse(weightCtrl.text.trim());
+            // always store in kg regardless of user's unit preference
+            if (parsed != null) {
+              weightKg = isMetric ? parsed : parsed / 2.20462;
+            }
+            await userManager.updateWeightGoal(
+              weightGoalType: weightGoalType,
+              weightKgGoal: weightKg,
+              context: context,
+            );
+            if (mounted) setState(() {}); // refresh subtitle with new values
+            Navigator.pop(context);
+          },
+        ),
+      ],
     );
   }
 
-  // single text field used inside the goals dialog
+  // opens a dialog to update the user's daily water intake goal
+  Future<void> showWaterGoalDialog() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    final bool isMetric = (_units == 'metric');
+    final int? currentMl = currentUserData?.waterMlGoal;
+    String initialWater = '';
+    // convert stored ml to oz for imperial users
+    if (currentMl != null) {
+      initialWater = isMetric
+          ? currentMl.toString()
+          : (currentMl / 29.5735).toStringAsFixed(0);
+    }
+    final waterCtrl = TextEditingController(text: initialWater);
+
+    await showFrostedAlertDialog(
+      context: context,
+      title: "Water Goal",
+      content: _goalField(
+        waterCtrl,
+        isMetric ? "Daily water goal (ml)" : "Daily water goal (oz)",
+        maxLength: 5,
+      ),
+      actions: [
+        TextButton(
+          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        TextButton(
+          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          onPressed: () async {
+            int? waterMl;
+            final parsed = int.tryParse(waterCtrl.text.trim());
+            // always store in ml regardless of user's unit preference
+            if (parsed != null) {
+              waterMl = isMetric ? parsed : (parsed * 29.5735).round();
+            }
+            await userManager.updateWaterGoal(
+              waterMlGoal: waterMl,
+              context: context,
+            );
+            if (mounted) setState(() {}); // refresh subtitle with new values
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  // integer-only goal field
   Widget _goalField(
     TextEditingController ctrl,
     String hint, {
@@ -526,6 +595,34 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(maxLength),
+        ],
+        decoration: InputDecoration(
+          labelText: hint,
+          labelStyle: TextStyle(color: Colors.white54),
+          floatingLabelStyle: TextStyle(color: Colors.white70),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
+          ),
+        ),
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  // decimal goal field (for weight target)
+  Widget _decimalGoalField(TextEditingController ctrl, String hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(
+            RegExp(r'^\d{0,4}\.?\d{0,1}'),
+          ), // up to 4 digits, optional decimal, 1 decimal place
         ],
         decoration: InputDecoration(
           labelText: hint,
@@ -902,10 +999,83 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         child: Column(
                           children: [
                             buildPreferenceRow(
-                              icon: HugeIcons.strokeRoundedTarget01,
-                              label: "Nutrition and Weight Goals",
-                              subtitle: "Update your goals",
-                              onTap: showGoalsDialog,
+                              icon: HugeIcons.strokeRoundedAppleStocks,
+                              label: "Nutrition Goals",
+                              subtitle: () {
+                                final cal = currentUserData?.caloriesGoal;
+                                final pro = currentUserData?.proteinGoal;
+                                final carb = currentUserData?.carbsGoal;
+                                final fat = currentUserData?.fatGoal;
+                                if (cal == null &&
+                                    pro == null &&
+                                    carb == null &&
+                                    fat == null)
+                                  return "Current: None";
+                                final parts = [
+                                  if (cal != null) "$cal kcal",
+                                  if (pro != null) "${pro}g protein",
+                                  if (carb != null) "${carb}g carbs",
+                                  if (fat != null) "${fat}g fat",
+                                ];
+                                return "Current: ${parts.join(' · ')}";
+                              }(),
+                              onTap: showNutritionGoalsDialog,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 16)),
+
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedWeightScale,
+                              label: "Weight Goal",
+                              subtitle: () {
+                                final type = currentUserData?.weightGoalType;
+                                final kg = currentUserData?.weightKgGoal;
+                                final typePart = type != null
+                                    ? type[0].toUpperCase() + type.substring(1)
+                                    : null;
+                                final weightPart = kg != null
+                                    ? _units == 'metric'
+                                          ? "${kg.toStringAsFixed(1)} kg"
+                                          : "${(kg * 2.20462).toStringAsFixed(1)} lbs"
+                                    : null;
+                                final detail = [
+                                  typePart,
+                                  weightPart,
+                                ].whereType<String>().join(' · ');
+                                return detail.isEmpty
+                                    ? "Current: None"
+                                    : "Current: $detail";
+                              }(),
+                              onTap: showWeightGoalDialog,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 16)),
+
+                      frostedGlassCard(
+                        context,
+                        child: Column(
+                          children: [
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedDroplet,
+                              label: "Water Goal",
+                              subtitle: () {
+                                final ml = currentUserData?.waterMlGoal;
+                                if (ml == null) return "Current: None";
+                                return _units == 'metric'
+                                    ? "Current: $ml ml"
+                                    : "Current: ${(ml / 29.5735).toStringAsFixed(0)} oz";
+                              }(),
+                              onTap: showWaterGoalDialog,
                             ),
                           ],
                         ),
