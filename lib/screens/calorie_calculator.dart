@@ -951,8 +951,10 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 28)),
 
                   // RESULTS BUTTON
-                  GestureDetector(
-                    onTap: () {
+                  frostedButton(
+                    "Get Results",
+                    context,
+                    onPressed: () {
                       // Validity checks: all fields must be filled
                       if (units == null ||
                           equation == null ||
@@ -1014,11 +1016,6 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         },
                       );
                     },
-                    child: frostedButton(
-                      "Get Results",
-                      context,
-                      onPressed: () {},
-                    ),
                   ),
 
                   SizedBox(height: Responsive.height(context, 40)),

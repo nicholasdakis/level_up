@@ -2616,8 +2616,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ? (totalWaterMl / 29.5735).toStringAsFixed(1)
                         : "$totalWaterMl",
                     subtext: () {
-                      if (waterGoalMl <= 0)
+                      if (waterGoalMl <= 0) {
                         return isImperial ? "oz today" : "ml today";
+                      }
                       final goalDisplay = isImperial
                           ? "${(waterGoalMl / 29.5735).toStringAsFixed(0)} oz"
                           : "$waterGoalMl ml";
@@ -2657,8 +2658,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     subtext: () {
                       final type = currentUserData?.weightGoalType;
                       final goalKg = currentUserData?.weightKgGoal;
-                      if (type == null && goalKg == null)
+                      if (type == null && goalKg == null) {
                         return isImperial ? "lbs" : "kg";
+                      }
                       final typePart = type != null
                           ? type[0].toUpperCase() + type.substring(1)
                           : null;
