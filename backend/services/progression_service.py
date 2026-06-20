@@ -464,6 +464,30 @@ class ProgressionService: # Service class to handle all progression-related busi
             self._achievement_repo.set_achievement_progress(uid, "level", new_level)
         return xp_gained
 
+    def update_nutrition_goals(self, uid: str, calories_goal: int | None, protein_goal: int | None, carbs_goal: int | None, fat_goal: int | None):
+        data = {"calories_goal": calories_goal, "protein_goal": protein_goal, "carbs_goal": carbs_goal, "fat_goal": fat_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
+        data = {k: v for k, v in data.items() if v is not None}
+        self._repo.upsert_goals(uid, data)
+        return {"success": True}
+
+    def update_weight_goal(self, uid: str, weight_goal_type: str | None, weight_kg_goal: float | None):
+        data = {"weight_goal_type": weight_goal_type, "weight_kg_goal": weight_kg_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
+        data = {k: v for k, v in data.items() if v is not None}
+        self._repo.upsert_goals(uid, data)
+        return {"success": True}
+
+    def update_water_goal(self, uid: str, water_ml_goal: int | None):
+        data = {"water_ml_goal": water_ml_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
+        data = {k: v for k, v in data.items() if v is not None}
+        self._repo.upsert_goals(uid, data)
+        return {"success": True}
+
+    def update_weekly_workouts_goal(self, uid: str, weekly_workouts_goal: int | None):
+        data = {"weekly_workouts_goal": weekly_workouts_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
+        data = {k: v for k, v in data.items() if v is not None}
+        self._repo.upsert_goals(uid, data)
+        return {"success": True}
+
     def update_goals(
         self,
         uid: str,

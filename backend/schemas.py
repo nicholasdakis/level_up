@@ -82,17 +82,29 @@ class UpdateUtcOffsetRequest(BaseModel):
     utc_offset: int
 
 class UpdateGoalsRequest(BaseModel):
-
+    # TODO: remove after update goes live
     calories_goal: int | None = None
     protein_goal: int | None = None
     carbs_goal: int | None = None
     fat_goal: int | None = None
     weekly_workouts_goal: int | None = None
+    weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
 
-    weight_goal_type: str | None = Field(
-        default=None,
-        description="lose | gain | maintain"
-    )
+class UpdateNutritionGoalsRequest(BaseModel):
+    calories_goal: int | None = None
+    protein_goal: int | None = None
+    carbs_goal: int | None = None
+    fat_goal: int | None = None
+
+class UpdateWeightGoalRequest(BaseModel):
+    weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
+    weight_kg_goal: float | None = None
+
+class UpdateWaterGoalRequest(BaseModel):
+    water_ml_goal: int | None = None
+
+class UpdateWeeklyWorkoutsGoalRequest(BaseModel):
+    weekly_workouts_goal: int | None = None
 
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
@@ -210,6 +222,8 @@ class GoalsResponse(BaseModel):
     carbs_goal: int | None = None
     fat_goal: int | None = None
     weight_goal_type: str | None = None
+    water_ml_goal: int | None = None
+    weight_kg_goal: float | None = None
 
 class GetUserDataResponse(BaseModel):
     level: int = 1

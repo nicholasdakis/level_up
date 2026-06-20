@@ -52,6 +52,10 @@ from backend.schemas import (
     ClaimTrivialAchievementRequest,
     UpdateUtcOffsetRequest,
     UpdateGoalsRequest,
+    UpdateNutritionGoalsRequest,
+    UpdateWeightGoalRequest,
+    UpdateWaterGoalRequest,
+    UpdateWeeklyWorkoutsGoalRequest,
     GetStreaksResponse,
     StreakEntry,
     AchievementDefItem,
@@ -364,6 +368,54 @@ def update_goals():
         "success": True,
         "goals": result
     }), 200
+
+@app.route("/update_nutrition_goals", methods=["POST"])
+def update_nutrition_goals():
+    uid, body, err = _parse_and_auth(UpdateNutritionGoalsRequest)
+    if err:
+        return err
+    result = progression_service.update_nutrition_goals(
+        uid=uid,
+        calories_goal=body.calories_goal,
+        protein_goal=body.protein_goal,
+        carbs_goal=body.carbs_goal,
+        fat_goal=body.fat_goal,
+    )
+    return jsonify(result), 200
+
+@app.route("/update_weight_goal", methods=["POST"])
+def update_weight_goal():
+    uid, body, err = _parse_and_auth(UpdateWeightGoalRequest)
+    if err:
+        return err
+    result = progression_service.update_weight_goal(
+        uid=uid,
+        weight_goal_type=body.weight_goal_type,
+        weight_kg_goal=body.weight_kg_goal,
+    )
+    return jsonify(result), 200
+
+@app.route("/update_water_goal", methods=["POST"])
+def update_water_goal():
+    uid, body, err = _parse_and_auth(UpdateWaterGoalRequest)
+    if err:
+        return err
+    result = progression_service.update_water_goal(
+        uid=uid,
+        water_ml_goal=body.water_ml_goal,
+    )
+    return jsonify(result), 200
+
+@app.route("/update_weekly_workouts_goal", methods=["POST"])
+def update_weekly_workouts_goal():
+    uid, body, err = _parse_and_auth(UpdateWeeklyWorkoutsGoalRequest)
+    if err:
+        return err
+    result = progression_service.update_weekly_workouts_goal(
+        uid=uid,
+        weekly_workouts_goal=body.weekly_workouts_goal,
+    )
+    return jsonify(result), 200
 
 @app.route("/get_nearby_pois", methods=["POST"])
 def get_nearby_pois():
