@@ -58,20 +58,23 @@ class _ProgressionState extends State<Progression> {
   }
 
   Widget _buildStandingCard(BuildContext context) {
-    if (isGuest) return const SizedBox.shrink();
-
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
 
-    final rankLabel = _standingLoading
+    final rankLabel = isGuest
+        ? "#--"
+        : _standingLoading
         ? "..."
         : _rank == null
         ? "?"
         : "#$_rank";
-    final topPercent = (_rank != null && _total != null && _total! > 0)
+    final topPercent =
+        (!isGuest && _rank != null && _total != null && _total! > 0)
         ? ((_rank! / _total!) * 100).ceil()
         : null;
-    final topLabel = _standingLoading
+    final topLabel = isGuest
+        ? "--%"
+        : _standingLoading
         ? "..."
         : topPercent != null
         ? "$topPercent%"
@@ -124,8 +127,8 @@ class _ProgressionState extends State<Progression> {
       );
     }
 
-    return Skeletonizer(
-      enabled: _standingLoading,
+    final cards = Skeletonizer(
+      enabled: !isGuest && _standingLoading,
       effect: ShimmerEffect(
         baseColor: lightenColor(appColorNotifier.value, 0.3),
         highlightColor: lightenColor(appColorNotifier.value, 0.1),
@@ -138,7 +141,11 @@ class _ProgressionState extends State<Progression> {
             statCard(
               label: "YOUR RANK",
               value: rankLabel,
-              sub: _total != null ? "out of $_total" : "loading",
+              sub: isGuest
+                  ? "out of --"
+                  : _total != null
+                  ? "out of $_total"
+                  : "loading",
             ),
             SizedBox(width: Responsive.width(context, 12)),
             statCard(
@@ -148,6 +155,40 @@ class _ProgressionState extends State<Progression> {
             ),
           ],
         ),
+      ),
+    );
+
+    if (!isGuest) return cards;
+
+    return GestureDetector(
+      onTap: () => Guest.exit(),
+      child: Stack(
+        children: [
+          IgnorePointer(child: Opacity(opacity: 0.35, child: cards)),
+          Positioned.fill(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedLockPassword,
+                    color: accent,
+                    size: Responsive.scale(context, 28),
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    "Sign up to unlock",
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
