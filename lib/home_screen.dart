@@ -2218,13 +2218,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   // Counts total food items logged today across all meals
-  int _todayFoodCount() {
-    final today = DateTime.now();
-    final key =
-        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  // Returns today's total protein/carbs/fat in grams
+  ({int protein, int carbs, int fat}) _todayMacros() {
+    final key = _todayDateKey();
     final meals = currentUserData?.foodDataByDate[key];
-    if (meals == null) return 0;
-    return meals.values.fold(0, (sum, foods) => sum + foods.length);
+    if (meals == null) return (protein: 0, carbs: 0, fat: 0);
+    int protein = 0, carbs = 0, fat = 0;
+    for (final foods in meals.values) {
+      for (final food in foods) {
+        protein += (num.tryParse(food['protein'].toString()) ?? 0).toInt();
+        carbs += (num.tryParse(food['carbs'].toString()) ?? 0).toInt();
+        fat += (num.tryParse(food['fat'].toString()) ?? 0).toInt();
+      }
+    }
+    return (protein: protein, carbs: carbs, fat: fat);
   }
 
   // Earn XP card: square action tile with icon on top and label below
@@ -2329,6 +2336,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     required String subtext,
     bool showButtons = false,
     VoidCallback? onAdd,
+    IconData onAddIcon = Icons.add, // icon for the primary action button
     VoidCallback? onChart,
     Widget? progressBar,
   }) {
@@ -2409,9 +2417,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (showButtons) ...[
             SizedBox(width: Responsive.width(context, 8)),
             Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                actionButton(Icons.add, onAdd),
+                actionButton(onAddIcon, onAdd),
                 SizedBox(height: Responsive.height(context, 6)),
                 actionButton(HugeIcons.strokeRoundedAnalyticsUp, onChart),
               ],
@@ -2422,49 +2431,150 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildMacrosCard() {
+    final accentColor = lightenColor(appColorNotifier.value, 0.45);
+    final dimColor = lightenColor(appColorNotifier.value, 0.35);
+    final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
+
+    Widget macroColumn(String label, int value, int? goal) {
+      return Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "${value}g",
+              style: GoogleFonts.manrope(
+                color: accentColor,
+                fontSize: Responsive.font(context, 18),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (goal != null)
+              Text(
+                "/${goal}g",
+                style: GoogleFonts.manrope(
+                  color: dimColor,
+                  fontSize: Responsive.font(context, 11),
+                ),
+              ),
+            SizedBox(height: Responsive.height(context, 2)),
+            Text(
+              label,
+              style: GoogleFonts.manrope(
+                color: accentColor,
+                fontSize: Responsive.font(context, 11),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 14),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAppleStocks,
+                color: accentColor,
+                size: Responsive.scale(context, 14),
+              ),
+              SizedBox(width: Responsive.width(context, 5)),
+              Text(
+                "Macros today",
+                style: GoogleFonts.manrope(
+                  color: accentColor,
+                  fontSize: Responsive.font(context, 11),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Row(
+            children: [
+              macroColumn(
+                "protein",
+                macros.protein,
+                currentUserData?.proteinGoal,
+              ),
+              macroColumn("carbs", macros.carbs, currentUserData?.carbsGoal),
+              macroColumn("fat", macros.fat, currentUserData?.fatGoal),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoggingCards() {
     final isImperial = currentUserData?.units == 'imperial';
     final calories = _todayCalories();
     final goal = currentUserData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
-    final foodCount = _todayFoodCount();
 
-    final progressBar = goal > 0
-        ? Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 7)),
-              border: Border.all(
-                color: Colors.white.withAlpha(45),
-                width: Responsive.scale(context, 1),
-              ),
+    // water progress
+    final totalWaterMl =
+        (currentUserData?.waterEntriesByDate[_todayDateKey()] ?? []).fold(
+          0,
+          (s, e) => s + e,
+        );
+    final waterGoalMl = currentUserData?.waterMlGoal ?? 0;
+    final waterProgress = waterGoalMl > 0
+        ? (totalWaterMl / waterGoalMl).clamp(0.0, 1.0)
+        : 0.0;
+
+    Widget buildProgressBar(double fraction, {bool overIsRed = true}) =>
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 7)),
+            border: Border.all(
+              color: Colors.white.withAlpha(45),
+              width: Responsive.scale(context, 1),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-              child: Stack(
-                children: [
-                  Container(
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+            child: Stack(
+              children: [
+                Container(
+                  height: Responsive.height(context, 8),
+                  width: double.infinity,
+                  color: Colors.white.withAlpha(18),
+                ),
+                FractionallySizedBox(
+                  widthFactor: fraction,
+                  child: Container(
                     height: Responsive.height(context, 8),
-                    width: double.infinity,
-                    color: Colors.white.withAlpha(18),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(
-                      height: Responsive.height(context, 8),
-                      decoration: BoxDecoration(
-                        color: calories > goal
-                            ? Colors.redAccent
-                            : lightenColor(appColorNotifier.value, 0.3),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 6),
-                        ),
+                    decoration: BoxDecoration(
+                      color: overIsRed && fraction >= 1.0
+                          ? Colors.redAccent
+                          : lightenColor(appColorNotifier.value, 0.3),
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 6),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          )
+          ),
+        );
+
+    final progressBar = goal > 0
+        ? buildProgressBar(progress, overIsRed: true)
+        : null;
+    final waterProgressBar = waterGoalMl > 0
+        ? buildProgressBar(waterProgress, overIsRed: false)
         : null;
 
     return IntrinsicHeight(
@@ -2481,6 +2591,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     value: isGuest ? "--" : "$calories",
                     subtext: goal > 0 ? "/ $goal goal" : "kcal",
                     progressBar: progressBar,
+                    showButtons: !isGuest,
+                    onAdd: () => context.go(
+                      '/food-logging',
+                    ), // go() switches the tab, push() doesn't
+                    onAddIcon: HugeIcons.strokeRoundedArrowRight01,
+                    onChart: () => context.push(
+                      '/food-logging/analytics',
+                      extra: {
+                        'initialDate': DateTime.now(),
+                        'onDateChanged': null,
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: Responsive.height(context, 12)),
@@ -2490,17 +2612,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     label: "Water",
                     value: isGuest
                         ? "--"
-                        : () {
-                            final total =
-                                (currentUserData
-                                            ?.waterEntriesByDate[_todayDateKey()] ??
-                                        [])
-                                    .fold(0, (s, e) => s + e);
-                            return isImperial
-                                ? (total / 29.5735).toStringAsFixed(1)
-                                : "$total";
-                          }(),
-                    subtext: isImperial ? "oz today" : "ml today",
+                        : isImperial
+                        ? (totalWaterMl / 29.5735).toStringAsFixed(1)
+                        : "$totalWaterMl",
+                    subtext: () {
+                      if (waterGoalMl <= 0)
+                        return isImperial ? "oz today" : "ml today";
+                      final goalDisplay = isImperial
+                          ? "${(waterGoalMl / 29.5735).toStringAsFixed(0)} oz"
+                          : "$waterGoalMl ml";
+                      return "/ $goalDisplay goal";
+                    }(),
+                    progressBar: waterProgressBar,
                     showButtons: !isGuest,
                     onAdd: _showWaterLogSheet,
                     onChart: () => ScaffoldMessenger.of(context).showSnackBar(
@@ -2518,14 +2641,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Expanded(
             child: Column(
               children: [
-                Expanded(
-                  child: _buildLoggingCard(
-                    icon: HugeIcons.strokeRoundedNote,
-                    label: "Logs today",
-                    value: isGuest ? "--" : "$foodCount",
-                    subtext: foodCount == 1 ? "item" : "items",
-                  ),
-                ),
+                Expanded(child: _buildMacrosCard()),
                 SizedBox(height: Responsive.height(context, 12)),
                 Expanded(
                   child: _buildLoggingCard(
@@ -2538,7 +2654,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ? (kg * 2.20462).toStringAsFixed(1)
                           : kg.toStringAsFixed(1);
                     }(),
-                    subtext: isImperial ? "lbs" : "kg",
+                    subtext: () {
+                      final type = currentUserData?.weightGoalType;
+                      final goalKg = currentUserData?.weightKgGoal;
+                      if (type == null && goalKg == null)
+                        return isImperial ? "lbs" : "kg";
+                      final typePart = type != null
+                          ? type[0].toUpperCase() + type.substring(1)
+                          : null;
+                      final goalPart = goalKg != null
+                          ? isImperial
+                                ? "${(goalKg * 2.20462).toStringAsFixed(1)} lbs goal"
+                                : "${goalKg.toStringAsFixed(1)} kg goal"
+                          : null;
+                      return [
+                        typePart,
+                        goalPart,
+                      ].whereType<String>().join(' · ');
+                    }(),
                     showButtons: !isGuest,
                     onAdd: _showWeightLogSheet,
                     onChart: () => ScaffoldMessenger.of(context).showSnackBar(

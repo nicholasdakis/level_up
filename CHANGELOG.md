@@ -2109,3 +2109,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wired up water and weight goals to the frontend loading
 - Added buttons for setting water and weight goals
 - Split nutrition and weight goals into separate cards: Nutrition, Weight goals (goal weight and weight goal type), Weekly workout
+- All goal dialogs now use the shared frosted alert dialog for consistent styling
+- Goal cards in settings always show "Current: ..." with a fallback of "Current: None"
+- Nutrition goal card subtitle shows all four macros
+- Weight goal dialog includes goal type selector and a unit-aware target weight field
+- Water goal dialog stores in ml internally but displays in oz for imperial users
+- Home screen water card now shows a progress bar and goal subtext when a water goal is set
+- Weight card subtext shows how far the logged weight is from the goal
+- Replaced the Logs Today card with a Macros card showing today's protein, carbs, and fat against goals
+- Calories card now has a chevron button that navigates to food logging and an analytics button that opens food analytics

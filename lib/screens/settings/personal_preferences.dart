@@ -999,7 +999,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         child: Column(
                           children: [
                             buildPreferenceRow(
-                              icon: HugeIcons.strokeRoundedAppleStocks,
+                              icon: HugeIcons.strokeRoundedApple01,
                               label: "Nutrition Goals",
                               subtitle: () {
                                 final cal = currentUserData?.caloriesGoal;
@@ -1009,8 +1009,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                 if (cal == null &&
                                     pro == null &&
                                     carb == null &&
-                                    fat == null)
+                                    fat == null) {
                                   return "Current: None";
+                                }
                                 final parts = [
                                   if (cal != null) "$cal kcal",
                                   if (pro != null) "${pro}g protein",
