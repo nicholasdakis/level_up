@@ -2126,3 +2126,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Guest mode logging section now shows a dimmed preview of all four cards with a lock icon and sign up prompt
 - Tapping Badges or Leaderboard as a guest now shows the sign up dialog instead of opening the screen
 - Made the leaderboard cards visible to guests
+
+## 2026-06-21
+- Made all modal bottom sheets open at about half the screen width
