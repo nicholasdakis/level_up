@@ -7,6 +7,8 @@ class VoiceSearchService {
   // current state
   bool isListening = false;
   bool isAvailable = false;
+  bool _isStarting =
+      false; // prevents double-start on web where isNotListening is unreliable mid-transition
 
   // initialize speech engine (called once in initState when voice search is needed)
   Future<void> init(VoidCallback onUpdate) async {
@@ -25,8 +27,9 @@ class VoiceSearchService {
     }
 
     void handleError(_) {
-      // resets the state on an error
+      // resets all state on an error so the next tap can start fresh
       isListening = false;
+      _isStarting = false;
       onUpdate();
     }
 
@@ -67,28 +70,27 @@ class VoiceSearchService {
       return;
     }
 
-    // ignore taps while the engine is mid-start
-    if (!_speech.isNotListening) return;
+    // ignore taps while a start is already in flight or the engine isn't ready
+    if (_isStarting || !_speech.isNotListening) return;
+    _isStarting = true;
 
-    // start listening
-    await _speech.listen(
-      onResult: (result) {
-        // remove punctuation from the recognized words
-        final text = result.recognizedWords.replaceAll(
-          RegExp(r'[\s.,!?;:]+$'),
-          '',
-        );
-
-        // ignore empty results
-        if (text.isEmpty) return;
-
-        onText(text);
-      },
-      listenOptions: SpeechListenOptions(partialResults: true),
-      // auto stop after 8s of silence
-      pauseFor: const Duration(seconds: 8),
-      // hard cap on total listen duration
-      listenFor: const Duration(seconds: 15),
-    );
+    try {
+      await _speech.listen(
+        onResult: (result) {
+          final text = result.recognizedWords.replaceAll(
+            RegExp(r'[\s.,!?;:]+$'),
+            '',
+          );
+          if (text.isEmpty) return;
+          onText(text);
+        },
+        listenOptions: SpeechListenOptions(partialResults: true),
+        pauseFor: const Duration(seconds: 8),
+        listenFor: const Duration(seconds: 15),
+      );
+    } finally {
+      // always clear the flag so future taps aren't blocked
+      _isStarting = false;
+    }
   }
 }

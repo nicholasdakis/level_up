@@ -277,7 +277,7 @@ class _LeaderboardState extends State<Leaderboard> {
                   SizedBox(height: MediaQuery.paddingOf(context).top),
                   Padding(
                     padding: EdgeInsets.only(
-                      top: Responsive.height(context, 16),
+                      top: Responsive.height(context, 8),
                       left: Responsive.centeredHorizontalPadding(context, 20),
                     ),
                     child: Align(

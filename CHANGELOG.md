@@ -2130,3 +2130,16 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-21
 - Made all modal bottom sheets open at about half the screen width
 - Fixed macros card not updating by parsing macros from food_description instead of looking for top-level keys that were never stored (which would always return 0)
+- Redesigned log food screen with "ADDING TO / Meal" header showing logged kcal top right
+- Replaced cramped icon row with a 2x2 input method grid (Scan, Voice, Manual)
+- Added skeletonizer shimmer while API search results are loading
+- Replaced debounce-on-type with an explicit search button to prevent accidental API calls
+- Recent foods section now shows food icon, name, serving, kcal, and a + button
+- When a search query matches recent foods, a Recent/Database tab switcher appears
+- Added macro chips (P/C/F) to logged food tiles in the food logging screen
+- Fixed hardcoded Colors.redAccent on over-limit progress bars to use the theme color
+- Fixed mic icon color hardcoded to redAccent when active, now uses theme accent
+- Fixed unit picker InkWell ripple bleeding over the manual entry dialog background
+- Unified food selection into a single serving dialog for both search results and recent foods, replacing the separate inline dashboard for search results
+- Recent/Database tab switcher replaced with a subtle underline indicator
+- Search results and recent match lists separated by divider lines with "End of results" at the bottom

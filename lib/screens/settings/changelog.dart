@@ -84,6 +84,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                   'New goal types: Water intake and target weight',
                   'Logs Today card replaced with a Macros card',
                   'Calories card now has shortcuts to logging and analytics screens',
+                  "The food search screen's UI has been overhauled",
                   'Numerous UI and usability polishing across all screens',
                 ],
               ),

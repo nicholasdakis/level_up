@@ -345,22 +345,56 @@ class _FoodLoggingState extends State<FoodLogging> {
         ? servingAmt.toInt().toString()
         : servingAmt.toString();
     final cal = num.tryParse(food['calories'].toString()) ?? 0;
-    final parts = <String>['$servingStr ${serving['unit']} - $cal kcal'];
-    if ((macros['protein'] ?? 0) > 0) {
-      parts.add('P: ${macros['protein']!.toStringAsFixed(1)}g');
+    final base = appColorNotifier.value;
+    final dim = lightenColor(base, 0.35);
+
+    Widget chip(String label, double value) {
+      if (value <= 0) return const SizedBox.shrink();
+      return Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 7),
+          vertical: Responsive.height(context, 3),
+        ),
+        decoration: BoxDecoration(
+          color: lightenColor(base, 0.3).withAlpha(40),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          border: Border.all(
+            color: lightenColor(base, 0.3).withAlpha(80),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          '$label ${value.toStringAsFixed(1)}g',
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 11),
+            fontWeight: FontWeight.w600,
+            color: lightenColor(base, 0.45),
+          ),
+        ),
+      );
     }
-    if ((macros['carbs'] ?? 0) > 0) {
-      parts.add('C: ${macros['carbs']!.toStringAsFixed(1)}g');
-    }
-    if ((macros['fat'] ?? 0) > 0) {
-      parts.add('F: ${macros['fat']!.toStringAsFixed(1)}g');
-    }
-    return Text(
-      parts.join(' - '),
-      style: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, 12),
-        color: lightenColor(appColorNotifier.value, 0.45),
-      ),
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$servingStr ${serving['unit']} · $cal kcal',
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 12),
+            color: dim,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 5)),
+        Wrap(
+          spacing: Responsive.width(context, 5),
+          runSpacing: Responsive.height(context, 4),
+          children: [
+            chip('P', macros['protein'] ?? 0),
+            chip('C', macros['carbs'] ?? 0),
+            chip('F', macros['fat'] ?? 0),
+          ],
+        ),
+      ],
     );
   }
 
@@ -776,7 +810,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                           ),
                         ),
                         TextSpan(
-                          text: " kcal",
+                          text: " cal",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: lightenColor(appColorNotifier.value, 0.45),
@@ -802,7 +836,6 @@ class _FoodLoggingState extends State<FoodLogging> {
           ),
         ),
 
-        // Only the food tiles collapse, Log Food always stays below
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 220),
           crossFadeState: isCollapsed
@@ -866,7 +899,6 @@ class _FoodLoggingState extends State<FoodLogging> {
                         ),
                         child: Row(
                           children: [
-                            SizedBox(width: Responsive.width(context, 12)),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -875,14 +907,19 @@ class _FoodLoggingState extends State<FoodLogging> {
                                     food['brand_name'] != null
                                         ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
                                         : (food['food_name'] ?? ''),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 14),
-                                      color: Colors.white,
+                                      color: lightenColor(
+                                        appColorNotifier.value,
+                                        0.45,
+                                      ),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   SizedBox(
-                                    height: Responsive.height(context, 4),
+                                    height: Responsive.height(context, 6),
                                   ),
                                   _buildMacroText(food),
                                 ],
@@ -929,62 +966,52 @@ class _FoodLoggingState extends State<FoodLogging> {
           secondChild: const SizedBox.shrink(),
         ),
 
-        // Log Food is outside AnimatedCrossFade so collapsing never hides it
-        Padding(
-          padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
-          child: SizedBox(
-            width: double.infinity,
-            child: GestureDetector(
-              onTap: () {
-                if (isGuest) {
-                  Guest.block(context);
-                  return;
-                } // For guest users
-                context.push(
-                  '/food-logging/log',
-                  extra: {
-                    'meal': mealKey,
-                    'currentDate': currentDate,
-                    'onFoodLogged': () async => await _refreshAndLoadFood(),
-                    // passed to LogFoodScreen so it knows which achievement to update on log
-                    'achievementId': 'food_search',
-                  },
-                );
+        SizedBox(height: Responsive.height(context, 8)),
+        GestureDetector(
+          onTap: () {
+            if (isGuest) {
+              Guest.block(context);
+              return;
+            }
+            context.push(
+              '/food-logging/log',
+              extra: {
+                'meal': mealKey,
+                'currentDate': currentDate,
+                'onFoodLogged': () async => await _refreshAndLoadFood(),
+                'achievementId': 'food_search',
               },
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 12),
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 14),
-                  ),
-                  border: Border.all(
-                    color: accentColor.withAlpha(80),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      color: accentColor,
-                      size: Responsive.font(context, 17),
-                    ),
-                    SizedBox(width: Responsive.width(context, 8)),
-                    Text(
-                      "Log Food",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 16),
-                        color: accentColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 13),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 14),
               ),
+              border: Border.all(color: accentColor.withAlpha(80), width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  color: accentColor,
+                  size: Responsive.font(context, 16),
+                ),
+                SizedBox(width: Responsive.width(context, 8)),
+                Text(
+                  "Log Food",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    color: accentColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

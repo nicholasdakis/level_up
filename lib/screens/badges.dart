@@ -886,7 +886,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
               SizedBox(height: MediaQuery.paddingOf(context).top),
               Padding(
                 padding: EdgeInsets.only(
-                  top: Responsive.height(context, 16),
+                  top: Responsive.height(context, 8),
                   left: Responsive.centeredHorizontalPadding(context, 20),
                 ),
                 child: Align(
@@ -953,7 +953,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                 // Back button + refresh button row
                 Padding(
                   padding: EdgeInsets.only(
-                    top: Responsive.height(context, 16),
+                    top: Responsive.height(context, 8),
                     bottom: Responsive.height(context, 12),
                     left: Responsive.centeredHorizontalPadding(context, 20),
                     right: Responsive.centeredHorizontalPadding(context, 20),
