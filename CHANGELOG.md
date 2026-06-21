@@ -2129,3 +2129,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-21
 - Made all modal bottom sheets open at about half the screen width
+- Fixed macros card not updating by parsing macros from food_description instead of looking for top-level keys that were never stored (which would always return 0)

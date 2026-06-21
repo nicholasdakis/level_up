@@ -22,6 +22,7 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'utility/food_logging_helper.dart' show FoodLoggingHelper;
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -2185,9 +2186,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     int protein = 0, carbs = 0, fat = 0;
     for (final foods in meals.values) {
       for (final food in foods) {
-        protein += (num.tryParse(food['protein'].toString()) ?? 0).toInt();
-        carbs += (num.tryParse(food['carbs'].toString()) ?? 0).toInt();
-        fat += (num.tryParse(food['fat'].toString()) ?? 0).toInt();
+        // macros are never stored as top-level keys, they live inside food_description
+        final parsed = FoodLoggingHelper.extractMacros(
+          food['food_description']?.toString() ?? '',
+        );
+        protein += (parsed['protein'] ?? 0.0).toInt();
+        carbs += (parsed['carbs'] ?? 0.0).toInt();
+        fat += (parsed['fat'] ?? 0.0).toInt();
       }
     }
     return (protein: protein, carbs: carbs, fat: fat);
