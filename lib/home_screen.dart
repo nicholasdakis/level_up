@@ -2558,7 +2558,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     height: Responsive.height(context, 8),
                     decoration: BoxDecoration(
                       color: overIsRed && fraction >= 1.0
-                          ? Colors.redAccent
+                          ? lightenColor(appColorNotifier.value, 0.45)
                           : lightenColor(appColorNotifier.value, 0.3),
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 6),

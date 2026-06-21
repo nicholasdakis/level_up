@@ -456,7 +456,9 @@ class _FoodLoggingState extends State<FoodLogging> {
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       fontWeight: FontWeight.w600,
-                      color: isOver ? Colors.redAccent : barColor,
+                      color: isOver
+                          ? lightenColor(appColorNotifier.value, 0.45)
+                          : barColor,
                     ),
                   ),
                   Text(
@@ -498,7 +500,9 @@ class _FoodLoggingState extends State<FoodLogging> {
                     child: Container(
                       height: Responsive.height(context, 8),
                       decoration: BoxDecoration(
-                        color: isOver ? Colors.redAccent : barColor,
+                        color: isOver
+                            ? lightenColor(appColorNotifier.value, 0.45)
+                            : barColor,
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 6),
                         ),

@@ -1610,7 +1610,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                 ? Icons.mic
                                 : Icons.mic_none,
                             color: _voiceSearch.isListening
-                                ? Colors.redAccent
+                                ? lightenColor(appColorNotifier.value, 0.45)
                                 : Colors.white38,
                             size: Responsive.font(context, 22),
                           ),
