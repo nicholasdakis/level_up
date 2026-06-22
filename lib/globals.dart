@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -249,7 +250,9 @@ class _FrostedDialogShell extends StatefulWidget {
 class _FrostedDialogShellState extends State<_FrostedDialogShell> {
   @override
   Widget build(BuildContext context) {
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    // On web the browser already scrolls the viewport when the keyboard opens,
+    // so viewInsets double-counts on iOS PWA. Skip the inset on web entirely.
+    final keyboardInset = kIsWeb ? 0.0 : MediaQuery.viewInsetsOf(context).bottom;
     final ctx = widget.outerContext;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
