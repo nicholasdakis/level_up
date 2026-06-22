@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
@@ -21,6 +23,7 @@ import 'screens/settings/changelog.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
 import 'screens/log_food_screen.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'utility/web_utils_stub.dart'
     if (dart.library.js_interop) 'utility/web_utils_web.dart'
     as web_fcm;
@@ -356,10 +359,41 @@ class _AppInitScreenState extends State<AppInitScreen> {
     super.dispose();
   }
 
+  // bumped on new versions to show update dialog
+  static const _minRequiredVersion = '1.1.4';
+
+  // returns true if the installed version is below the minimum required
+  Future<bool> _isOutdated() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      // split "1.2.3" into [1, 2, 3] for numeric part-by-part comparison
+      List<int> parts(String v) => v.split('.').map(int.parse).toList();
+      final cur = parts(info.version);
+      final req = parts(_minRequiredVersion);
+      // compare major, minor, patch in order
+      for (int i = 0; i < req.length; i++) {
+        final c = i < cur.length ? cur[i] : 0;
+        if (c < req[i]) return true; // outdated
+        if (c > req[i]) return false; // newer, fine
+      }
+      return false; // equal
+    } catch (_) {
+      return false; // if the version cant be read, let the user through
+    }
+  }
+
   Future<void> _initApp() async {
     // Navigate immediately so the skeletonizer shows instead of a blank loading screen
     appInitialized = true;
     Future.microtask(appRouter.refresh);
+
+    if (await _isOutdated()) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (mounted) {
+        await _showForceUpdateDialog();
+        return;
+      }
+    }
 
     await userManager.loadUserData();
 
@@ -391,6 +425,38 @@ class _AppInitScreenState extends State<AppInitScreen> {
     if (mounted && !isGuest) FcmService.initialize(context);
 
     appReadyNotifier.value = true;
+  }
+
+  Future<void> _showForceUpdateDialog() async {
+    await showFrostedAlertDialog(
+      context: context,
+      dismissible: false,
+      title: "Update Required",
+      content: Text(
+        "A new version of Level Up! is available. Update now to keep everything working. Older versions may experience issues or missing features.",
+        textAlign: TextAlign.center,
+        style: GoogleFonts.manrope(color: Colors.white70, fontSize: 14),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            final uri = Uri.parse(
+              'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+            );
+            if (await canLaunchUrl(uri)) {
+              launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            "Update Now",
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override

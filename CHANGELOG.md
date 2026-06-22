@@ -2159,3 +2159,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Split home_screen.dart into new files in the home folder to make it more readable and modular
 - Constrained the size of the logging cards on desktop
 - Fixed Calorie Calculator overflow errors and layout of the activity level cards not taking up the card's space fully
+- Added a dialog that appears and blocks app access if the user opens the app on an outdated version (as older versions may break after backend changes)

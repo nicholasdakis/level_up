@@ -221,7 +221,6 @@ Future<T?> showFrostedDialog<T>({
     useRootNavigator: true,
     barrierDismissible: dismissible,
     builder: (ctx) => _FrostedDialogShell(
-      outerContext: context,
       baseRadius: baseRadius,
       padding: padding,
       child: child,
@@ -231,13 +230,11 @@ Future<T?> showFrostedDialog<T>({
 
 // Stateful shell so it rebuilds when the keyboard inset changes
 class _FrostedDialogShell extends StatefulWidget {
-  final BuildContext outerContext;
   final Widget child;
   final double baseRadius;
   final EdgeInsetsGeometry? padding;
 
   const _FrostedDialogShell({
-    required this.outerContext,
     required this.child,
     required this.baseRadius,
     this.padding,
@@ -254,41 +251,40 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
     // a fraction of viewInsets to avoid double-counting on iOS PWA.
     final rawInset = MediaQuery.viewInsetsOf(context).bottom;
     final keyboardInset = kIsWeb ? rawInset * 0.2 : rawInset;
-    final ctx = widget.outerContext;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
       padding: EdgeInsets.only(
-        left: Responsive.width(ctx, 24),
-        right: Responsive.width(ctx, 24),
-        top: Responsive.height(ctx, 40),
-        bottom: Responsive.height(ctx, 24) + keyboardInset,
+        left: Responsive.width(context, 24),
+        right: Responsive.width(context, 24),
+        top: Responsive.height(context, 40),
+        bottom: Responsive.height(context, 24) + keyboardInset,
       ),
       child: Align(
         alignment: Alignment.center,
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
-            width: Responsive.dialogWidth(ctx),
+            width: Responsive.dialogWidth(context),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
-                Responsive.scale(ctx, widget.baseRadius),
+                Responsive.scale(context, widget.baseRadius),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: frostedGlassCard(
-                  ctx,
+                  context,
                   baseRadius: widget.baseRadius,
                   backgroundColor: Colors.white.withAlpha(10),
                   border: Border.all(
                     color: Colors.white.withAlpha(22),
-                    width: Responsive.width(ctx, 1),
+                    width: Responsive.width(context, 1),
                   ),
                   padding:
                       widget.padding ??
                       EdgeInsets.symmetric(
-                        horizontal: Responsive.width(ctx, 28),
-                        vertical: Responsive.height(ctx, 32),
+                        horizontal: Responsive.width(context, 28),
+                        vertical: Responsive.height(context, 32),
                       ),
                   child: widget.child,
                 ),

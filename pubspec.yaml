@@ -69,6 +69,9 @@ dependencies:
   # http requests
   http: ^1.1.0
 
+  # reading the app version at runtime for force-update checks
+  package_info_plus: ^8.0.0
+
   speech_to_text: 7.3.0
 
   # persistent on-device storage
