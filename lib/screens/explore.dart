@@ -617,8 +617,8 @@ class _ExploreState extends State<Explore> {
                 ),
               ),
 
-              // User location layer (real GPS stream, not used when location is simulated)
-              if (!(_isTestAccount && userLocation != null))
+              // User location layer (real GPS stream, not used when location is simulated or for guests)
+              if (!isGuest && !(_isTestAccount && userLocation != null))
                 CurrentLocationLayer(
                   style: LocationMarkerStyle(
                     marker: DefaultLocationMarker(

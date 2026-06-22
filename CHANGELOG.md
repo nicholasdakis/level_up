@@ -2154,3 +2154,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-22
 - Created a UnitConverter class for better readability
+- Fixed guest sign up dialogs spanning whole width on pc
+- Fixed location permissions being asked to guests

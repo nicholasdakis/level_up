@@ -265,7 +265,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
-            width: double.infinity,
+            width: Responsive.dialogWidth(ctx),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
                 Responsive.scale(ctx, widget.baseRadius),
