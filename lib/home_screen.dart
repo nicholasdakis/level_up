@@ -23,6 +23,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
 import 'utility/food_logging_helper.dart' show FoodLoggingHelper;
+import 'utility/unit_converter.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -100,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _showWaterLogSheet() async {
-    final isImperial = currentUserData?.units == 'imperial';
+    final isImperial = UnitConverter.isImperial;
     DateTime selectedDate = DateTime.now();
     final customController = TextEditingController();
 
@@ -291,7 +292,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         onTap: () async {
                                           // everything is stored as ml so oz gets converted before it goes in
                                           final ml = isImperial
-                                              ? (amount * 29.5735).round()
+                                              ? UnitConverter.ozToMl(
+                                                  amount.toDouble(),
+                                                ).round()
                                               : amount;
                                           entries.add(ml);
                                           await userManager.updateWaterLog(
@@ -392,13 +395,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   onPressed: () async {
                                     // oz can be fractional so imperial parses as double, metric is always whole ml
                                     final val = isImperial
-                                        ? ((double.tryParse(
-                                                        customController.text
-                                                            .trim(),
-                                                      ) ??
-                                                      0) *
-                                                  29.5735)
-                                              .round()
+                                        ? UnitConverter.ozToMl(
+                                            double.tryParse(
+                                                  customController.text.trim(),
+                                                ) ??
+                                                0,
+                                          ).round()
                                         : int.tryParse(
                                                 customController.text.trim(),
                                               ) ??
@@ -455,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 if (entries.isNotEmpty)
                                   Text(
                                     isImperial
-                                        ? "${(entries.fold(0, (s, e) => s + e) / 29.5735).toStringAsFixed(1)} oz total"
+                                        ? "${UnitConverter.displayWater(entries.fold(0, (s, e) => s + e), imperial: isImperial)} oz total"
                                         : "${entries.fold(0, (s, e) => s + e)} ml total",
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(ctx, 12),
@@ -519,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               Expanded(
                                                 child: Text(
                                                   isImperial
-                                                      ? "${(entries[i] / 29.5735).toStringAsFixed(1)} oz"
+                                                      ? "${UnitConverter.displayWater(entries[i], imperial: isImperial)} oz"
                                                       : "${entries[i]} ml",
                                                   style: GoogleFonts.manrope(
                                                     color: onCard,
@@ -540,7 +542,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         title: "Remove Entry",
                                                         content: Text(
                                                           isImperial
-                                                              ? "Remove ${(entries[i] / 29.5735).toStringAsFixed(1)} oz from ${labelFor(selectedDate).toLowerCase()}?"
+                                                              ? "Remove ${UnitConverter.displayWater(entries[i], imperial: isImperial)} oz from ${labelFor(selectedDate).toLowerCase()}?"
                                                               : "Remove ${entries[i]} ml from ${labelFor(selectedDate).toLowerCase()}?",
                                                           style:
                                                               GoogleFonts.manrope(
@@ -704,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _showWeightLogSheet() async {
-    final isImperial = currentUserData?.units == 'imperial';
+    final isImperial = UnitConverter.isImperial;
     DateTime selectedDate = DateTime.now();
     final controller = _weightController..clear();
     String? feedback;
@@ -720,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (latest != null) {
         final hintKg = latest + (Random().nextDouble() * 4 - 2);
         return isImperial
-            ? "e.g. ${(hintKg * 2.20462).toStringAsFixed(1)}"
+            ? "e.g. ${UnitConverter.displayWeight(hintKg, imperial: isImperial)}"
             : "e.g. ${hintKg.toStringAsFixed(1)}";
       }
       return isImperial ? "e.g. 154.0" : "e.g. 70.0";
@@ -729,8 +731,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     String dateKeyFor(DateTime d) =>
         '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-    String displayFor(double kg) =>
-        isImperial ? (kg * 2.20462).toStringAsFixed(1) : kg.toStringAsFixed(1);
+    String displayFor(double kg) => isImperial
+        ? UnitConverter.displayWeight(kg, imperial: isImperial)
+        : kg.toStringAsFixed(1);
 
     String labelFor(DateTime d) {
       final today = DateTime.now();
@@ -790,7 +793,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Future<void> save() async {
             final input = double.tryParse(controller.text.trim());
             if (input == null || input <= 0) return;
-            final kg = isImperial ? input / 2.20462 : input;
+            final kg = isImperial ? UnitConverter.lbsToKg(input) : input;
             final ok = await userManager.updateWeightLog(dateKey, kg);
             bool sheetMounted = true;
             try {
@@ -1026,7 +1029,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         color: onCardDim,
                                       ),
                                       suffix: Text(
-                                        isImperial ? " lbs" : " kg",
+                                        " ${UnitConverter.weightUnit(imperial: isImperial)}",
                                         style: GoogleFonts.manrope(
                                           color: onCardDim,
                                           fontSize: Responsive.font(ctx, 16),
@@ -1156,7 +1159,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                   ),
                                                 ),
                                                 Text(
-                                                  "${displayFor(recentEntries()[i].value)} ${isImperial ? 'lbs' : 'kg'}",
+                                                  "${displayFor(recentEntries()[i].value)} ${UnitConverter.weightUnit(imperial: isImperial)}",
                                                   style: GoogleFonts.manrope(
                                                     color: onCard,
                                                     fontSize: Responsive.font(
@@ -1236,7 +1239,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                           context: ctx,
                                                           title: "Delete Entry",
                                                           content: Text(
-                                                            "Delete $entryDisplay ${isImperial ? 'lbs' : 'kg'} from ${labelFor(DateTime.parse(entryKey))}?",
+                                                            "Delete $entryDisplay ${UnitConverter.weightUnit(imperial: isImperial)} from ${labelFor(DateTime.parse(entryKey))}?",
                                                             style:
                                                                 GoogleFonts.manrope(
                                                                   color: Colors
@@ -2544,7 +2547,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildLoggingCards() {
-    final isImperial = currentUserData?.units == 'imperial';
+    final isImperial = UnitConverter.isImperial;
     final calories = _todayCalories();
     final goal = currentUserData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
@@ -2646,14 +2649,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     value: isGuest
                         ? "--"
                         : isImperial
-                        ? (totalWaterMl / 29.5735).toStringAsFixed(1)
+                        ? UnitConverter.displayWater(
+                            totalWaterMl,
+                            imperial: isImperial,
+                          )
                         : "$totalWaterMl",
                     subtext: () {
                       if (waterGoalMl <= 0) {
                         return isImperial ? "oz today" : "ml today";
                       }
                       final goalDisplay = isImperial
-                          ? "${(waterGoalMl / 29.5735).toStringAsFixed(0)} oz"
+                          ? "${UnitConverter.displayWater(waterGoalMl, imperial: isImperial, decimals: 0)} oz"
                           : "$waterGoalMl ml";
                       return "/ $goalDisplay goal";
                     }(),
@@ -2686,7 +2692,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ?.value;
                       if (kg == null) return "--";
                       return isImperial
-                          ? (kg * 2.20462).toStringAsFixed(1)
+                          ? UnitConverter.displayWeight(
+                              kg,
+                              imperial: isImperial,
+                            )
                           : kg.toStringAsFixed(1);
                     }(),
                     subtext: () {
@@ -2706,7 +2715,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       }
                       // goal type set but missing either a logged weight or a target weight
                       if (currentKg == null || goalKg == null) {
-                        final label = isImperial ? "lbs" : "kg";
+                        final label = UnitConverter.weightUnit(
+                          imperial: isImperial,
+                        );
                         return type != null
                             ? "${type[0].toUpperCase()}${type.substring(1)} · $label"
                             : label;
@@ -2714,7 +2725,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       // how far the current weight is from the target, always positive
                       final delta = (currentKg - goalKg).abs();
                       final deltaDisplay = isImperial
-                          ? "${(delta * 2.20462).toStringAsFixed(1)} lbs"
+                          ? "${UnitConverter.displayWeight(delta, imperial: isImperial)} lbs"
                           : "${delta.toStringAsFixed(1)} kg";
                       // direction-aware check: losing means at/under target, gaining means at/over, maintain is exact
                       final bool atOrPastGoal = type == 'lose'

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import '../../utility/unit_converter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -418,7 +419,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     if (currentKg != null) {
       initialWeight = isMetric
           ? currentKg.toStringAsFixed(1)
-          : (currentKg * 2.20462).toStringAsFixed(1);
+          : UnitConverter.displayWeight(currentKg, imperial: true);
     }
     final weightCtrl = TextEditingController(text: initialWeight);
 
@@ -515,7 +516,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
             final parsed = double.tryParse(weightCtrl.text.trim());
             // always store in kg regardless of user's unit preference
             if (parsed != null) {
-              weightKg = isMetric ? parsed : parsed / 2.20462;
+              weightKg = isMetric ? parsed : UnitConverter.lbsToKg(parsed);
             }
             await userManager.updateWeightGoal(
               weightGoalType: weightGoalType,
@@ -543,7 +544,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     if (currentMl != null) {
       initialWater = isMetric
           ? currentMl.toString()
-          : (currentMl / 29.5735).toStringAsFixed(0);
+          : UnitConverter.displayWater(currentMl, imperial: true, decimals: 0);
     }
     final waterCtrl = TextEditingController(text: initialWater);
 
@@ -567,7 +568,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
             final parsed = int.tryParse(waterCtrl.text.trim());
             // always store in ml regardless of user's unit preference
             if (parsed != null) {
-              waterMl = isMetric ? parsed : (parsed * 29.5735).round();
+              waterMl = isMetric
+                  ? parsed
+                  : UnitConverter.ozToMl(parsed.toDouble()).round();
             }
             await userManager.updateWaterGoal(
               waterMlGoal: waterMl,
@@ -1044,9 +1047,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                     ? type[0].toUpperCase() + type.substring(1)
                                     : null;
                                 final weightPart = kg != null
-                                    ? _units == 'metric'
-                                          ? "${kg.toStringAsFixed(1)} kg"
-                                          : "${(kg * 2.20462).toStringAsFixed(1)} lbs"
+                                    ? UnitConverter.displayWeightWithUnit(
+                                        kg,
+                                        imperial: _units == 'imperial',
+                                      )
                                     : null;
                                 final detail = [
                                   typePart,
@@ -1076,7 +1080,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                 if (ml == null) return "Current: None";
                                 return _units == 'metric'
                                     ? "Current: $ml ml"
-                                    : "Current: ${(ml / 29.5735).toStringAsFixed(0)} oz";
+                                    : "Current: ${UnitConverter.displayWater(ml, imperial: true, decimals: 0)} oz";
                               }(),
                               onTap: showWaterGoalDialog,
                             ),
