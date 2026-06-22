@@ -250,9 +250,10 @@ class _FrostedDialogShell extends StatefulWidget {
 class _FrostedDialogShellState extends State<_FrostedDialogShell> {
   @override
   Widget build(BuildContext context) {
-    // On web the browser already scrolls the viewport when the keyboard opens,
-    // so viewInsets double-counts on iOS PWA. Skip the inset on web entirely.
-    final keyboardInset = kIsWeb ? 0.0 : MediaQuery.viewInsetsOf(context).bottom;
+    // On web the browser partially handles keyboard scrolling, so only apply
+    // a fraction of viewInsets to avoid double-counting on iOS PWA.
+    final rawInset = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardInset = kIsWeb ? rawInset * 0.2 : rawInset;
     final ctx = widget.outerContext;
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
