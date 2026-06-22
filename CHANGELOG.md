@@ -2143,3 +2143,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Unified food selection into a single serving dialog for both search results and recent foods, replacing the separate inline dashboard for search results
 - Recent/Database tab switcher replaced with a subtle underline indicator
 - Search results and recent match lists separated by divider lines with "End of results" at the bottom
+- Made macros pill show macros even if the value is 0
+- Made the recent foods card have a slide animation

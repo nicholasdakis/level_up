@@ -231,61 +231,156 @@ class _FoodLoggingState extends State<FoodLogging> {
           ? currentAmt.toInt().toString()
           : currentAmt.toString(),
     );
-    final newAmtStr = await showFrostedAlertDialog<String>(
+    final editBaseMacros = FoodLoggingHelper.extractMacros(
+      food['food_description'] as String? ?? '',
+    );
+    final appColor = appColorNotifier.value;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+
+    final newAmtStr = await showFrostedDialog<String>(
       context: context,
-      title: "Edit serving size",
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Food name shown as subtitle so the user knows what they're editing
-          Text(
-            food['food_name'] as String? ?? '',
-            style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
-          ),
-          SizedBox(height: Responsive.height(context, 12)),
-          // Numeric input with the unit (e.g. "g", "oz") shown as a suffix
-          TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [LogFoodScreen.decimalFormatter()],
-            style: GoogleFonts.manrope(color: Colors.white),
-            decoration: InputDecoration(
-              suffixText: unit,
-              suffixStyle: GoogleFonts.manrope(color: Colors.white54),
-              suffixIcon: calcSuffixIcon(context, controller),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white38),
+      child: StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final typedAmt = double.tryParse(controller.text) ?? currentAmt;
+          final scaled = FoodLoggingHelper.scaleFood(
+            editBaseMacros,
+            currentAmt,
+            typedAmt,
+          );
+          final cal = scaled['calories']?.round() ?? 0;
+          final protein = scaled['protein'] ?? 0;
+          final carbs = scaled['carbs'] ?? 0;
+          final fat = scaled['fat'] ?? 0;
+
+          Widget macroChip(String label, double value) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${value.toStringAsFixed(1)}g',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 15),
+                  fontWeight: FontWeight.w700,
+                  color: accent,
+                ),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white),
+              Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 11),
+                  color: dim,
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                food['food_name'] as String? ?? '',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 18),
+                  fontWeight: FontWeight.w700,
+                  color: accent,
+                ),
+              ),
+              if (food['brand_name'] != null)
+                Text(
+                  food['brand_name'] as String,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(ctx, 12),
+                    color: dim,
+                  ),
+                ),
+              SizedBox(height: Responsive.height(ctx, 16)),
+              Text(
+                '$cal kcal',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 28),
+                  fontWeight: FontWeight.w800,
+                  color: accent,
+                  height: 1,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 8)),
+              Row(
+                children: [
+                  Expanded(child: macroChip('protein', protein)),
+                  Expanded(child: macroChip('carbs', carbs)),
+                  Expanded(child: macroChip('fat', fat)),
+                ],
+              ),
+              SizedBox(height: Responsive.height(ctx, 16)),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [LogFoodScreen.decimalFormatter()],
+                style: GoogleFonts.manrope(
+                  color: accent,
+                  fontSize: Responsive.font(ctx, 20),
+                  fontWeight: FontWeight.w700,
+                ),
+                onChanged: (_) => setDialogState(() {}),
+                decoration: InputDecoration(
+                  labelText: 'Serving size',
+                  labelStyle: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(ctx, 12),
+                  ),
+                  suffixText: unit,
+                  suffixStyle: GoogleFonts.manrope(color: dim),
+                  suffixIcon: calcSuffixIcon(
+                    ctx,
+                    controller,
+                    onSet: () => setDialogState(() {}),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: dim.withAlpha(80)),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: accent),
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(ctx, rootNavigator: true).pop(),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      ctx,
+                      rootNavigator: true,
+                    ).pop(controller.text.trim()),
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
-      actions: [
-        Builder(
-          builder: (dialogContext) => TextButton(
-            onPressed: () =>
-                Navigator.of(dialogContext, rootNavigator: true).pop(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: Colors.white54),
-            ),
-          ),
-        ),
-        Builder(
-          builder: (dialogContext) => TextButton(
-            onPressed: () => Navigator.of(
-              dialogContext,
-              rootNavigator: true,
-            ).pop(controller.text.trim()),
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
-          ),
-        ),
-      ],
     );
     // Defer dispose so the dialog's closing animation can finish before the controller is freed
     WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
@@ -349,7 +444,6 @@ class _FoodLoggingState extends State<FoodLogging> {
     final dim = lightenColor(base, 0.35);
 
     Widget chip(String label, double value) {
-      if (value <= 0) return const SizedBox.shrink();
       return Container(
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 7),

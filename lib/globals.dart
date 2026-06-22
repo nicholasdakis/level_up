@@ -92,10 +92,12 @@ Widget socialLink({
   return InkWell(
     splashColor: appColorNotifier.value.withAlpha(60),
     borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
-    onTap: onTap ?? () => url_launcher.launchUrl(
-      Uri.parse(url),
-      mode: url_launcher.LaunchMode.externalApplication,
-    ),
+    onTap:
+        onTap ??
+        () => url_launcher.launchUrl(
+          Uri.parse(url),
+          mode: url_launcher.LaunchMode.externalApplication,
+        ),
     child: frostedGlassCard(
       context,
       baseRadius: 14,
@@ -124,9 +126,15 @@ Widget socialLink({
               height: Responsive.width(context, 36),
               decoration: BoxDecoration(
                 color: cardColors(appColorNotifier.value).iconBox,
-                borderRadius: BorderRadius.circular(Responsive.scale(context, 8)),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 8),
+                ),
               ),
-              child: Icon(icon, color: cardColors(appColorNotifier.value).onCard, size: Responsive.scale(context, 20)),
+              child: Icon(
+                icon,
+                color: cardColors(appColorNotifier.value).onCard,
+                size: Responsive.scale(context, 20),
+              ),
             ),
           SizedBox(width: Responsive.width(context, 12)),
           Expanded(
@@ -220,29 +228,31 @@ Future<T?> showFrostedDialog<T>({
         horizontal: Responsive.width(context, 24),
         vertical: Responsive.height(context, 40),
       ),
-      child: SizedBox(
-        width: Responsive.dialogWidth(context, maxWidth: maxWidth),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Responsive.scale(context, baseRadius),
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: frostedGlassCard(
-              context,
-              baseRadius: baseRadius,
-              backgroundColor: Colors.white.withAlpha(10),
-              border: Border.all(
-                color: Colors.white.withAlpha(22),
-                width: Responsive.width(context, 1),
+      child: SingleChildScrollView(
+        child: SizedBox(
+          width: Responsive.dialogWidth(context, maxWidth: maxWidth),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Responsive.scale(context, baseRadius),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: frostedGlassCard(
+                context,
+                baseRadius: baseRadius,
+                backgroundColor: Colors.white.withAlpha(10),
+                border: Border.all(
+                  color: Colors.white.withAlpha(22),
+                  width: Responsive.width(context, 1),
+                ),
+                padding:
+                    padding ??
+                    EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 28),
+                      vertical: Responsive.height(context, 32),
+                    ),
+                child: child,
               ),
-              padding:
-                  padding ??
-                  EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 28),
-                    vertical: Responsive.height(context, 32),
-                  ),
-              child: child,
             ),
           ),
         ),

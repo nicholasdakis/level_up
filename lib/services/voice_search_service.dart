@@ -61,7 +61,11 @@ class VoiceSearchService {
 
   // start or stop listening
   Future<void> toggle(ValueChanged<String> onText) async {
-    if (!isAvailable) return;
+    // on web, permission may be granted after init was first called; re-init if needed
+    if (!isAvailable) {
+      isAvailable = await _speech.initialize();
+      if (!isAvailable) return;
+    }
 
     // stop if already listening
     if (_speech.isListening) {
@@ -71,7 +75,7 @@ class VoiceSearchService {
     }
 
     // ignore taps while a start is already in flight or the engine isn't ready
-    if (_isStarting || !_speech.isNotListening) return;
+    if (_isStarting || _speech.isListening || !_speech.isNotListening) return;
     _isStarting = true;
 
     try {

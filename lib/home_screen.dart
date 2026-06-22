@@ -2345,30 +2345,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       size: Responsive.scale(context, 14),
                     ),
                     SizedBox(width: Responsive.width(context, 5)),
-                    Text(
-                      label,
-                      style: GoogleFonts.manrope(
-                        color: accentColor,
-                        fontSize: Responsive.font(context, 11),
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          label,
+                          style: GoogleFonts.manrope(
+                            color: accentColor,
+                            fontSize: Responsive.font(context, 11),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: Responsive.height(context, 6)),
-                Text(
-                  value,
-                  style: GoogleFonts.manrope(
-                    color: accentColor,
-                    fontSize: Responsive.font(context, 22),
-                    fontWeight: FontWeight.w700,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: GoogleFonts.manrope(
+                      color: accentColor,
+                      fontSize: Responsive.font(context, 22),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-                Text(
-                  subtext,
-                  style: GoogleFonts.manrope(
-                    color: accentColor,
-                    fontSize: Responsive.font(context, 11),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    subtext,
+                    style: GoogleFonts.manrope(
+                      color: accentColor,
+                      fontSize: Responsive.font(context, 11),
+                    ),
                   ),
                 ),
                 if (progressBar != null) ...[

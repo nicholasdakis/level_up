@@ -156,6 +156,17 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       _showingRecentMatches = matches.isNotEmpty;
       if (matches.isNotEmpty) foodList = [];
     });
+
+    if (matches.isEmpty) {
+      lastInput = DateTime.now();
+      checkTimer?.cancel();
+      checkTimer = Timer(
+        const Duration(milliseconds: 1750),
+        () => handleApiCall(lastInput, value),
+      );
+    } else {
+      checkTimer?.cancel();
+    }
   }
 
   // Toggles the microphone for voice input on the search bar
@@ -1487,7 +1498,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     required String sublabel,
     required VoidCallback onTap,
     bool disabled = false,
-    bool secondary = false,
   }) {
     final base = appColorNotifier.value;
     final c = cardColors(base);
@@ -1532,7 +1542,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                       ),
                       child: HugeIcon(
                         icon: icon,
-                        color: lightenColor(base, secondary ? 0.35 : 0.45),
+                        color: lightenColor(base, 0.45),
                         size: Responsive.scale(context, 20),
                       ),
                     ),
@@ -1547,15 +1557,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(
-                                context,
-                                secondary ? 13 : 14,
-                              ),
+                              fontSize: Responsive.font(context, 14),
                               fontWeight: FontWeight.w700,
-                              color: lightenColor(
-                                base,
-                                secondary ? 0.35 : 0.45,
-                              ),
+                              color: lightenColor(base, 0.45),
                             ),
                           ),
                           Text(
@@ -1564,10 +1568,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 11),
-                              color: lightenColor(
-                                base,
-                                secondary ? 0.28 : 0.35,
-                              ),
+                              color: lightenColor(base, 0.35),
                             ),
                           ),
                         ],
@@ -1597,10 +1598,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     // true when none of the active search/selection states are showing
     final showSections =
-        foodList.isEmpty &&
-        selectedFood == null &&
-        _recentMatches.isEmpty &&
-        !_isSearching;
+        foodList.isEmpty && selectedFood == null && !_isSearching;
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -1806,7 +1804,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         icon: HugeIcons.strokeRoundedQrCode,
                         label: "Scan",
                         sublabel: "Point at a barcode",
-                        secondary: true,
                         onTap: () {
                           if (isGuest) {
                             Guest.block(context);
@@ -1822,7 +1819,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         icon: HugeIcons.strokeRoundedMic01,
                         label: "Voice",
                         sublabel: "Search with your voice",
-                        secondary: true,
                         onTap: _toggleListening,
                       ),
                     ),
@@ -2393,35 +2389,36 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedClock01,
-                                color: accent,
-                                size: Responsive.scale(context, 14),
-                              ),
-                              SizedBox(width: Responsive.width(context, 5)),
-                              Text(
-                                "RECENT",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 13),
-                                  fontWeight: FontWeight.w700,
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          final next = !_recentExpanded;
+                          setState(() => _recentExpanded = next);
+                          _saveRecentExpanded(next);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedClock01,
                                   color: accent,
-                                  letterSpacing: 1.2,
+                                  size: Responsive.scale(context, 14),
                                 ),
-                              ),
-                            ],
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              final next = !_recentExpanded;
-                              setState(() => _recentExpanded = next);
-                              _saveRecentExpanded(next);
-                            },
-                            child: AnimatedRotation(
+                                SizedBox(width: Responsive.width(context, 5)),
+                                Text(
+                                  "RECENT",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 13),
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            AnimatedRotation(
                               turns: _recentExpanded ? 0 : -0.5,
                               duration: const Duration(milliseconds: 200),
                               child: HugeIcon(
@@ -2430,50 +2427,69 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                 size: Responsive.scale(context, 18),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      if (_recentExpanded) ...[
-                        SizedBox(height: Responsive.height(context, 10)),
-                        if (_recentFoods.isEmpty)
-                          Text(
-                            "Nothing logged recently",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 13),
-                              color: c.onCard.withAlpha(100),
-                            ),
-                          )
-                        else
-                          // fixed height so the card fills remaining screen space and scrolls internally
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.42,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: List.generate(_recentFoods.length, (
-                                  i,
-                                ) {
-                                  final food = _recentFoods[i];
-                                  return Column(
-                                    children: [
-                                      _buildFoodRow(
-                                        food,
-                                        onTap: () => _showServingDialog(
-                                          food,
-                                          achievementId: 'food_recent',
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: _recentExpanded
+                            ? Column(
+                                children: [
+                                  SizedBox(
+                                    height: Responsive.height(context, 10),
+                                  ),
+                                  if (_recentFoods.isEmpty)
+                                    Text(
+                                      "Nothing logged recently",
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 13),
+                                        color: c.onCard.withAlpha(100),
+                                      ),
+                                    )
+                                  else
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight:
+                                            MediaQuery.of(context).size.height *
+                                            0.42,
+                                      ),
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          children: List.generate(
+                                            _recentFoods.length,
+                                            (i) {
+                                              final food = _recentFoods[i];
+                                              return Column(
+                                                children: [
+                                                  _buildFoodRow(
+                                                    food,
+                                                    onTap: () =>
+                                                        _showServingDialog(
+                                                          food,
+                                                          achievementId:
+                                                              'food_recent',
+                                                        ),
+                                                  ),
+                                                  if (i <
+                                                      _recentFoods.length - 1)
+                                                    Container(
+                                                      height: 1,
+                                                      color: c.onCard.withAlpha(
+                                                        40,
+                                                      ),
+                                                    ),
+                                                ],
+                                              );
+                                            },
+                                          ),
                                         ),
                                       ),
-                                      if (i < _recentFoods.length - 1)
-                                        Container(
-                                          height: 1,
-                                          color: c.onCard.withAlpha(40),
-                                        ),
-                                    ],
-                                  );
-                                }),
-                              ),
-                            ),
-                          ),
-                      ],
+                                    ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
                     ],
                   ),
                 ),
