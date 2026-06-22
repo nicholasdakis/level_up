@@ -2156,3 +2156,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Created a UnitConverter class for better readability
 - Fixed guest sign up dialogs spanning whole width on pc
 - Fixed location permissions being asked to guests
+- Split home_screen.dart into new files in the home folder to make it more readable and modular
