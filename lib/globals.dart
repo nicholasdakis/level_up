@@ -219,56 +219,82 @@ Future<T?> showFrostedDialog<T>({
     context: context,
     useRootNavigator: true,
     barrierDismissible: dismissible,
-    builder: (ctx) => MediaQuery.removeViewPadding(
-      context: ctx,
-      removeBottom: true,
+    builder: (ctx) => _FrostedDialogShell(
+      outerContext: context,
+      baseRadius: baseRadius,
+      padding: padding,
+      child: child,
+    ),
+  );
+}
+
+// Stateful shell so it rebuilds when the keyboard inset changes
+class _FrostedDialogShell extends StatefulWidget {
+  final BuildContext outerContext;
+  final Widget child;
+  final double baseRadius;
+  final EdgeInsetsGeometry? padding;
+
+  const _FrostedDialogShell({
+    required this.outerContext,
+    required this.child,
+    required this.baseRadius,
+    this.padding,
+  });
+
+  @override
+  State<_FrostedDialogShell> createState() => _FrostedDialogShellState();
+}
+
+class _FrostedDialogShellState extends State<_FrostedDialogShell> {
+  @override
+  Widget build(BuildContext context) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final ctx = widget.outerContext;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(
+        left: Responsive.width(ctx, 24),
+        right: Responsive.width(ctx, 24),
+        top: Responsive.height(ctx, 40),
+        bottom: Responsive.height(ctx, 24) + keyboardInset,
+      ),
       child: Align(
         alignment: Alignment.center,
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: Responsive.width(ctx, 24),
-            right: Responsive.width(ctx, 24),
-            top: Responsive.height(ctx, 40),
-            bottom:
-                Responsive.height(ctx, 24) +
-                MediaQuery.viewInsetsOf(ctx).bottom,
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: SingleChildScrollView(
-              child: SizedBox(
-                width: double.infinity,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, baseRadius),
+        child: Material(
+          color: Colors.transparent,
+          child: SizedBox(
+            width: double.infinity,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(ctx, widget.baseRadius),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: frostedGlassCard(
+                  ctx,
+                  baseRadius: widget.baseRadius,
+                  backgroundColor: Colors.white.withAlpha(10),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(22),
+                    width: Responsive.width(ctx, 1),
                   ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                    child: frostedGlassCard(
-                      context,
-                      baseRadius: baseRadius,
-                      backgroundColor: Colors.white.withAlpha(10),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(22),
-                        width: Responsive.width(context, 1),
+                  padding:
+                      widget.padding ??
+                      EdgeInsets.symmetric(
+                        horizontal: Responsive.width(ctx, 28),
+                        vertical: Responsive.height(ctx, 32),
                       ),
-                      padding:
-                          padding ??
-                          EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 28),
-                            vertical: Responsive.height(context, 32),
-                          ),
-                      child: child,
-                    ),
-                  ),
+                  child: widget.child,
                 ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // Alert-style frosted dialog with title, optional content, and actions
@@ -301,7 +327,7 @@ Future<T?> showFrostedAlertDialog<T>({
         ],
         SizedBox(height: Responsive.height(context, 24)),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: actions,
         ),
       ],

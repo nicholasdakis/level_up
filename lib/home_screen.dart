@@ -2409,40 +2409,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final dimColor = lightenColor(appColorNotifier.value, 0.35);
     final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
 
-    Widget macroRow(String label, int value, int? goal) {
-      return FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: "$label: ",
-                style: GoogleFonts.manrope(
-                  color: dimColor,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              TextSpan(
-                text: "${value}g",
-                style: GoogleFonts.manrope(
-                  color: accentColor,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (goal != null)
+    Widget macroRow(String label, IconData icon, int value, int? goal) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          RichText(
+            text: TextSpan(
+              children: [
                 TextSpan(
-                  text: " /${goal}g",
+                  text: "$label  ",
                   style: GoogleFonts.manrope(
                     color: dimColor,
                     fontSize: Responsive.font(context, 11),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-            ],
+                TextSpan(
+                  text: "${value}g",
+                  style: GoogleFonts.manrope(
+                    color: accentColor,
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (goal != null)
+                  TextSpan(
+                    text: " /${goal}g",
+                    style: GoogleFonts.manrope(
+                      color: dimColor,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
+          SizedBox(width: Responsive.width(context, 6)),
+          HugeIcon(icon: icon, color: dimColor, size: Responsive.scale(context, 13)),
+        ],
       );
     }
 
@@ -2465,7 +2468,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
               SizedBox(width: Responsive.width(context, 5)),
               Text(
-                "Macros today",
+                "Today's Macros",
                 style: GoogleFonts.manrope(
                   color: accentColor,
                   fontSize: Responsive.font(context, 11),
@@ -2475,11 +2478,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
           SizedBox(height: Responsive.height(context, 10)),
-          macroRow("protein", macros.protein, currentUserData?.proteinGoal),
-          SizedBox(height: Responsive.height(context, 4)),
-          macroRow("carbs", macros.carbs, currentUserData?.carbsGoal),
-          SizedBox(height: Responsive.height(context, 4)),
-          macroRow("fat", macros.fat, currentUserData?.fatGoal),
+          macroRow("P", HugeIcons.strokeRoundedBodyPartMuscle, macros.protein, currentUserData?.proteinGoal),
+          SizedBox(height: Responsive.height(context, 3)),
+          macroRow("C", HugeIcons.strokeRoundedFire, macros.carbs, currentUserData?.carbsGoal),
+          SizedBox(height: Responsive.height(context, 3)),
+          macroRow("F", HugeIcons.strokeRoundedDroplet, macros.fat, currentUserData?.fatGoal),
         ],
       ),
     );
@@ -2593,7 +2596,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Expanded(
                   child: _buildLoggingCard(
                     icon: HugeIcons.strokeRoundedFire,
-                    label: "Calories today",
+                    label: "Today's Calories",
                     value: isGuest ? "--" : "$calories",
                     subtext: goal > 0 ? "/ $goal goal" : "kcal",
                     progressBar: progressBar,

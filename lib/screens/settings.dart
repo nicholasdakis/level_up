@@ -286,14 +286,14 @@ Widget buildSettingsDrawer(
                         title: "Confirm Logout",
                         actions: [
                           TextButton(
-                            child: Text("CANCEL"),
+                            child: Text("Cancel"),
                             onPressed: () => Navigator.of(
                               context,
                               rootNavigator: true,
                             ).pop(false),
                           ),
                           TextButton(
-                            child: Text("CONFIRM"),
+                            child: Text("Confirm"),
                             onPressed: () => Navigator.of(
                               context,
                               rootNavigator: true,

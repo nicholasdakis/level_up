@@ -46,7 +46,7 @@ Future<void> showUsernameDialogBox(
       TextButton(
         // close if canceled
         onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-        child: Text("CANCEL"),
+        child: Text("Cancel"),
       ),
       TextButton(
         // Handle username update
@@ -78,7 +78,7 @@ Future<void> showUsernameDialogBox(
             Navigator.of(context, rootNavigator: true).pop();
           }
         },
-        child: Text("CONFIRM"),
+        child: Text("Confirm"),
       ),
     ],
   ).then((_) {
@@ -383,11 +383,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: TextStyle(color: Colors.white)),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: TextStyle(color: Colors.white)),
           onPressed: () async {
             await userManager.updateNutritionGoals(
               caloriesGoal: int.tryParse(calCtrl.text.trim()),
@@ -505,11 +505,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: TextStyle(color: Colors.white)),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: TextStyle(color: Colors.white)),
           onPressed: () async {
             double? weightKg;
             final parsed = double.tryParse(weightCtrl.text.trim());
@@ -557,11 +557,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("CANCEL", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: TextStyle(color: Colors.white)),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("SAVE", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: TextStyle(color: Colors.white)),
           onPressed: () async {
             int? waterMl;
             final parsed = int.tryParse(waterCtrl.text.trim());
@@ -718,6 +718,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                   ],
                 ),
               ),
+              if (trailing != null)
+                SizedBox(width: Responsive.width(context, 12)),
               // Show trailing widget if provided, otherwise show a chevron for tappable rows
               if (trailing != null)
                 trailing

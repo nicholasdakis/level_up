@@ -54,18 +54,11 @@ class LogFoodScreen extends StatefulWidget {
 
 class _LogFoodScreenState extends State<LogFoodScreen>
     with SingleTickerProviderStateMixin {
-  String? _inlineError;
-  Map<String, dynamic>? selectedFood;
-  bool userCanType = true;
   bool snackbarActive = false;
   bool isLogging = false;
   String latestQuery = "";
   Timer? checkTimer;
   List<dynamic> foodList = [];
-  String selectedUnit = 'g';
-  double baseAmount = 1.0;
-  Map<String, double> baseMacros = {};
-  String displayDescription = '';
 
   // Barcode scanner state
   bool scannerActive = false;
@@ -91,7 +84,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   ];
 
   final TextEditingController searchController = TextEditingController();
-  final TextEditingController servingAmountController = TextEditingController();
   final TextEditingController _customUnitController = TextEditingController();
   final TextEditingController manualNameController = TextEditingController();
   final TextEditingController manualCaloriesController =
@@ -184,7 +176,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     checkTimer?.cancel();
     _voiceSearch.cancel();
     searchController.dispose();
-    servingAmountController.dispose();
     _customUnitController.dispose();
     manualNameController.dispose();
     manualCaloriesController.dispose();
@@ -222,81 +213,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Method for getting the user's recently stored foods
   Future<void> _loadRecentFoods() async {
-    if (mounted)
-      setState(
-        () => _recentFoods = [
-          {
-            'food_name': 'Chicken Breast',
-            'brand_name': 'Generic',
-            'calories': 165,
-            'food_description':
-                'Per 100g | Calories: 165kcal | Fat: 3.57g | Carbs: 0g | Protein: 31g | Serving: 100g',
-          },
-          {
-            'food_name': 'Brown Rice',
-            'brand_name': null,
-            'calories': 216,
-            'food_description':
-                'Per 1 cup | Calories: 216kcal | Fat: 1.8g | Carbs: 44g | Protein: 5g | Serving: 1cup',
-          },
-          {
-            'food_name': 'Greek Yogurt',
-            'brand_name': 'Chobani',
-            'calories': 90,
-            'food_description':
-                'Per 170g | Calories: 90kcal | Fat: 0g | Carbs: 6g | Protein: 17g | Serving: 170g',
-          },
-          {
-            'food_name': 'Banana',
-            'brand_name': null,
-            'calories': 105,
-            'food_description':
-                'Per 1 medium | Calories: 105kcal | Fat: 0.4g | Carbs: 27g | Protein: 1.3g | Serving: 1serving',
-          },
-          {
-            'food_name': 'Peanut Butter',
-            'brand_name': 'Jif',
-            'calories': 190,
-            'food_description':
-                'Per 2 tbsp | Calories: 190kcal | Fat: 16g | Carbs: 7g | Protein: 7g | Serving: 2tbsp',
-          },
-          {
-            'food_name': 'Whole Milk',
-            'brand_name': 'Organic Valley',
-            'calories': 150,
-            'food_description':
-                'Per 1 cup | Calories: 150kcal | Fat: 8g | Carbs: 12g | Protein: 8g | Serving: 1cup',
-          },
-          {
-            'food_name': 'Scrambled Eggs',
-            'brand_name': null,
-            'calories': 180,
-            'food_description':
-                'Per 2 eggs | Calories: 180kcal | Fat: 12g | Carbs: 1.6g | Protein: 14g | Serving: 2serving',
-          },
-          {
-            'food_name': 'Oatmeal',
-            'brand_name': 'Quaker',
-            'calories': 150,
-            'food_description':
-                'Per 1 cup | Calories: 150kcal | Fat: 3g | Carbs: 27g | Protein: 5g | Serving: 1cup',
-          },
-          {
-            'food_name': 'Almonds',
-            'brand_name': 'Blue Diamond',
-            'calories': 164,
-            'food_description':
-                'Per 28g | Calories: 164kcal | Fat: 14g | Carbs: 6g | Protein: 6g | Serving: 28g',
-          },
-          {
-            'food_name': 'Salmon Fillet',
-            'brand_name': null,
-            'calories': 280,
-            'food_description':
-                'Per 150g | Calories: 280kcal | Fat: 13g | Carbs: 0g | Protein: 39g | Serving: 150g',
-          },
-        ],
-      );
+    final recents = await _recentFoodsService.getRecentFoods();
+    if (mounted) setState(() => _recentFoods = recents);
   }
 
   Future<void> _loadRecentExpanded() async {
@@ -314,40 +232,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     await _loadRecentFoods(); // update the shown list after updating
   }
 
-  // Parses the serving string and sets up base macros so scaling works correctly
-  void _initServing(String description) {
-    final parsed = FoodLoggingHelper.parseServing(description);
-    baseAmount = parsed['amount'] as double;
-    selectedUnit = parsed['unit'] as String;
-    servingAmountController.text = baseAmount % 1 == 0
-        ? baseAmount.toInt().toString()
-        : baseAmount.toString();
-    baseMacros = FoodLoggingHelper.extractMacros(description);
-    displayDescription = FoodLoggingHelper.buildDescription(
-      baseMacros,
-      baseAmount,
-      selectedUnit,
-    );
-  }
-
-  // Recomputes the display description whenever the serving amount field changes
-  void _onServingChanged() {
-    final newAmount =
-        double.tryParse(servingAmountController.text) ?? baseAmount;
-    final scaled = FoodLoggingHelper.scaleFood(
-      baseMacros,
-      baseAmount,
-      newAmount,
-    );
-    setState(
-      () => displayDescription = FoodLoggingHelper.buildDescription(
-        scaled,
-        newAmount,
-        selectedUnit,
-      ),
-    );
-  }
-
   // Calls the FatSecret search API after the debounce timer fires
   void handleApiCall(String query) async {
     if (query.isEmpty) return;
@@ -361,11 +245,18 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         if (latestQuery != query) return;
         final foods = jsonDecode(response.body)['foods'];
         FocusScope.of(context).unfocus();
+        final results = foods?['food'] != null
+            ? List<dynamic>.from(foods['food'])
+            : [];
+        if (results.isEmpty) {
+          _showSnackbar(
+            "No results found for \"$query\".",
+            duration: const Duration(seconds: 2),
+          );
+        }
         setState(() {
           _isSearching = false;
-          foodList = foods?['food'] != null
-              ? List<dynamic>.from(foods['food'])
-              : [];
+          foodList = results;
         });
       } else if (response.statusCode == 429) {
         final errorData = jsonDecode(response.body);
@@ -420,20 +311,17 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               ' | Fat: ${nutriments['fat_100g'] ?? 0}g'
               ' | Carbs: ${nutriments['carbohydrates_100g'] ?? 0}g'
               ' | Protein: ${nutriments['proteins_100g'] ?? 0}g';
-          _initServing(description);
           trackTrivialAchievement('food_barcode');
           setState(() {
-            // Treat the barcode result the same as a selected search result
-            selectedFood = {
-              'food_name': data['product']['product_name'] ?? 'Unknown Product',
-              'brand_name': data['product']['brands'],
-              'food_description': description,
-            };
-            searchController.text = selectedFood!['food_name'];
-            userCanType = false;
             barcodeLoading = false;
-            foodList = [];
+            scannerActive = false;
           });
+          final food = {
+            'food_name': data['product']['product_name'] ?? 'Unknown Product',
+            'brand_name': data['product']['brands'],
+            'food_description': description,
+          };
+          await _showServingDialog(food, achievementId: 'food_barcode');
         } else {
           setState(() {
             barcodeError = "Product not found in database.";
@@ -467,22 +355,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       return;
     }
 
-    // Scale the food to the user's chosen serving size if baseMacros is available
-    if (baseMacros.isNotEmpty) {
-      final newAmount =
-          double.tryParse(servingAmountController.text) ?? baseAmount;
-      final scaled = FoodLoggingHelper.scaleFood(
-        baseMacros,
-        baseAmount,
-        newAmount,
-      );
-      foodObject['food_description'] = FoodLoggingHelper.buildDescription(
-        scaled,
-        newAmount,
-        selectedUnit,
-      );
-      foodObject['calories'] = scaled['calories']!.round();
-    } else if (!foodObject.containsKey('calories')) {
+    if (!foodObject.containsKey('calories')) {
       foodObject['calories'] = FoodLoggingHelper.extractCalories(
         foodObject['food_description'] ?? '',
       );
@@ -611,75 +484,135 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 ),
               ),
               SizedBox(height: Responsive.height(context, 16)),
-              SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "REQUIRED",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(ctx, 11),
-                        color: Colors.white38,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                    goalField(
-                      ctx,
-                      manualNameController,
-                      "Food Name",
-                      inputFormatters: [LengthLimitingTextInputFormatter(50)],
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: goalField(
-                            ctx,
-                            manualServingAmountController,
-                            "Serving Amount",
-                            keyboardType: TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            inputFormatters: [LogFoodScreen.decimalFormatter()],
-                          ),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "REQUIRED",
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(ctx, 11),
+                          color: Colors.white38,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
                         ),
-                        SizedBox(width: Responsive.width(ctx, 12)),
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: Responsive.height(ctx, 4),
+                      ),
+                      goalField(
+                        ctx,
+                        manualNameController,
+                        "Food Name",
+                        inputFormatters: [LengthLimitingTextInputFormatter(50)],
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: goalField(
+                              ctx,
+                              manualServingAmountController,
+                              "Serving Amount",
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              inputFormatters: [
+                                LogFoodScreen.decimalFormatter(),
+                              ],
                             ),
-                            child: GestureDetector(
-                              onTap: () async {
-                                // Pick unit via a second dialog stacked on top
-                                final picked = await showFrostedDialog<String>(
-                                  context: ctx,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Center(
-                                        child: Text(
-                                          "Unit",
-                                          style: GoogleFonts.manrope(
-                                            fontSize: Responsive.font(ctx, 20),
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.white,
+                          ),
+                          SizedBox(width: Responsive.width(ctx, 12)),
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: Responsive.height(ctx, 4),
+                              ),
+                              child: GestureDetector(
+                                onTap: () async {
+                                  // Pick unit via a second dialog stacked on top
+                                  final picked = await showFrostedDialog<String>(
+                                    context: ctx,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Center(
+                                          child: Text(
+                                            "Unit",
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                ctx,
+                                                20,
+                                              ),
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(ctx, 12),
-                                      ),
-                                      // Standard units, GestureDetector avoids ripple bleeding over the dialog background
-                                      ...allowedUnits.map(
-                                        (u) => GestureDetector(
-                                          onTap: () => Navigator.pop(ctx, u),
+                                        SizedBox(
+                                          height: Responsive.height(ctx, 12),
+                                        ),
+                                        // Standard units, GestureDetector avoids ripple bleeding over the dialog background
+                                        ...allowedUnits.map(
+                                          (u) => GestureDetector(
+                                            onTap: () => Navigator.pop(ctx, u),
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: Responsive.height(
+                                                  ctx,
+                                                  10,
+                                                ),
+                                                horizontal: Responsive.width(
+                                                  ctx,
+                                                  4,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      u,
+                                                      style: GoogleFonts.manrope(
+                                                        fontSize:
+                                                            Responsive.font(
+                                                              ctx,
+                                                              15,
+                                                            ),
+                                                        color:
+                                                            manualSelectedUnit ==
+                                                                u
+                                                            ? Colors.white
+                                                            : Colors.white60,
+                                                        fontWeight:
+                                                            manualSelectedUnit ==
+                                                                u
+                                                            ? FontWeight.w600
+                                                            : FontWeight.w400,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (manualSelectedUnit == u)
+                                                    Icon(
+                                                      Icons.check,
+                                                      color: Colors.white,
+                                                      size: Responsive.scale(
+                                                        ctx,
+                                                        16,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          color: Colors.white.withAlpha(25),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              Navigator.pop(ctx, '__custom__'),
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
                                               vertical: Responsive.height(
@@ -691,244 +624,194 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                                 4,
                                               ),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    u,
-                                                    style: GoogleFonts.manrope(
-                                                      fontSize: Responsive.font(
-                                                        ctx,
-                                                        15,
-                                                      ),
-                                                      color:
-                                                          manualSelectedUnit ==
-                                                              u
-                                                          ? Colors.white
-                                                          : Colors.white60,
-                                                      fontWeight:
-                                                          manualSelectedUnit ==
-                                                              u
-                                                          ? FontWeight.w600
-                                                          : FontWeight.w400,
-                                                    ),
-                                                  ),
+                                            child: Text(
+                                              "Custom...",
+                                              style: GoogleFonts.manrope(
+                                                fontSize: Responsive.font(
+                                                  ctx,
+                                                  15,
                                                 ),
-                                                if (manualSelectedUnit == u)
-                                                  Icon(
-                                                    Icons.check,
-                                                    color: Colors.white,
-                                                    size: Responsive.scale(
-                                                      ctx,
-                                                      16,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Divider(
-                                        color: Colors.white.withAlpha(25),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () =>
-                                            Navigator.pop(ctx, '__custom__'),
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: Responsive.height(
-                                              ctx,
-                                              10,
-                                            ),
-                                            horizontal: Responsive.width(
-                                              ctx,
-                                              4,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            "Custom...",
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                ctx,
-                                                15,
-                                              ),
-                                              color: Colors.white38,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (picked == '__custom__') {
-                                  _customUnitController.clear();
-                                  if (!mounted) return;
-                                  await showFrostedAlertDialog(
-                                    context: context,
-                                    title: "Custom Unit",
-                                    content: TextField(
-                                      controller: _customUnitController,
-                                      autofocus: true,
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white,
-                                      ),
-                                      decoration: InputDecoration(
-                                        hintText:
-                                            "e.g. a slice, a can, a bag...",
-                                        hintStyle: GoogleFonts.manrope(
-                                          color: Colors.white38,
-                                        ),
-                                        enabledBorder:
-                                            const UnderlineInputBorder(
-                                              borderSide: BorderSide(
                                                 color: Colors.white38,
                                               ),
                                             ),
-                                        focusedBorder:
-                                            const UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                      ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(
-                                          context,
-                                          rootNavigator: true,
-                                        ).pop(),
-                                        child: const Text(
-                                          "Cancel",
-                                          style: TextStyle(
+                                  );
+                                  if (picked == '__custom__') {
+                                    _customUnitController.clear();
+                                    if (!mounted) return;
+                                    await showFrostedAlertDialog(
+                                      context: context,
+                                      title: "Custom Unit",
+                                      content: TextField(
+                                        controller: _customUnitController,
+                                        autofocus: true,
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white,
+                                        ),
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              "e.g. a slice, a can, a bag...",
+                                          hintStyle: GoogleFonts.manrope(
+                                            color: Colors.white38,
+                                          ),
+                                          enabledBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.white38,
+                                                ),
+                                              ),
+                                          focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).pop(),
+                                          child: const Text(
+                                            "Cancel",
+                                            style: TextStyle(
+                                              color: Colors.white54,
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            final custom = _customUnitController
+                                                .text
+                                                .trim();
+                                            if (custom.isNotEmpty) {
+                                              setDialogState(
+                                                () =>
+                                                    manualSelectedUnit = custom,
+                                              );
+                                            }
+                                            Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).pop();
+                                          },
+                                          child: const Text(
+                                            "OK",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else if (picked != null) {
+                                    setDialogState(
+                                      () => manualSelectedUnit = picked,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.only(
+                                    bottom: Responsive.height(ctx, 6),
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(color: Colors.white24),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          manualSelectedUnit,
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(ctx, 14),
                                             color: Colors.white54,
                                           ),
                                         ),
                                       ),
-                                      TextButton(
-                                        onPressed: () {
-                                          final custom = _customUnitController
-                                              .text
-                                              .trim();
-                                          if (custom.isNotEmpty) {
-                                            setDialogState(
-                                              () => manualSelectedUnit = custom,
-                                            );
-                                          }
-                                          Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop();
-                                        },
-                                        child: const Text(
-                                          "OK",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.white38,
+                                        size: Responsive.scale(ctx, 16),
                                       ),
                                     ],
-                                  );
-                                } else if (picked != null) {
-                                  setDialogState(
-                                    () => manualSelectedUnit = picked,
-                                  );
-                                }
-                              },
-                              child: Container(
-                                padding: EdgeInsets.only(
-                                  bottom: Responsive.height(ctx, 6),
-                                ),
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(color: Colors.white24),
                                   ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        manualSelectedUnit,
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(ctx, 14),
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right,
-                                      color: Colors.white38,
-                                      size: Responsive.scale(ctx, 16),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    goalField(
-                      ctx,
-                      manualCaloriesController,
-                      "Calories (kcal)",
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
-                      ],
-                    ),
-                    SizedBox(height: Responsive.height(ctx, 14)),
-                    Text(
-                      "OPTIONAL",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(ctx, 11),
-                        color: Colors.white38,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
+                        ],
                       ),
-                    ),
-                    goalField(
-                      ctx,
-                      manualProteinController,
-                      "Protein (g)",
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
+                      goalField(
+                        ctx,
+                        manualCaloriesController,
+                        "Calories (kcal)",
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
                       ),
-                      inputFormatters: [
-                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
-                      ],
-                    ),
-                    goalField(
-                      ctx,
-                      manualCarbsController,
-                      "Carbs (g)",
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
-                      ],
-                    ),
-                    goalField(
-                      ctx,
-                      manualFatController,
-                      "Fat (g)",
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        LogFoodScreen.decimalFormatter(decimalPlaces: 3),
-                      ],
-                    ),
-                    if (dialogError != null) ...[
-                      SizedBox(height: Responsive.height(ctx, 8)),
+                      SizedBox(height: Responsive.height(ctx, 14)),
                       Text(
-                        dialogError!,
+                        "OPTIONAL",
                         style: GoogleFonts.manrope(
-                          color: Colors.white54,
-                          fontSize: Responsive.font(ctx, 13),
+                          fontSize: Responsive.font(ctx, 11),
+                          color: Colors.white38,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
                         ),
                       ),
+                      goalField(
+                        ctx,
+                        manualProteinController,
+                        "Protein (g)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
+                      goalField(
+                        ctx,
+                        manualCarbsController,
+                        "Carbs (g)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
+                      goalField(
+                        ctx,
+                        manualFatController,
+                        "Fat (g)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
+                      if (dialogError != null) ...[
+                        SizedBox(height: Responsive.height(ctx, 8)),
+                        Text(
+                          dialogError!,
+                          style: GoogleFonts.manrope(
+                            color: Colors.white54,
+                            fontSize: Responsive.font(ctx, 13),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
               SizedBox(height: Responsive.height(context, 24)),
@@ -938,7 +821,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     child: const Text(
-                      "CANCEL",
+                      "Cancel",
                       style: TextStyle(color: Colors.white54),
                     ),
                   ),
@@ -1015,7 +898,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                       );
                     },
                     child: const Text(
-                      "LOG",
+                      "Log",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -1056,16 +939,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   // Clears the selected food and resets back to the empty search state
   void _clearSelection() {
     setState(() {
-      selectedFood = null;
-      userCanType = true;
       searchController.clear();
       foodList = [];
       _recentMatches = [];
       _showingRecentMatches = true;
-      displayDescription = '';
-      baseMacros = {};
       barcodeError = null;
-      _inlineError = null;
     });
   }
 
@@ -1139,13 +1017,20 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final newAmt = double.tryParse(newAmtStr);
     if (newAmt == null || newAmt <= 0) return;
 
-    _initServing(description);
-    servingAmountController.text = newAmt % 1 == 0
-        ? newAmt.toInt().toString()
-        : newAmt.toString();
+    final baseMacros = FoodLoggingHelper.extractMacros(description);
+    final baseAmt2 = baseAmt;
+    final unit = serving['unit'] as String;
+    final scaled = FoodLoggingHelper.scaleFood(baseMacros, baseAmt2, newAmt);
+    final loggedFood = Map<String, dynamic>.from(food);
+    loggedFood['food_description'] = FoodLoggingHelper.buildDescription(
+      scaled,
+      newAmt,
+      unit,
+    );
+    loggedFood['calories'] = scaled['calories']!.round();
 
     if (achievementId != null) trackTrivialAchievement(achievementId);
-    await logFood(Map<String, dynamic>.from(food));
+    await logFood(loggedFood);
   }
 
   Widget _buildSourceTab(
@@ -1183,45 +1068,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   }
 
   // Macro info shown on the selected food card, updates live as serving changes
-
-  Widget _buildLogFoodButton({VoidCallback? onPressed}) {
-    return SizedBox(
-      width: double.infinity,
-      child: frostedButton(
-        "Log Food",
-        context,
-        onPressed: onPressed ?? () {},
-        color: appColorNotifier.value,
-      ),
-    );
-  }
-
-  // Inline validation error shown above the log button
-  Widget _buildInlineError(String? error) {
-    if (error == null) return const SizedBox.shrink();
-    return Padding(
-      padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
-      child: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
-            size: Responsive.font(context, 14),
-          ),
-          SizedBox(width: Responsive.width(context, 6)),
-          Expanded(
-            child: Text(
-              error,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Macro summary line shown under each recent food tile
 
@@ -1512,10 +1358,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     // true when none of the active search/selection states are showing
     final showSections =
-        foodList.isEmpty &&
-        selectedFood == null &&
-        !_isSearching &&
-        _recentMatches.isEmpty;
+        foodList.isEmpty && !_isSearching && _recentMatches.isEmpty;
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -1590,7 +1433,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               frostedGlassCard(
                 context,
                 baseRadius: 14,
-                border: Border.all(color: Colors.transparent),
                 padding: EdgeInsets.symmetric(
                   horizontal: Responsive.width(context, 14),
                   vertical: Responsive.height(context, 8),
@@ -1606,7 +1448,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     Expanded(
                       child: TextField(
                         controller: searchController,
-                        readOnly: !userCanType || isGuest,
+                        readOnly: isGuest,
                         onTap: isGuest ? () => Guest.block(context) : null,
                         keyboardType: TextInputType.text,
                         style: GoogleFonts.manrope(
@@ -1631,8 +1473,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                       ),
                     ),
                     // filled search button so it's obvious something needs to be tapped
-                    if (searchController.text.isNotEmpty &&
-                        selectedFood == null)
+                    if (searchController.text.isNotEmpty)
                       GestureDetector(
                         onTap: () {
                           setState(() => _showingRecentMatches = false);
@@ -1821,319 +1662,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   ),
                 ),
 
-              // Selected food dashboard, styled like the home screen logging cards
-              if (selectedFood != null && foodList.isEmpty) ...[
-                () {
-                  final macros = FoodLoggingHelper.extractMacros(
-                    displayDescription,
-                  );
-                  final cal = macros['calories']?.round() ?? 0;
-                  final accentColor = lightenColor(appColor, 0.45);
-                  final dimColor = lightenColor(appColor, 0.35);
-
-                  // reusable small icon + label header like home screen cards
-                  Widget cardLabel(IconData icon, String label) => Row(
-                    children: [
-                      HugeIcon(
-                        icon: icon,
-                        color: accentColor,
-                        size: Responsive.scale(context, 14),
-                      ),
-                      SizedBox(width: Responsive.width(context, 5)),
-                      Text(
-                        label,
-                        style: GoogleFonts.manrope(
-                          color: accentColor,
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  );
-
-                  // reusable macro column used in the macros card
-                  Widget macroCol(String label, String value) => Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          value,
-                          style: GoogleFonts.manrope(
-                            color: accentColor,
-                            fontSize: Responsive.font(context, 18),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          label,
-                          style: GoogleFonts.manrope(
-                            color: accentColor,
-                            fontSize: Responsive.font(context, 11),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // row 1: food name card (full width) + clear button top right
-                      frostedGlassCard(
-                        context,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 16),
-                          vertical: Responsive.height(context, 14),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      HugeIcon(
-                                        icon:
-                                            HugeIcons.strokeRoundedPencilEdit01,
-                                        color: accentColor,
-                                        size: Responsive.scale(context, 14),
-                                      ),
-                                      SizedBox(
-                                        width: Responsive.width(context, 5),
-                                      ),
-                                      Text(
-                                        "Selected food",
-                                        style: GoogleFonts.manrope(
-                                          color: accentColor,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            11,
-                                          ),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 6),
-                                  ),
-                                  Text(
-                                    selectedFood!['food_name'] ?? '',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.manrope(
-                                      color: accentColor,
-                                      fontSize: Responsive.font(context, 18),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  if (selectedFood!['brand_name'] != null)
-                                    Text(
-                                      selectedFood!['brand_name'],
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 11),
-                                        color: dimColor,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _clearSelection,
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: Responsive.width(context, 8),
-                                ),
-                                child: Icon(
-                                  Icons.close,
-                                  color: accentColor.withAlpha(120),
-                                  size: Responsive.scale(context, 16),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 10)),
-
-                      // row 2: calories card + macros card side by side
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // calories card
-                            Expanded(
-                              child: frostedGlassCard(
-                                context,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 14),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    cardLabel(
-                                      HugeIcons.strokeRoundedFire,
-                                      "Calories",
-                                    ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 6),
-                                    ),
-                                    Text(
-                                      '$cal',
-                                      style: GoogleFonts.manrope(
-                                        color: accentColor,
-                                        fontSize: Responsive.font(context, 22),
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    Text(
-                                      'kcal',
-                                      style: GoogleFonts.manrope(
-                                        color: dimColor,
-                                        fontSize: Responsive.font(context, 11),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: Responsive.width(context, 10)),
-                            // macros card
-                            Expanded(
-                              child: frostedGlassCard(
-                                context,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 14),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    cardLabel(
-                                      HugeIcons.strokeRoundedAppleStocks,
-                                      "Macros",
-                                    ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 10),
-                                    ),
-                                    Row(
-                                      children: [
-                                        macroCol(
-                                          "protein",
-                                          '${(macros['protein'] ?? 0).toStringAsFixed(1)}g',
-                                        ),
-                                        macroCol(
-                                          "carbs",
-                                          '${(macros['carbs'] ?? 0).toStringAsFixed(1)}g',
-                                        ),
-                                        macroCol(
-                                          "fat",
-                                          '${(macros['fat'] ?? 0).toStringAsFixed(1)}g',
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 10)),
-
-                      // row 3: serving size card
-                      frostedGlassCard(
-                        context,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 16),
-                          vertical: Responsive.height(context, 14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            cardLabel(
-                              HugeIcons.strokeRoundedWeightScale,
-                              "Serving size",
-                            ),
-                            SizedBox(height: Responsive.height(context, 6)),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: Responsive.width(context, 60),
-                                  child: TextField(
-                                    controller: servingAmountController,
-                                    keyboardType:
-                                        TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
-                                    inputFormatters: [
-                                      LogFoodScreen.decimalFormatter(),
-                                    ],
-                                    style: GoogleFonts.manrope(
-                                      color: accentColor,
-                                      fontSize: Responsive.font(context, 22),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                    textAlign: TextAlign.left,
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.zero,
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: dimColor.withAlpha(80),
-                                        ),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: accentColor,
-                                        ),
-                                      ),
-                                    ),
-                                    onChanged: (_) => _onServingChanged(),
-                                  ),
-                                ),
-                                SizedBox(width: Responsive.width(context, 8)),
-                                Text(
-                                  selectedUnit,
-                                  style: GoogleFonts.manrope(
-                                    color: dimColor,
-                                    fontSize: Responsive.font(context, 11),
-                                  ),
-                                ),
-                                const Spacer(),
-                                calcSuffixIcon(
-                                  context,
-                                  servingAmountController,
-                                  onSet: _onServingChanged,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: Responsive.height(context, 12)),
-                      _buildInlineError(_inlineError),
-                      _buildLogFoodButton(
-                        onPressed: () async {
-                          setState(() => _inlineError = null);
-                          await logFood(
-                            Map<String, dynamic>.from(selectedFood!),
-                          );
-                        },
-                      ),
-                      SizedBox(height: Responsive.height(context, 24)),
-                    ],
-                  );
-                }(),
-              ],
-
               // Skeletonizer shown while the API search is in flight
               if (_isSearching)
                 Skeletonizer(
@@ -2240,8 +1768,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     if (dx < -200 && _showingRecentMatches) {
                       // swipe left: go to Database
                       setState(() => _showingRecentMatches = false);
-                      if (foodList.isEmpty)
+                      if (foodList.isEmpty) {
                         handleApiCall(searchController.text);
+                      }
                     } else if (dx > 200 && !_showingRecentMatches) {
                       // swipe right: go to Recent
                       setState(() => _showingRecentMatches = true);
@@ -2295,8 +1824,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               // Plain API results when there were no recent matches at all (no tab switcher shown)
               if (foodList.isNotEmpty &&
                   _recentMatches.isEmpty &&
-                  !_isSearching &&
-                  selectedFood == null) ...[
+                  !_isSearching) ...[
                 for (int i = 0; i < foodList.length; i++) ...[
                   _buildFoodRow(
                     foodList[i] as Map<String, dynamic>,
@@ -2389,7 +1917,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                       constraints: BoxConstraints(
                                         maxHeight:
                                             MediaQuery.of(context).size.height *
-                                            0.42,
+                                            0.30,
                                       ),
                                       child: SingleChildScrollView(
                                         child: Column(

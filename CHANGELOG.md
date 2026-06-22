@@ -2148,3 +2148,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed swipe-to-delete for foods as it is overly complicated and unneeded
 - Deleted debouncer for api calls as it is now obsolete
 - Combined edit and recent food dialogs into one as they share most of their code
+- Added a "No results" snackbar
+- Removed the Log Screen UI dashboard and simply replaced it with the dialog
