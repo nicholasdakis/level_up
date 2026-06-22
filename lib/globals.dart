@@ -219,39 +219,49 @@ Future<T?> showFrostedDialog<T>({
     context: context,
     useRootNavigator: true,
     barrierDismissible: dismissible,
-    builder: (ctx) => Dialog(
-      backgroundColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(),
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 24),
-        vertical: Responsive.height(context, 40),
-      ),
-      child: SingleChildScrollView(
-        child: SizedBox(
-          width: Responsive.dialogWidth(context, maxWidth: maxWidth),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Responsive.scale(context, baseRadius),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: frostedGlassCard(
-                context,
-                baseRadius: baseRadius,
-                backgroundColor: Colors.white.withAlpha(10),
-                border: Border.all(
-                  color: Colors.white.withAlpha(22),
-                  width: Responsive.width(context, 1),
-                ),
-                padding:
-                    padding ??
-                    EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 28),
-                      vertical: Responsive.height(context, 32),
+    builder: (ctx) => MediaQuery.removeViewPadding(
+      context: ctx,
+      removeBottom: true,
+      child: Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: Responsive.width(ctx, 24),
+            right: Responsive.width(ctx, 24),
+            top: Responsive.height(ctx, 40),
+            bottom:
+                Responsive.height(ctx, 24) +
+                MediaQuery.viewInsetsOf(ctx).bottom,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: SingleChildScrollView(
+              child: SizedBox(
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, baseRadius),
+                  ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: frostedGlassCard(
+                      context,
+                      baseRadius: baseRadius,
+                      backgroundColor: Colors.white.withAlpha(10),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(22),
+                        width: Responsive.width(context, 1),
+                      ),
+                      padding:
+                          padding ??
+                          EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 28),
+                            vertical: Responsive.height(context, 32),
+                          ),
+                      child: child,
                     ),
-                child: child,
+                  ),
+                ),
               ),
             ),
           ),

@@ -61,7 +61,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   bool isLogging = false;
   String latestQuery = "";
   Timer? checkTimer;
-  DateTime? lastInput;
   List<dynamic> foodList = [];
   String selectedUnit = 'g';
   double baseAmount = 1.0;
@@ -157,16 +156,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       if (matches.isNotEmpty) foodList = [];
     });
 
-    if (matches.isEmpty) {
-      lastInput = DateTime.now();
-      checkTimer?.cancel();
-      checkTimer = Timer(
-        const Duration(milliseconds: 1750),
-        () => handleApiCall(lastInput, value),
-      );
-    } else {
-      checkTimer?.cancel();
-    }
+    if (matches.isNotEmpty) checkTimer?.cancel();
   }
 
   // Toggles the microphone for voice input on the search bar
@@ -232,8 +222,81 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   // Method for getting the user's recently stored foods
   Future<void> _loadRecentFoods() async {
-    final recents = await _recentFoodsService.getRecentFoods();
-    if (mounted) setState(() => _recentFoods = recents);
+    if (mounted)
+      setState(
+        () => _recentFoods = [
+          {
+            'food_name': 'Chicken Breast',
+            'brand_name': 'Generic',
+            'calories': 165,
+            'food_description':
+                'Per 100g | Calories: 165kcal | Fat: 3.57g | Carbs: 0g | Protein: 31g | Serving: 100g',
+          },
+          {
+            'food_name': 'Brown Rice',
+            'brand_name': null,
+            'calories': 216,
+            'food_description':
+                'Per 1 cup | Calories: 216kcal | Fat: 1.8g | Carbs: 44g | Protein: 5g | Serving: 1cup',
+          },
+          {
+            'food_name': 'Greek Yogurt',
+            'brand_name': 'Chobani',
+            'calories': 90,
+            'food_description':
+                'Per 170g | Calories: 90kcal | Fat: 0g | Carbs: 6g | Protein: 17g | Serving: 170g',
+          },
+          {
+            'food_name': 'Banana',
+            'brand_name': null,
+            'calories': 105,
+            'food_description':
+                'Per 1 medium | Calories: 105kcal | Fat: 0.4g | Carbs: 27g | Protein: 1.3g | Serving: 1serving',
+          },
+          {
+            'food_name': 'Peanut Butter',
+            'brand_name': 'Jif',
+            'calories': 190,
+            'food_description':
+                'Per 2 tbsp | Calories: 190kcal | Fat: 16g | Carbs: 7g | Protein: 7g | Serving: 2tbsp',
+          },
+          {
+            'food_name': 'Whole Milk',
+            'brand_name': 'Organic Valley',
+            'calories': 150,
+            'food_description':
+                'Per 1 cup | Calories: 150kcal | Fat: 8g | Carbs: 12g | Protein: 8g | Serving: 1cup',
+          },
+          {
+            'food_name': 'Scrambled Eggs',
+            'brand_name': null,
+            'calories': 180,
+            'food_description':
+                'Per 2 eggs | Calories: 180kcal | Fat: 12g | Carbs: 1.6g | Protein: 14g | Serving: 2serving',
+          },
+          {
+            'food_name': 'Oatmeal',
+            'brand_name': 'Quaker',
+            'calories': 150,
+            'food_description':
+                'Per 1 cup | Calories: 150kcal | Fat: 3g | Carbs: 27g | Protein: 5g | Serving: 1cup',
+          },
+          {
+            'food_name': 'Almonds',
+            'brand_name': 'Blue Diamond',
+            'calories': 164,
+            'food_description':
+                'Per 28g | Calories: 164kcal | Fat: 14g | Carbs: 6g | Protein: 6g | Serving: 28g',
+          },
+          {
+            'food_name': 'Salmon Fillet',
+            'brand_name': null,
+            'calories': 280,
+            'food_description':
+                'Per 150g | Calories: 280kcal | Fat: 13g | Carbs: 0g | Protein: 39g | Serving: 150g',
+          },
+        ],
+      );
   }
 
   Future<void> _loadRecentExpanded() async {
@@ -286,7 +349,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   }
 
   // Calls the FatSecret search API after the debounce timer fires
-  void handleApiCall(DateTime? dateTime, String query) async {
+  void handleApiCall(String query) async {
     if (query.isEmpty) return;
     query = query.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
     latestQuery = query;
@@ -1060,171 +1123,22 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final description = food['food_description'] as String? ?? '';
     final serving = FoodLoggingHelper.parseServing(description);
     final baseAmt = serving['amount'] as double;
-    final unit = serving['unit'] as String;
-    final baseMacros = FoodLoggingHelper.extractMacros(description);
 
     _recentServingController.text = baseAmt % 1 == 0
         ? baseAmt.toInt().toString()
         : baseAmt.toString();
 
-    final appColor = appColorNotifier.value;
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-
-    final newAmtStr = await showFrostedDialog<String>(
+    final newAmtStr = await showServingAmountDialog(
       context: context,
-      child: StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          final typedAmt =
-              double.tryParse(_recentServingController.text) ?? baseAmt;
-          final scaled = FoodLoggingHelper.scaleFood(
-            baseMacros,
-            baseAmt,
-            typedAmt,
-          );
-          final cal = scaled['calories']?.round() ?? 0;
-          final protein = scaled['protein'] ?? 0;
-          final carbs = scaled['carbs'] ?? 0;
-          final fat = scaled['fat'] ?? 0;
-
-          Widget macroChip(String label, double value) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${value.toStringAsFixed(1)}g',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 15),
-                  fontWeight: FontWeight.w700,
-                  color: accent,
-                ),
-              ),
-              Text(
-                label,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 11),
-                  color: dim,
-                ),
-              ),
-            ],
-          );
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                food['food_name'] as String? ?? '',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 18),
-                  fontWeight: FontWeight.w700,
-                  color: accent,
-                ),
-              ),
-              if (food['brand_name'] != null)
-                Text(
-                  food['brand_name'] as String,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(ctx, 12),
-                    color: dim,
-                  ),
-                ),
-              SizedBox(height: Responsive.height(ctx, 16)),
-              // Calories row
-              Text(
-                '$cal kcal',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 28),
-                  fontWeight: FontWeight.w800,
-                  color: accent,
-                  height: 1,
-                ),
-              ),
-              SizedBox(height: Responsive.height(ctx, 8)),
-              // Macros row
-              Row(
-                children: [
-                  Expanded(child: macroChip('protein', protein)),
-                  Expanded(child: macroChip('carbs', carbs)),
-                  Expanded(child: macroChip('fat', fat)),
-                ],
-              ),
-              SizedBox(height: Responsive.height(ctx, 16)),
-              // Serving size field
-              TextField(
-                controller: _recentServingController,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [LogFoodScreen.decimalFormatter()],
-                style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(ctx, 20),
-                  fontWeight: FontWeight.w700,
-                ),
-                onChanged: (_) => setDialogState(() {}),
-                decoration: InputDecoration(
-                  labelText: 'Serving size',
-                  labelStyle: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(ctx, 12),
-                  ),
-                  suffixText: unit,
-                  suffixStyle: GoogleFonts.manrope(color: dim),
-                  suffixIcon: calcSuffixIcon(
-                    ctx,
-                    _recentServingController,
-                    onSet: () => setDialogState(() {}),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: dim.withAlpha(80)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: accent),
-                  ),
-                ),
-              ),
-              SizedBox(height: Responsive.height(ctx, 20)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.of(ctx, rootNavigator: true).pop(),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(
-                      ctx,
-                      rootNavigator: true,
-                    ).pop(_recentServingController.text.trim()),
-                    child: const Text(
-                      "Log",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
+      food: food,
+      controller: _recentServingController,
+      confirmLabel: 'Log',
     );
 
     if (newAmtStr == null || newAmtStr.isEmpty) return;
     final newAmt = double.tryParse(newAmtStr);
     if (newAmt == null || newAmt <= 0) return;
 
-    // _initServing populates the state vars that logFood reads
     _initServing(description);
     servingAmountController.text = newAmt % 1 == 0
         ? newAmt.toInt().toString()
@@ -1598,7 +1512,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     // true when none of the active search/selection states are showing
     final showSections =
-        foodList.isEmpty && selectedFood == null && !_isSearching;
+        foodList.isEmpty &&
+        selectedFood == null &&
+        !_isSearching &&
+        _recentMatches.isEmpty;
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -1710,7 +1627,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                           ),
                         ),
                         onChanged: _filterRecents,
-                        onSubmitted: (v) => handleApiCall(lastInput, v),
+                        onSubmitted: (v) => handleApiCall(v),
                       ),
                     ),
                     // filled search button so it's obvious something needs to be tapped
@@ -1719,7 +1636,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                       GestureDetector(
                         onTap: () {
                           setState(() => _showingRecentMatches = false);
-                          handleApiCall(lastInput, searchController.text);
+                          handleApiCall(searchController.text);
                         },
                         child: Container(
                           margin: EdgeInsets.only(
@@ -1797,32 +1714,35 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
               // 2x2 input method grid, only shown when not searching
               if (showSections) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildInputCard(
-                        icon: HugeIcons.strokeRoundedQrCode,
-                        label: "Scan",
-                        sublabel: "Point at a barcode",
-                        onTap: () {
-                          if (isGuest) {
-                            Guest.block(context);
-                            return;
-                          }
-                          setState(() => scannerActive = true);
-                        },
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _buildInputCard(
+                          icon: HugeIcons.strokeRoundedQrCode,
+                          label: "Scan",
+                          sublabel: "Scan a barcode",
+                          onTap: () {
+                            if (isGuest) {
+                              Guest.block(context);
+                              return;
+                            }
+                            setState(() => scannerActive = true);
+                          },
+                        ),
                       ),
-                    ),
-                    SizedBox(width: Responsive.width(context, 12)),
-                    Expanded(
-                      child: _buildInputCard(
-                        icon: HugeIcons.strokeRoundedMic01,
-                        label: "Voice",
-                        sublabel: "Search with your voice",
-                        onTap: _toggleListening,
+                      SizedBox(width: Responsive.width(context, 12)),
+                      Expanded(
+                        child: _buildInputCard(
+                          icon: HugeIcons.strokeRoundedMic01,
+                          label: "Voice",
+                          sublabel: "Search with your voice",
+                          onTap: _toggleListening,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 SizedBox(height: Responsive.height(context, 12)),
                 _buildInputCard(
@@ -2281,10 +2201,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   ),
                 ),
 
-              // Tab switcher only shown when there are both recent matches AND API results to switch between
-              if (_recentMatches.isNotEmpty &&
-                  foodList.isNotEmpty &&
-                  !_isSearching) ...[
+              // Tab switcher shown whenever there are recent matches; Database tab triggers API call on demand
+              if (_recentMatches.isNotEmpty && !_isSearching) ...[
                 Padding(
                   padding: EdgeInsets.only(
                     bottom: Responsive.height(context, 10),
@@ -2308,7 +2226,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                           () {
                             setState(() => _showingRecentMatches = false);
                             if (foodList.isEmpty) {
-                              handleApiCall(lastInput, searchController.text);
+                              handleApiCall(searchController.text);
                             }
                           },
                         ),
@@ -2316,42 +2234,61 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     ],
                   ),
                 ),
-                // recent matches tab
-                if (_showingRecentMatches && _recentMatches.isNotEmpty) ...[
-                  for (int i = 0; i < _recentMatches.length; i++) ...[
-                    _buildFoodRow(
-                      _recentMatches[i],
-                      onTap: () {
-                        FocusScope.of(context).unfocus();
-                        _showServingDialog(
-                          _recentMatches[i],
-                          achievementId: 'food_recent',
-                        );
-                      },
-                    ),
-                    if (i < _recentMatches.length - 1)
-                      Container(height: 1, color: c.onCard.withAlpha(40)),
-                  ],
-                  _buildEndOfResults(),
-                ],
-                // database results tab
-                if (!_showingRecentMatches && foodList.isNotEmpty) ...[
-                  for (int i = 0; i < foodList.length; i++) ...[
-                    _buildFoodRow(
-                      foodList[i] as Map<String, dynamic>,
-                      onTap: () {
-                        FocusScope.of(context).unfocus();
-                        _showServingDialog(
-                          foodList[i] as Map<String, dynamic>,
-                          achievementId: 'food_search',
-                        );
-                      },
-                    ),
-                    if (i < foodList.length - 1)
-                      Container(height: 1, color: c.onCard.withAlpha(40)),
-                  ],
-                  _buildEndOfResults(),
-                ],
+                GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    final dx = details.primaryVelocity ?? 0;
+                    if (dx < -200 && _showingRecentMatches) {
+                      // swipe left: go to Database
+                      setState(() => _showingRecentMatches = false);
+                      if (foodList.isEmpty)
+                        handleApiCall(searchController.text);
+                    } else if (dx > 200 && !_showingRecentMatches) {
+                      // swipe right: go to Recent
+                      setState(() => _showingRecentMatches = true);
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      // recent matches tab
+                      if (_showingRecentMatches &&
+                          _recentMatches.isNotEmpty) ...[
+                        for (int i = 0; i < _recentMatches.length; i++) ...[
+                          _buildFoodRow(
+                            _recentMatches[i],
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              _showServingDialog(
+                                _recentMatches[i],
+                                achievementId: 'food_recent',
+                              );
+                            },
+                          ),
+                          if (i < _recentMatches.length - 1)
+                            Container(height: 1, color: c.onCard.withAlpha(40)),
+                        ],
+                        _buildEndOfResults(),
+                      ],
+                      // database results tab
+                      if (!_showingRecentMatches && foodList.isNotEmpty) ...[
+                        for (int i = 0; i < foodList.length; i++) ...[
+                          _buildFoodRow(
+                            foodList[i] as Map<String, dynamic>,
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              _showServingDialog(
+                                foodList[i] as Map<String, dynamic>,
+                                achievementId: 'food_search',
+                              );
+                            },
+                          ),
+                          if (i < foodList.length - 1)
+                            Container(height: 1, color: c.onCard.withAlpha(40)),
+                        ],
+                        _buildEndOfResults(),
+                      ],
+                    ],
+                  ),
+                ),
                 SizedBox(height: Responsive.height(context, 12)),
               ],
 

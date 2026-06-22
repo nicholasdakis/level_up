@@ -1,7 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'log_food_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
@@ -217,172 +216,24 @@ class _FoodLoggingState extends State<FoodLogging> {
     if (isGuest) {
       Guest.block(context);
       return;
-    } // For guest users
-    // Pull the current serving amount and unit out of food_description
+    }
     final serving = FoodLoggingHelper.parseServing(
       food['food_description'] as String? ?? '',
     );
     final currentAmt = serving['amount'] as double;
     final unit = serving['unit'] as String;
-
-    // Pre-fill with the current amount, dropping the decimal if it's a whole number
     final controller = TextEditingController(
       text: currentAmt % 1 == 0
           ? currentAmt.toInt().toString()
           : currentAmt.toString(),
     );
-    final editBaseMacros = FoodLoggingHelper.extractMacros(
-      food['food_description'] as String? ?? '',
-    );
-    final appColor = appColorNotifier.value;
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
 
-    final newAmtStr = await showFrostedDialog<String>(
+    final newAmtStr = await showServingAmountDialog(
       context: context,
-      child: StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          final typedAmt = double.tryParse(controller.text) ?? currentAmt;
-          final scaled = FoodLoggingHelper.scaleFood(
-            editBaseMacros,
-            currentAmt,
-            typedAmt,
-          );
-          final cal = scaled['calories']?.round() ?? 0;
-          final protein = scaled['protein'] ?? 0;
-          final carbs = scaled['carbs'] ?? 0;
-          final fat = scaled['fat'] ?? 0;
-
-          Widget macroChip(String label, double value) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${value.toStringAsFixed(1)}g',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 15),
-                  fontWeight: FontWeight.w700,
-                  color: accent,
-                ),
-              ),
-              Text(
-                label,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 11),
-                  color: dim,
-                ),
-              ),
-            ],
-          );
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                food['food_name'] as String? ?? '',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 18),
-                  fontWeight: FontWeight.w700,
-                  color: accent,
-                ),
-              ),
-              if (food['brand_name'] != null)
-                Text(
-                  food['brand_name'] as String,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(ctx, 12),
-                    color: dim,
-                  ),
-                ),
-              SizedBox(height: Responsive.height(ctx, 16)),
-              Text(
-                '$cal kcal',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(ctx, 28),
-                  fontWeight: FontWeight.w800,
-                  color: accent,
-                  height: 1,
-                ),
-              ),
-              SizedBox(height: Responsive.height(ctx, 8)),
-              Row(
-                children: [
-                  Expanded(child: macroChip('protein', protein)),
-                  Expanded(child: macroChip('carbs', carbs)),
-                  Expanded(child: macroChip('fat', fat)),
-                ],
-              ),
-              SizedBox(height: Responsive.height(ctx, 16)),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [LogFoodScreen.decimalFormatter()],
-                style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(ctx, 20),
-                  fontWeight: FontWeight.w700,
-                ),
-                onChanged: (_) => setDialogState(() {}),
-                decoration: InputDecoration(
-                  labelText: 'Serving size',
-                  labelStyle: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(ctx, 12),
-                  ),
-                  suffixText: unit,
-                  suffixStyle: GoogleFonts.manrope(color: dim),
-                  suffixIcon: calcSuffixIcon(
-                    ctx,
-                    controller,
-                    onSet: () => setDialogState(() {}),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: dim.withAlpha(80)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: accent),
-                  ),
-                ),
-              ),
-              SizedBox(height: Responsive.height(ctx, 20)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.of(ctx, rootNavigator: true).pop(),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(
-                      ctx,
-                      rootNavigator: true,
-                    ).pop(controller.text.trim()),
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
+      food: food,
+      controller: controller,
+      confirmLabel: 'Save',
     );
-    // Defer dispose so the dialog's closing animation can finish before the controller is freed
     WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     // the user cancelled or typed something invalid
     if (newAmtStr == null || newAmtStr.isEmpty) return;
@@ -956,101 +807,61 @@ class _FoodLoggingState extends State<FoodLogging> {
                 ...foods.asMap().entries.map((entry) {
                   final idx = entry.key;
                   final food = entry.value;
-                  return Dismissible(
-                    key: ValueKey("${mealKey}_$idx${food['food_name']}"),
-                    background: Container(
-                      decoration: BoxDecoration(
-                        color: appColorNotifier.value.withAlpha(180),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 16),
-                        ),
-                      ),
-                      alignment: Alignment.centerRight,
-                      padding: EdgeInsets.only(
-                        right: Responsive.width(context, 20),
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedDelete01,
-                        color: Colors.white,
-                        size: Responsive.scale(context, 22),
-                      ),
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: Responsive.height(context, 10),
                     ),
-                    direction: DismissDirection.endToStart,
-                    confirmDismiss: (_) async {
-                      await _deleteFood(mealKey, idx, foods);
-                      return false;
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 10),
+                    child: frostedGlassCard(
+                      context,
+                      baseRadius: 16,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 16),
+                        vertical: Responsive.height(context, 14),
                       ),
-                      child: frostedGlassCard(
-                        context,
-                        baseRadius: 16,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 16),
-                          vertical: Responsive.height(context, 14),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    food['brand_name'] != null
-                                        ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
-                                        : (food['food_name'] ?? ''),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 14),
-                                      color: lightenColor(
-                                        appColorNotifier.value,
-                                        0.45,
-                                      ),
-                                      fontWeight: FontWeight.w600,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  food['brand_name'] != null
+                                      ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
+                                      : (food['food_name'] ?? ''),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 14),
+                                    color: lightenColor(
+                                      appColorNotifier.value,
+                                      0.45,
                                     ),
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 6),
-                                  ),
-                                  _buildMacroText(food),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              // Edit serving size button
-                              icon: HugeIcon(
-                                icon: HugeIcons.strokeRoundedEdit03,
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.45,
                                 ),
-                                size: Responsive.scale(context, 18),
-                              ),
-                              onPressed: () =>
-                                  _editServingSize(mealKey, foods, food),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                                SizedBox(height: Responsive.height(context, 6)),
+                                _buildMacroText(food),
+                              ],
                             ),
-                            SizedBox(width: Responsive.width(context, 5)),
-                            // Delete food button
-                            IconButton(
-                              icon: HugeIcon(
-                                icon: HugeIcons.strokeRoundedDelete02,
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.45,
-                                ),
-                                size: Responsive.scale(context, 18),
-                              ),
-                              onPressed: () => _deleteFood(mealKey, idx, foods),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                          ),
+                          GestureDetector(
+                            onTap: () => _editServingSize(mealKey, foods, food),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedEdit03,
+                              color: lightenColor(appColorNotifier.value, 0.45),
+                              size: Responsive.scale(context, 26),
                             ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 10)),
+                          GestureDetector(
+                            onTap: () => _deleteFood(mealKey, idx, foods),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedDelete02,
+                              color: lightenColor(appColorNotifier.value, 0.45),
+                              size: Responsive.scale(context, 26),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );

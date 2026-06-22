@@ -2145,3 +2145,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Search results and recent match lists separated by divider lines with "End of results" at the bottom
 - Made macros pill show macros even if the value is 0
 - Made the recent foods card have a slide animation
+- Removed swipe-to-delete for foods as it is overly complicated and unneeded
+- Deleted debouncer for api calls as it is now obsolete
+- Combined edit and recent food dialogs into one as they share most of their code

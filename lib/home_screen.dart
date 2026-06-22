@@ -42,6 +42,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _weightController = TextEditingController();
   late VoidCallback _appColorListener;
 
   // 0 = dashboard step, 1 = nav bar step, 2 = settings step, -1 = tour not active
@@ -705,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _showWeightLogSheet() async {
     final isImperial = currentUserData?.units == 'imperial';
     DateTime selectedDate = DateTime.now();
-    final controller = TextEditingController();
+    final controller = _weightController..clear();
     String? feedback;
     String lastFeedback = 'ok';
 
@@ -997,7 +998,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         RegExp(r'^\d{0,3}(\.\d{0,1})?'),
                                       ),
                                     ],
-                                    autofocus: true,
+                                    autofocus: false,
                                     style: GoogleFonts.manrope(
                                       color: onCard,
                                       fontSize: Responsive.font(ctx, 22),
@@ -1347,7 +1348,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         },
       ),
     );
-    controller.dispose();
   }
 
   String _formatNumber(int n) {
@@ -1427,6 +1427,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -2362,27 +2363,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ],
                 ),
                 SizedBox(height: Responsive.height(context, 6)),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: GoogleFonts.manrope(
-                      color: accentColor,
-                      fontSize: Responsive.font(context, 22),
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  value,
+                  style: GoogleFonts.manrope(
+                    color: accentColor,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    subtext,
-                    style: GoogleFonts.manrope(
-                      color: accentColor,
-                      fontSize: Responsive.font(context, 11),
-                    ),
+                Text(
+                  subtext,
+                  style: GoogleFonts.manrope(
+                    color: accentColor,
+                    fontSize: Responsive.font(context, 11),
                   ),
                 ),
                 if (progressBar != null) ...[
@@ -2399,8 +2392,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 actionButton(onAddIcon, onAdd),
-                SizedBox(height: Responsive.height(context, 6)),
-                actionButton(HugeIcons.strokeRoundedAnalyticsUp, onChart),
+                if (onChart != null) ...[
+                  SizedBox(height: Responsive.height(context, 6)),
+                  actionButton(HugeIcons.strokeRoundedAnalyticsUp, onChart),
+                ],
               ],
             ),
           ],
@@ -2414,37 +2409,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final dimColor = lightenColor(appColorNotifier.value, 0.35);
     final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
 
-    Widget macroColumn(String label, int value, int? goal) {
-      return Expanded(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "${value}g",
-              style: GoogleFonts.manrope(
-                color: accentColor,
-                fontSize: Responsive.font(context, 18),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (goal != null)
-              Text(
-                "/${goal}g",
+    Widget macroRow(String label, int value, int? goal) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: "$label: ",
                 style: GoogleFonts.manrope(
                   color: dimColor,
-                  fontSize: Responsive.font(context, 11),
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            SizedBox(height: Responsive.height(context, 2)),
-            Text(
-              label,
-              style: GoogleFonts.manrope(
-                color: accentColor,
-                fontSize: Responsive.font(context, 11),
-                fontWeight: FontWeight.w700,
+              TextSpan(
+                text: "${value}g",
+                style: GoogleFonts.manrope(
+                  color: accentColor,
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-          ],
+              if (goal != null)
+                TextSpan(
+                  text: " /${goal}g",
+                  style: GoogleFonts.manrope(
+                    color: dimColor,
+                    fontSize: Responsive.font(context, 11),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -2478,17 +2475,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
           SizedBox(height: Responsive.height(context, 10)),
-          Row(
-            children: [
-              macroColumn(
-                "protein",
-                macros.protein,
-                currentUserData?.proteinGoal,
-              ),
-              macroColumn("carbs", macros.carbs, currentUserData?.carbsGoal),
-              macroColumn("fat", macros.fat, currentUserData?.fatGoal),
-            ],
-          ),
+          macroRow("protein", macros.protein, currentUserData?.proteinGoal),
+          SizedBox(height: Responsive.height(context, 4)),
+          macroRow("carbs", macros.carbs, currentUserData?.carbsGoal),
+          SizedBox(height: Responsive.height(context, 4)),
+          macroRow("fat", macros.fat, currentUserData?.fatGoal),
         ],
       ),
     );
@@ -2642,12 +2633,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     progressBar: waterProgressBar,
                     showButtons: !isGuest,
                     onAdd: _showWaterLogSheet,
-                    onChart: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Coming soon"),
-                        duration: snackBarDuration,
-                      ),
-                    ),
                   ),
                 ),
               ],
@@ -2715,12 +2700,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     }(),
                     showButtons: !isGuest,
                     onAdd: _showWeightLogSheet,
-                    onChart: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Coming soon"),
-                        duration: snackBarDuration,
-                      ),
-                    ),
                   ),
                 ),
               ],

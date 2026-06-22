@@ -75,7 +75,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
-                date: 'Coming Soon',
+                date: 'June 21, 2026',
                 version: '1.1.4',
                 changes: [
                   'Metric and Imperial unit preferences',

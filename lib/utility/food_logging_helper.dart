@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
@@ -464,6 +465,174 @@ Future<String?> showCalcDialog(
                         ),
                       ),
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+// Shared serving-size dialog used by both the log-food and edit-serving flows.
+Future<String?> showServingAmountDialog({
+  required BuildContext context,
+  required Map<String, dynamic> food,
+  required TextEditingController controller,
+  required String confirmLabel,
+}) {
+  final description = food['food_description'] as String? ?? '';
+  final serving = FoodLoggingHelper.parseServing(description);
+  final baseAmt = serving['amount'] as double;
+  final unit = serving['unit'] as String;
+  final baseMacros = FoodLoggingHelper.extractMacros(description);
+  final appColor = appColorNotifier.value;
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
+
+  Widget macroChip(BuildContext ctx, String label, double value) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        '${value.toStringAsFixed(1)}g',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(ctx, 15),
+          fontWeight: FontWeight.w700,
+          color: accent,
+        ),
+      ),
+      Text(
+        label,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(ctx, 11),
+          color: dim,
+        ),
+      ),
+    ],
+  );
+
+  return showFrostedDialog<String>(
+    context: context,
+    child: StatefulBuilder(
+      builder: (ctx, setDialogState) {
+        final typedAmt = double.tryParse(controller.text) ?? baseAmt;
+        final scaled = FoodLoggingHelper.scaleFood(
+          baseMacros,
+          baseAmt,
+          typedAmt,
+        );
+        final cal = scaled['calories']?.round() ?? 0;
+        final protein = scaled['protein'] ?? 0.0;
+        final carbs = scaled['carbs'] ?? 0.0;
+        final fat = scaled['fat'] ?? 0.0;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              food['food_name'] as String? ?? '',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(ctx, 18),
+                fontWeight: FontWeight.w700,
+                color: accent,
+              ),
+            ),
+            if (food['brand_name'] != null)
+              Text(
+                food['brand_name'] as String,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 12),
+                  color: dim,
+                ),
+              ),
+            SizedBox(height: Responsive.height(ctx, 16)),
+            Text(
+              '$cal kcal',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(ctx, 28),
+                fontWeight: FontWeight.w800,
+                color: accent,
+                height: 1,
+              ),
+            ),
+            SizedBox(height: Responsive.height(ctx, 8)),
+            Row(
+              children: [
+                Expanded(child: macroChip(ctx, 'protein', protein)),
+                Expanded(child: macroChip(ctx, 'carbs', carbs)),
+                Expanded(child: macroChip(ctx, 'fat', fat)),
+              ],
+            ),
+            SizedBox(height: Responsive.height(ctx, 16)),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                TextInputFormatter.withFunction((old, val) {
+                  if (val.text.isEmpty) return val;
+                  return RegExp(r'^\d{0,5}(\.\d{0,2})?$').hasMatch(val.text)
+                      ? val
+                      : old;
+                }),
+              ],
+              style: GoogleFonts.manrope(
+                color: accent,
+                fontSize: Responsive.font(ctx, 20),
+                fontWeight: FontWeight.w700,
+              ),
+              onChanged: (_) => setDialogState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Serving size',
+                labelStyle: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(ctx, 12),
+                ),
+                suffixText: unit,
+                suffixStyle: GoogleFonts.manrope(color: dim),
+                suffixIcon: calcSuffixIcon(
+                  ctx,
+                  controller,
+                  onSet: () => setDialogState(() {}),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: dim.withAlpha(80)),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: accent),
+                ),
+              ),
+            ),
+            SizedBox(height: Responsive.height(ctx, 20)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(
+                    ctx,
+                    rootNavigator: true,
+                  ).pop(controller.text.trim()),
+                  child: Text(
+                    confirmLabel,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ],
