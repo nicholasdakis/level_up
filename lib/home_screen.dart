@@ -2599,7 +2599,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final progressBar = goal > 0
         ? buildProgressBar(progress, overIsRed: true)
-        : null;
+        : Text(
+            "No calorie goal set",
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 10),
+              color: lightenColor(appColorNotifier.value, 0.35),
+            ),
+          );
     final waterProgressBar = waterGoalMl > 0
         ? buildProgressBar(waterProgress, overIsRed: false)
         : null;
