@@ -181,14 +181,19 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                         ),
                         SizedBox(width: Responsive.width(context, 6)),
                       ],
-                      Text(
-                        opt.label,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 14),
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isSelected ? Colors.white : Colors.white54,
+                      Flexible(
+                        child: Text(
+                          opt.label,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected ? Colors.white : Colors.white54,
+                          ),
                         ),
                       ),
                     ],
@@ -361,19 +366,16 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? lightenColor(appColorNotifier.value, 0.3).withAlpha(80)
-                      : Colors.white.withAlpha(12),
+                      ? appColorNotifier.value.withAlpha(200)
+                      : Colors.white.withAlpha(18),
                   borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 30),
+                    Responsive.scale(context, 12),
                   ),
                   border: Border.all(
                     color: isSelected
-                        ? lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180)
-                        : Colors.white.withAlpha(25),
-                    width: 1.5,
+                        ? appColorNotifier.value
+                        : Colors.white.withAlpha(30),
+                    width: 1,
                   ),
                 ),
                 child: Text(
@@ -381,9 +383,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 13),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected
-                        ? lightenColor(appColorNotifier.value, 0.45)
-                        : Colors.white54,
+                    color: isSelected ? Colors.white : Colors.white54,
                   ),
                 ),
               ),
@@ -893,18 +893,39 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   frostedGlassCard(
                     context,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
-                    child: buildPillSelector<String>(
-                      label: "",
-                      selectedValue: activityLevel,
-                      options: [
-                        (value: 'Sedentary', label: 'Sedentary'),
-                        (value: 'Light', label: 'Light'),
-                        (value: 'Moderate', label: 'Moderate'),
-                        (value: 'Active', label: 'Active'),
-                        (value: 'Very Active', label: 'Very Active'),
+                    child: Column(
+                      children: [
+                        buildSegmentedToggle<String>(
+                          label: "",
+                          selectedValue: activityLevel,
+                          options: [
+                            (
+                              value: 'Sedentary',
+                              label: 'Sedentary',
+                              icon: null,
+                            ),
+                            (value: 'Light', label: 'Light', icon: null),
+                            (value: 'Moderate', label: 'Moderate', icon: null),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => activityLevel = value),
+                        ),
+                        SizedBox(height: Responsive.height(context, 8)),
+                        buildSegmentedToggle<String>(
+                          label: "",
+                          selectedValue: activityLevel,
+                          options: [
+                            (value: 'Active', label: 'Active', icon: null),
+                            (
+                              value: 'Very Active',
+                              label: 'Very Active',
+                              icon: null,
+                            ),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => activityLevel = value),
+                        ),
                       ],
-                      onChanged: (value) =>
-                          setState(() => activityLevel = value),
                     ),
                   ),
 
