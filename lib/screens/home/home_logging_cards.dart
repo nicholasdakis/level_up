@@ -181,37 +181,42 @@ class HomeLoggingCards extends StatelessWidget {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "$label  ",
-                  style: GoogleFonts.manrope(
-                    color: dimColor,
-                    fontSize: Responsive.font(context, 11),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextSpan(
-                  text: "${value}g",
-                  style: GoogleFonts.manrope(
-                    color: accentColor,
-                    fontSize: Responsive.font(context, 15),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (goal != null)
-                  TextSpan(
-                    text: " /${goal}g",
-                    style: GoogleFonts.manrope(
-                      color: dimColor,
-                      fontSize: Responsive.font(context, 11),
-                    ),
-                  ),
-              ],
+          // label left
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              color: dimColor,
+              fontSize: Responsive.font(context, 11),
+              fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(width: Responsive.width(context, 6)),
+          // value center
+          Expanded(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: "${value}g",
+                    style: GoogleFonts.manrope(
+                      color: accentColor,
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (goal != null)
+                    TextSpan(
+                      text: " /${goal}g",
+                      style: GoogleFonts.manrope(
+                        color: dimColor,
+                        fontSize: Responsive.font(context, 11),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          // icon right
           HugeIcon(
             icon: icon,
             color: dimColor,

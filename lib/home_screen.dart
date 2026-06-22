@@ -1216,20 +1216,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             SizedBox(height: Responsive.height(context, 20)),
                           ],
 
-                          sectionHeader("LOGGING", context),
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: sectionHeader("LOGGING", context),
+                              ),
+                            ),
+                          ),
                           _maybeAnimate(
-                            isGuest
-                                ? HomeLoggingCards(
-                                    onShowWaterSheet: _showWaterLogSheet,
-                                    onShowWeightSheet: _showWeightLogSheet,
-                                  )
-                                : ListenableBuilder(
-                                    listenable: userDataNotifier,
-                                    builder: (context, _) => HomeLoggingCards(
-                                      onShowWaterSheet: _showWaterLogSheet,
-                                      onShowWeightSheet: _showWeightLogSheet,
-                                    ),
-                                  ),
+                            Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 600,
+                                ),
+                                child: isGuest
+                                    ? HomeLoggingCards(
+                                        onShowWaterSheet: _showWaterLogSheet,
+                                        onShowWeightSheet: _showWeightLogSheet,
+                                      )
+                                    : ListenableBuilder(
+                                        listenable: userDataNotifier,
+                                        builder: (context, _) =>
+                                            HomeLoggingCards(
+                                              onShowWaterSheet:
+                                                  _showWaterLogSheet,
+                                              onShowWeightSheet:
+                                                  _showWeightLogSheet,
+                                            ),
+                                      ),
+                              ),
+                            ),
                             160.ms,
                           ),
                           SizedBox(height: Responsive.height(context, 20)),
