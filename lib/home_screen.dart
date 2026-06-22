@@ -710,6 +710,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     String? feedback;
     String lastFeedback = 'ok';
 
+    // Use latest logged weight as hint base, offset randomly by -2 to +2
+    final weightHint = () {
+      final entries = currentUserData?.weightByDate.entries.toList() ?? [];
+      entries.sort((a, b) => b.key.compareTo(a.key));
+      final latest = entries.isNotEmpty
+          ? (currentUserData!.weightByDate[entries.first.key])
+          : null;
+      if (latest != null) {
+        final hintKg = latest + (Random().nextDouble() * 4 - 2);
+        return isImperial
+            ? "e.g. ${(hintKg * 2.20462).toStringAsFixed(1)}"
+            : "e.g. ${hintKg.toStringAsFixed(1)}";
+      }
+      return isImperial ? "e.g. 154.0" : "e.g. 70.0";
+    }();
+
     String dateKeyFor(DateTime d) =>
         '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
@@ -1005,24 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       fontWeight: FontWeight.w700,
                                     ),
                                     decoration: InputDecoration(
-                                      hintText: () {
-                                        // Use latest logged weight as hint base, offset randomly by -2 to +2
-                                        final latest =
-                                            recentEntries().isNotEmpty
-                                            ? recentEntries().first.value
-                                            : null;
-                                        if (latest != null) {
-                                          final offset =
-                                              (Random().nextDouble() * 4 - 2);
-                                          final hintKg = latest + offset;
-                                          return isImperial
-                                              ? "e.g. ${(hintKg * 2.20462).toStringAsFixed(1)}"
-                                              : "e.g. ${hintKg.toStringAsFixed(1)}";
-                                        }
-                                        return isImperial
-                                            ? "e.g. 154.0"
-                                            : "e.g. 70.0";
-                                      }(),
+                                      hintText: weightHint,
                                       hintStyle: GoogleFonts.manrope(
                                         color: onCardDim,
                                       ),
@@ -2444,7 +2443,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
           SizedBox(width: Responsive.width(context, 6)),
-          HugeIcon(icon: icon, color: dimColor, size: Responsive.scale(context, 13)),
+          HugeIcon(
+            icon: icon,
+            color: dimColor,
+            size: Responsive.scale(context, 13),
+          ),
         ],
       );
     }
@@ -2478,11 +2481,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
           SizedBox(height: Responsive.height(context, 10)),
-          macroRow("P", HugeIcons.strokeRoundedBodyPartMuscle, macros.protein, currentUserData?.proteinGoal),
+          macroRow(
+            "P",
+            HugeIcons.strokeRoundedBodyPartMuscle,
+            macros.protein,
+            currentUserData?.proteinGoal,
+          ),
           SizedBox(height: Responsive.height(context, 3)),
-          macroRow("C", HugeIcons.strokeRoundedFire, macros.carbs, currentUserData?.carbsGoal),
+          macroRow(
+            "C",
+            HugeIcons.strokeRoundedFire,
+            macros.carbs,
+            currentUserData?.carbsGoal,
+          ),
           SizedBox(height: Responsive.height(context, 3)),
-          macroRow("F", HugeIcons.strokeRoundedDroplet, macros.fat, currentUserData?.fatGoal),
+          macroRow(
+            "F",
+            HugeIcons.strokeRoundedDroplet,
+            macros.fat,
+            currentUserData?.fatGoal,
+          ),
         ],
       ),
     );

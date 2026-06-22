@@ -2150,3 +2150,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Combined edit and recent food dialogs into one as they share most of their code
 - Added a "No results" snackbar
 - Removed the Log Screen UI dashboard and simply replaced it with the dialog
+- Moved the weight hint text so it does not recompute every time the modal is moved
