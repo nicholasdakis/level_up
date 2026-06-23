@@ -230,10 +230,10 @@ class HomeLoggingCards extends StatelessWidget {
       context,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 14),
+        vertical: Responsive.height(context, 10),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -254,21 +254,21 @@ class HomeLoggingCards extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: Responsive.height(context, 10)),
+          SizedBox(height: Responsive.height(context, 6)),
           macroRow(
             "P",
             HugeIcons.strokeRoundedBodyPartMuscle,
             macros.protein,
             currentUserData?.proteinGoal,
           ),
-          SizedBox(height: Responsive.height(context, 3)),
+          SizedBox(height: Responsive.height(context, 2)),
           macroRow(
             "C",
             HugeIcons.strokeRoundedFire,
             macros.carbs,
             currentUserData?.carbsGoal,
           ),
-          SizedBox(height: Responsive.height(context, 3)),
+          SizedBox(height: Responsive.height(context, 2)),
           macroRow(
             "F",
             HugeIcons.strokeRoundedDroplet,
