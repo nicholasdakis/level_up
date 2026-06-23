@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -317,6 +318,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
             ? "Login successful"
             : "Registration successful",
       );
+      context.go('/loading');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       // invalid-credential also covers accounts originally made with Google sign in
