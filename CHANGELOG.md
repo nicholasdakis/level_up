@@ -2164,3 +2164,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-23
 - Fixed a bug where logging in with email would show the success message but not take the user into the app until they refreshed
 - Readded the weight analytics button which leads to a new WeightsAnalytics class
+- Fixed an overflow error in the macros card skeletonizer
+- Extracted the range picker into a new analytics_components file
+- Moved the range hint text directly into the range picker card
+- Made it so the range picker UI collapses into a "Tap to change range" button when a date is selected
+- Made food analytics range default to showing the past 7 days of data

@@ -5,10 +5,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:table_calendar/table_calendar.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/food_logging_helper.dart';
+import 'analytics_components.dart';
 
 // initialDate opens the screen on the same date the user was viewing in Food Logging
 // onDateChanged is optional so Food Logging can stay in sync when dates are changed here
@@ -41,10 +41,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   int _animationKey = 0;
 
   // Range tab state
-  // null until the user picks dates so the calendar shows no highlight initially
-  DateTime? _rangeStart;
-  DateTime? _rangeEnd;
-  bool _rangeSelected = false;
+  DateTime? _rangeStart = DateTime.now().subtract(const Duration(days: 6));
+  DateTime? _rangeEnd = DateTime.now();
+  bool _rangeSelected = true;
   DateTime _calendarFocused = DateTime.now();
 
   // same key trick as _animationKey but for the range tab charts
@@ -625,145 +624,38 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            frostedGlassCard(
-              context,
-              padding: EdgeInsets.all(Responsive.scale(context, 12)),
-              child: TableCalendar(
-                firstDay: DateTime(2020),
-                lastDay: DateTime.now(),
-                focusedDay: _calendarFocused,
-                rangeStartDay: _rangeStart,
-                rangeEndDay: _rangeSelected ? _rangeEnd : null,
-                rangeSelectionMode: RangeSelectionMode.toggledOn,
-                // AvailableGestures.none disables the built-in gesture recognizers so mouse clicks register correctly
-                availableGestures: AvailableGestures.none,
-                onRangeSelected: (start, end, focused) {
-                  setState(() {
-                    _calendarFocused = focused;
-                    if (start != null) _rangeStart = start;
-                    if (end != null) {
-                      // both dates picked, show the charts
-                      _rangeEnd = end;
-                      _rangeSelected = true;
-                      _rangeAnimationKey++; // increment to re-trigger the animation
-                    } else {
-                      // end is null on the first tap, user picked a start but not an end yet
-                      _rangeSelected = false;
-                    }
-                  });
-                },
-                onPageChanged: (focused) {
-                  setState(() => _calendarFocused = focused);
-                },
-                calendarStyle: CalendarStyle(
-                  outsideDaysVisible: false,
-                  todayDecoration: const BoxDecoration(),
-                  rangeStartDecoration: BoxDecoration(
-                    color: appColorNotifier.value,
-                    shape: BoxShape.circle,
-                  ),
-                  rangeEndDecoration: BoxDecoration(
-                    color: appColorNotifier.value,
-                    shape: BoxShape.circle,
-                  ),
-                  withinRangeDecoration: const BoxDecoration(
-                    color: Colors.transparent,
-                  ),
-                  rangeHighlightColor: Colors.white.withAlpha(25),
-                  defaultTextStyle: GoogleFonts.manrope(
-                    color: Colors.white70,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                  weekendTextStyle: GoogleFonts.manrope(
-                    color: Colors.white70,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                  todayTextStyle: GoogleFonts.manrope(
-                    color: Colors.white70,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                  rangeStartTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w700,
-                  ),
-                  rangeEndTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w700,
-                  ),
-                  withinRangeTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                  outsideTextStyle: GoogleFonts.manrope(
-                    color: Colors.white24,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                  disabledTextStyle: GoogleFonts.manrope(
-                    color: Colors.white24,
-                    fontSize: Responsive.font(context, 13),
-                  ),
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(context, 14),
-                    fontWeight: FontWeight.w700,
-                  ),
-                  leftChevronIcon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    color: Colors.white70,
-                    size: Responsive.font(context, 22),
-                  ),
-                  rightChevronIcon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: Colors.white70,
-                    size: Responsive.font(context, 22),
-                  ),
-                ),
-                daysOfWeekStyle: DaysOfWeekStyle(
-                  weekdayStyle: GoogleFonts.manrope(
-                    color: Colors.white38,
-                    fontSize: Responsive.font(context, 12),
-                    fontWeight: FontWeight.w600,
-                  ),
-                  weekendStyle: GoogleFonts.manrope(
-                    color: Colors.white38,
-                    fontSize: Responsive.font(context, 12),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            RangePickerCard(
+              rangeStart: _rangeStart,
+              rangeEnd: _rangeEnd,
+              rangeSelected: _rangeSelected,
+              calendarFocused: _calendarFocused,
+              rangeLabel: "nutrition trends",
+              onRangeSelected: (start, end, focused) {
+                setState(() {
+                  _calendarFocused = focused;
+                  if (start != null) _rangeStart = start;
+                  if (end != null) {
+                    // both dates picked, show the charts
+                    _rangeEnd = end;
+                    _rangeSelected = true;
+                    _rangeAnimationKey++; // increment to re-trigger the animation
+                  } else {
+                    // end is null on the first tap, user picked a start but not an end yet
+                    _rangeSelected = false;
+                  }
+                });
+              },
+              onPageChanged: (focused) {
+                setState(() => _calendarFocused = focused);
+              },
+              onClearRange: () {
+                setState(() {
+                  _rangeStart = null;
+                  _rangeEnd = null;
+                  _rangeSelected = false;
+                });
+              },
             ),
-
-            if (!_rangeSelected) ...[
-              SizedBox(height: Responsive.height(context, 32)),
-              Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedCursor01,
-                      color: Colors.white24,
-                      size: Responsive.font(context, 28),
-                    ),
-                    SizedBox(height: Responsive.height(context, 10)),
-                    Text(
-                      "Pick a start date, then an end date to view your nutrition trends",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
 
             if (_rangeSelected) ...[
               SizedBox(height: Responsive.height(context, 24)),
