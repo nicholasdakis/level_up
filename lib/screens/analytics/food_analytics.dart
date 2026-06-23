@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../globals.dart';
-import '../utility/responsive.dart';
-import '../utility/food_logging_helper.dart';
+import '../../globals.dart';
+import '../../utility/responsive.dart';
+import '../../utility/food_logging_helper.dart';
 
 // initialDate opens the screen on the same date the user was viewing in Food Logging
 // onDateChanged is optional so Food Logging can stay in sync when dates are changed here

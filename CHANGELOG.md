@@ -2163,3 +2163,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-23
 - Fixed a bug where logging in with email would show the success message but not take the user into the app until they refreshed
+- Readded the weight analytics button which leads to a new WeightsAnalytics class

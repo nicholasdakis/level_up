@@ -512,6 +512,7 @@ class HomeLoggingCards extends StatelessWidget {
                     }(),
                     showButtons: !isGuest,
                     onAdd: onShowWeightSheet,
+                    onChart: () => context.push('/weight/analytics'),
                   ),
                 ),
               ],
