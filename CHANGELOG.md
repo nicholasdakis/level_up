@@ -2057,6 +2057,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added water_logs and weight_logs tables to the database
 - Added /upsert_water_log and /upsert_weight_log endpoints with accompanying schemas, service, and repository methods
 - Added waterEntriesByDate and weightByDate fields to UserData, mapped from the /user_data response
+
 - Added updateWaterLog() and updateWeightLog() methods in user_data_manager.dart with optimistic UI updates and rollback on failure
 - Replaced the STREAKS & STATS section on the home dashboard with a LOGGING section containing a 2x2 grid: Calories Today, Logs Today, Water, and Weight
 - Moved Calories Today and Logs Today into the LOGGING section and moved Streaks below TOOLS
@@ -2169,3 +2170,23 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the range hint text directly into the range picker card
 - Made it so the range picker UI collapses into a "Tap to change range" button when a date is selected
 - Made food analytics range default to showing the past 7 days of data
+- Built weight analytics screen with a curved line chart with dot markers, dashed goal line, y-axis values, and tooltips on tap
+- Weight analytics quick-select chips (1W/2W/1M/3M/All) fill the full row width and default to 1W on open
+- Weight analytics shows Start, Current, and Change stat tiles below the chart
+- Weight analytics all-entries section has an inline add row (weight input + date picker) and tap-to-confirm delete, constrained height with internal scroll
+- Weight analytics range picker auto-collapses to show selected range on open
+- food_analytics.dart and weight_analytics.dart moved into a new screens/analytics/ folder alongside analytics_components.dart
+- Added GRAPH, INFO, and ALL ENTRIES section headers to weight analytics
+- Added SUMMARY section header to food analytics range tab
+- Moved avg/logged day out of summary stat tiles and into a subtitle line inside each chart card
+- Replaced food analytics range bar charts with line charts showing per-day trends over the selected range
+- Added a MEAL BREAKDOWN line chart to food analytics range tab showing per-meal calorie lines (Breakfast, Lunch, Dinner, Snacks)
+- Food analytics now has three graph sections: CALORIE GRAPH, MEAL BREAKDOWN, and MACRO GRAPH
+- Added CALORIE SUMMARY and MACRO SUMMARY section cards below each graph with clean text rows showing totals and per-meal breakdown
+- Daily view summary card redesigned to show total calories, per-meal text rows, and macro totals in one clean card
+- Added focus filter chips (All/Breakfast/Lunch/Dinner/Snacks) to meal breakdown chart and (All/Protein/Carbs/Fat) to macro chart
+- Chart heights increased on desktop for better readability
+- Avg/day moved out of the calorie summary header and into a dedicated row below the meal list with a divider
+- Added macro data per meal type on the Log Food screen and in the Food Analytics cards
+- Added per-meal macro breakdown display to Food Logging page showing protein, carbs, and fat for each meal section
+- Added per-meal macro breakdown to the Food Analytics daily summary card

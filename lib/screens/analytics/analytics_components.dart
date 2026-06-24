@@ -139,7 +139,7 @@ class _RangePickerCardState extends State<RangePickerCard> {
             // calendar and hint, animated in/out
             ClipRect(
               child: AnimatedSize(
-                duration: const Duration(milliseconds: 600),
+                duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
                 child: _collapsed
                     ? const SizedBox.shrink()
@@ -267,4 +267,25 @@ class _RangePickerCardState extends State<RangePickerCard> {
       ),
     );
   }
+}
+
+Widget legendDot(BuildContext context, String label, Color color, Color dim) {
+  return Row(
+    children: [
+      Container(
+        width: Responsive.scale(context, 8),
+        height: Responsive.scale(context, 8),
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      SizedBox(width: Responsive.width(context, 4)),
+      Text(
+        label,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 11),
+          color: dim,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  );
 }

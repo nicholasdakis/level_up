@@ -120,6 +120,20 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     return {'protein': protein, 'carbs': carbs, 'fat': fat};
   }
 
+  // Same as _totalMacros but scoped to a single meal list
+  Map<String, double> _mealMacros(List<Map<String, dynamic>> foods) {
+    double protein = 0, carbs = 0, fat = 0;
+    for (var food in foods) {
+      final m = FoodLoggingHelper.extractMacros(
+        food['food_description'] as String? ?? '',
+      );
+      protein += m['protein'] ?? 0;
+      carbs += m['carbs'] ?? 0;
+      fat += m['fat'] ?? 0;
+    }
+    return {'protein': protein, 'carbs': carbs, 'fat': fat};
+  }
+
   // Goes through all days and sums the calories and macros
   // daysWithData is returned to compute averages without using empty days
   _RangeAggregate _aggregateRange(DateTime start, DateTime end) {
@@ -127,6 +141,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     double totalCal = 0;
     double protein = 0, carbs = 0, fat = 0;
     double breakfastCal = 0, lunchCal = 0, dinnerCal = 0, snacksCal = 0;
+    double bP = 0, bC = 0, bF = 0;
+    double lP = 0, lC = 0, lF = 0;
+    double dP = 0, dC = 0, dF = 0;
+    double sP = 0, sC = 0, sF = 0;
     int daysWithData = 0;
 
     DateTime day = DateTime(start.year, start.month, start.day);
@@ -156,18 +174,42 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
         for (var food in breakfast) {
           breakfastCal += (num.tryParse(food['calories'].toString()) ?? 0)
               .toDouble();
+          final m = FoodLoggingHelper.extractMacros(
+            food['food_description'] as String? ?? '',
+          );
+          bP += m['protein'] ?? 0;
+          bC += m['carbs'] ?? 0;
+          bF += m['fat'] ?? 0;
         }
         for (var food in lunch) {
           lunchCal += (num.tryParse(food['calories'].toString()) ?? 0)
               .toDouble();
+          final m = FoodLoggingHelper.extractMacros(
+            food['food_description'] as String? ?? '',
+          );
+          lP += m['protein'] ?? 0;
+          lC += m['carbs'] ?? 0;
+          lF += m['fat'] ?? 0;
         }
         for (var food in dinner) {
           dinnerCal += (num.tryParse(food['calories'].toString()) ?? 0)
               .toDouble();
+          final m = FoodLoggingHelper.extractMacros(
+            food['food_description'] as String? ?? '',
+          );
+          dP += m['protein'] ?? 0;
+          dC += m['carbs'] ?? 0;
+          dF += m['fat'] ?? 0;
         }
         for (var food in snacks) {
           snacksCal += (num.tryParse(food['calories'].toString()) ?? 0)
               .toDouble();
+          final m = FoodLoggingHelper.extractMacros(
+            food['food_description'] as String? ?? '',
+          );
+          sP += m['protein'] ?? 0;
+          sC += m['carbs'] ?? 0;
+          sF += m['fat'] ?? 0;
         }
         totalCal += dayCal;
 
@@ -193,7 +235,266 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
       carbs: carbs,
       fat: fat,
       daysWithData: daysWithData,
+      breakfastProtein: bP,
+      breakfastCarbs: bC,
+      breakfastFat: bF,
+      lunchProtein: lP,
+      lunchCarbs: lC,
+      lunchFat: lF,
+      dinnerProtein: dP,
+      dinnerCarbs: dC,
+      dinnerFat: dF,
+      snacksProtein: sP,
+      snacksCarbs: sC,
+      snacksFat: sF,
     );
+  }
+
+  // Returns per-day calorie and macro data for the line charts
+  List<_DayPoint> _dailyPoints(DateTime start, DateTime end) {
+    final foodDataByDate = currentUserData?.foodDataByDate ?? {};
+    final points = <_DayPoint>[];
+    DateTime day = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
+    while (!day.isAfter(endDay)) {
+      final key = FoodLoggingHelper.formatDateKey(day);
+      final dayData = foodDataByDate[key];
+      if (dayData != null) {
+        final allFoods = [
+          ...FoodLoggingHelper.castFoodList(dayData['breakfast']),
+          ...FoodLoggingHelper.castFoodList(dayData['lunch']),
+          ...FoodLoggingHelper.castFoodList(dayData['dinner']),
+          ...FoodLoggingHelper.castFoodList(dayData['snacks']),
+        ];
+        if (allFoods.isNotEmpty) {
+          double cal = 0, protein = 0, carbs = 0, fat = 0;
+          double bCal = 0, lCal = 0, dCal = 0, sCal = 0;
+          double sumMeal(List<Map<String, dynamic>> foods) => foods.fold(
+            0.0,
+            (s, f) =>
+                s + (num.tryParse(f['calories'].toString()) ?? 0).toDouble(),
+          );
+          bCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['breakfast']));
+          lCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['lunch']));
+          dCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['dinner']));
+          sCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['snacks']));
+          for (var food in allFoods) {
+            cal += (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+            final macros = FoodLoggingHelper.extractMacros(
+              food['food_description'] as String? ?? '',
+            );
+            protein += macros['protein'] ?? 0;
+            carbs += macros['carbs'] ?? 0;
+            fat += macros['fat'] ?? 0;
+          }
+          points.add(
+            _DayPoint(
+              date: day,
+              cal: cal,
+              breakfastCal: bCal,
+              lunchCal: lCal,
+              dinnerCal: dCal,
+              snacksCal: sCal,
+              protein: protein,
+              carbs: carbs,
+              fat: fat,
+            ),
+          );
+        }
+      }
+      day = day.add(const Duration(days: 1));
+    }
+    return points;
+  }
+
+  Widget _calorieLineChart(BuildContext context, List<_DayPoint> points) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+
+    if (points.isEmpty) {
+      return frostedGlassCard(
+        context,
+        padding: EdgeInsets.all(Responsive.scale(context, 20)),
+        child: _emptyState(context, "No calories logged in this range"),
+      );
+    }
+
+    final spots = [
+      for (int i = 0; i < points.length; i++)
+        FlSpot(i.toDouble(), points[i].cal),
+    ];
+    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.fromLTRB(
+        Responsive.scale(context, 4),
+        Responsive.scale(context, 48),
+        Responsive.scale(context, 12),
+        Responsive.scale(context, 8),
+      ),
+      child: SizedBox(
+        height: Responsive.isDesktop(context)
+            ? 420
+            : Responsive.height(context, 200),
+        child: LineChart(
+          LineChartData(
+            clipData: const FlClipData.none(),
+            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            minY: 0,
+            maxY: maxY * 1.2,
+            lineTouchData: LineTouchData(
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (_) =>
+                    darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                getTooltipItems: (touched) => touched.map((s) {
+                  final p = points[s.spotIndex];
+                  final months = [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
+                  ];
+                  final label = '${months[p.date.month - 1]} ${p.date.day}';
+                  return LineTooltipItem(
+                    '$label\n',
+                    GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 11),
+                      color: dim,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: '${_fmtCal(p.cal)} kcal',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 13),
+                          color: accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: Responsive.width(context, 44),
+                  getTitlesWidget: (val, info) {
+                    if (val == info.min || val == info.max) {
+                      return const SizedBox.shrink();
+                    }
+                    return SideTitleWidget(
+                      meta: info,
+                      child: Text(
+                        _fmtCal(val),
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 9),
+                          color: dim,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: points.length <= 10,
+                  reservedSize: Responsive.height(context, 28),
+                  interval: points.length <= 5 ? 1 : 2,
+                  getTitlesWidget: (val, info) {
+                    final i = val.toInt();
+                    if (i < 0 || i >= points.length) {
+                      return const SizedBox.shrink();
+                    }
+                    final d = points[i].date;
+                    return SideTitleWidget(
+                      meta: info,
+                      fitInside: SideTitleFitInsideData.fromTitleMeta(info),
+                      child: Text(
+                        '${d.month}/${d.day}',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 9),
+                          color: dim,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                curveSmoothness: 0.35,
+                color: accent,
+                barWidth: 2.5,
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
+                    radius: Responsive.scale(context, 3.5),
+                    color: accent,
+                    strokeWidth: 1.5,
+                    strokeColor: darkenColor(
+                      appColorNotifier.value,
+                      0.05,
+                    ).withAlpha(180),
+                  ),
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [accent.withAlpha(50), accent.withAlpha(0)],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _mealLineChart(BuildContext context, List<_DayPoint> points) {
+    if (points.isEmpty) {
+      return frostedGlassCard(
+        context,
+        padding: EdgeInsets.all(Responsive.scale(context, 20)),
+        child: _emptyState(context, "No meal data in this range"),
+      );
+    }
+    return _MealLineChart(points: points);
+  }
+
+  Widget _macroLineChart(BuildContext context, List<_DayPoint> points) {
+    if (points.isEmpty) {
+      return frostedGlassCard(
+        context,
+        padding: EdgeInsets.all(Responsive.scale(context, 20)),
+        child: _emptyState(context, "No macro data in this range"),
+      );
+    }
+    return _MacroLineChart(points: points);
   }
 
   // Bar chart showing calorie breakdown by meal
@@ -235,7 +536,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     }
 
     return SizedBox(
-      height: Responsive.height(context, 220),
+      height: Responsive.isDesktop(context)
+          ? 420
+          : Responsive.height(context, 220),
       child: BarChart(
         BarChartData(
           maxY: maxVal == 0 ? 1 : maxVal * 1.15,
@@ -272,7 +575,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                         Text(
                           "$pct%",
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 10),
+                            fontSize: Responsive.font(context, 12),
                             fontWeight: FontWeight.w700,
                             color: lightenColor(appColorNotifier.value, 0.45),
                           ),
@@ -280,7 +583,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                         Text(
                           "${v.round()} kcal",
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 10),
+                            fontSize: Responsive.font(context, 12),
                             fontWeight: FontWeight.w700,
                             color: lightenColor(appColorNotifier.value, 0.45),
                           ),
@@ -307,7 +610,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     child: Text(
                       labels[i],
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 10),
+                        fontSize: Responsive.font(context, 12),
                         fontWeight: FontWeight.w600,
                         color: Colors.white54,
                       ),
@@ -360,7 +663,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     }
 
     return SizedBox(
-      height: Responsive.height(context, 220),
+      height: Responsive.isDesktop(context)
+          ? 420
+          : Responsive.height(context, 220),
       child: BarChart(
         BarChartData(
           maxY: maxVal == 0 ? 1 : maxVal * 1.15,
@@ -432,7 +737,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     child: Text(
                       labels[i],
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 10),
+                        fontSize: Responsive.font(context, 12),
                         fontWeight: FontWeight.w600,
                         color: Colors.white54,
                       ),
@@ -473,6 +778,11 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     final totalCal = breakfastCal + lunchCal + dinnerCal + snacksCal;
 
     final macros = _totalMacros();
+    // Per-meal macro breakdowns shown in the daily summary card under each meal's calorie line
+    final breakfastMacros = _mealMacros(breakfastFoods);
+    final lunchMacros = _mealMacros(lunchFoods);
+    final dinnerMacros = _mealMacros(dinnerFoods);
+    final snacksMacros = _mealMacros(snacksFoods);
     // Protein and carbs are 4 kcal/g, fat is 9 kcal/g
     // These convert grams to calories so the macro bar reflects its actual contribution
     final proteinCal = macros['protein']! * 4;
@@ -529,15 +839,13 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
               // Pill-style tab bar sitting on the gradient
               Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 12),
+                  horizontal: Responsive.centeredHorizontalPadding(context, 12),
                   vertical: Responsive.height(context, 8),
                 ),
                 child: TabBar(
                   controller: _tabController,
-                  isScrollable: Responsive.isDesktop(context),
-                  tabAlignment: Responsive.isDesktop(context)
-                      ? TabAlignment.center
-                      : TabAlignment.fill,
+                  isScrollable: false,
+                  tabAlignment: TabAlignment.fill,
                   labelPadding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 16),
                   ),
@@ -594,6 +902,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                       dinnerCal: dinnerCal,
                       snacksCal: snacksCal,
                       macros: macros,
+                      breakfastMacros: breakfastMacros,
+                      lunchMacros: lunchMacros,
+                      dinnerMacros: dinnerMacros,
+                      snacksMacros: snacksMacros,
                       totalMacroCal: totalMacroCal,
                       currentDate: currentDate,
                       onDateChanged: _changeDate,
@@ -677,17 +989,16 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     );
                   }
 
-                  final totalMacroCal =
-                      agg.protein * 4 + agg.carbs * 4 + agg.fat * 9;
+                  final points = _dailyPoints(_rangeStart!, _rangeEnd!);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // stat tiles show the range total with an avg/logged day line underneath
-                      _rangeStatTilesRow(context: context, agg: agg)
+                      // CALORIE GRAPH
+                      sectionHeader("CALORIE GRAPH", context)
                           .animate(
                             key: ValueKey((
-                              'range_stat_tiles',
+                              'range_cal_graph_title',
                               _rangeAnimationKey,
                             )),
                           )
@@ -697,43 +1008,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),
-
-                      SizedBox(height: Responsive.height(context, 24)),
-
-                      sectionHeader("CALORIE BREAKDOWN", context)
+                      _calorieLineChart(context, points)
                           .animate(
                             key: ValueKey((
-                              'range_calories_title',
-                              _rangeAnimationKey,
-                            )),
-                          )
-                          .fadeIn(duration: 300.ms)
-                          .slideY(
-                            begin: 0.08,
-                            duration: 300.ms,
-                            curve: Curves.easeOut,
-                          ),
-                      frostedGlassCard(
-                            context,
-                            padding: EdgeInsets.all(
-                              Responsive.scale(context, 20),
-                            ),
-                            child: agg.totalCal == 0
-                                ? _emptyState(
-                                    context,
-                                    "No calories logged in this range",
-                                  )
-                                : _mealBarChart(
-                                    context,
-                                    breakfastCal: agg.breakfastCal,
-                                    lunchCal: agg.lunchCal,
-                                    dinnerCal: agg.dinnerCal,
-                                    snacksCal: agg.snacksCal,
-                                  ),
-                          )
-                          .animate(
-                            key: ValueKey((
-                              'range_calories_chart',
+                              'range_cal_graph',
                               _rangeAnimationKey,
                             )),
                           )
@@ -747,10 +1025,43 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
 
                       SizedBox(height: Responsive.height(context, 24)),
 
-                      sectionHeader("MACRO BREAKDOWN", context)
+                      // MEAL BREAKDOWN GRAPH
+                      sectionHeader("MEAL BREAKDOWN", context)
                           .animate(
                             key: ValueKey((
-                              'range_macros_title',
+                              'range_meal_graph_title',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 75.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 75.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+                      _mealLineChart(context, points)
+                          .animate(
+                            key: ValueKey((
+                              'range_meal_graph',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 100.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 100.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+
+                      SizedBox(height: Responsive.height(context, 24)),
+
+                      // MACRO GRAPH
+                      sectionHeader("MACRO GRAPH", context)
+                          .animate(
+                            key: ValueKey((
+                              'range_mac_graph_title',
                               _rangeAnimationKey,
                             )),
                           )
@@ -761,26 +1072,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),
-                      frostedGlassCard(
-                            context,
-                            padding: EdgeInsets.all(
-                              Responsive.scale(context, 20),
-                            ),
-                            child: totalMacroCal == 0
-                                ? _emptyState(
-                                    context,
-                                    "No macro data for this range",
-                                  )
-                                : _macroBarChart(
-                                    context,
-                                    proteinG: agg.protein,
-                                    carbsG: agg.carbs,
-                                    fatG: agg.fat,
-                                  ),
-                          )
+                      _macroLineChart(context, points)
                           .animate(
                             key: ValueKey((
-                              'range_macros_chart',
+                              'range_mac_graph',
                               _rangeAnimationKey,
                             )),
                           )
@@ -788,6 +1083,70 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           .slideY(
                             begin: 0.08,
                             delay: 200.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+
+                      SizedBox(height: Responsive.height(context, 24)),
+
+                      // CALORIE SUMMARY
+                      sectionHeader("CALORIE SUMMARY", context)
+                          .animate(
+                            key: ValueKey((
+                              'range_cal_sum_title',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 250.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 250.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+                      _calorieSummaryCard(context, agg)
+                          .animate(
+                            key: ValueKey((
+                              'range_cal_sum',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 300.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 300.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+
+                      SizedBox(height: Responsive.height(context, 24)),
+
+                      // MACRO SUMMARY
+                      sectionHeader("MACRO SUMMARY", context)
+                          .animate(
+                            key: ValueKey((
+                              'range_mac_sum_title',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 350.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 350.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+                      _macroSummaryCard(context, agg)
+                          .animate(
+                            key: ValueKey((
+                              'range_mac_sum',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 400.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 400.ms,
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),
@@ -803,6 +1162,499 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   }
 }
 
+class _MealLineChart extends StatefulWidget {
+  final List<_DayPoint> points;
+  const _MealLineChart({required this.points});
+
+  @override
+  State<_MealLineChart> createState() => _MealLineChartState();
+}
+
+class _MealLineChartState extends State<_MealLineChart> {
+  // null = all meals shown
+  int? _focus;
+
+  static const _names = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final points = widget.points;
+
+    final allSpots = [
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].breakfastCal),
+      ],
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].lunchCal),
+      ],
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].dinnerCal),
+      ],
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].snacksCal),
+      ],
+    ];
+    final colors = [
+      accent,
+      accent.withAlpha(200),
+      accent.withAlpha(130),
+      accent.withAlpha(70),
+    ];
+
+    final visibleSpots = _focus != null ? [allSpots[_focus!]] : allSpots;
+    final visibleColors = _focus != null ? [colors[_focus!]] : colors;
+    final allY = visibleSpots.expand((s) => s).map((s) => s.y).toList();
+    final maxY = allY.isEmpty ? 1.0 : allY.reduce((a, b) => a > b ? a : b);
+
+    LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.35,
+      color: color,
+      barWidth: 2,
+      dotData: FlDotData(
+        show: true,
+        getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
+          radius: Responsive.scale(context, 3),
+          color: color,
+          strokeWidth: 1,
+          strokeColor: darkenColor(appColorNotifier.value, 0.05).withAlpha(180),
+        ),
+      ),
+    );
+
+    Widget focusChip(String label, int? index) {
+      final selected = _focus == index;
+      final chipColor = index != null ? colors[index] : accent;
+      return GestureDetector(
+        onTap: () => setState(() => _focus = selected ? null : index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 10),
+            vertical: Responsive.height(context, 5),
+          ),
+          decoration: BoxDecoration(
+            color: selected ? chipColor.withAlpha(50) : chipColor.withAlpha(15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? chipColor.withAlpha(140)
+                  : chipColor.withAlpha(30),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 11),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? chipColor : dim,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.fromLTRB(
+        Responsive.scale(context, 4),
+        Responsive.scale(context, 48),
+        Responsive.scale(context, 12),
+        Responsive.scale(context, 12),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: Responsive.height(context, 200),
+            child: LineChart(
+              LineChartData(
+                clipData: const FlClipData.none(),
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                minY: 0,
+                maxY: maxY * 1.2,
+                lineTouchData: LineTouchData(
+                  touchSpotThreshold: 20,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) =>
+                        darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                    getTooltipItems: (touched) {
+                      final closest = touched.reduce(
+                        (a, b) => a.y > b.y ? a : b,
+                      );
+                      return touched.map((s) {
+                        if (s != closest) return null;
+                        final p = points[s.spotIndex];
+                        const months = [
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec',
+                        ];
+                        final label =
+                            '${months[p.date.month - 1]} ${p.date.day}';
+                        final barIdx = _focus ?? s.barIndex;
+                        return LineTooltipItem(
+                          '$label\n',
+                          GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: dim,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '${_names[barIdx]}: ${_fmtCal(s.y)} kcal',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: colors[barIdx],
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: Responsive.width(context, 44),
+                      getTitlesWidget: (val, info) {
+                        if (val == info.min || val == info.max) {
+                          return const SizedBox.shrink();
+                        }
+                        return SideTitleWidget(
+                          meta: info,
+                          child: Text(
+                            _fmtCal(val),
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 9),
+                              color: dim,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: points.length <= 10,
+                      reservedSize: Responsive.height(context, 28),
+                      interval: points.length <= 5 ? 1 : 2,
+                      getTitlesWidget: (val, info) {
+                        final i = val.toInt();
+                        if (i < 0 || i >= points.length) {
+                          return const SizedBox.shrink();
+                        }
+                        final d = points[i].date;
+                        return SideTitleWidget(
+                          meta: info,
+                          fitInside: SideTitleFitInsideData.fromTitleMeta(info),
+                          child: Text(
+                            '${d.month}/${d.day}',
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 9),
+                              color: dim,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  for (int i = 0; i < visibleSpots.length; i++)
+                    line(visibleSpots[i], visibleColors[i]),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              focusChip('All', null),
+              SizedBox(width: Responsive.width(context, 8)),
+              for (int i = 0; i < _names.length; i++) ...[
+                focusChip(_names[i], i),
+                if (i < _names.length - 1)
+                  SizedBox(width: Responsive.width(context, 8)),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MacroLineChart extends StatefulWidget {
+  final List<_DayPoint> points;
+  const _MacroLineChart({required this.points});
+
+  @override
+  State<_MacroLineChart> createState() => _MacroLineChartState();
+}
+
+class _MacroLineChartState extends State<_MacroLineChart> {
+  // null = all macros shown
+  int? _focus;
+
+  static const _names = ['Protein', 'Carbs', 'Fat'];
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final points = widget.points;
+
+    final allSpots = [
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].protein),
+      ],
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].carbs),
+      ],
+      [
+        for (int i = 0; i < points.length; i++)
+          FlSpot(i.toDouble(), points[i].fat),
+      ],
+    ];
+    final colors = [accent, accent.withAlpha(160), accent.withAlpha(90)];
+
+    final visibleSpots = _focus != null ? [allSpots[_focus!]] : allSpots;
+    final visibleColors = _focus != null ? [colors[_focus!]] : colors;
+    final allY = visibleSpots.expand((s) => s).map((s) => s.y).toList();
+    final maxY = allY.isEmpty ? 1.0 : allY.reduce((a, b) => a > b ? a : b);
+
+    LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
+      spots: spots,
+      isCurved: true,
+      curveSmoothness: 0.35,
+      color: color,
+      barWidth: 2,
+      dotData: FlDotData(
+        show: true,
+        getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
+          radius: Responsive.scale(context, 3),
+          color: color,
+          strokeWidth: 1,
+          strokeColor: darkenColor(appColorNotifier.value, 0.05).withAlpha(180),
+        ),
+      ),
+    );
+
+    Widget focusChip(String label, int? index) {
+      final selected = _focus == index;
+      final chipColor = index != null ? colors[index] : accent;
+      return GestureDetector(
+        onTap: () => setState(() => _focus = selected ? null : index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 10),
+            vertical: Responsive.height(context, 5),
+          ),
+          decoration: BoxDecoration(
+            color: selected ? chipColor.withAlpha(50) : chipColor.withAlpha(15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? chipColor.withAlpha(140)
+                  : chipColor.withAlpha(30),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 11),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? chipColor : dim,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.fromLTRB(
+        Responsive.scale(context, 4),
+        Responsive.scale(context, 48),
+        Responsive.scale(context, 12),
+        Responsive.scale(context, 12),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: Responsive.isDesktop(context)
+                ? 320
+                : Responsive.height(context, 200),
+            child: LineChart(
+              LineChartData(
+                clipData: const FlClipData.none(),
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                minY: 0,
+                maxY: maxY * 1.2,
+                lineTouchData: LineTouchData(
+                  touchSpotThreshold: 20,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) =>
+                        darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                    getTooltipItems: (touched) {
+                      final closest = touched.reduce(
+                        (a, b) => a.y > b.y ? a : b,
+                      );
+                      return touched.map((s) {
+                        if (s != closest) return null;
+                        final p = points[s.spotIndex];
+                        const months = [
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec',
+                        ];
+                        final label =
+                            '${months[p.date.month - 1]} ${p.date.day}';
+                        final idx = _focus ?? s.barIndex;
+                        return LineTooltipItem(
+                          '$label\n',
+                          GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: dim,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '${_names[idx]}: ${s.y.round()}g',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: colors[idx],
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: Responsive.width(context, 36),
+                      getTitlesWidget: (val, info) {
+                        if (val == info.min || val == info.max) {
+                          return const SizedBox.shrink();
+                        }
+                        return SideTitleWidget(
+                          meta: info,
+                          child: Text(
+                            '${val.round()}g',
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 9),
+                              color: dim,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: points.length <= 10,
+                      reservedSize: Responsive.height(context, 28),
+                      interval: points.length <= 5 ? 1 : 2,
+                      getTitlesWidget: (val, info) {
+                        final i = val.toInt();
+                        if (i < 0 || i >= points.length) {
+                          return const SizedBox.shrink();
+                        }
+                        final d = points[i].date;
+                        return SideTitleWidget(
+                          meta: info,
+                          fitInside: SideTitleFitInsideData.fromTitleMeta(info),
+                          child: Text(
+                            '${d.month}/${d.day}',
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 9),
+                              color: dim,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  for (int i = 0; i < visibleSpots.length; i++)
+                    line(visibleSpots[i], visibleColors[i]),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              focusChip('All', null),
+              SizedBox(width: Responsive.width(context, 8)),
+              for (int i = 0; i < _names.length; i++) ...[
+                focusChip(_names[i], i),
+                if (i < _names.length - 1)
+                  SizedBox(width: Responsive.width(context, 8)),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // Extracted daily tab body so the main build method stays readable
 class _DailyTab extends StatelessWidget {
   final BuildContext context;
@@ -812,6 +1664,10 @@ class _DailyTab extends StatelessWidget {
   final double dinnerCal;
   final double snacksCal;
   final Map<String, double> macros;
+  final Map<String, double> breakfastMacros;
+  final Map<String, double> lunchMacros;
+  final Map<String, double> dinnerMacros;
+  final Map<String, double> snacksMacros;
   final double totalMacroCal;
   final DateTime currentDate;
   final void Function(DateTime) onDateChanged;
@@ -841,6 +1697,10 @@ class _DailyTab extends StatelessWidget {
     required this.dinnerCal,
     required this.snacksCal,
     required this.macros,
+    required this.breakfastMacros,
+    required this.lunchMacros,
+    required this.dinnerMacros,
+    required this.snacksMacros,
     required this.totalMacroCal,
     required this.currentDate,
     required this.onDateChanged,
@@ -869,8 +1729,37 @@ class _DailyTab extends StatelessWidget {
 
             SizedBox(height: Responsive.height(ctx, 16)),
 
-            // Summary stat tiles: calories, protein, carbs, fat at a glance
-            _statTilesRow(context: ctx, totalCal: totalCal, macros: macros)
+            sectionHeader(() {
+              const months = [
+                'January',
+                'February',
+                'March',
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
+              ];
+              return 'SUMMARY · ${months[currentDate.month - 1].toUpperCase()} ${currentDate.day}, ${currentDate.year}';
+            }(), ctx),
+
+            _statTilesRow(
+                  context: ctx,
+                  totalCal: totalCal,
+                  macros: macros,
+                  breakfastCal: breakfastCal,
+                  lunchCal: lunchCal,
+                  dinnerCal: dinnerCal,
+                  snacksCal: snacksCal,
+                  breakfastMacros: breakfastMacros,
+                  lunchMacros: lunchMacros,
+                  dinnerMacros: dinnerMacros,
+                  snacksMacros: snacksMacros,
+                )
                 .animate(key: ValueKey(('stat_tiles', animationKey)))
                 .fadeIn(duration: 300.ms)
                 .slideY(begin: 0.08, duration: 300.ms, curve: Curves.easeOut),
@@ -943,221 +1832,304 @@ class _DailyTab extends StatelessWidget {
   }
 }
 
-// The four tiles shown between the date picker and the charts
-// total calories, protein, carbs, and fat for the selected day
+// Daily summary card: total calories + stacked meal bar + macro row
 Widget _statTilesRow({
   required BuildContext context,
   required double totalCal,
   required Map<String, double> macros,
+  double breakfastCal = 0,
+  double lunchCal = 0,
+  double dinnerCal = 0,
+  double snacksCal = 0,
+  Map<String, double>? breakfastMacros,
+  Map<String, double>? lunchMacros,
+  Map<String, double>? dinnerMacros,
+  Map<String, double>? snacksMacros,
 }) {
-  final base = appColorNotifier.value;
-  // IntrinsicHeight forces all tiles to match the height of the tallest one
-  return IntrinsicHeight(
-    child: Row(
-      children: [
-        // Calories tile is wider since it anchors the whole summary
-        Expanded(
-          flex: 5,
-          child: _statTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedFire,
-            iconColor: lightenColor(base, 0.45),
-            label: "Calories",
-            value: totalCal == 0 ? "—" : totalCal.round().toString(),
-            unit: totalCal == 0 ? "" : "kcal",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        // Macro tiles share equal remaining space
-        Expanded(
-          flex: 4,
-          child: _statTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedDumbbell01,
-            iconColor: lightenColor(base, 0.45),
-            label: "Protein",
-            value: macros['protein'] == 0
-                ? "—"
-                : macros['protein']!.round().toString(),
-            unit: macros['protein'] == 0 ? "" : "g",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        Expanded(
-          flex: 4,
-          child: _statTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedBread01,
-            iconColor: lightenColor(base, 0.45),
-            label: "Carbs",
-            value: macros['carbs'] == 0
-                ? "—"
-                : macros['carbs']!.round().toString(),
-            unit: macros['carbs'] == 0 ? "" : "g",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        Expanded(
-          flex: 4,
-          child: _statTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedDroplet,
-            iconColor: lightenColor(base, 0.45),
-            label: "Fat",
-            value: macros['fat'] == 0 ? "—" : macros['fat']!.round().toString(),
-            unit: macros['fat'] == 0 ? "" : "g",
-          ),
-        ),
-      ],
-    ),
-  );
-}
+  final accent = lightenColor(appColorNotifier.value, 0.45);
+  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final meals = [
+    ('Breakfast', breakfastCal),
+    ('Lunch', lunchCal),
+    ('Dinner', dinnerCal),
+    ('Snacks', snacksCal),
+  ];
+  final mealMacros = [breakfastMacros, lunchMacros, dinnerMacros, snacksMacros];
+  final protein = macros['protein'] ?? 0;
+  final carbs = macros['carbs'] ?? 0;
+  final fat = macros['fat'] ?? 0;
 
-// same layout as the daily stat tiles row but passes agg instead of individual values
-// each tile shows the range total and an avg/logged day line so the user sees both at a glance
-Widget _rangeStatTilesRow({
-  required BuildContext context,
-  required _RangeAggregate agg,
-}) {
-  final base = appColorNotifier.value;
-  final days = agg.daysWithData;
-  return IntrinsicHeight(
-    child: Row(
-      children: [
-        Expanded(
-          flex: 5,
-          child: _rangeTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedFire,
-            iconColor: lightenColor(base, 0.45),
-            label: "Calories",
-            total: agg.totalCal == 0 ? "—" : agg.totalCal.round().toString(),
-            unit: agg.totalCal == 0 ? "" : "kcal",
-            avg: days > 0
-                ? "${(agg.totalCal / days).round()} avg/logged day"
-                : "",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        Expanded(
-          flex: 4,
-          child: _rangeTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedDumbbell01,
-            iconColor: lightenColor(base, 0.45),
-            label: "Protein",
-            total: agg.protein == 0 ? "—" : agg.protein.round().toString(),
-            unit: agg.protein == 0 ? "" : "g",
-            avg: days > 0
-                ? "${(agg.protein / days).round()} avg/logged day"
-                : "",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        Expanded(
-          flex: 4,
-          child: _rangeTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedBread01,
-            iconColor: lightenColor(base, 0.45),
-            label: "Carbs",
-            total: agg.carbs == 0 ? "—" : agg.carbs.round().toString(),
-            unit: agg.carbs == 0 ? "" : "g",
-            avg: days > 0 ? "${(agg.carbs / days).round()} avg/logged day" : "",
-          ),
-        ),
-        SizedBox(width: Responsive.width(context, 10)),
-        Expanded(
-          flex: 4,
-          child: _rangeTile(
-            context: context,
-            icon: HugeIcons.strokeRoundedDroplet,
-            iconColor: lightenColor(base, 0.45),
-            label: "Fat",
-            total: agg.fat == 0 ? "—" : agg.fat.round().toString(),
-            unit: agg.fat == 0 ? "" : "g",
-            avg: days > 0 ? "${(agg.fat / days).round()} avg/logged day" : "",
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// Single frosted-glass stat tile with a colored icon, large value, unit, and pill label
-Widget _statTile({
-  required BuildContext context,
-  required IconData icon,
-  required Color iconColor,
-  required String label,
-  required String value,
-  required String unit,
-}) {
   return frostedGlassCard(
     context,
-    padding: EdgeInsets.symmetric(
-      horizontal: Responsive.width(context, 10),
-      vertical: Responsive.height(context, 14),
-    ),
-    // SizedBox.expand fills the height IntrinsicHeight establishes from the tallest sibling tile
-    child: SizedBox(
-      width: double.infinity,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: icon,
-            color: iconColor,
-            size: Responsive.font(context, 20),
-          ),
-          SizedBox(height: Responsive.height(context, 6)),
-          Text(
-            value,
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 18),
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              height: 1,
-            ),
-          ),
-          if (unit.isNotEmpty) ...[
-            SizedBox(height: Responsive.height(context, 2)),
+    padding: EdgeInsets.all(Responsive.scale(context, 20)),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
             Text(
-              unit,
+              totalCal == 0 ? '—' : _fmtCal(totalCal),
               style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 10),
+                fontSize: Responsive.font(context, 28),
+                fontWeight: FontWeight.w800,
+                color: accent,
+                height: 1,
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 6)),
+            Text(
+              'calories today',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 18),
                 fontWeight: FontWeight.w500,
-                color: Colors.white38,
+                color: dim,
               ),
             ),
           ],
-          SizedBox(height: Responsive.height(context, 6)),
-          // FittedBox shrinks the pill label to fit on one line regardless of available width
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 8),
-                vertical: Responsive.height(context, 3),
-              ),
-              decoration: BoxDecoration(
-                color: iconColor.withAlpha(40),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                label,
-                maxLines: 1,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 10),
-                  fontWeight: FontWeight.w600,
-                  color: iconColor,
+        ),
+        if (totalCal > 0) ...[
+          SizedBox(height: Responsive.height(context, 16)),
+          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+          SizedBox(height: Responsive.height(context, 12)),
+          for (int i = 0; i < meals.length; i++) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  meals[i].$1,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: FontWeight.w500,
+                    color: dim,
+                  ),
                 ),
-              ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      meals[i].$2 > 0
+                          ? '${_fmtCal(meals[i].$2)} kcal'
+                          : 'No data',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        fontWeight: FontWeight.w700,
+                        color: meals[i].$2 > 0 ? accent : dim.withAlpha(100),
+                      ),
+                    ),
+                    if (meals[i].$2 > 0 && mealMacros[i] != null) ...[
+                      SizedBox(height: Responsive.height(context, 2)),
+                      Text(
+                        'P ${(mealMacros[i]!['protein'] ?? 0).round()}g · C ${(mealMacros[i]!['carbs'] ?? 0).round()}g · F ${(mealMacros[i]!['fat'] ?? 0).round()}g',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 10),
+                          color: dim,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
             ),
+            if (i < meals.length - 1)
+              SizedBox(height: Responsive.height(context, 8)),
+          ],
+          SizedBox(height: Responsive.height(context, 16)),
+          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+          SizedBox(height: Responsive.height(context, 12)),
+          Row(
+            children: [
+              _macroInline(context, 'Protein', protein, accent, dim),
+              SizedBox(width: Responsive.width(context, 20)),
+              _macroInline(context, 'Carbs', carbs, accent, dim),
+              SizedBox(width: Responsive.width(context, 20)),
+              _macroInline(context, 'Fat', fat, accent, dim),
+            ],
           ),
         ],
+      ],
+    ),
+  );
+}
+
+Widget _macroInline(
+  BuildContext context,
+  String label,
+  double grams,
+  Color accent,
+  Color dim,
+) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 10),
+          fontWeight: FontWeight.w500,
+          color: dim,
+        ),
       ),
+      Text(
+        grams == 0 ? '—' : '${grams.round()}g',
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 14),
+          fontWeight: FontWeight.w700,
+          color: accent,
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _calorieSummaryCard(BuildContext context, _RangeAggregate agg) {
+  final accent = lightenColor(appColorNotifier.value, 0.45);
+  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final days = agg.daysWithData;
+  final total = agg.totalCal;
+  final meals = [
+    ('Breakfast', agg.breakfastCal),
+    ('Lunch', agg.lunchCal),
+    ('Dinner', agg.dinnerCal),
+    ('Snacks', agg.snacksCal),
+  ];
+  return frostedGlassCard(
+    context,
+    padding: EdgeInsets.all(Responsive.scale(context, 20)),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              total == 0 ? '—' : _fmtCal(total),
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 28),
+                fontWeight: FontWeight.w800,
+                color: accent,
+                height: 1,
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 6)),
+            Text(
+              'kcal',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 13),
+                fontWeight: FontWeight.w500,
+                color: dim,
+              ),
+            ),
+          ],
+        ),
+        if (total > 0) ...[
+          SizedBox(height: Responsive.height(context, 16)),
+          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+          SizedBox(height: Responsive.height(context, 12)),
+          for (int i = 0; i < meals.length; i++) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  meals[i].$1,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: FontWeight.w500,
+                    color: dim,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      meals[i].$2 > 0
+                          ? '${_fmtCal(meals[i].$2)} kcal'
+                          : 'No data',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        fontWeight: FontWeight.w700,
+                        color: meals[i].$2 > 0 ? accent : dim.withAlpha(100),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (i < meals.length - 1)
+              SizedBox(height: Responsive.height(context, 8)),
+          ],
+          if (days > 0 && total > 0) ...[
+            SizedBox(height: Responsive.height(context, 12)),
+            Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+            SizedBox(height: Responsive.height(context, 12)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Daily average',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: FontWeight.w500,
+                    color: dim,
+                  ),
+                ),
+                Text(
+                  '${_fmtCal(total / days)} kcal',
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ],
+    ),
+  );
+}
+
+String _fmtCal(double v) {
+  final n = v.round();
+  if (n >= 1000) {
+    return '${n ~/ 1000},${(n % 1000).toString().padLeft(3, '0')}';
+  }
+  return '$n';
+}
+
+Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
+  final base = appColorNotifier.value;
+  final accent = lightenColor(base, 0.45);
+  final days = agg.daysWithData;
+
+  Widget macroChip(String label, double total, IconData icon) {
+    final avg = days > 0 ? (total / days).round() : 0;
+    return Expanded(
+      child: _rangeTile(
+        context: context,
+        icon: icon,
+        iconColor: accent,
+        label: label,
+        total: total == 0 ? '—' : total.round().toString(),
+        unit: total == 0 ? '' : 'g',
+        avg: days > 0 && total > 0 ? '$avg g avg/day' : '',
+      ),
+    );
+  }
+
+  return IntrinsicHeight(
+    child: Row(
+      children: [
+        macroChip('Protein', agg.protein, HugeIcons.strokeRoundedDumbbell01),
+        SizedBox(width: Responsive.width(context, 10)),
+        macroChip('Carbs', agg.carbs, HugeIcons.strokeRoundedBread01),
+        SizedBox(width: Responsive.width(context, 10)),
+        macroChip('Fat', agg.fat, HugeIcons.strokeRoundedDroplet),
+      ],
     ),
   );
 }
@@ -1171,7 +2143,7 @@ Widget _rangeTile({
   required String label,
   required String total,
   required String unit,
-  required String avg,
+  String avg = '',
 }) {
   return frostedGlassCard(
     context,
@@ -1196,7 +2168,7 @@ Widget _rangeTile({
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 18),
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: iconColor,
               height: 1,
             ),
           ),
@@ -1207,7 +2179,7 @@ Widget _rangeTile({
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 10),
                 fontWeight: FontWeight.w500,
-                color: Colors.white38,
+                color: iconColor.withAlpha(140),
               ),
             ),
           ],
@@ -1252,6 +2224,29 @@ Widget _rangeTile({
   );
 }
 
+class _DayPoint {
+  final DateTime date;
+  final double cal;
+  final double breakfastCal;
+  final double lunchCal;
+  final double dinnerCal;
+  final double snacksCal;
+  final double protein;
+  final double carbs;
+  final double fat;
+  const _DayPoint({
+    required this.date,
+    required this.cal,
+    required this.breakfastCal,
+    required this.lunchCal,
+    required this.dinnerCal,
+    required this.snacksCal,
+    required this.protein,
+    required this.carbs,
+    required this.fat,
+  });
+}
+
 // Holds all aggregated totals for a date range plus the count of days that had data
 class _RangeAggregate {
   final double totalCal;
@@ -1263,6 +2258,18 @@ class _RangeAggregate {
   final double carbs;
   final double fat;
   final int daysWithData;
+  final double breakfastProtein;
+  final double breakfastCarbs;
+  final double breakfastFat;
+  final double lunchProtein;
+  final double lunchCarbs;
+  final double lunchFat;
+  final double dinnerProtein;
+  final double dinnerCarbs;
+  final double dinnerFat;
+  final double snacksProtein;
+  final double snacksCarbs;
+  final double snacksFat;
 
   const _RangeAggregate({
     required this.totalCal,
@@ -1274,5 +2281,17 @@ class _RangeAggregate {
     required this.carbs,
     required this.fat,
     required this.daysWithData,
+    required this.breakfastProtein,
+    required this.breakfastCarbs,
+    required this.breakfastFat,
+    required this.lunchProtein,
+    required this.lunchCarbs,
+    required this.lunchFat,
+    required this.dinnerProtein,
+    required this.dinnerCarbs,
+    required this.dinnerFat,
+    required this.snacksProtein,
+    required this.snacksCarbs,
+    required this.snacksFat,
   });
 }
