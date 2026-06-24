@@ -24,6 +24,8 @@ import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/ad_service.dart';
+import 'guest.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -49,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // 0 = dashboard step, 1 = nav bar step, 2 = settings step, -1 = tour not active
   int _tourStep = -1;
   bool _tapHintVisible = false;
+  bool _adWatching = false;
   Timer? _tapHintTimer;
 
   Timer? _countdownTimer;
@@ -914,7 +917,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
               Text(
-                "Coming soon",
+                "Earn XP",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 11),
@@ -928,31 +931,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
 
     return GestureDetector(
-      onTap: () => showFrostedAlertDialog(
-        context: context,
-        title: "Coming Soon",
-        content: Text(
-          "Rewarded ads are coming soon.",
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 13),
-            color: Colors.white60,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          Expanded(
-            child: Center(
-              child: Builder(
-                builder: (ctx) => TextButton(
-                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                  child: const Text("Got it"),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      child: Opacity(opacity: 0.4, child: card),
+      onTap: _adWatching
+          ? null
+          : () async {
+              if (isGuest) {
+                Guest.block(context);
+                return;
+              }
+              if (!adService.isReady) {
+                await showFrostedAlertDialog(
+                  context: context,
+                  title: "Not available right now",
+                  content: Text(
+                    "Rewarded ads are currently under review and will be available soon.",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      color: Colors.white60,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  actions: [
+                    Expanded(
+                      child: Center(
+                        child: Builder(
+                          builder: (ctx) => TextButton(
+                            onPressed: () =>
+                                Navigator.of(ctx, rootNavigator: true).pop(),
+                            child: const Text("Got it"),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+                return;
+              }
+              setState(() => _adWatching = true);
+              await adService.showRewardedAd(
+                onRewarded: () async {
+                  await userManager.loadUserData();
+                  if (mounted) {
+                    expNotifier.value = currentUserData?.expPoints ?? 0;
+                    userDataNotifier.notifyListeners();
+                  }
+                },
+              );
+              if (mounted) setState(() => _adWatching = false);
+            },
+      child: card,
     );
   }
 
