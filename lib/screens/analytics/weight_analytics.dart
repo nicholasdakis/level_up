@@ -308,6 +308,8 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
             borderData: FlBorderData(show: false),
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
                 getTooltipColor: (_) =>
                     darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                 getTooltipItems: (touchedSpots) => touchedSpots.map((s) {

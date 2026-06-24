@@ -346,6 +346,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
             maxY: maxY * 1.2,
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
                 getTooltipColor: (_) =>
                     darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                 getTooltipItems: (touched) => touched.map((s) {
@@ -1284,6 +1286,8 @@ class _MealLineChartState extends State<_MealLineChart> {
                 lineTouchData: LineTouchData(
                   touchSpotThreshold: 20,
                   touchTooltipData: LineTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
@@ -1524,34 +1528,22 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                 lineTouchData: LineTouchData(
                   touchSpotThreshold: 20,
                   touchTooltipData: LineTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
-                      final closest = touched.reduce(
-                        (a, b) => a.y > b.y ? a : b,
-                      );
+                      // sort by barIndex so the tooltip always lists P / C / F in order
+                      final sorted = [...touched]..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                       return touched.map((s) {
-                        if (s != closest) return null;
+                        // only the first spot in barIndex order carries the date header
+                        final isFirst = s.barIndex == sorted.first.barIndex;
                         final p = points[s.spotIndex];
-                        const months = [
-                          'Jan',
-                          'Feb',
-                          'Mar',
-                          'Apr',
-                          'May',
-                          'Jun',
-                          'Jul',
-                          'Aug',
-                          'Sep',
-                          'Oct',
-                          'Nov',
-                          'Dec',
-                        ];
-                        final label =
-                            '${months[p.date.month - 1]} ${p.date.day}';
+                        final label = '${months[p.date.month - 1]} ${p.date.day}';
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
-                          '$label\n',
+                          isFirst ? '$label\n' : '',
                           GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: dim,
