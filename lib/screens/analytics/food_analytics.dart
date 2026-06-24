@@ -1394,16 +1394,13 @@ class _MealLineChartState extends State<_MealLineChart> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: Responsive.width(context, 8),
+            runSpacing: Responsive.height(context, 6),
             children: [
               focusChip('All', null),
-              SizedBox(width: Responsive.width(context, 8)),
-              for (int i = 0; i < _names.length; i++) ...[
-                focusChip(_names[i], i),
-                if (i < _names.length - 1)
-                  SizedBox(width: Responsive.width(context, 8)),
-              ],
+              for (int i = 0; i < _names.length; i++) focusChip(_names[i], i),
             ],
           ),
         ],
@@ -1637,16 +1634,13 @@ class _MacroLineChartState extends State<_MacroLineChart> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: Responsive.width(context, 8),
+            runSpacing: Responsive.height(context, 6),
             children: [
               focusChip('All', null),
-              SizedBox(width: Responsive.width(context, 8)),
-              for (int i = 0; i < _names.length; i++) ...[
-                focusChip(_names[i], i),
-                if (i < _names.length - 1)
-                  SizedBox(width: Responsive.width(context, 8)),
-              ],
+              for (int i = 0; i < _names.length; i++) focusChip(_names[i], i),
             ],
           ),
         ],
