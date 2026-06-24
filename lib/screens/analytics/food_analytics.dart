@@ -38,9 +38,11 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   List<Map<String, dynamic>> snacksFoods = [];
 
   // incrementing this re-triggers all .animate(key: ValueKey(...)) animations on date change
+  // flutter_animate only replays when the key changes, not on every rebuild
   int _animationKey = 0;
 
   // Range tab state
+  // default to the last 7 days so the range tab is immediately useful on first open
   DateTime? _rangeStart = DateTime.now().subtract(const Duration(days: 6));
   DateTime? _rangeEnd = DateTime.now();
   bool _rangeSelected = true;
@@ -159,6 +161,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
         final snacks = FoodLoggingHelper.castFoodList(dayData['snacks']);
 
         final allFoods = [...breakfast, ...lunch, ...dinner, ...snacks];
+        // skip days with a map entry but no foods so they don't drag down the daily average
         if (allFoods.isEmpty) {
           day = day.add(const Duration(days: 1));
           continue;
@@ -374,6 +377,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                   showTitles: true,
                   reservedSize: Responsive.width(context, 44),
                   getTitlesWidget: (val, info) {
+                    // fl_chart renders labels at min/max by default; hide them to avoid clipping
                     if (val == info.min || val == info.max) {
                       return const SizedBox.shrink();
                     }
@@ -398,8 +402,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
+                  // hide x-axis labels for wide ranges to avoid crowding
                   showTitles: points.length <= 10,
                   reservedSize: Responsive.height(context, 28),
+                  // skip every other label for ranges of 6+ days
                   interval: points.length <= 5 ? 1 : 2,
                   getTitlesWidget: (val, info) {
                     final i = val.toInt();
@@ -435,6 +441,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     radius: Responsive.scale(context, 3.5),
                     color: accent,
                     strokeWidth: 1.5,
+                    // slightly darkened stroke separates overlapping dots visually
                     strokeColor: darkenColor(
                       appColorNotifier.value,
                       0.05,
@@ -491,6 +498,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     final values = [breakfastCal, lunchCal, dinnerCal, snacksCal];
     final total = values.fold(0.0, (a, b) => a + b);
     final maxVal = values.fold(0.0, (a, b) => a > b ? a : b);
+    // a tiny floor value keeps empty bars visible so the chart always shows all four meals
     final minBarVal = (maxVal * 0.03).clamp(1.0, double.infinity);
 
     final groups = <BarChartGroupData>[];
@@ -783,6 +791,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     final proteinCal = macros['protein']! * 4;
     final carbsCal = macros['carbs']! * 4;
     final fatCal = macros['fat']! * 9;
+    // totalMacroCal guards the macro chart separately from totalCal because
+    // calories can be logged without a parseable food_description (no macros)
     final totalMacroCal = proteinCal + carbsCal + fatCal;
 
     return Container(
@@ -1279,10 +1289,14 @@ class _MealLineChartState extends State<_MealLineChart> {
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
-                      return touched.asMap().entries.map((entry) {
+                      // sort by barIndex so the date header always appears on the first line
+                      final sorted = [...touched]
+                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+                      return sorted.asMap().entries.map((entry) {
                         final s = entry.value;
                         final p = points[s.spotIndex];
                         final isFirst = entry.key == 0;
+                        // when a meal is focused, barIndex is always 0 so fall back to _focus for the name
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
                           isFirst ? '${formatDateShort(p.date)}\n' : '',
@@ -1498,10 +1512,14 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
-                      return touched.asMap().entries.map((entry) {
+                      // sort by barIndex so the date header always appears on the first line
+                      final sorted = [...touched]
+                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
+                      return sorted.asMap().entries.map((entry) {
                         final s = entry.value;
                         final isFirst = entry.key == 0;
                         final p = points[s.spotIndex];
+                        // when a macro is focused, barIndex is always 0 so fall back to _focus for the name
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
                           isFirst ? '${formatDateShort(p.date)}\n' : '',
@@ -1603,6 +1621,8 @@ class _MacroLineChartState extends State<_MacroLineChart> {
 }
 
 // Extracted daily tab body so the main build method stays readable
+// chart builders are passed as callbacks so _DailyTab stays stateless
+// while the parent retains chart logic tied to its state
 class _DailyTab extends StatelessWidget {
   final BuildContext context;
   final double totalCal;
@@ -2068,6 +2088,7 @@ Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
     );
   }
 
+  // IntrinsicHeight forces all three Expanded tiles to match the tallest one's height
   return IntrinsicHeight(
     child: Row(
       children: [
