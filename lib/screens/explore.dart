@@ -416,6 +416,8 @@ class _ExploreState extends State<Explore> {
           currentUserData!.expPoints = result['new_exp'];
           expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
+        userDataNotifier
+            .notifyListeners(); // trigger level-up overlay if level changed
 
         setState(() {
           xpAwarded = result['xp_gained']; // show XP in the button briefly

@@ -20,6 +20,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
 import 'services/user_data_manager.dart' show backendBaseUrl;
+import 'screens/level_up_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +73,8 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   // start as true so the first connectivity event always triggers _onReconnect if online
   bool _wasOffline = true;
+  int _lastKnownLevel = -1;
+  late VoidCallback _levelUpListener;
 
   @override
   void initState() {
@@ -85,6 +88,35 @@ class _MyAppState extends State<MyApp> {
       }
       _wasOffline = !online;
     });
+
+    // Listens on userDataNotifier so level-ups are caught regardless of which
+    // screen awards XP. _lastKnownLevel starts at -1 and is set to the real
+    // level on the first notification where data is present, so login never
+    // triggers the overlay. After that, any increase fires showLevelUpOverlay.
+    _levelUpListener = () {
+      final newLevel = currentUserData?.level ?? 0;
+      // wait until backend data is fully loaded before tracking anything
+      if (!appReadyNotifier.value) return;
+      if (_lastKnownLevel == -1) {
+        // capture the baseline on the first notification after real data is ready
+        _lastKnownLevel = newLevel;
+        return;
+      }
+      if (newLevel > _lastKnownLevel) {
+        _lastKnownLevel = newLevel;
+        final ctx = appRouter.routerDelegate.navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          // postFrameCallback avoids showing the overlay mid-build
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final c = appRouter.routerDelegate.navigatorKey.currentContext;
+            if (c != null && c.mounted) await showLevelUpOverlay(c, newLevel);
+          });
+        }
+      } else {
+        _lastKnownLevel = newLevel;
+      }
+    };
+    userDataNotifier.addListener(_levelUpListener);
   }
 
   Future<void> _onReconnect() async {
@@ -130,6 +162,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _connectivitySub?.cancel();
+    userDataNotifier.removeListener(_levelUpListener);
     super.dispose();
   }
 

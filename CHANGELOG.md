@@ -2207,3 +2207,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed the retry flow in home screen so repeated retries work and data loads correctly after a successful retry
 - Extracted showForceUpdateDialog into globals.dart so it is shared between the startup and reconnect paths
 - Added /app_config backend route with MIN_APP_VERSION so the minimum required version can be changed server-side without a client deploy
+- Built a level-up overlay that shows when the user gains a level, with a rank name, next-rank hint, animated XP progress bar, and an accomplishments grid showing best streaks, total XP, days logged, water logs, weigh-ins, and friends referred
+- Fixed a bug where the level-up overlay would trigger on login by gating the baseline capture behind appReadyNotifier instead of appInitialized
+- Fixed gym check-in in explore.dart not calling userDataNotifier.notifyListeners, so the level-up overlay now triggers correctly after a check-in
+- Level-up overlay close animation is a smooth fade instead of a jarring scale shrink
