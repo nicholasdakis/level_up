@@ -440,6 +440,7 @@ class HomeLoggingCards extends StatelessWidget {
                     progressBar: waterProgressBar,
                     showButtons: !isGuest,
                     onAdd: onShowWaterSheet,
+                    onChart: () => context.push('/water/analytics'),
                   ),
                 ),
               ],

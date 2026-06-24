@@ -11,14 +11,14 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import 'analytics_components.dart';
 
-class WeightAnalyticsScreen extends StatefulWidget {
-  const WeightAnalyticsScreen({super.key});
+class WaterAnalyticsScreen extends StatefulWidget {
+  const WaterAnalyticsScreen({super.key});
 
   @override
-  State<WeightAnalyticsScreen> createState() => _WeightAnalyticsScreenState();
+  State<WaterAnalyticsScreen> createState() => _WaterAnalyticsScreenState();
 }
 
-class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
+class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
 
@@ -28,7 +28,6 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
   DateTime _calendarFocused = DateTime.now();
   int _animationKey = 0;
 
-  String? _deletingKey;
   final _addController = TextEditingController();
   DateTime _addDate = DateTime.now();
   bool _isAdding = false;
@@ -37,8 +36,8 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
   void initState() {
     super.initState();
     FirebaseAnalytics.instance.logScreenView(
-      screenName: '/weight/analytics',
-      screenClass: 'WeightAnalyticsScreen',
+      screenName: '/water/analytics',
+      screenClass: 'WaterAnalyticsScreen',
     );
     _applyChip(0);
   }
@@ -49,12 +48,34 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
     super.dispose();
   }
 
+  String _dateKeyFor(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _addEntry() async {
+    final isImperial = UnitConverter.isImperial;
+    final raw = double.tryParse(_addController.text.trim());
+    if (raw == null) return;
+    // convert oz to ml if imperial, otherwise use as-is
+    final ml = isImperial ? UnitConverter.ozToMl(raw).round() : raw.round();
+    final key = _dateKeyFor(_addDate);
+    final existing = List<int>.from(
+      currentUserData?.waterEntriesByDate[key] ?? [],
+    );
+    setState(() => _isAdding = true);
+    await userManager.updateWaterLog(key, [...existing, ml]);
+    if (mounted) {
+      setState(() {
+        _isAdding = false;
+        _addController.clear();
+      });
+    }
+  }
+
   // Sets the chart range based on the selected quick-select chip
   void _applyChip(int index) {
     final now = DateTime.now();
     setState(() {
       _chipIndex = index;
-      _deletingKey = null;
       _animationKey++;
       switch (index) {
         case 0:
@@ -88,16 +109,19 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
     });
   }
 
-  // Returns all weight entries sorted chronologically oldest-first
-  List<MapEntry<String, double>> _sortedEntries() {
-    final byDate = currentUserData?.weightByDate ?? {};
-    final entries = byDate.entries.toList();
+  // Returns all water entries as (date, totalMl) sorted chronologically oldest-first
+  List<MapEntry<String, int>> _sortedEntries() {
+    final byDate = currentUserData?.waterEntriesByDate ?? {};
+    final entries = byDate.entries.map((e) {
+      final total = e.value.fold(0, (s, v) => s + v);
+      return MapEntry(e.key, total);
+    }).toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
   }
 
   // Filters sorted entries to only those within the selected date range
-  List<MapEntry<String, double>> _entriesInRange() {
+  List<MapEntry<String, int>> _entriesInRange() {
     if (_rangeStart == null || _rangeEnd == null) return [];
     final startKey = _rangeStart!.toIso8601String().substring(0, 10);
     final endKey = _rangeEnd!.toIso8601String().substring(0, 10);
@@ -108,52 +132,14 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
         .toList();
   }
 
-  String _dateKeyFor(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  Future<void> _deleteEntry(String dateKey) async {
-    await userManager.deleteWeightLog(dateKey);
-    if (mounted) {
-      setState(() => _deletingKey = null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Entry deleted'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  Future<void> _addEntry() async {
-    final isImperial = UnitConverter.isImperial;
-    final raw = double.tryParse(_addController.text.trim());
-    if (raw == null) return;
-    final kg = isImperial ? UnitConverter.lbsToKg(raw) : raw;
-    final key = _dateKeyFor(_addDate);
-    setState(() => _isAdding = true);
-    await userManager.updateWeightLog(key, kg);
-    if (mounted) {
-      setState(() {
-        _isAdding = false;
-        _addController.clear();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Entry added'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
   Widget _buildChart(
     BuildContext context,
-    List<MapEntry<String, double>> entries,
+    List<MapEntry<String, int>> entries,
   ) {
     final isImperial = UnitConverter.isImperial;
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dimAccent = lightenColor(appColorNotifier.value, 0.3);
-    final goalKg = currentUserData?.weightKgGoal;
+    final goalMl = currentUserData?.waterMlGoal ?? 0;
 
     if (entries.isEmpty) {
       return frostedGlassCard(
@@ -166,8 +152,8 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
             ),
             child: Text(
               _rangeSelected
-                  ? "No weight logged in this range"
-                  : "Pick a range to view your weight trend",
+                  ? "No water logged in this range"
+                  : "Pick a range to view your water trend",
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 14),
@@ -179,25 +165,26 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
       );
     }
 
-    double toDisplay(double kg) => isImperial
-        ? double.parse(UnitConverter.displayWeight(kg, imperial: true))
-        : kg;
+    // convert ml to display unit for charting
+    double toDisplay(int ml) => isImperial
+        ? double.parse(UnitConverter.displayWater(ml, imperial: true))
+        : ml.toDouble();
 
-    final spots = <FlSpot>[];
-    for (int i = 0; i < entries.length; i++) {
-      spots.add(FlSpot(i.toDouble(), toDisplay(entries[i].value)));
-    }
+    final spots = <FlSpot>[
+      for (int i = 0; i < entries.length; i++)
+        FlSpot(i.toDouble(), toDisplay(entries[i].value)),
+    ];
 
     final allY = spots.map((s) => s.y).toList();
-    if (goalKg != null) allY.add(toDisplay(goalKg));
+    if (goalMl > 0) allY.add(toDisplay(goalMl));
     final minY = allY.reduce((a, b) => a < b ? a : b);
     final maxY = allY.reduce((a, b) => a > b ? a : b);
-    final yPad = (maxY - minY) == 0 ? 2.0 : (maxY - minY) * 0.2;
+    final yPad = (maxY - minY) == 0 ? 100.0 : (maxY - minY) * 0.2;
 
-    final goalLine = goalKg != null
+    final goalLine = goalMl > 0
         ? [
             HorizontalLine(
-              y: toDisplay(goalKg),
+              y: toDisplay(goalMl),
               color: accent.withAlpha(160),
               strokeWidth: 1.5,
               dashArray: [6, 4],
@@ -205,7 +192,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                 show: true,
                 alignment: Alignment.topLeft,
                 labelResolver: (_) =>
-                    '${isImperial ? UnitConverter.displayWeight(goalKg, imperial: true) : goalKg.toStringAsFixed(1)} ${UnitConverter.weightUnit(imperial: isImperial)} goal',
+                    '${isImperial ? UnitConverter.displayWater(goalMl, imperial: true) : goalMl} ${isImperial ? 'oz' : 'ml'} goal',
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 11),
                   color: accent,
@@ -228,7 +215,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
         height: Responsive.height(context, 220),
         child: LineChart(
           LineChartData(
-            minY: minY - yPad,
+            minY: (minY - yPad).clamp(0, double.infinity),
             maxY: maxY + yPad,
             extraLinesData: ExtraLinesData(horizontalLines: goalLine),
             clipData: const FlClipData.none(),
@@ -251,8 +238,9 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                     ),
                     children: [
                       TextSpan(
-                        text:
-                            '${s.y.toStringAsFixed(1)} ${UnitConverter.weightUnit(imperial: isImperial)}',
+                        text: isImperial
+                            ? '${UnitConverter.displayWater(entry.value, imperial: true)} oz'
+                            : '${entry.value} ml',
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 13),
                           color: accent,
@@ -270,16 +258,14 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                   showTitles: true,
                   reservedSize: Responsive.width(context, 44),
                   getTitlesWidget: (val, info) {
-                    if (val == info.min || val == info.max) {
+                    if (val == info.min || val == info.max)
                       return const SizedBox.shrink();
-                    }
                     return SideTitleWidget(
                       meta: info,
                       child: Text(
-                        val.toStringAsFixed(1),
+                        isImperial ? '${val.round()}oz' : '${val.round()}ml',
                         style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 10),
-                          fontWeight: FontWeight.w600,
+                          fontSize: Responsive.font(context, 9),
                           color: dimAccent,
                         ),
                       ),
@@ -300,9 +286,8 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                   interval: labelInterval,
                   getTitlesWidget: (val, info) {
                     final i = val.toInt();
-                    if (i < 0 || i >= entries.length) {
+                    if (i < 0 || i >= entries.length)
                       return const SizedBox.shrink();
-                    }
                     return SideTitleWidget(
                       meta: info,
                       fitInside: SideTitleFitInsideData.fromTitleMeta(info),
@@ -310,7 +295,6 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                         formatDateKeyShort(entries[i].key),
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 10),
-                          fontWeight: FontWeight.w600,
                           color: dimAccent,
                         ),
                       ),
@@ -356,114 +340,99 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
 
   Widget _buildStatTiles(
     BuildContext context,
-    List<MapEntry<String, double>> entries,
+    List<MapEntry<String, int>> entries,
   ) {
     final isImperial = UnitConverter.isImperial;
-    final unit = UnitConverter.weightUnit(imperial: isImperial);
+    final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColorNotifier.value, 0.45);
 
-    String fmt(double kg) => isImperial
-        ? '${UnitConverter.displayWeight(kg, imperial: true)} $unit'
-        : '${kg.toStringAsFixed(1)} $unit';
+    String fmt(int ml) => isImperial
+        ? '${UnitConverter.displayWater(ml, imperial: true)} $unit'
+        : '$ml $unit';
 
-    // entries are sorted oldest-first, so first = start of range, last = most recent
-    final first = entries.isNotEmpty ? entries.first.value : null;
-    final last = entries.isNotEmpty ? entries.last.value : null;
-    // positive delta = gained, negative = lost
-    final delta = (first != null && last != null) ? last - first : null;
+    // entries are sorted oldest-first
+    final avg = entries.isNotEmpty
+        ? (entries.fold(0, (s, e) => s + e.value) / entries.length).round()
+        : 0;
+    final best = entries.isNotEmpty
+        ? entries.reduce((a, b) => a.value > b.value ? a : b).value
+        : 0;
 
-    Widget tile(
-      IconData icon,
-      String label,
-      String value, {
-      Color? valueColor,
-    }) {
-      return Expanded(
-        child: frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 10),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: Column(
-            children: [
-              HugeIcon(
-                icon: icon,
-                color: accent,
-                size: Responsive.font(context, 18),
-              ),
-              SizedBox(height: Responsive.height(context, 6)),
-              Text(
-                value,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w800,
-                  color:
-                      valueColor ?? lightenColor(appColorNotifier.value, 0.45),
-                  height: 1.1,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 6)),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 8),
-                    vertical: Responsive.height(context, 3),
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withAlpha(40),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    label,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 10),
-                      fontWeight: FontWeight.w600,
-                      color: accent,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+    Widget tile(IconData icon, String label, String value) => Expanded(
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 10),
+          vertical: Responsive.height(context, 14),
         ),
-      );
-    }
-
-    String deltaStr = '--';
-    if (delta != null) {
-      final sign = delta > 0 ? '+' : '';
-      deltaStr = isImperial
-          ? '$sign${UnitConverter.displayWeight(delta.abs(), imperial: true)} $unit'
-          : '$sign${delta.toStringAsFixed(1)} $unit';
-    }
+        child: Column(
+          children: [
+            HugeIcon(
+              icon: icon,
+              color: accent,
+              size: Responsive.font(context, 18),
+            ),
+            SizedBox(height: Responsive.height(context, 6)),
+            Text(
+              value,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 13),
+                fontWeight: FontWeight.w800,
+                color: accent,
+                height: 1.1,
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 6)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 8),
+                  vertical: Responsive.height(context, 3),
+                ),
+                decoration: BoxDecoration(
+                  color: accent.withAlpha(40),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 10),
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return Row(
       children: [
         tile(
-          HugeIcons.strokeRoundedWeightScale,
-          "Start",
-          first != null ? fmt(first) : '--',
+          HugeIcons.strokeRoundedDroplet,
+          'Avg/day',
+          entries.isEmpty ? '--' : fmt(avg),
         ),
         SizedBox(width: Responsive.width(context, 10)),
         tile(
-          HugeIcons.strokeRoundedWeightScale,
-          "Current",
-          last != null ? fmt(last) : '--',
+          HugeIcons.strokeRoundedStar,
+          'Best day',
+          entries.isEmpty ? '--' : fmt(best),
         ),
-        SizedBox(width: Responsive.width(context, 10)),
-        tile(HugeIcons.strokeRoundedActivity01, "Change", deltaStr),
       ],
     );
   }
 
   Widget _buildLogEntries(BuildContext context) {
     final isImperial = UnitConverter.isImperial;
-    final unit = UnitConverter.weightUnit(imperial: isImperial);
+    final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dimAccent = lightenColor(appColorNotifier.value, 0.35);
+    // all entries newest-first, each entry is the daily total
     final all = _sortedEntries().reversed.toList();
 
     return frostedGlassCard(
@@ -473,7 +442,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
         vertical: Responsive.height(context, 8),
       ),
       child: SizedBox(
-        height: Responsive.height(context, 320),
+        height: Responsive.height(context, 280),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -491,7 +460,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                       ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                        LengthLimitingTextInputFormatter(4),
+                        LengthLimitingTextInputFormatter(5),
                       ],
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 14),
@@ -499,7 +468,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Add weight ($unit)',
+                        hintText: 'Add water ($unit)',
                         hintStyle: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 13),
                           color: dimAccent,
@@ -618,58 +587,15 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                                   color: dimAccent,
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  Text(
-                                    isImperial
-                                        ? '${UnitConverter.displayWeight(all[i].value, imperial: true)} $unit'
-                                        : '${all[i].value.toStringAsFixed(1)} $unit',
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 14),
-                                      fontWeight: FontWeight.w700,
-                                      color: accent,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: Responsive.width(context, 12),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      // first tap arms the delete, second tap confirms it
-                                      if (_deletingKey == all[i].key) {
-                                        _deleteEntry(all[i].key);
-                                      } else {
-                                        setState(
-                                          () => _deletingKey = all[i].key,
-                                        );
-                                      }
-                                    },
-                                    child: _deletingKey == all[i].key
-                                        ? Text(
-                                            "Confirm",
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                12,
-                                              ),
-                                              fontWeight: FontWeight.w700,
-                                              color: lightenColor(
-                                                appColorNotifier.value,
-                                                0.3,
-                                              ),
-                                            ),
-                                          )
-                                        : HugeIcon(
-                                            icon:
-                                                HugeIcons.strokeRoundedDelete02,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.3,
-                                            ),
-                                            size: Responsive.font(context, 18),
-                                          ),
-                                  ),
-                                ],
+                              Text(
+                                isImperial
+                                    ? '${UnitConverter.displayWater(all[i].value, imperial: true)} $unit'
+                                    : '${all[i].value} $unit',
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 14),
+                                  fontWeight: FontWeight.w700,
+                                  color: accent,
+                                ),
                               ),
                             ],
                           ),
@@ -751,7 +677,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                           rangeEnd: _rangeEnd,
                           rangeSelected: _rangeSelected,
                           calendarFocused: _calendarFocused,
-                          rangeLabel: "weight trend",
+                          rangeLabel: "water trend",
                           onRangeSelected: (start, end, focused) {
                             setState(() {
                               _calendarFocused = focused;

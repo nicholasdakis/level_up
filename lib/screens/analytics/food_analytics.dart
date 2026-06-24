@@ -327,12 +327,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
 
     return frostedGlassCard(
       context,
-      padding: EdgeInsets.fromLTRB(
-        Responsive.scale(context, 4),
-        Responsive.scale(context, 48),
-        Responsive.scale(context, 12),
-        Responsive.scale(context, 8),
-      ),
+      padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: SizedBox(
         height: Responsive.isDesktop(context)
             ? 420
@@ -352,23 +347,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                 getTooltipItems: (touched) => touched.map((s) {
                   final p = points[s.spotIndex];
-                  final months = [
-                    'Jan',
-                    'Feb',
-                    'Mar',
-                    'Apr',
-                    'May',
-                    'Jun',
-                    'Jul',
-                    'Aug',
-                    'Sep',
-                    'Oct',
-                    'Nov',
-                    'Dec',
-                  ];
-                  final label = '${months[p.date.month - 1]} ${p.date.day}';
                   return LineTooltipItem(
-                    '$label\n',
+                    '${formatDateShort(p.date)}\n',
                     GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
                       color: dim,
@@ -1266,12 +1246,7 @@ class _MealLineChartState extends State<_MealLineChart> {
 
     return frostedGlassCard(
       context,
-      padding: EdgeInsets.fromLTRB(
-        Responsive.scale(context, 4),
-        Responsive.scale(context, 48),
-        Responsive.scale(context, 12),
-        Responsive.scale(context, 12),
-      ),
+      padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         children: [
           SizedBox(
@@ -1297,25 +1272,9 @@ class _MealLineChartState extends State<_MealLineChart> {
                       return touched.map((s) {
                         if (s != closest) return null;
                         final p = points[s.spotIndex];
-                        const months = [
-                          'Jan',
-                          'Feb',
-                          'Mar',
-                          'Apr',
-                          'May',
-                          'Jun',
-                          'Jul',
-                          'Aug',
-                          'Sep',
-                          'Oct',
-                          'Nov',
-                          'Dec',
-                        ];
-                        final label =
-                            '${months[p.date.month - 1]} ${p.date.day}';
                         final barIdx = _focus ?? s.barIndex;
                         return LineTooltipItem(
-                          '$label\n',
+                          '${formatDateShort(p.date)}\n',
                           GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: dim,
@@ -1506,12 +1465,7 @@ class _MacroLineChartState extends State<_MacroLineChart> {
 
     return frostedGlassCard(
       context,
-      padding: EdgeInsets.fromLTRB(
-        Responsive.scale(context, 4),
-        Responsive.scale(context, 48),
-        Responsive.scale(context, 12),
-        Responsive.scale(context, 12),
-      ),
+      padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         children: [
           SizedBox(
@@ -1534,16 +1488,15 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
                       // sort by barIndex so the tooltip always lists P / C / F in order
-                      final sorted = [...touched]..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-                      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      final sorted = [...touched]
+                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
                       return touched.map((s) {
                         // only the first spot in barIndex order carries the date header
                         final isFirst = s.barIndex == sorted.first.barIndex;
                         final p = points[s.spotIndex];
-                        final label = '${months[p.date.month - 1]} ${p.date.day}';
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
-                          isFirst ? '$label\n' : '',
+                          isFirst ? '${formatDateShort(p.date)}\n' : '',
                           GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: dim,

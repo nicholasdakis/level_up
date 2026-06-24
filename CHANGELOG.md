@@ -2195,3 +2195,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made it so no slide up animation shows when clicking the Food Analytics shortcut from Home Screen
 - Fixed tooltips in line charts clipping
 - Removed the code that forces web version to refresh after 30 minutes of inactivity
+- Added the Water Analytics screen and the button leading to it
+- Extracted more repeated code from analytics into the analytics_components file
+- Removed the extra padding around the line chart graphs as the tool tips are now contained

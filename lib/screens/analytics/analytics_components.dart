@@ -51,23 +51,7 @@ class _RangePickerCardState extends State<RangePickerCard> {
 
   String _formatRange(DateTime? start, DateTime? end) {
     if (start == null || end == null) return '';
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final s = '${months[start.month - 1]} ${start.day}';
-    final e = '${months[end.month - 1]} ${end.day}';
-    return '$s – $e';
+    return '${formatDateShort(start)} – ${formatDateShort(end)}';
   }
 
   @override
@@ -267,6 +251,84 @@ class _RangePickerCardState extends State<RangePickerCard> {
       ),
     );
   }
+}
+
+const _shortMonths = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+// Converts a "YYYY-MM-DD" key to a short display label like "Jun 3"
+String formatDateKeyShort(String key) {
+  final parts = key.split('-');
+  return '${_shortMonths[int.parse(parts[1]) - 1]} ${int.parse(parts[2])}';
+}
+
+// Converts a DateTime to a short display label like "Jun 3"
+String formatDateShort(DateTime date) =>
+    '${_shortMonths[date.month - 1]} ${date.day}';
+
+// Quick-select range chips shared across analytics screens
+// labels is the list of chip labels, selectedIndex is the active one, onTap fires with the tapped index
+Widget buildRangeChips(
+  BuildContext context,
+  List<String> labels,
+  int selectedIndex,
+  void Function(int) onTap,
+) {
+  final accent = lightenColor(appColorNotifier.value, 0.45);
+  Widget chip(int i) => GestureDetector(
+    onTap: () => onTap(i),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 14),
+        vertical: Responsive.height(context, 7),
+      ),
+      decoration: BoxDecoration(
+        color: selectedIndex == i ? accent.withAlpha(40) : accent.withAlpha(10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: selectedIndex == i
+              ? accent.withAlpha(120)
+              : accent.withAlpha(20),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        labels[i],
+        textAlign: TextAlign.center,
+        style: GoogleFonts.manrope(
+          fontSize: Responsive.font(context, 13),
+          fontWeight: selectedIndex == i ? FontWeight.w700 : FontWeight.w500,
+          color: selectedIndex == i
+              ? accent
+              : lightenColor(appColorNotifier.value, 0.3),
+        ),
+      ),
+    ),
+  );
+
+  return Row(
+    children: [
+      for (int i = 0; i < labels.length; i++) ...[
+        Expanded(child: chip(i)),
+        if (i < labels.length - 1)
+          SizedBox(width: Responsive.width(context, 8)),
+      ],
+    ],
+  );
 }
 
 Widget legendDot(BuildContext context, String label, Color color, Color dim) {

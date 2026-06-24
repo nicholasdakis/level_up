@@ -12,6 +12,7 @@ import 'screens/calorie_calculator/results.dart';
 import 'screens/food_logging.dart';
 import 'screens/analytics/food_analytics.dart';
 import 'screens/analytics/weight_analytics.dart';
+import 'screens/analytics/water_analytics.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
@@ -354,6 +355,11 @@ final GoRouter appRouter = GoRouter(
         key: state.pageKey,
         child: const WeightAnalyticsScreen(),
       ),
+    ),
+    GoRoute(
+      path: '/water/analytics',
+      pageBuilder: (context, state) =>
+          _slideUpPage(key: state.pageKey, child: const WaterAnalyticsScreen()),
     ),
   ],
 );
