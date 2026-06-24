@@ -491,22 +491,30 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     final values = [breakfastCal, lunchCal, dinnerCal, snacksCal];
     final total = values.fold(0.0, (a, b) => a + b);
     final maxVal = values.fold(0.0, (a, b) => a > b ? a : b);
+    final minBarVal = (maxVal * 0.03).clamp(1.0, double.infinity);
 
     final groups = <BarChartGroupData>[];
     for (int i = 0; i < values.length; i++) {
+      final empty = values[i] == 0;
+      final barVal = empty ? minBarVal : values[i];
       groups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
-              toY: values[i],
+              toY: barVal,
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  lightenColor(appColorNotifier.value, 0.45),
-                  lightenColor(appColorNotifier.value, 0.2),
-                ],
+                colors: empty
+                    ? [
+                        lightenColor(appColorNotifier.value, 0.2).withAlpha(50),
+                        lightenColor(appColorNotifier.value, 0.1).withAlpha(50),
+                      ]
+                    : [
+                        lightenColor(appColorNotifier.value, 0.45),
+                        lightenColor(appColorNotifier.value, 0.2),
+                      ],
               ),
               width: Responsive.scale(context, 18),
               borderRadius: BorderRadius.circular(4),
@@ -546,7 +554,10 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                   }
                   final v = values[i];
                   final pct = total > 0 ? (v / total * 100).round() : 0;
-                  if (v == 0) return const SizedBox.shrink();
+                  final empty = v == 0;
+                  final labelColor = empty
+                      ? lightenColor(appColorNotifier.value, 0.25)
+                      : lightenColor(appColorNotifier.value, 0.45);
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: Responsive.height(context, 4),
@@ -555,19 +566,19 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "$pct%",
+                          empty ? '' : '$pct%',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
                             fontWeight: FontWeight.w700,
-                            color: lightenColor(appColorNotifier.value, 0.45),
+                            color: labelColor,
                           ),
                         ),
                         Text(
-                          "${v.round()} kcal",
+                          empty ? '0 kcal' : '${v.round()} kcal',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            fontWeight: FontWeight.w700,
-                            color: lightenColor(appColorNotifier.value, 0.45),
+                            fontWeight: empty ? FontWeight.w400 : FontWeight.w700,
+                            color: labelColor,
                           ),
                         ),
                       ],
@@ -1008,7 +1019,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // MEAL BREAKDOWN GRAPH
-                      sectionHeader("MEAL BREAKDOWN", context)
+                      sectionHeader("MEAL BREAKDOWN GRAPH", context)
                           .animate(
                             key: ValueKey((
                               'range_meal_graph_title',
@@ -1266,15 +1277,13 @@ class _MealLineChartState extends State<_MealLineChart> {
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
-                      final closest = touched.reduce(
-                        (a, b) => a.y > b.y ? a : b,
-                      );
-                      return touched.map((s) {
-                        if (s != closest) return null;
+                      return touched.asMap().entries.map((entry) {
+                        final s = entry.value;
                         final p = points[s.spotIndex];
-                        final barIdx = _focus ?? s.barIndex;
+                        final isFirst = entry.key == 0;
+                        final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
-                          '${formatDateShort(p.date)}\n',
+                          isFirst ? '${formatDateShort(p.date)}\n' : '',
                           GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
                             color: dim,
@@ -1282,10 +1291,10 @@ class _MealLineChartState extends State<_MealLineChart> {
                           ),
                           children: [
                             TextSpan(
-                              text: '${_names[barIdx]}: ${_fmtCal(s.y)} kcal',
+                              text: '${_names[idx]}: ${_fmtCal(s.y)} kcal',
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
-                                color: colors[barIdx],
+                                color: accent,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -1487,12 +1496,9 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                     getTooltipColor: (_) =>
                         darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
-                      // sort by barIndex so the tooltip always lists P / C / F in order
-                      final sorted = [...touched]
-                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-                      return touched.map((s) {
-                        // only the first spot in barIndex order carries the date header
-                        final isFirst = s.barIndex == sorted.first.barIndex;
+                      return touched.asMap().entries.map((entry) {
+                        final s = entry.value;
+                        final isFirst = entry.key == 0;
                         final p = points[s.spotIndex];
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
@@ -1507,7 +1513,7 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                               text: '${_names[idx]}: ${s.y.round()}g',
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
-                                color: colors[idx],
+                                color: accent,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
