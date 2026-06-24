@@ -701,6 +701,15 @@ class _FoodLoggingState extends State<FoodLogging> {
   ) {
     final isCollapsed = _collapsed[mealKey] ?? false;
     final mealCal = _mealCalories(foods).round();
+    double mealProtein = 0, mealCarbs = 0, mealFat = 0;
+    for (var food in foods) {
+      final m = FoodLoggingHelper.extractMacros(
+        food['food_description'] as String? ?? '',
+      );
+      mealProtein += m['protein'] ?? 0;
+      mealCarbs += m['carbs'] ?? 0;
+      mealFat += m['fat'] ?? 0;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -742,27 +751,43 @@ class _FoodLoggingState extends State<FoodLogging> {
                 const Spacer(),
                 // Calorie count only shows when something is logged
                 if (mealCal > 0) ...[
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "$mealCal",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 18),
-                            fontWeight: FontWeight.w800,
-                            color: accentColor,
-                            height: 1,
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "$mealCal",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 18),
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                                height: 1,
+                              ),
+                            ),
+                            TextSpan(
+                              text: " cal",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.45,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: " cal",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: lightenColor(appColorNotifier.value, 0.45),
-                          ),
+                      ),
+                      Text(
+                        'P ${mealProtein.round()}g · C ${mealCarbs.round()}g · F ${mealFat.round()}g',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 10),
+                          color: lightenColor(appColorNotifier.value, 0.35),
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                 ],
