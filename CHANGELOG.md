@@ -2194,3 +2194,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-24
 - Made it so no slide up animation shows when clicking the Food Analytics shortcut from Home Screen
 - Fixed tooltips in line charts clipping
+- Removed the code that forces web version to refresh after 30 minutes of inactivity

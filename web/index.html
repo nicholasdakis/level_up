@@ -469,32 +469,6 @@
 
   </script>
 
-  <script>
-
-    /* reload app if user leaves it for too long */
-    (function () {
-
-      var hiddenAt = null;
-      var RELOAD_AFTER_MS = 30 * 60 * 1000;
-
-      document.addEventListener('visibilitychange', function () {
-
-        if (document.visibilityState === 'hidden') {
-          hiddenAt = Date.now();
-        }
-
-        if (document.visibilityState === 'visible') {
-          if (hiddenAt && Date.now() - hiddenAt > RELOAD_AFTER_MS) {
-            window.location.reload();
-          }
-          hiddenAt = null;
-        }
-
-      });
-
-    })();
-
-  </script>
 
   <script>
 
