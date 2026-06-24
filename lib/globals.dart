@@ -159,6 +159,42 @@ Widget socialLink({
   );
 }
 
+// Shows the force-update dialog, non-dismissable, opens Play Store on confirm
+Future<void> showForceUpdateDialog(BuildContext context) async {
+  await showFrostedAlertDialog(
+    context: context,
+    dismissible: false,
+    title: "Update Required",
+    content: Text(
+      "Hey! There's a new version of Level Up! ready for you. Update to get the latest features and keep everything running smoothly.",
+      textAlign: TextAlign.center,
+      style: GoogleFonts.manrope(color: Colors.white70, fontSize: 14),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () async {
+          final uri = Uri.parse(
+            'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
+          );
+          if (await url_launcher.canLaunchUrl(uri)) {
+            url_launcher.launchUrl(
+              uri,
+              mode: url_launcher.LaunchMode.externalApplication,
+            );
+          }
+        },
+        child: Text(
+          "Update Now",
+          style: GoogleFonts.manrope(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
 // Method that externally opens an email with a path and subject
 Future<void> sendEmail(
   BuildContext context,

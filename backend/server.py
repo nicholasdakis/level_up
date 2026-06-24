@@ -223,6 +223,12 @@ def send_due_reminders():
     except Exception as e:
         logger.exception(f'Error sending reminders: {e}')
 
+MIN_APP_VERSION = "1.1.4"
+
+@app.route("/app_config")
+def app_config():
+    return jsonify({"min_version": MIN_APP_VERSION}), 200
+
 @app.route("/ping")
 def ping():
     return jsonify({

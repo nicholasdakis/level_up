@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'services/user_data_manager.dart' show backendBaseUrl;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
@@ -393,17 +394,22 @@ class _AppInitScreenState extends State<AppInitScreen> {
     super.dispose();
   }
 
-  // bumped on new versions to show update dialog
-  static const _minRequiredVersion = '1.1.4';
-
   // returns true if the installed version is below the minimum required
+  // returns false if the backend is unreachable so users are never blocked by a network failure
   Future<bool> _isOutdated() async {
     try {
       final info = await PackageInfo.fromPlatform();
+      final response = await http
+          .get(Uri.parse('$backendBaseUrl/app_config'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode != 200) return false;
+      final minVersion =
+          (jsonDecode(response.body) as Map)['min_version'] as String?;
+      if (minVersion == null) return false;
       // split "1.2.3" into [1, 2, 3] for numeric part-by-part comparison
       List<int> parts(String v) => v.split('.').map(int.parse).toList();
       final cur = parts(info.version);
-      final req = parts(_minRequiredVersion);
+      final req = parts(minVersion);
       // compare major, minor, patch in order
       for (int i = 0; i < req.length; i++) {
         final c = i < cur.length ? cur[i] : 0;
@@ -412,7 +418,7 @@ class _AppInitScreenState extends State<AppInitScreen> {
       }
       return false; // equal
     } catch (_) {
-      return false; // if the version cant be read, let the user through
+      return false; // let the user through if anything fails
     }
   }
 
@@ -462,35 +468,7 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _showForceUpdateDialog() async {
-    await showFrostedAlertDialog(
-      context: context,
-      dismissible: false,
-      title: "Update Required",
-      content: Text(
-        "A new version of Level Up! is available. Update now to keep everything working. Older versions may experience issues or missing features.",
-        textAlign: TextAlign.center,
-        style: GoogleFonts.manrope(color: Colors.white70, fontSize: 14),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () async {
-            final uri = Uri.parse(
-              'https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup',
-            );
-            if (await canLaunchUrl(uri)) {
-              launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Text(
-            "Update Now",
-            style: GoogleFonts.manrope(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
-    );
+    await showForceUpdateDialog(context);
   }
 
   @override

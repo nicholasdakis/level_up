@@ -2198,3 +2198,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the Water Analytics screen and the button leading to it
 - Extracted more repeated code from analytics into the analytics_components file
 - Removed the extra padding around the line chart graphs as the tool tips are now contained
+- Moved minimum app version code gate to the backend so it works
+- Added the update gate into the connectivity stream so that if a user gets in due to no connection, once they regain connection they will be blocked
