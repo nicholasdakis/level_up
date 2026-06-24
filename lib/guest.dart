@@ -25,6 +25,10 @@ class Guest {
   // Called when the user taps "Continue as Guest",sets the flag and triggers the router to navigate past the login screen
   static void enter() {
     isGuest = true;
+    // set guest data and mark init done before notifying the router so it never needs to hit /loading
+    userDataNotifier.value = defaultUserData;
+    appInitialized = true;
+    appReadyNotifier.value = true;
     guestNotifier.value = true;
   }
 

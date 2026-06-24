@@ -97,6 +97,14 @@ final GoRouter appRouter = GoRouter(
   // re-evaluates redirect when auth state changes
   refreshListenable: _authNotifier,
   redirect: (context, state) {
+    // if a real Firebase user signed in while in guest mode, clear guest state so init runs fresh
+    if (isGuest && FirebaseAuth.instance.currentUser != null) {
+      isGuest = false;
+      userDataNotifier.value = null;
+      appInitialized = false;
+      appReadyNotifier.value = false;
+      guestNotifier.value = false;
+    }
     final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
     final onLogin = state.matchedLocation == '/login';
     final onLoading = state.matchedLocation == '/loading';
