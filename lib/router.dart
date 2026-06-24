@@ -184,14 +184,26 @@ final GoRouter appRouter = GoRouter(
                       state.extra == null ? '/food-logging' : null,
                   pageBuilder: (context, state) {
                     final p = state.extra as Map<String, dynamic>;
-                    return _slideUpPage(
-                      key: state.pageKey,
-                      child: FoodAnalyticsScreen(
-                        initialDate: p['initialDate'] as DateTime,
-                        onDateChanged:
-                            p['onDateChanged'] as void Function(DateTime)?,
-                      ),
-                    );
+                    final noAnim = p['noAnimation'] == true;
+                    return noAnim
+                        ? NoTransitionPage(
+                            key: state.pageKey,
+                            child: FoodAnalyticsScreen(
+                              initialDate: p['initialDate'] as DateTime,
+                              onDateChanged:
+                                  p['onDateChanged']
+                                      as void Function(DateTime)?,
+                            ),
+                          )
+                        : _slideUpPage(
+                            key: state.pageKey,
+                            child: FoodAnalyticsScreen(
+                              initialDate: p['initialDate'] as DateTime,
+                              onDateChanged:
+                                  p['onDateChanged']
+                                      as void Function(DateTime)?,
+                            ),
+                          );
                   },
                 ),
                 GoRoute(

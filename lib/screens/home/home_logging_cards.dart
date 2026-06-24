@@ -409,6 +409,7 @@ class HomeLoggingCards extends StatelessWidget {
                       extra: {
                         'initialDate': DateTime.now(),
                         'onDateChanged': null,
+                        'noAnimation': true,
                       },
                     ),
                   ),

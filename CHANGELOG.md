@@ -2190,3 +2190,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added macro data per meal type on the Log Food screen and in the Food Analytics cards
 - Added per-meal macro breakdown display to Food Logging page showing protein, carbs, and fat for each meal section
 - Added per-meal macro breakdown to the Food Analytics daily summary card
+
+## 2026-06-24
+- Made it so no slide up animation shows when clicking the Food Analytics shortcut from Home Screen
