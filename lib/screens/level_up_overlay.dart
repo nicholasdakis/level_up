@@ -110,6 +110,7 @@ String _fmt(int n) {
 }
 
 Future<void> showLevelUpOverlay(BuildContext context, int newLevel) async {
+  if (isGuest) return;
   final controller = ConfettiController(duration: const Duration(seconds: 4));
   final accent = lightenColor(appColorNotifier.value, 0.45);
   final dim = lightenColor(appColorNotifier.value, 0.35);

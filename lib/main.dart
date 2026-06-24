@@ -95,8 +95,14 @@ class _MyAppState extends State<MyApp> {
     // triggers the overlay. After that, any increase fires showLevelUpOverlay.
     _levelUpListener = () {
       final newLevel = currentUserData?.level ?? 0;
+      // guests have no real level progression
+      if (isGuest) return;
       // wait until backend data is fully loaded before tracking anything
-      if (!appReadyNotifier.value) return;
+      if (!appReadyNotifier.value) {
+        // reset baseline on logout so the next login captures a fresh one
+        _lastKnownLevel = -1;
+        return;
+      }
       if (_lastKnownLevel == -1) {
         // capture the baseline on the first notification after real data is ready
         _lastKnownLevel = newLevel;
