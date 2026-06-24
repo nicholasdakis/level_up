@@ -2211,3 +2211,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where the level-up overlay would trigger on login by gating the baseline capture behind appReadyNotifier instead of appInitialized
 - Fixed gym check-in in explore.dart not calling userDataNotifier.notifyListeners, so the level-up overlay now triggers correctly after a check-in
 - Level-up overlay close animation is a smooth fade instead of a jarring scale shrink
+- Added a pulse effect on the search button if a user searches a food but doesn't press search for 5 seconds
+- Made the search bar animate into the compressed version rather than being instant

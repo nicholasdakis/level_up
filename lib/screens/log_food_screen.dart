@@ -19,6 +19,7 @@ import '../utility/food_logging_helper.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
 class LogFoodScreen extends StatefulWidget {
   final String meal;
@@ -53,7 +54,7 @@ class LogFoodScreen extends StatefulWidget {
 }
 
 class _LogFoodScreenState extends State<LogFoodScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool snackbarActive = false;
   bool isLogging = false;
   String latestQuery = "";
@@ -73,6 +74,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   List<Map<String, dynamic>> _recentMatches = [];
   bool _showingRecentMatches = true;
   bool _isSearching = false;
+  bool _showSearchHint = false;
+  Timer? _searchHintTimer;
 
   static const List<String> allowedUnits = [
     'g',
@@ -128,6 +131,8 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final query = value.toLowerCase().trim();
 
     if (query.isEmpty) {
+      _searchHintTimer?.cancel();
+      if (_showSearchHint) setState(() => _showSearchHint = false);
       setState(() {
         _recentMatches = [];
         foodList = [];
@@ -149,6 +154,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     });
 
     if (matches.isNotEmpty) checkTimer?.cancel();
+
+    // restart the hint timer on every keystroke
+    _searchHintTimer?.cancel();
+    if (_showSearchHint) setState(() => _showSearchHint = false);
+    _searchHintTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && !_isSearching) {
+        setState(() => _showSearchHint = true);
+      }
+    });
   }
 
   // Toggles the microphone for voice input on the search bar
@@ -174,6 +188,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   @override
   void dispose() {
     checkTimer?.cancel();
+    _searchHintTimer?.cancel();
     _voiceSearch.cancel();
     searchController.dispose();
     _customUnitController.dispose();
@@ -1472,49 +1487,56 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         onSubmitted: (v) => handleApiCall(v),
                       ),
                     ),
-                    // filled search button so it's obvious something needs to be tapped
-                    if (searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          setState(() => _showingRecentMatches = false);
-                          handleApiCall(searchController.text);
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            left: Responsive.width(context, 6),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 12),
-                            vertical: Responsive.height(context, 7),
-                          ),
-                          decoration: BoxDecoration(
-                            color: lightenColor(appColor, 0.35).withAlpha(160),
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 20),
-                            ),
-                            border: Border.all(color: accent.withAlpha(180)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.search,
-                                color: accent,
-                                size: Responsive.font(context, 16),
-                              ),
-                              SizedBox(width: Responsive.width(context, 4)),
-                              Text(
-                                "Search",
-                                style: GoogleFonts.manrope(
-                                  color: accent,
-                                  fontSize: Responsive.font(context, 12),
-                                  fontWeight: FontWeight.w700,
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeOut,
+                      child: searchController.text.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _searchHintTimer?.cancel();
+                                setState(() {
+                                  _showingRecentMatches = false;
+                                  _showSearchHint = false;
+                                });
+                                handleApiCall(searchController.text);
+                              },
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 10),
+                                  vertical: Responsive.height(context, 8),
                                 ),
+                                child: _showSearchHint
+                                    ? Text(
+                                            'Search',
+                                            style: GoogleFonts.manrope(
+                                              color: accent,
+                                              fontSize: Responsive.font(
+                                                context,
+                                                13,
+                                              ),
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          )
+                                          .animate(onPlay: (c) => c.repeat())
+                                          .shimmer(
+                                            duration: 2000.ms,
+                                            color: Colors.white.withAlpha(180),
+                                          )
+                                    : Text(
+                                        'Search',
+                                        style: GoogleFonts.manrope(
+                                          color: accent,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            13,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                     // mic icon in search bar shows active state when listening
                     GestureDetector(
                       onTap: _toggleListening,
@@ -1533,20 +1555,25 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         ),
                       ),
                     ),
-                    if (searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: _clearSelection,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 8),
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            color: c.onCard.withAlpha(140),
-                            size: Responsive.font(context, 20),
-                          ),
-                        ),
-                      ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeOut,
+                      child: searchController.text.isNotEmpty
+                          ? GestureDetector(
+                              onTap: _clearSelection,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 8),
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  color: c.onCard.withAlpha(140),
+                                  size: Responsive.font(context, 20),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
               ),
@@ -1662,306 +1689,322 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                   ),
                 ),
 
-              // Skeletonizer shown while the API search is in flight
-              if (_isSearching)
-                Skeletonizer(
-                  enabled: true,
-                  effect: ShimmerEffect(
-                    baseColor: lightenColor(appColor, 0.10),
-                    highlightColor: lightenColor(appColor, 0.22),
-                    duration: const Duration(milliseconds: 1000),
-                  ),
-                  child: Column(
-                    children: List.generate(10, (_) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(context, 13),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, 0.04),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(parent: anim, curve: Curves.easeOut),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: Responsive.scale(context, 38),
-                              height: Responsive.scale(context, 38),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(appColor, 0.15),
-                              ),
-                            ),
-                            SizedBox(width: Responsive.width(context, 12)),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: Responsive.height(context, 14),
-                                    width: Responsive.width(context, 160),
-                                    decoration: BoxDecoration(
-                                      color: lightenColor(appColor, 0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: Responsive.height(context, 5),
-                                  ),
-                                  Container(
-                                    height: Responsive.height(context, 11),
-                                    width: Responsive.width(context, 100),
-                                    decoration: BoxDecoration(
-                                      color: lightenColor(appColor, 0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              width: Responsive.scale(context, 30),
-                              height: Responsive.scale(context, 30),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(appColor, 0.15),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+                    child: child,
                   ),
                 ),
-
-              // Tab switcher shown whenever there are recent matches; Database tab triggers API call on demand
-              if (_recentMatches.isNotEmpty && !_isSearching) ...[
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 10),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildSourceTab(
-                          'Recent',
-                          _showingRecentMatches || foodList.isEmpty,
-                          appColor,
-                          () => setState(() => _showingRecentMatches = true),
-                        ),
-                      ),
-                      SizedBox(width: Responsive.width(context, 8)),
-                      Expanded(
-                        child: _buildSourceTab(
-                          'Database',
-                          !_showingRecentMatches && foodList.isNotEmpty,
-                          appColor,
-                          () {
-                            setState(() => _showingRecentMatches = false);
-                            if (foodList.isEmpty) {
-                              handleApiCall(searchController.text);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onHorizontalDragEnd: (details) {
-                    final dx = details.primaryVelocity ?? 0;
-                    if (dx < -200 && _showingRecentMatches) {
-                      // swipe left: go to Database
-                      setState(() => _showingRecentMatches = false);
-                      if (foodList.isEmpty) {
-                        handleApiCall(searchController.text);
-                      }
-                    } else if (dx > 200 && !_showingRecentMatches) {
-                      // swipe right: go to Recent
-                      setState(() => _showingRecentMatches = true);
-                    }
-                  },
-                  child: Column(
-                    children: [
-                      // recent matches tab
-                      if (_showingRecentMatches &&
-                          _recentMatches.isNotEmpty) ...[
-                        for (int i = 0; i < _recentMatches.length; i++) ...[
-                          _buildFoodRow(
-                            _recentMatches[i],
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              _showServingDialog(
-                                _recentMatches[i],
-                                achievementId: 'food_recent',
-                              );
-                            },
-                          ),
-                          if (i < _recentMatches.length - 1)
-                            Container(height: 1, color: c.onCard.withAlpha(40)),
-                        ],
-                        _buildEndOfResults(),
-                      ],
-                      // database results tab
-                      if (!_showingRecentMatches && foodList.isNotEmpty) ...[
-                        for (int i = 0; i < foodList.length; i++) ...[
-                          _buildFoodRow(
-                            foodList[i] as Map<String, dynamic>,
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              _showServingDialog(
-                                foodList[i] as Map<String, dynamic>,
-                                achievementId: 'food_search',
-                              );
-                            },
-                          ),
-                          if (i < foodList.length - 1)
-                            Container(height: 1, color: c.onCard.withAlpha(40)),
-                        ],
-                        _buildEndOfResults(),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 12)),
-              ],
-
-              // Plain API results when there were no recent matches at all (no tab switcher shown)
-              if (foodList.isNotEmpty &&
-                  _recentMatches.isEmpty &&
-                  !_isSearching) ...[
-                for (int i = 0; i < foodList.length; i++) ...[
-                  _buildFoodRow(
-                    foodList[i] as Map<String, dynamic>,
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                      _showServingDialog(
-                        foodList[i] as Map<String, dynamic>,
-                        achievementId: 'food_search',
-                      );
-                    },
-                  ),
-                  if (i < foodList.length - 1)
-                    Container(height: 1, color: c.onCard.withAlpha(40)),
-                ],
-                _buildEndOfResults(),
-                SizedBox(height: Responsive.height(context, 12)),
-              ],
-
-              // Recent foods as a frosted card that fills the remaining space
-              if (showSections)
-                frostedGlassCard(
-                  context,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 16),
-                    vertical: Responsive.height(context, 14),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          final next = !_recentExpanded;
-                          setState(() => _recentExpanded = next);
-                          _saveRecentExpanded(next);
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedClock01,
-                                  color: accent,
-                                  size: Responsive.scale(context, 14),
-                                ),
-                                SizedBox(width: Responsive.width(context, 5)),
-                                Text(
-                                  "RECENT",
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 13),
-                                    fontWeight: FontWeight.w700,
-                                    color: accent,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            AnimatedRotation(
-                              turns: _recentExpanded ? 0 : -0.5,
-                              duration: const Duration(milliseconds: 200),
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowDown01,
-                                color: dim,
-                                size: Responsive.scale(context, 18),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: _recentExpanded
-                            ? Column(
-                                children: [
-                                  SizedBox(
-                                    height: Responsive.height(context, 10),
-                                  ),
-                                  if (_recentFoods.isEmpty)
-                                    Text(
-                                      "Nothing logged recently",
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 13),
-                                        color: c.onCard.withAlpha(100),
-                                      ),
-                                    )
-                                  else
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxHeight:
-                                            MediaQuery.of(context).size.height *
-                                            0.30,
-                                      ),
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          children: List.generate(
-                                            _recentFoods.length,
-                                            (i) {
-                                              final food = _recentFoods[i];
-                                              return Column(
-                                                children: [
-                                                  _buildFoodRow(
-                                                    food,
-                                                    onTap: () =>
-                                                        _showServingDialog(
-                                                          food,
-                                                          achievementId:
-                                                              'food_recent',
-                                                        ),
-                                                  ),
-                                                  if (i <
-                                                      _recentFoods.length - 1)
-                                                    Container(
-                                                      height: 1,
-                                                      color: c.onCard.withAlpha(
-                                                        40,
-                                                      ),
-                                                    ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ),
-                ),
+                child: _buildResultsSection(appColor, accent, dim),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildResultsSection(Color appColor, Color accent, Color dim) {
+    final c = cardColors(appColor);
+    final showSections =
+        foodList.isEmpty && !_isSearching && _recentMatches.isEmpty;
+    final key = ValueKey(
+      '${_isSearching}_${foodList.length}_${_recentMatches.length}',
+    );
+    return Column(
+      key: key,
+      children: [
+        // Skeletonizer shown while the API search is in flight
+        if (_isSearching)
+          Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: lightenColor(appColor, 0.10),
+              highlightColor: lightenColor(appColor, 0.22),
+              duration: const Duration(milliseconds: 1000),
+            ),
+            child: Column(
+              children: List.generate(10, (_) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 13),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: Responsive.scale(context, 38),
+                        height: Responsive.scale(context, 38),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(appColor, 0.15),
+                        ),
+                      ),
+                      SizedBox(width: Responsive.width(context, 12)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: Responsive.height(context, 14),
+                              width: Responsive.width(context, 160),
+                              decoration: BoxDecoration(
+                                color: lightenColor(appColor, 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.height(context, 5)),
+                            Container(
+                              height: Responsive.height(context, 11),
+                              width: Responsive.width(context, 100),
+                              decoration: BoxDecoration(
+                                color: lightenColor(appColor, 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: Responsive.scale(context, 30),
+                        height: Responsive.scale(context, 30),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(appColor, 0.15),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+
+        // Tab switcher shown whenever there are recent matches; Database tab triggers API call on demand
+        if (_recentMatches.isNotEmpty && !_isSearching) ...[
+          Padding(
+            padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildSourceTab(
+                    'Recent',
+                    _showingRecentMatches || foodList.isEmpty,
+                    appColor,
+                    () => setState(() => _showingRecentMatches = true),
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 8)),
+                Expanded(
+                  child: _buildSourceTab(
+                    'Database',
+                    !_showingRecentMatches && foodList.isNotEmpty,
+                    appColor,
+                    () {
+                      setState(() => _showingRecentMatches = false);
+                      if (foodList.isEmpty) {
+                        handleApiCall(searchController.text);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              final dx = details.primaryVelocity ?? 0;
+              if (dx < -200 && _showingRecentMatches) {
+                // swipe left: go to Database
+                setState(() => _showingRecentMatches = false);
+                if (foodList.isEmpty) {
+                  handleApiCall(searchController.text);
+                }
+              } else if (dx > 200 && !_showingRecentMatches) {
+                // swipe right: go to Recent
+                setState(() => _showingRecentMatches = true);
+              }
+            },
+            child: Column(
+              children: [
+                // recent matches tab
+                if (_showingRecentMatches && _recentMatches.isNotEmpty) ...[
+                  for (int i = 0; i < _recentMatches.length; i++) ...[
+                    _buildFoodRow(
+                      _recentMatches[i],
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        _showServingDialog(
+                          _recentMatches[i],
+                          achievementId: 'food_recent',
+                        );
+                      },
+                    ),
+                    if (i < _recentMatches.length - 1)
+                      Container(height: 1, color: c.onCard.withAlpha(40)),
+                  ],
+                  _buildEndOfResults(),
+                ],
+                // database results tab
+                if (!_showingRecentMatches && foodList.isNotEmpty) ...[
+                  for (int i = 0; i < foodList.length; i++) ...[
+                    _buildFoodRow(
+                      foodList[i] as Map<String, dynamic>,
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        _showServingDialog(
+                          foodList[i] as Map<String, dynamic>,
+                          achievementId: 'food_search',
+                        );
+                      },
+                    ),
+                    if (i < foodList.length - 1)
+                      Container(height: 1, color: c.onCard.withAlpha(40)),
+                  ],
+                  _buildEndOfResults(),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+        ],
+
+        // Plain API results when there were no recent matches at all (no tab switcher shown)
+        if (foodList.isNotEmpty && _recentMatches.isEmpty && !_isSearching) ...[
+          for (int i = 0; i < foodList.length; i++) ...[
+            _buildFoodRow(
+              foodList[i] as Map<String, dynamic>,
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                _showServingDialog(
+                  foodList[i] as Map<String, dynamic>,
+                  achievementId: 'food_search',
+                );
+              },
+            ),
+            if (i < foodList.length - 1)
+              Container(height: 1, color: c.onCard.withAlpha(40)),
+          ],
+          _buildEndOfResults(),
+          SizedBox(height: Responsive.height(context, 12)),
+        ],
+
+        // Recent foods as a frosted card that fills the remaining space
+        if (showSections)
+          frostedGlassCard(
+            context,
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 16),
+              vertical: Responsive.height(context, 14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    final next = !_recentExpanded;
+                    setState(() => _recentExpanded = next);
+                    _saveRecentExpanded(next);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedClock01,
+                            color: accent,
+                            size: Responsive.scale(context, 14),
+                          ),
+                          SizedBox(width: Responsive.width(context, 5)),
+                          Text(
+                            "RECENT",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w700,
+                              color: accent,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      AnimatedRotation(
+                        turns: _recentExpanded ? 0 : -0.5,
+                        duration: const Duration(milliseconds: 200),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowDown01,
+                          color: dim,
+                          size: Responsive.scale(context, 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: _recentExpanded
+                      ? Column(
+                          children: [
+                            SizedBox(height: Responsive.height(context, 10)),
+                            if (_recentFoods.isEmpty)
+                              Text(
+                                "Nothing logged recently",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 13),
+                                  color: c.onCard.withAlpha(100),
+                                ),
+                              )
+                            else
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxHeight:
+                                      MediaQuery.of(context).size.height * 0.30,
+                                ),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: List.generate(
+                                      _recentFoods.length,
+                                      (i) {
+                                        final food = _recentFoods[i];
+                                        return Column(
+                                          children: [
+                                            _buildFoodRow(
+                                              food,
+                                              onTap: () => _showServingDialog(
+                                                food,
+                                                achievementId: 'food_recent',
+                                              ),
+                                            ),
+                                            if (i < _recentFoods.length - 1)
+                                              Container(
+                                                height: 1,
+                                                color: c.onCard.withAlpha(40),
+                                              ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

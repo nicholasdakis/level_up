@@ -577,7 +577,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           empty ? '0 kcal' : '${v.round()} kcal',
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            fontWeight: empty ? FontWeight.w400 : FontWeight.w700,
+                            fontWeight: empty
+                                ? FontWeight.w400
+                                : FontWeight.w700,
                             color: labelColor,
                           ),
                         ),

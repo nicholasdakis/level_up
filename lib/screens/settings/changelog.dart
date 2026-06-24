@@ -75,10 +75,22 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                date: 'Coming Soon',
+                version: '1.1.5',
+                changes: [
+                  'Leveling up now triggers a celebration screen showing your new rank and everything you have achieved',
+                  'Water analytics added so you can see your hydration habits over time',
+                  'Weight analytics added so you can track your progress and see how far you have come',
+                  'Food analytics completely overhauled with richer graphs, deeper breakdowns by meal, and cleaner summaries',
+                  'Macro and calorie data now shown per meal on both the logging screen and in analytics',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
                 date: 'June 21, 2026',
                 version: '1.1.4',
                 changes: [
-                  'Metric and Imperial unit preferences',
+                  'Metric and Imperial unit preferences added',
                   'Water logging with quick-add buttons, custom amounts, and per-entry deletion',
                   'Weight logging with date navigation and entry history',
                   'New goal types: Water intake and target weight',
