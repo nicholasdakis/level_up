@@ -34,6 +34,7 @@ class UserData {
   String units;
   Map<String, List<int>> waterEntriesByDate;
   Map<String, double> weightByDate;
+  DateTime? createdAt;
 
   // constructor
   UserData({
@@ -67,6 +68,7 @@ class UserData {
     this.units = 'metric',
     Map<String, List<int>>? waterEntriesByDate,
     Map<String, double>? weightByDate,
+    this.createdAt,
   }) : foodDataByDate = foodDataByDate ?? {},
        waterEntriesByDate = waterEntriesByDate ?? {},
        weightByDate = weightByDate ?? {},

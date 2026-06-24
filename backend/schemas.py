@@ -247,6 +247,7 @@ class GetUserDataResponse(BaseModel):
     units: str = 'metric'
     water_logs: list = Field(default_factory=list)
     weight_logs: list = Field(default_factory=list)
+    created_at: str | None = None
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success

@@ -252,6 +252,10 @@ class UserDataManager {
       currentUserData?.referralCount = data['referral_count'] ?? 0;
       currentUserData?.referralUsed = data['referral_used'] ?? false;
       currentUserData?.units = data['units'] ?? 'metric';
+      final createdAtStr = data['created_at'] as String?;
+      if (createdAtStr != null) {
+        currentUserData?.createdAt = DateTime.tryParse(createdAtStr)?.toLocal();
+      }
 
       if (data['water_logs'] != null) {
         final Map<String, List<int>> waterData = {};

@@ -284,6 +284,20 @@ class ProgressionService: # Service class to handle all progression-related busi
             self._repo.initialize_user_if_new(uid, email=email)
             user = self._repo.get_user(uid)
 
+        # backfill created_at from Firebase Auth if missing, so existing users get it on next load
+        if user and not user.get("created_at"):
+            try:
+                from firebase_admin import auth as fb_auth
+                from datetime import datetime, timezone
+                fb_user = fb_auth.get_user(uid)
+                ms = fb_user.user_metadata.creation_timestamp
+                if ms:
+                    created_at = datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat()
+                    self._repo.set_user_data(uid, {"created_at": created_at})
+                    user["created_at"] = created_at
+            except Exception:
+                pass
+
         food_logs = self._repo.get_food_logs(uid)
         water_logs = self._repo.get_water_logs(uid)
         weight_logs = self._repo.get_weight_logs(uid)
@@ -316,6 +330,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "units": user.get("units", "metric"),
             "water_logs": water_logs,
             "weight_logs": weight_logs,
+            "created_at": user.get("created_at"),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):

@@ -201,7 +201,8 @@ class UserRepository:
 
     def initialize_user_if_new(self, uid: str, email: str = None):
         # Insert a default row for a first-time user, but do nothing if they already exist
-        row = {"uid": uid, "username": uid} # username defaults to UID
+        from datetime import datetime, timezone
+        row = {"uid": uid, "username": uid, "created_at": datetime.now(timezone.utc).isoformat()}
         if email:
             row["email"] = email # store email so it can be looked up later for TOS enforcement
         self._supabase.table("users").upsert(

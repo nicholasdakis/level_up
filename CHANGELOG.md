@@ -2213,3 +2213,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Level-up overlay close animation is a smooth fade instead of a jarring scale shrink
 - Added a pulse effect on the search button if a user searches a food but doesn't press search for 5 seconds
 - Made the search bar animate into the compressed version rather than being instant
+- Added a "created_at" field in the users table and wired it to the frontend
