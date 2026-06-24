@@ -27,8 +27,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- Space Grotesk for the app name -->
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
 
   <!-- iOS / PWA meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -49,7 +47,7 @@
 
   <style>
     html {
-      background: var(--notch-color, #2d2d2d);
+      background: var(--notch-color, #0d1b2a);
       /* notch/status bar area matches appbar color */
       margin: 0;
       padding: 0;
@@ -58,7 +56,7 @@
     }
 
     body {
-      background: var(--app-color, #2d2d2d);
+      background: var(--app-color, linear-gradient(to right, #0d1b2a 0%, #0d1b2a 10%, #1b3a5c 50%, #0d1b2a 90%, #0d1b2a 100%));
       /* body uses the full gradient */
       margin: 0;
       padding: 0;
@@ -66,124 +64,114 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* splash screen overlay covers everything before flutter loads */
     #splash-screen {
       position: fixed;
       inset: 0;
-      background: var(--app-color, #2d2d2d);
+      background: var(--app-color, linear-gradient(to right, #0d1b2a 0%, #0d1b2a 10%, #1b3a5c 50%, #0d1b2a 90%, #0d1b2a 100%));
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 999999;
       font-family: 'Manrope', sans-serif;
-      /* Fade the whole splash in so it doesn't just pop in harshly */
       animation: splashFadeIn 0.4s ease forwards;
-      /* lets flutter receive touches even during the fade out so UI is immediately responsive */
       pointer-events: none;
+      padding: 0 40px;
+      box-sizing: border-box;
     }
 
-    /* logo wrapper holds the glow effect behind the logo */
     #splash-logo-wrapper {
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 24px;
-      /* fade and scale up from slightly small */
+      margin-bottom: 40px;
       animation: logoReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
     }
 
-    /* radial glow behind logo using a lighter version of the user's theme color */
-    #splash-logo-wrapper::before {
-      content: '';
-      position: absolute;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle, color-mix(in srgb, var(--accent-color, #888) 22%, transparent) 0%, transparent 70%);
-      /* pulsing glow so it feels alive, not static */
-      animation: glowPulse 2.5s ease-in-out infinite;
-    }
 
     #splash-logo {
       width: 160px;
-      position: relative; /* sits on top of the ::before glow */
+      position: relative;
     }
 
-    /* app name below the logo */
     #splash-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 3px;
-      margin-bottom: 40px;
-      color: color-mix(in srgb, var(--accent-color, #888) 85%, white);
+      font-family: 'Manrope', sans-serif;
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      color: rgba(255, 255, 255, 0.95);
+      text-align: center;
       animation: fadeUp 0.6s ease 0.5s both;
     }
 
-    /* wrapper for spinner + text so spacing is consistent */
+    #splash-subtitle {
+      font-family: 'Manrope', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 72px;
+      line-height: 1.6;
+      text-align: center;
+      max-width: 280px;
+      animation: fadeUp 0.6s ease 0.6s both;
+    }
+
     #splash-bottom {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-      /* fade in last, after title */
+      gap: 20px;
       animation: fadeUp 0.6s ease 0.75s both;
     }
 
+    /* dot pulse loader */
+    #loader {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.7);
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
     #loading-text {
-      color: color-mix(in srgb, var(--accent-color, #888) 70%, white);
-      font-size: 13px;
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       text-transform: uppercase;
     }
 
-    /* spinner loader */
-    #loader {
-      width: 36px;
-      height: 36px;
-      /* lighter version of the user's theme color */
-      border: 3px solid var(--spinner-track, rgba(128,128,128,0.3));
-      border-top: 3px solid var(--spinner-color, #888);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    @keyframes dotPulse {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+      40%            { opacity: 1;    transform: scale(1.2); }
     }
 
-    /* infinite rotation animation */
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* whole splash fades in smoothly on load */
     @keyframes splashFadeIn {
       from { opacity: 0; }
       to   { opacity: 1; }
     }
 
-    /* logo scales up from 85% and fades in */
     @keyframes logoReveal {
       from { opacity: 0; transform: scale(0.85); }
       to   { opacity: 1; transform: scale(1); }
     }
 
-    /* elements slide up slightly and fade in */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* glow behind logo breathes in and out gently */
-    @keyframes glowPulse {
-      0%, 100% { opacity: 0.6; transform: scale(1); }
-      50%       { opacity: 1;   transform: scale(1.12); }
-    }
 
   </style>
 
@@ -221,6 +209,7 @@
       var saved = localStorage.getItem('appColor');
       if (saved) applyAppColor(saved);
     })();
+
 
     /* called from flutter when user changes theme */
     window.setAppColor = function (value) {
@@ -311,14 +300,57 @@
       <img src="assets/assets/heart.png" id="splash-logo">
     </div>
 
-    <!-- App name with gold glow -->
     <div id="splash-title">LEVEL UP!</div>
+    <div id="splash-subtitle"></div>
+    <script>
+      (function () {
+        var tips = [
+          'Log your meals daily to keep your food streak alive',
+          'Claim your daily reward every 23 hours to earn XP',
+          'A longer streak means a higher daily reward multiplier',
+          'Refer a friend and you both earn XP when they reach level 3',
+          'Check in to nearby spots on the Explore tab to earn XP',
+          'Claim badge tiers in the Badges tab to earn XP',
+          'Log all four meals in a day to unlock a special achievement',
+          'Log food before 8am to unlock the Early Bird achievement',
+          'Log food after 11pm to unlock the Night Owl achievement',
+          'Scan a barcode to instantly log packaged food',
+          'Your daily reward multiplier grows at 3, 10, 30 and 50 day streaks',
+          'A broken streak does not lock badges you have already earned',
+          'Set a calorie goal to see your progress bar fill up each day',
+          'Set protein, carbs and fat goals to track your macros',
+          'Set a water goal to track your daily intake on the home screen',
+          'Set reminders so you never forget to log your meals',
+          'Use the calorie calculator to find your ideal daily intake',
+          'Food analytics shows your calorie and macro trends over time',
+          'Track your weight over time in the weight analytics screen',
+          'Set a weight goal and see how far you are from it on the home screen',
+          'Switch between metric and imperial units in Personal Preferences',
+          'Log water directly from the home screen with the quick-add button',
+          'The leaderboard ranks you against every user by XP',
+          'Visit the Progression tab to see your level and XP progress',
+          'Recent foods appear at the top of the search screen for quick logging',
+          'The macro card on the home screen updates live as you log food',
+          'Water analytics shows your daily intake trend over any date range',
+          'Set up reminders from the home screen to stay consistent',
+          'Your food streak resets if you miss a full day of logging',
+          'Upload a profile picture in Personal Preferences to stand out on the leaderboard',
+          'The Explore tab shows gyms and health spots near you',
+          'Use the serving size editor to log accurate portions',
+          'The calorie progress bar on the home screen turns red when you go over your goal',
+        ];
+        var tip = tips[Math.floor(Math.random() * tips.length)];
+        document.getElementById('splash-subtitle').textContent = tip;
+      })();
+    </script>
 
-    <!-- Spinner and text so they animate together -->
     <div id="splash-bottom">
-      <!-- css spinner -->
-      <div id="loader"></div>
-      <div id="loading-text">Loading...</div>
+      <div id="loader">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div id="loading-text">Loading</div>
     </div>
 
   </div>
