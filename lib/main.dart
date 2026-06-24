@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +8,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'services/ad_service.dart';
 import 'firebase_options.dart';
 import 'globals.dart';
@@ -14,6 +19,7 @@ import 'utility/confetti.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
+import 'services/user_data_manager.dart' show backendBaseUrl;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,8 +61,77 @@ Future<void> main() async {
   });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  // start as true so the first connectivity event always triggers _onReconnect if online
+  bool _wasOffline = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) async {
+      final online = !results.contains(ConnectivityResult.none);
+      if (online && _wasOffline) {
+        await _onReconnect();
+      }
+      _wasOffline = !online;
+    });
+  }
+
+  Future<void> _onReconnect() async {
+    // check version first before doing anything else
+    try {
+      final response = await http
+          .get(Uri.parse('$backendBaseUrl/app_config'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final minVersion =
+            (jsonDecode(response.body) as Map)['min_version'] as String?;
+        if (minVersion != null) {
+          final info = await PackageInfo.fromPlatform();
+          List<int> parts(String v) => v.split('.').map(int.parse).toList();
+          // strip build metadata (e.g. "1.1.4+35" -> "1.1.4") before comparing
+          final cur = parts(info.version.split('+').first);
+          final req = parts(minVersion);
+          for (int i = 0; i < req.length; i++) {
+            final c = i < cur.length ? cur[i] : 0;
+            if (c < req[i]) {
+              isAppOutdated = true;
+              appRouter.refresh();
+              return;
+            }
+            if (c > req[i]) break;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // version is fine, retry loading user data if it failed while offline
+    if (appInitialized && userManager.lastLoadFailed) {
+      await userManager.loadUserData();
+      if (currentUserData != null && !userManager.lastLoadFailed) {
+        appColorNotifier.value = currentUserData!.appColor;
+        expNotifier.value = currentUserData!.expPoints;
+        userDataNotifier.notifyListeners();
+        appReadyNotifier.value = true;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

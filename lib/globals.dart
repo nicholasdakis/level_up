@@ -25,6 +25,9 @@ ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
 // set to true by AppInitScreen once init completes, reset to false on logout
 bool appInitialized = false;
 
+// set to true when the app version is below the minimum required
+bool isAppOutdated = false;
+
 // Captured in main() before runApp so the original browser URL is preserved
 Uri appLaunchUri = Uri();
 

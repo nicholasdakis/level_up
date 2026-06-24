@@ -23,11 +23,7 @@ import 'utility/responsive.dart';
 import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:http/http.dart' as http;
-import 'package:package_info_plus/package_info_plus.dart';
-import 'services/user_data_manager.dart'
-    show trackTrivialAchievement, backendBaseUrl;
+import 'services/user_data_manager.dart' show trackTrivialAchievement;
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -56,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _tapHintTimer;
 
   Timer? _countdownTimer;
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   Duration _timeUntilReward = Duration.zero;
   double _lastRenderedExp =
       0; // reset on each load so the bar always animates in
@@ -98,41 +93,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (mounted) _onAppReady();
       });
     }
-
-    // check version when connection is regained in case init ran offline
-    _connectivitySub = Connectivity().onConnectivityChanged.listen((
-      results,
-    ) async {
-      if (!results.contains(ConnectivityResult.none) && mounted) {
-        await _checkVersionOnReconnect();
-      }
-    });
-  }
-
-  Future<void> _checkVersionOnReconnect() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      final response = await http
-          .get(Uri.parse('$backendBaseUrl/app_config'))
-          .timeout(const Duration(seconds: 5));
-      if (response.statusCode != 200) return;
-      final minVersion =
-          (jsonDecode(response.body) as Map)['min_version'] as String?;
-      if (minVersion == null) return;
-      List<int> parts(String v) => v.split('.').map(int.parse).toList();
-      final cur = parts(info.version);
-      final req = parts(minVersion);
-      bool outdated = false;
-      for (int i = 0; i < req.length; i++) {
-        final c = i < cur.length ? cur[i] : 0;
-        if (c < req[i]) {
-          outdated = true;
-          break;
-        }
-        if (c > req[i]) break;
-      }
-      if (outdated && mounted) await showForceUpdateDialog(context);
-    } catch (_) {}
   }
 
   Future<void> _showWaterLogSheet() => showWaterLogSheet(context);
@@ -211,7 +171,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _tapHintTimer?.cancel();
     _countdownTimer?.cancel();
-    _connectivitySub?.cancel();
     appColorNotifier.removeListener(_appColorListener);
     foodLogNotifier.removeListener(_onFoodChanged);
     appReadyNotifier.removeListener(_onAppReady);
@@ -278,25 +237,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (userManager.lastLoadFailed) {
       if (!mounted) return;
-      setState(() => loadFailed = true);
-      await showFrostedAlertDialog(
-        context: context,
-        title: "Failed to load",
-        content: Text(
-          "Check your connection and try again.",
-          style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).pop();
-              _retry();
-            },
-            child: const Text("Retry"),
-          ),
-        ],
-      );
+      await _retry();
       return;
     }
 
@@ -345,16 +286,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _retry() async {
-    if (!mounted) return;
-    setState(() {
-      loadFailed = false;
-      isLoading = true;
-    });
-    await userManager.loadUserData();
-    if (currentUserData != null) {
-      appColorNotifier.value = currentUserData!.appColor;
+    while (mounted) {
+      setState(() {
+        loadFailed = false;
+        isLoading = true;
+      });
+      await userManager.loadUserData();
+      if (!mounted) return;
+      if (!userManager.lastLoadFailed && currentUserData != null) {
+        appColorNotifier.value = currentUserData!.appColor;
+        expNotifier.value = currentUserData!.expPoints;
+        // notifyListeners won't fire if value was already true, so call initializeUser directly
+        appReadyNotifier.value = true;
+        initializeUser();
+        return;
+      }
+      // still failed, show the dialog again and wait for another retry tap
+      setState(() => loadFailed = true);
+      await showFrostedAlertDialog(
+        context: context,
+        dismissible: false,
+        title: "Failed to load",
+        content: Text(
+          "Check your connection and try again.",
+          style: GoogleFonts.manrope(color: Colors.white54, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: const Text("Retry"),
+          ),
+        ],
+      );
     }
-    if (mounted) initializeUser();
   }
 
   bool isLoading = true;

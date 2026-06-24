@@ -258,8 +258,9 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                   showTitles: true,
                   reservedSize: Responsive.width(context, 44),
                   getTitlesWidget: (val, info) {
-                    if (val == info.min || val == info.max)
+                    if (val == info.min || val == info.max) {
                       return const SizedBox.shrink();
+                    }
                     return SideTitleWidget(
                       meta: info,
                       child: Text(
@@ -286,8 +287,9 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                   interval: labelInterval,
                   getTitlesWidget: (val, info) {
                     final i = val.toInt();
-                    if (i < 0 || i >= entries.length)
+                    if (i < 0 || i >= entries.length) {
                       return const SizedBox.shrink();
+                    }
                     return SideTitleWidget(
                       meta: info,
                       fitInside: SideTitleFitInsideData.fromTitleMeta(info),

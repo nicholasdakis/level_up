@@ -2200,3 +2200,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the extra padding around the line chart graphs as the tool tips are now contained
 - Moved minimum app version code gate to the backend so it works
 - Added the update gate into the connectivity stream so that if a user gets in due to no connection, once they regain connection they will be blocked
+- Made the retry button on home screen undismissable
+- Moved the connectivity and version check listener from home screen to MyApp in main.dart so it works regardless of which screen the user is on
+- Replaced the force-update dialog approach with a dedicated /update-required route that the router redirects all traffic to when isAppOutdated is true
+- UpdateRequiredScreen renders the real HomeScreen under a Skeletonizer so the background matches the normal loading state
+- Fixed the retry flow in home screen so repeated retries work and data loads correctly after a successful retry
+- Extracted showForceUpdateDialog into globals.dart so it is shared between the startup and reconnect paths
+- Added /app_config backend route with MIN_APP_VERSION so the minimum required version can be changed server-side without a client deploy

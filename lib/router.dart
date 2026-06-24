@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'screens/update_required.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'services/user_data_manager.dart' show backendBaseUrl;
@@ -26,7 +28,6 @@ import 'screens/settings/changelog.dart';
 import 'globals.dart';
 import 'services/fcm/fcm_service.dart';
 import 'screens/log_food_screen.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'utility/web_utils_stub.dart'
     if (dart.library.js_interop) 'utility/web_utils_web.dart'
     as web_fcm;
@@ -113,6 +114,11 @@ final GoRouter appRouter = GoRouter(
     if (suppressAuthRedirect) {
       return null; // TOS check in progress
     }
+    // force outdated users to the update screen
+    if (isAppOutdated && state.matchedLocation != '/update-required') {
+      return '/update-required';
+    }
+
     // send logged-out users to login
     if (!isLoggedIn && !onLogin) return '/login';
 
@@ -362,6 +368,13 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) =>
           _slideUpPage(key: state.pageKey, child: const WaterAnalyticsScreen()),
     ),
+    GoRoute(
+      path: '/update-required',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const UpdateRequiredScreen(),
+      ),
+    ),
   ],
 );
 
@@ -408,7 +421,8 @@ class _AppInitScreenState extends State<AppInitScreen> {
       if (minVersion == null) return false;
       // split "1.2.3" into [1, 2, 3] for numeric part-by-part comparison
       List<int> parts(String v) => v.split('.').map(int.parse).toList();
-      final cur = parts(info.version);
+      // strip build metadata (e.g. "1.1.4+35" -> "1.1.4") before comparing
+      final cur = parts(info.version.split('+').first);
       final req = parts(minVersion);
       // compare major, minor, patch in order
       for (int i = 0; i < req.length; i++) {
@@ -428,11 +442,9 @@ class _AppInitScreenState extends State<AppInitScreen> {
     Future.microtask(appRouter.refresh);
 
     if (await _isOutdated()) {
-      await WidgetsBinding.instance.endOfFrame;
-      if (mounted) {
-        await _showForceUpdateDialog();
-        return;
-      }
+      isAppOutdated = true;
+      appRouter.refresh();
+      return;
     }
 
     await userManager.loadUserData();
@@ -465,10 +477,6 @@ class _AppInitScreenState extends State<AppInitScreen> {
     if (mounted && !isGuest) FcmService.initialize(context);
 
     appReadyNotifier.value = true;
-  }
-
-  Future<void> _showForceUpdateDialog() async {
-    await showForceUpdateDialog(context);
   }
 
   @override
