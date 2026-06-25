@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final next = last.add(dailyRewardCooldown);
     final remaining = next.difference(DateTime.now().toUtc());
     final newValue = remaining.isNegative ? Duration.zero : remaining;
-    if (newValue.inMinutes == _timeUntilReward.inMinutes) return;
+    if (newValue.inMinutes == _timeUntilReward.inMinutes && !canClaimDailyReward()) return;
     if (mounted) setState(() => _timeUntilReward = newValue);
   }
 

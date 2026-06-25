@@ -78,11 +78,13 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                 date: 'June 24, 2026',
                 version: '1.1.5',
                 changes: [
-                  'Leveling up now triggers a celebration screen showing your new rank and everything you have achieved',
+                  'Leveling up now triggers a celebration screen showing your new rank, XP earned, best streaks, days logged, weigh-ins, water logs, and friends referred',
                   'Water analytics added so you can see your hydration habits over time',
-                  'Weight analytics added so you can track your progress and see how far you have come',
-                  'Food analytics completely overhauled with richer graphs, deeper breakdowns by meal, and cleaner summaries',
+                  'Weight analytics added so you can track your progress with a goal line, stat tiles, and your full entry history',
+                  'Food analytics completely overhauled with richer line charts, deeper breakdowns by meal, and cleaner calorie and macro summaries',
                   'Macro and calorie data now shown per meal on both the logging screen and in analytics',
+                  'Macro chips in the serving size dialog are now tappable to edit values directly',
+                  'Dozens of fixes and improvements across the app',
                 ],
               ),
               _buildChangelogCard(

@@ -44,6 +44,7 @@ CREATE TABLE referrals (
 );
 
 -- Daily food logs per user, one row per day with meals stored as JSONB arrays
+-- NOTE: being migrated to food_logs_v2, do not add new columns here
 CREATE TABLE food_logs (
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     date DATE,                         -- the calendar date for this log
@@ -53,6 +54,28 @@ CREATE TABLE food_logs (
     snack JSONB[],                     -- array of food items logged for snacks
     PRIMARY KEY (uid, date)            -- one log per user per day
 );
+
+-- Normalized food logs, one row per food item (replacing food_logs after migration)
+CREATE TABLE food_logs_v2 (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    meal TEXT NOT NULL CHECK (meal IN ('breakfast', 'lunch', 'dinner', 'snacks')),
+    food_name TEXT NOT NULL,
+    brand_name TEXT,
+    food_description TEXT,             -- kept as display string during migration, not for parsing
+    calories INTEGER,
+    protein NUMERIC(6,2),
+    carbs NUMERIC(6,2),
+    fat NUMERIC(6,2),
+    fiber NUMERIC(6,2),
+    sugar NUMERIC(6,2),
+    sodium NUMERIC(6,2),               -- in mg
+    serving_size TEXT,                 -- e.g. "1 cup", "100g"
+    logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_food_logs_v2_uid_date ON food_logs_v2 (uid, date);
 
 -- Daily water intake logs per user, one row per day with individual entries as a JSONB array
 CREATE TABLE water_logs (

@@ -2224,3 +2224,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed snackbar overflow errors
 - Made the search shimmer effect visible on light themes
 - Made the search shimmer effect go away if the user searches via pressing Enter
+
+## 2026-06-25
+- Made a new schema for the updated food logs as currently all meals for a date are stored in one json blob which is hard to query
+- Added dual writing for food logs to not break existing users before the update goes live

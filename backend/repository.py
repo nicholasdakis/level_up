@@ -1,5 +1,6 @@
 # Repository Layer: the only place in the backend that reads/writes Supabase, so DB logic is only in these classes and can be easily swapped if ever needed
 
+import re
 from supabase import Client
 from backend.valid_achievements import VALID_ACHIEVEMENT_IDS
 
@@ -228,6 +229,37 @@ class UserRepository:
             "dinner": dinner,
             "snack": snack,
         }).execute()
+
+        # Dual-write to food_logs_v2: delete all rows for this (uid, date) then reinsert
+        # This keeps food_logs_v2 in sync since the client always sends the full meal list
+        self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date).execute()
+        rows = []
+        for meal_name, items in [("breakfast", breakfast), ("lunch", lunch), ("dinner", dinner), ("snacks", snack)]:
+            for item in items:
+                if not item or not item.get("food_name"):
+                    continue
+                desc = item.get("food_description") or ""
+                def extract(pattern):
+                    m = re.search(pattern, desc, re.IGNORECASE)
+                    return float(m.group(1)) if m else None
+                rows.append({
+                    "uid": uid,
+                    "date": date,
+                    "meal": meal_name,
+                    "food_name": item.get("food_name"),
+                    "brand_name": item.get("brand_name"),
+                    "food_description": desc or None,
+                    "calories": item.get("calories"),
+                    "protein": extract(r"Protein:\s*([\d.]+)"),
+                    "carbs": extract(r"Carbs:\s*([\d.]+)"),
+                    "fat": extract(r"Fat:\s*([\d.]+)"),
+                    "fiber": extract(r"Fiber:\s*([\d.]+)"),
+                    "sugar": extract(r"Sugar:\s*([\d.]+)"),
+                    "sodium": extract(r"Sodium:\s*([\d.]+)"),
+                    "serving_size": (re.search(r"Per\s+(.+?)\s*-", desc) or [None, None])[1],
+                })
+        if rows:
+            self._supabase.table("food_logs_v2").insert(rows).execute()
 
     def get_water_logs(self, uid: str):
         result = self._supabase.table("water_logs").select("*").eq("uid", uid).execute()
