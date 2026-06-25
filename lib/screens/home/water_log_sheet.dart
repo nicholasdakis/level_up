@@ -81,8 +81,8 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                   decoration: BoxDecoration(
                     color: darkenColor(
                       appColorNotifier.value,
-                      0.1,
-                    ).withAlpha(210),
+                      0.05,
+                    ).withAlpha(220),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
