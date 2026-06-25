@@ -33,6 +33,32 @@ class FoodService:
         reset_time = last_refill_dt + timedelta(days=1)
         return reset_time
 
+    def get_food_detail(self, food_id: str, timeout: int):
+        # Calls food.get to retrieve full nutrition including fiber, sugar, sodium
+        access_token = self.get_access_token()
+        if not access_token:
+            raise RuntimeError("Failed to get access token")
+
+        headers = {"Authorization": f"Bearer {access_token}"}
+        data = {
+            "method": "food.get",
+            "food_id": food_id,
+            "format": "json",
+        }
+
+        try:
+            api_response = requests.post(
+                "https://platform.fatsecret.com/rest/server.api",
+                headers=headers,
+                data=data,
+                timeout=timeout,
+            )
+            if api_response.status_code != 200:
+                raise RuntimeError(f"FatSecret API error: {api_response.status_code}")
+            return api_response
+        except requests.RequestException as e:
+            raise RuntimeError(str(e))
+
     def call_fatsecret(self, food_name: str, timeout: int):
         # Calls the FatSecret API, refunding the token on any failure
         access_token = self.get_access_token()

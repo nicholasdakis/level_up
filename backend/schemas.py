@@ -13,6 +13,9 @@ class UpdateUsernameRequest(BaseModel):
 class SearchFoodRequest(BaseModel):
     food_name: str = Field(..., min_length=1)
 
+class GetFoodDetailRequest(BaseModel):
+    food_id: str = Field(..., min_length=1)
+
 class NearbyPOIRequest(BaseModel):
     # Sent by Flutter when the user opens the Explore screen and needs nearby points of interest
     lat: float = Field(..., ge=-90, le=90, description="User's latitude")    # ge/le constrain to valid coordinate range

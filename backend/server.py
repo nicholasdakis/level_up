@@ -22,6 +22,7 @@ from backend.schemas import (
     UpdateUsernameRequest,
     UpdateUsernameResponse,
     SearchFoodRequest,
+    GetFoodDetailRequest,
     NearbyPOIRequest,
     NearbyPOIResponse,
     POIItem,
@@ -351,6 +352,33 @@ def get_food():
         return jsonify({"error": "Server busy, try again"}), 503
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/get_food_detail", methods=["POST"])
+def get_food_detail():
+    uid, body, err = _parse_and_auth(GetFoodDetailRequest)
+    if err:
+        return err
+
+    cache_key = f"food_detail:{body.food_id}"
+    try:
+        cached = redis.get(cache_key)
+        if cached:
+            redis.incr("cache_hits")
+            return jsonify(json.loads(cached))
+    except Exception as e:
+        logger.warning(f"[Redis Error]: {e}")
+
+    try:
+        api_response = food_service.get_food_detail(body.food_id, timeout=9)
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 500
+
+    try:
+        redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text)
+        redis.incr("cache_misses")
+        return jsonify(api_response.json())
+    except ValueError:
+        return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text}), 500
 
 @app.route("/update_goals", methods=["POST"])
 def update_goals():
