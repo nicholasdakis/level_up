@@ -65,10 +65,7 @@ class Guest {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          child: Text(
-            "Maybe Later",
-            style: GoogleFonts.manrope(color: Colors.white38),
-          ),
+          child: Text("Maybe Later", style: dialogButtonStyle()),
         ),
         frostedButton(
           "Sign Up",

@@ -184,13 +184,22 @@ class _FoodLoggingState extends State<FoodLogging> {
         TextButton(
           onPressed: () =>
               Navigator.of(context, rootNavigator: true).pop(false),
-          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+          child: Text(
+            "Cancel",
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
           child: Text(
             "Delete",
-            style: TextStyle(color: lightenColor(appColorNotifier.value, 0.35)),
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],

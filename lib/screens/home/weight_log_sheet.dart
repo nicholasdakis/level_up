@@ -536,12 +536,10 @@ Future<void> showWeightLogSheet(BuildContext context) async {
                                                                   rootNavigator:
                                                                       true,
                                                                 ).pop(false),
-                                                            child: const Text(
+                                                            child: Text(
                                                               "Cancel",
-                                                              style: TextStyle(
-                                                                color: Colors
-                                                                    .white54,
-                                                              ),
+                                                              style:
+                                                                  dialogButtonStyle(),
                                                             ),
                                                           ),
                                                           TextButton(
@@ -551,8 +549,13 @@ Future<void> showWeightLogSheet(BuildContext context) async {
                                                                   rootNavigator:
                                                                       true,
                                                                 ).pop(true),
-                                                            child: const Text(
+                                                            child: Text(
                                                               "Delete",
+                                                              style:
+                                                                  dialogButtonStyle(
+                                                                    confirm:
+                                                                        true,
+                                                                  ),
                                                             ),
                                                           ),
                                                         ],

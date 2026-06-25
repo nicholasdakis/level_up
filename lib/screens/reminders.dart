@@ -76,7 +76,13 @@ class _RemindersState extends State<Reminders> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          child: Text("Dismiss"),
+          child: Text(
+            "Dismiss",
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         TextButton(
           onPressed: () async {
@@ -95,7 +101,13 @@ class _RemindersState extends State<Reminders> {
               }
             }
           },
-          child: Text("Enable"),
+          child: Text(
+            "Enable",
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ],
     );
@@ -232,13 +244,22 @@ class _RemindersState extends State<Reminders> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+          child: Text(
+            "Cancel",
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
           child: Text(
             "Delete",
-            style: TextStyle(color: lightenColor(appColorNotifier.value, 0.35)),
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -297,9 +318,12 @@ class _RemindersState extends State<Reminders> {
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(),
-                  child: const Text(
+                  child: Text(
                     "Cancel",
-                    style: TextStyle(color: Colors.white54),
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -307,9 +331,12 @@ class _RemindersState extends State<Reminders> {
                     Navigator.of(context, rootNavigator: true).pop();
                     _setReminder();
                   },
-                  child: const Text(
+                  child: Text(
                     "Set Reminder",
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -336,7 +363,7 @@ class _RemindersState extends State<Reminders> {
                   size: Responsive.scale(context, 18),
                 ),
                 SizedBox(width: Responsive.width(context, 10)),
-                Text(message), // Message text
+                Expanded(child: Text(message, softWrap: true)),
               ],
             ),
           ),
@@ -680,10 +707,14 @@ class _RemindersState extends State<Reminders> {
                                             context,
                                             rootNavigator: true,
                                           ).pop(),
-                                          child: const Text(
+                                          child: Text(
                                             "Dismiss",
-                                            style: TextStyle(
-                                              color: Colors.white,
+                                            style: GoogleFonts.manrope(
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.45,
+                                              ),
+                                              fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                         ),

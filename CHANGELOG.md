@@ -2220,3 +2220,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Edited the theme of the date pickers to have the app's aesthetic
 - Made "All entries" card slowly grow to max height based on number of entries
 - Added delete entry buttons to the all entries cards
+- Made dialog buttons consistent across the app
+- Fixed snackbar overflow errors

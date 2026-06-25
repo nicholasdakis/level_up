@@ -47,7 +47,7 @@ Future<void> showUsernameDialogBox(
       TextButton(
         // close if canceled
         onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-        child: Text("Cancel"),
+        child: Text("Cancel", style: dialogButtonStyle()),
       ),
       TextButton(
         // Handle username update
@@ -79,7 +79,7 @@ Future<void> showUsernameDialogBox(
             Navigator.of(context, rootNavigator: true).pop();
           }
         },
-        child: Text("Confirm"),
+        child: Text("Confirm", style: dialogButtonStyle(confirm: true)),
       ),
     ],
   ).then((_) {
@@ -384,11 +384,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("Cancel", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: dialogButtonStyle()),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("Save", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: dialogButtonStyle(confirm: true)),
           onPressed: () async {
             await userManager.updateNutritionGoals(
               caloriesGoal: int.tryParse(calCtrl.text.trim()),
@@ -506,11 +506,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("Cancel", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: dialogButtonStyle()),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("Save", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: dialogButtonStyle(confirm: true)),
           onPressed: () async {
             double? weightKg;
             final parsed = double.tryParse(weightCtrl.text.trim());
@@ -558,11 +558,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       ),
       actions: [
         TextButton(
-          child: Text("Cancel", style: TextStyle(color: Colors.white)),
+          child: Text("Cancel", style: dialogButtonStyle()),
           onPressed: () => Navigator.pop(context),
         ),
         TextButton(
-          child: Text("Save", style: TextStyle(color: Colors.white)),
+          child: Text("Save", style: dialogButtonStyle(confirm: true)),
           onPressed: () async {
             int? waterMl;
             final parsed = int.tryParse(waterCtrl.text.trim());
@@ -1215,9 +1215,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                               Navigator.pop(context),
                                           child: Text(
                                             "Cancel",
-                                            style: TextStyle(
-                                              color: Colors.white54,
-                                            ),
+                                            style: dialogButtonStyle(),
                                           ),
                                         ),
                                       ),

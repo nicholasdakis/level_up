@@ -1005,7 +1005,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                     SizedBox(
                                       width: Responsive.width(context, 10),
                                     ),
-                                    const Text("All fields must be filled."),
+                                    const Expanded(child: Text("All fields must be filled.", softWrap: true)),
                                   ],
                                 ),
                               ),

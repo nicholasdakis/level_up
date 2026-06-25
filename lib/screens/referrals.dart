@@ -93,7 +93,7 @@ Future<void> checkPendingReferralReward(
                   );
                 }
               },
-              child: const Text("Claim XP"),
+              child: Text("Claim XP", style: dialogButtonStyle(confirm: true)),
             ),
           ),
         ),

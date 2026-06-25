@@ -136,6 +136,7 @@ Widget calcSuffixIcon(
   BuildContext context,
   TextEditingController controller, {
   VoidCallback? onSet,
+  Color? color,
 }) {
   return GestureDetector(
     onTap: () async {
@@ -162,7 +163,7 @@ Widget calcSuffixIcon(
       padding: EdgeInsets.all(Responsive.scale(context, 8)),
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedCalculator,
-        color: Colors.white38,
+        color: color ?? lightenColor(appColorNotifier.value, 0.35),
         size: Responsive.scale(context, 18),
       ),
     ),
@@ -714,6 +715,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
                 suffixIcon: calcSuffixIcon(
                   ctx,
                   controller,
+                  color: dim,
                   onSet: () => setDialogState(() {}),
                 ),
                 enabledBorder: UnderlineInputBorder(
@@ -730,9 +732,12 @@ Future<ServingDialogResult?> showServingAmountDialog({
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                  child: const Text(
+                  child: Text(
                     "Cancel",
-                    style: TextStyle(color: Colors.white54),
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -744,7 +749,10 @@ Future<ServingDialogResult?> showServingAmountDialog({
                   )),
                   child: Text(
                     confirmLabel,
-                    style: const TextStyle(color: Colors.white),
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColorNotifier.value, 0.45),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],

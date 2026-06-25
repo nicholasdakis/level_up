@@ -318,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: const Text("Retry"),
+            child: Text("Retry", style: dialogButtonStyle(confirm: true)),
           ),
         ],
       );

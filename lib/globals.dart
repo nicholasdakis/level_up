@@ -186,13 +186,7 @@ Future<void> showForceUpdateDialog(BuildContext context) async {
             );
           }
         },
-        child: Text(
-          "Update Now",
-          style: GoogleFonts.manrope(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        child: Text("Update Now", style: dialogButtonStyle(confirm: true)),
       ),
     ],
   );
@@ -300,7 +294,7 @@ Future<DateTime?> showThemedDatePicker({
                     child: TextButton(
                       onPressed: () =>
                           Navigator.of(ctx, rootNavigator: true).pop(),
-                      child: Text('Cancel', style: TextStyle(color: dim)),
+                      child: Text('Cancel', style: dialogButtonStyle()),
                     ),
                   ),
                   Expanded(
@@ -309,10 +303,7 @@ Future<DateTime?> showThemedDatePicker({
                           Navigator.of(ctx, rootNavigator: true).pop(selected),
                       child: Text(
                         'OK',
-                        style: TextStyle(
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: dialogButtonStyle(confirm: true),
                       ),
                     ),
                   ),
@@ -564,6 +555,12 @@ cardColors(Color base) {
     onCard: lightenColor(base, 0.45),
   );
 }
+
+// Shared text style for dialog cancel/confirm buttons
+TextStyle dialogButtonStyle({bool confirm = false}) => GoogleFonts.manrope(
+  color: lightenColor(appColorNotifier.value, 0.45),
+  fontWeight: confirm ? FontWeight.w700 : FontWeight.w600,
+);
 
 // Frosted glass tappable button
 // Pass a [color] to tint the button with the theme color, otherwise it uses a neutral white glass

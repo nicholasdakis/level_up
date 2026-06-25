@@ -216,7 +216,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
               children: [
                 const Icon(Icons.info, color: Colors.white),
                 SizedBox(width: Responsive.width(context, 10)),
-                Text(message),
+                Expanded(child: Text(message, softWrap: true)),
               ],
             ),
             duration: duration,
@@ -692,10 +692,14 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                             context,
                                             rootNavigator: true,
                                           ).pop(),
-                                          child: const Text(
+                                          child: Text(
                                             "Cancel",
-                                            style: TextStyle(
-                                              color: Colors.white54,
+                                            style: GoogleFonts.manrope(
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.45,
+                                              ),
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ),
@@ -715,10 +719,14 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                               rootNavigator: true,
                                             ).pop();
                                           },
-                                          child: const Text(
+                                          child: Text(
                                             "OK",
-                                            style: TextStyle(
-                                              color: Colors.white,
+                                            style: GoogleFonts.manrope(
+                                              color: lightenColor(
+                                                appColorNotifier.value,
+                                                0.45,
+                                              ),
+                                              fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                         ),
@@ -835,9 +843,12 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text(
+                    child: Text(
                       "Cancel",
-                      style: TextStyle(color: Colors.white54),
+                      style: GoogleFonts.manrope(
+                        color: lightenColor(appColorNotifier.value, 0.45),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -873,9 +884,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                 context,
                                 rootNavigator: true,
                               ).pop(),
-                              child: const Text(
+                              child: Text(
                                 "Go Back",
-                                style: TextStyle(color: Colors.white54),
+                                style: GoogleFonts.manrope(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                             TextButton(
@@ -894,9 +911,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                   protein,
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 "Log Anyway",
-                                style: TextStyle(color: Colors.white),
+                                style: GoogleFonts.manrope(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.45,
+                                  ),
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ],
@@ -912,9 +935,12 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                         protein,
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       "Log",
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.manrope(
+                        color: lightenColor(appColorNotifier.value, 0.45),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -1759,10 +1785,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         if (_isSearching)
           Skeletonizer(
             enabled: true,
+            ignoreContainers: false,
             effect: ShimmerEffect(
               baseColor: lightenColor(appColor, 0.10),
               highlightColor: lightenColor(appColor, 0.22),
-              duration: const Duration(milliseconds: 1000),
+              duration: const Duration(milliseconds: 1200),
             ),
             child: Column(
               children: List.generate(10, (_) {

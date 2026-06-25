@@ -455,12 +455,10 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                                                                 rootNavigator:
                                                                     true,
                                                               ).pop(false),
-                                                          child: const Text(
+                                                          child: Text(
                                                             "Cancel",
-                                                            style: TextStyle(
-                                                              color: Colors
-                                                                  .white54,
-                                                            ),
+                                                            style:
+                                                                dialogButtonStyle(),
                                                           ),
                                                         ),
                                                         TextButton(
@@ -470,8 +468,12 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                                                                 rootNavigator:
                                                                     true,
                                                               ).pop(true),
-                                                          child: const Text(
+                                                          child: Text(
                                                             "Remove",
+                                                            style:
+                                                                dialogButtonStyle(
+                                                                  confirm: true,
+                                                                ),
                                                           ),
                                                         ),
                                                       ],

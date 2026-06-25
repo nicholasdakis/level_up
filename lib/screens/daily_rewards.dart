@@ -201,7 +201,7 @@ class DailyRewardDialog {
                 // just a visual button; the claiming is already done
                 onPressed: () =>
                     Navigator.of(dialogContext, rootNavigator: true).pop(),
-                child: Text("CLAIM"),
+                child: Text("CLAIM", style: dialogButtonStyle(confirm: true)),
               ),
             ),
           ),

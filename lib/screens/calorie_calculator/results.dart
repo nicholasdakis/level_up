@@ -263,18 +263,12 @@ class _ResultsState extends State<Results> {
                   TextButton(
                     onPressed: () =>
                         Navigator.of(context, rootNavigator: true).pop(false),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.white54),
-                    ),
+                    child: Text("Cancel", style: dialogButtonStyle()),
                   ),
                   TextButton(
                     onPressed: () =>
                         Navigator.of(context, rootNavigator: true).pop(true),
-                    child: const Text(
-                      "Set",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: Text("Set", style: dialogButtonStyle(confirm: true)),
                   ),
                 ],
               );

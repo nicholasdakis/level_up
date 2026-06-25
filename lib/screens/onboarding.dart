@@ -89,7 +89,6 @@ Future<void> showUsernameSetupDialog(BuildContext context) async {
 
 // Shown after username setup, telling new users the app is new and asks for a review
 Future<void> showNewUserAppReviewDialog(BuildContext context) async {
-  final accentColor = lightenColor(appColorNotifier.value, 0.45);
   await showFrostedAlertDialog(
     context: context,
     title: "One Last Thing",
@@ -121,7 +120,7 @@ Future<void> showNewUserAppReviewDialog(BuildContext context) async {
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-        child: Text("Maybe Later", style: TextStyle(color: Colors.white38)),
+        child: Text("Maybe Later", style: dialogButtonStyle()),
       ),
       TextButton(
         onPressed: () async {
@@ -146,7 +145,7 @@ Future<void> showNewUserAppReviewDialog(BuildContext context) async {
         },
         child: Text(
           "Leave a Review",
-          style: TextStyle(color: accentColor, fontWeight: FontWeight.w700),
+          style: dialogButtonStyle(confirm: true),
         ),
       ),
     ],
