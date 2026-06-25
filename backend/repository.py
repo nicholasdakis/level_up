@@ -219,6 +219,18 @@ class UserRepository:
         result = self._supabase.table("food_logs").select("*").eq("uid", uid).execute()
         return result.data
 
+    def get_food_logs_v2(self, uid: str):
+        # Fetches normalized food log rows, one per food item, sorted by date and logged_at
+        result = (
+            self._supabase.table("food_logs_v2")
+            .select("*")
+            .eq("uid", uid)
+            .order("date", desc=False)
+            .order("logged_at", desc=False)
+            .execute()
+        )
+        return result.data
+
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
         # Upserts a single date's food log (insert or update based on the (uid, date) primary key)
         self._supabase.table("food_logs").upsert({
@@ -230,34 +242,37 @@ class UserRepository:
             "snack": snack,
         }).execute()
 
-        # Dual-write to food_logs_v2: delete all rows for this (uid, date) then reinsert
-        # This keeps food_logs_v2 in sync since the client always sends the full meal list
+    def upsert_food_log_v2(self, uid: str, date: str, items: list):
+        # Writes normalized food log rows to food_logs_v2, one row per food item
+        # Deletes existing rows for this (uid, date) then reinserts so the full day is always in sync
         self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date).execute()
         rows = []
-        for meal_name, items in [("breakfast", breakfast), ("lunch", lunch), ("dinner", dinner), ("snacks", snack)]:
-            for item in items:
-                if not item or not item.get("food_name"):
-                    continue
-                desc = item.get("food_description") or ""
-                def extract(pattern):
-                    m = re.search(pattern, desc, re.IGNORECASE)
-                    return float(m.group(1)) if m else None
-                rows.append({
-                    "uid": uid,
-                    "date": date,
-                    "meal": meal_name,
-                    "food_name": item.get("food_name"),
-                    "brand_name": item.get("brand_name"),
-                    "food_description": desc or None,
-                    "calories": item.get("calories"),
-                    "protein": extract(r"Protein:\s*([\d.]+)"),
-                    "carbs": extract(r"Carbs:\s*([\d.]+)"),
-                    "fat": extract(r"Fat:\s*([\d.]+)"),
-                    "fiber": extract(r"Fiber:\s*([\d.]+)"),
-                    "sugar": extract(r"Sugar:\s*([\d.]+)"),
-                    "sodium": extract(r"Sodium:\s*([\d.]+)"),
-                    "serving_size": (re.search(r"Per\s+(.+?)\s*-", desc) or [None, None])[1],
-                })
+        for item in items:
+            if not item or not item.get("food_name"):
+                continue
+            desc = item.get("food_description") or ""
+            def from_desc(pattern, d=desc):
+                m = re.search(pattern, d, re.IGNORECASE)
+                return float(m.group(1)) if m else None
+            def macro(key, pattern, it=item, d=desc):
+                v = it.get(key)
+                return float(v) if v is not None else from_desc(pattern, d)
+            rows.append({
+                "uid": uid,
+                "date": date,
+                "meal": item.get("meal"),
+                "food_name": item.get("food_name"),
+                "brand_name": item.get("brand_name"),
+                "food_description": desc or None,
+                "calories": item.get("calories"),
+                "protein": macro("protein", r"Protein:\s*([\d.]+)"),
+                "carbs": macro("carbs", r"Carbs:\s*([\d.]+)"),
+                "fat": macro("fat", r"Fat:\s*([\d.]+)"),
+                "fiber": macro("fiber", r"Fiber:\s*([\d.]+)"),
+                "sugar": macro("sugar", r"Sugar:\s*([\d.]+)"),
+                "sodium": macro("sodium", r"Sodium:\s*([\d.]+)"),
+                "serving_size": item.get("serving_size") or (re.search(r"Per\s+(.+?)\s*-", desc) or [None, None])[1],
+            })
         if rows:
             self._supabase.table("food_logs_v2").insert(rows).execute()
 

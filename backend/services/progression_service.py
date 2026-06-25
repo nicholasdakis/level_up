@@ -299,6 +299,7 @@ class ProgressionService: # Service class to handle all progression-related busi
                 pass
 
         food_logs = self._repo.get_food_logs(uid)
+        food_logs_v2 = self._repo.get_food_logs_v2(uid)
         water_logs = self._repo.get_water_logs(uid)
         weight_logs = self._repo.get_weight_logs(uid)
         reminders = self._reminder_repo.get_reminders(uid)
@@ -322,6 +323,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "last_daily_claim": user.get("last_daily_claim"),
             "daily_streak": daily_streak,
             "food_logs": food_logs,
+            "food_logs_v2": food_logs_v2,
             "reminders": reminders,
             "goals": goals,
             "referral_code": user.get("referral_code"),
@@ -378,6 +380,16 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._track_achievement(uid, "food_logs")
 
         # Update the food logging streak and sync it to achievement progress
+        try:
+            food_streak = self._repo.update_food_streak(uid)
+            self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)
+        except Exception as e:
+            logger.error(f"[achievements] Failed to update food_streak for {uid}: {e}")
+
+    def upsert_food_log_v2(self, uid: str, date: str, items: list):
+        # Writes normalized food items to food_logs_v2 and tracks achievements
+        self._repo.upsert_food_log_v2(uid, date, items)
+        self._track_achievement(uid, "food_logs")
         try:
             food_streak = self._repo.update_food_streak(uid)
             self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)

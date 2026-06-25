@@ -52,6 +52,10 @@ class UpsertFoodLogRequest(BaseModel):
     dinner: list = Field(default_factory=list)
     snack: list = Field(default_factory=list)
 
+class UpsertFoodLogV2Request(BaseModel):
+    date: str = Field(..., min_length=1)
+    items: list = Field(default_factory=list)  # list of food item dicts with meal, macros, etc.
+
 class UpsertWaterLogRequest(BaseModel):
     date: str = Field(..., min_length=1)
     entries_ml: list = Field(default_factory=list)  # list of {amount_ml: int}
@@ -239,6 +243,7 @@ class GetUserDataResponse(BaseModel):
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
     daily_streak: int = 1
     food_logs: list = Field(default_factory=list)
+    food_logs_v2: list = Field(default_factory=list)
     reminders: list[ReminderItem] = Field(default_factory=list)
     goals: GoalsResponse | None = None
     referral_code: str | None = None
