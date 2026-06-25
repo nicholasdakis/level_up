@@ -892,6 +892,108 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     );
   }
 
+  Widget _mostLoggedFoodsCard(BuildContext context, DateTime start, DateTime end) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final startKey = FoodLoggingHelper.formatDateKey(start);
+    final endKey = FoodLoggingHelper.formatDateKey(end);
+    final logs = currentUserData?.foodLogs ?? [];
+
+    final counts = <String, int>{};
+    final displayNames = <String, String>{};
+    for (final f in logs) {
+      final d = f['date'] as String? ?? '';
+      if (d.compareTo(startKey) < 0 || d.compareTo(endKey) > 0) continue;
+      final name = (f['food_name'] as String? ?? '').trim();
+      if (name.isEmpty) continue;
+      final key = name.toLowerCase();
+      counts[key] = (counts[key] ?? 0) + 1;
+      displayNames.putIfAbsent(key, () => name);
+    }
+
+    if (counts.isEmpty) {
+      return frostedGlassCard(
+        context,
+        padding: EdgeInsets.all(Responsive.scale(context, 20)),
+        child: _emptyState(context, "No foods logged in this range"),
+      );
+    }
+
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.take(5).toList();
+    final maxCount = top.first.value;
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.all(Responsive.scale(context, 16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < top.length; i++) ...[
+            if (i > 0) SizedBox(height: Responsive.height(context, 10)),
+            Row(
+              children: [
+                SizedBox(
+                  width: Responsive.width(context, 20),
+                  child: Text(
+                    '${i + 1}',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: dim,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              displayNames[top[i].key] ?? top[i].key,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${top[i].value}x',
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 12),
+                              color: dim,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.height(context, 4)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: top[i].value / maxCount,
+                          minHeight: Responsive.height(context, 4),
+                          backgroundColor: accent.withAlpha(30),
+                          valueColor: AlwaysStoppedAnimation<Color>(accent.withAlpha(180)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildRangeTab(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
@@ -1113,6 +1215,38 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           .slideY(
                             begin: 0.08,
                             delay: 400.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+
+                      SizedBox(height: Responsive.height(context, 24)),
+
+                      // MOST LOGGED FOODS
+                      sectionHeader("MOST LOGGED FOODS", context)
+                          .animate(
+                            key: ValueKey((
+                              'range_top_foods_title',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 450.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 450.ms,
+                            duration: 300.ms,
+                            curve: Curves.easeOut,
+                          ),
+                      _mostLoggedFoodsCard(context, _rangeStart!, _rangeEnd!)
+                          .animate(
+                            key: ValueKey((
+                              'range_top_foods',
+                              _rangeAnimationKey,
+                            )),
+                          )
+                          .fadeIn(delay: 500.ms, duration: 300.ms)
+                          .slideY(
+                            begin: 0.08,
+                            delay: 500.ms,
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),

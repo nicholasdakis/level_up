@@ -75,6 +75,17 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                date: 'June 25, 2026',
+                version: '1.1.51',
+                changes: [
+                  'Food logs are now stored per item with timestamps, so the time you logged each food is shown on the card',
+                  'Recent foods are now synced across devices and always reflect your actual log history',
+                  'Most logged foods added to food analytics range view',
+                  'Several bugs fixed including issues with account switching, the level-up screen, and theme persistence after logout',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
                 date: 'June 24, 2026',
                 version: '1.1.5',
                 changes: [

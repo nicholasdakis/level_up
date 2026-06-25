@@ -2242,3 +2242,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a logged at time on each food card (hidden for foods logged before logged_at started being stored)
 - Fixed slight bugs with rapid account changing (guest color not resetting, level up overlay showing if logging into an account with a higher level)
 - Fixed bugs with level up overlay to directly calculate and compare the level before and after an xp event so that it fires when needed as opposed to instantly via listeners
+- Added a "most logged foods" card to food analytics
