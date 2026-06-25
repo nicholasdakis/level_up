@@ -22,10 +22,7 @@ class _UpdateRequiredScreenState extends State<UpdateRequiredScreen> {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Skeletonizer(
-        enabled: true,
-        child: const HomeScreen(),
-      ),
+      child: Skeletonizer(enabled: true, child: const HomeScreen()),
     );
   }
 }

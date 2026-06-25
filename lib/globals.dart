@@ -330,10 +330,13 @@ Future<T?> showFrostedDialog<T>({
     context: context,
     useRootNavigator: true,
     barrierDismissible: dismissible,
-    builder: (ctx) => _FrostedDialogShell(
-      baseRadius: baseRadius,
-      padding: padding,
-      child: child,
+    builder: (ctx) => PopScope(
+      canPop: dismissible,
+      child: _FrostedDialogShell(
+        baseRadius: baseRadius,
+        padding: padding,
+        child: child,
+      ),
     ),
   );
 }
