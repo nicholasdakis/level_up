@@ -328,6 +328,18 @@ class _FoodLoggingState extends State<FoodLogging> {
     );
   }
 
+  String _formatLoggedAt(String loggedAt) {
+    try {
+      final dt = DateTime.parse(loggedAt).toLocal();
+      final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour < 12 ? 'AM' : 'PM';
+      return '$hour:$minute $period';
+    } catch (_) {
+      return '';
+    }
+  }
+
   Widget _buildMacroText(Map<String, dynamic> food) {
     final macros = FoodLoggingHelper.extractMacrosFromFood(food);
     final serving = FoodLoggingHelper.parseServing(
@@ -894,20 +906,49 @@ class _FoodLoggingState extends State<FoodLogging> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  food['brand_name'] != null
-                                      ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
-                                      : (food['food_name'] ?? ''),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 14),
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        food['brand_name'] != null
+                                            ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
+                                            : (food['food_name'] ?? ''),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            14,
+                                          ),
+                                          color: lightenColor(
+                                            appColorNotifier.value,
+                                            0.45,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                    // hide logged_at for entries before June 25 2026, logged_at didn't exist yet so it won't be accurate
+                                    if (food['logged_at'] != null &&
+                                        !DateTime.parse(
+                                          food['logged_at'] as String,
+                                        ).isBefore(DateTime(2026, 6, 25)))
+                                      Text(
+                                        _formatLoggedAt(
+                                          food['logged_at'] as String,
+                                        ),
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            13,
+                                          ),
+                                          color: lightenColor(
+                                            appColorNotifier.value,
+                                            0.35,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 SizedBox(height: Responsive.height(context, 6)),
                                 _buildMacroText(food),

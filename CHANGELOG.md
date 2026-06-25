@@ -2237,3 +2237,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wired macro fields through all three food logging paths: search result, manual entry, and barcode
 - Added get_food_detail route and method to get micronutrient details from fatsecret (for future micro implementation)
 - Made recent foods read from the new food_logs_v2 table and deleted all the SharedPreferences-related code for recent food handling
+- Wired food_logs_v2's id field to the frontend so it can be used to identify specific foods when adding logged_at to a food card
+- Stripped recent foods of id and logged_at when selected so that they are recalculated for the current time when a user relogs them with a new id
+- Added a logged at time on each food card (hidden for foods logged before logged_at started being stored)

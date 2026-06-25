@@ -385,6 +385,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       );
     }
 
+    // Strip id and logged_at so re-logged foods get a fresh row and timestamp
+    foodObject.remove('id');
+    foodObject.remove('logged_at');
+
     setState(() => isLogging = true);
 
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
@@ -394,6 +398,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       ...foodObject,
       'date': dateKey,
       'meal': widget.meal,
+      'logged_at': DateTime.now().toUtc().toIso8601String(),
     });
     _loadRecentFoods();
 

@@ -938,6 +938,30 @@ class UserDataManager {
             'upsert_food_log_v2 failed: ${response.statusCode} ${response.body}',
           );
         }
+
+        // Patch the real id and logged_at from the backend onto newly inserted local entries
+        // Only entries without an id need patching — existing ones already have theirs
+        final responseData = jsonDecode(response.body);
+        final returnedItems = (responseData['items'] as List<dynamic>? ?? []);
+        for (final returned in returnedItems) {
+          final id = returned['id'];
+          final name = returned['food_name'];
+          final meal = returned['meal'];
+          final loggedAt = returned['logged_at'];
+          if (id == null) continue;
+          // Match by food_name + meal + date + no id (new entries only)
+          final idx = currentUserData?.foodLogs.indexWhere(
+            (f) =>
+                f['id'] == null &&
+                f['food_name'] == name &&
+                f['meal'] == meal &&
+                f['date'] == dateKey,
+          );
+          if (idx != null && idx >= 0) {
+            currentUserData!.foodLogs[idx]['id'] = id;
+            currentUserData!.foodLogs[idx]['logged_at'] = loggedAt;
+          }
+        }
       }
 
       // Only refetch streak if today is a new day since the last logged date
