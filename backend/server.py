@@ -225,7 +225,7 @@ def send_due_reminders():
     except Exception as e:
         logger.exception(f'Error sending reminders: {e}')
 
-MIN_APP_VERSION = "1.1.5"
+MIN_APP_VERSION = "1.1.51"
 
 @app.route("/app_config")
 def app_config():
@@ -678,6 +678,7 @@ def remove_fcm_token():
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 
+# kept for users on older app versions that still write to the old food_logs table, remove after forced update
 @app.route("/upsert_food_log", methods=["POST"])
 def upsert_food_log():
     # Method that inserts or updates a food log entry for a specific date

@@ -298,7 +298,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             except Exception:
                 pass
 
-        food_logs = self._repo.get_food_logs(uid)
+        food_logs = self._repo.get_food_logs(uid)  # kept for older app versions, remove after forced update
         food_logs_v2 = self._repo.get_food_logs_v2(uid)
         water_logs = self._repo.get_water_logs(uid)
         weight_logs = self._repo.get_weight_logs(uid)
@@ -362,7 +362,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._repo.remove_fcm_token(uid, token)
 
     def get_food_logs(self, uid: str):
-        # Returns all food logs for a user
+        # kept for users on older app versions, remove after forced update
         return self._repo.get_food_logs(uid)
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
@@ -375,7 +375,7 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._repo.delete_weight_log(uid, date)
 
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
-        # Upserts a food log for a specific date
+        # kept for users on older app versions, remove after forced update
         self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)
         self._track_achievement(uid, "food_logs")
 
