@@ -2214,3 +2214,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a pulse effect on the search button if a user searches a food but doesn't press search for 5 seconds
 - Made the search bar animate into the compressed version rather than being instant
 - Added a "created_at" field in the users table and wired it to the frontend
+- Made each macro chip in the serving size dialog tappable to edit, tapping switches it to a text field that writes live into an overrides map, and the caller uses those overrides instead of the proportionally scaled values when building food_description

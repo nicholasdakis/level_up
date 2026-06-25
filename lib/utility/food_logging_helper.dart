@@ -476,8 +476,14 @@ Future<String?> showCalcDialog(
   );
 }
 
+// Return type for showServingAmountDialog: the serving amount string plus optional user-overridden macros.
+typedef ServingDialogResult = ({
+  String amt,
+  Map<String, double>? macroOverrides,
+});
+
 // Shared serving-size dialog used by both the log-food and edit-serving flows.
-Future<String?> showServingAmountDialog({
+Future<ServingDialogResult?> showServingAmountDialog({
   required BuildContext context,
   required Map<String, dynamic> food,
   required TextEditingController controller,
@@ -492,30 +498,123 @@ Future<String?> showServingAmountDialog({
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
 
-  Widget macroChip(BuildContext ctx, String label, double value) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        '${value.toStringAsFixed(1)}g',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(ctx, 15),
-          fontWeight: FontWeight.w700,
-          color: accent,
-        ),
-      ),
-      Text(
-        label,
-        style: GoogleFonts.manrope(
-          fontSize: Responsive.font(ctx, 11),
-          color: dim,
-        ),
-      ),
-    ],
-  );
+  // Which macro is currently being edited (null = none)
+  String? activeKey;
+  // User-typed override values, keyed by macro name
+  final Map<String, double> overrides = {};
+  // Single controller reused for whichever macro is active
+  final activeController = TextEditingController();
 
-  return showFrostedDialog<String>(
+  Widget macroChip(
+    BuildContext ctx,
+    String key,
+    String label,
+    double value,
+    void Function(void Function()) setDialogState,
+  ) {
+    final isCalories = key == 'calories';
+    final suffix = isCalories ? 'kcal' : 'g';
+    final displayValue = overrides[key] ?? value;
+    final valueStr = isCalories
+        ? '${displayValue.round()}'
+        : displayValue.toStringAsFixed(1);
+
+    if (activeKey == key) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: Responsive.width(ctx, 52),
+            child: TextField(
+              controller: activeController,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                TextInputFormatter.withFunction((old, val) {
+                  if (val.text.isEmpty) return val;
+                  return RegExp(r'^\d{0,5}(\.\d{0,2})?$').hasMatch(val.text)
+                      ? val
+                      : old;
+                }),
+              ],
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: accent,
+                fontSize: Responsive.font(ctx, 14),
+                fontWeight: FontWeight.w700,
+              ),
+              onChanged: (val) {
+                final v = double.tryParse(val);
+                if (v != null) overrides[key] = v;
+              },
+              onSubmitted: (_) => setDialogState(() => activeKey = null),
+              decoration: InputDecoration(
+                isDense: true,
+                suffixText: suffix,
+                suffixStyle: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(ctx, 10),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: dim.withAlpha(80)),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: accent),
+                ),
+              ),
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(ctx, 11),
+              color: dim,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => setDialogState(() {
+        activeKey = key;
+        activeController.text = valueStr;
+      }),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$valueStr$suffix',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 15),
+                  fontWeight: FontWeight.w700,
+                  color: accent,
+                ),
+              ),
+              SizedBox(width: Responsive.width(ctx, 3)),
+              Icon(Icons.edit, size: Responsive.scale(ctx, 14), color: dim),
+            ],
+          ),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(ctx, 11),
+              color: dim,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return showFrostedDialog<ServingDialogResult>(
     context: context,
     child: StatefulBuilder(
       builder: (ctx, setDialogState) {
@@ -525,10 +624,11 @@ Future<String?> showServingAmountDialog({
           baseAmt,
           typedAmt,
         );
-        final cal = scaled['calories']?.round() ?? 0;
-        final protein = scaled['protein'] ?? 0.0;
-        final carbs = scaled['carbs'] ?? 0.0;
-        final fat = scaled['fat'] ?? 0.0;
+
+        final cal = (overrides['calories'] ?? scaled['calories'] ?? 0).round();
+        final protein = overrides['protein'] ?? scaled['protein'] ?? 0.0;
+        final carbs = overrides['carbs'] ?? scaled['carbs'] ?? 0.0;
+        final fat = overrides['fat'] ?? scaled['fat'] ?? 0.0;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -555,27 +655,37 @@ Future<String?> showServingAmountDialog({
                 ),
               ),
             SizedBox(height: Responsive.height(ctx, 16)),
-            Text(
-              '$cal kcal',
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(ctx, 28),
-                fontWeight: FontWeight.w800,
-                color: accent,
-                height: 1,
-              ),
-            ),
+            macroChip(ctx, 'calories', 'kcal', cal.toDouble(), setDialogState),
             SizedBox(height: Responsive.height(ctx, 8)),
             Row(
               children: [
-                Expanded(child: macroChip(ctx, 'protein', protein)),
-                Expanded(child: macroChip(ctx, 'carbs', carbs)),
-                Expanded(child: macroChip(ctx, 'fat', fat)),
+                Expanded(
+                  child: macroChip(
+                    ctx,
+                    'protein',
+                    'protein',
+                    protein,
+                    setDialogState,
+                  ),
+                ),
+                Expanded(
+                  child: macroChip(
+                    ctx,
+                    'carbs',
+                    'carbs',
+                    carbs,
+                    setDialogState,
+                  ),
+                ),
+                Expanded(
+                  child: macroChip(ctx, 'fat', 'fat', fat, setDialogState),
+                ),
               ],
             ),
             SizedBox(height: Responsive.height(ctx, 16)),
             TextField(
               controller: controller,
-              autofocus: true,
+              autofocus: false,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -626,10 +736,12 @@ Future<String?> showServingAmountDialog({
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.of(
-                    ctx,
-                    rootNavigator: true,
-                  ).pop(controller.text.trim()),
+                  onPressed: () => Navigator.of(ctx, rootNavigator: true).pop((
+                    amt: controller.text.trim(),
+                    macroOverrides: overrides.isEmpty
+                        ? null
+                        : Map<String, double>.from(overrides),
+                  )),
                   child: Text(
                     confirmLabel,
                     style: const TextStyle(color: Colors.white),

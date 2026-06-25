@@ -98,6 +98,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                   'Calories card now has shortcuts to logging and analytics screens',
                   "The food search screen's UI has been overhauled",
                   'Numerous UI and usability polishing across all screens',
+                  'Macro values can now be edited directly when logging or adjusting a food entry',
                 ],
               ),
               _buildChangelogCard(

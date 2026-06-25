@@ -228,7 +228,7 @@ class _FoodLoggingState extends State<FoodLogging> {
           : currentAmt.toString(),
     );
 
-    final newAmtStr = await showServingAmountDialog(
+    final result = await showServingAmountDialog(
       context: context,
       food: food,
       controller: controller,
@@ -236,17 +236,32 @@ class _FoodLoggingState extends State<FoodLogging> {
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     // the user cancelled or typed something invalid
-    if (newAmtStr == null || newAmtStr.isEmpty) return;
-    final newAmt = double.tryParse(newAmtStr);
+    if (result == null || result.amt.isEmpty) return;
+    final newAmt = double.tryParse(result.amt);
     if (newAmt == null || newAmt <= 0) return;
     // No change, skip the write
-    if (newAmt == currentAmt) return;
+    if (newAmt == currentAmt && result.macroOverrides == null) return;
 
-    // Scale every macro by the ratio of new amount to old amount
+    // Scale every macro by the ratio of new amount to old amount, then apply any user overrides
     final baseMacros = FoodLoggingHelper.extractMacros(
       food['food_description'] as String? ?? '',
     );
-    final scaled = FoodLoggingHelper.scaleFood(baseMacros, currentAmt, newAmt);
+    final scaledBase = FoodLoggingHelper.scaleFood(
+      baseMacros,
+      currentAmt,
+      newAmt,
+    );
+    final scaled = result.macroOverrides != null
+        ? {
+            'calories':
+                (result.macroOverrides!['calories'] ?? scaledBase['calories']!)
+                    .toDouble(),
+            'protein':
+                result.macroOverrides!['protein'] ?? scaledBase['protein']!,
+            'carbs': result.macroOverrides!['carbs'] ?? scaledBase['carbs']!,
+            'fat': result.macroOverrides!['fat'] ?? scaledBase['fat']!,
+          }
+        : scaledBase;
     // Rebuild food_description
     final newDescription = FoodLoggingHelper.buildDescription(
       scaled,

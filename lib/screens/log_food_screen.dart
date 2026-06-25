@@ -1021,21 +1021,53 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         ? baseAmt.toInt().toString()
         : baseAmt.toString();
 
-    final newAmtStr = await showServingAmountDialog(
+    final result = await showServingAmountDialog(
       context: context,
       food: food,
       controller: _recentServingController,
       confirmLabel: 'Log',
     );
 
-    if (newAmtStr == null || newAmtStr.isEmpty) return;
-    final newAmt = double.tryParse(newAmtStr);
+    if (result == null || result.amt.isEmpty) return;
+    final newAmt = double.tryParse(result.amt);
     if (newAmt == null || newAmt <= 0) return;
 
     final baseMacros = FoodLoggingHelper.extractMacros(description);
     final baseAmt2 = baseAmt;
     final unit = serving['unit'] as String;
-    final scaled = FoodLoggingHelper.scaleFood(baseMacros, baseAmt2, newAmt);
+    final scaled = result.macroOverrides != null
+        ? {
+            'calories':
+                (result.macroOverrides!['calories'] ??
+                        FoodLoggingHelper.scaleFood(
+                          baseMacros,
+                          baseAmt2,
+                          newAmt,
+                        )['calories']!)
+                    .toDouble(),
+            'protein':
+                result.macroOverrides!['protein'] ??
+                FoodLoggingHelper.scaleFood(
+                  baseMacros,
+                  baseAmt2,
+                  newAmt,
+                )['protein']!,
+            'carbs':
+                result.macroOverrides!['carbs'] ??
+                FoodLoggingHelper.scaleFood(
+                  baseMacros,
+                  baseAmt2,
+                  newAmt,
+                )['carbs']!,
+            'fat':
+                result.macroOverrides!['fat'] ??
+                FoodLoggingHelper.scaleFood(
+                  baseMacros,
+                  baseAmt2,
+                  newAmt,
+                )['fat']!,
+          }
+        : FoodLoggingHelper.scaleFood(baseMacros, baseAmt2, newAmt);
     final loggedFood = Map<String, dynamic>.from(food);
     loggedFood['food_description'] = FoodLoggingHelper.buildDescription(
       scaled,
