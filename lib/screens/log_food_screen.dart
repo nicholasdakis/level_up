@@ -1542,7 +1542,11 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                           ),
                         ),
                         onChanged: _filterRecents,
-                        onSubmitted: (v) => handleApiCall(v),
+                        onSubmitted: (v) {
+                          _searchHintTimer?.cancel();
+                          setState(() => _showSearchHint = false);
+                          handleApiCall(v);
+                        },
                       ),
                     ),
                     AnimatedSize(
@@ -1578,7 +1582,16 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                           .animate(onPlay: (c) => c.repeat())
                                           .shimmer(
                                             duration: 2000.ms,
-                                            color: Colors.white.withAlpha(180),
+                                            color:
+                                                accent.computeLuminance() > 0.5
+                                                ? darkenColor(
+                                                    accent,
+                                                    0.35,
+                                                  ).withAlpha(200)
+                                                : lightenColor(
+                                                    accent,
+                                                    0.4,
+                                                  ).withAlpha(200),
                                           )
                                     : Text(
                                         'Search',

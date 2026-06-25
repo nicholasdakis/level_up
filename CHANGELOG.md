@@ -2222,3 +2222,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added delete entry buttons to the all entries cards
 - Made dialog buttons consistent across the app
 - Fixed snackbar overflow errors
+- Made the search shimmer effect visible on light themes
+- Made the search shimmer effect go away if the user searches via pressing Enter
