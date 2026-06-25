@@ -490,19 +490,11 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                   ),
                   GestureDetector(
                     onTap: () async {
-                      final picked = await showDatePicker(
+                      final picked = await showThemedDatePicker(
                         context: context,
                         initialDate: _addDate,
                         firstDate: DateTime(2020),
                         lastDate: DateTime.now(),
-                        builder: (context, child) => Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.dark(
-                              primary: appColorNotifier.value,
-                            ),
-                          ),
-                          child: child!,
-                        ),
                       );
                       if (picked != null) setState(() => _addDate = picked);
                     },

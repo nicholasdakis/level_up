@@ -246,6 +246,86 @@ Widget textWithFont(
   );
 }
 
+// Custom date picker using CalendarDatePicker inside showFrostedDialog
+Future<DateTime?> showThemedDatePicker({
+  required BuildContext context,
+  required DateTime initialDate,
+  required DateTime firstDate,
+  required DateTime lastDate,
+  DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
+}) {
+  final accent = lightenColor(appColorNotifier.value, 0.45);
+  final dim = lightenColor(appColorNotifier.value, 0.35);
+  DateTime selected = initialDate;
+
+  return showFrostedDialog<DateTime>(
+    context: context,
+    padding: EdgeInsets.zero,
+    child: Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: ColorScheme.dark(
+          primary: accent,
+          onPrimary: Colors.black87,
+          surface: Colors.transparent,
+          onSurface: accent,
+          onSurfaceVariant: dim,
+        ),
+        dividerTheme: DividerThemeData(
+          color: Colors.white.withAlpha(22),
+          thickness: 1,
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(foregroundColor: accent),
+        ),
+      ),
+      child: StatefulBuilder(
+        builder: (ctx, setState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CalendarDatePicker(
+              initialDate: selected,
+              firstDate: firstDate,
+              lastDate: lastDate,
+              onDateChanged: (date) => setState(() => selected = date),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: Responsive.width(ctx, 16),
+                right: Responsive.width(ctx, 16),
+                bottom: Responsive.height(ctx, 12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(),
+                      child: Text('Cancel', style: TextStyle(color: dim)),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () =>
+                          Navigator.of(ctx, rootNavigator: true).pop(selected),
+                      child: Text(
+                        'OK',
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 // Helper method for wrapping dialogs and giving them the frosted glass card appearance
 Future<T?> showFrostedDialog<T>({
   required BuildContext context,
@@ -854,7 +934,7 @@ class DateNavigationRow extends StatelessWidget {
   });
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showThemedDatePicker(
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2026),

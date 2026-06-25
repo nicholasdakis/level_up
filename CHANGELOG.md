@@ -2217,3 +2217,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made each macro chip in the serving size dialog tappable to edit, tapping switches it to a text field that writes live into an overrides map, and the caller uses those overrides instead of the proportionally scaled values when building food_description
 - Added a confirmation dialog in the Results tab
 - Added no connection snackbars when a user tries to tap the referral and daily reward card
+- Edited the theme of the date pickers to have the app's aesthetic

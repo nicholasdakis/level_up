@@ -234,7 +234,7 @@ Future<void> showWeightLogSheet(BuildContext context) async {
                               ),
                               GestureDetector(
                                 onTap: () async {
-                                  final picked = await showDatePicker(
+                                  final picked = await showThemedDatePicker(
                                     context: ctx,
                                     initialDate: selectedDate,
                                     firstDate: DateTime(2020),
