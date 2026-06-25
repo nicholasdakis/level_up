@@ -2218,3 +2218,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a confirmation dialog in the Results tab
 - Added no connection snackbars when a user tries to tap the referral and daily reward card
 - Edited the theme of the date pickers to have the app's aesthetic
+- Made "All entries" card slowly grow to max height based on number of entries
+- Added delete entry buttons to the all entries cards

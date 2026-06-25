@@ -28,6 +28,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
   DateTime _calendarFocused = DateTime.now();
   int _animationKey = 0;
 
+  String? _deletingKey;
   final _addController = TextEditingController();
   DateTime _addDate = DateTime.now();
   bool _isAdding = false;
@@ -50,6 +51,19 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
 
   String _dateKeyFor(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _deleteEntry(String dateKey) async {
+    await userManager.updateWaterLog(dateKey, []);
+    if (mounted) {
+      setState(() => _deletingKey = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Entry deleted'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   Future<void> _addEntry() async {
     final isImperial = UnitConverter.isImperial;
@@ -76,6 +90,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
     final now = DateTime.now();
     setState(() {
       _chipIndex = index;
+      _deletingKey = null;
       _animationKey++;
       switch (index) {
         case 0:
@@ -443,165 +458,201 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 8),
       ),
-      child: SizedBox(
-        height: Responsive.height(context, 280),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 10),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _addController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                        LengthLimitingTextInputFormatter(5),
-                      ],
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 14),
-                        color: accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Add water ($unit)',
-                        hintStyle: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 13),
-                          color: dimAccent,
-                        ),
-                        isDense: true,
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: Responsive.height(context, 18),
-                    color: dimAccent.withAlpha(60),
-                    margin: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 10),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      final picked = await showThemedDatePicker(
-                        context: context,
-                        initialDate: _addDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) setState(() => _addDate = picked);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 10),
-                        vertical: Responsive.height(context, 5),
-                      ),
-                      decoration: BoxDecoration(
-                        color: accent.withAlpha(25),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: accent.withAlpha(60),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendar03,
-                            color: accent,
-                            size: Responsive.font(context, 12),
-                          ),
-                          SizedBox(width: Responsive.width(context, 4)),
-                          Text(
-                            formatDateKeyShort(_dateKeyFor(_addDate)),
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 12),
-                              color: accent,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  GestureDetector(
-                    onTap: _isAdding ? null : _addEntry,
-                    child: _isAdding
-                        ? SizedBox(
-                            width: Responsive.font(context, 18),
-                            height: Responsive.font(context, 18),
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: accent,
-                            ),
-                          )
-                        : HugeIcon(
-                            icon: HugeIcons.strokeRoundedPlusSign,
-                            color: accent,
-                            size: Responsive.font(context, 20),
-                          ),
-                  ),
-                ],
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 10),
             ),
-            if (all.isNotEmpty) ...[
-              Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < all.length; i++) ...[
-                        if (i > 0)
-                          Divider(
-                            color: accent.withAlpha(15),
-                            height: 1,
-                            thickness: 1,
-                          ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: Responsive.height(context, 10),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                formatDateKeyShort(all[i].key),
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 14),
-                                  fontWeight: FontWeight.w600,
-                                  color: dimAccent,
-                                ),
-                              ),
-                              Text(
-                                isImperial
-                                    ? '${UnitConverter.displayWater(all[i].value, imperial: true)} $unit'
-                                    : '${all[i].value} $unit',
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 14),
-                                  fontWeight: FontWeight.w700,
-                                  color: accent,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _addController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                      LengthLimitingTextInputFormatter(5),
                     ],
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      color: accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Add water ($unit)',
+                      hintStyle: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        color: dimAccent,
+                      ),
+                      isDense: true,
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
+                Container(
+                  width: 1,
+                  height: Responsive.height(context, 18),
+                  color: dimAccent.withAlpha(60),
+                  margin: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 10),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showThemedDatePicker(
+                      context: context,
+                      initialDate: _addDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) setState(() => _addDate = picked);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 10),
+                      vertical: Responsive.height(context, 5),
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent.withAlpha(25),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: accent.withAlpha(60), width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedCalendar03,
+                          color: accent,
+                          size: Responsive.font(context, 12),
+                        ),
+                        SizedBox(width: Responsive.width(context, 4)),
+                        Text(
+                          formatDateKeyShort(_dateKeyFor(_addDate)),
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 12)),
+                GestureDetector(
+                  onTap: _isAdding ? null : _addEntry,
+                  child: _isAdding
+                      ? SizedBox(
+                          width: Responsive.font(context, 18),
+                          height: Responsive.font(context, 18),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: accent,
+                          ),
+                        )
+                      : HugeIcon(
+                          icon: HugeIcons.strokeRoundedPlusSign,
+                          color: accent,
+                          size: Responsive.font(context, 20),
+                        ),
+                ),
+              ],
+            ),
+          ),
+          if (all.isNotEmpty) ...[
+            Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: Responsive.height(context, 220),
               ),
-            ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < all.length; i++) ...[
+                      if (i > 0)
+                        Divider(
+                          color: accent.withAlpha(15),
+                          height: 1,
+                          thickness: 1,
+                        ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(context, 10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              formatDateKeyShort(all[i].key),
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 14),
+                                fontWeight: FontWeight.w600,
+                                color: dimAccent,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  isImperial
+                                      ? '${UnitConverter.displayWater(all[i].value, imperial: true)} $unit'
+                                      : '${all[i].value} $unit',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 14),
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                  ),
+                                ),
+                                SizedBox(width: Responsive.width(context, 12)),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (_deletingKey == all[i].key) {
+                                      _deleteEntry(all[i].key);
+                                    } else {
+                                      setState(() => _deletingKey = all[i].key);
+                                    }
+                                  },
+                                  child: _deletingKey == all[i].key
+                                      ? Text(
+                                          "Confirm",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              13,
+                                            ),
+                                            color: lightenColor(
+                                              appColorNotifier.value,
+                                              0.35,
+                                            ),
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        )
+                                      : HugeIcon(
+                                          icon: HugeIcons.strokeRoundedDelete02,
+                                          color: lightenColor(
+                                            appColorNotifier.value,
+                                            0.3,
+                                          ),
+                                          size: Responsive.font(context, 18),
+                                        ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

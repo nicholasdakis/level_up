@@ -277,9 +277,9 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: Responsive.width(ctx, 12)),
-                              TextButton(
-                                onPressed: () async {
+                              SizedBox(width: Responsive.width(ctx, 16)),
+                              GestureDetector(
+                                onTap: () async {
                                   // oz can be fractional so imperial parses as double, metric is always whole ml
                                   final val = isImperial
                                       ? UnitConverter.ozToMl(
@@ -315,9 +315,28 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                                     } catch (_) {}
                                   }
                                 },
-                                child: Text(
-                                  "Add",
-                                  style: TextStyle(color: onCard),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(ctx, 20),
+                                    vertical: Responsive.height(ctx, 12),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: onCard.withAlpha(20),
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 12),
+                                    ),
+                                    border: Border.all(
+                                      color: onCard.withAlpha(60),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "Log",
+                                    style: GoogleFonts.manrope(
+                                      color: onCard,
+                                      fontSize: Responsive.font(ctx, 14),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
