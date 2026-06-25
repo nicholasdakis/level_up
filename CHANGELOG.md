@@ -2235,4 +2235,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - extractMacrosFromFood reads direct keys first and falls back to parsing food_description for legacy items
 - Food items now store protein, carbs, fat, fiber, sugar, sodium, and serving_size as direct fields when logged
 - Wired macro fields through all three food logging paths: search result, manual entry, and barcode
-- Added get_food_detail route and method to get micronutrient details from fatsecret
+- Added get_food_detail route and method to get micronutrient details from fatsecret (for future micro implementation)
+- Made recent foods read from the new food_logs_v2 table and deleted all the SharedPreferences-related code for recent food handling

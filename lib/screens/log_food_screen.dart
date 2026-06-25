@@ -13,7 +13,6 @@ import '../globals.dart';
 import '../guest.dart';
 import '../utility/responsive.dart';
 import '../services/user_data_manager.dart';
-import '../services/recent_foods_service.dart';
 import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
@@ -104,7 +103,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   final VoiceSearchService _voiceSearch = VoiceSearchService();
 
   // Recent foods
-  final RecentFoodsService _recentFoodsService = RecentFoodsService();
   List<Map<String, dynamic>> _recentFoods = [];
 
   @override
@@ -226,9 +224,26 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         .then((_) => snackbarActive = false);
   }
 
-  // Method for getting the user's recently stored foods
+  // Derives recent foods from food_logs_v2, deduped by food_name, newest first, capped by user preference
   Future<void> _loadRecentFoods() async {
-    final recents = await _recentFoodsService.getRecentFoods();
+    final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
+    final max = stored ?? 30;
+    final logs = currentUserData?.foodLogs ?? [];
+    final seen = <String>{};
+    final recents = <Map<String, dynamic>>[];
+    final sorted = [...logs]
+      ..sort((a, b) {
+        final at = a['logged_at'] as String? ?? '';
+        final bt = b['logged_at'] as String? ?? '';
+        return bt.compareTo(at);
+      });
+    for (final food in sorted) {
+      final name = food['food_name'] as String? ?? '';
+      if (name.isEmpty || seen.contains(name)) continue;
+      seen.add(name);
+      recents.add(food);
+      if (max != 0 && recents.length >= max) break;
+    }
     if (mounted) setState(() => _recentFoods = recents);
   }
 
@@ -239,12 +254,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
   void _saveRecentExpanded(bool val) {
     _prefs.setBool(SharedPreferencesKey.recentFoodsExpanded, val);
-  }
-
-  // Method for updating the user's recent stored foods to local storage
-  Future<void> _saveToRecentFoods(Map<String, dynamic> food) async {
-    await _recentFoodsService.addRecentFood(food);
-    await _loadRecentFoods(); // update the shown list after updating
   }
 
   // Calls the FatSecret search API after the debounce timer fires
@@ -378,8 +387,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     setState(() => isLogging = true);
 
-    _saveToRecentFoods(foodObject);
-
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
     // Add food to local flat list immediately
@@ -388,6 +395,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       'date': dateKey,
       'meal': widget.meal,
     });
+    _loadRecentFoods();
 
     // Build meal map for the current date to send to backend
     try {
