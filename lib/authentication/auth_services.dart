@@ -41,6 +41,9 @@ class AuthService {
 
     await firebaseAuth.signOut();
     appInitialized = false;
+    appReadyNotifier.value = false;
+    userDataNotifier.value = null;
+    appColorNotifier.value = defaultAppColor;
   }
 
   // CONTINUE WITH GOOGLE BUTTON

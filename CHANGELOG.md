@@ -2240,3 +2240,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wired food_logs_v2's id field to the frontend so it can be used to identify specific foods when adding logged_at to a food card
 - Stripped recent foods of id and logged_at when selected so that they are recalculated for the current time when a user relogs them with a new id
 - Added a logged at time on each food card (hidden for foods logged before logged_at started being stored)
+- Fixed slight bugs with rapid account changing (guest color not resetting, level up overlay showing if logging into an account with a higher level)
+- Fixed bugs with level up overlay to directly calculate and compare the level before and after an xp event so that it fires when needed as opposed to instantly via listeners

@@ -75,38 +75,50 @@ String _fmt(int n) {
     return (name: 'Legendary', desc: 'The top tier. Elite.', nextAt: null);
   }
   if (level >= 30) {
+    final n = 50 - level;
     return (
       name: 'Unstoppable',
-      desc: '${50 - level} levels until Legendary',
+      desc: '$n ${n == 1 ? 'level' : 'levels'} until Legendary',
       nextAt: 50,
     );
   }
   if (level >= 20) {
+    final n = 30 - level;
     return (
       name: 'Dedicated',
-      desc: '${30 - level} levels until Unstoppable',
+      desc: '$n ${n == 1 ? 'level' : 'levels'} until Unstoppable',
       nextAt: 30,
     );
   }
   if (level >= 10) {
+    final n = 20 - level;
     return (
       name: 'Committed',
-      desc: '${20 - level} levels until Dedicated',
+      desc: '$n ${n == 1 ? 'level' : 'levels'} until Dedicated',
       nextAt: 20,
     );
   }
   if (level >= 5) {
+    final n = 10 - level;
     return (
       name: 'Rising',
-      desc: '${10 - level} levels until Committed',
+      desc: '$n ${n == 1 ? 'level' : 'levels'} until Committed',
       nextAt: 10,
     );
   }
+  final n = 5 - level;
   return (
     name: 'Beginner',
-    desc: '${5 - level} levels until Rising',
+    desc: '$n ${n == 1 ? 'level' : 'levels'} until Rising',
     nextAt: 5,
   );
+}
+
+// Call after any XP grant with the level before the grant
+// Shows the overlay only if the user actually leveled up
+Future<void> handleLevelUpOverlay(BuildContext context, int levelBefore) async {
+  final newLevel = currentUserData?.level ?? 0;
+  if (newLevel > levelBefore) await showLevelUpOverlay(context, newLevel);
 }
 
 Future<void> showLevelUpOverlay(BuildContext context, int newLevel) async {

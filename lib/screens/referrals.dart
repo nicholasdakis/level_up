@@ -8,6 +8,7 @@ import '../globals.dart';
 import '../utility/responsive.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, authenticatedPost;
+import 'level_up_overlay.dart';
 
 // Checks for a pending referral reward and shows the claim dialog if one exists
 Future<void> checkPendingReferralReward(
@@ -83,7 +84,7 @@ Future<void> checkPendingReferralReward(
                     currentUserData!.referralCount =
                         currentUserData!.referralCount + 1;
                   }
-                  userDataNotifier.notifyListeners();
+                  if (context.mounted) await handleLevelUpOverlay(context, prevLevel);
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -367,7 +368,7 @@ Widget buildReferralsCard(BuildContext context) {
                                     );
                                   }
                                   expNotifier.value = data['new_exp'];
-                                  userDataNotifier.notifyListeners();
+                                  if (context.mounted) await handleLevelUpOverlay(context, prevLevel2);
                                   Navigator.of(
                                     context,
                                     rootNavigator: true,

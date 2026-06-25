@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../services/user_data_manager.dart';
+import 'level_up_overlay.dart';
 import '../utility/responsive.dart';
 
 class DailyRewardDialog {
@@ -59,6 +60,8 @@ class DailyRewardDialog {
       Guest.block(context);
       return;
     }
+
+    final levelBefore = currentUserData?.level ?? 0;
 
     // Claim the daily reward from backend first to get the actual XP awarded
     final result = await userManager.claimDailyReward();
@@ -209,8 +212,8 @@ class DailyRewardDialog {
       ],
     );
 
-    // Update XP bar now that the dialog has been dismissed
     expNotifier.value = currentUserData!.expPoints;
+    if (context.mounted) await handleLevelUpOverlay(context, levelBefore);
 
     // Set a reminder 23 hours from now
     if (currentUserData!.notificationsEnabled) {

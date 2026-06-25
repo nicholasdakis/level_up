@@ -16,6 +16,7 @@ import '../utility/confetti.dart';
 import '../models/poi.dart';
 import '../utility/poi/poi_icons.dart';
 import '../services/poi_service.dart';
+import 'level_up_overlay.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -404,11 +405,10 @@ class _ExploreState extends State<Explore> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        // Update the local XP state so the XP bar updates
+        final levelBefore = currentUserData!.level;
         if (result['new_level'] != null) {
-          final prevLevel = currentUserData!.level;
           currentUserData!.level = result['new_level'];
-          if (prevLevel < 3 && currentUserData!.level >= 3) {
+          if (levelBefore < 3 && currentUserData!.level >= 3) {
             FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
           }
         }
@@ -416,8 +416,7 @@ class _ExploreState extends State<Explore> {
           currentUserData!.expPoints = result['new_exp'];
           expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
-        userDataNotifier
-            .notifyListeners(); // trigger level-up overlay if level changed
+        if (mounted) await handleLevelUpOverlay(context, levelBefore);
 
         setState(() {
           xpAwarded = result['xp_gained']; // show XP in the button briefly
