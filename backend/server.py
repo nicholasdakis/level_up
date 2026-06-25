@@ -695,8 +695,8 @@ def upsert_food_log_v2():
     uid, body, err = _parse_and_auth(UpsertFoodLogV2Request)
     if err:
         return err
-    progression_service.upsert_food_log_v2(uid, body.date, body.items)
-    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+    results = progression_service.upsert_food_log_v2(uid, body.date, body.items)
+    return jsonify({"success": True, "items": results}), 200
 
 @app.route("/upsert_water_log", methods=["POST"])
 def upsert_water_log():

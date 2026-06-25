@@ -388,13 +388,14 @@ class ProgressionService: # Service class to handle all progression-related busi
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Writes normalized food items to food_logs_v2 and tracks achievements
-        self._repo.upsert_food_log_v2(uid, date, items)
+        results = self._repo.upsert_food_log_v2(uid, date, items)
         self._track_achievement(uid, "food_logs")
         try:
             food_streak = self._repo.update_food_streak(uid)
             self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)
         except Exception as e:
             logger.error(f"[achievements] Failed to update food_streak for {uid}: {e}")
+        return results
 
     def get_reminders(self, uid: str):
         # Returns all reminders for a user

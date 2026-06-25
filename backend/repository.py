@@ -243,21 +243,19 @@ class UserRepository:
         }).execute()
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
-        # Writes normalized food log rows to food_logs_v2, one row per food item
-        # Deletes existing rows for this (uid, date) then reinserts so the full day is always in sync
-        self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date).execute()
-        rows = []
-        for item in items:
-            if not item or not item.get("food_name"):
-                continue
+        # Upserts food log rows for a given date
+        # Items with an id are upserted in place (preserving logged_at)
+        # Items without an id are inserted fresh
+        # Rows in the DB for this (uid, date) that are not in the incoming list are deleted
+        def build_row(item):
             desc = item.get("food_description") or ""
             def from_desc(pattern, d=desc):
                 m = re.search(pattern, d, re.IGNORECASE)
                 return float(m.group(1)) if m else None
-            def macro(key, pattern, it=item, d=desc):
-                v = it.get(key)
-                return float(v) if v is not None else from_desc(pattern, d)
-            rows.append({
+            def macro(key, pattern):
+                v = item.get(key)
+                return float(v) if v is not None else from_desc(pattern)
+            return {
                 "uid": uid,
                 "date": date,
                 "meal": item.get("meal"),
@@ -272,9 +270,38 @@ class UserRepository:
                 "sugar": macro("sugar", r"Sugar:\s*([\d.]+)"),
                 "sodium": macro("sodium", r"Sodium:\s*([\d.]+)"),
                 "serving_size": item.get("serving_size") or (re.search(r"Per\s+(.+?)\s*-", desc) or [None, None])[1],
-            })
-        if rows:
-            self._supabase.table("food_logs_v2").insert(rows).execute()
+            }
+
+        valid_items = [i for i in items if i and i.get("food_name")]
+        incoming_ids = [i["id"] for i in valid_items if i.get("id")]
+
+        # Delete any DB rows for this date whose id is not in the incoming list (handles deletions)
+        # If no ids are incoming at all, delete everything for this date
+        query = self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date)
+        if incoming_ids:
+            query = query.not_.in_("id", incoming_ids)
+        query.execute()
+
+        # Split into existing rows (have an id, upsert in place) and new rows (no id, insert fresh)
+        existing = [i for i in valid_items if i.get("id")]
+        new_items = [i for i in valid_items if not i.get("id")]
+
+        results = []
+
+        if existing:
+            for item in existing:
+                row = build_row(item)
+                row["id"] = item["id"]  # include id so Postgres matches the existing row
+                res = self._supabase.table("food_logs_v2").upsert(row).execute()
+                results.extend(res.data)
+
+        if new_items:
+            # No id provided, Postgres generates one and sets logged_at to NOW()
+            rows = [build_row(i) for i in new_items]
+            res = self._supabase.table("food_logs_v2").insert(rows).execute()
+            results.extend(res.data)
+
+        return results
 
     def get_water_logs(self, uid: str):
         result = self._supabase.table("water_logs").select("*").eq("uid", uid).execute()
