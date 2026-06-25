@@ -249,7 +249,37 @@ class _ResultsState extends State<Results> {
   Widget _setGoalButton(int calories) {
     final isSet = _goalSetCalories == calories;
     return GestureDetector(
-      onTap: isSet ? null : () => _setCalorieGoal(calories),
+      onTap: isSet
+          ? null
+          : () async {
+              final confirmed = await showFrostedAlertDialog<bool>(
+                context: context,
+                title: "Set calorie goal?",
+                content: Text(
+                  "This will set your daily calorie goal to $calories kcal.",
+                  style: GoogleFonts.manrope(color: Colors.white70),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(false),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(true),
+                    child: const Text(
+                      "Set",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              );
+              if (confirmed == true) _setCalorieGoal(calories);
+            },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         padding: EdgeInsets.symmetric(

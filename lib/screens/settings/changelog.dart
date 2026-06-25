@@ -75,7 +75,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
-                date: 'Coming Soon',
+                date: 'June 24, 2026',
                 version: '1.1.5',
                 changes: [
                   'Leveling up now triggers a celebration screen showing your new rank and everything you have achieved',

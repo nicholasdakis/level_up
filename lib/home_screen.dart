@@ -1042,12 +1042,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 child: buildShowcaseTooltip(
                                   context,
                                   title: _tourStep == 0
-                                      ? 'Your Dashboard'
+                                      ? 'Home'
                                       : _tourStep == 1
                                       ? 'Navigation Bar'
                                       : 'Settings',
                                   description: _tourStep == 0
-                                      ? 'This is your dashboard: your XP progress, daily reward, and quick stats all live here. Use the tool buttons below to access Reminders and the Calorie Calculator.'
+                                      ? 'The tab you\'re currently on is your home screen. This is where your daily progress lives: logging, rewards, streaks, and more.'
                                       : _tourStep == 1
                                       ? 'The floating bar at the bottom lets you switch between your main app tabs.'
                                       : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',

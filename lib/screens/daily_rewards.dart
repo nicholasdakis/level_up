@@ -63,8 +63,19 @@ class DailyRewardDialog {
     // Claim the daily reward from backend first to get the actual XP awarded
     final result = await userManager.claimDailyReward();
 
-    // If claim failed or cooldown not met, do nothing
-    if (result == null) return;
+    if (result == null) return; // cooldown not met
+    if (result.$1 == -1) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            "Failed to claim reward. Check your connection and try again.",
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+      return;
+    }
 
     final (xpGained, baseXp, streak, multiplier) = result;
 
@@ -188,7 +199,8 @@ class DailyRewardDialog {
             child: Builder(
               builder: (dialogContext) => TextButton(
                 // just a visual button; the claiming is already done
-                onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+                onPressed: () =>
+                    Navigator.of(dialogContext, rootNavigator: true).pop(),
                 child: Text("CLAIM"),
               ),
             ),

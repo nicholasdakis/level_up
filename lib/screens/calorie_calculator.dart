@@ -975,6 +975,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   frostedButton(
                     "Get Results",
                     context,
+                    color: appColorNotifier.value,
                     onPressed: () {
                       // Validity checks: all fields must be filled
                       if (units == null ||

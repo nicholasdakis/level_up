@@ -1847,7 +1847,7 @@ Widget _statTilesRow({
             ),
             SizedBox(width: Responsive.width(context, 6)),
             Text(
-              'calories today',
+              'kcal',
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 18),
                 fontWeight: FontWeight.w500,

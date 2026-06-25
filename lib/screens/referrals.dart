@@ -135,24 +135,37 @@ Widget buildReferralsCard(BuildContext context) {
                 // Use cached code or fetch/generate one
                 String? code = currentUserData?.referralCode;
                 if (code == null) {
-                  final getRes = await authenticatedGet('referral_code');
-                  if (getRes.statusCode == 200) {
-                    code =
-                        (jsonDecode(getRes.body)
-                                as Map<String, dynamic>)['referral_code']
-                            as String;
-                  } else if (getRes.statusCode == 404) {
-                    final postRes = await authenticatedPost('referral_code');
-                    if (postRes.statusCode == 201) {
+                  try {
+                    final getRes = await authenticatedGet('referral_code');
+                    if (getRes.statusCode == 200) {
                       code =
-                          (jsonDecode(postRes.body)
+                          (jsonDecode(getRes.body)
                                   as Map<String, dynamic>)['referral_code']
                               as String;
+                    } else if (getRes.statusCode == 404) {
+                      final postRes = await authenticatedPost('referral_code');
+                      if (postRes.statusCode == 201) {
+                        code =
+                            (jsonDecode(postRes.body)
+                                    as Map<String, dynamic>)['referral_code']
+                                as String;
+                      }
                     }
-                  }
-                  if (code != null) currentUserData?.referralCode = code;
+                    if (code != null) currentUserData?.referralCode = code;
+                  } catch (_) {}
                 }
                 if (!context.mounted) return;
+                if (code == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Failed to load referral code. Check your connection and try again.",
+                      ),
+                      duration: snackBarDuration,
+                    ),
+                  );
+                  return;
+                }
                 showFrostedAlertDialog(
                   context: context,
                   title: "Refer a Friend",
@@ -245,7 +258,7 @@ Widget buildReferralsCard(BuildContext context) {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  code ?? "â€”",
+                                  code,
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 18),
                                     fontWeight: FontWeight.w700,

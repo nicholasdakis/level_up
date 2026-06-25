@@ -541,7 +541,7 @@ class UserDataManager {
       return (xpGained, baseXp, streak, multiplier);
     } catch (e) {
       if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
-      return null;
+      return (-1, -1, -1, -1.0); // sentinel for network failure
     }
   }
 
