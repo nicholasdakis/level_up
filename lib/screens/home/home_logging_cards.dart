@@ -15,37 +15,25 @@ String _todayDateKey() {
 
 // Calculates total calories logged today
 int _todayCalories() {
-  final today = DateTime.now();
-  final key =
-      '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-  final meals = currentUserData?.foodDataByDate[key];
-  if (meals == null) return 0;
+  final key = _todayDateKey();
+  final logs = currentUserData?.foodLogs.where((f) => f['date'] == key) ?? [];
   int total = 0;
-  for (final foods in meals.values) {
-    for (final food in foods) {
-      total += (num.tryParse(food['calories'].toString()) ?? 0).toInt();
-    }
+  for (final food in logs) {
+    total += (num.tryParse(food['calories'].toString()) ?? 0).toInt();
   }
   return total;
 }
 
-// Counts total food items logged today across all meals
 // Returns today's total protein/carbs/fat in grams
 ({int protein, int carbs, int fat}) _todayMacros() {
   final key = _todayDateKey();
-  final meals = currentUserData?.foodDataByDate[key];
-  if (meals == null) return (protein: 0, carbs: 0, fat: 0);
+  final logs = currentUserData?.foodLogs.where((f) => f['date'] == key) ?? [];
   int protein = 0, carbs = 0, fat = 0;
-  for (final foods in meals.values) {
-    for (final food in foods) {
-      // macros are never stored as top-level keys, they live inside food_description
-      final parsed = FoodLoggingHelper.extractMacros(
-        food['food_description']?.toString() ?? '',
-      );
-      protein += (parsed['protein'] ?? 0.0).toInt();
-      carbs += (parsed['carbs'] ?? 0.0).toInt();
-      fat += (parsed['fat'] ?? 0.0).toInt();
-    }
+  for (final food in logs) {
+    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
+    protein += (macros['protein'] ?? 0.0).toInt();
+    carbs += (macros['carbs'] ?? 0.0).toInt();
+    fat += (macros['fat'] ?? 0.0).toInt();
   }
   return (protein: protein, carbs: carbs, fat: fat);
 }

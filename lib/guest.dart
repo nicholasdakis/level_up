@@ -18,7 +18,7 @@ class Guest {
     username: 'Guest',
     reminders: [],
     appColor: defaultAppColor,
-    foodDataByDate: {},
+    foodLogs: [],
     fcmTokens: [],
   );
 

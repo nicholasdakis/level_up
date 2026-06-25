@@ -148,7 +148,7 @@ Future<void> showLevelUpOverlay(BuildContext context, int newLevel) async {
         value: '${data.dailyClaimStreakBest}d',
       ));
     }
-    final daysLogged = data.foodDataByDate.length;
+    final daysLogged = data.foodLogs.map((f) => f['date']).toSet().length;
     if (daysLogged > 0) {
       stats.add((
         icon: HugeIcons.strokeRoundedNote,

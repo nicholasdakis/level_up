@@ -69,17 +69,23 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     super.dispose();
   }
 
-  // Reads directly from the in-memory cache
+  // Reads directly from the flat foodLogs list
   void _loadForDate(DateTime date) {
-    final foodDataByDate = currentUserData?.foodDataByDate ?? {};
-    // formatDateKey converts DateTime to the string key used in the map (eg "2026-04-23")
-    final dayData = foodDataByDate[FoodLoggingHelper.formatDateKey(date)];
+    final dateKey = FoodLoggingHelper.formatDateKey(date);
+    final logs = currentUserData?.foodLogs ?? [];
     setState(() {
-      // castFoodList safely casts the raw dynamic list to the typed meal list format
-      breakfastFoods = FoodLoggingHelper.castFoodList(dayData?['breakfast']);
-      lunchFoods = FoodLoggingHelper.castFoodList(dayData?['lunch']);
-      dinnerFoods = FoodLoggingHelper.castFoodList(dayData?['dinner']);
-      snacksFoods = FoodLoggingHelper.castFoodList(dayData?['snacks']);
+      breakfastFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
+          .toList();
+      lunchFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'lunch')
+          .toList();
+      dinnerFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'dinner')
+          .toList();
+      snacksFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'snacks')
+          .toList();
       _animationKey++;
     });
   }
@@ -111,10 +117,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
       ...dinnerFoods,
       ...snacksFoods,
     ]) {
-      // Macros are stored inside the food_description string and parsed out via regex
-      final macros = FoodLoggingHelper.extractMacros(
-        food['food_description'] as String? ?? '',
-      );
+      final macros = FoodLoggingHelper.extractMacrosFromFood(food);
       protein += macros['protein'] ?? 0;
       carbs += macros['carbs'] ?? 0;
       fat += macros['fat'] ?? 0;
@@ -126,9 +129,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   Map<String, double> _mealMacros(List<Map<String, dynamic>> foods) {
     double protein = 0, carbs = 0, fat = 0;
     for (var food in foods) {
-      final m = FoodLoggingHelper.extractMacros(
-        food['food_description'] as String? ?? '',
-      );
+      final m = FoodLoggingHelper.extractMacrosFromFood(food);
       protein += m['protein'] ?? 0;
       carbs += m['carbs'] ?? 0;
       fat += m['fat'] ?? 0;
@@ -139,7 +140,14 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   // Goes through all days and sums the calories and macros
   // daysWithData is returned to compute averages without using empty days
   _RangeAggregate _aggregateRange(DateTime start, DateTime end) {
-    final foodDataByDate = currentUserData?.foodDataByDate ?? {};
+    final logs = currentUserData?.foodLogs ?? [];
+    final startKey = FoodLoggingHelper.formatDateKey(start);
+    final endKey = FoodLoggingHelper.formatDateKey(end);
+    final inRange = logs.where((f) {
+      final d = f['date'] as String? ?? '';
+      return d.compareTo(startKey) >= 0 && d.compareTo(endKey) <= 0;
+    }).toList();
+
     double totalCal = 0;
     double protein = 0, carbs = 0, fat = 0;
     double breakfastCal = 0, lunchCal = 0, dinnerCal = 0, snacksCal = 0;
@@ -147,85 +155,38 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     double lP = 0, lC = 0, lF = 0;
     double dP = 0, dC = 0, dF = 0;
     double sP = 0, sC = 0, sF = 0;
-    int daysWithData = 0;
 
-    DateTime day = DateTime(start.year, start.month, start.day);
-    final endDay = DateTime(end.year, end.month, end.day);
+    final daysWithData = inRange.map((f) => f['date']).toSet().length;
 
-    while (!day.isAfter(endDay)) {
-      final dayData = foodDataByDate[FoodLoggingHelper.formatDateKey(day)];
-      if (dayData != null) {
-        final breakfast = FoodLoggingHelper.castFoodList(dayData['breakfast']);
-        final lunch = FoodLoggingHelper.castFoodList(dayData['lunch']);
-        final dinner = FoodLoggingHelper.castFoodList(dayData['dinner']);
-        final snacks = FoodLoggingHelper.castFoodList(dayData['snacks']);
-
-        final allFoods = [...breakfast, ...lunch, ...dinner, ...snacks];
-        // skip days with a map entry but no foods so they don't drag down the daily average
-        if (allFoods.isEmpty) {
-          day = day.add(const Duration(days: 1));
-          continue;
-        }
-
-        daysWithData++;
-
-        double dayCal = 0;
-        for (var food in allFoods) {
-          dayCal += (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
-        }
-        // accumulate per-meal totals separately so the calorie bar chart can show the breakdown by meal
-        for (var food in breakfast) {
-          breakfastCal += (num.tryParse(food['calories'].toString()) ?? 0)
-              .toDouble();
-          final m = FoodLoggingHelper.extractMacros(
-            food['food_description'] as String? ?? '',
-          );
+    for (final food in inRange) {
+      final cal = (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+      final m = FoodLoggingHelper.extractMacrosFromFood(food);
+      totalCal += cal;
+      protein += m['protein'] ?? 0;
+      carbs += m['carbs'] ?? 0;
+      fat += m['fat'] ?? 0;
+      switch (food['meal']) {
+        case 'breakfast':
+          breakfastCal += cal;
           bP += m['protein'] ?? 0;
           bC += m['carbs'] ?? 0;
           bF += m['fat'] ?? 0;
-        }
-        for (var food in lunch) {
-          lunchCal += (num.tryParse(food['calories'].toString()) ?? 0)
-              .toDouble();
-          final m = FoodLoggingHelper.extractMacros(
-            food['food_description'] as String? ?? '',
-          );
+        case 'lunch':
+          lunchCal += cal;
           lP += m['protein'] ?? 0;
           lC += m['carbs'] ?? 0;
           lF += m['fat'] ?? 0;
-        }
-        for (var food in dinner) {
-          dinnerCal += (num.tryParse(food['calories'].toString()) ?? 0)
-              .toDouble();
-          final m = FoodLoggingHelper.extractMacros(
-            food['food_description'] as String? ?? '',
-          );
+        case 'dinner':
+          dinnerCal += cal;
           dP += m['protein'] ?? 0;
           dC += m['carbs'] ?? 0;
           dF += m['fat'] ?? 0;
-        }
-        for (var food in snacks) {
-          snacksCal += (num.tryParse(food['calories'].toString()) ?? 0)
-              .toDouble();
-          final m = FoodLoggingHelper.extractMacros(
-            food['food_description'] as String? ?? '',
-          );
+        case 'snacks':
+          snacksCal += cal;
           sP += m['protein'] ?? 0;
           sC += m['carbs'] ?? 0;
           sF += m['fat'] ?? 0;
-        }
-        totalCal += dayCal;
-
-        for (var food in allFoods) {
-          final macros = FoodLoggingHelper.extractMacros(
-            food['food_description'] as String? ?? '',
-          );
-          protein += macros['protein'] ?? 0;
-          carbs += macros['carbs'] ?? 0;
-          fat += macros['fat'] ?? 0;
-        }
       }
-      day = day.add(const Duration(days: 1));
     }
 
     return _RangeAggregate(
@@ -255,58 +216,58 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
 
   // Returns per-day calorie and macro data for the line charts
   List<_DayPoint> _dailyPoints(DateTime start, DateTime end) {
-    final foodDataByDate = currentUserData?.foodDataByDate ?? {};
+    final logs = currentUserData?.foodLogs ?? [];
+    final startKey = FoodLoggingHelper.formatDateKey(start);
+    final endKey = FoodLoggingHelper.formatDateKey(end);
+    final inRange = logs.where((f) {
+      final d = f['date'] as String? ?? '';
+      return d.compareTo(startKey) >= 0 && d.compareTo(endKey) <= 0;
+    }).toList();
+
+    final byDate = <String, List<Map<String, dynamic>>>{};
+    for (final f in inRange) {
+      final d = f['date'] as String;
+      byDate.putIfAbsent(d, () => []).add(f);
+    }
+
     final points = <_DayPoint>[];
-    DateTime day = DateTime(start.year, start.month, start.day);
-    final endDay = DateTime(end.year, end.month, end.day);
-    while (!day.isAfter(endDay)) {
-      final key = FoodLoggingHelper.formatDateKey(day);
-      final dayData = foodDataByDate[key];
-      if (dayData != null) {
-        final allFoods = [
-          ...FoodLoggingHelper.castFoodList(dayData['breakfast']),
-          ...FoodLoggingHelper.castFoodList(dayData['lunch']),
-          ...FoodLoggingHelper.castFoodList(dayData['dinner']),
-          ...FoodLoggingHelper.castFoodList(dayData['snacks']),
-        ];
-        if (allFoods.isNotEmpty) {
-          double cal = 0, protein = 0, carbs = 0, fat = 0;
-          double bCal = 0, lCal = 0, dCal = 0, sCal = 0;
-          double sumMeal(List<Map<String, dynamic>> foods) => foods.fold(
-            0.0,
-            (s, f) =>
-                s + (num.tryParse(f['calories'].toString()) ?? 0).toDouble(),
-          );
-          bCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['breakfast']));
-          lCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['lunch']));
-          dCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['dinner']));
-          sCal = sumMeal(FoodLoggingHelper.castFoodList(dayData['snacks']));
-          for (var food in allFoods) {
-            cal += (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
-            final macros = FoodLoggingHelper.extractMacros(
-              food['food_description'] as String? ?? '',
-            );
-            protein += macros['protein'] ?? 0;
-            carbs += macros['carbs'] ?? 0;
-            fat += macros['fat'] ?? 0;
-          }
-          points.add(
-            _DayPoint(
-              date: day,
-              cal: cal,
-              breakfastCal: bCal,
-              lunchCal: lCal,
-              dinnerCal: dCal,
-              snacksCal: sCal,
-              protein: protein,
-              carbs: carbs,
-              fat: fat,
-            ),
-          );
+    for (final entry in byDate.entries) {
+      final dayFoods = entry.value;
+      double cal = 0, protein = 0, carbs = 0, fat = 0;
+      double bCal = 0, lCal = 0, dCal = 0, sCal = 0;
+      for (final food in dayFoods) {
+        final c = (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+        final m = FoodLoggingHelper.extractMacrosFromFood(food);
+        cal += c;
+        protein += m['protein'] ?? 0;
+        carbs += m['carbs'] ?? 0;
+        fat += m['fat'] ?? 0;
+        switch (food['meal']) {
+          case 'breakfast':
+            bCal += c;
+          case 'lunch':
+            lCal += c;
+          case 'dinner':
+            dCal += c;
+          case 'snacks':
+            sCal += c;
         }
       }
-      day = day.add(const Duration(days: 1));
+      points.add(
+        _DayPoint(
+          date: DateTime.parse(entry.key),
+          cal: cal,
+          breakfastCal: bCal,
+          lunchCal: lCal,
+          dinnerCal: dCal,
+          snacksCal: sCal,
+          protein: protein,
+          carbs: carbs,
+          fat: fat,
+        ),
+      );
     }
+    points.sort((a, b) => a.date.compareTo(b.date));
     return points;
   }
 

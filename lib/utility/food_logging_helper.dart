@@ -7,16 +7,12 @@ import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'responsive.dart';
 
 class FoodLoggingHelper {
-  // Method that puts DateTime objects in the form that foodDataByDate expects
+  // Formats a DateTime to the date string key used in food logs (YYYY-MM-DD)
   static String formatDateKey(DateTime date) {
     return "${date.year.toString().padLeft(4, '0')}-"
         "${date.month.toString().padLeft(2, '0')}-"
         "${date.day.toString().padLeft(2, '0')}";
   }
-
-  // Make sure the food list is always a list of maps even when data is null
-  static List<Map<String, dynamic>> castFoodList(dynamic raw) =>
-      (raw as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
   static int extractCalories(String description) {
     final match = RegExp(
@@ -64,12 +60,34 @@ class FoodLoggingHelper {
     return double.tryParse(value) ?? 1.0; // fallback
   }
 
-  static Map<String, double> extractMacros(String description) {
+  // Extracts macros from a food map, reading direct keys first and falling back to parsing food_description
+  static Map<String, double> extractMacrosFromFood(Map<String, dynamic> food) {
+    double fromKey(String key) {
+      final v = food[key];
+      if (v != null) return (v as num).toDouble();
+      return 0;
+    }
+
+    final hasDirectKeys =
+        food['protein'] != null || food['carbs'] != null || food['fat'] != null;
+    if (hasDirectKeys) {
+      return {
+        'calories': fromKey('calories'),
+        'fat': fromKey('fat'),
+        'carbs': fromKey('carbs'),
+        'protein': fromKey('protein'),
+        'fiber': fromKey('fiber'),
+        'sugar': fromKey('sugar'),
+        'sodium': fromKey('sodium'),
+      };
+    }
+    // Fall back to parsing food_description string for legacy food items without direct keys
+    final desc = food['food_description'] as String? ?? '';
     double extract(String label) {
       final match = RegExp(
         '$label:\\s*([\\d.]+)',
         caseSensitive: false,
-      ).firstMatch(description);
+      ).firstMatch(desc);
       return double.tryParse(match?.group(1) ?? '') ?? 0;
     }
 
@@ -494,7 +512,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
   final serving = FoodLoggingHelper.parseServing(description);
   final baseAmt = serving['amount'] as double;
   final unit = serving['unit'] as String;
-  final baseMacros = FoodLoggingHelper.extractMacros(description);
+  final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
   final appColor = appColorNotifier.value;
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);

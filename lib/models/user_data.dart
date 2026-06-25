@@ -18,7 +18,7 @@ class UserData {
   List<ReminderData> reminders;
   String? username;
   Color appColor;
-  Map<String, Map<String, List<Map<String, dynamic>>>> foodDataByDate;
+  List<Map<String, dynamic>> foodLogs;
   List<String> fcmTokens;
   int? caloriesGoal;
   int? proteinGoal;
@@ -50,7 +50,7 @@ class UserData {
     this.foodLogStreak = 0,
     this.foodLogStreakBest = 0,
     this.appColor = defaultAppColor,
-    Map<String, Map<String, List<Map<String, dynamic>>>>? foodDataByDate,
+    List<Map<String, dynamic>>? foodLogs,
     String? username,
     List<ReminderData>? reminders,
     List<String>? fcmTokens,
@@ -69,7 +69,7 @@ class UserData {
     Map<String, List<int>>? waterEntriesByDate,
     Map<String, double>? weightByDate,
     this.createdAt,
-  }) : foodDataByDate = foodDataByDate ?? {},
+  }) : foodLogs = foodLogs ?? [],
        waterEntriesByDate = waterEntriesByDate ?? {},
        weightByDate = weightByDate ?? {},
        reminders = reminders ?? [],

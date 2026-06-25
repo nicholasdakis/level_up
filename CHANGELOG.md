@@ -2228,3 +2228,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-06-25
 - Made a new schema for the updated food logs as currently all meals for a date are stored in one json blob which is hard to query
 - Added dual writing for food logs to not break existing users before the update goes live
+- Added food_logs_v2 in the GET user data route and wired it to frontend
+- Added schemas and endpoint for upserting food logs to the new table
+- Replaced foodDataByDate with a flat foodLogs list, all food screens now filter by date and meal instead of nested map lookups
+- Removed extractMacros and castFoodList since macros are now stored as direct fields on each food item
+- extractMacrosFromFood reads direct keys first and falls back to parsing food_description for legacy items
+- Food items now store protein, carbs, fat, fiber, sugar, sodium, and serving_size as direct fields when logged
+- Wired macro fields through all three food logging paths: search result, manual entry, and barcode

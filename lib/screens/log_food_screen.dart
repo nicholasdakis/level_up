@@ -1,4 +1,4 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -380,23 +380,29 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     _saveToRecentFoods(foodObject);
 
-    // Group foods by date and create the day entry if it doesn’t exist
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
-    currentUserData?.foodDataByDate.putIfAbsent(
-      dateKey,
-      () => {"breakfast": [], "lunch": [], "dinner": [], "snacks": []},
-    );
+    // Add food to local flat list immediately
+    currentUserData?.foodLogs.add({
+      ...foodObject,
+      'date': dateKey,
+      'meal': widget.meal,
+    });
 
-    // Add food to the correct meal for that day
-    currentUserData?.foodDataByDate[dateKey]![widget.meal]!.add(foodObject);
-
-    // Add the logged food locally and into the database
+    // Build meal map for the current date to send to backend
     try {
+      final logs = currentUserData!.foodLogs
+          .where((f) => f['date'] == dateKey)
+          .toList();
       final currentDateData = {
-        dateKey: currentUserData!.foodDataByDate[dateKey]!,
+        dateKey: {
+          'breakfast': logs.where((f) => f['meal'] == 'breakfast').toList(),
+          'lunch': logs.where((f) => f['meal'] == 'lunch').toList(),
+          'dinner': logs.where((f) => f['meal'] == 'dinner').toList(),
+          'snacks': logs.where((f) => f['meal'] == 'snacks').toList(),
+        },
       };
-      await userManager.updateFoodDataByDate(
+      await userManager.updateFoodDataByDateV2(
         currentDateData,
         context: context,
         isBeingDeleted: false,
@@ -411,13 +417,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     }
 
     // Award the full course meal badge if all four meals now have at least one food
-    final dayData = currentUserData?.foodDataByDate[dateKey];
+    final logs =
+        currentUserData?.foodLogs.where((f) => f['date'] == dateKey).toList() ??
+        [];
     final allMealsFilled = [
       'breakfast',
       'lunch',
       'dinner',
       'snacks',
-    ].every((m) => (dayData?[m] ?? []).isNotEmpty);
+    ].every((m) => logs.any((f) => f['meal'] == m));
     if (allMealsFilled) trackTrivialAchievement("food_full_day");
 
     // time-based achievements based on the hour the food was logged
@@ -974,6 +982,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       'food_name': name,
       'food_description': 'Per $servingLabel - ${parts.join(' | ')}',
       'calories': calories,
+      'protein': double.tryParse(protein),
+      'carbs': double.tryParse(carbs),
+      'fat': double.tryParse(fat),
+      'serving_size': servingLabel,
     });
   }
 
@@ -1058,7 +1070,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final newAmt = double.tryParse(result.amt);
     if (newAmt == null || newAmt <= 0) return;
 
-    final baseMacros = FoodLoggingHelper.extractMacros(description);
+    final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
     final baseAmt2 = baseAmt;
     final unit = serving['unit'] as String;
     final scaled = result.macroOverrides != null
@@ -1101,6 +1113,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
       unit,
     );
     loggedFood['calories'] = scaled['calories']!.round();
+    loggedFood['protein'] = scaled['protein'];
+    loggedFood['carbs'] = scaled['carbs'];
+    loggedFood['fat'] = scaled['fat'];
+    loggedFood['serving_size'] = '$newAmt $unit';
 
     if (achievementId != null) trackTrivialAchievement(achievementId);
     await logFood(loggedFood);
@@ -1245,7 +1261,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         ? servingAmt.toInt().toString()
         : servingAmt.toString();
     final subtitle = '$servingStr ${serving['unit']} · $cal calories';
-    final macros = FoodLoggingHelper.extractMacros(description);
+    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
     final hasMacros =
         (macros['protein'] ?? 0) > 0 ||
         (macros['carbs'] ?? 0) > 0 ||

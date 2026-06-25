@@ -146,7 +146,7 @@ class UserDataManager {
           username: uid, // default username is uid
           reminders: [],
           appColor: defaultAppColor,
-          foodDataByDate: {},
+          foodLogs: [],
           fcmTokens: [],
         );
       }
@@ -208,21 +208,11 @@ class UserDataManager {
         currentUserData!.canClaimDailyReward = true;
       }
 
-      // Map food logs from the backend response into the local foodDataByDate format
-      if (data['food_logs'] != null) {
-        final Map<String, Map<String, List<Map<String, dynamic>>>> foodData =
-            {};
-        for (final row in (data['food_logs'] as List<dynamic>)) {
-          final map = row as Map<String, dynamic>;
-          final dateKey = map['date'] as String;
-          foodData[dateKey] = {
-            'breakfast': _parseMealList(map['breakfast']),
-            'lunch': _parseMealList(map['lunch']),
-            'dinner': _parseMealList(map['dinner']),
-            'snacks': _parseMealList(map['snack']),
-          };
-        }
-        currentUserData?.foodDataByDate = foodData;
+      // Load flat food log list from food_logs_v2
+      if (data['food_logs_v2'] != null) {
+        currentUserData?.foodLogs = (data['food_logs_v2'] as List<dynamic>)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
       }
 
       // Map reminders from the backend response into ReminderData objects
@@ -318,14 +308,6 @@ class UserDataManager {
       lastLoadFailed = true;
     }
     stopwatch.stop();
-  }
-
-  // Helper to safely parse a meal list from the backend response
-  List<Map<String, dynamic>> _parseMealList(dynamic meal) {
-    if (meal == null) return [];
-    return (meal as List<dynamic>)
-        .map((item) => Map<String, dynamic>.from(item as Map))
-        .toList();
   }
 
   // Calls the backend /progress endpoint to get the user's level, XP, and reward status
@@ -454,7 +436,7 @@ class UserDataManager {
         username: currentUserData!.username,
         reminders: currentUserData!.reminders,
         appColor: currentUserData!.appColor,
-        foodDataByDate: currentUserData!.foodDataByDate,
+        foodLogs: currentUserData!.foodLogs,
         fcmTokens: currentUserData!.fcmTokens,
       );
       // Confirmation snackBar
@@ -907,7 +889,7 @@ class UserDataManager {
     }
   }
 
-  Future<void> updateFoodDataByDate(
+  Future<void> updateFoodDataByDateV2(
     Map<String, Map<String, List<Map<String, dynamic>>>> newFoodData, {
     BuildContext? context,
     bool isBeingDeleted = false,
@@ -918,30 +900,42 @@ class UserDataManager {
       return;
     }
     try {
-      // Update locally so the UI reflects the change immediately
-      currentUserData?.foodDataByDate.addAll(newFoodData);
+      // Update foodLogs locally by replacing items for affected dates
+      for (final entry in newFoodData.entries) {
+        final dateKey = entry.key;
+        currentUserData?.foodLogs.removeWhere((f) => f['date'] == dateKey);
+        for (final meal in ['breakfast', 'lunch', 'dinner', 'snacks']) {
+          for (final food in (entry.value[meal] ?? [])) {
+            currentUserData?.foodLogs.add({
+              ...food,
+              'date': dateKey,
+              'meal': meal,
+            });
+          }
+        }
+      }
       userDataNotifier.notifyListeners();
 
-      // Write each date as its own row in Postgres via the backend
       for (final entry in newFoodData.entries) {
         final dateKey = entry.key;
         final meals = entry.value;
+        // Flatten all meals into a single list of items with meal name attached
+        final items = <Map<String, dynamic>>[];
+        for (final meal in ['breakfast', 'lunch', 'dinner', 'snacks']) {
+          for (final food in (meals[meal] ?? [])) {
+            items.add({...food, 'meal': meal});
+          }
+        }
 
         final response = await authenticatedPost(
-          'upsert_food_log',
-          body: {
-            'date': dateKey,
-            'breakfast': meals['breakfast'] ?? [],
-            'lunch': meals['lunch'] ?? [],
-            'dinner': meals['dinner'] ?? [],
-            'snack': meals['snacks'] ?? [],
-          },
-          timeout: Duration(seconds: 10),
+          'upsert_food_log_v2',
+          body: {'date': dateKey, 'items': items},
+          timeout: const Duration(seconds: 10),
         );
 
         if (response.statusCode != 200) {
           throw Exception(
-            'upsert_food_log failed: ${response.statusCode} ${response.body}',
+            'upsert_food_log_v2 failed: ${response.statusCode} ${response.body}',
           );
         }
       }

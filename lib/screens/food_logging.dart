@@ -119,13 +119,21 @@ class _FoodLoggingState extends State<FoodLogging> {
   }
 
   void loadFoodForDate(DateTime date) {
-    final dayData =
-        currentUserData?.foodDataByDate[FoodLoggingHelper.formatDateKey(date)];
+    final dateKey = FoodLoggingHelper.formatDateKey(date);
+    final logs = currentUserData?.foodLogs ?? [];
     setState(() {
-      breakfastFoods = FoodLoggingHelper.castFoodList(dayData?['breakfast']);
-      lunchFoods = FoodLoggingHelper.castFoodList(dayData?['lunch']);
-      dinnerFoods = FoodLoggingHelper.castFoodList(dayData?['dinner']);
-      snacksFoods = FoodLoggingHelper.castFoodList(dayData?['snacks']);
+      breakfastFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
+          .toList();
+      lunchFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'lunch')
+          .toList();
+      dinnerFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'dinner')
+          .toList();
+      snacksFoods = logs
+          .where((f) => f['date'] == dateKey && f['meal'] == 'snacks')
+          .toList();
     });
   }
 
@@ -155,9 +163,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     ];
     double total = 0;
     for (var food in allFoods) {
-      final macros = FoodLoggingHelper.extractMacros(
-        food['food_description'] as String? ?? '',
-      );
+      final macros = FoodLoggingHelper.extractMacrosFromFood(food);
       // Add onto the macro based on the macro type
       total += macros[macroKey] ?? 0;
     }
@@ -206,10 +212,16 @@ class _FoodLoggingState extends State<FoodLogging> {
     );
     if (confirmed != true) return;
 
+    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final removed = foods[idx];
     setState(() {
       foods.removeAt(idx);
-      final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-      currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
+      currentUserData?.foodLogs.removeWhere(
+        (f) =>
+            f['date'] == dateKey &&
+            f['meal'] == mealKey &&
+            f['id'] == removed['id'],
+      );
     });
     await _saveFoodData("delete");
     foodLogNotifier.value++;
@@ -252,9 +264,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     if (newAmt == currentAmt && result.macroOverrides == null) return;
 
     // Scale every macro by the ratio of new amount to old amount, then apply any user overrides
-    final baseMacros = FoodLoggingHelper.extractMacros(
-      food['food_description'] as String? ?? '',
-    );
+    final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
     final scaledBase = FoodLoggingHelper.scaleFood(
       baseMacros,
       currentAmt,
@@ -282,8 +292,15 @@ class _FoodLoggingState extends State<FoodLogging> {
     setState(() {
       food['food_description'] = newDescription;
       food['calories'] = scaled['calories']!.round();
-      final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-      currentUserData?.foodDataByDate[dateKey]![mealKey] = foods;
+      food['protein'] = scaled['protein'];
+      food['carbs'] = scaled['carbs'];
+      food['fat'] = scaled['fat'];
+      food['serving_size'] = '$newAmt $unit';
+      // Update the same item in foodLogs by id
+      final idx = currentUserData?.foodLogs.indexWhere(
+        (f) => f['id'] == food['id'],
+      );
+      if (idx != null && idx >= 0) currentUserData?.foodLogs[idx] = food;
     });
     await _saveFoodData("edit"); // store the changes
     foodLogNotifier.value++;
@@ -292,10 +309,18 @@ class _FoodLoggingState extends State<FoodLogging> {
   Future<void> _saveFoodData(String addOrDelete) async {
     if (currentUserData == null) return;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final logs = currentUserData!.foodLogs
+        .where((f) => f['date'] == dateKey)
+        .toList();
     final currentDateData = {
-      dateKey: currentUserData!.foodDataByDate[dateKey]!,
+      dateKey: {
+        'breakfast': logs.where((f) => f['meal'] == 'breakfast').toList(),
+        'lunch': logs.where((f) => f['meal'] == 'lunch').toList(),
+        'dinner': logs.where((f) => f['meal'] == 'dinner').toList(),
+        'snacks': logs.where((f) => f['meal'] == 'snacks').toList(),
+      },
     };
-    await userManager.updateFoodDataByDate(
+    await userManager.updateFoodDataByDateV2(
       currentDateData,
       context: context,
       isBeingDeleted: addOrDelete == "delete",
@@ -304,9 +329,7 @@ class _FoodLoggingState extends State<FoodLogging> {
   }
 
   Widget _buildMacroText(Map<String, dynamic> food) {
-    final macros = FoodLoggingHelper.extractMacros(
-      food['food_description'] as String? ?? '',
-    );
+    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
     final serving = FoodLoggingHelper.parseServing(
       food['food_description'] as String? ?? '',
     );
@@ -727,9 +750,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     final mealCal = _mealCalories(foods).round();
     double mealProtein = 0, mealCarbs = 0, mealFat = 0;
     for (var food in foods) {
-      final m = FoodLoggingHelper.extractMacros(
-        food['food_description'] as String? ?? '',
-      );
+      final m = FoodLoggingHelper.extractMacrosFromFood(food);
       mealProtein += m['protein'] ?? 0;
       mealCarbs += m['carbs'] ?? 0;
       mealFat += m['fat'] ?? 0;
