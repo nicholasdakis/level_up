@@ -80,48 +80,61 @@ class _WorkoutState extends State<Workout> {
     }
 
     final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
-    return frostedGlassCard(
-      context,
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 20),
-        vertical: Responsive.height(context, 16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Weekly Goal",
-                style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
+    return GestureDetector(
+      onTap: () => _onSetWeeklyGoal(context),
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Weekly Goal",
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              Text(
-                "$workoutsThisWeek / $weeklyGoal workouts",
-                style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(context, 12),
+                Row(
+                  children: [
+                    Text(
+                      "$workoutsThisWeek / $weeklyGoal workouts",
+                      style: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(context, 12),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedPencilEdit01,
+                      color: Colors.white24,
+                      size: Responsive.scale(context, 14),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: Responsive.height(context, 6),
-              backgroundColor: Colors.white.withAlpha(20),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                lightenColor(appColorNotifier.value, 0.4),
+              ],
+            ),
+            SizedBox(height: Responsive.height(context, 10)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
+              child: LinearProgressIndicator(
+                value: fraction,
+                minHeight: Responsive.height(context, 6),
+                backgroundColor: Colors.white.withAlpha(20),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  lightenColor(appColorNotifier.value, 0.4),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

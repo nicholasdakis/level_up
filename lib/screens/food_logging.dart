@@ -391,6 +391,102 @@ class _FoodLoggingState extends State<FoodLogging> {
     );
   }
 
+  Future<void> _editGoal(BuildContext context, String type) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    final current = switch (type) {
+      'calories' => currentUserData?.caloriesGoal,
+      'protein' => currentUserData?.proteinGoal,
+      'carbs' => currentUserData?.carbsGoal,
+      'fat' => currentUserData?.fatGoal,
+      _ => null,
+    };
+    final label = switch (type) {
+      'calories' => 'Calorie Goal',
+      'protein' => 'Protein Goal',
+      'carbs' => 'Carbs Goal',
+      'fat' => 'Fat Goal',
+      _ => 'Goal',
+    };
+    final unit = type == 'calories' ? 'kcal' : 'g';
+    final ctrl = TextEditingController(text: current?.toString() ?? '');
+
+    final result = await showFrostedDialog<int>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 16),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          TextField(
+            controller: ctrl,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 24),
+              fontWeight: FontWeight.w700,
+            ),
+            decoration: InputDecoration(
+              suffixText: unit,
+              suffixStyle: GoogleFonts.manrope(
+                color: lightenColor(appColorNotifier.value, 0.35),
+                fontSize: Responsive.font(context, 14),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: lightenColor(appColorNotifier.value, 0.45),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(null),
+                child: Text('Cancel', style: dialogButtonStyle()),
+              ),
+              TextButton(
+                onPressed: () {
+                  final val = int.tryParse(ctrl.text.trim());
+                  Navigator.of(context, rootNavigator: true).pop(val);
+                },
+                child: Text('Save', style: dialogButtonStyle(confirm: true)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      await userManager.updateNutritionGoals(
+        caloriesGoal: type == 'calories' ? result : null,
+        proteinGoal: type == 'protein' ? result : null,
+        carbsGoal: type == 'carbs' ? result : null,
+        fatGoal: type == 'fat' ? result : null,
+        context: context,
+      );
+      if (mounted) setState(() {});
+    }
+  }
+
   // Calories bar which also has a "View Analytics button
   Widget _buildCaloriesBar(Color appColor) {
     // if no goals set, show a prompt to open the goals dialog
@@ -463,12 +559,25 @@ class _FoodLoggingState extends State<FoodLogging> {
               ),
               Padding(
                 padding: EdgeInsets.only(bottom: Responsive.height(context, 4)),
-                child: Text(
-                  " / ${_goalCalories.round()} kcal",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    color: lightenColor(appColorNotifier.value, 0.45),
-                  ),
+                child: Row(
+                  children: [
+                    Text(
+                      " / ${_goalCalories.round()} kcal",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 13),
+                        color: lightenColor(appColorNotifier.value, 0.45),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 4)),
+                    GestureDetector(
+                      onTap: () => _editGoal(context, 'calories'),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedPencilEdit01,
+                        color: Colors.white24,
+                        size: Responsive.scale(context, 13),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const Spacer(),
@@ -663,12 +772,26 @@ class _FoodLoggingState extends State<FoodLogging> {
             color: lightenColor(appColorNotifier.value, 0.45),
           ),
         ),
-        Text(
-          "/ ${goal.toStringAsFixed(0)}g",
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 10),
-            color: lightenColor(appColorNotifier.value, 0.45),
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "/ ${goal.toStringAsFixed(0)}g",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 10),
+                color: lightenColor(appColorNotifier.value, 0.45),
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 3)),
+            GestureDetector(
+              onTap: () => _editGoal(context, label.toLowerCase()),
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedPencilEdit01,
+                color: Colors.white24,
+                size: Responsive.scale(context, 10),
+              ),
+            ),
+          ],
         ),
       ],
     );
