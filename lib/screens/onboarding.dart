@@ -557,18 +557,6 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                       ),
               ),
             ),
-            SizedBox(height: Responsive.height(ctx, 4)),
-            TextButton(
-              // skip goals, jump straight to activation so username still gets set
-              onPressed: () => setState(() => currentStep = 3),
-              child: Text(
-                'Skip for now',
-                style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(ctx, 12),
-                ),
-              ),
-            ),
           ],
         );
 
@@ -1361,18 +1349,6 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                       ),
                     ),
                   ),
-                  SizedBox(height: Responsive.height(ctx, 4)),
-                  TextButton(
-                    // skip calorie setup, still go to activation so username gets set
-                    onPressed: () => setState(() => currentStep = 3),
-                    child: Text(
-                      'Skip this step',
-                      style: GoogleFonts.manrope(
-                        color: dim,
-                        fontSize: Responsive.font(ctx, 12),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1481,34 +1457,64 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                   ),
                 ),
               ),
-              // Back button (hidden on step 1)
+              // Back button (hidden on step 1) and Skip button (shown on steps 2 and 3)
               if (currentStep > 0) ...[
                 SizedBox(height: Responsive.height(ctx, 8)),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => setState(() {
-                      // if goals were skipped, back from activation goes to step 2 not 3
-                      if (currentStep == 3 && selectedGoal == null) {
-                        currentStep = 1;
-                      } else {
-                        currentStep--;
-                      }
-                    }),
-                    icon: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: Responsive.scale(ctx, 12),
-                      color: dim,
-                    ),
-                    label: Text(
-                      'Back',
-                      style: GoogleFonts.manrope(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => setState(() {
+                        // if goals were skipped, back from activation goes to step 2 not 3
+                        if (currentStep == 3 && selectedGoal == null) {
+                          currentStep = 1;
+                        } else {
+                          currentStep--;
+                        }
+                      }),
+                      icon: Icon(
+                        Icons.arrow_back_ios_rounded,
+                        size: Responsive.scale(ctx, 12),
                         color: dim,
-                        fontSize: Responsive.font(ctx, 12),
                       ),
+                      label: Text(
+                        'Back',
+                        style: GoogleFonts.manrope(
+                          color: dim,
+                          fontSize: Responsive.font(ctx, 12),
+                        ),
+                      ),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
                     ),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                  ),
+                    if (currentStep == 1 || currentStep == 2)
+                      TextButton(
+                        onPressed: () => setState(() => currentStep = 3),
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              currentStep == 1
+                                  ? "I'll do this later"
+                                  : 'Skip this step',
+                              style: GoogleFonts.manrope(
+                                color: dim,
+                                fontSize: Responsive.font(ctx, 12),
+                              ),
+                            ),
+                            SizedBox(width: Responsive.width(ctx, 4)),
+                            Transform.flip(
+                              flipX: true,
+                              child: Icon(
+                                Icons.arrow_back_ios_rounded,
+                                size: Responsive.scale(ctx, 12),
+                                color: dim,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ],
