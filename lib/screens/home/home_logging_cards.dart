@@ -49,6 +49,102 @@ class HomeLoggingCards extends StatelessWidget {
     required this.onShowWeightSheet,
   });
 
+  void _showMealPicker(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final meals = [
+      (
+        label: 'Breakfast',
+        meal: 'breakfast',
+        icon: HugeIcons.strokeRoundedSunrise,
+      ),
+      (label: 'Lunch', meal: 'lunch', icon: HugeIcons.strokeRoundedSun01),
+      (label: 'Dinner', meal: 'dinner', icon: HugeIcons.strokeRoundedMoon02),
+      (label: 'Snacks', meal: 'snacks', icon: HugeIcons.strokeRoundedCookie),
+    ];
+
+    showFrostedAlertDialog(
+      context: context,
+      title: 'Choose Meal Type',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Select the meal you want to log food to',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              color: Colors.white60,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          for (final m in meals)
+            Padding(
+              padding: EdgeInsets.only(bottom: Responsive.height(context, 8)),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  context.push(
+                    '/food-logging/log',
+                    extra: {
+                      'meal': m.meal,
+                      'currentDate': DateTime.now(),
+                      'onFoodLogged': () {},
+                      'achievementId': null,
+                    },
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withAlpha(12),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    border: Border.all(color: accent.withAlpha(40), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: m.icon,
+                        color: accent,
+                        size: Responsive.scale(context, 20),
+                      ),
+                      SizedBox(width: Responsive.width(context, 12)),
+                      Text(
+                        m.label,
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.chevron_right,
+                        color: dim,
+                        size: Responsive.scale(context, 18),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+          child: Text('Cancel', style: dialogButtonStyle()),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLoggingCard(
     BuildContext context, {
     required IconData icon,
@@ -388,10 +484,8 @@ class HomeLoggingCards extends StatelessWidget {
                     subtext: goal > 0 ? "/ $goal goal" : "kcal",
                     progressBar: progressBar,
                     showButtons: !isGuest,
-                    onAdd: () => context.go(
-                      '/food-logging',
-                    ), // go() switches the tab, push() doesn't
-                    onAddIcon: HugeIcons.strokeRoundedArrowRight01,
+                    onAdd: () => _showMealPicker(context),
+                    onAddIcon: Icons.add,
                     onChart: () => context.push(
                       '/food-logging/analytics',
                       extra: {

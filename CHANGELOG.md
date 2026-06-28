@@ -2282,3 +2282,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added descriptions to each macro profile option explaining who it is best suited for
 - Made the ad card visible to guests for potentially fixing admob rejection issues
 - Made the "refer a friend" card blurred with a lock on top of it for guests
+- Replaced the chevron in the calorie logging card with a +
+- The + opens a dialog that lets the user choose which meal to log to
+- Clicking it opens that page directly
