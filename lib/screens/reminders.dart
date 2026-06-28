@@ -13,6 +13,7 @@ import '../models/reminder_data.dart';
 import '../utility/responsive.dart';
 import '../services/fcm/notification_service.dart';
 import '../services/user_data_manager.dart';
+import '../services/voice_search_service.dart';
 
 class Reminders extends StatefulWidget {
   const Reminders({super.key});
@@ -25,10 +26,12 @@ class _RemindersState extends State<Reminders> {
   // Prevent memory leaks
   @override
   void dispose() {
+    _voiceSearch.cancel();
     remindersController.dispose();
     super.dispose();
   }
 
+  final VoiceSearchService _voiceSearch = VoiceSearchService();
   bool snackbarActive = false;
   bool isLoading = false; // track the loading state for UI feedback
   bool _notifBlocked =
@@ -56,6 +59,9 @@ class _RemindersState extends State<Reminders> {
     ); // show cached data instantly
     placeholderMessage = getReminderMessage();
     _loadRemindersFromServer(); // refresh from server in the background
+    _voiceSearch.init(() {
+      if (mounted) setState(() {});
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Request OS permission if not yet asked, or show blocked dialog if denied
       // Result drives _notifBlocked which disables the form if notifications can't fire
@@ -111,6 +117,24 @@ class _RemindersState extends State<Reminders> {
         ),
       ],
     );
+  }
+
+  // Toggles the microphone for voice input on the reminder message field
+  Future<void> _toggleListening() async {
+    if (!_voiceSearch.isAvailable) return;
+    // snapshot text before listening so new results append rather than replace
+    final textBeforeListen = remindersController.text;
+    await _voiceSearch.toggle((text) {
+      final combined = textBeforeListen.isEmpty
+          ? text
+          : '${textBeforeListen.trimRight()} $text';
+      remindersController.text = combined;
+      remindersController.selection = TextSelection.fromPosition(
+        TextPosition(offset: combined.length),
+      );
+      setState(() => reminder = combined);
+    });
+    if (mounted) setState(() {}); // update mic icon state after listening stops
   }
 
   Future<void> _loadRemindersFromServer() async {
@@ -792,6 +816,35 @@ class _RemindersState extends State<Reminders> {
                                   ),
                                 ),
                                 prefixIconConstraints: const BoxConstraints(),
+                                suffixIcon: _voiceSearch.isAvailable
+                                    ? GestureDetector(
+                                        onTap: _toggleListening,
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                            right: Responsive.width(
+                                              context,
+                                              12,
+                                            ),
+                                          ),
+                                          child: HugeIcon(
+                                            icon: _voiceSearch.isListening
+                                                ? HugeIcons.strokeRoundedMic01
+                                                : HugeIcons.strokeRoundedMic02,
+                                            color: _voiceSearch.isListening
+                                                ? lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.45,
+                                                  )
+                                                : lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.45,
+                                                  ).withAlpha(140),
+                                            size: Responsive.scale(context, 18),
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+                                suffixIconConstraints: const BoxConstraints(),
                                 hintText:
                                     "Enter a reminder message (E.g. $placeholderMessage)",
                                 hintStyle: GoogleFonts.manrope(
