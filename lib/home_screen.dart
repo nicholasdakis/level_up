@@ -47,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late VoidCallback _appColorListener;
 
   bool _adWatching = false;
+  bool _shimmerPaused = false;
+  bool _onboardingInProgress = false;
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
@@ -178,13 +180,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> buildDailyRewardDialog() async {
     if (!mounted) return;
+    setState(() => _shimmerPaused = true);
     await DailyRewardDialog().showDailyRewardDialog(
       context,
       dailyRewardConfettiController,
     );
     if (mounted) {
       _updateCountdown();
-      setState(() {});
+      setState(() => _shimmerPaused = false);
     }
   }
 
@@ -222,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
       }
       if (isNewUser) {
+        setState(() => _onboardingInProgress = true);
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
 
@@ -229,6 +233,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           final choice = await showOnboardingWizard(context);
           if (!mounted) return;
 
+          setState(() => _onboardingInProgress = false);
           if (mounted) setState(() => _greeting = _buildGreeting());
 
           // re-read choice for navigation below
@@ -824,7 +829,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
 
-    if (!canClaim || isGuest) return card;
+    if (!canClaim || isGuest || _shimmerPaused || _onboardingInProgress) {
+      return card;
+    }
 
     // shimmer effect on card for claimable daily reward
     return card
