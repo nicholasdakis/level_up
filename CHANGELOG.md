@@ -2301,3 +2301,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added filters to the exercise selection screen (by muscle group, equipment, level)
 - Multiple selections from the same filter group can be chosen (eg chest and back for muscle)
 - Added a routine parameter to the workout screen to know when an empty workout vs a routine has been chosen
+- Added a skeletonizer to the workout tab so it waits for data to be ready
+- Made the workout tab cards animate into view like the home screen does

@@ -1,11 +1,17 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
+
+class _WorkoutAnimationState {
+  static bool animated = false;
+}
 
 class Workout extends StatefulWidget {
   const Workout({super.key});
@@ -16,6 +22,7 @@ class Workout extends StatefulWidget {
 
 class _WorkoutState extends State<Workout> {
   late final VoidCallback _colorListener;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -28,58 +35,39 @@ class _WorkoutState extends State<Workout> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    userDataNotifier.addListener(_colorListener);
+    if (!isGuest && currentUserData == null) {
+      _loading = true;
+      userManager.loadUserData().then((_) {
+        if (mounted) setState(() => _loading = false);
+      });
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _WorkoutAnimationState.animated = true;
+    });
+  }
+
+  Widget _animate(Widget child, Duration delay) {
+    if (_WorkoutAnimationState.animated) return child;
+    return child
+        .animate()
+        .fadeIn(delay: delay, duration: 400.ms)
+        .slideY(begin: 0.15, duration: 400.ms, curve: Curves.easeOutCubic);
   }
 
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    userDataNotifier.removeListener(_colorListener);
     super.dispose();
   }
 
   Widget _buildGoalCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-    final int? weeklyGoal = currentUserData?.weeklyWorkoutsGoal;
+    final int weeklyGoal = currentUserData?.weeklyWorkoutsGoal ?? 5;
     const int workoutsThisWeek =
         0; // TODO: load from backend once workout logging is implemented
-
-    if (weeklyGoal == null) {
-      return GestureDetector(
-        onTap: () => _onSetWeeklyGoal(context),
-        child: frostedGlassCard(
-          context,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
-            vertical: Responsive.height(context, 16),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedTarget01,
-                color: dim,
-                size: Responsive.scale(context, 24),
-              ),
-              SizedBox(width: Responsive.width(context, 14)),
-              Expanded(
-                child: Text(
-                  "Set a weekly workout goal",
-                  style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: Colors.white24,
-                size: Responsive.scale(context, 20),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
     return GestureDetector(
@@ -697,39 +685,47 @@ class _WorkoutState extends State<Workout> {
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: ScrollConfiguration(
-          behavior: NoGlowScrollBehavior(),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.centeredHorizontalPadding(context, 20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height:
-                        MediaQuery.paddingOf(context).top +
-                        Responsive.height(context, 24),
-                  ),
-                  sectionHeader("WORKOUT", context),
-                  _buildGoalCard(context),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("START", context),
-                  _buildStartWorkoutCard(context),
-                  SizedBox(height: Responsive.height(context, 12)),
-                  _buildRoutineActionCards(context),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("MY ROUTINES", context),
-                  _buildMyRoutinesCard(context),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("RECENT WORKOUTS", context),
-                  _buildRecentWorkoutsCard(context),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("LOGGING", context),
-                  _buildLiftsCard(context),
-                  SizedBox(height: Responsive.height(context, 120)),
-                ],
+        body: Skeletonizer(
+          enabled: _loading,
+          effect: ShimmerEffect(
+            baseColor: lightenColor(appColorNotifier.value, 0.3),
+            highlightColor: lightenColor(appColorNotifier.value, 0.1),
+            duration: const Duration(milliseconds: 1200),
+          ),
+          child: ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height:
+                          MediaQuery.paddingOf(context).top +
+                          Responsive.height(context, 24),
+                    ),
+                    sectionHeader("WORKOUT", context),
+                    _animate(_buildGoalCard(context), 0.ms),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("START", context),
+                    _animate(_buildStartWorkoutCard(context), 60.ms),
+                    SizedBox(height: Responsive.height(context, 12)),
+                    _animate(_buildRoutineActionCards(context), 120.ms),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("MY ROUTINES", context),
+                    _animate(_buildMyRoutinesCard(context), 180.ms),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("RECENT WORKOUTS", context),
+                    _animate(_buildRecentWorkoutsCard(context), 240.ms),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("LOGGING", context),
+                    _animate(_buildLiftsCard(context), 300.ms),
+                    SizedBox(height: Responsive.height(context, 120)),
+                  ],
+                ),
               ),
             ),
           ),
