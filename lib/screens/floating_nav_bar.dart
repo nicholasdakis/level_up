@@ -6,23 +6,31 @@ import '../utility/responsive.dart';
 
 // Tab index constants
 const kTabHome = 0;
-const kTabFood = 1;
-const kTabProgress = 2;
-const kTabExplore = 3;
+const kTabWorkout = 1;
+const kTabFood = 2;
+const kTabProgress = 3;
+const kTabExplore = 4;
 
 // Routes matching each tab index, order must match _navIcons and _navLabels
-const _navRoutes = ['/', '/food-logging', '/progression', '/explore'];
+const _navRoutes = [
+  '/',
+  '/workout',
+  '/food-logging',
+  '/progression',
+  '/explore',
+];
 
 // icons for each tab
 const _navIcons = [
   HugeIcons.strokeRoundedHome09,
+  HugeIcons.strokeRoundedDumbbell01,
   HugeIcons.strokeRoundedPencil,
   HugeIcons.strokeRoundedMedal02,
   HugeIcons.strokeRoundedLocation01,
 ];
 
 // Labels shown below each icon, active label is slightly larger and bolder
-const _navLabels = ['Home', 'Food', 'Progress', 'Explore'];
+const _navLabels = ['Home', 'Workout', 'Food', 'Progress', 'Explore'];
 
 // Floating frosted glass bottom navigation bar with 5 persistent tabs
 class FloatingNavBar extends StatelessWidget {

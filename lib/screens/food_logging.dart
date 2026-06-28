@@ -104,8 +104,9 @@ class _FoodLoggingState extends State<FoodLogging> {
   }
 
   Future<void> _loadUserDataAndInit() async {
-    if (currentUserData != null &&
-        currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid) {
+    if (isGuest ||
+        (currentUserData != null &&
+            currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid)) {
       await _refreshAndLoadFood();
       return;
     }

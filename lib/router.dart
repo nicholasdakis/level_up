@@ -21,6 +21,7 @@ import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
 import 'screens/progression.dart';
 import 'screens/explore.dart';
+import 'screens/workout.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
@@ -50,7 +51,7 @@ final _rootNavKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 // Navigator keys, one per shell branch
 final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _foodNavKey = GlobalKey<NavigatorState>(debugLabel: 'food');
-// final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
+final _workoutNavKey = GlobalKey<NavigatorState>(debugLabel: 'workout');
 final _exploreNavKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
 final _leaderboardNavKey = GlobalKey<NavigatorState>(debugLabel: 'leaderboard');
 
@@ -174,6 +175,18 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
 
+        // Workout tab
+        StatefulShellBranch(
+          navigatorKey: _workoutNavKey,
+          routes: [
+            GoRoute(
+              path: '/workout',
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const Workout()),
+            ),
+          ],
+        ),
+
         // Food Logging tab
         StatefulShellBranch(
           navigatorKey: _foodNavKey,
@@ -236,28 +249,6 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-
-        // Workout tab commented out until workouts are implemented
-        // StatefulShellBranch(
-        //   navigatorKey: _workoutNavKey,
-        //   routes: [
-        //     GoRoute(
-        //       path: '/workout',
-        //       pageBuilder: (context, state) => NoTransitionPage(
-        //         key: state.pageKey,
-        //         child: const Scaffold(
-        //           backgroundColor: Color(0xFF0A0F1E),
-        //           body: Center(
-        //             child: Text(
-        //               'Coming Soon',
-        //               style: TextStyle(color: Colors.white54, fontSize: 16),
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // ),
 
         // Progression tab
         StatefulShellBranch(

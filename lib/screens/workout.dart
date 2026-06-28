@@ -160,6 +160,34 @@ class _WorkoutState extends State<Workout> {
                         Responsive.height(context, 24),
                   ),
                   sectionHeader("WORKOUT", context),
+                  SizedBox(height: Responsive.height(context, 12)),
+                  frostedGlassCard(
+                    context,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.padding(context, 14),
+                      vertical: Responsive.padding(context, 10),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.construction_rounded,
+                          color: lightenColor(appColorNotifier.value, 0.6),
+                          size: Responsive.scale(context, 18),
+                        ),
+                        SizedBox(width: Responsive.width(context, 8)),
+                        Expanded(
+                          child: Text(
+                            'This tab is heavily work in progress. Using it while this message is here is not recommended.',
+                            style: GoogleFonts.manrope(
+                              color: lightenColor(appColorNotifier.value, 0.6),
+                              fontSize: Responsive.font(context, 12),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: Responsive.height(context, 16)),
                   // Weekly goal progress, prompts user to set a goal if none is set
                   _buildGoalCard(context),
