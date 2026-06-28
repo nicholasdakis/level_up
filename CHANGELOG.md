@@ -2280,3 +2280,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Onboarding dialog width capped on desktop so it no longer takes the full width
 - Skip button moved inline with the back button so it is always visible regardless of content length
 - Added descriptions to each macro profile option explaining who it is best suited for
+- Made the ad card visible to guests for potentially fixing admob rejection issues
+- Made the "refer a friend" card blurred with a lock on top of it for guests

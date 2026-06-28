@@ -1530,8 +1530,9 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                   ),
                 ),
                 onChanged: (_) {
-                  if (usernameError != null)
+                  if (usernameError != null) {
                     setState(() => usernameError = null);
+                  }
                 },
               ),
               SizedBox(height: Responsive.height(ctx, 12)),

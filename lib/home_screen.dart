@@ -24,7 +24,6 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'services/user_data_manager.dart' show trackTrivialAchievement;
 import 'services/ad_service.dart';
-import 'guest.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
     if (dart.library.js_interop) 'services/fcm/web_fcm_token_web.dart'
@@ -908,10 +907,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onTap: _adWatching
           ? null
           : () async {
-              if (isGuest) {
-                Guest.block(context);
-                return;
-              }
               if (!adService.isReady) {
                 await showFrostedAlertDialog(
                   context: context,
@@ -946,6 +941,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               setState(() => _adWatching = true);
               await adService.showRewardedAd(
                 onRewarded: () async {
+                  if (isGuest) {
+                    // show signup prompt after the ad reward fires (user finished watching)
+                    if (mounted) {
+                      await showFrostedAlertDialog(
+                        context: context,
+                        title: "Create a free account",
+                        content: Text(
+                          "Sign up to earn XP for every ad you watch and start leveling up.",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 13),
+                            color: Colors.white60,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pop(),
+                            child: Text(
+                              "Maybe later",
+                              style: dialogButtonStyle(),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.of(context, rootNavigator: true).pop();
+                              await authService.value.signOut();
+                            },
+                            child: Text(
+                              "Sign up",
+                              style: dialogButtonStyle(confirm: true),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return;
+                  }
                   await userManager.loadUserData();
                   if (mounted) {
                     expNotifier.value = currentUserData?.expPoints ?? 0;
@@ -1085,7 +1120,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _maybeAnimate(_buildXpCard(), 60.ms),
                         SizedBox(height: Responsive.height(context, 20)),
 
-                        if (!isGuest) ...[
+                        ...[
                           sectionHeader("EARN XP", context),
                           _maybeAnimate(
                             IntrinsicHeight(
@@ -1111,12 +1146,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           SizedBox(height: Responsive.height(context, 12)),
                           // Daily reward sits below the earn XP tiles as a slim full-width row
                           _maybeAnimate(_buildDailyRewardCard(), 150.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                        ],
-
-                        if (isGuest) ...[
-                          sectionHeader("DAILY REWARD", context),
-                          _maybeAnimate(_buildDailyRewardCard(), 120.ms),
                           SizedBox(height: Responsive.height(context, 20)),
                         ],
 

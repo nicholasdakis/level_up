@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
+import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, authenticatedPost;
 import 'level_up_overlay.dart';
@@ -84,7 +85,9 @@ Future<void> checkPendingReferralReward(
                     currentUserData!.referralCount =
                         currentUserData!.referralCount + 1;
                   }
-                  if (context.mounted) await handleLevelUpOverlay(context, prevLevel);
+                  if (context.mounted) {
+                    await handleLevelUpOverlay(context, prevLevel);
+                  }
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -114,7 +117,8 @@ Widget buildReferralsCard(BuildContext context) {
       final c = cardColors(base);
       final accent = c.onCard;
       final accentDim = c.onCard.withAlpha(180);
-      return DecoratedBox(
+
+      final card = DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,
           gradient: LinearGradient(
@@ -368,7 +372,12 @@ Widget buildReferralsCard(BuildContext context) {
                                     );
                                   }
                                   expNotifier.value = data['new_exp'];
-                                  if (context.mounted) await handleLevelUpOverlay(context, prevLevel2);
+                                  if (context.mounted) {
+                                    await handleLevelUpOverlay(
+                                      context,
+                                      prevLevel2,
+                                    );
+                                  }
                                   Navigator.of(
                                     context,
                                     rootNavigator: true,
@@ -465,6 +474,43 @@ Widget buildReferralsCard(BuildContext context) {
               ),
             ),
           ),
+        ),
+      );
+
+      if (!isGuest) return card;
+
+      // Guest overlay: same pattern as the logging cards, faded real card + lock overlay
+      return GestureDetector(
+        onTap: () => authService.value.signOut(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            IgnorePointer(child: Opacity(opacity: 0.35, child: card)),
+            Positioned.fill(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedLockPassword,
+                      color: accent,
+                      size: Responsive.scale(context, 22),
+                    ),
+                    SizedBox(height: Responsive.height(context, 6)),
+                    Text(
+                      'Sign up to unlock',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     },
