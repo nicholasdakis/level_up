@@ -2273,3 +2273,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made every dialog have consistent UI buttons
 - Fixed the update profile picture dialog from taking the whole width on desktop and not having the frosted glass effect
 - Dialogs now shift up when the keyboard opens on iOS PWA using a visualViewport JS bridge so the keyboard no longer covers them
+- Fixed Set goals buttons in Food Logging causing overflow errors

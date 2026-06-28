@@ -679,32 +679,39 @@ class _FoodLoggingState extends State<FoodLogging> {
     if (!_goalsSet) return const SizedBox.shrink();
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _goalProtein > 0
-            ? _buildMacroGauge(
-                label: "Protein",
-                current: _totalMacro('protein'),
-                goal: _goalProtein,
-                color: lightenColor(appColor, 0.30),
-              )
-            : _buildMacroPlaceholder("Protein", appColor),
-        _goalCarbs > 0
-            ? _buildMacroGauge(
-                label: "Carbs",
-                current: _totalMacro('carbs'),
-                goal: _goalCarbs,
-                color: lightenColor(appColor, 0.30),
-              )
-            : _buildMacroPlaceholder("Carbs", appColor),
-        _goalFat > 0
-            ? _buildMacroGauge(
-                label: "Fat",
-                current: _totalMacro('fat'),
-                goal: _goalFat,
-                color: lightenColor(appColor, 0.30),
-              )
-            : _buildMacroPlaceholder("Fat", appColor),
+        Expanded(
+          child: _goalProtein > 0
+              ? _buildMacroGauge(
+                  label: "Protein",
+                  current: _totalMacro('protein'),
+                  goal: _goalProtein,
+                  color: lightenColor(appColor, 0.30),
+                )
+              : _buildMacroPlaceholder("Protein", appColor),
+        ),
+        SizedBox(width: Responsive.width(context, 8)),
+        Expanded(
+          child: _goalCarbs > 0
+              ? _buildMacroGauge(
+                  label: "Carbs",
+                  current: _totalMacro('carbs'),
+                  goal: _goalCarbs,
+                  color: lightenColor(appColor, 0.30),
+                )
+              : _buildMacroPlaceholder("Carbs", appColor),
+        ),
+        SizedBox(width: Responsive.width(context, 8)),
+        Expanded(
+          child: _goalFat > 0
+              ? _buildMacroGauge(
+                  label: "Fat",
+                  current: _totalMacro('fat'),
+                  goal: _goalFat,
+                  color: lightenColor(appColor, 0.30),
+                )
+              : _buildMacroPlaceholder("Fat", appColor),
+        ),
       ],
     );
   }
@@ -727,12 +734,12 @@ class _FoodLoggingState extends State<FoodLogging> {
         icon: HugeIcon(
           icon: HugeIcons.strokeRoundedAddCircle,
           color: lightenColor(appColor, 0.30),
-          size: Responsive.scale(context, 18),
+          size: Responsive.scale(context, 14),
         ),
         label: Text(
-          "Set $label goal",
+          "Set $label",
           style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 12),
+            fontSize: Responsive.font(context, 11),
             color: lightenColor(appColor, 0.30),
           ),
         ),
