@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
+import '/utility/unit_converter.dart';
 
 class Workout extends StatefulWidget {
   const Workout({super.key});
@@ -251,15 +252,359 @@ class _WorkoutState extends State<Workout> {
     // TODO: open start workout modal
   }
 
-  void _onCreateRoutine() {
+  void _onNewRoutine() {
     // TODO: open create routine screen
+  }
+
+  void _onExploreRoutines() {
+    // TODO: open explore routines screen
+  }
+
+  Widget _buildStartWorkoutCard(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    return GestureDetector(
+      onTap: _onStartWorkout,
+      child: frostedGlassCard(
+        context,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 22),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: Responsive.scale(context, 44),
+              height: Responsive.scale(context, 44),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(18),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(30)),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDumbbell01,
+                  color: accent,
+                  size: Responsive.scale(context, 24),
+                ),
+              ),
+            ),
+            SizedBox(width: Responsive.width(context, 16)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Start Workout",
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    "Begin an empty session",
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: Colors.white24,
+              size: Responsive.scale(context, 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoutineActionCards(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+
+    Widget card(
+      IconData icon,
+      String label,
+      String subtitle,
+      VoidCallback onTap,
+    ) {
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          child: frostedGlassCard(
+            context,
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 20),
+              horizontal: Responsive.width(context, 8),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(
+                  icon: icon,
+                  color: accent,
+                  size: Responsive.scale(context, 26),
+                ),
+                SizedBox(height: Responsive.height(context, 8)),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 12),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 2)),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(context, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        card(
+          HugeIcons.strokeRoundedAddSquare,
+          "New Routine",
+          "Build your own",
+          _onNewRoutine,
+        ),
+        SizedBox(width: Responsive.width(context, 12)),
+        card(
+          HugeIcons.strokeRoundedCompass,
+          "Explore Routines",
+          "Find & follow plans",
+          _onExploreRoutines,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMyRoutinesCard(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    // TODO: replace with real routines list
+    const List<Map<String, dynamic>> routines = [];
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 16),
+      ),
+      child: routines.isEmpty
+          ? SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: Responsive.height(context, 8)),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedFileNotFound,
+                    color: Colors.white24,
+                    size: Responsive.scale(context, 32),
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  Text(
+                    "No routines yet",
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    "Create your first routine to stay on track",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 8)),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                for (final r in routines)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 6),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            r['name'] as String,
+                            style: GoogleFonts.manrope(
+                              color: accent,
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "${r['exercise_count']} exercises",
+                          style: GoogleFonts.manrope(
+                            color: dim,
+                            fontSize: Responsive.font(context, 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildLiftsCard(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    // TODO: load from backend
+    const double volumeTodayKg = 0;
+    final bool isImperial = UnitConverter.isImperial;
+    final String volumeDisplay = isImperial
+        ? "${UnitConverter.displayWeight(volumeTodayKg, imperial: true)} lbs"
+        : "${volumeTodayKg.toStringAsFixed(0)} kg";
+    final List<String> musclesWorked = []; // TODO: load from backend
+
+    Widget actionButton(IconData icon, VoidCallback? onTap) => GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: Responsive.scale(context, 34),
+        height: Responsive.scale(context, 34),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withAlpha(18),
+          border: Border.all(color: Colors.white.withAlpha(40), width: 1),
+        ),
+        child: Icon(
+          HugeIcons.strokeRoundedAnalyticsUp,
+          color: accent,
+          size: Responsive.scale(context, 16),
+        ),
+      ),
+    );
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedWeightScale,
+                      color: accent,
+                      size: Responsive.scale(context, 14),
+                    ),
+                    SizedBox(width: Responsive.width(context, 5)),
+                    Text(
+                      "Lifts",
+                      style: GoogleFonts.manrope(
+                        color: accent,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Responsive.height(context, 6)),
+                Text(
+                  volumeDisplay,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  "volume today",
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(context, 11),
+                  ),
+                ),
+                if (musclesWorked.isNotEmpty) ...[
+                  SizedBox(height: Responsive.height(context, 8)),
+                  Wrap(
+                    spacing: Responsive.width(context, 6),
+                    runSpacing: Responsive.height(context, 4),
+                    children: [
+                      for (final muscle in musclesWorked)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
+                            vertical: Responsive.height(context, 3),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(18),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(30),
+                            ),
+                          ),
+                          child: Text(
+                            muscle,
+                            style: GoogleFonts.manrope(
+                              color: accent,
+                              fontSize: Responsive.font(context, 10),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              actionButton(
+                HugeIcons.strokeRoundedAnalyticsUp,
+                null,
+              ), // TODO: analytics
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
-
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -280,138 +625,18 @@ class _WorkoutState extends State<Workout> {
                         Responsive.height(context, 24),
                   ),
                   sectionHeader("WORKOUT", context),
-                  frostedGlassCard(
-                    context,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.padding(context, 14),
-                      vertical: Responsive.padding(context, 10),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.construction_rounded,
-                          color: lightenColor(appColorNotifier.value, 0.6),
-                          size: Responsive.scale(context, 18),
-                        ),
-                        SizedBox(width: Responsive.width(context, 8)),
-                        Expanded(
-                          child: Text(
-                            'This tab is heavily work in progress. Using it while this message is here is not recommended.',
-                            style: GoogleFonts.manrope(
-                              color: lightenColor(appColorNotifier.value, 0.6),
-                              fontSize: Responsive.font(context, 12),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 16)),
-                  // Weekly goal progress, prompts user to set a goal if none is set
                   _buildGoalCard(context),
                   SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("ACTIONS", context),
-                  // Start Workout card
-                  GestureDetector(
-                    onTap: _onStartWorkout,
-                    child: frostedGlassCard(
-                      context,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 20),
-                        vertical: Responsive.height(context, 20),
-                      ),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedDumbbell01,
-                            color: accent,
-                            size: Responsive.scale(context, 24),
-                          ),
-                          SizedBox(width: Responsive.width(context, 14)),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Start Workout",
-                                  style: GoogleFonts.manrope(
-                                    color: accent,
-                                    fontSize: Responsive.font(context, 14),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  "Start a new session or pick a routine",
-                                  style: GoogleFonts.manrope(
-                                    color: dim,
-                                    fontSize: Responsive.font(context, 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowRight01,
-                            color: Colors.white24,
-                            size: Responsive.scale(context, 20),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
+                  sectionHeader("START", context),
+                  _buildStartWorkoutCard(context),
                   SizedBox(height: Responsive.height(context, 12)),
-
-                  // Create Routine card
-                  GestureDetector(
-                    onTap: _onCreateRoutine,
-                    child: frostedGlassCard(
-                      context,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 20),
-                        vertical: Responsive.height(context, 20),
-                      ),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedAddSquare,
-                            color: accent,
-                            size: Responsive.scale(context, 24),
-                          ),
-                          SizedBox(width: Responsive.width(context, 14)),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Create Routine",
-                                  style: GoogleFonts.manrope(
-                                    color: accent,
-                                    fontSize: Responsive.font(context, 14),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  "Save a set of exercises to reuse later",
-                                  style: GoogleFonts.manrope(
-                                    color: dim,
-                                    fontSize: Responsive.font(context, 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowRight01,
-                            color: Colors.white24,
-                            size: Responsive.scale(context, 20),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
+                  _buildRoutineActionCards(context),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  sectionHeader("MY ROUTINES", context),
+                  _buildMyRoutinesCard(context),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  sectionHeader("LOGGING", context),
+                  _buildLiftsCard(context),
                   SizedBox(height: Responsive.height(context, 120)),
                 ],
               ),
