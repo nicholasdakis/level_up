@@ -364,10 +364,18 @@ class _FrostedDialogShell extends StatefulWidget {
 class _FrostedDialogShellState extends State<_FrostedDialogShell> {
   @override
   Widget build(BuildContext context) {
-    // On web the browser partially handles keyboard scrolling, so only apply
-    // a fraction of viewInsets to avoid double-counting on iOS PWA.
     final rawInset = MediaQuery.viewInsetsOf(context).bottom;
-    final keyboardInset = kIsWeb ? rawInset * 0.2 : rawInset;
+    // On iOS PWA the browser doesn't resize the viewport when the keyboard opens,
+    // so viewInsets.bottom stays 0. Use visualPadding as a fallback which does
+    // reflect the keyboard on iOS PWA.
+    final visualInset = MediaQuery.of(context).viewPadding.bottom;
+    final effectiveInset = rawInset > 0
+        ? rawInset
+        : (kIsWeb ? visualInset : 0.0);
+    // Cap how far up the dialog can be pushed so it never disappears off the top.
+    // Allow at most 60% of screen height as bottom padding.
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final keyboardInset = effectiveInset.clamp(0.0, screenHeight * 0.6);
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
