@@ -231,6 +231,7 @@ class GoalsResponse(BaseModel):
     weight_goal_type: str | None = None
     water_ml_goal: int | None = None
     weight_kg_goal: float | None = None
+    weekly_workouts_goal: int | None = None
 
 class GetUserDataResponse(BaseModel):
     level: int = 1
