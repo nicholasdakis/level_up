@@ -1048,138 +1048,163 @@ class _FoodLoggingState extends State<FoodLogging> {
           decoration: BoxDecoration(gradient: buildThemeGradient()),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            body: Skeletonizer(
-              enabled: isLoading,
-              effect: ShimmerEffect(
-                baseColor: lightenColor(appColor, 0.3),
-                highlightColor: lightenColor(appColor, 0.1),
-                duration: const Duration(milliseconds: 1200),
-              ),
-              child: ListView(
-                padding: EdgeInsets.only(
-                  left: Responsive.centeredHorizontalPadding(context, 20),
-                  right: Responsive.centeredHorizontalPadding(context, 20),
-                  top:
-                      MediaQuery.paddingOf(context).top +
-                      Responsive.height(context, 16),
-                  bottom: Responsive.height(context, 12),
-                ),
-                children: [
-                  Row(
+            body: Stack(
+              children: [
+                Skeletonizer(
+                  enabled: isLoading,
+                  effect: ShimmerEffect(
+                    baseColor: lightenColor(appColor, 0.3),
+                    highlightColor: lightenColor(appColor, 0.1),
+                    duration: const Duration(milliseconds: 1200),
+                  ),
+                  child: ListView(
+                    padding: EdgeInsets.only(
+                      left: Responsive.centeredHorizontalPadding(context, 20),
+                      right: Responsive.centeredHorizontalPadding(context, 20),
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          Responsive.height(context, 16),
+                      bottom: Responsive.height(context, 12),
+                    ),
                     children: [
-                      Expanded(
-                        child: DateNavigationRow(
-                          currentDate: currentDate,
-                          onDateChanged: (date) {
-                            setState(() => currentDate = date);
-                            loadFoodForDate(date);
-                          },
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => setState(() {
-                          _loadUserDataFuture = _refreshAndLoadFood();
-                        }),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
-                            border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.refresh,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
-                            size: Responsive.font(context, 13),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: Responsive.height(context, 16)),
-                  _buildCaloriesBar(appColor),
-
-                  SizedBox(height: Responsive.height(context, 20)),
-                  _buildMacroGauges(appColor),
-
-                  SizedBox(height: Responsive.height(context, 8)),
-
-                  _buildMealSection(
-                    "breakfast",
-                    "Breakfast",
-                    breakfastFoods,
-                    colors[0],
-                  ),
-                  _buildMealSection("lunch", "Lunch", lunchFoods, colors[1]),
-                  _buildMealSection("dinner", "Dinner", dinnerFoods, colors[2]),
-                  _buildMealSection("snacks", "Snacks", snacksFoods, colors[3]),
-
-                  SizedBox(height: Responsive.height(context, 24)),
-
-                  // FatSecret terms require attribution to be visible without login
-                  if (isGuest)
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Row(
                         children: [
-                          GestureDetector(
-                            onTap: () => launchUrl(
-                              Uri.parse("https://platform.fatsecret.com"),
+                          Expanded(
+                            child: DateNavigationRow(
+                              currentDate: currentDate,
+                              onDateChanged: (date) {
+                                setState(() => currentDate = date);
+                                loadFoodForDate(date);
+                              },
                             ),
-                            child: Text(
-                              "Powered by FatSecret",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white24,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white24,
+                          ),
+                          GestureDetector(
+                            onTap: () => setState(() {
+                              _loadUserDataFuture = _refreshAndLoadFood();
+                            }),
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 12),
                               ),
-                            ),
-                          ),
-                          Text(
-                            "  ·  ",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 11),
-                              color: Colors.white24,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => launchUrl(
-                              Uri.parse("https://openfoodfacts.org"),
-                            ),
-                            child: Text(
-                              "Open Food Facts (ODbL)",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white24,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.1,
+                                ).withAlpha(20),
+                                border: Border.all(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.3,
+                                  ).withAlpha(180),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.refresh,
+                                color: lightenColor(
+                                  appColorNotifier.value,
+                                  0.3,
+                                ).withAlpha(180),
+                                size: Responsive.font(context, 13),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
 
-                  // Extra space so content clears the floating nav bar
-                  SizedBox(height: Responsive.height(context, 100)),
-                ],
-              ),
+                      SizedBox(height: Responsive.height(context, 16)),
+                      _buildCaloriesBar(appColor),
+
+                      SizedBox(height: Responsive.height(context, 20)),
+                      _buildMacroGauges(appColor),
+
+                      SizedBox(height: Responsive.height(context, 8)),
+
+                      _buildMealSection(
+                        "breakfast",
+                        "Breakfast",
+                        breakfastFoods,
+                        colors[0],
+                      ),
+                      _buildMealSection(
+                        "lunch",
+                        "Lunch",
+                        lunchFoods,
+                        colors[1],
+                      ),
+                      _buildMealSection(
+                        "dinner",
+                        "Dinner",
+                        dinnerFoods,
+                        colors[2],
+                      ),
+                      _buildMealSection(
+                        "snacks",
+                        "Snacks",
+                        snacksFoods,
+                        colors[3],
+                      ),
+
+                      SizedBox(height: Responsive.height(context, 24)),
+
+                      // FatSecret terms require attribution to be visible without login
+                      if (isGuest)
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () => launchUrl(
+                                  Uri.parse("https://platform.fatsecret.com"),
+                                ),
+                                child: Text(
+                                  "Powered by FatSecret",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 11),
+                                    color: Colors.white24,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Colors.white24,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "  ·  ",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: Colors.white24,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => launchUrl(
+                                  Uri.parse("https://openfoodfacts.org"),
+                                ),
+                                child: Text(
+                                  "Open Food Facts (ODbL)",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 11),
+                                    color: Colors.white24,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Colors.white24,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Extra space so content clears the floating nav bar
+                      SizedBox(height: Responsive.height(context, 100)),
+                    ],
+                  ),
+                ),
+                OnboardingHint(
+                  hintKey: 'food',
+                  title: 'Search for a food to get started',
+                  description:
+                      'Tap the + button to search, scan a barcode, or enter manually',
+                ),
+              ],
             ),
           ),
         );

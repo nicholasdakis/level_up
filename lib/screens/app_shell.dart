@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'floating_nav_bar.dart' show FloatingNavBar, kTabExplore;
 import '../utility/responsive.dart';
+import '../globals.dart';
 
 class AppShell extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -32,6 +33,7 @@ class _AppShellState extends State<AppShell> {
               child: FloatingNavBar(
                 selectedIndex: selectedIndex,
                 onTap: (index) {
+                  if (onboardingHintNotifier.value != null) return;
                   widget.navigationShell.goBranch(
                     index,
                     initialLocation: index == selectedIndex,

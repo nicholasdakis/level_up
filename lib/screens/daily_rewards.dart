@@ -147,7 +147,7 @@ class DailyRewardDialog {
               "$baseXp base + ${xpGained - baseXp} streak bonus",
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 12),
+                fontSize: Responsive.font(context, 14),
                 color: faint,
               ),
             ),

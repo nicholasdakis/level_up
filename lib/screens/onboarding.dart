@@ -1420,9 +1420,10 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
               SizedBox(height: Responsive.height(ctx, 10)),
               _activationOption(
                 ctx,
-                icon: HugeIcons.strokeRoundedGift,
-                title: 'Claim my daily reward',
-                subtitle: 'Free XP every day. Start your streak now',
+                icon: HugeIcons.strokeRoundedHome01,
+                title: 'Explore the home dashboard',
+                subtitle:
+                    'Claim your daily XP, track streaks, log water and weight, and more',
                 accent: accent,
                 dim: dim,
                 onTap: () {

@@ -1313,6 +1313,12 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                   ),
                 ),
               ),
+              OnboardingHint(
+                hintKey: 'settings',
+                title: 'Set up your profile',
+                description:
+                    'Set a username, choose your units, adjust your goals, and more',
+              ),
               if (_cropLoading)
                 Container(
                   color: Colors.black54,

@@ -240,10 +240,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (!mounted) return;
 
           if (choice == 'food') {
+            onboardingHintNotifier.value = 'food';
             context.go('/food-logging');
           } else if (choice == 'settings') {
+            onboardingHintNotifier.value = 'settings';
             context.push('/settings/preferences');
           } else {
+            onboardingHintNotifier.value = 'reward';
             if (mounted) await requestNotificationPermissionIfNeeded(context);
           }
         });
@@ -652,16 +655,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ),
                                 ],
                               ),
-                              if (!isGuest) ...[
-                                SizedBox(height: Responsive.height(context, 4)),
-                                Text(
-                                  "Keep it up!",
-                                  style: GoogleFonts.manrope(
-                                    color: dim,
-                                    fontSize: Responsive.font(context, 11),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),
@@ -1335,6 +1328,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Align(
                 alignment: Alignment.topCenter,
                 child: buildDailyRewardConfetti(dailyRewardConfettiController),
+              ),
+              // Onboarding hint for users who chose "claim daily reward"
+              OnboardingHint(
+                hintKey: 'reward',
+                title: 'Welcome to your dashboard',
+                description:
+                    'Track XP, log food and water, claim your daily reward, build streaks, and more',
               ),
             ],
           ),

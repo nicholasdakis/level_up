@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +46,9 @@ ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 
 // incremented each time a food is logged so home screen can refresh
 ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
+
+// set after onboarding to show a contextual hint on the destination screen
+ValueNotifier<String?> onboardingHintNotifier = ValueNotifier<String?>(null);
 
 // Subclass exposes notifyListeners() publicly so callers can ping it after
 // mutating fields on the existing UserData object without replacing the reference
@@ -856,6 +860,178 @@ Widget simpleCustomButton(
       child: buttonText(text, context, Responsive.font(context, baseFontSize)),
     ),
   );
+}
+
+// Full-screen onboarding hint overlay shown after the wizard completes.
+// Dims the screen, shows a frosted tooltip, and after 5s of inactivity
+// fades in a pulsing finger in the center. Tap anywhere to dismiss.
+class OnboardingHint extends StatefulWidget {
+  final String hintKey;
+  final String title;
+  final String description;
+
+  const OnboardingHint({
+    super.key,
+    required this.hintKey,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  State<OnboardingHint> createState() => _OnboardingHintState();
+}
+
+class _OnboardingHintState extends State<OnboardingHint>
+    with TickerProviderStateMixin {
+  bool _visible = false;
+  bool _fingerVisible = false;
+  Timer? _fingerTimer;
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
+  late final Animation<double> _pulseOpacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _pulseScale = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _pulseOpacity = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    onboardingHintNotifier.addListener(_onHintChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onHintChanged());
+  }
+
+  void _onHintChanged() {
+    if (onboardingHintNotifier.value == widget.hintKey) {
+      if (mounted) setState(() => _visible = true);
+      _scheduleFingerHint();
+    }
+  }
+
+  void _scheduleFingerHint() {
+    _fingerTimer?.cancel();
+    _fingerTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) setState(() => _fingerVisible = true);
+    });
+  }
+
+  void _dismiss() {
+    if (!_visible) return;
+    setState(() {
+      _visible = false;
+      _fingerVisible = false;
+    });
+    onboardingHintNotifier.value = null;
+    _fingerTimer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    onboardingHintNotifier.removeListener(_onHintChanged);
+    _fingerTimer?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_visible) return const SizedBox.shrink();
+
+    final color = appColorNotifier.value;
+    final accentColor = lightenColor(color, 0.45);
+    final radius = BorderRadius.circular(Responsive.scale(context, 20));
+
+    final tooltip = ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: frostedGlassCard(
+          context,
+          backgroundColor: Colors.white.withAlpha(10),
+          border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 20),
+            vertical: Responsive.height(context, 16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.title,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w700,
+                  color: accentColor,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+              Text(
+                widget.description,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _dismiss,
+        child: Stack(
+          children: [
+            // Dim overlay, only appears when finger shows
+            AnimatedOpacity(
+              opacity: _fingerVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 400),
+              child: Container(color: Colors.black.withAlpha(120)),
+            ),
+            // Tooltip near top
+            Positioned(
+              top:
+                  MediaQuery.paddingOf(context).top +
+                  Responsive.height(context, 16),
+              left: Responsive.width(context, 16),
+              right: Responsive.width(context, 16),
+              child: tooltip,
+            ),
+            // Pulsing finger in center, fades in after 5s
+            Center(
+              child: AnimatedOpacity(
+                opacity: _fingerVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 500),
+                child: AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, _) => Opacity(
+                    opacity: _pulseOpacity.value,
+                    child: Transform.scale(
+                      scale: _pulseScale.value,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCursorPointer01,
+                        color: Colors.white.withAlpha(220),
+                        size: Responsive.scale(context, 52),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // Section header label used across the app (e.g. "OVERVIEW", "NOTES", "REMINDER DETAILS")

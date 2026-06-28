@@ -2267,3 +2267,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed all code that auto-opens the daily dialog
 - Added a shimmer effect when the daily reward button can be clicked
 - Updated the daily dialog UI to fix issues (many different colors, important text too small)
+- Added tooltips after the onboarding is finished so the user does not feel lost / overwhelmed after onboarding is finished
+- Locked the bottom nav bar when the hint text is showing
