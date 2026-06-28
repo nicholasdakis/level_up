@@ -983,7 +983,7 @@ class _OnboardingHintState extends State<OnboardingHint>
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 widget.title,
@@ -1026,7 +1026,12 @@ class _OnboardingHintState extends State<OnboardingHint>
                   Responsive.height(context, 16),
               left: Responsive.width(context, 16),
               right: Responsive.width(context, 16),
-              child: tooltip,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: Responsive.desktopContentMaxWidth),
+                  child: tooltip,
+                ),
+              ),
             ),
             // Pulsing finger in center, fades in after 5s
             Center(
