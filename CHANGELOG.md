@@ -2290,3 +2290,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Seeded Supabase with exercise library data (muscle_groups, exercises, exercise_muscles tables)
 - Added personal_records table to Supabase for tracking lifetime PRs per user per exercise
 - Added index on workouts table for faster date-filtered history queries
+- Wired up the weekly workout amount dialog in the workout tab

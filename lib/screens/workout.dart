@@ -37,14 +37,13 @@ class _WorkoutState extends State<Workout> {
   Widget _buildGoalCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-    const int? weeklyGoal = null; // TODO: load from backend
-    const int workoutsThisWeek = 0; // TODO: load from backend
+    final int? weeklyGoal = currentUserData?.weeklyWorkoutsGoal;
+    const int workoutsThisWeek =
+        0; // TODO: load from backend once workout logging is implemented
 
     if (weeklyGoal == null) {
       return GestureDetector(
-        onTap: () {
-          // TODO: open set goal dialog
-        },
+        onTap: () => _onSetWeeklyGoal(context),
         child: frostedGlassCard(
           context,
           padding: EdgeInsets.symmetric(
@@ -127,6 +126,114 @@ class _WorkoutState extends State<Workout> {
     );
   }
 
+  Future<void> _onSetWeeklyGoal(BuildContext context) async {
+    final current = currentUserData?.weeklyWorkoutsGoal;
+    int selected = current ?? 3;
+
+    final result = await showFrostedDialog<int>(
+      context: context,
+      child: StatefulBuilder(
+        builder: (context, setDialogState) {
+          final accent = lightenColor(appColorNotifier.value, 0.45);
+          final dim = lightenColor(appColorNotifier.value, 0.35);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Weekly Workout Amount',
+                style: GoogleFonts.manrope(
+                  color: accent,
+                  fontSize: Responsive.font(context, 16),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+              Text(
+                'How many workouts are you planning to do per week?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 12),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: selected > 1
+                        ? () => setDialogState(() => selected--)
+                        : null,
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: selected > 1 ? accent : Colors.white24,
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Text(
+                    '$selected',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 32),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  IconButton(
+                    onPressed: selected < 7
+                        ? () => setDialogState(() => selected++)
+                        : null,
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: selected < 7 ? accent : Colors.white24,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Responsive.height(context, 4)),
+              Text(
+                'days per week',
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 13),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(null),
+                    child: Text('Cancel', style: dialogButtonStyle()),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(selected),
+                    child: Text(
+                      'Save',
+                      style: dialogButtonStyle(confirm: true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result != null) {
+      await userManager.updateGoals(
+        weeklyWorkoutsGoal: result,
+        context: context,
+      );
+      if (mounted) setState(() {});
+    }
+  }
+
   void _onStartWorkout() {
     // TODO: open start workout modal
   }
@@ -160,7 +267,6 @@ class _WorkoutState extends State<Workout> {
                         Responsive.height(context, 24),
                   ),
                   sectionHeader("WORKOUT", context),
-                  SizedBox(height: Responsive.height(context, 12)),
                   frostedGlassCard(
                     context,
                     padding: EdgeInsets.symmetric(
@@ -193,7 +299,6 @@ class _WorkoutState extends State<Workout> {
                   _buildGoalCard(context),
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("ACTIONS", context),
-                  SizedBox(height: Responsive.height(context, 12)),
                   // Start Workout card
                   GestureDetector(
                     onTap: _onStartWorkout,
