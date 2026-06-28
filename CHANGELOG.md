@@ -2293,3 +2293,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wired up the weekly workout amount dialog in the workout tab
 - Made the weekly workout amount editable when an actual amount is set
 - Did the same for food logging to quickly edit calorie and macro goals
+- Added a weekly workout goal button in personal preferences

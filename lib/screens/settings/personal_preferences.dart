@@ -543,6 +543,96 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     );
   }
 
+  Future<void> showWeeklyWorkoutGoalDialog() async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    int selected = currentUserData?.weeklyWorkoutsGoal ?? 3;
+
+    await showFrostedAlertDialog(
+      context: context,
+      title: "Weekly Workout Goal",
+      content: StatefulBuilder(
+        builder: (sbContext, setDialogState) {
+          final accent = lightenColor(appColorNotifier.value, 0.45);
+          final dim = lightenColor(appColorNotifier.value, 0.35);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'How many workouts are you planning to do per week?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 12),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 16)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: selected > 1
+                        ? () => setDialogState(() => selected--)
+                        : null,
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: selected > 1 ? accent : Colors.white24,
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Text(
+                    '$selected',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 32),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  IconButton(
+                    onPressed: selected < 7
+                        ? () => setDialogState(() => selected++)
+                        : null,
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: selected < 7 ? accent : Colors.white24,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'days per week',
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 13),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+          child: Text('Cancel', style: dialogButtonStyle()),
+        ),
+        TextButton(
+          onPressed: () async {
+            Navigator.of(context, rootNavigator: true).pop();
+            await userManager.updateGoals(
+              weeklyWorkoutsGoal: selected,
+              context: context,
+            );
+            if (mounted) setState(() {});
+          },
+          child: Text('Save', style: dialogButtonStyle(confirm: true)),
+        ),
+      ],
+    );
+  }
+
   // opens a dialog to update the user's daily water intake goal
   Future<void> showWaterGoalDialog() async {
     if (isGuest) {
@@ -1073,6 +1163,17 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                     : "Current: $detail";
                               }(),
                               onTap: showWeightGoalDialog,
+                            ),
+                            buildPreferenceRow(
+                              icon: HugeIcons.strokeRoundedDumbbell01,
+                              label: "Weekly Workout Goal",
+                              subtitle: () {
+                                final n = currentUserData?.weeklyWorkoutsGoal;
+                                return n == null
+                                    ? "Current: None"
+                                    : "Current: $n workouts/week";
+                              }(),
+                              onTap: showWeeklyWorkoutGoalDialog,
                             ),
                           ],
                         ),
