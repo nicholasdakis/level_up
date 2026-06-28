@@ -1,6 +1,6 @@
 # Level Up!
 
-**Level Up!** is a health and fitness app that makes staying active enjoyable through **experience gain**, **leveling up**, and **gamified progression**.
+**Level Up!** is a health and fitness app that turns your daily habits into a game. Log food, drink water, track your weight, explore your city, and earn XP for every healthy choice you make.
 
 ## Availability
 
@@ -10,7 +10,7 @@
 
 ## Wiki
 
-For a deeper dive into the architecture, caching system, backend design, challenges faced during development, etc. refer to the [Level Up! Wiki](https://github.com/nicholasdakis/level_up/wiki).
+For a deeper dive into the architecture, caching system, backend design, and challenges faced during development, refer to the [Level Up! Wiki](https://github.com/nicholasdakis/level_up/wiki).
 
 ## Changelog
 
@@ -18,87 +18,82 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 
 ## Features
 
-**Level Up!** has 5 main tabs navigated via a floating bottom nav bar:
+**Level Up!** has 4 main tabs navigated via a floating bottom nav bar:
 
 ### 1) Home
 
-A personal dashboard showing the user's progress at a glance:
+A personal dashboard that gives you a full picture of your progress:
 
-- **XP progress bar** towards the next level
-- **Daily reward** button to claim experience once every 23 hours
-- **Stats cards** showing today's logged calories and total food items logged
-- **Streak cards** showing current food logging streak and daily reward streak
+- **XP bar and level badge** showing progress toward the next level with a live count of XP to go
+- **Daily reward** card with a shimmer effect when claimable; earn XP every 23 hours and build a streak multiplier for bonus XP
+- **Watch an ad** to earn additional XP on demand
+- **Refer a friend** and both of you earn XP once they reach level 3
+- **Logging cards** for calories, macros, water intake, and body weight, all in one place
+- **Streak tracking** for food logging and daily reward streaks, with all-time best records
 - **Quick access** to Reminders and the Calorie Calculator
 - **Guest mode** for trying the app without an account
 
 ### 2) Food Logging
 
+A full-featured nutrition tracker with macro-level detail:
+
 - Track food intake across **breakfast**, **lunch**, **dinner**, and **snack** categories
-- **Search tab** for looking up foods via the **FatSecret API** with serving size adjustment and automatic macro scaling
-- **Barcode tab** for scanning food barcodes via the **Open Food Facts API**
-- **Manual tab** for logging custom foods with name, calories, macros, serving size, and a custom unit option
-- **Edit serving size** on already-logged foods
-- Full **macro breakdown** (protein, carbs, fat) displayed on each logged food card
-- **Food Analytics** screen with charts showing calorie and macro breakdowns by meal, with daily and date-range views
-- **Recent foods** section that saves recently logged foods locally for quick re-logging
+- **Search** millions of foods via the **FatSecret API** with serving size adjustment and automatic macro scaling
+- **Barcode scanning** via the **Open Food Facts API** for instant food lookup
+- **Manual entry** for custom foods with name, calories, macros, serving size, and a custom unit option
+- **Edit serving sizes** and **macro values** directly on already-logged foods
+- **Full macro breakdown** (protein, carbs, fat) displayed per food and per meal
+- **Food Analytics** with rich line charts, calorie and macro breakdowns by meal, and a most-logged foods card
+- **Water analytics** showing hydration trends over time
+- **Weight analytics** with a goal line, stat tiles, and full entry history
+- **Recent foods** synced across devices for quick re-logging
+- **Voice search** to find foods hands-free
 
-### 3) Explore
+### 3) Progress
 
-- Discover **nearby points of interest** (cafes, parks, gyms, etc.) near you
-- **Check in** to nearby locations within 50 meters to earn **experience points**
-- Each location has a **24-hour cooldown** between check-ins
+A dedicated progression hub combining leveling, achievements, and leaderboard in one place:
 
-### 4) Leaderboard
+- **Leaderboard** showing the top players sorted by level and XP, with your own rank highlighted
+- **Rank system** with named tiers (Beginner, Rising, Committed, Dedicated, Unstoppable, Legendary)
+- **Badges** earned by completing achievements across food logging, exploration, streaks, referrals, and more
+- **Multi-tier badges** with progress bars and percentage labels showing advancement toward the next tier
 
-- Displays the top users sorted by level and experience points
-- Shows each user's profile picture, username, level, and XP
+### 4) Explore
 
-### 5) Badges
+Turn your surroundings into an XP source:
 
-- Earn badges for completing achievements across food logging, exploration, streaks, and more
-- Badges have **multiple tiers** with increasing thresholds
-- Badge claiming for streak-based achievements is tied to **highest streak** so progress is never lost after a streak break
-- Progress bars and percentage labels show current advancement towards the next tier
+- Discover **nearby points of interest** (cafes, parks, gyms, landmarks, and more) on a live map
+- **Check in** to locations within 50 meters to earn XP
+- Each location has a **24-hour cooldown** between check-ins to encourage variety
 
 ## Additional Features
 
 ### Calorie Calculator
 
 - Accessible from the Home screen
-- Input information in either **imperial** or **metric**
-- Calculate caloric needs using either **Harris-Benedict** or **Mifflin-St Jeor**
-- Displays information about **Basal Metabolic Rate (BMR)**, **Total Daily Energy Expenditure (TDEE)**, and **the effects of physical activity on BMR**
-- Saves and restores all calculator inputs across sessions using local storage
+- Input in **imperial or metric**
+- Calculates using **Harris-Benedict** or **Mifflin-St Jeor**
+- Shows **BMR**, **TDEE**, and the effect of activity on daily needs
+- Saves and restores all inputs across sessions
 
 ### Reminders
 
-- **Set reminders** with a custom message and date/time
-- Receive **push notifications** via Firebase Cloud Messaging when the reminder is due
-- **Delete** reminders you no longer need
+- Set reminders with a **custom message and date/time**
+- **Speak your reminder** via voice input directly in the message field
+- Receive **push notifications** via Firebase Cloud Messaging when the reminder fires
+- Delete reminders you no longer need
 
 ### User Authentication
 
-- **Email/password** and **Google sign-in** support
-- **Profile synchronization** across devices
-- **Data persistence** for all user progress and settings
-- **Guest mode** for trying the app without creating an account
+- **Email/password** and **Google Sign-In** support
+- Full **cross-device sync** for all progress, food logs, water, weight, and settings
 
-### Settings Drawer
+### Settings
 
-#### 1) Personal Preferences
-
-- **Change app theme color** with a color picker
-- **Change profile picture** with cropping and compression
-- **Customize username** with server-side uniqueness checking (case-insensitive)
-- **Set nutrition goals** (calories, protein, carbs, fat, weight goal)
-- **Toggle notifications** on or off
-- **Recent foods limit** to control how many foods are saved locally
-
-#### 2) About The Developer
-
-- Information about the creator behind Level Up!
-
-#### 3) Install App as PWA
-
-- Install Level Up! as a **Progressive Web App** for a native app experience
-- Includes a manual installation guide for non-Chromium browsers
+- **Theme color picker** that adapts the entire app to your chosen color using perceptual color math
+- **Profile picture** upload with cropping and compression
+- **Username** with server-side uniqueness checking
+- **Nutrition goals** for calories, protein, carbs, fat, water, and weight targets
+- **Unit preferences** for using metric or imperial throughout the app
+- **Notification toggle** and push notification management
+- **Changelog** viewable in-app

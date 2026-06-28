@@ -78,7 +78,11 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                 date: 'Coming Soon',
                 version: '1.1.52',
                 changes: [
-                  'Onboarding experience overhauled with a new multi-step flow',
+                  'Onboarding completely rebuilt into a guided multi-step setup wizard',
+                  'Daily reward card now shows a shimmer effect when a reward is ready to claim',
+                  'Daily reward no longer auto-opens on launch so you can claim it on your own terms',
+                  'Voice input added to the reminders screen so you can speak your reminder',
+                  'Various visual fixes and polish across the app',
                 ],
               ),
               _buildChangelogCard(
