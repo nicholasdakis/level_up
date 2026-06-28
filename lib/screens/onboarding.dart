@@ -60,13 +60,21 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
     ),
   ];
 
-  int currentStep = 0; // 0 = pitch, 1 = goals, 2 = calories, 3 = activation
-  const totalSteps = 4;
+  int currentStep =
+      0; // 0 = pitch, 1 = goals, 2 = calories, 3 = macro profile, 4 = username, 5 = activation
+  const totalSteps = 6;
+  final usernameController = TextEditingController();
+  String? usernameError;
+  // pending macro selections, written to db only in commitAll
+  int? pendingProtein;
+  int? pendingCarbs;
+  int? pendingFat;
   String? wizardChoice;
 
   wizardChoice = await showFrostedDialog<String>(
     context: context,
     dismissible: false,
+    maxWidth: 460,
     child: StatefulBuilder(
       builder: (ctx, setState) {
         final accent = lightenColor(appColorNotifier.value, 0.45);
@@ -172,6 +180,18 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
             currentUserData?.caloriesGoal = liveCalories;
             userManager.updateGoals(caloriesGoal: liveCalories);
           }
+          if (pendingProtein != null &&
+              pendingCarbs != null &&
+              pendingFat != null) {
+            currentUserData?.proteinGoal = pendingProtein;
+            currentUserData?.carbsGoal = pendingCarbs;
+            currentUserData?.fatGoal = pendingFat;
+            userManager.updateGoals(
+              proteinGoal: pendingProtein,
+              carbsGoal: pendingCarbs,
+              fatGoal: pendingFat,
+            );
+          }
           userDataNotifier.notifyListeners();
         }
 
@@ -216,30 +236,24 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
               ),
             ),
             SizedBox(height: Responsive.height(ctx, 6)),
-            Text(
-              'Your health habits, gamified.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(ctx, 14),
-                color: accent,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
             SizedBox(height: Responsive.height(ctx, 20)),
             Divider(color: Colors.white.withAlpha(20), thickness: 1),
             SizedBox(height: Responsive.height(ctx, 16)),
+            Text(
+              "Here's what's waiting for you:",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(ctx, 15),
+                color: accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: Responsive.height(ctx, 12)),
+            SizedBox(height: Responsive.height(ctx, 14)),
             _featurePill(
               ctx,
               HugeIcons.strokeRoundedRestaurant03,
-              'Food, water and weight logging',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedAnalytics01,
-              'Rich nutrition analytics and trends',
+              'Log food, water and weight, all in one place',
               accent,
               dim,
             ),
@@ -247,7 +261,15 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
             _featurePill(
               ctx,
               HugeIcons.strokeRoundedStar,
-              'Daily XP rewards and levels',
+              'Earn XP for every healthy habit and level up',
+              accent,
+              dim,
+            ),
+            SizedBox(height: Responsive.height(ctx, 10)),
+            _featurePill(
+              ctx,
+              HugeIcons.strokeRoundedAnalytics01,
+              'See your calorie and macro trends over time',
               accent,
               dim,
             ),
@@ -255,7 +277,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
             _featurePill(
               ctx,
               HugeIcons.strokeRoundedMedal01,
-              'Leaderboard and badges',
+              'Compete on the leaderboard and earn badges',
               accent,
               dim,
             ),
@@ -263,23 +285,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
             _featurePill(
               ctx,
               HugeIcons.strokeRoundedMapsLocation01,
-              'Visit nearby locations for XP points!',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedSmartPhone01,
-              'Cross-device sync',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedPaintBrush01,
-              'Custom theme color',
+              'Check in to nearby spots to earn bonus XP',
               accent,
               dim,
             ),
@@ -318,7 +324,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Let's start with weight goals",
+              "Let's set up your profile!",
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(ctx, 20),
@@ -1355,7 +1361,251 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
           );
         }
 
+        // Macro profile step: only shown when a calorie target was calculated
         Widget buildStep4() {
+          void applyMacros(int protein, int carbs, int fat) {
+            // store pending, written to db in commitAll
+            pendingProtein = protein;
+            pendingCarbs = carbs;
+            pendingFat = fat;
+            setState(() => currentStep = 4);
+          }
+
+          final calories = liveCalories ?? 2000;
+
+          // Standard macro splits derived from calorie target
+          // Build muscle: protein 30%, carbs 45%, fat 25%
+          final muscleProtein = ((calories * 0.30) / 4).round();
+          final muscleCarbs = ((calories * 0.45) / 4).round();
+          final muscleFat = ((calories * 0.25) / 9).round();
+          // Lose fat: protein 40%, carbs 30%, fat 30%
+          final fatLossProtein = ((calories * 0.40) / 4).round();
+          final fatLossCarbs = ((calories * 0.30) / 4).round();
+          final fatLossFat = ((calories * 0.30) / 9).round();
+          // Stay lean: protein 35%, carbs 40%, fat 25%
+          final leanProtein = ((calories * 0.35) / 4).round();
+          final leanCarbs = ((calories * 0.40) / 4).round();
+          final leanFat = ((calories * 0.25) / 9).round();
+          // Balanced: protein 25%, carbs 50%, fat 25%
+          final balancedProtein = ((calories * 0.25) / 4).round();
+          final balancedCarbs = ((calories * 0.50) / 4).round();
+          final balancedFat = ((calories * 0.25) / 9).round();
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'What are you going for?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 20),
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 6)),
+              Text(
+                "We'll set your macro goals automatically",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 13),
+                  color: dim,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 20)),
+              _activationOption(
+                ctx,
+                icon: HugeIcons.strokeRoundedDumbbell01,
+                title: 'Build muscle',
+                subtitle:
+                    '${muscleProtein}g protein · ${muscleCarbs}g carbs · ${muscleFat}g fat',
+                description: 'Higher carbs to fuel training, moderate fat',
+                accent: accent,
+                dim: dim,
+                onTap: () => applyMacros(muscleProtein, muscleCarbs, muscleFat),
+              ),
+              SizedBox(height: Responsive.height(ctx, 10)),
+              _activationOption(
+                ctx,
+                icon: HugeIcons.strokeRoundedFire,
+                title: 'Lose fat',
+                subtitle:
+                    '${fatLossProtein}g protein · ${fatLossCarbs}g carbs · ${fatLossFat}g fat',
+                description:
+                    'High protein to preserve muscle while in a deficit',
+                accent: accent,
+                dim: dim,
+                onTap: () =>
+                    applyMacros(fatLossProtein, fatLossCarbs, fatLossFat),
+              ),
+              SizedBox(height: Responsive.height(ctx, 10)),
+              _activationOption(
+                ctx,
+                icon: HugeIcons.strokeRoundedActivity01,
+                title: 'Stay lean',
+                subtitle:
+                    '${leanProtein}g protein · ${leanCarbs}g carbs · ${leanFat}g fat',
+                description:
+                    'Balanced split for active people maintaining their weight',
+                accent: accent,
+                dim: dim,
+                onTap: () => applyMacros(leanProtein, leanCarbs, leanFat),
+              ),
+              SizedBox(height: Responsive.height(ctx, 10)),
+              _activationOption(
+                ctx,
+                icon: HugeIcons.strokeRoundedApple01,
+                title: 'Just eat healthier',
+                subtitle:
+                    '${balancedProtein}g protein · ${balancedCarbs}g carbs · ${balancedFat}g fat',
+                description:
+                    'A simple balanced split with no strict requirements',
+                accent: accent,
+                dim: dim,
+                onTap: () =>
+                    applyMacros(balancedProtein, balancedCarbs, balancedFat),
+              ),
+            ],
+          );
+        }
+
+        // Username step: let user pick a name, or get a random one
+        Widget buildStep5() {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Pick a username',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 20),
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 6)),
+              Text(
+                'This is how you appear on the leaderboard',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 13),
+                  color: dim,
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 20)),
+              TextField(
+                controller: usernameController,
+                style: GoogleFonts.manrope(color: Colors.white),
+                textCapitalization: TextCapitalization.none,
+                decoration: InputDecoration(
+                  hintText: 'Username',
+                  hintStyle: GoogleFonts.manrope(color: Colors.white38),
+                  filled: true,
+                  fillColor: Colors.white.withAlpha(10),
+                  errorText: usernameError,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 12),
+                    ),
+                    borderSide: BorderSide(color: Colors.white.withAlpha(40)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 12),
+                    ),
+                    borderSide: BorderSide(color: Colors.white.withAlpha(40)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 12),
+                    ),
+                    borderSide: BorderSide(
+                      color: Colors.white.withAlpha(80),
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(ctx, 16),
+                    vertical: Responsive.height(ctx, 14),
+                  ),
+                ),
+                onChanged: (_) {
+                  if (usernameError != null)
+                    setState(() => usernameError = null);
+                },
+              ),
+              SizedBox(height: Responsive.height(ctx, 12)),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final name = usernameController.text.trim();
+                    if (name.isEmpty) {
+                      setState(
+                        () => usernameError = 'Enter a username to continue',
+                      );
+                      return;
+                    }
+                    if (name.length > 20) {
+                      setState(
+                        () => usernameError = 'Must be 20 characters or fewer',
+                      );
+                      return;
+                    }
+                    final ok = await userManager.updateUsername(
+                      name,
+                      ctx,
+                      showFeedback: false,
+                    );
+                    if (ok) {
+                      currentUserData?.username = name;
+                      userDataNotifier.notifyListeners();
+                      if (ctx.mounted) setState(() => currentStep = 5);
+                    } else {
+                      setState(() => usernameError = 'Username already taken');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: appColorNotifier.value,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(ctx, 14),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: accent.withAlpha(80), width: 1),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(ctx, 12)),
+              TextButton(
+                onPressed: () {
+                  // leave username as uid so finishOnboarding assigns a random name at the end
+                  setState(() => currentStep = 5);
+                },
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: Text(
+                  'Give me a random name instead',
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(ctx, 12),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        Widget buildStep6() {
           final name = currentUserData?.username;
           final hasName = name != null && name != currentUserData?.uid;
           return Column(
@@ -1453,7 +1703,11 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                         ? buildStep2()
                         : currentStep == 2
                         ? buildStep3()
-                        : buildStep4(),
+                        : currentStep == 3
+                        ? buildStep4()
+                        : currentStep == 4
+                        ? buildStep5()
+                        : buildStep6(),
                   ),
                 ),
               ),
@@ -1465,8 +1719,13 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                   children: [
                     TextButton.icon(
                       onPressed: () => setState(() {
-                        // if goals were skipped, back from activation goes to step 2 not 3
+                        // if goals were skipped, back from macro or username step jumps to step 1
                         if (currentStep == 3 && selectedGoal == null) {
+                          currentStep = 1;
+                        } else if (currentStep == 4 && selectedGoal == null) {
+                          currentStep = 1;
+                          // if goals were skipped, back from activation jumps to step 1
+                        } else if (currentStep == 5 && selectedGoal == null) {
                           currentStep = 1;
                         } else {
                           currentStep--;
@@ -1486,9 +1745,11 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                       ),
                       style: TextButton.styleFrom(padding: EdgeInsets.zero),
                     ),
-                    if (currentStep == 1 || currentStep == 2)
+                    if (currentStep == 1 ||
+                        currentStep == 2 ||
+                        currentStep == 3)
                       TextButton(
-                        onPressed: () => setState(() => currentStep = 3),
+                        onPressed: () => setState(() => currentStep = 4),
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1530,6 +1791,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
   heightFtController.dispose();
   heightInController.dispose();
   rateController.dispose();
+  usernameController.dispose();
   return wizardChoice;
 }
 
@@ -1674,6 +1936,7 @@ Widget _activationOption(
   required Color accent,
   required Color dim,
   required VoidCallback onTap,
+  String? description,
 }) {
   return GestureDetector(
     onTap: onTap,
@@ -1715,6 +1978,16 @@ Widget _activationOption(
                     color: dim,
                   ),
                 ),
+                if (description != null) ...[
+                  SizedBox(height: Responsive.height(context, 2)),
+                  Text(
+                    description,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 11),
+                      color: dim.withAlpha(160),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

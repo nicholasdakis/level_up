@@ -2274,3 +2274,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed the update profile picture dialog from taking the whole width on desktop and not having the frosted glass effect
 - Dialogs now shift up when the keyboard opens on iOS PWA using a visualViewport JS bridge so the keyboard no longer covers them
 - Fixed Set goals buttons in Food Logging causing overflow errors
+- Added a macro profile step to onboarding: pick a goal type and macros are set automatically
+- Added a username step to onboarding so new users can pick a name before entering the app
+- All onboarding data writes are fully deferred until an activation option is tapped, including macros
+- Onboarding dialog width capped on desktop so it no longer takes the full width
+- Skip button moved inline with the back button so it is always visible regardless of content length
+- Added descriptions to each macro profile option explaining who it is best suited for

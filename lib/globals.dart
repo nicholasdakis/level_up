@@ -342,6 +342,7 @@ Future<T?> showFrostedDialog<T>({
       child: _FrostedDialogShell(
         baseRadius: baseRadius,
         padding: padding,
+        maxWidth: maxWidth,
         child: child,
       ),
     ),
@@ -353,11 +354,13 @@ class _FrostedDialogShell extends StatefulWidget {
   final Widget child;
   final double baseRadius;
   final EdgeInsetsGeometry? padding;
+  final double maxWidth;
 
   const _FrostedDialogShell({
     required this.child,
     required this.baseRadius,
     this.padding,
+    this.maxWidth = 500,
   });
 
   @override
@@ -401,7 +404,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
         child: Material(
           color: Colors.transparent,
           child: SizedBox(
-            width: Responsive.dialogWidth(context),
+            width: Responsive.dialogWidth(context, maxWidth: widget.maxWidth),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
                 Responsive.scale(context, widget.baseRadius),
