@@ -47,6 +47,9 @@ ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 // incremented each time a food is logged so home screen can refresh
 ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
 
+// updated by the JS visualViewport resize listener so dialogs shift up on iOS PWA keyboard open
+ValueNotifier<double> viewportHeightNotifier = ValueNotifier<double>(0);
+
 // set after onboarding to show a contextual hint on the destination screen
 ValueNotifier<String?> onboardingHintNotifier = ValueNotifier<String?>(null);
 
@@ -364,17 +367,25 @@ class _FrostedDialogShell extends StatefulWidget {
 class _FrostedDialogShellState extends State<_FrostedDialogShell> {
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: viewportHeightNotifier,
+      builder: (context, _, _) => _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final rawInset = MediaQuery.viewInsetsOf(context).bottom;
-    // On iOS PWA the browser doesn't resize the viewport when the keyboard opens,
-    // so viewInsets.bottom stays 0. Use visualPadding as a fallback which does
-    // reflect the keyboard on iOS PWA.
-    final visualInset = MediaQuery.of(context).viewPadding.bottom;
-    final effectiveInset = rawInset > 0
-        ? rawInset
-        : (kIsWeb ? visualInset : 0.0);
-    // Cap how far up the dialog can be pushed so it never disappears off the top.
-    // Allow at most 60% of screen height as bottom padding.
+    // On iOS PWA viewInsets.bottom stays 0 because the browser doesn't resize
+    // the Flutter viewport. We listen to visualViewport.resize via JS and pipe
+    // the height into viewportHeightNotifier. Keyboard height is screen minus
+    // that reported height. Only used on web; native platforms use rawInset.
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final jsViewportHeight = kIsWeb ? viewportHeightNotifier.value : 0.0;
+    final jsInset = jsViewportHeight > 0
+        ? (screenHeight - jsViewportHeight).clamp(0.0, screenHeight)
+        : 0.0;
+    final effectiveInset = rawInset > 0 ? rawInset : jsInset;
+    // Cap at 60% so the dialog is never pushed off the top of the screen
     final keyboardInset = effectiveInset.clamp(0.0, screenHeight * 0.6);
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),

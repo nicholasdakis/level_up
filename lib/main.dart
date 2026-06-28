@@ -19,6 +19,8 @@ import 'utility/confetti.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
+import 'utility/viewport_height_stub.dart'
+    if (dart.library.js_interop) 'utility/viewport_height_web.dart';
 import 'services/user_data_manager.dart' show backendBaseUrl;
 import 'screens/level_up_overlay.dart';
 
@@ -48,6 +50,7 @@ Future<void> main() async {
   FirebaseAnalytics.instance; // initialize analytics
   confettiControllerinit();
   appLaunchUri = Uri.base;
+  listenToViewportHeight((h) => viewportHeightNotifier.value = h);
   runApp(const MyApp());
 
   if (!kIsWeb) {
