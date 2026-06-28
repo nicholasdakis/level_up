@@ -531,8 +531,9 @@ class UserDataManager {
   Future<bool> updateUsername(
     // returns a bool to handle whether the dialog box should close or open
     String updatedUsername,
-    BuildContext context,
-  ) async {
+    BuildContext context, {
+    bool showFeedback = true,
+  }) async {
     if (isGuest) {
       Guest.block(context);
       return false;
@@ -560,12 +561,14 @@ class UserDataManager {
         // Update locally so the UI reflects the change immediately
         currentUserData!.username = updatedUsername;
         userDataNotifier.notifyListeners();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Success! Username updated."),
-            duration: snackBarDuration,
-          ),
-        );
+        if (showFeedback) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Success! Username updated."),
+              duration: snackBarDuration,
+            ),
+          );
+        }
         return true;
       } else {
         // Backend rejected the update (username taken)
@@ -771,7 +774,11 @@ class UserDataManager {
     }
   }
 
-  Future<void> updateUnits(String units, BuildContext context) async {
+  Future<void> updateUnits(
+    String units,
+    BuildContext context, {
+    bool showFeedback = true,
+  }) async {
     if (isGuest) {
       Guest.block(context);
       return;
@@ -788,12 +795,14 @@ class UserDataManager {
           'update_units failed: ${response.statusCode} ${response.body}',
         );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Units updated successfully."),
-          duration: snackBarDuration,
-        ),
-      );
+      if (showFeedback) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Units updated successfully."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
     } catch (e) {
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -828,7 +837,11 @@ class UserDataManager {
   }
 
   // Method for updating the app theme color and storing it
-  Future<void> updateAppColor(Color newColor, BuildContext context) async {
+  Future<void> updateAppColor(
+    Color newColor,
+    BuildContext context, {
+    bool showFeedback = true,
+  }) async {
     if (isGuest) {
       Guest.block(context);
       return;
@@ -853,18 +866,18 @@ class UserDataManager {
         );
       }
 
-      // Default confirmation snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            // conditionally mention whether it was updated to a custom color or reset
-            isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+      if (showFeedback) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+            ),
+            duration: snackBarDuration,
           ),
-          duration: snackBarDuration,
-        ),
-      );
+        );
+      }
     } catch (e) {
-      // No connection so the update cannot be completed
+      if (!showFeedback) return;
       if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -874,15 +887,9 @@ class UserDataManager {
         );
         return;
       }
-
-      String message;
-
-      if (e is TimeoutException) {
-        message = "Connection is slow. Please try again.";
-      } else {
-        message = "Error updating theme color.";
-      }
-
+      final message = e is TimeoutException
+          ? "Connection is slow. Please try again."
+          : "Error updating theme color.";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), duration: snackBarDuration),
       );

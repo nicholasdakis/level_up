@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
+import '/utility/tdee_calculator.dart';
 
 class Results extends StatefulWidget {
   // same-named variables from Calorie Calculator that are assigned when the page is switched from that tab to this one
@@ -317,21 +318,7 @@ class _ResultsState extends State<Results> {
     );
   }
 
-  double calculateActivityLevel() {
-    switch (widget.activityLevel!) {
-      case "Sedentary":
-        return 1.2;
-      case "Light":
-        return 1.375;
-      case "Moderate":
-        return 1.55;
-      case "Active":
-        return 1.725;
-      case "Very Active":
-        return 1.9;
-    }
-    return 1.2;
-  }
+  double calculateActivityLevel() => tdeeActivityFactor(widget.activityLevel!);
 
   int calculateTDEE(String userBMR, double activityLvl) {
     return (double.parse(userBMR) * activityLvl).round();

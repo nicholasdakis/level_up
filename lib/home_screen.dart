@@ -1,5 +1,4 @@
 ﻿// home_screen.dart
-import 'package:flutter/services.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -45,14 +44,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController _weightController = TextEditingController();
   late VoidCallback _appColorListener;
 
-  // 0 = dashboard step, 1 = nav bar step, 2 = settings step, -1 = tour not active
-  int _tourStep = -1;
-  bool _tapHintVisible = false;
   bool _adWatching = false;
-  Timer? _tapHintTimer;
+  bool _onboardingInProgress = false;
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
@@ -81,12 +76,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     confettiControllerinit();
 
-    final needsOnboarding =
-        currentUserData?.username != null &&
-        currentUserData?.username == currentUserData?.uid;
-    if (appReadyNotifier.value &&
-        !userManager.lastLoadFailed &&
-        !needsOnboarding) {
+    if (appReadyNotifier.value && !userManager.lastLoadFailed && !isNewUser) {
       isLoading = false;
     }
 
@@ -128,14 +118,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed && appReadyNotifier.value) {
       _updateCountdown();
       if (mounted) setState(() {});
-      if (canClaimDailyReward() && !isGuest && !isNewUser) {
+      if (canClaimDailyReward() &&
+          !isGuest &&
+          !isNewUser &&
+          !_onboardingInProgress) {
         buildDailyRewardDialog();
       }
     }
   }
 
   void _onAppReady() {
-    debugPrint('[Home] _onAppReady fired, mounted=$mounted');
     if (!mounted) return;
     initializeUser();
     _startCountdown();
@@ -157,35 +149,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final next = last.add(dailyRewardCooldown);
     final remaining = next.difference(DateTime.now().toUtc());
     final newValue = remaining.isNegative ? Duration.zero : remaining;
-    if (newValue.inMinutes == _timeUntilReward.inMinutes && !canClaimDailyReward()) return;
+    if (newValue.inMinutes == _timeUntilReward.inMinutes &&
+        !canClaimDailyReward()) {
+      return;
+    }
     if (mounted) setState(() => _timeUntilReward = newValue);
-  }
-
-  void _startTapHintTimer() {
-    _tapHintTimer?.cancel();
-    if (mounted) setState(() => _tapHintVisible = false);
-    _tapHintTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _tapHintVisible = true);
-    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _tapHintTimer?.cancel();
     _countdownTimer?.cancel();
     appColorNotifier.removeListener(_appColorListener);
     foodLogNotifier.removeListener(_onFoodChanged);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
-    _weightController.dispose();
     super.dispose();
   }
 
   bool get isNewUser =>
-      appReadyNotifier
-          .value && // guard against stub username matching uid before loadUserData finishes
+      appReadyNotifier.value &&
       currentUserData?.username != null &&
       currentUserData?.username == currentUserData?.uid;
 
@@ -208,30 +192,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) {
       _updateCountdown();
       setState(() {});
-    }
-  }
-
-  Future<void> _onTourTap() async {
-    _tapHintTimer?.cancel();
-    setState(() => _tapHintVisible = false);
-    if (_tourStep == 0) {
-      setState(() => _tourStep = 1);
-      _startTapHintTimer();
-    } else if (_tourStep == 1) {
-      setState(() => _tourStep = 2);
-      _startTapHintTimer();
-    } else if (_tourStep == 2) {
-      setState(() => _tourStep = -1);
-      await showUsernameSetupDialog(context);
-      if (mounted) {
-        setState(
-          () => _greeting = _buildGreeting(),
-        ); // refresh greeting and drawer with the new username
-      }
-      if (canClaimDailyReward() && mounted) {
-        await buildDailyRewardDialog();
-        if (mounted) await requestNotificationPermissionIfNeeded(context);
-      }
     }
   }
 
@@ -269,20 +229,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
       }
       if (isNewUser) {
+        _onboardingInProgress = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
-          await showWelcomeTourDialog(context);
+
+          // Steps 1-4: unified wizard (value pitch, goals, calorie setup, activation)
+          final choice = await showOnboardingWizard(context);
           if (!mounted) return;
-          setState(() => _tourStep = 0);
-          _startTapHintTimer();
+
+          if (mounted) setState(() => _greeting = _buildGreeting());
+
+          // re-read choice for navigation below
+          if (!mounted) return;
+
+          _onboardingInProgress = false;
+
+          if (choice == 'food') {
+            context.go('/food-logging');
+          } else if (choice == 'settings') {
+            context.push('/settings/preferences');
+          } else {
+            // 'reward' or null, fall through to daily reward below
+            if (canClaimDailyReward() && mounted) {
+              await buildDailyRewardDialog();
+              if (mounted) await requestNotificationPermissionIfNeeded(context);
+            }
+          }
         });
+        return;
       }
 
-      if (canClaimDailyReward() && !isNewUser && !isGuest) {
+      if (canClaimDailyReward() && !isGuest && !_onboardingInProgress) {
         await buildDailyRewardDialog();
       }
 
-      if (!isGuest && !isNewUser && mounted) {
+      if (!isGuest && mounted) {
         await checkPendingReferralReward(context, setState);
       }
     }
@@ -327,8 +308,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool isLoading = true;
   bool loadFailed = false;
-
-  bool get _tourActive => _tourStep != -1;
 
   // Builds a greeting based on time of day plus a random variant from that pool
 
@@ -993,99 +972,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: [
-        IgnorePointer(ignoring: loadFailed, child: _buildBody()),
-        if (_tourActive)
-          DefaultTextStyle(
-            style: const TextStyle(decoration: TextDecoration.none),
-            child: Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _onTourTap,
-                child: Stack(
-                  children: [
-                    Container(color: Colors.black.withAlpha(120)),
-                    Positioned(
-                      left: Responsive.width(context, 16),
-                      right: (_tourStep == 2 && Responsive.isMobile(context))
-                          ? null
-                          : Responsive.width(context, 16),
-                      top: (_tourStep == 0 || _tourStep == 2)
-                          ? Responsive.height(context, 16) +
-                                MediaQuery.of(context).padding.top
-                          : null,
-                      bottom: _tourStep == 1
-                          ? Responsive.height(context, 120)
-                          : null,
-                      child: (_tourStep == 2 && Responsive.isMobile(context))
-                          ? ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width -
-                                    Responsive.width(context, 120),
-                              ),
-                              child:
-                                  buildShowcaseTooltip(
-                                        context,
-                                        title: 'Settings',
-                                        description:
-                                            'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
-                                      )
-                                      .animate(key: ValueKey(_tourStep))
-                                      .fadeIn(duration: 200.ms),
-                            )
-                          : Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 500,
-                                ),
-                                child: buildShowcaseTooltip(
-                                  context,
-                                  title: _tourStep == 0
-                                      ? 'Home'
-                                      : _tourStep == 1
-                                      ? 'Navigation Bar'
-                                      : 'Settings',
-                                  description: _tourStep == 0
-                                      ? 'The tab you\'re currently on is your home screen. This is where your daily progress lives: logging, rewards, streaks, and more.'
-                                      : _tourStep == 1
-                                      ? 'The floating bar at the bottom lets you switch between your main app tabs.'
-                                      : 'The gear icon to the right opens a settings drawer where you can update your preferences, send feedback, and more.',
-                                ).animate(key: ValueKey(_tourStep)).fadeIn(duration: 200.ms),
-                              ),
-                            ),
-                    ),
-                    if (_tapHintVisible)
-                      Positioned.fill(
-                        child: Center(
-                          child:
-                              HugeIcon(
-                                    icon: HugeIcons.strokeRoundedTouch01,
-                                    color: Colors.white70,
-                                    size: Responsive.scale(context, 56),
-                                  )
-                                  .animate(onPlay: (c) => c.repeat())
-                                  .fadeIn(duration: 300.ms)
-                                  .then()
-                                  .scaleXY(
-                                    end: 0.85,
-                                    duration: 600.ms,
-                                    curve: Curves.easeInOut,
-                                  )
-                                  .then()
-                                  .scaleXY(
-                                    end: 1.0,
-                                    duration: 600.ms,
-                                    curve: Curves.easeInOut,
-                                  ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
+      children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],
     );
   }
 
@@ -1096,235 +983,291 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ? null
         : currentUserData!.username!;
 
-    return IgnorePointer(
-      ignoring: _tourActive,
-      child: Skeletonizer(
-        enabled: isLoading,
-        effect: ShimmerEffect(
-          baseColor: lightenColor(appColorNotifier.value, 0.10),
-          highlightColor: lightenColor(appColorNotifier.value, 0.22),
-          duration: const Duration(milliseconds: 1200),
-        ),
-        child: Container(
-          decoration: BoxDecoration(gradient: buildThemeGradient()),
-          child: Scaffold(
-            key: _scaffoldKey,
-            drawer: buildSettingsDrawer(
-              context,
-              scaffoldKey: _scaffoldKey,
-              onProfileImageUpdated: () {
-                if (!mounted) return;
-                setState(() {});
-              },
-            ),
-            backgroundColor: Colors.transparent,
-            body: Stack(
-              children: [
-                ScrollConfiguration(
-                  behavior: NoGlowScrollBehavior(),
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: Responsive.centeredHorizontalPadding(context, 24),
-                        right: Responsive.centeredHorizontalPadding(
-                          context,
-                          24,
-                        ),
-                        top:
-                            MediaQuery.paddingOf(context).top +
-                            Responsive.height(context, 16),
-                        bottom: Responsive.height(context, 20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Guest banner
-                          if (isGuest) ...[
-                            _buildGuestBanner(),
-                            SizedBox(height: Responsive.height(context, 16)),
-                          ],
-
-                          // Greeting: time of day small + name big, settings icon top right
-                          _maybeAnimate(
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        username != null
-                                            ? _timeOfDayLabel()
-                                            : "WELCOME TO LEVEL UP!",
-                                        style: GoogleFonts.manrope(
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.45,
-                                          ),
-                                          fontSize: Responsive.font(
-                                            context,
-                                            14,
-                                          ),
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: Responsive.scale(
-                                            context,
-                                            1.2,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 2),
-                                      ),
-                                      Text(
-                                        username != null
-                                            ? "$username${_greetingIsQuestion ? "?" : "!"}"
-                                            : "",
-                                        style: GoogleFonts.manrope(
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.45,
-                                          ),
-                                          fontSize: Responsive.font(
-                                            context,
-                                            26,
-                                          ),
-                                          fontWeight: FontWeight.w800,
-                                          height: 1.1,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SettingsIconButton(
-                                  onTap: () =>
-                                      _scaffoldKey.currentState?.openDrawer(),
-                                ),
-                              ],
-                            ),
-                            0.ms,
-                          ),
+    return Skeletonizer(
+      enabled: isLoading,
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColorNotifier.value, 0.10),
+        highlightColor: lightenColor(appColorNotifier.value, 0.22),
+        duration: const Duration(milliseconds: 1200),
+      ),
+      child: Container(
+        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        child: Scaffold(
+          key: _scaffoldKey,
+          drawer: buildSettingsDrawer(
+            context,
+            scaffoldKey: _scaffoldKey,
+            onProfileImageUpdated: () {
+              if (!mounted) return;
+              setState(() {});
+            },
+          ),
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: Responsive.centeredHorizontalPadding(context, 24),
+                      right: Responsive.centeredHorizontalPadding(context, 24),
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          Responsive.height(context, 16),
+                      bottom: Responsive.height(context, 20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Guest banner
+                        if (isGuest) ...[
+                          _buildGuestBanner(),
                           SizedBox(height: Responsive.height(context, 16)),
+                        ],
 
-                          sectionHeader("PROGRESS", context),
-                          _maybeAnimate(_buildXpCard(), 60.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-
-                          if (!isGuest) ...[
-                            sectionHeader("EARN XP", context),
-                            _maybeAnimate(
-                              IntrinsicHeight(
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
+                        // Greeting: time of day small + name big, settings icon top right
+                        _maybeAnimate(
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(child: _buildEarnXpCard()),
-                                    SizedBox(
-                                      width: Responsive.width(context, 12),
+                                    Text(
+                                      username != null
+                                          ? _timeOfDayLabel()
+                                          : "WELCOME TO LEVEL UP!",
+                                      style: GoogleFonts.manrope(
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.45,
+                                        ),
+                                        fontSize: Responsive.font(context, 14),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: Responsive.scale(
+                                          context,
+                                          1.2,
+                                        ),
+                                      ),
                                     ),
-                                    Expanded(
-                                      child: ListenableBuilder(
-                                        listenable: userDataNotifier,
-                                        builder: (context, _) =>
-                                            buildReferralsCard(context),
+                                    SizedBox(
+                                      height: Responsive.height(context, 2),
+                                    ),
+                                    Text(
+                                      username != null
+                                          ? "$username${_greetingIsQuestion ? "?" : "!"}"
+                                          : "",
+                                      style: GoogleFonts.manrope(
+                                        color: lightenColor(
+                                          appColorNotifier.value,
+                                          0.45,
+                                        ),
+                                        fontSize: Responsive.font(context, 26),
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.1,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              120.ms,
-                            ),
-                            SizedBox(height: Responsive.height(context, 12)),
-                            // Daily reward sits below the earn XP tiles as a slim full-width row
-                            _maybeAnimate(_buildDailyRewardCard(), 150.ms),
-                            SizedBox(height: Responsive.height(context, 20)),
-                          ],
-
-                          if (isGuest) ...[
-                            sectionHeader("DAILY REWARD", context),
-                            _maybeAnimate(_buildDailyRewardCard(), 120.ms),
-                            SizedBox(height: Responsive.height(context, 20)),
-                          ],
-
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 600),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: sectionHeader("LOGGING", context),
+                              SettingsIconButton(
+                                onTap: () =>
+                                    _scaffoldKey.currentState?.openDrawer(),
                               ),
-                            ),
+                            ],
                           ),
-                          _maybeAnimate(
-                            Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 600,
-                                ),
-                                child: isGuest
-                                    ? HomeLoggingCards(
-                                        onShowWaterSheet: _showWaterLogSheet,
-                                        onShowWeightSheet: _showWeightLogSheet,
-                                      )
-                                    : ListenableBuilder(
-                                        listenable: userDataNotifier,
-                                        builder: (context, _) =>
-                                            HomeLoggingCards(
-                                              onShowWaterSheet:
-                                                  _showWaterLogSheet,
-                                              onShowWeightSheet:
-                                                  _showWeightLogSheet,
-                                            ),
-                                      ),
-                              ),
-                            ),
-                            160.ms,
-                          ),
-                          SizedBox(height: Responsive.height(context, 20)),
+                          0.ms,
+                        ),
+                        SizedBox(height: Responsive.height(context, 16)),
 
-                          sectionHeader("STREAKS", context),
-                          _maybeAnimate(_buildStreakCard(), 180.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
+                        sectionHeader("PROGRESS", context),
+                        _maybeAnimate(_buildXpCard(), 60.ms),
+                        SizedBox(height: Responsive.height(context, 20)),
 
-                          sectionHeader("TOOLS", context),
-                          // Tool tiles row
+                        if (!isGuest) ...[
+                          sectionHeader("EARN XP", context),
                           _maybeAnimate(
                             IntrinsicHeight(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
+                                  Expanded(child: _buildEarnXpCard()),
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
                                   Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        trackTrivialAchievement(
-                                          "open_reminders",
-                                        );
-                                        context.push('/reminders');
-                                      },
-                                      child: frostedGlassCard(
-                                        context,
-                                        baseRadius: 14,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: Responsive.width(
-                                            context,
-                                            16,
-                                          ),
-                                          vertical: Responsive.height(
-                                            context,
-                                            14,
-                                          ),
+                                    child: ListenableBuilder(
+                                      listenable: userDataNotifier,
+                                      builder: (context, _) =>
+                                          buildReferralsCard(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            120.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 12)),
+                          // Daily reward sits below the earn XP tiles as a slim full-width row
+                          _maybeAnimate(_buildDailyRewardCard(), 150.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                        ],
+
+                        if (isGuest) ...[
+                          sectionHeader("DAILY REWARD", context),
+                          _maybeAnimate(_buildDailyRewardCard(), 120.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                        ],
+
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: sectionHeader("LOGGING", context),
+                            ),
+                          ),
+                        ),
+                        _maybeAnimate(
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: isGuest
+                                  ? HomeLoggingCards(
+                                      onShowWaterSheet: _showWaterLogSheet,
+                                      onShowWeightSheet: _showWeightLogSheet,
+                                    )
+                                  : ListenableBuilder(
+                                      listenable: userDataNotifier,
+                                      builder: (context, _) => HomeLoggingCards(
+                                        onShowWaterSheet: _showWaterLogSheet,
+                                        onShowWeightSheet: _showWeightLogSheet,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          160.ms,
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+
+                        sectionHeader("STREAKS", context),
+                        _maybeAnimate(_buildStreakCard(), 180.ms),
+                        SizedBox(height: Responsive.height(context, 20)),
+
+                        sectionHeader("TOOLS", context),
+                        // Tool tiles row
+                        _maybeAnimate(
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      trackTrivialAchievement("open_reminders");
+                                      context.push('/reminders');
+                                    },
+                                    child: frostedGlassCard(
+                                      context,
+                                      baseRadius: 14,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          16,
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
+                                        vertical: Responsive.height(
+                                          context,
+                                          14,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedAlarmClock,
+                                                color: lightenColor(
+                                                  appColorNotifier.value,
+                                                  0.35,
+                                                ),
+                                                size: Responsive.scale(
+                                                  context,
+                                                  20,
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: Responsive.width(
+                                                  context,
+                                                  8,
+                                                ),
+                                              ),
+                                              Text(
+                                                "Reminders",
+                                                style: GoogleFonts.manrope(
+                                                  color: lightenColor(
+                                                    appColorNotifier.value,
+                                                    0.45,
+                                                  ),
+                                                  fontSize: Responsive.font(
+                                                    context,
+                                                    13,
+                                                  ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            color: lightenColor(
+                                              appColorNotifier.value,
+                                              0.3,
+                                            ),
+                                            size: Responsive.scale(context, 18),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: Responsive.width(context, 12)),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      trackTrivialAchievement(
+                                        "calorie_calculator",
+                                      );
+                                      context.push('/calorie-calculator');
+                                    },
+                                    child: frostedGlassCard(
+                                      context,
+                                      baseRadius: 14,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          16,
+                                        ),
+                                        vertical: Responsive.height(
+                                          context,
+                                          14,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
                                               children: [
                                                 HugeIcon(
                                                   icon: HugeIcons
-                                                      .strokeRoundedAlarmClock,
+                                                      .strokeRoundedCalculate,
                                                   color: lightenColor(
                                                     appColorNotifier.value,
                                                     0.35,
@@ -1340,148 +1283,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     8,
                                                   ),
                                                 ),
-                                                Text(
-                                                  "Reminders",
-                                                  style: GoogleFonts.manrope(
-                                                    color: lightenColor(
-                                                      appColorNotifier.value,
-                                                      0.45,
+                                                Flexible(
+                                                  child: Text(
+                                                    "Calorie Calculator",
+                                                    style: GoogleFonts.manrope(
+                                                      color: lightenColor(
+                                                        appColorNotifier.value,
+                                                        0.45,
+                                                      ),
+                                                      fontSize: Responsive.font(
+                                                        context,
+                                                        13,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
-                                                    fontSize: Responsive.font(
-                                                      context,
-                                                      13,
-                                                    ),
-                                                    fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            Icon(
-                                              Icons.chevron_right,
-                                              color: lightenColor(
-                                                appColorNotifier.value,
-                                                0.3,
-                                              ),
-                                              size: Responsive.scale(
-                                                context,
-                                                18,
-                                              ),
+                                          ),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            color: lightenColor(
+                                              appColorNotifier.value,
+                                              0.3,
                                             ),
-                                          ],
-                                        ),
+                                            size: Responsive.scale(context, 18),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: Responsive.width(context, 12),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        trackTrivialAchievement(
-                                          "calorie_calculator",
-                                        );
-                                        context.push('/calorie-calculator');
-                                      },
-                                      child: frostedGlassCard(
-                                        context,
-                                        baseRadius: 14,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: Responsive.width(
-                                            context,
-                                            16,
-                                          ),
-                                          vertical: Responsive.height(
-                                            context,
-                                            14,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Row(
-                                                children: [
-                                                  HugeIcon(
-                                                    icon: HugeIcons
-                                                        .strokeRoundedCalculate,
-                                                    color: lightenColor(
-                                                      appColorNotifier.value,
-                                                      0.35,
-                                                    ),
-                                                    size: Responsive.scale(
-                                                      context,
-                                                      20,
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    width: Responsive.width(
-                                                      context,
-                                                      8,
-                                                    ),
-                                                  ),
-                                                  Flexible(
-                                                    child: Text(
-                                                      "Calorie Calculator",
-                                                      style:
-                                                          GoogleFonts.manrope(
-                                                            color: lightenColor(
-                                                              appColorNotifier
-                                                                  .value,
-                                                              0.45,
-                                                            ),
-                                                            fontSize:
-                                                                Responsive.font(
-                                                                  context,
-                                                                  13,
-                                                                ),
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Icon(
-                                              Icons.chevron_right,
-                                              color: lightenColor(
-                                                appColorNotifier.value,
-                                                0.3,
-                                              ),
-                                              size: Responsive.scale(
-                                                context,
-                                                18,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            240.ms,
                           ),
+                          240.ms,
+                        ),
 
-                          // Extra bottom space so content clears the floating nav bar
-                          SizedBox(height: Responsive.height(context, 100)),
-                        ],
-                      ),
+                        // Extra bottom space so content clears the floating nav bar
+                        SizedBox(height: Responsive.height(context, 100)),
+                      ],
                     ),
                   ),
                 ),
-                // Confetti on top
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: buildDailyRewardConfetti(
-                    dailyRewardConfettiController,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              // Confetti on top
+              Align(
+                alignment: Alignment.topCenter,
+                child: buildDailyRewardConfetti(dailyRewardConfettiController),
+              ),
+            ],
           ),
         ),
       ),

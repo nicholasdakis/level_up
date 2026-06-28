@@ -2243,3 +2243,24 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed slight bugs with rapid account changing (guest color not resetting, level up overlay showing if logging into an account with a higher level)
 - Fixed bugs with level up overlay to directly calculate and compare the level before and after an xp event so that it fires when needed as opposed to instantly via listeners
 - Added a "most logged foods" card to food analytics
+
+## 2026-06-27
+- Rebuilt onboarding into a single unified wizard dialog with 4 steps: value pitch, weight goals, calorie setup, and activation prompt
+- Animated dot indicators show current step with an active dot that stretches into a pill shape
+- Back button appears on steps 2-4; pressing back from the activation step goes to goals step if goals were never set
+- Skipping goals jumps directly to the activation prompt, bypassing calorie setup since there is nothing to base it on
+- All data writes are deferred until an activation option is tapped so back-navigation never causes double-writes or stale reads
+- Goal step uses progressive disclosure: units and weight fields animate in after a goal type is selected, target weight only appears for lose/gain
+- Switching units auto-converts entered weight values; unit choice syncs into the calorie step automatically
+- Calorie step collects sex, age, height, and activity level, calculates TDEE using Mifflin-St Jeor, then derives a calorie target from a chosen weekly rate of loss or gain
+- Rate is chosen from quick-select preset buttons or a custom pencil input; result card only appears once a rate is selected
+- Switching units on the calorie step clears the rate and hides the result card so the user picks a fresh rate for the new unit
+- Activity level list collapses to a summary row after selection with a change button to re-expand, animated with AnimatedSize and AnimatedSwitcher
+- Height field animates between a single cm field and ft+in fields when switching units
+- All numeric fields reject letters and are capped at appropriate lengths
+- Inline error replaces snackbar for missing fields since the snackbar appeared behind the dialog
+- Activation prompt offers: log first food, claim daily reward, or customize the app (navigates to personal preferences)
+- finishOnboarding fires from every activation option so the username is always assigned regardless of path taken
+- Made snackbars optional in relevant userManager methods so nothing surfaces during onboarding
+- Fixed the app color dialog not using the frosted glass effect
+- Extracted repeated code from onboarding and the calorie calculator into a new tdee_calculator.dart file

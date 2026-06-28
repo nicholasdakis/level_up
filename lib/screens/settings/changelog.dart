@@ -75,6 +75,14 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                date: 'Coming Soon',
+                version: '1.1.52',
+                changes: [
+                  'Onboarding experience overhauled with a new multi-step flow',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
                 date: 'June 25, 2026',
                 version: '1.1.51',
                 changes: [

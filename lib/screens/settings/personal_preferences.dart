@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../utility/unit_converter.dart';
 import 'package:flutter/material.dart';
@@ -273,73 +274,84 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
           vertical: Responsive.height(context, 40),
         ),
         child: IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 20),
-              ),
-              border: Border.all(
-                color: Colors.white.withAlpha(120),
-                width: Responsive.width(context, 1),
-              ),
-            ),
-            child: frostedGlassCard(
-              context,
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 28),
-                vertical: Responsive.height(context, 32),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Pick a theme color',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 15),
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(10),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(22),
+                    width: 1,
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 28),
+                  vertical: Responsive.height(context, 32),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Pick a theme color',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 15),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 16)),
-                  ColorPicker(
-                    pickerColor: pickerColor,
-                    onColorChanged: (color) {
-                      pickerColor = color;
-                    },
-                    colorPickerWidth: 280,
-                    labelTypes: [],
-                    enableAlpha: false, // disable the alpha slider
-                    pickerAreaHeightPercent: 0.8,
-                  ),
-                  SizedBox(height: Responsive.height(context, 16)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Cancel selection
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      // Reset to default app color
-                      TextButton(
-                        child: Text('Default'),
-                        onPressed: () async {
-                          await applyAppColor(defaultAppColor);
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      // Confirm selection
-                      TextButton(
-                        child: Text('Select'),
-                        onPressed: () async {
-                          await applyAppColor(pickerColor);
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                    SizedBox(height: Responsive.height(context, 16)),
+                    ColorPicker(
+                      pickerColor: pickerColor,
+                      onColorChanged: (color) => pickerColor = color,
+                      colorPickerWidth: 280,
+                      labelTypes: const [],
+                      enableAlpha: false,
+                      pickerAreaHeightPercent: 0.8,
+                    ),
+                    SizedBox(height: Responsive.height(context, 16)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.manrope(color: Colors.white54),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await applyAppColor(defaultAppColor);
+                            Navigator.of(ctx).pop();
+                          },
+                          child: Text(
+                            'Default',
+                            style: GoogleFonts.manrope(color: Colors.white54),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await applyAppColor(pickerColor);
+                            Navigator.of(ctx).pop();
+                          },
+                          child: Text(
+                            'Select',
+                            style: GoogleFonts.manrope(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
