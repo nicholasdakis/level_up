@@ -47,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late VoidCallback _appColorListener;
 
   bool _adWatching = false;
-  bool _onboardingInProgress = false;
 
   Timer? _countdownTimer;
   Duration _timeUntilReward = Duration.zero;
@@ -118,12 +117,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed && appReadyNotifier.value) {
       _updateCountdown();
       if (mounted) setState(() {});
-      if (canClaimDailyReward() &&
-          !isGuest &&
-          !isNewUser &&
-          !_onboardingInProgress) {
-        buildDailyRewardDialog();
-      }
     }
   }
 
@@ -229,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         });
       }
       if (isNewUser) {
-        _onboardingInProgress = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
 
@@ -242,25 +234,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           // re-read choice for navigation below
           if (!mounted) return;
 
-          _onboardingInProgress = false;
-
           if (choice == 'food') {
             context.go('/food-logging');
           } else if (choice == 'settings') {
             context.push('/settings/preferences');
           } else {
-            // 'reward' or null, fall through to daily reward below
-            if (canClaimDailyReward() && mounted) {
-              await buildDailyRewardDialog();
-              if (mounted) await requestNotificationPermissionIfNeeded(context);
-            }
+            if (mounted) await requestNotificationPermissionIfNeeded(context);
           }
         });
         return;
-      }
-
-      if (canClaimDailyReward() && !isGuest && !_onboardingInProgress) {
-        await buildDailyRewardDialog();
       }
 
       if (!isGuest && mounted) {
@@ -762,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
 
-    return DecoratedBox(
+    final card = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: LinearGradient(
@@ -841,6 +823,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
+
+    if (!canClaim || isGuest) return card;
+
+    // shimmer effect on card for claimable daily reward
+    return card
+        .animate(onPlay: (c) => c.repeat())
+        .shimmer(
+          delay: 1200.ms,
+          duration: 1000.ms,
+          angle: 0,
+          size: 0.6,
+          color: accent.withAlpha(35),
+        );
   }
 
   // Earn XP card: square action tile with icon on top and label below

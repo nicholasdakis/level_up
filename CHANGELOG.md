@@ -2264,3 +2264,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made snackbars optional in relevant userManager methods so nothing surfaces during onboarding
 - Fixed the app color dialog not using the frosted glass effect
 - Extracted repeated code from onboarding and the calorie calculator into a new tdee_calculator.dart file
+- Removed all code that auto-opens the daily dialog
+- Added a shimmer effect when the daily reward button can be clicked
