@@ -2297,3 +2297,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Designed the workout tab dashboard: weekly goal card, start workout hero card, new routine and explore routines side-by-side cards, my routines empty state, and a lifts logging card
 - Added a "recent workouts" card (unwired) to the workout dashboard
 - Created the active workout screen
+- Created the exercise selection screen which has the same search bar style as the one in food logging
+- Added filters to the exercise selection screen (by muscle group, equipment, level)
+- Multiple selections from the same filter group can be chosen (eg chest and back for muscle)
+- Added a routine parameter to the workout screen to know when an empty workout vs a routine has been chosen

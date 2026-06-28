@@ -5,9 +5,13 @@ import 'package:hugeicons/hugeicons.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
+import 'exercise_picker_screen.dart';
 
 class ActiveWorkoutScreen extends StatefulWidget {
-  const ActiveWorkoutScreen({super.key});
+  final Map<String, dynamic>?
+  routine; // null = empty session, non-null = from routine
+
+  const ActiveWorkoutScreen({super.key, this.routine});
 
   @override
   State<ActiveWorkoutScreen> createState() => _ActiveWorkoutScreenState();
@@ -18,8 +22,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   late final Stopwatch _stopwatch;
   late final Timer _timer;
 
-  // placeholder exercise list until exercise picker is wired up
-  final List<Map<String, dynamic>> _exercises = [];
+  late final List<Map<String, dynamic>> _exercises;
 
   @override
   void initState() {
@@ -28,6 +31,27 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    // pre-fill exercises from routine if provided
+    if (widget.routine != null) {
+      final templateExercises =
+          widget.routine!['exercises'] as List<dynamic>? ?? [];
+      _exercises = templateExercises.map((e) {
+        final ex = Map<String, dynamic>.from(e as Map);
+        final defaultSets = ex['default_sets'] as int? ?? 3;
+        return {
+          ...ex,
+          'sets': List.generate(
+            defaultSets,
+            (_) => {
+              'reps': ex['default_reps'],
+              'weight_kg': ex['default_weight_kg'],
+            },
+          ),
+        };
+      }).toList();
+    } else {
+      _exercises = [];
+    }
     _stopwatch = Stopwatch()..start();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
@@ -54,7 +78,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   int get _totalSets {
     int count = 0;
     for (final ex in _exercises) {
-      count += (ex['sets'] as List).length as int;
+      count += (ex['sets'] as List).length;
     }
     return count;
   }
@@ -121,8 +145,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        if (await _confirmDiscard())
+                        if (await _confirmDiscard()) {
                           Navigator.of(context).pop();
+                        }
                       },
                       child: Text(
                         'Discard',
@@ -134,13 +159,25 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      _durationLabel,
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 16),
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          _durationLabel,
+                          style: GoogleFonts.manrope(
+                            color: accent,
+                            fontSize: Responsive.font(context, 16),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (widget.routine != null)
+                          Text(
+                            widget.routine!['name'] as String? ?? '',
+                            style: GoogleFonts.manrope(
+                              color: dim,
+                              fontSize: Responsive.font(context, 11),
+                            ),
+                          ),
+                      ],
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -250,7 +287,38 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       // add exercise button always visible at bottom of list
                       GestureDetector(
                         onTap: () {
-                          // TODO: open exercise picker
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      ExercisePickerScreen(
+                                        onExerciseSelected: (ex) {
+                                          setState(() {
+                                            _exercises.add({...ex, 'sets': []});
+                                          });
+                                        },
+                                      ),
+                              transitionsBuilder:
+                                  (_, animation, secondaryAnimation, child) =>
+                                      SlideTransition(
+                                        position:
+                                            Tween(
+                                                  begin: const Offset(0, 1),
+                                                  end: Offset.zero,
+                                                )
+                                                .chain(
+                                                  CurveTween(
+                                                    curve: Curves.easeOutCubic,
+                                                  ),
+                                                )
+                                                .animate(animation),
+                                        child: child,
+                                      ),
+                              transitionDuration: const Duration(
+                                milliseconds: 350,
+                              ),
+                            ),
+                          );
                         },
                         child: frostedGlassCard(
                           context,
