@@ -2271,3 +2271,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Locked the bottom nav bar when the hint text is showing
 - Added the option to speak reminder messages by tapping a mic icon
 - Made every dialog have consistent UI buttons
+- Fixed the update profile picture dialog from taking the whole width on desktop and not having the frosted glass effect

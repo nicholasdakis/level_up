@@ -167,42 +167,55 @@ class _CropperDialogState extends State<_CropperDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: frostedGlassCard(
-        context,
-        padding: EdgeInsets.all(Responsive.scale(context, 16)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: Responsive.width(context, 500),
-              height: Responsive.height(context, 500),
-              color: Colors.black,
-              child: widget.cropper,
-            ),
-            SizedBox(height: Responsive.height(context, 12)),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(null),
-                    child: Text('Cancel', style: dialogButtonStyle()),
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: frostedGlassCard(
+              context,
+              padding: EdgeInsets.all(Responsive.scale(context, 16)),
+              backgroundColor: Colors.white.withAlpha(10),
+              border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: Responsive.width(context, 500),
+                    height: Responsive.height(context, 500),
+                    color: Colors.black,
+                    child: widget.cropper,
                   ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () async {
-                      final result = await widget.crop();
-                      Navigator.of(context).pop(result);
-                    },
-                    child: Text(
-                      'Crop',
-                      style: dialogButtonStyle(confirm: true),
-                    ),
+                  SizedBox(height: Responsive.height(context, 12)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(null),
+                          child: Text('Cancel', style: dialogButtonStyle()),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () async {
+                            final result = await widget.crop();
+                            Navigator.of(context).pop(result);
+                          },
+                          child: Text(
+                            'Crop',
+                            style: dialogButtonStyle(confirm: true),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
