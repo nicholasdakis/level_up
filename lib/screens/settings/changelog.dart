@@ -78,8 +78,8 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                 date: 'June 27, 2026',
                 version: '1.1.52',
                 changes: [
-                  'Onboarding is now a simple step-by-step setup that automatically calculates your calorie targets, macro splits, and goals based on your profile',
-                  "Shortcut added to the home dashboard's Calorie card allowing even more convenient food logging",
+                  'Onboarding is now a simple step-by-step setup that automatically calculates your calorie targets, macro splits, and goals based on your journey',
+                  "Log food even faster with a new shortcut on the home dashboard's Calorie card",
                   'The Daily reward dialog no longer auto-opens on launch so you can claim it on your own terms',
                   'Voice input added to the reminders screen so you can speak your reminder message',
                   'Various visual fixes and polish across the app',

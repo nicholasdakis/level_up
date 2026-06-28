@@ -175,6 +175,36 @@ CREATE TABLE goals (
     last_updated TIMESTAMPTZ NOT NULL
 );
 
+-- Muscle groups used to tag exercises (e.g. chest, biceps, quadriceps)
+CREATE TABLE muscle_groups (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,         -- e.g. 'chest', 'biceps brachii'
+    body_region TEXT NOT NULL          -- e.g. 'upper body', 'lower body', 'core'
+);
+
+-- Seeded exercise library, plus any custom exercises created by users
+CREATE TABLE exercises (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT,                     -- strength, cardio, stretching, plyometrics, etc
+    force TEXT,                        -- push, pull, static
+    level TEXT,                        -- beginner, intermediate, expert
+    mechanic TEXT,                     -- compound, isolation
+    equipment TEXT,                    -- e.g. barbell, dumbbell, body only, machine
+    instructions TEXT[],               -- step-by-step instructions
+    is_custom BOOLEAN DEFAULT false,   -- true if created by a user
+    is_public BOOLEAN DEFAULT false,   -- true for seeded exercises and approved user submissions
+    created_by TEXT REFERENCES users(uid) ON DELETE SET NULL  -- null for seeded exercises
+);
+
+-- Links exercises to muscle groups, one row per muscle per exercise
+CREATE TABLE exercise_muscles (
+    exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+    muscle_id INTEGER NOT NULL REFERENCES muscle_groups(id) ON DELETE CASCADE,
+    muscle_type TEXT NOT NULL CHECK (muscle_type IN ('primary', 'secondary')),
+    PRIMARY KEY (exercise_id, muscle_id)
+);
+
 -- A single workout session logged by a user
 CREATE TABLE workouts (
     workout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -183,6 +213,7 @@ CREATE TABLE workouts (
     date DATE NOT NULL,
     duration_minutes INTEGER,               -- total session duration
     notes TEXT,
+    completed BOOLEAN DEFAULT true,         -- false if the session was abandoned mid-workout
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -190,8 +221,8 @@ CREATE TABLE workouts (
 CREATE TABLE workout_exercises (
     workout_exercise_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workout_id UUID NOT NULL REFERENCES workouts(workout_id) ON DELETE CASCADE,
-    exercise_id INTEGER NOT NULL,           -- Wger API exercise ID
-    exercise_name TEXT NOT NULL,            -- cached at log time so it survives API changes
+    exercise_id INTEGER REFERENCES exercises(id) ON DELETE SET NULL,
+    exercise_name TEXT NOT NULL,            -- cached at log time so name survives exercise deletion
     exercise_order INTEGER NOT NULL         -- display order within the session
 );
 
@@ -200,10 +231,13 @@ CREATE TABLE workout_sets (
     set_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workout_exercise_id UUID NOT NULL REFERENCES workout_exercises(workout_exercise_id) ON DELETE CASCADE,
     set_number INTEGER NOT NULL,
+    set_type TEXT CHECK (set_type IN ('warmup', 'working', 'failure')), -- warmup sets excluded from volume/PR calculations
     reps INTEGER,                           -- nullable: not used for cardio
     weight_kg NUMERIC(6, 2),               -- nullable: not used for bodyweight or cardio
     duration_seconds INTEGER,              -- nullable: used for timed exercises and cardio
-    distance_km NUMERIC(6, 3)              -- nullable: used for cardio
+    distance_km NUMERIC(6, 3),             -- nullable: used for cardio
+    rpe NUMERIC(3, 1),                     -- rate of perceived exertion 1-10, supports half values (e.g. 7.5)
+    is_personal_record BOOLEAN DEFAULT false -- true if this set broke a PR at log time
 );
 
 -- Saved workout templates (reusable routines a user can start from)
@@ -218,13 +252,32 @@ CREATE TABLE workout_templates (
 CREATE TABLE workout_template_exercises (
     template_exercise_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     template_id UUID NOT NULL REFERENCES workout_templates(template_id) ON DELETE CASCADE,
-    exercise_id INTEGER NOT NULL,           -- Wger API exercise ID
-    exercise_name TEXT NOT NULL,            -- cached so it survives API changes
+    exercise_id INTEGER REFERENCES exercises(id) ON DELETE SET NULL,
+    exercise_name TEXT NOT NULL,            -- cached so name survives exercise deletion
     exercise_order INTEGER NOT NULL,        -- display order within the template
     default_sets INTEGER,                   -- pre-filled set count when starting a workout
     default_reps INTEGER,                   -- pre-filled rep count
     default_weight_kg NUMERIC(6, 2)         -- pre-filled weight
 );
 
+-- Caches lifetime PRs per user per exercise, updated after each workout
+CREATE TABLE personal_records (
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+    exercise_name TEXT NOT NULL,              -- cached at log time so name survives exercise deletion
+    max_weight_kg NUMERIC(6, 2),              -- heaviest single weight lifted
+    max_reps INTEGER,                         -- most reps in a single set (weighted)
+    max_reps_bodyweight INTEGER,              -- most reps in a single set at bodyweight (weight = 0 or null)
+    estimated_1rm NUMERIC(6, 2),             -- best estimated 1RM via Epley: weight * (1 + reps/30)
+    max_volume_kg NUMERIC(10, 2),            -- highest total volume in a single session (sum of weight * reps)
+    max_duration_seconds INTEGER,             -- longest single set duration (for timed exercises)
+    max_distance_km NUMERIC(6, 3),           -- longest single set distance (for cardio)
+    last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (uid, exercise_id)
+);
+
 -- Index to speed up leaderboard rank queries at scale, matches sort order: level DESC, exp_points DESC, uid ASC
-CREATE INDEX idx_users_rank ON users (level DESC, exp_points DESC, uid ASC);
+CREATE INDEX IF NOT EXISTS idx_users_rank ON users (level DESC, exp_points DESC, uid ASC);
+
+-- Index to speed up per-user workout history queries filtered by date
+CREATE INDEX IF NOT EXISTS idx_workouts_uid_date ON workouts (uid, date DESC);

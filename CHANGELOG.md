@@ -2285,3 +2285,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the chevron in the calorie logging card with a +
 - The + opens a dialog that lets the user choose which meal to log to
 - Clicking it opens that page directly
+
+## 2026-06-28
+- Seeded Supabase with exercise library data (muscle_groups, exercises, exercise_muscles tables)
+- Added personal_records table to Supabase for tracking lifetime PRs per user per exercise
+- Added index on workouts table for faster date-filtered history queries
