@@ -931,7 +931,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           builder: (ctx) => TextButton(
                             onPressed: () =>
                                 Navigator.of(ctx, rootNavigator: true).pop(),
-                            child: const Text("Got it"),
+                            child: Text(
+                              "Got it",
+                              style: dialogButtonStyle(confirm: true),
+                            ),
                           ),
                         ),
                       ),

@@ -185,7 +185,7 @@ class _CropperDialogState extends State<_CropperDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(null),
-                    child: const Text('Cancel'),
+                    child: Text('Cancel', style: dialogButtonStyle()),
                   ),
                 ),
                 Expanded(
@@ -194,7 +194,10 @@ class _CropperDialogState extends State<_CropperDialog> {
                       final result = await widget.crop();
                       Navigator.of(context).pop(result);
                     },
-                    child: const Text('Crop'),
+                    child: Text(
+                      'Crop',
+                      style: dialogButtonStyle(confirm: true),
+                    ),
                   ),
                 ),
               ],

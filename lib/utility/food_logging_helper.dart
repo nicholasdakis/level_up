@@ -750,13 +750,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                  child: Text(
-                    "Cancel",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: Text("Cancel", style: dialogButtonStyle()),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx, rootNavigator: true).pop((
@@ -767,10 +761,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
                   )),
                   child: Text(
                     confirmLabel,
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: dialogButtonStyle(confirm: true),
                   ),
                 ),
               ],

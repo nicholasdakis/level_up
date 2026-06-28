@@ -390,7 +390,10 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
               child: Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Got it"),
+                  child: Text(
+                    "Got it",
+                    style: dialogButtonStyle(confirm: true),
+                  ),
                 ),
               ),
             ),

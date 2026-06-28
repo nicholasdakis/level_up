@@ -2270,3 +2270,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added tooltips after the onboarding is finished so the user does not feel lost / overwhelmed after onboarding is finished
 - Locked the bottom nav bar when the hint text is showing
 - Added the option to speak reminder messages by tapping a mic icon
+- Made every dialog have consistent UI buttons

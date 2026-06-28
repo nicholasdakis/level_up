@@ -82,13 +82,7 @@ class _RemindersState extends State<Reminders> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          child: Text(
-            "Dismiss",
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: Text("Dismiss", style: dialogButtonStyle()),
         ),
         TextButton(
           onPressed: () async {
@@ -107,13 +101,7 @@ class _RemindersState extends State<Reminders> {
               }
             }
           },
-          child: Text(
-            "Enable",
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          child: Text("Enable", style: dialogButtonStyle(confirm: true)),
         ),
       ],
     );
@@ -252,14 +240,17 @@ class _RemindersState extends State<Reminders> {
       title: "Delete reminder?",
       content: RichText(
         text: TextSpan(
-          style: GoogleFonts.manrope(color: Colors.white70),
+          style: GoogleFonts.manrope(
+            color: Colors.white70,
+            fontSize: Responsive.font(context, 13),
+          ),
           children: [
-            const TextSpan(text: "You're deleting the reminder:\n\n"),
             TextSpan(
-              text: reminder.message,
+              text: '"${reminder.message}"',
               style: GoogleFonts.manrope(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
+                fontSize: Responsive.font(context, 13),
               ),
             ),
           ],
@@ -267,24 +258,13 @@ class _RemindersState extends State<Reminders> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(
-            "Cancel",
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+          child: Text("Cancel", style: dialogButtonStyle()),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(
-            "Delete",
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          child: Text("Delete", style: dialogButtonStyle(confirm: true)),
         ),
       ],
     );
@@ -342,13 +322,7 @@ class _RemindersState extends State<Reminders> {
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(),
-                  child: Text(
-                    "Cancel",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: Text("Cancel", style: dialogButtonStyle()),
                 ),
                 TextButton(
                   onPressed: () {
@@ -357,10 +331,7 @@ class _RemindersState extends State<Reminders> {
                   },
                   child: Text(
                     "Set Reminder",
-                    style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: dialogButtonStyle(confirm: true),
                   ),
                 ),
               ],

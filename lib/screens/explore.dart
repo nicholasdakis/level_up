@@ -349,7 +349,7 @@ class _ExploreState extends State<Explore> {
             child: Builder(
               builder: (ctx) => TextButton(
                 onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-                child: const Text("No thanks"),
+                child: Text("No thanks", style: dialogButtonStyle()),
               ),
             ),
           ),
@@ -362,7 +362,10 @@ class _ExploreState extends State<Explore> {
                   Navigator.of(ctx, rootNavigator: true).pop();
                   _generateFakePOIs();
                 },
-                child: const Text("Generate"),
+                child: Text(
+                  "Generate",
+                  style: dialogButtonStyle(confirm: true),
+                ),
               ),
             ),
           ),

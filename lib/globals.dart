@@ -565,8 +565,8 @@ cardColors(Color base) {
 
 // Shared text style for dialog cancel/confirm buttons
 TextStyle dialogButtonStyle({bool confirm = false}) => GoogleFonts.manrope(
-  color: lightenColor(appColorNotifier.value, 0.45),
-  fontWeight: confirm ? FontWeight.w700 : FontWeight.w600,
+  color: confirm ? Colors.white : Colors.white60,
+  fontWeight: confirm ? FontWeight.w700 : FontWeight.w500,
 );
 
 // Frosted glass tappable button

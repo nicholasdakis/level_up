@@ -53,7 +53,7 @@ Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
             child: Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text("Dismiss"),
+                child: Text("Dismiss", style: dialogButtonStyle(confirm: true)),
               ),
             ),
           ),
@@ -99,13 +99,7 @@ void showBrowserBlockedDialog(BuildContext context) {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(
-                  'Cancel',
-                  style: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(ctx, 15),
-                  ),
-                ),
+                child: Text('Cancel', style: dialogButtonStyle()),
               ),
               TextButton(
                 onPressed: () {
@@ -131,14 +125,7 @@ void showBrowserBlockedDialog(BuildContext context) {
                     }
                   });
                 },
-                child: Text(
-                  'Enable',
-                  style: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(ctx, 15),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: Text('Enable', style: dialogButtonStyle(confirm: true)),
               ),
             ],
           ),

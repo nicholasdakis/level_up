@@ -864,13 +864,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: Text(
-                      "Cancel",
-                      style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: Text("Cancel", style: dialogButtonStyle()),
                   ),
                   TextButton(
                     onPressed: () async {
@@ -907,13 +901,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               ).pop(),
                               child: Text(
                                 "Go Back",
-                                style: GoogleFonts.manrope(
-                                  color: lightenColor(
-                                    appColorNotifier.value,
-                                    0.45,
-                                  ),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: dialogButtonStyle(),
                               ),
                             ),
                             TextButton(
@@ -934,13 +922,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                               },
                               child: Text(
                                 "Log Anyway",
-                                style: GoogleFonts.manrope(
-                                  color: lightenColor(
-                                    appColorNotifier.value,
-                                    0.45,
-                                  ),
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: dialogButtonStyle(confirm: true),
                               ),
                             ),
                           ],
