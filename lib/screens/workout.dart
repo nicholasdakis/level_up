@@ -2,6 +2,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
@@ -248,8 +249,100 @@ class _WorkoutState extends State<Workout> {
     }
   }
 
+  Widget _buildRecentWorkoutsCard(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    // TODO: load from backend once workout logging is implemented
+    const List<Map<String, dynamic>> recentWorkouts = [];
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 16),
+      ),
+      child: recentWorkouts.isEmpty
+          ? SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: Responsive.height(context, 8)),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedClock01,
+                    color: Colors.white24,
+                    size: Responsive.scale(context, 32),
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  Text(
+                    'No workouts yet',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    'Your completed sessions will appear here',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 8)),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                for (final w in recentWorkouts)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 6),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                w['name'] as String? ?? 'Workout',
+                                style: GoogleFonts.manrope(
+                                  color: accent,
+                                  fontSize: Responsive.font(context, 13),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                w['date'] as String? ?? '',
+                                style: GoogleFonts.manrope(
+                                  color: dim,
+                                  fontSize: Responsive.font(context, 11),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${w['duration_minutes']} min',
+                          style: GoogleFonts.manrope(
+                            color: dim,
+                            fontSize: Responsive.font(context, 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+
   void _onStartWorkout() {
-    // TODO: open start workout modal
+    context.push('/workout/active');
   }
 
   void _onNewRoutine() {
@@ -491,8 +584,8 @@ class _WorkoutState extends State<Workout> {
     Widget actionButton(IconData icon, VoidCallback? onTap) => GestureDetector(
       onTap: onTap,
       child: Container(
-        width: Responsive.scale(context, 34),
-        height: Responsive.scale(context, 34),
+        width: Responsive.scale(context, 42),
+        height: Responsive.scale(context, 42),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white.withAlpha(18),
@@ -501,7 +594,7 @@ class _WorkoutState extends State<Workout> {
         child: Icon(
           HugeIcons.strokeRoundedAnalyticsUp,
           color: accent,
-          size: Responsive.scale(context, 16),
+          size: Responsive.scale(context, 20),
         ),
       ),
     );
@@ -513,7 +606,7 @@ class _WorkoutState extends State<Workout> {
         vertical: Responsive.height(context, 14),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -589,15 +682,10 @@ class _WorkoutState extends State<Workout> {
               ],
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              actionButton(
-                HugeIcons.strokeRoundedAnalyticsUp,
-                null,
-              ), // TODO: analytics
-            ],
-          ),
+          actionButton(
+            HugeIcons.strokeRoundedAnalyticsUp,
+            null,
+          ), // TODO: analytics
         ],
       ),
     );
@@ -634,6 +722,9 @@ class _WorkoutState extends State<Workout> {
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("MY ROUTINES", context),
                   _buildMyRoutinesCard(context),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  sectionHeader("RECENT WORKOUTS", context),
+                  _buildRecentWorkoutsCard(context),
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("LOGGING", context),
                   _buildLiftsCard(context),

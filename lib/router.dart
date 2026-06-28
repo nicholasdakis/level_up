@@ -22,6 +22,7 @@ import 'screens/leaderboard.dart';
 import 'screens/progression.dart';
 import 'screens/explore.dart';
 import 'screens/workout.dart';
+import 'screens/active_workout_screen.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
@@ -183,6 +184,16 @@ final GoRouter appRouter = GoRouter(
               path: '/workout',
               pageBuilder: (context, state) =>
                   NoTransitionPage(key: state.pageKey, child: const Workout()),
+              routes: [
+                GoRoute(
+                  path: 'active',
+                  parentNavigatorKey: _rootNavKey,
+                  pageBuilder: (context, state) => _slideUpPage(
+                    key: state.pageKey,
+                    child: const ActiveWorkoutScreen(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
