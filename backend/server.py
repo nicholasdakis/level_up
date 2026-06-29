@@ -1051,15 +1051,20 @@ def create_custom_exercise():
     uid, body, err = _parse_and_auth(CreateCustomExerciseRequest)
     if err:
         return err
-    result = workout_service.create_custom_exercise(
-        uid=uid,
-        name=body.name,
-        primary_muscle=body.primary_muscle,
-        secondary_muscles=body.secondary_muscles,
-        equipment=body.equipment,
-        level=body.level,
-    )
-    return jsonify(CreateCustomExerciseResponse(**result).model_dump()), 200
+    try:
+        result = workout_service.create_custom_exercise(
+            uid=uid,
+            name=body.name,
+            primary_muscle=body.primary_muscle,
+            secondary_muscles=body.secondary_muscles,
+            equipment=body.equipment,
+            level=body.level,
+        )
+        return jsonify(CreateCustomExerciseResponse(**result).model_dump()), 200
+    except Exception as e:
+        if 'exercises_name_created_by_unique' in str(e):  # constraint defined in schema.sql on (name, created_by)
+            return jsonify({"error": "You already have an exercise with that name"}), 409
+        raise
 
 
 @app.route("/edit_custom_exercise", methods=["POST"])

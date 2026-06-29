@@ -1485,9 +1485,10 @@ class UserDataManager {
           'level': level,
         },
       );
-      if (response.statusCode == 200) {
-        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
-      }
+      final data = Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+      if (response.statusCode == 200) return data;
+      // return the error message from the backend so the dialog can show it
+      return {'error': data['error'] ?? 'Failed to create exercise'};
     } catch (e) {
       if (kDebugMode) debugPrint('createCustomExercise failed: $e');
     }

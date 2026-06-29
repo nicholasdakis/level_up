@@ -194,7 +194,8 @@ CREATE TABLE exercises (
     instructions TEXT[],               -- step-by-step instructions
     is_custom BOOLEAN DEFAULT false,   -- true if created by a user
     is_public BOOLEAN DEFAULT false,   -- true for seeded exercises and approved user submissions
-    created_by TEXT REFERENCES users(uid) ON DELETE SET NULL  -- null for seeded exercises
+    created_by TEXT REFERENCES users(uid) ON DELETE SET NULL,  -- null for seeded exercises
+    CONSTRAINT exercises_name_created_by_unique UNIQUE (name, created_by)  -- one exercise name per user, null created_by rows are unaffected since NULL != NULL in Postgres
 );
 
 -- Links exercises to muscle groups, one row per muscle per exercise

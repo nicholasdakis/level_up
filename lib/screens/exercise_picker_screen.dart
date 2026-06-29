@@ -811,10 +811,10 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                                         level: selectedLevel,
                                       );
                                   if (!mounted) return;
-                                  if (result == null) {
+                                  if (result == null || result.containsKey('error')) {
                                     setDialogState(() {
                                       saving = false;
-                                      errorMsg = 'Failed to create exercise';
+                                      errorMsg = result?['error'] as String? ?? 'Failed to create exercise';
                                     });
                                     return;
                                   }
