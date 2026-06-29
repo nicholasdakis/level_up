@@ -1039,6 +1039,10 @@ def search_exercises():
     level = [l for l in request.args.get("level", "").split(",") if l]
 
     results = workout_service.search_exercises(uid=uid, q=q, equipment=equipment, muscle=muscle, level=level)
+    # normalize None lists to empty lists so Flutter never sees null for instructions or secondary_muscles
+    for r in results:
+        r['instructions'] = r.get('instructions') or []
+        r['secondary_muscles'] = r.get('secondary_muscles') or []
     return jsonify([SearchExercisesResponse(**r).model_dump() for r in results]), 200
 
 

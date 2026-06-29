@@ -343,9 +343,9 @@ class SearchExercisesResponse(BaseModel):
     level: str | None = None
     mechanic: str | None = None
     equipment: str | None = None
-    instructions: list[str] = Field(default_factory=list)
+    instructions: list[str] | None = Field(default_factory=list)
     primary_muscle: str | None = None
-    secondary_muscles: list[str] = Field(default_factory=list)
+    secondary_muscles: list[str] | None = Field(default_factory=list)
     is_custom: bool = False
 
 class CreateCustomExerciseRequest(BaseModel):
