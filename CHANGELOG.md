@@ -2307,3 +2307,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added created_by and is_public columns to workout_templates in preparation for sharing user-generated routines
 - Used a Postgres RPC for exercises search so the muscle group JOIN runs server-side in one query instead of fetching all rows and filtering in Python
 - Wired the search bar in the frontend to the backend route
+- Removed the search button from the exercises search bar and added a debouncer

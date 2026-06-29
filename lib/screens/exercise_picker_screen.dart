@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
@@ -60,12 +59,11 @@ class ExercisePickerScreen extends StatefulWidget {
 class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   late final VoidCallback _colorListener;
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchHintTimer;
+  Timer? _debounce;
 
   List<Map<String, dynamic>> _results = [];
   bool _isLoading = false;
   bool _hasSearched = false;
-  bool _showSearchHint = false;
   Set<String> _selectedEquipment = {};
   Set<String> _selectedMuscle = {};
   Set<String> _selectedLevel = {};
@@ -83,13 +81,12 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
     _searchController.dispose();
-    _searchHintTimer?.cancel();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged(String value) {
-    _searchHintTimer?.cancel();
-    if (_showSearchHint) setState(() => _showSearchHint = false);
+    _debounce?.cancel();
     if (value.trim().isEmpty) {
       setState(() {
         _results = [];
@@ -97,10 +94,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       });
       return;
     }
-    // after 3s of typing without tapping Search, shimmer the button as a nudge
-    _searchHintTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted && !_isLoading) setState(() => _showSearchHint = true);
-    });
+    _debounce = Timer(const Duration(milliseconds: 400), _search);
   }
 
   Future<void> _search() async {
@@ -242,13 +236,13 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                 children: [
                   TextButton(
                     onPressed: () =>
-                        Navigator.of(context, rootNavigator: true).pop(),
+                        Navigator.of(context, rootNavigator: true).pop(false),
                     child: Text('Cancel', style: dialogButtonStyle()),
                   ),
                   TextButton(
                     onPressed: () {
                       onSelect(selected);
-                      Navigator.of(context, rootNavigator: true).pop();
+                      Navigator.of(context, rootNavigator: true).pop(true);
                     },
                     child: Text(
                       'Apply',
@@ -439,77 +433,18 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                             ),
                           ),
                           onChanged: _onSearchChanged,
-                          onSubmitted: (_) => _search(),
                         ),
-                      ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOut,
-                        child: _searchController.text.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () {
-                                  _searchHintTimer?.cancel();
-                                  setState(() => _showSearchHint = false);
-                                  _search();
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: Responsive.width(context, 10),
-                                    vertical: Responsive.height(context, 8),
-                                  ),
-                                  child: _showSearchHint
-                                      ? Text(
-                                              'Search',
-                                              style: GoogleFonts.manrope(
-                                                color: accent,
-                                                fontSize: Responsive.font(
-                                                  context,
-                                                  13,
-                                                ),
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            )
-                                            .animate(onPlay: (c) => c.repeat())
-                                            .shimmer(
-                                              duration: 2000.ms,
-                                              color:
-                                                  accent.computeLuminance() >
-                                                      0.5
-                                                  ? darkenColor(
-                                                      accent,
-                                                      0.35,
-                                                    ).withAlpha(200)
-                                                  : lightenColor(
-                                                      accent,
-                                                      0.4,
-                                                    ).withAlpha(200),
-                                            )
-                                      : Text(
-                                          'Search',
-                                          style: GoogleFonts.manrope(
-                                            color: accent,
-                                            fontSize: Responsive.font(
-                                              context,
-                                              13,
-                                            ),
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
                       ),
                       AnimatedSize(
                         duration: const Duration(milliseconds: 200),
                         child: _searchController.text.isNotEmpty
                             ? GestureDetector(
                                 onTap: () {
-                                  _searchHintTimer?.cancel();
+                                  _debounce?.cancel();
                                   _searchController.clear();
                                   setState(() {
                                     _results = [];
                                     _hasSearched = false;
-                                    _showSearchHint = false;
                                   });
                                 },
                                 child: Padding(
