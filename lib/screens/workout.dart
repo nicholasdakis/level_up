@@ -258,7 +258,7 @@ class _WorkoutState extends State<Workout> {
                   SizedBox(height: Responsive.height(context, 8)),
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedClock01,
-                    color: Colors.white24,
+                    color: dim,
                     size: Responsive.scale(context, 32),
                   ),
                   SizedBox(height: Responsive.height(context, 10)),
@@ -397,7 +397,7 @@ class _WorkoutState extends State<Workout> {
             ),
             HugeIcon(
               icon: HugeIcons.strokeRoundedArrowRight01,
-              color: Colors.white24,
+              color: dim,
               size: Responsive.scale(context, 20),
             ),
           ],
@@ -499,7 +499,7 @@ class _WorkoutState extends State<Workout> {
                   SizedBox(height: Responsive.height(context, 8)),
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedFileNotFound,
-                    color: Colors.white24,
+                    color: dim,
                     size: Responsive.scale(context, 32),
                   ),
                   SizedBox(height: Responsive.height(context, 10)),

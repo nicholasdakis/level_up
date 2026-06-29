@@ -560,7 +560,10 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                                 SizedBox(height: Responsive.height(context, 8)),
                             itemBuilder: (context, i) {
                               final ex = _results[i];
-                              final name = ex['name'] as String? ?? '';
+                              // strip trailing parenthetical suffixes from seeded data e.g. "Box Jump (Multiple Response)" -> "Box Jump"
+                              final name = (ex['name'] as String? ?? '')
+                                  .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                                  .trim();
                               final category = ex['category'] as String? ?? '';
                               final muscle =
                                   ex['primary_muscle'] as String? ?? '';
