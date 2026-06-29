@@ -184,11 +184,9 @@ class UserDataManager {
               .toList() ??
           [];
 
-      // Convert app_color int to Flutter Color if present
-      // appColorNotifier is not updated here on purpose. It is done in Home Screen
-      // right before the skeletonizer to prevent a re-rendering
       if (data['app_color'] != null) {
         currentUserData?.appColor = Color(data['app_color'] as int);
+        appColorNotifier.value = currentUserData!.appColor;
       }
 
       currentUserData?.dailyClaimStreak = data['daily_streak'] ?? 1;
