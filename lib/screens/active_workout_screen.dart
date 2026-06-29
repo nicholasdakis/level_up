@@ -427,6 +427,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 setState(() {
                   _exercises.add({
                     ...ex,
+                    'name': ex['name'] ?? ex['exercise_name'] ?? '',
                     'sets': [
                       {'reps': null, 'weight_kg': null},
                     ],
