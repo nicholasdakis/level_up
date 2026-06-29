@@ -513,8 +513,9 @@ class WorkoutRepository:
         }).execute()
         return result.data or []
 
-    def search_exercises(self, q: str, equipment: list[str], muscle: list[str], level: list[str], limit: int = 30) -> list[dict]:
+    def search_exercises(self, uid: str, q: str, equipment: list[str], muscle: list[str], level: list[str], limit: int = 30) -> list[dict]:
         result = self._supabase.rpc("search_exercises", {
+            "p_uid": uid,
             "p_q": q,
             "p_equipment": [e.lower() for e in equipment],
             "p_muscle": [m.lower() for m in muscle],
@@ -522,6 +523,78 @@ class WorkoutRepository:
             "p_limit": limit,
         }).execute()
         return result.data or []
+
+    def _resolve_muscle_ids(self, muscles: list[str]) -> list[int]:
+        # Looks up muscle_group ids by name, returns only those that matched
+        if not muscles:
+            return []
+        ids = []
+        for muscle in muscles:
+            row = self._supabase.table("muscle_groups") \
+                .select("id").ilike("name", muscle).limit(1).execute().data
+            if row:
+                ids.append(row[0]["id"])
+        return ids
+
+    def create_custom_exercise(self, uid: str, name: str, primary_muscle: str | None, secondary_muscles: list[str], equipment: str | None, level: str | None) -> dict:
+        # Insert the custom exercise row
+        row = self._supabase.table("exercises").insert({
+            "name": name,
+            "equipment": equipment,
+            "level": level,
+            "is_custom": True,
+            "is_public": False,
+            "created_by": uid,
+        }).execute().data[0]
+        exercise_id = row["id"]
+        muscle_rows = []
+        if primary_muscle:
+            primary_ids = self._resolve_muscle_ids([primary_muscle])
+            for mid in primary_ids:
+                muscle_rows.append({"exercise_id": exercise_id, "muscle_id": mid, "muscle_type": "primary"})
+        for mid in self._resolve_muscle_ids(secondary_muscles):
+            muscle_rows.append({"exercise_id": exercise_id, "muscle_id": mid, "muscle_type": "secondary"})
+        if muscle_rows:
+            self._supabase.table("exercise_muscles").insert(muscle_rows).execute()
+        return {"exercise_id": exercise_id, "name": name}
+
+    def edit_custom_exercise(self, uid: str, exercise_id: int, name: str, primary_muscle: str | None, secondary_muscles: list[str], equipment: str | None, level: str | None) -> None:
+        # Verify ownership before updating
+        existing = self._supabase.table("exercises") \
+            .select("id") \
+            .eq("id", exercise_id) \
+            .eq("created_by", uid) \
+            .eq("is_custom", True) \
+            .limit(1).execute().data
+        if not existing:
+            raise ValueError("Exercise not found or not owned by user")
+        self._supabase.table("exercises").update({
+            "name": name,
+            "equipment": equipment,
+            "level": level,
+        }).eq("id", exercise_id).execute()
+        # Replace all muscle links
+        self._supabase.table("exercise_muscles").delete().eq("exercise_id", exercise_id).execute()
+        muscle_rows = []
+        if primary_muscle:
+            for mid in self._resolve_muscle_ids([primary_muscle]):
+                muscle_rows.append({"exercise_id": exercise_id, "muscle_id": mid, "muscle_type": "primary"})
+        for mid in self._resolve_muscle_ids(secondary_muscles):
+            muscle_rows.append({"exercise_id": exercise_id, "muscle_id": mid, "muscle_type": "secondary"})
+        if muscle_rows:
+            self._supabase.table("exercise_muscles").insert(muscle_rows).execute()
+
+    def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
+        # Verify ownership before deleting
+        existing = self._supabase.table("exercises") \
+            .select("id") \
+            .eq("id", exercise_id) \
+            .eq("created_by", uid) \
+            .eq("is_custom", True) \
+            .limit(1).execute().data
+        if not existing:
+            raise ValueError("Exercise not found or not owned by user")
+        self._supabase.table("exercises").delete().eq("id", exercise_id).execute()
 
 class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
 

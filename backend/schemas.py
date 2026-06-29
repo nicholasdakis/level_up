@@ -346,3 +346,26 @@ class SearchExercisesResponse(BaseModel):
     instructions: list[str] = Field(default_factory=list)
     primary_muscle: str | None = None
     secondary_muscles: list[str] = Field(default_factory=list)
+    is_custom: bool = False
+
+class CreateCustomExerciseRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    primary_muscle: str | None = None
+    secondary_muscles: list[str] = Field(default_factory=list)
+    equipment: str | None = None
+    level: str | None = None
+
+class CreateCustomExerciseResponse(BaseModel):
+    exercise_id: int
+    name: str
+
+class EditCustomExerciseRequest(BaseModel):
+    exercise_id: int
+    name: str = Field(..., min_length=1, max_length=100)
+    primary_muscle: str | None = None
+    secondary_muscles: list[str] = Field(default_factory=list)
+    equipment: str | None = None
+    level: str | None = None
+
+class DeleteCustomExerciseRequest(BaseModel):
+    exercise_id: int

@@ -78,6 +78,10 @@ from backend.schemas import (
     RecentWorkoutItem,
     RecentExerciseItem,
     GetRecentExercisesResponse,
+    CreateCustomExerciseRequest,
+    CreateCustomExerciseResponse,
+    EditCustomExerciseRequest,
+    DeleteCustomExerciseRequest,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -1025,7 +1029,7 @@ def unity_ssv():
 
 @app.route("/search_exercises", methods=["GET"])
 def search_exercises():
-    _, _, err = _parse_and_auth()
+    uid, _, err = _parse_and_auth()
     if err:
         return err
 
@@ -1034,8 +1038,56 @@ def search_exercises():
     muscle = [m for m in request.args.get("muscle", "").split(",") if m]
     level = [l for l in request.args.get("level", "").split(",") if l]
 
-    results = workout_service.search_exercises(q=q, equipment=equipment, muscle=muscle, level=level)
+    results = workout_service.search_exercises(uid=uid, q=q, equipment=equipment, muscle=muscle, level=level)
     return jsonify([SearchExercisesResponse(**r).model_dump() for r in results]), 200
+
+
+@app.route("/create_custom_exercise", methods=["POST"])
+def create_custom_exercise():
+    uid, body, err = _parse_and_auth(CreateCustomExerciseRequest)
+    if err:
+        return err
+    result = workout_service.create_custom_exercise(
+        uid=uid,
+        name=body.name,
+        primary_muscle=body.primary_muscle,
+        secondary_muscles=body.secondary_muscles,
+        equipment=body.equipment,
+        level=body.level,
+    )
+    return jsonify(CreateCustomExerciseResponse(**result).model_dump()), 200
+
+
+@app.route("/edit_custom_exercise", methods=["POST"])
+def edit_custom_exercise():
+    uid, body, err = _parse_and_auth(EditCustomExerciseRequest)
+    if err:
+        return err
+    try:
+        workout_service.edit_custom_exercise(
+            uid=uid,
+            exercise_id=body.exercise_id,
+            name=body.name,
+            primary_muscle=body.primary_muscle,
+            secondary_muscles=body.secondary_muscles,
+            equipment=body.equipment,
+            level=body.level,
+        )
+        return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+    except ValueError as e:
+        return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
+
+
+@app.route("/delete_custom_exercise", methods=["POST"])
+def delete_custom_exercise():
+    uid, body, err = _parse_and_auth(DeleteCustomExerciseRequest)
+    if err:
+        return err
+    try:
+        workout_service.delete_custom_exercise(uid=uid, exercise_id=body.exercise_id)
+        return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+    except ValueError as e:
+        return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
 
 
 @app.route("/log_workout", methods=["POST"])
