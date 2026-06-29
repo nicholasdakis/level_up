@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import '/services/user_data_manager.dart';
@@ -64,6 +65,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   List<Map<String, dynamic>> _results = [];
   List<Map<String, dynamic>> _recentExercises = [];
   bool _isLoading = false;
+  bool _loadingRecents = true;
   bool _hasSearched = false;
   Set<String> _selectedEquipment = {};
   Set<String> _selectedMuscle = {};
@@ -81,7 +83,12 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
 
   Future<void> _fetchRecentExercises() async {
     final exercises = await userManager.fetchRecentExercises();
-    if (mounted) setState(() => _recentExercises = exercises);
+    if (mounted) {
+      setState(() {
+        _recentExercises = exercises;
+        _loadingRecents = false;
+      });
+    }
   }
 
   @override
@@ -522,14 +529,80 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                 // results
                 Expanded(
                   child: _isLoading
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            color: accent,
-                            strokeWidth: 2,
+                      ? Skeletonizer(
+                          enabled: true,
+                          ignoreContainers: false,
+                          effect: ShimmerEffect(
+                            baseColor: lightenColor(
+                              appColorNotifier.value,
+                              0.10,
+                            ),
+                            highlightColor: lightenColor(
+                              appColorNotifier.value,
+                              0.22,
+                            ),
+                            duration: const Duration(milliseconds: 1200),
+                          ),
+                          child: Column(
+                            children: List.generate(
+                              8,
+                              (i) => Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: Responsive.height(context, 13),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            height: Responsive.height(
+                                              context,
+                                              14,
+                                            ),
+                                            width: Responsive.width(
+                                              context,
+                                              160,
+                                            ),
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(
+                                            height: Responsive.height(
+                                              context,
+                                              4,
+                                            ),
+                                          ),
+                                          Container(
+                                            height: Responsive.height(
+                                              context,
+                                              11,
+                                            ),
+                                            width: Responsive.width(
+                                              context,
+                                              100,
+                                            ),
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      width: Responsive.scale(context, 16),
+                                      height: Responsive.scale(context, 16),
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         )
                       : !_hasSearched
-                      ? _recentExercises.isEmpty
+                      ? _loadingRecents
+                            ? _buildRecentsSkeleton(context)
+                            : _recentExercises.isEmpty
                             ? Center(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -567,73 +640,39 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                           behavior: NoGlowScrollBehavior(),
                           child: ListView.separated(
                             itemCount: _results.length,
-                            separatorBuilder: (_, index) =>
-                                SizedBox(height: Responsive.height(context, 8)),
+                            separatorBuilder: (_, idx) => Divider(
+                              color: Colors.white.withAlpha(12),
+                              height: 1,
+                              thickness: 1,
+                            ),
                             itemBuilder: (context, i) {
                               final ex = _results[i];
                               // strip trailing parenthetical suffixes from seeded data e.g. "Box Jump (Multiple Response)" -> "Box Jump"
                               final name = (ex['name'] as String? ?? '')
                                   .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
                                   .trim();
-                              final category = ex['category'] as String? ?? '';
                               final muscle =
                                   ex['primary_muscle'] as String? ?? '';
-                              return GestureDetector(
+                              final equipment =
+                                  ex['equipment'] as String? ?? '';
+                              String capitalize(String s) => s.isEmpty
+                                  ? s
+                                  : s[0].toUpperCase() + s.substring(1);
+                              return _buildExerciseRow(
+                                context,
+                                accent,
+                                dim,
+                                name: name,
+                                subtitle: [
+                                  if (muscle.isNotEmpty)
+                                    'Muscle: ${capitalize(muscle)}',
+                                  if (equipment.isNotEmpty)
+                                    'Equipment: ${capitalize(equipment)}',
+                                ].join(' · '),
                                 onTap: () {
                                   widget.onExerciseSelected(ex);
                                   context.pop();
                                 },
-                                child: frostedGlassCard(
-                                  context,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: Responsive.width(context, 16),
-                                    vertical: Responsive.height(context, 14),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: GoogleFonts.manrope(
-                                                color: accent,
-                                                fontSize: Responsive.font(
-                                                  context,
-                                                  13,
-                                                ),
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            if (muscle.isNotEmpty ||
-                                                category.isNotEmpty)
-                                              Text(
-                                                [
-                                                  if (muscle.isNotEmpty) muscle,
-                                                  if (category.isNotEmpty)
-                                                    category,
-                                                ].join(' · '),
-                                                style: GoogleFonts.manrope(
-                                                  color: dim,
-                                                  fontSize: Responsive.font(
-                                                    context,
-                                                    11,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      HugeIcon(
-                                        icon: HugeIcons.strokeRoundedAddCircle,
-                                        color: Colors.white24,
-                                        size: Responsive.scale(context, 20),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               );
                             },
                           ),
@@ -643,6 +682,123 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildExerciseRow(
+    BuildContext context,
+    Color accent,
+    Color dim, {
+    required String name,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 13)),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(context, 12),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: dim.withAlpha(120),
+              size: Responsive.scale(context, 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentsSkeleton(BuildContext context) {
+    return Skeletonizer(
+      enabled: true,
+      ignoreContainers: false,
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColorNotifier.value, 0.10),
+        highlightColor: lightenColor(appColorNotifier.value, 0.22),
+        duration: const Duration(milliseconds: 1200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // label placeholder
+          Container(
+            width: Responsive.width(context, 90),
+            height: Responsive.height(context, 10),
+            margin: EdgeInsets.only(bottom: Responsive.height(context, 10)),
+            color: Colors.white,
+          ),
+          for (int i = 0; i < 6; i++) ...[
+            if (i > 0)
+              Divider(
+                color: Colors.white.withAlpha(12),
+                height: 1,
+                thickness: 1,
+              ),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 13),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: Responsive.height(context, 14),
+                          width: Responsive.width(context, 150),
+                          color: Colors.white,
+                        ),
+                        SizedBox(height: Responsive.height(context, 4)),
+                        Container(
+                          height: Responsive.height(context, 11),
+                          width: Responsive.width(context, 100),
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: Responsive.scale(context, 16),
+                    height: Responsive.scale(context, 16),
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -659,7 +815,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
           Padding(
             padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
             child: Text(
-              'RECENTLY USED',
+              'RECENT EXERCISES',
               style: GoogleFonts.manrope(
                 color: Colors.white.withAlpha(50),
                 fontSize: Responsive.font(context, 10),
@@ -669,43 +825,25 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
             ),
           ),
           for (int i = 0; i < _recentExercises.length; i++) ...[
-            GestureDetector(
+            if (i > 0)
+              Divider(
+                color: Colors.white.withAlpha(12),
+                height: 1,
+                thickness: 1,
+              ),
+            _buildExerciseRow(
+              context,
+              accent,
+              dim,
+              name: (_recentExercises[i]['exercise_name'] as String? ?? '')
+                  .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                  .trim(),
+              subtitle: '',
               onTap: () {
                 widget.onExerciseSelected(_recentExercises[i]);
                 context.pop();
               },
-              child: frostedGlassCard(
-                context,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 16),
-                  vertical: Responsive.height(context, 14),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        // strip trailing parenthetical suffixes from seeded data e.g. "Box Jump (Multiple Response)" -> "Box Jump"
-                        (_recentExercises[i]['exercise_name'] as String? ?? '')
-                            .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
-                            .trim(),
-                        style: GoogleFonts.manrope(
-                          color: accent,
-                          fontSize: Responsive.font(context, 13),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedAddCircle,
-                      color: Colors.white24,
-                      size: Responsive.scale(context, 20),
-                    ),
-                  ],
-                ),
-              ),
             ),
-            if (i < _recentExercises.length - 1)
-              SizedBox(height: Responsive.height(context, 8)),
           ],
         ],
       ),
