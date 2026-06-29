@@ -581,13 +581,12 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- search_exercises: Searches the public exercise library by name, equipment, muscle, and level
--- Muscle filter uses a join so it runs in SQL rather than filtering in Python after fetching
+-- search_exercises: searches the public exercise library with optional filters
 CREATE OR REPLACE FUNCTION search_exercises(
-    p_q TEXT DEFAULT '',
-    p_equipment TEXT[] DEFAULT '{}',
-    p_muscle TEXT[] DEFAULT '{}',
-    p_level TEXT[] DEFAULT '{}',
+    p_q TEXT DEFAULT '',          -- name search string, empty means no filter
+    p_equipment TEXT[] DEFAULT '{}',  -- e.g. '{barbell,dumbbell}', empty means no filter
+    p_muscle TEXT[] DEFAULT '{}',     -- e.g. '{chest,triceps}', empty means no filter
+    p_level TEXT[] DEFAULT '{}',      -- e.g. '{beginner}', empty means no filter
     p_limit INT DEFAULT 30
 )
 RETURNS TABLE (
@@ -614,40 +613,43 @@ AS $$
         e.mechanic,
         e.equipment,
         e.instructions,
-        MAX(CASE WHEN em.muscle_type = 'primary' THEN mg.name END) AS primary_muscle,
-        ARRAY_REMOVE(ARRAY_AGG(DISTINCT CASE WHEN em.muscle_type = 'secondary' THEN mg.name END), NULL) AS secondary_muscles
+        MAX(CASE WHEN em.muscle_type = 'primary' THEN mg.name END) AS primary_muscle,              -- one primary muscle per exercise
+        ARRAY_REMOVE(ARRAY_AGG(DISTINCT CASE WHEN em.muscle_type = 'secondary' THEN mg.name END), NULL) AS secondary_muscles  -- all secondary muscles as an array, NULLs removed
     FROM exercises e
-    LEFT JOIN exercise_muscles em ON em.exercise_id = e.id
-    LEFT JOIN muscle_groups mg ON mg.id = em.muscle_id
+    LEFT JOIN exercise_muscles em ON em.exercise_id = e.id  -- join muscle mappings (may be 0 or many rows per exercise)
+    LEFT JOIN muscle_groups mg ON mg.id = em.muscle_id      -- resolve muscle group name from id
     WHERE e.is_public = true
-      AND e.created_by IS NULL
-      AND (p_q = '' OR e.name ILIKE '%' || p_q || '%')
-      AND (array_length(p_equipment, 1) IS NULL OR LOWER(e.equipment) = ANY(p_equipment))
-      AND (array_length(p_level, 1) IS NULL OR LOWER(e.level) = ANY(p_level))
-    GROUP BY e.id, e.name, e.category, e.force, e.level, e.mechanic, e.equipment, e.instructions
+      AND e.created_by IS NULL                              -- only built-in exercises, not user-created ones
+      AND (p_q = '' OR e.name ILIKE '%' || p_q || '%')     -- name filter, skipped if query is empty
+      AND (array_length(p_equipment, 1) IS NULL OR LOWER(e.equipment) = ANY(p_equipment))  -- equipment filter, skipped if array is empty
+      AND (array_length(p_level, 1) IS NULL OR LOWER(e.level) = ANY(p_level))              -- level filter, skipped if array is empty
+    GROUP BY e.id, e.name, e.category, e.force, e.level, e.mechanic, e.equipment, e.instructions  -- group so AGG functions work per exercise
     HAVING (
-        array_length(p_muscle, 1) IS NULL OR
-        BOOL_OR(LOWER(mg.name) = ANY(p_muscle))
+        array_length(p_muscle, 1) IS NULL OR               -- muscle filter goes in HAVING because it depends on the aggregated join
+        BOOL_OR(LOWER(mg.name) = ANY(p_muscle))            -- BOOL_OR checks if any of the exercise's muscles match the filter
     )
     ORDER BY e.name
     LIMIT p_limit;
 $$;
 
--- get_recent_exercises: Returns the most recently used unique exercises for a user
--- Uses DISTINCT ON to keep only the latest occurrence of each exercise_name,
--- ordering by workout created_at DESC so the most recent session wins
+-- get_recent_exercises: most recently used unique exercises for a user, sorted by recency
 CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
 RETURNS TABLE(exercise_id INT, exercise_name TEXT)
 LANGUAGE SQL
 SECURITY DEFINER
 AS $$
-    SELECT DISTINCT ON (we.exercise_name)
-        we.exercise_id,
-        we.exercise_name
-    FROM workout_exercises we
-    JOIN workouts w USING (workout_id)
-    WHERE w.uid = p_uid
-      AND w.completed = true
-    ORDER BY we.exercise_name, w.created_at DESC, we.exercise_order ASC
+    SELECT exercise_id, exercise_name
+    FROM (
+        SELECT DISTINCT ON (we.exercise_name)  -- one row per exercise, keeping the newest session
+            we.exercise_id,
+            we.exercise_name,
+            w.created_at
+        FROM workout_exercises we
+        JOIN workouts w USING (workout_id)
+        WHERE w.uid = p_uid
+          AND w.completed = true
+        ORDER BY we.exercise_name, w.created_at DESC, we.exercise_order ASC  -- DESC so DISTINCT ON picks the latest
+    ) sub
+    ORDER BY sub.created_at DESC  -- re-sort after dedup since DISTINCT ON does not preserve recency order
     LIMIT p_limit;
 $$;
