@@ -23,6 +23,7 @@ class Workout extends StatefulWidget {
 class _WorkoutState extends State<Workout> {
   late final VoidCallback _colorListener;
   bool _loading = false;
+  List<Map<String, dynamic>> _recentWorkouts = [];
 
   @override
   void initState() {
@@ -42,9 +43,15 @@ class _WorkoutState extends State<Workout> {
         if (mounted) setState(() => _loading = false);
       });
     }
+    if (!isGuest) _fetchRecentWorkouts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
+  }
+
+  Future<void> _fetchRecentWorkouts() async {
+    final workouts = await userManager.fetchRecentWorkouts();
+    if (mounted) setState(() => _recentWorkouts = workouts);
   }
 
   Widget _animate(Widget child, Duration delay) {
@@ -237,11 +244,17 @@ class _WorkoutState extends State<Workout> {
     }
   }
 
+  String _formatDuration(int seconds) {
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    if (h > 0) return '${h}h ${m}m';
+    return '${m}m';
+  }
+
   Widget _buildRecentWorkoutsCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-    // TODO: load from backend once workout logging is implemented
-    const List<Map<String, dynamic>> recentWorkouts = [];
+    final recentWorkouts = _recentWorkouts;
 
     return frostedGlassCard(
       context,
@@ -315,7 +328,7 @@ class _WorkoutState extends State<Workout> {
                           ),
                         ),
                         Text(
-                          '${w['duration_minutes']} min',
+                          _formatDuration(w['duration_seconds'] as int? ?? 0),
                           style: GoogleFonts.manrope(
                             color: dim,
                             fontSize: Responsive.font(context, 11),

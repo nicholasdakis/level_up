@@ -1376,4 +1376,22 @@ class UserDataManager {
       if (kDebugMode) debugPrint('claimAdXp failed: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchRecentWorkouts() async {
+    try {
+      final response = await authenticatedGet(
+        'get_recent_workouts',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['workouts'] as List)
+            .map((w) => Map<String, dynamic>.from(w as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchRecentWorkouts failed: $e');
+    }
+    return [];
+  }
 }
