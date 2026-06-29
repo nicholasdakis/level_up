@@ -302,29 +302,48 @@ class _WorkoutState extends State<Workout> {
                 ],
               ),
             )
-          : Column(
-              children: [
-                for (final w in recentWorkouts)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.height(context, 6),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+          : ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.30,
+              ),
+              child: ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (final w in recentWorkouts)
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.height(context, 6),
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                w['name'] as String? ?? 'Workout',
-                                style: GoogleFonts.manrope(
-                                  color: accent,
-                                  fontSize: Responsive.font(context, 13),
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      w['name'] as String? ?? 'Workout',
+                                      style: GoogleFonts.manrope(
+                                        color: accent,
+                                        fontSize: Responsive.font(context, 13),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      w['date'] as String? ?? '',
+                                      style: GoogleFonts.manrope(
+                                        color: dim,
+                                        fontSize: Responsive.font(context, 11),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               Text(
-                                w['date'] as String? ?? '',
+                                _formatDuration(
+                                  w['duration_seconds'] as int? ?? 0,
+                                ),
                                 style: GoogleFonts.manrope(
                                   color: dim,
                                   fontSize: Responsive.font(context, 11),
@@ -333,17 +352,10 @@ class _WorkoutState extends State<Workout> {
                             ],
                           ),
                         ),
-                        Text(
-                          _formatDuration(w['duration_seconds'] as int? ?? 0),
-                          style: GoogleFonts.manrope(
-                            color: dim,
-                            fontSize: Responsive.font(context, 11),
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-              ],
+                ),
+              ),
             ),
     );
   }
