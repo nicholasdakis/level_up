@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '/globals.dart';
+import '/guest.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
+import '/services/user_data_manager.dart';
 import 'exercise_picker_screen.dart';
 
 class ActiveWorkoutScreen extends StatefulWidget {
@@ -205,6 +209,140 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     return result == true;
   }
 
+  Future<void> _finishWorkout() async {
+    // require at least one checked set before saving
+    if (_completedSets == 0) {
+      showFrostedAlertDialog<void>(
+        context: context,
+        title: 'No sets logged',
+        content: Text(
+          'Check off at least one set before finishing.',
+          style: GoogleFonts.manrope(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: Text('OK', style: dialogButtonStyle(confirm: true)),
+          ),
+        ],
+      );
+      return;
+    }
+
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+
+    final durationSeconds = _stopwatch.elapsed.inSeconds;
+    final date = DateTime.now();
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+    // build the exercises list with only checked sets that have real values
+    final exercises = <Map<String, dynamic>>[];
+    for (int i = 0; i < _exercises.length; i++) {
+      final ex = _exercises[i];
+      final checkedSets = <Map<String, dynamic>>[];
+      final sets = ex['sets'] as List;
+      for (int s = 0; s < sets.length; s++) {
+        if (!_isChecked(i, s)) continue;
+        // read from controllers in case onChanged never fired (e.g. user typed then tapped check)
+        final reps =
+            int.tryParse(_ctrl(i, s, 'reps').text) ??
+            (sets[s] as Map)['reps'] as int?;
+        final weight =
+            double.tryParse(_ctrl(i, s, 'weight').text) ??
+            (sets[s] as Map)['weight_kg'] as double?;
+        // skip sets with no meaningful data
+        if ((reps == null || reps == 0) && (weight == null || weight == 0))
+          continue;
+        checkedSets.add({
+          'set_number': s + 1,
+          'reps': reps,
+          'weight_kg': weight,
+        });
+      }
+      if (checkedSets.isEmpty) continue;
+      exercises.add({
+        'exercise_id': ex['id'],
+        'exercise_name': _cleanName(ex['name'] as String? ?? ''),
+        'sets': checkedSets,
+      });
+    }
+
+    if (exercises.isEmpty) {
+      showFrostedAlertDialog<void>(
+        context: context,
+        title: 'No valid sets',
+        content: Text(
+          'Enter reps or weight for at least one checked set.',
+          style: GoogleFonts.manrope(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: Text('OK', style: dialogButtonStyle(confirm: true)),
+          ),
+        ],
+      );
+      return;
+    }
+
+    try {
+      final response = await authenticatedPost(
+        'log_workout',
+        body: {
+          'name': widget.routine?['name'],
+          'date': dateStr,
+          'duration_seconds': durationSeconds,
+          'exercises': exercises,
+        },
+        timeout: const Duration(seconds: 10),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        // compute volume from the clean exercises list since the in-memory set maps
+        // may not have been updated if onChanged never fired before the user tapped check
+        double totalVolumeKg = 0;
+        int totalSets = 0;
+        for (final ex in exercises) {
+          for (final s in ex['sets'] as List) {
+            totalVolumeKg +=
+                ((s['reps'] as int? ?? 0) * (s['weight_kg'] as double? ?? 0.0));
+            totalSets++;
+          }
+        }
+        context.pushReplacement(
+          '/workout/finish',
+          extra: <String, dynamic>{
+            'workout_id': data['workout_id'],
+            'duration_seconds': durationSeconds,
+            'total_volume_kg': totalVolumeKg,
+            'completed_sets': totalSets,
+            'exercises': exercises,
+          },
+        );
+      } else {
+        _showSnackbar('Failed to save workout. Try again.');
+      }
+    } catch (_) {
+      if (mounted) _showSnackbar('No connection. Workout not saved.');
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.manrope()),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _openExercisePicker() {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -394,9 +532,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           ),
           SizedBox(width: Responsive.width(context, 12)),
           GestureDetector(
-            onTap: () {
-              /* TODO: finish and save workout */
-            },
+            onTap: _finishWorkout,
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 18),

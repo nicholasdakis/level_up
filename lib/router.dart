@@ -23,6 +23,7 @@ import 'screens/progression.dart';
 import 'screens/explore.dart';
 import 'screens/workout.dart';
 import 'screens/active_workout_screen.dart';
+import 'screens/finish_workout_screen.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
@@ -192,6 +193,27 @@ final GoRouter appRouter = GoRouter(
                     key: state.pageKey,
                     child: const ActiveWorkoutScreen(),
                   ),
+                ),
+                GoRoute(
+                  path: 'finish',
+                  parentNavigatorKey: _rootNavKey,
+                  redirect: (context, state) =>
+                      state.extra == null ? '/workout' : null,
+                  pageBuilder: (context, state) {
+                    final p = state.extra as Map<String, dynamic>;
+                    return _slideUpPage(
+                      key: state.pageKey,
+                      child: FinishWorkoutScreen(
+                        workoutId: p['workout_id'] as String,
+                        durationSeconds: p['duration_seconds'] as int,
+                        totalVolumeKg: (p['total_volume_kg'] as num).toDouble(),
+                        completedSets: p['completed_sets'] as int,
+                        exercises: (p['exercises'] as List)
+                            .map((e) => Map<String, dynamic>.from(e as Map))
+                            .toList(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
