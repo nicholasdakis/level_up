@@ -321,6 +321,13 @@ class GetTodayOverviewResponse(BaseModel):
     primary_muscles: list[str]
     secondary_muscles: list[str]
 
+class HeatmapDay(BaseModel):
+    date: str
+    count: int
+
+class GetWorkoutHeatmapResponse(BaseModel):
+    days: list[HeatmapDay]
+
 class RecentExerciseItem(BaseModel):
     exercise_id: int | None = None
     exercise_name: str

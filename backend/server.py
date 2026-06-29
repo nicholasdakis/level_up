@@ -73,6 +73,8 @@ from backend.schemas import (
     GetRecentWorkoutsResponse,
     GetWeeklyWorkoutCountResponse,
     GetTodayOverviewResponse,
+    GetWorkoutHeatmapResponse,
+    HeatmapDay,
     RecentWorkoutItem,
     RecentExerciseItem,
     GetRecentExercisesResponse,
@@ -1065,6 +1067,16 @@ def get_recent_exercises():
     return jsonify(GetRecentExercisesResponse(
         exercises=[RecentExerciseItem(**e) for e in exercises]
     ).model_dump()), 200
+
+@app.route("/get_workout_heatmap", methods=["GET"])
+def get_workout_heatmap():
+    # Returns workout counts per day for the last 16 weeks for the heatmap grid
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    days = workout_service.get_workout_heatmap(uid)
+    return jsonify(GetWorkoutHeatmapResponse(days=[HeatmapDay(**d) for d in days]).model_dump()), 200
+
 
 @app.route("/get_today_overview", methods=["GET"])
 def get_today_overview():

@@ -42,6 +42,9 @@ class WorkoutService:
         # Returns the most recently used unique exercises across all of the user's sessions
         return self._repo.get_recent_exercises(uid)
 
+    def get_workout_heatmap(self, uid: str) -> list[dict]:
+        return self._repo.get_workout_heatmap(uid)
+
     def get_today_overview(self, uid: str) -> dict:
         return self._repo.get_today_overview(uid)
 

@@ -416,6 +416,21 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
+    def get_workout_heatmap(self, uid: str, weeks: int = 16) -> list[dict]:
+        from datetime import date, timedelta
+        since = (date.today() - timedelta(weeks=weeks)).isoformat()
+        rows = self._supabase.table("workouts") \
+            .select("date") \
+            .eq("uid", uid) \
+            .eq("completed", True) \
+            .gte("date", since) \
+            .execute().data or []
+        counts: dict[str, int] = {}
+        for row in rows:
+            d = row["date"]
+            counts[d] = counts.get(d, 0) + 1
+        return [{"date": d, "count": c} for d, c in sorted(counts.items())]
+
     def get_today_overview(self, uid: str) -> dict:
         from datetime import date
         today = date.today().isoformat()
