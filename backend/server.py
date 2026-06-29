@@ -68,6 +68,10 @@ from backend.schemas import (
     ClaimReferralRewardRequest,
     ClaimReferralRewardResponse,
     SearchExercisesResponse,
+    LogWorkoutRequest,
+    LogWorkoutResponse,
+    GetRecentWorkoutsResponse,
+    RecentWorkoutItem,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -1026,6 +1030,32 @@ def search_exercises():
 
     results = workout_service.search_exercises(q=q, equipment=equipment, muscle=muscle, level=level)
     return jsonify([SearchExercisesResponse(**r).model_dump() for r in results]), 200
+
+
+@app.route("/log_workout", methods=["POST"])
+def log_workout():
+    # Called when the user taps Finish on the active workout screen
+    # Inserts workouts, workout_exercises, and workout_sets rows and returns the generated workout_id
+    uid, body, err = _parse_and_auth(LogWorkoutRequest)
+    if err:
+        return err
+    result = workout_service.log_workout(
+        uid=uid,
+        name=body.name,
+        date=body.date,
+        duration_seconds=body.duration_seconds,
+        exercises=[ex.model_dump() for ex in body.exercises],
+    )
+    return jsonify(LogWorkoutResponse(**result).model_dump()), 200
+
+@app.route("/get_recent_workouts", methods=["GET"])
+def get_recent_workouts():
+    # Returns the 10 most recently completed sessions for the workout tab history card
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    workouts = workout_service.get_recent_workouts(uid)
+    return jsonify(GetRecentWorkoutsResponse(workouts=[RecentWorkoutItem(**w) for w in workouts]).model_dump()), 200
 
 
 if __name__ == "__main__": # Only run when the application starts

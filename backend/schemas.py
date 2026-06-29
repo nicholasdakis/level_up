@@ -280,6 +280,35 @@ class GetStreaksResponse(BaseModel):
 
 class ReferralCodeResponse(BaseModel):
     referral_code: str
+class LoggedSetRequest(BaseModel):
+    set_number: int
+    reps: int | None = None
+    weight_kg: float | None = None
+
+class LoggedExerciseRequest(BaseModel):
+    exercise_id: int | None = None
+    exercise_name: str
+    sets: list[LoggedSetRequest]
+
+class LogWorkoutRequest(BaseModel):
+    name: str | None = None
+    date: str = Field(..., min_length=1)          # "YYYY-MM-DD"
+    duration_seconds: int = Field(..., ge=0)
+    exercises: list[LoggedExerciseRequest]
+
+class LogWorkoutResponse(BaseModel):
+    workout_id: str
+
+class RecentWorkoutItem(BaseModel):
+    workout_id: str
+    name: str | None = None
+    date: str
+    duration_seconds: int | None = None
+    created_at: str
+
+class GetRecentWorkoutsResponse(BaseModel):
+    workouts: list[RecentWorkoutItem]
+
 class SearchExercisesResponse(BaseModel):
     id: int
     name: str

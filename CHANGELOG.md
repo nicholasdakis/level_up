@@ -2308,3 +2308,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Used a Postgres RPC for exercises search so the muscle group JOIN runs server-side in one query instead of fetching all rows and filtering in Python
 - Wired the search bar in the frontend to the backend route
 - Removed the search button from the exercises search bar and added a debouncer
+- Added /log_workout and /get_recent_workouts backend routes with WorkoutService and WorkoutRepository implementations
+- /log_workout inserts into workouts, workout_exercises, and workout_sets in sequence and returns the workout_id
+- /get_recent_workouts returns the user's 10 most recent completed sessions ordered by date
+- Added LogWorkoutRequest, LogWorkoutResponse, GetRecentWorkoutsResponse, and RecentWorkoutItem schemas

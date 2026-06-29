@@ -211,7 +211,7 @@ CREATE TABLE workouts (
     uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
     name TEXT,                              -- optional name (e.g. "Push Day")
     date DATE NOT NULL,
-    duration_minutes INTEGER,               -- total session duration
+    duration_seconds INTEGER,               -- total session duration
     notes TEXT,
     completed BOOLEAN DEFAULT true,         -- false if the session was abandoned mid-workout
     created_at TIMESTAMPTZ DEFAULT NOW()
