@@ -388,7 +388,7 @@ class WorkoutRepository:
             ex_row = self._supabase.table("workout_exercises").insert({
                 "workout_id": workout_id,
                 "exercise_id": ex.get("exercise_id"),
-                "exercise_name": ex["exercise_name"],  # cached at log time so name survives exercise deletion
+                "exercise_name": re.sub(r'\s*\(.*?\)\s*$', '', ex["exercise_name"]).strip(),
                 "exercise_order": order,
             }).execute().data[0]
             workout_exercise_id = ex_row["workout_exercise_id"]

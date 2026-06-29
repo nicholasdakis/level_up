@@ -2324,3 +2324,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added workoutLogNotifier to globals so the workout tab refreshes its recent sessions list immediately after a workout is saved
 - Added /get_recent_exercises backend route backed by a Postgres DISTINCT ON query that returns the user's most recently used unique exercises ordered by last session date
 - Exercise picker now shows a RECENTLY USED section before the search results when the user has prior workout history
+- Added the option to delete, reorder, and replace exercises

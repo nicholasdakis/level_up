@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -37,6 +38,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   // which sets are checked off
   final Map<String, bool> _checked = {};
+
+  bool _reordering = false;
 
   // rest timer state
   int? _restSeconds;
@@ -108,7 +111,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           ...ex,
           'sets': List.generate(
             defaultSets,
-            (_) => {
+            (_) => <String, dynamic>{
               'reps': ex['default_reps'],
               'weight_kg': ex['default_weight_kg'],
             },
@@ -418,6 +421,110 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
   }
 
+  void _replaceExercise(int exIndex) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            ExercisePickerScreen(
+              onExerciseSelected: (ex) {
+                setState(() {
+                  final existingSets = _exercises[exIndex]['sets'];
+                  _exercises[exIndex] = {
+                    ...ex,
+                    'name': ex['name'] ?? ex['exercise_name'] ?? '',
+                    'sets': existingSets,
+                  };
+                });
+              },
+            ),
+        transitionsBuilder: (_, animation, secondaryAnimation, child) =>
+            SlideTransition(
+              position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+                  .chain(CurveTween(curve: Curves.easeOutCubic))
+                  .animate(animation),
+              child: child,
+            ),
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
+  }
+
+  void _showExerciseMenu(
+    BuildContext context,
+    int exIndex,
+    Color accent,
+    Color dim,
+  ) async {
+    final name = _cleanName(_exercises[exIndex]['name'] as String? ?? '');
+
+    Widget menuItem(IconData icon, String label, String value, {Color? color}) {
+      final c = color ?? accent;
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context, rootNavigator: true).pop(value),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 14),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: c, size: Responsive.scale(context, 20)),
+              SizedBox(width: Responsive.width(context, 14)),
+              Text(
+                label,
+                style: GoogleFonts.manrope(
+                  color: c,
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final result = await showFrostedDialog<String>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 15),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          Divider(color: Colors.white.withAlpha(15), height: 1),
+          menuItem(Icons.swap_horiz_rounded, 'Replace', 'replace'),
+          Divider(color: Colors.white.withAlpha(15), height: 1),
+          menuItem(Icons.swap_vert_rounded, 'Reorder', 'reorder'),
+          Divider(color: Colors.white.withAlpha(15), height: 1),
+          menuItem(
+            Icons.delete_outline_rounded,
+            'Remove',
+            'remove',
+            color: Colors.redAccent.shade100,
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == 'replace') {
+      _replaceExercise(exIndex);
+    } else if (result == 'reorder') {
+      HapticFeedback.mediumImpact();
+      setState(() => _reordering = true);
+    } else if (result == 'remove') {
+      _removeExercise(exIndex);
+    }
+  }
+
   void _openExercisePicker() {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -429,7 +536,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                     ...ex,
                     'name': ex['name'] ?? ex['exercise_name'] ?? '',
                     'sets': [
-                      {'reps': null, 'weight_kg': null},
+                      <String, dynamic>{'reps': null, 'weight_kg': null},
                     ],
                   });
                 });
@@ -490,22 +597,73 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       decoration: BoxDecoration(color: bg),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context, accent, dim, volDisplay, volUnit),
-              Container(height: 1, color: Colors.white.withAlpha(15)),
-              Expanded(
-                child: ScrollConfiguration(
-                  behavior: NoGlowScrollBehavior(),
-                  child: ListView(
-                    padding: EdgeInsets.only(
-                      bottom: Responsive.height(context, 8),
-                    ),
-                    children: [
-                      if (_exercises.isEmpty)
-                        _buildEmptyState(context, accent, dim)
-                      else
+        body: Material(
+          color: Colors.transparent,
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context, accent, dim, volDisplay, volUnit),
+                Container(height: 1, color: Colors.white.withAlpha(15)),
+                Expanded(
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: ReorderableListView(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 8),
+                      ),
+                      buildDefaultDragHandles: false,
+                      proxyDecorator: (child, index, animation) => child,
+                      onReorder: _reordering
+                          ? (oldIndex, newIndex) {
+                              setState(() {
+                                if (newIndex > oldIndex) newIndex--;
+                                final oldOrder = List.of(_exercises);
+                                final ex = _exercises.removeAt(oldIndex);
+                                _exercises.insert(newIndex, ex);
+                                final newControllers =
+                                    <String, TextEditingController>{};
+                                final newChecked = <String, bool>{};
+                                for (
+                                  int newI = 0;
+                                  newI < _exercises.length;
+                                  newI++
+                                ) {
+                                  final oldI = oldOrder.indexOf(
+                                    _exercises[newI],
+                                  );
+                                  final sets =
+                                      (_exercises[newI]['sets'] as List).length;
+                                  for (int s = 0; s < sets; s++) {
+                                    for (final field in ['reps', 'weight']) {
+                                      final oldKey = '${oldI}_${s}_$field';
+                                      final newKey = '${newI}_${s}_$field';
+                                      if (_controllers.containsKey(oldKey)) {
+                                        newControllers[newKey] =
+                                            _controllers[oldKey]!;
+                                      }
+                                    }
+                                    final oldCheckedKey = '${oldI}_$s';
+                                    if (_checked.containsKey(oldCheckedKey)) {
+                                      newChecked['${newI}_$s'] =
+                                          _checked[oldCheckedKey]!;
+                                    }
+                                  }
+                                }
+                                _controllers
+                                  ..clear()
+                                  ..addAll(newControllers);
+                                _checked
+                                  ..clear()
+                                  ..addAll(newChecked);
+                              });
+                            }
+                          : (oldI, newI) {},
+                      children: [
+                        if (_exercises.isEmpty && !_reordering)
+                          KeyedSubtree(
+                            key: const ValueKey('empty'),
+                            child: _buildEmptyState(context, accent, dim),
+                          ),
                         for (int i = 0; i < _exercises.length; i++)
                           _buildExerciseSection(
                             context,
@@ -513,13 +671,38 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                             accent,
                             dim,
                             isImperial,
+                            key: ValueKey(i),
                           ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildBottomBar(context, accent, dim),
-            ],
+                if (_reordering)
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() => _reordering = false);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      color: appColorNotifier.value.withAlpha(60),
+                      child: Text(
+                        'Done Reordering',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColorNotifier.value, 0.45),
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                _buildBottomBar(context, accent, dim),
+              ],
+            ),
           ),
         ),
       ),
@@ -760,8 +943,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     int exIndex,
     Color accent,
     Color dim,
-    bool isImperial,
-  ) {
+    bool isImperial, {
+    Key? key,
+  }) {
     final ex = _exercises[exIndex];
     final sets = ex['sets'] as List;
     final name = _cleanName(ex['name'] as String? ?? '');
@@ -777,7 +961,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         ? accent.withAlpha(160)
         : accent;
 
-    return Padding(
+    final card = Padding(
       padding: EdgeInsets.only(
         left: hPad,
         right: hPad,
@@ -790,35 +974,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // exercise name, long press to remove
+            // header row — long press enters reorder mode
             GestureDetector(
               onLongPress: () {
                 HapticFeedback.mediumImpact();
-                showFrostedAlertDialog<bool>(
-                  context: context,
-                  title: 'Remove "$name"?',
-                  content: Text(
-                    'This exercise and all its sets will be removed.',
-                    style: GoogleFonts.manrope(color: Colors.white70),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.of(context, rootNavigator: true).pop(false),
-                      child: Text('Cancel', style: dialogButtonStyle()),
-                    ),
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.of(context, rootNavigator: true).pop(true),
-                      child: Text(
-                        'Remove',
-                        style: dialogButtonStyle(confirm: true),
-                      ),
-                    ),
-                  ],
-                ).then((confirmed) {
-                  if (confirmed == true) _removeExercise(exIndex);
-                });
+                setState(() => _reordering = true);
               },
               behavior: HitTestBehavior.opaque,
               child: Padding(
@@ -852,103 +1012,161 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.more_vert_rounded,
-                      color: Colors.white.withAlpha(40),
-                      size: Responsive.scale(context, 18),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: _reordering
+                          ? Icon(
+                              Icons.drag_handle_rounded,
+                              key: const ValueKey('drag'),
+                              color: Colors.white.withAlpha(60),
+                              size: Responsive.scale(context, 20),
+                            )
+                          : Builder(
+                              key: const ValueKey('menu'),
+                              builder: (btnContext) => GestureDetector(
+                                onTap: () => _showExerciseMenu(
+                                  btnContext,
+                                  exIndex,
+                                  accent,
+                                  dim,
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 4),
+                                  ),
+                                  child: Icon(
+                                    Icons.more_vert_rounded,
+                                    color: Colors.white.withAlpha(40),
+                                    size: Responsive.scale(context, 18),
+                                  ),
+                                ),
+                              ),
+                            ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // column headers
-            Padding(
-              padding: EdgeInsets.only(
-                left: Responsive.width(context, 16),
-                right: Responsive.width(context, 16),
-                bottom: Responsive.height(context, 6),
-              ),
-              child: Row(
-                children: [
-                  _headerCell(
-                    context,
-                    'SET',
-                    width: Responsive.width(context, 28),
-                  ),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  _headerExpanded(context, 'PREVIOUS'),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  _headerExpanded(context, weightUnit.toUpperCase()),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  _headerExpanded(context, 'REPS'),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  SizedBox(width: Responsive.scale(context, 28)),
-                ],
-              ),
-            ),
-
-            Container(height: 1, color: Colors.white.withAlpha(8)),
-
-            // set rows, capped at ~5 visible rows, scrollable beyond that
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: Responsive.height(context, 36) * 5,
-              ),
-              child: ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      for (int s = 0; s < sets.length; s++)
-                        _buildSetRow(
-                          context,
-                          exIndex,
-                          s,
-                          accent,
-                          dim,
-                          isImperial,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // add set
-            GestureDetector(
-              onTap: () =>
-                  setState(() => sets.add({'reps': null, 'weight_kg': null})),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 9),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            // body collapses in reorder mode
+            Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.add_rounded,
-                      color: dim,
-                      size: Responsive.scale(context, 16),
+                    // column headers
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: Responsive.width(context, 16),
+                        right: Responsive.width(context, 16),
+                        bottom: Responsive.height(context, 6),
+                      ),
+                      child: Row(
+                        children: [
+                          _headerCell(
+                            context,
+                            'SET',
+                            width: Responsive.width(context, 28),
+                          ),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          _headerExpanded(context, 'PREVIOUS'),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          _headerExpanded(context, weightUnit.toUpperCase()),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          _headerExpanded(context, 'REPS'),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          SizedBox(width: Responsive.scale(context, 28)),
+                        ],
+                      ),
                     ),
-                    SizedBox(width: Responsive.width(context, 4)),
-                    Text(
-                      'Add Set',
-                      style: GoogleFonts.manrope(
-                        color: dim,
-                        fontSize: Responsive.font(context, 13),
-                        fontWeight: FontWeight.w600,
+
+                    Container(height: 1, color: Colors.white.withAlpha(8)),
+
+                    // set rows
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: Responsive.height(context, 36) * 5,
+                      ),
+                      child: ScrollConfiguration(
+                        behavior: NoGlowScrollBehavior(),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              for (int s = 0; s < sets.length; s++)
+                                _buildSetRow(
+                                  context,
+                                  exIndex,
+                                  s,
+                                  accent,
+                                  dim,
+                                  isImperial,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // add set
+                    GestureDetector(
+                      onTap: () => setState(
+                        () => sets.add(<String, dynamic>{
+                          'reps': null,
+                          'weight_kg': null,
+                        }),
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(context, 9),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_rounded,
+                              color: dim,
+                              size: Responsive.scale(context, 16),
+                            ),
+                            SizedBox(width: Responsive.width(context, 4)),
+                            Text(
+                              'Add Set',
+                              style: GoogleFonts.manrope(
+                                color: dim,
+                                fontSize: Responsive.font(context, 13),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
+                )
+                .animate(target: _reordering ? 1 : 0)
+                .fadeOut(duration: 250.ms, curve: Curves.easeOutCubic)
+                .custom(
+                  duration: 250.ms,
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) => ClipRect(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      heightFactor: 1 - value,
+                      child: child,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ],
         ),
       ),
     );
+
+    if (_reordering) {
+      return ReorderableDragStartListener(
+        key: key,
+        index: exIndex,
+        child: card,
+      );
+    }
+    return KeyedSubtree(key: key, child: card);
   }
 
   Widget _headerCell(
