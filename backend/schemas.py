@@ -309,6 +309,9 @@ class RecentWorkoutItem(BaseModel):
 class GetRecentWorkoutsResponse(BaseModel):
     workouts: list[RecentWorkoutItem]
 
+class GetWeeklyWorkoutCountResponse(BaseModel):
+    count: int
+
 class RecentExerciseItem(BaseModel):
     exercise_id: int | None = None
     exercise_name: str

@@ -1395,6 +1395,22 @@ class UserDataManager {
     return [];
   }
 
+  Future<int> fetchWeeklyWorkoutCount() async {
+    try {
+      final response = await authenticatedGet(
+        'get_weekly_workout_count',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['count'] as int? ?? 0;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchWeeklyWorkoutCount failed: $e');
+    }
+    return 0;
+  }
+
   Future<List<Map<String, dynamic>>> fetchRecentWorkouts() async {
     try {
       final response = await authenticatedGet(

@@ -2325,3 +2325,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added /get_recent_exercises backend route backed by a Postgres DISTINCT ON query that returns the user's most recently used unique exercises ordered by last session date
 - Exercise picker now shows a RECENTLY USED section before the search results when the user has prior workout history
 - Added the option to delete, reorder, and replace exercises
+- Added /get_weekly_workout_count backend route that counts completed workouts since the most recent Monday
+- Weekly goal card on the workout tab now shows the real workout count for the current week

@@ -24,6 +24,7 @@ class _WorkoutState extends State<Workout> {
   late final VoidCallback _colorListener;
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
+  int _weeklyWorkoutCount = 0;
 
   @override
   void initState() {
@@ -44,19 +45,27 @@ class _WorkoutState extends State<Workout> {
         if (mounted) setState(() => _loading = false);
       });
     }
-    if (!isGuest) _fetchRecentWorkouts();
+    if (!isGuest) _fetchData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
   }
 
   void _onWorkoutLogged() {
-    if (!isGuest) _fetchRecentWorkouts();
+    if (!isGuest) _fetchData();
   }
 
-  Future<void> _fetchRecentWorkouts() async {
-    final workouts = await userManager.fetchRecentWorkouts();
-    if (mounted) setState(() => _recentWorkouts = workouts);
+  Future<void> _fetchData() async {
+    final results = await Future.wait([
+      userManager.fetchRecentWorkouts(),
+      userManager.fetchWeeklyWorkoutCount(),
+    ]);
+    if (mounted) {
+      setState(() {
+        _recentWorkouts = results[0] as List<Map<String, dynamic>>;
+        _weeklyWorkoutCount = results[1] as int;
+      });
+    }
   }
 
   Widget _animate(Widget child, Duration delay) {
@@ -79,8 +88,7 @@ class _WorkoutState extends State<Workout> {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
     final int weeklyGoal = currentUserData?.weeklyWorkoutsGoal ?? 5;
-    const int workoutsThisWeek =
-        0; // TODO: load from backend once workout logging is implemented
+    final int workoutsThisWeek = _weeklyWorkoutCount;
 
     final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
     return GestureDetector(
@@ -134,6 +142,14 @@ class _WorkoutState extends State<Workout> {
                 valueColor: AlwaysStoppedAnimation<Color>(
                   lightenColor(appColorNotifier.value, 0.4),
                 ),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 6)),
+            Text(
+              'Resets every Monday',
+              style: GoogleFonts.manrope(
+                color: Colors.white.withAlpha(50),
+                fontSize: Responsive.font(context, 10),
               ),
             ),
           ],

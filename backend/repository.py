@@ -416,6 +416,18 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
+    def get_weekly_workout_count(self, uid: str) -> int:
+        from datetime import date, timedelta
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())  # most recent Monday
+        result = self._supabase.table("workouts") \
+            .select("workout_id", count="exact") \
+            .eq("uid", uid) \
+            .eq("completed", True) \
+            .gte("date", week_start.isoformat()) \
+            .execute()
+        return result.count or 0
+
     def get_recent_exercises(self, uid: str, limit: int = 25) -> list[dict]:
         # DISTINCT ON keeps the latest occurrence of each exercise_name across all sessions
         result = self._supabase.rpc("get_recent_exercises", {

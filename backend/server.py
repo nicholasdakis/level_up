@@ -71,6 +71,7 @@ from backend.schemas import (
     LogWorkoutRequest,
     LogWorkoutResponse,
     GetRecentWorkoutsResponse,
+    GetWeeklyWorkoutCountResponse,
     RecentWorkoutItem,
     RecentExerciseItem,
     GetRecentExercisesResponse,
@@ -1063,6 +1064,16 @@ def get_recent_exercises():
     return jsonify(GetRecentExercisesResponse(
         exercises=[RecentExerciseItem(**e) for e in exercises]
     ).model_dump()), 200
+
+@app.route("/get_weekly_workout_count", methods=["GET"])
+def get_weekly_workout_count():
+    # Returns the number of completed workouts since the most recent Monday
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    count = workout_service.get_weekly_workout_count(uid)
+    return jsonify(GetWeeklyWorkoutCountResponse(count=count).model_dump()), 200
+
 
 @app.route("/get_recent_workouts", methods=["GET"])
 def get_recent_workouts():
