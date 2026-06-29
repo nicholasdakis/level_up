@@ -281,20 +281,20 @@ class GetStreaksResponse(BaseModel):
 class ReferralCodeResponse(BaseModel):
     referral_code: str
 class LoggedSetRequest(BaseModel):
-    set_number: int
-    reps: int | None = None
-    weight_kg: float | None = None
+    set_number: int = Field(..., ge=1)
+    reps: int | None = Field(default=None, ge=0)        # null for timed/cardio exercises
+    weight_kg: float | None = Field(default=None, ge=0) # null for bodyweight exercises
 
 class LoggedExerciseRequest(BaseModel):
-    exercise_id: int | None = None
-    exercise_name: str
+    exercise_id: int | None = None                      # null if the exercise was deleted from the library after the session started
+    exercise_name: str = Field(..., min_length=1)
     sets: list[LoggedSetRequest]
 
 class LogWorkoutRequest(BaseModel):
-    name: str | None = None
-    date: str = Field(..., min_length=1)          # "YYYY-MM-DD"
+    name: str | None = None                             # null for empty sessions not started from a routine
+    date: str = Field(..., min_length=1)                # "YYYY-MM-DD"
     duration_seconds: int = Field(..., ge=0)
-    exercises: list[LoggedExerciseRequest]
+    exercises: list[LoggedExerciseRequest] = Field(..., min_length=1)  # must have at least one exercise
 
 class LogWorkoutResponse(BaseModel):
     workout_id: str

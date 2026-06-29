@@ -1039,13 +1039,16 @@ def log_workout():
     uid, body, err = _parse_and_auth(LogWorkoutRequest)
     if err:
         return err
-    result = workout_service.log_workout(
-        uid=uid,
-        name=body.name,
-        date=body.date,
-        duration_seconds=body.duration_seconds,
-        exercises=[ex.model_dump() for ex in body.exercises],
-    )
+    try:
+        result = workout_service.log_workout(
+            uid=uid,
+            name=body.name,
+            date=body.date,
+            duration_seconds=body.duration_seconds,
+            exercises=[ex.model_dump() for ex in body.exercises],
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     return jsonify(LogWorkoutResponse(**result).model_dump()), 200
 
 @app.route("/get_recent_workouts", methods=["GET"])
