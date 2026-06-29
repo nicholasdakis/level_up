@@ -245,6 +245,8 @@ CREATE TABLE workout_templates (
     template_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,  -- owner of the template
     name TEXT NOT NULL,
+    is_public BOOLEAN DEFAULT false,                            -- true if shared publicly for others to discover and copy
+    created_by TEXT REFERENCES users(uid) ON DELETE SET NULL,  -- original creator if this was copied from another user's routine
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

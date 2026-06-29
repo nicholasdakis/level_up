@@ -367,6 +367,20 @@ class UserRepository:
             return result.data[0]
         return None
 
+class WorkoutRepository:
+    def __init__(self, supabase: Client):
+        self._supabase = supabase
+
+    def search_exercises(self, q: str, equipment: list[str], muscle: list[str], level: list[str], limit: int = 30) -> list[dict]:
+        result = self._supabase.rpc("search_exercises", {
+            "p_q": q,
+            "p_equipment": [e.lower() for e in equipment],
+            "p_muscle": [m.lower() for m in muscle],
+            "p_level": [l.lower() for l in level],
+            "p_limit": limit,
+        }).execute()
+        return result.data or []
+
 class AchievementRepository: # Repository class to handle all Postgres operations related to achievements
 
     def __init__(self, supabase: Client):

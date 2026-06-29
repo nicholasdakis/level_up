@@ -14,8 +14,9 @@ from firebase_admin import credentials as firebase_credentials
 from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
-from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository
+from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository, WorkoutRepository
 from backend.services import ProgressionService, FoodService, POIService, SnapshotService
+from backend.services.workout_service import WorkoutService
 from backend.schemas import (
     DailyRewardResponse,
     ProgressResponse,
@@ -66,6 +67,7 @@ from backend.schemas import (
     UseReferralResponse,
     ClaimReferralRewardRequest,
     ClaimReferralRewardResponse,
+    SearchExercisesResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -95,6 +97,8 @@ progression_service = ProgressionService(user_repo, reminder_repo, achievement_r
 food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET)
 poi_service = POIService()
 snapshot_service = SnapshotService(user_repo)
+workout_repo = WorkoutRepository(supabase_client)
+workout_service = WorkoutService(workout_repo)
 
 # Initialize Firebase Admin SDK for FCM (for notifications)
 if not firebase_admin._apps:
@@ -1007,6 +1011,21 @@ def unity_ssv():
     except Exception as e:
         logger.error(f"[unity_ssv] Error: {e}")
         return jsonify({"error": "Internal error"}), 500
+
+
+@app.route("/search_exercises", methods=["GET"])
+def search_exercises():
+    _, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    q = request.args.get("q", "").strip()
+    equipment = [e for e in request.args.get("equipment", "").split(",") if e]
+    muscle = [m for m in request.args.get("muscle", "").split(",") if m]
+    level = [l for l in request.args.get("level", "").split(",") if l]
+
+    results = workout_service.search_exercises(q=q, equipment=equipment, muscle=muscle, level=level)
+    return jsonify([SearchExercisesResponse(**r).model_dump() for r in results]), 200
 
 
 if __name__ == "__main__": # Only run when the application starts

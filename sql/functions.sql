@@ -580,3 +580,55 @@ BEGIN
     WHERE uid = p_uid;
 END
 $$ LANGUAGE plpgsql;
+
+-- search_exercises: Searches the public exercise library by name, equipment, muscle, and level
+-- Muscle filter uses a join so it runs in SQL rather than filtering in Python after fetching
+CREATE OR REPLACE FUNCTION search_exercises(
+    p_q TEXT DEFAULT '',
+    p_equipment TEXT[] DEFAULT '{}',
+    p_muscle TEXT[] DEFAULT '{}',
+    p_level TEXT[] DEFAULT '{}',
+    p_limit INT DEFAULT 30
+)
+RETURNS TABLE (
+    id INT,
+    name TEXT,
+    category TEXT,
+    force TEXT,
+    level TEXT,
+    mechanic TEXT,
+    equipment TEXT,
+    instructions TEXT[],
+    primary_muscle TEXT,
+    secondary_muscles TEXT[]
+)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT
+        e.id,
+        e.name,
+        e.category,
+        e.force,
+        e.level,
+        e.mechanic,
+        e.equipment,
+        e.instructions,
+        MAX(CASE WHEN em.muscle_type = 'primary' THEN mg.name END) AS primary_muscle,
+        ARRAY_REMOVE(ARRAY_AGG(DISTINCT CASE WHEN em.muscle_type = 'secondary' THEN mg.name END), NULL) AS secondary_muscles
+    FROM exercises e
+    LEFT JOIN exercise_muscles em ON em.exercise_id = e.id
+    LEFT JOIN muscle_groups mg ON mg.id = em.muscle_id
+    WHERE e.is_public = true
+      AND e.created_by IS NULL
+      AND (p_q = '' OR e.name ILIKE '%' || p_q || '%')
+      AND (array_length(p_equipment, 1) IS NULL OR LOWER(e.equipment) = ANY(p_equipment))
+      AND (array_length(p_level, 1) IS NULL OR LOWER(e.level) = ANY(p_level))
+    GROUP BY e.id, e.name, e.category, e.force, e.level, e.mechanic, e.equipment, e.instructions
+    HAVING (
+        array_length(p_muscle, 1) IS NULL OR
+        BOOL_OR(LOWER(mg.name) = ANY(p_muscle))
+    )
+    ORDER BY e.name
+    LIMIT p_limit;
+$$;

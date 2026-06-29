@@ -60,7 +60,6 @@ class ExercisePickerScreen extends StatefulWidget {
 class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   late final VoidCallback _colorListener;
   final TextEditingController _searchController = TextEditingController();
-  Timer? _debounce;
   Timer? _searchHintTimer;
 
   List<Map<String, dynamic>> _results = [];
@@ -84,13 +83,11 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
     _searchController.dispose();
-    _debounce?.cancel();
     _searchHintTimer?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged(String value) {
-    _debounce?.cancel();
     _searchHintTimer?.cancel();
     if (_showSearchHint) setState(() => _showSearchHint = false);
     if (value.trim().isEmpty) {
@@ -100,7 +97,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 300), _search);
+    // after 3s of typing without tapping Search, shimmer the button as a nudge
     _searchHintTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && !_isLoading) setState(() => _showSearchHint = true);
     });
@@ -157,6 +154,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
     Set<String> current,
     void Function(Set<String>) onSelect,
   ) async {
+    // copy current so dialog-local state doesn't mutate the parent set until Apply is tapped
     Set<String> selected = Set.from(current);
     await showFrostedDialog(
       context: context,
@@ -264,6 +262,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
         },
       ),
     );
+    // re-run search after dialog closes so new filter selection takes effect
     _search();
   }
 
@@ -295,6 +294,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                 letterSpacing: 0.8,
               ),
             ),
+            // show the selected value if one, "Multiple" if several, or "All"
+            // if none selected or every option is selected (equivalent to no filter)
             Text(
               selected.isEmpty
                   ? 'All'

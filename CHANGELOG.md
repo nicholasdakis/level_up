@@ -2303,3 +2303,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a routine parameter to the workout screen to know when an empty workout vs a routine has been chosen
 - Added a skeletonizer to the workout tab so it waits for data to be ready
 - Made the workout tab cards animate into view like the home screen does
+- Added backend route for search_exercises with new workout service and workout repo classes
+- Added created_by and is_public columns to workout_templates in preparation for sharing user-generated routines
+- Used a Postgres RPC for exercises search so the muscle group JOIN runs server-side in one query instead of fetching all rows and filtering in Python
+- Wired the search bar in the frontend to the backend route

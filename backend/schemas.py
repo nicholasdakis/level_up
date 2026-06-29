@@ -280,3 +280,14 @@ class GetStreaksResponse(BaseModel):
 
 class ReferralCodeResponse(BaseModel):
     referral_code: str
+class SearchExercisesResponse(BaseModel):
+    id: int
+    name: str
+    category: str | None = None
+    force: str | None = None
+    level: str | None = None
+    mechanic: str | None = None
+    equipment: str | None = None
+    instructions: list[str] = Field(default_factory=list)
+    primary_muscle: str | None = None
+    secondary_muscles: list[str] = Field(default_factory=list)
