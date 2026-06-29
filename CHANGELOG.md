@@ -2329,3 +2329,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Weekly goal card on the workout tab now shows the real workout count for the current week
 - Added /get_today_overview backend route returning today's total volume, exercises, sets, reps, duration, and muscles worked
 - Replaced the Lifts card on the workout tab with a Today overview card showing all five stats and muscle chips
+- Added /get_workout_heatmap backend route returning workout counts per day for the last 16 weeks
+- Built a GitHub-style activity heatmap on the workout tab showing workout frequency by day with month labels, a Less/More legend, and a frosted glass tooltip on tap/hover

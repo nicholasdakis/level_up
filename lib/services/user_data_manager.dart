@@ -1393,6 +1393,23 @@ class UserDataManager {
     return [];
   }
 
+  Future<Map<String, int>> fetchWorkoutHeatmap() async {
+    try {
+      final response = await authenticatedGet(
+        'get_workout_heatmap',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final days = data['days'] as List;
+        return {for (final d in days) d['date'] as String: d['count'] as int};
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchWorkoutHeatmap failed: $e');
+    }
+    return {};
+  }
+
   Future<Map<String, dynamic>> fetchTodayOverview() async {
     try {
       final response = await authenticatedGet(

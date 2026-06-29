@@ -25,6 +25,8 @@ class _WorkoutState extends State<Workout> {
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
   int _weeklyWorkoutCount = 0;
+  Map<String, int> _heatmap = {};
+  OverlayEntry? _heatmapTooltip;
   Map<String, dynamic> _todayOverview = {
     'volume_kg': 0.0,
     'exercises': 0,
@@ -60,6 +62,97 @@ class _WorkoutState extends State<Workout> {
     });
   }
 
+  void _dismissHeatmapTooltip() {
+    _heatmapTooltip?.remove();
+    _heatmapTooltip = null;
+  }
+
+  void _showHeatmapTooltip(
+    BuildContext cellContext,
+    String dateStr,
+    int count,
+  ) {
+    _dismissHeatmapTooltip();
+    final box = cellContext.findRenderObject() as RenderBox;
+    final offset = box.localToGlobal(Offset.zero);
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+
+    final parts = dateStr.split('-');
+    final dt = DateTime(
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      int.parse(parts[2]),
+    );
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final label = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    final countLabel = count == 0
+        ? 'No workouts'
+        : count == 1
+        ? '1 workout'
+        : '$count workouts';
+
+    _heatmapTooltip = OverlayEntry(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _dismissHeatmapTooltip,
+        child: Stack(
+          children: [
+            Positioned(
+              left: (offset.dx - 40).clamp(
+                8.0,
+                MediaQuery.of(context).size.width - 130,
+              ),
+              top: offset.dy - 52,
+              child: Material(
+                color: Colors.transparent,
+                child: frostedGlassCard(
+                  context,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        countLabel,
+                        style: GoogleFonts.manrope(color: dim, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    Overlay.of(cellContext).insert(_heatmapTooltip!);
+  }
+
   void _onWorkoutLogged() {
     if (!isGuest) _fetchData();
   }
@@ -69,12 +162,14 @@ class _WorkoutState extends State<Workout> {
       userManager.fetchRecentWorkouts(),
       userManager.fetchWeeklyWorkoutCount(),
       userManager.fetchTodayOverview(),
+      userManager.fetchWorkoutHeatmap(),
     ]);
     if (mounted) {
       setState(() {
         _recentWorkouts = results[0] as List<Map<String, dynamic>>;
         _weeklyWorkoutCount = results[1] as int;
         _todayOverview = results[2] as Map<String, dynamic>;
+        _heatmap = results[3] as Map<String, int>;
       });
     }
   }
@@ -792,6 +887,215 @@ class _WorkoutState extends State<Workout> {
     );
   }
 
+  Widget _buildHeatmapCard(BuildContext context) {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    const int weeks = 16;
+    const int daysPerWeek = 7;
+    final today = DateTime.now();
+    final startDate = today.subtract(
+      Duration(days: today.weekday - 1 + (weeks - 1) * 7),
+    );
+
+    const double cellGap = 4;
+    const double dayLabelWidth = 16;
+    const List<String> dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const List<String> monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    Color cellColor(int count, bool isFuture) {
+      if (isFuture || count == 0) return Colors.white.withAlpha(18);
+      if (count == 1) return accent.withAlpha(80);
+      if (count == 2) return accent.withAlpha(150);
+      return accent.withAlpha(230);
+    }
+
+    return frostedGlassCard(
+      context,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 16),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double gridWidth =
+              constraints.maxWidth - dayLabelWidth - cellGap;
+          final double cellSize = (gridWidth - cellGap * (weeks - 1)) / weeks;
+
+          Widget legendCell(int alpha) => Container(
+            width: Responsive.scale(context, 12),
+            height: Responsive.scale(context, 12),
+            decoration: BoxDecoration(
+              color: alpha == 0
+                  ? Colors.white.withAlpha(18)
+                  : accent.withAlpha(alpha),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          );
+
+          // build month labels, show month name at the first week of each new month
+          final List<Widget> monthLabels = [];
+          for (int w = 0; w < weeks; w++) {
+            final date = startDate.add(Duration(days: w * 7));
+            final isFirstWeekOfMonth = date.day <= 7;
+            monthLabels.add(
+              SizedBox(
+                width: cellSize + (w < weeks - 1 ? cellGap : 0),
+                child: isFirstWeekOfMonth
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          monthNames[date.month - 1],
+                          style: GoogleFonts.manrope(
+                            color: Colors.white.withAlpha(120),
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // month labels row
+              Row(
+                children: [
+                  SizedBox(width: dayLabelWidth + cellGap),
+                  ...monthLabels,
+                ],
+              ),
+              SizedBox(height: 2),
+              // grid
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // day labels
+                  Column(
+                    children: [
+                      for (int d = 0; d < daysPerWeek; d++)
+                        SizedBox(
+                          height: cellSize + cellGap,
+                          width: dayLabelWidth,
+                          child: Text(
+                            dayLabels[d],
+                            style: GoogleFonts.manrope(
+                              color: Colors.white.withAlpha(120),
+                              fontSize: Responsive.font(context, 10),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(width: cellGap),
+                  // week columns
+                  for (int w = 0; w < weeks; w++)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        right: w < weeks - 1 ? cellGap : 0,
+                      ),
+                      child: Column(
+                        children: [
+                          for (int d = 0; d < daysPerWeek; d++)
+                            Builder(
+                              builder: (context) {
+                                final date = startDate.add(
+                                  Duration(days: w * 7 + d),
+                                );
+                                final dateStr =
+                                    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+                                final count = _heatmap[dateStr] ?? 0;
+                                final isFuture = date.isAfter(today);
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: d < daysPerWeek - 1 ? cellGap : 0,
+                                  ),
+                                  child: MouseRegion(
+                                    onEnter: (_) => _showHeatmapTooltip(
+                                      context,
+                                      dateStr,
+                                      count,
+                                    ),
+                                    onExit: (_) => _dismissHeatmapTooltip(),
+                                    child: GestureDetector(
+                                      onTap: () => _showHeatmapTooltip(
+                                        context,
+                                        dateStr,
+                                        count,
+                                      ),
+                                      child: Container(
+                                        width: cellSize,
+                                        height: cellSize,
+                                        decoration: BoxDecoration(
+                                          color: cellColor(count, isFuture),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+              Row(
+                children: [
+                  SizedBox(width: dayLabelWidth + cellGap),
+                  Text(
+                    'Less',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white.withAlpha(120),
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(width: cellGap * 2),
+                  legendCell(0),
+                  SizedBox(width: cellGap),
+                  legendCell(80),
+                  SizedBox(width: cellGap),
+                  legendCell(150),
+                  SizedBox(width: cellGap),
+                  legendCell(230),
+                  SizedBox(width: cellGap * 2),
+                  Text(
+                    'More',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white.withAlpha(120),
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -836,6 +1140,9 @@ class _WorkoutState extends State<Workout> {
                     SizedBox(height: Responsive.height(context, 20)),
                     sectionHeader("TODAY'S OVERVIEW", context),
                     _animate(_buildLiftsCard(context), 300.ms),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("ACTIVITY HEATMAP", context),
+                    _animate(_buildHeatmapCard(context), 360.ms),
                     SizedBox(height: Responsive.height(context, 120)),
                   ],
                 ),
