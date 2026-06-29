@@ -2312,3 +2312,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - /log_workout inserts into workouts, workout_exercises, and workout_sets in sequence and returns the workout_id
 - /get_recent_workouts returns the user's 10 most recent completed sessions ordered by date
 - Added LogWorkoutRequest, LogWorkoutResponse, GetRecentWorkoutsResponse, and RecentWorkoutItem schemas
+
+## 2026-06-29
+- Wired the Finish button to POST to /log_workout with all checked sets that have real values
+- Added a name prompt on Finish so users can label their session before it is saved
+- Built the finish workout summary screen showing duration, volume, sets, and a per-exercise set breakdown
+- Added workoutLogNotifier to globals so the workout tab refreshes its recent sessions list immediately after a workout is saved without needing a manual refresh or navigation lifecycle hacks

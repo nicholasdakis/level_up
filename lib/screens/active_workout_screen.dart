@@ -29,6 +29,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   late final List<Map<String, dynamic>> _exercises;
 
+  // user-defined session name, defaults to null (shown as "Workout" in history)
+  String? _workoutName;
+
   // controllers keyed by "exIndex_setIndex_field" so they survive rebuilds
   final Map<String, TextEditingController> _controllers = {};
 
@@ -234,6 +237,76 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       return;
     }
 
+    // prompt for a name before saving
+    final nameCtrl = TextEditingController(
+      text: _workoutName ?? widget.routine?['name'] as String? ?? '',
+    );
+    final confirmedName = await showFrostedDialog<String>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Name this workout',
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 16),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          TextField(
+            controller: nameCtrl,
+            autofocus: true,
+            maxLength: 40,
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 15),
+            ),
+            decoration: InputDecoration(
+              hintText: 'e.g. Push Day',
+              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              counterStyle: GoogleFonts.manrope(
+                color: Colors.white38,
+                fontSize: Responsive.font(context, 10),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: appColorNotifier.value.withAlpha(200),
+                ),
+              ),
+            ),
+            cursorColor: lightenColor(appColorNotifier.value, 0.45),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(null),
+                child: Text('Cancel', style: dialogButtonStyle()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(nameCtrl.text.trim()),
+                child: Text('Save', style: dialogButtonStyle(confirm: true)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    nameCtrl.dispose();
+    if (confirmedName == null) return; // user tapped Cancel
+    _workoutName = confirmedName.isEmpty ? null : confirmedName;
+
     final durationSeconds = _stopwatch.elapsed.inSeconds;
     final date = DateTime.now();
     final dateStr =
@@ -255,8 +328,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             double.tryParse(_ctrl(i, s, 'weight').text) ??
             (sets[s] as Map)['weight_kg'] as double?;
         // skip sets with no meaningful data
-        if ((reps == null || reps == 0) && (weight == null || weight == 0))
+        if ((reps == null || reps == 0) && (weight == null || weight == 0)) {
           continue;
+        }
         checkedSets.add({
           'set_number': s + 1,
           'reps': reps,
@@ -293,7 +367,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       final response = await authenticatedPost(
         'log_workout',
         body: {
-          'name': widget.routine?['name'],
+          'name': _workoutName ?? widget.routine?['name'],
           'date': dateStr,
           'duration_seconds': durationSeconds,
           'exercises': exercises,
@@ -304,6 +378,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
+        workoutLogNotifier.value++;
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         // compute volume from the clean exercises list since the in-memory set maps
         // may not have been updated if onChanged never fired before the user tapped check
@@ -450,6 +525,76 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
   }
 
+  Future<void> _renameWorkout() async {
+    final ctrl = TextEditingController(text: _workoutName);
+    final result = await showFrostedDialog<String>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Name this workout',
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 16),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          TextField(
+            controller: ctrl,
+            autofocus: true,
+            maxLength: 40,
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColorNotifier.value, 0.45),
+              fontSize: Responsive.font(context, 15),
+            ),
+            decoration: InputDecoration(
+              hintText: 'e.g. Push Day',
+              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              counterStyle: GoogleFonts.manrope(
+                color: Colors.white38,
+                fontSize: Responsive.font(context, 10),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: appColorNotifier.value.withAlpha(200),
+                ),
+              ),
+            ),
+            cursorColor: lightenColor(appColorNotifier.value, 0.45),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context, rootNavigator: true).pop(null),
+                child: Text('Cancel', style: dialogButtonStyle()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(ctrl.text.trim()),
+                child: Text('Save', style: dialogButtonStyle(confirm: true)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (result != null && mounted) {
+      setState(() => _workoutName = result.isEmpty ? null : result);
+    }
+  }
+
   Widget _buildHeader(
     BuildContext context,
     Color accent,
@@ -466,28 +611,43 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _durationLabel,
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 28),
-                    fontWeight: FontWeight.w800,
-                    height: 1.0,
-                  ),
-                ),
-                if (widget.routine != null)
+            child: GestureDetector(
+              onTap: _renameWorkout,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    widget.routine!['name'] as String? ?? '',
+                    _durationLabel,
                     style: GoogleFonts.manrope(
-                      color: dim,
-                      fontSize: Responsive.font(context, 11),
+                      color: accent,
+                      fontSize: Responsive.font(context, 28),
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
                     ),
                   ),
-              ],
+                  Row(
+                    children: [
+                      Text(
+                        _workoutName ??
+                            widget.routine?['name'] as String? ??
+                            'Tap to name',
+                        style: GoogleFonts.manrope(
+                          color: _workoutName != null ? dim : Colors.white24,
+                          fontSize: Responsive.font(context, 11),
+                        ),
+                      ),
+                      SizedBox(width: Responsive.width(context, 4)),
+                      Icon(
+                        Icons.edit_rounded,
+                        color: Colors.white24,
+                        size: Responsive.scale(context, 10),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           // stats column, rest timer appears as a third line when active

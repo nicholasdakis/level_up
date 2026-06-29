@@ -37,6 +37,7 @@ class _WorkoutState extends State<Workout> {
     };
     appColorNotifier.addListener(_colorListener);
     userDataNotifier.addListener(_colorListener);
+    workoutLogNotifier.addListener(_onWorkoutLogged);
     if (!isGuest && currentUserData == null) {
       _loading = true;
       userManager.loadUserData().then((_) {
@@ -47,6 +48,10 @@ class _WorkoutState extends State<Workout> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
+  }
+
+  void _onWorkoutLogged() {
+    if (!isGuest) _fetchRecentWorkouts();
   }
 
   Future<void> _fetchRecentWorkouts() async {
@@ -66,6 +71,7 @@ class _WorkoutState extends State<Workout> {
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
     userDataNotifier.removeListener(_colorListener);
+    workoutLogNotifier.removeListener(_onWorkoutLogged);
     super.dispose();
   }
 

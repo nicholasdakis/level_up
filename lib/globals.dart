@@ -47,6 +47,9 @@ ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 // incremented each time a food is logged so home screen can refresh
 ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
 
+// incremented each time a workout is saved so the workout tab can refresh recent sessions
+ValueNotifier<int> workoutLogNotifier = ValueNotifier<int>(0);
+
 // updated by the JS visualViewport resize listener so dialogs shift up on iOS PWA keyboard open
 ValueNotifier<double> viewportHeightNotifier = ValueNotifier<double>(0);
 
@@ -1028,7 +1031,9 @@ class _OnboardingHintState extends State<OnboardingHint>
               right: Responsive.width(context, 16),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: Responsive.desktopContentMaxWidth),
+                  constraints: const BoxConstraints(
+                    maxWidth: Responsive.desktopContentMaxWidth,
+                  ),
                   child: tooltip,
                 ),
               ),
