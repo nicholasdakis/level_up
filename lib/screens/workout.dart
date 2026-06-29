@@ -631,9 +631,16 @@ class _WorkoutState extends State<Workout> {
     final List<String> secondaryMuscles = List<String>.from(
       _todayOverview['secondary_muscles'] as List? ?? [],
     );
-    final String volumeDisplay = isImperial
-        ? '${UnitConverter.displayWeight(volumeKg, imperial: true)} lbs'
-        : '${volumeKg.toStringAsFixed(0)} kg';
+    final String volumeUnit = isImperial ? 'lbs' : 'kg';
+    String formatVolume(double kg) {
+      final double val = isImperial
+          ? double.parse(UnitConverter.displayWeight(kg, imperial: true))
+          : kg;
+      if (val >= 1000) return '${(val / 1000).toStringAsFixed(1)}k';
+      return val.toStringAsFixed(0);
+    }
+
+    final String volumeDisplay = formatVolume(volumeKg);
     final String durationDisplay = durationSec == 0
         ? '0m'
         : durationSec < 3600
@@ -673,19 +680,69 @@ class _WorkoutState extends State<Workout> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              stat(volumeDisplay, 'volume'),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    volumeDisplay,
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 26),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    'volume ($volumeUnit)',
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(width: Responsive.width(context, 32)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    durationDisplay,
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 26),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    'duration',
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: Responsive.height(context, 14)),
+          Divider(color: Colors.white.withAlpha(15), height: 1, thickness: 1),
+          SizedBox(height: Responsive.height(context, 14)),
+          Row(
+            children: [
               stat('$exercises', 'exercises'),
               stat('$sets', 'sets'),
               stat('$reps', 'reps'),
-              stat(durationDisplay, 'duration'),
             ],
           ),
           if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 12)),
             for (final entry in [
-              if (primaryMuscles.isNotEmpty) ('Primary', primaryMuscles),
-              if (secondaryMuscles.isNotEmpty) ('Secondary', secondaryMuscles),
+              if (primaryMuscles.isNotEmpty)
+                ('Primary muscles worked', primaryMuscles),
+              if (secondaryMuscles.isNotEmpty)
+                ('Secondary muscles worked', secondaryMuscles),
             ]) ...[
               Text(
                 entry.$1,
@@ -715,7 +772,9 @@ class _WorkoutState extends State<Workout> {
                         border: Border.all(color: Colors.white.withAlpha(30)),
                       ),
                       child: Text(
-                        muscle,
+                        muscle.isEmpty
+                            ? muscle
+                            : '${muscle[0].toUpperCase()}${muscle.substring(1)}',
                         style: GoogleFonts.manrope(
                           color: accent,
                           fontSize: Responsive.font(context, 10),
@@ -775,7 +834,7 @@ class _WorkoutState extends State<Workout> {
                     sectionHeader("RECENT WORKOUTS", context),
                     _animate(_buildRecentWorkoutsCard(context), 240.ms),
                     SizedBox(height: Responsive.height(context, 20)),
-                    sectionHeader("TODAY", context),
+                    sectionHeader("TODAY'S OVERVIEW", context),
                     _animate(_buildLiftsCard(context), 300.ms),
                     SizedBox(height: Responsive.height(context, 120)),
                   ],
