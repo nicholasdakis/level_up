@@ -309,6 +309,13 @@ class RecentWorkoutItem(BaseModel):
 class GetRecentWorkoutsResponse(BaseModel):
     workouts: list[RecentWorkoutItem]
 
+class RecentExerciseItem(BaseModel):
+    exercise_id: int | None = None
+    exercise_name: str
+
+class GetRecentExercisesResponse(BaseModel):
+    exercises: list[RecentExerciseItem]
+
 class SearchExercisesResponse(BaseModel):
     id: int
     name: str

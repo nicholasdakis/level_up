@@ -632,3 +632,22 @@ AS $$
     ORDER BY e.name
     LIMIT p_limit;
 $$;
+
+-- get_recent_exercises: Returns the most recently used unique exercises for a user
+-- Uses DISTINCT ON to keep only the latest occurrence of each exercise_name,
+-- ordering by workout created_at DESC so the most recent session wins
+CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
+RETURNS TABLE(exercise_id INT, exercise_name TEXT)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT DISTINCT ON (we.exercise_name)
+        we.exercise_id,
+        we.exercise_name
+    FROM workout_exercises we
+    JOIN workouts w USING (workout_id)
+    WHERE w.uid = p_uid
+      AND w.completed = true
+    ORDER BY we.exercise_name, w.created_at DESC, we.exercise_order ASC
+    LIMIT p_limit;
+$$;

@@ -37,3 +37,7 @@ class WorkoutService:
         # Returns the 10 most recently completed sessions, ordered by created_at so two
         # sessions on the same date are still returned in the correct order
         return self._repo.get_recent_workouts(uid)
+
+    def get_recent_exercises(self, uid: str) -> list[dict]:
+        # Returns the most recently used unique exercises across all of the user's sessions
+        return self._repo.get_recent_exercises(uid)

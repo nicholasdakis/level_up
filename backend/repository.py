@@ -416,6 +416,14 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
+    def get_recent_exercises(self, uid: str, limit: int = 25) -> list[dict]:
+        # DISTINCT ON keeps the latest occurrence of each exercise_name across all sessions
+        result = self._supabase.rpc("get_recent_exercises", {
+            "p_uid": uid,
+            "p_limit": limit,
+        }).execute()
+        return result.data or []
+
     def search_exercises(self, q: str, equipment: list[str], muscle: list[str], level: list[str], limit: int = 30) -> list[dict]:
         result = self._supabase.rpc("search_exercises", {
             "p_q": q,

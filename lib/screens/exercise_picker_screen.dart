@@ -62,6 +62,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   Timer? _debounce;
 
   List<Map<String, dynamic>> _results = [];
+  List<Map<String, dynamic>> _recentExercises = [];
   bool _isLoading = false;
   bool _hasSearched = false;
   Set<String> _selectedEquipment = {};
@@ -75,6 +76,12 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    if (!isGuest) _fetchRecentExercises();
+  }
+
+  Future<void> _fetchRecentExercises() async {
+    final exercises = await userManager.fetchRecentExercises();
+    if (mounted) setState(() => _recentExercises = exercises);
   }
 
   @override
@@ -522,26 +529,30 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                           ),
                         )
                       : !_hasSearched
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedSearch01,
-                                color: Colors.white24,
-                                size: Responsive.scale(context, 40),
-                              ),
-                              SizedBox(height: Responsive.height(context, 12)),
-                              Text(
-                                'Search for an exercise',
-                                style: GoogleFonts.manrope(
-                                  color: dim,
-                                  fontSize: Responsive.font(context, 13),
+                      ? _recentExercises.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedSearch01,
+                                      color: Colors.white24,
+                                      size: Responsive.scale(context, 40),
+                                    ),
+                                    SizedBox(
+                                      height: Responsive.height(context, 12),
+                                    ),
+                                    Text(
+                                      'Search for an exercise',
+                                      style: GoogleFonts.manrope(
+                                        color: dim,
+                                        fontSize: Responsive.font(context, 13),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        )
+                              )
+                            : _buildRecentExercisesList(context, accent, dim)
                       : _results.isEmpty
                       ? Center(
                           child: Text(
@@ -632,6 +643,71 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRecentExercisesList(
+    BuildContext context,
+    Color accent,
+    Color dim,
+  ) {
+    return ScrollConfiguration(
+      behavior: NoGlowScrollBehavior(),
+      child: ListView(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
+            child: Text(
+              'RECENTLY USED',
+              style: GoogleFonts.manrope(
+                color: Colors.white.withAlpha(50),
+                fontSize: Responsive.font(context, 10),
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+          for (int i = 0; i < _recentExercises.length; i++) ...[
+            GestureDetector(
+              onTap: () {
+                widget.onExerciseSelected(_recentExercises[i]);
+                context.pop();
+              },
+              child: frostedGlassCard(
+                context,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 16),
+                  vertical: Responsive.height(context, 14),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        // strip trailing parenthetical suffixes from seeded data e.g. "Box Jump (Multiple Response)" -> "Box Jump"
+                        (_recentExercises[i]['exercise_name'] as String? ?? '')
+                            .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                            .trim(),
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedAddCircle,
+                      color: Colors.white24,
+                      size: Responsive.scale(context, 20),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (i < _recentExercises.length - 1)
+              SizedBox(height: Responsive.height(context, 8)),
+          ],
+        ],
       ),
     );
   }

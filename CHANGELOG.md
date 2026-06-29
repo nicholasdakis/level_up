@@ -2315,6 +2315,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-06-29
 - Wired the Finish button to POST to /log_workout with all checked sets that have real values
+- Empty or zero-value sets are stripped client-side before sending and again server-side as a guard
 - Added a name prompt on Finish so users can label their session before it is saved
 - Built the finish workout summary screen showing duration, volume, sets, and a per-exercise set breakdown
-- Added workoutLogNotifier to globals so the workout tab refreshes its recent sessions list immediately after a workout is saved without needing a manual refresh or navigation lifecycle hacks
+- Added /workout/finish route to the router
+- Wired recent workouts card on the workout dashboard to /get_recent_workouts
+- fetchRecentWorkouts moved into UserDataManager alongside all other backend calls
+- Added workoutLogNotifier to globals so the workout tab refreshes its recent sessions list immediately after a workout is saved
+- Added /get_recent_exercises backend route backed by a Postgres DISTINCT ON query that returns the user's most recently used unique exercises ordered by last session date
+- Exercise picker now shows a RECENTLY USED section before the search results when the user has prior workout history

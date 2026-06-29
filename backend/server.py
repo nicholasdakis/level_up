@@ -72,6 +72,8 @@ from backend.schemas import (
     LogWorkoutResponse,
     GetRecentWorkoutsResponse,
     RecentWorkoutItem,
+    RecentExerciseItem,
+    GetRecentExercisesResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -1050,6 +1052,17 @@ def log_workout():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     return jsonify(LogWorkoutResponse(**result).model_dump()), 200
+
+@app.route("/get_recent_exercises", methods=["GET"])
+def get_recent_exercises():
+    # Returns the user's most recently used unique exercises for the exercise picker's Recent section
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    exercises = workout_service.get_recent_exercises(uid)
+    return jsonify(GetRecentExercisesResponse(
+        exercises=[RecentExerciseItem(**e) for e in exercises]
+    ).model_dump()), 200
 
 @app.route("/get_recent_workouts", methods=["GET"])
 def get_recent_workouts():

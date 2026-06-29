@@ -1377,6 +1377,24 @@ class UserDataManager {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchRecentExercises() async {
+    try {
+      final response = await authenticatedGet(
+        'get_recent_exercises',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['exercises'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchRecentExercises failed: $e');
+    }
+    return [];
+  }
+
   Future<List<Map<String, dynamic>>> fetchRecentWorkouts() async {
     try {
       final response = await authenticatedGet(
