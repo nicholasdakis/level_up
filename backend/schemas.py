@@ -312,6 +312,15 @@ class GetRecentWorkoutsResponse(BaseModel):
 class GetWeeklyWorkoutCountResponse(BaseModel):
     count: int
 
+class GetTodayOverviewResponse(BaseModel):
+    volume_kg: float
+    exercises: int
+    sets: int
+    reps: int
+    duration_seconds: int
+    primary_muscles: list[str]
+    secondary_muscles: list[str]
+
 class RecentExerciseItem(BaseModel):
     exercise_id: int | None = None
     exercise_name: str

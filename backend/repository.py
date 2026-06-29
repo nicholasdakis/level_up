@@ -416,6 +416,68 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
+    def get_today_overview(self, uid: str) -> dict:
+        from datetime import date
+        today = date.today().isoformat()
+        # fetch all completed workouts for today
+        workouts = self._supabase.table("workouts") \
+            .select("workout_id, duration_seconds") \
+            .eq("uid", uid) \
+            .eq("completed", True) \
+            .eq("date", today) \
+            .execute().data or []
+        if not workouts:
+            return {"volume_kg": 0.0, "exercises": 0, "sets": 0, "reps": 0, "duration_seconds": 0, "muscles": []}
+        workout_ids = [w["workout_id"] for w in workouts]
+        duration_seconds = sum(w["duration_seconds"] or 0 for w in workouts)
+        # fetch all exercises logged in those workouts
+        ex_rows = self._supabase.table("workout_exercises") \
+            .select("workout_exercise_id, exercise_id") \
+            .in_("workout_id", workout_ids) \
+            .execute().data or []
+        exercise_count = len(ex_rows)
+        ex_ids = [r["workout_exercise_id"] for r in ex_rows]
+        if not ex_ids:
+            return {"volume_kg": 0.0, "exercises": 0, "sets": 0, "reps": 0, "duration_seconds": duration_seconds, "primary_muscles": [], "secondary_muscles": []}
+        # fetch all sets for those exercises
+        set_rows = self._supabase.table("workout_sets") \
+            .select("reps, weight_kg") \
+            .in_("workout_exercise_id", ex_ids) \
+            .execute().data or []
+        total_sets = len(set_rows)
+        total_reps = sum(s["reps"] or 0 for s in set_rows)
+        total_volume = sum((s["reps"] or 0) * (s["weight_kg"] or 0.0) for s in set_rows)
+        # fetch primary and secondary muscles worked via the exercises table
+        builtin_ex_ids = [r["exercise_id"] for r in ex_rows if r["exercise_id"] is not None]
+        primary_muscles: list[str] = []
+        secondary_muscles: list[str] = []
+        if builtin_ex_ids:
+            muscle_rows = self._supabase.table("exercise_muscles") \
+                .select("muscle_type, muscle_groups(name)") \
+                .in_("exercise_id", builtin_ex_ids) \
+                .execute().data or []
+            seen_primary: set[str] = set()
+            seen_secondary: set[str] = set()
+            for row in muscle_rows:
+                name = (row.get("muscle_groups") or {}).get("name")
+                if not name:
+                    continue
+                if row["muscle_type"] == "primary" and name not in seen_primary:
+                    seen_primary.add(name)
+                    primary_muscles.append(name)
+                elif row["muscle_type"] == "secondary" and name not in seen_secondary:
+                    seen_secondary.add(name)
+                    secondary_muscles.append(name)
+        return {
+            "volume_kg": round(total_volume, 2),
+            "exercises": exercise_count,
+            "sets": total_sets,
+            "reps": total_reps,
+            "duration_seconds": duration_seconds,
+            "primary_muscles": primary_muscles,
+            "secondary_muscles": secondary_muscles,
+        }
+
     def get_weekly_workout_count(self, uid: str) -> int:
         from datetime import date, timedelta
         today = date.today()

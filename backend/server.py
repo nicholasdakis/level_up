@@ -72,6 +72,7 @@ from backend.schemas import (
     LogWorkoutResponse,
     GetRecentWorkoutsResponse,
     GetWeeklyWorkoutCountResponse,
+    GetTodayOverviewResponse,
     RecentWorkoutItem,
     RecentExerciseItem,
     GetRecentExercisesResponse,
@@ -1064,6 +1065,16 @@ def get_recent_exercises():
     return jsonify(GetRecentExercisesResponse(
         exercises=[RecentExerciseItem(**e) for e in exercises]
     ).model_dump()), 200
+
+@app.route("/get_today_overview", methods=["GET"])
+def get_today_overview():
+    # Returns today's workout totals: volume, exercises, sets, reps, duration, muscles worked
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    data = workout_service.get_today_overview(uid)
+    return jsonify(GetTodayOverviewResponse(**data).model_dump()), 200
+
 
 @app.route("/get_weekly_workout_count", methods=["GET"])
 def get_weekly_workout_count():

@@ -1393,6 +1393,29 @@ class UserDataManager {
     return [];
   }
 
+  Future<Map<String, dynamic>> fetchTodayOverview() async {
+    try {
+      final response = await authenticatedGet(
+        'get_today_overview',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchTodayOverview failed: $e');
+    }
+    return {
+      'volume_kg': 0.0,
+      'exercises': 0,
+      'sets': 0,
+      'reps': 0,
+      'duration_seconds': 0,
+      'primary_muscles': [],
+      'secondary_muscles': [],
+    };
+  }
+
   Future<int> fetchWeeklyWorkoutCount() async {
     try {
       final response = await authenticatedGet(

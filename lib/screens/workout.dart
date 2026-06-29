@@ -25,6 +25,15 @@ class _WorkoutState extends State<Workout> {
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
   int _weeklyWorkoutCount = 0;
+  Map<String, dynamic> _todayOverview = {
+    'volume_kg': 0.0,
+    'exercises': 0,
+    'sets': 0,
+    'reps': 0,
+    'duration_seconds': 0,
+    'primary_muscles': [],
+    'secondary_muscles': [],
+  };
 
   @override
   void initState() {
@@ -59,11 +68,13 @@ class _WorkoutState extends State<Workout> {
     final results = await Future.wait([
       userManager.fetchRecentWorkouts(),
       userManager.fetchWeeklyWorkoutCount(),
+      userManager.fetchTodayOverview(),
     ]);
     if (mounted) {
       setState(() {
         _recentWorkouts = results[0] as List<Map<String, dynamic>>;
         _weeklyWorkoutCount = results[1] as int;
+        _todayOverview = results[2] as Map<String, dynamic>;
       });
     }
   }
@@ -608,29 +619,47 @@ class _WorkoutState extends State<Workout> {
   Widget _buildLiftsCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-    // TODO: load from backend
-    const double volumeTodayKg = 0;
     final bool isImperial = UnitConverter.isImperial;
+    final double volumeKg = (_todayOverview['volume_kg'] as num).toDouble();
+    final int exercises = _todayOverview['exercises'] as int? ?? 0;
+    final int sets = _todayOverview['sets'] as int? ?? 0;
+    final int reps = _todayOverview['reps'] as int? ?? 0;
+    final int durationSec = _todayOverview['duration_seconds'] as int? ?? 0;
+    final List<String> primaryMuscles = List<String>.from(
+      _todayOverview['primary_muscles'] as List? ?? [],
+    );
+    final List<String> secondaryMuscles = List<String>.from(
+      _todayOverview['secondary_muscles'] as List? ?? [],
+    );
     final String volumeDisplay = isImperial
-        ? "${UnitConverter.displayWeight(volumeTodayKg, imperial: true)} lbs"
-        : "${volumeTodayKg.toStringAsFixed(0)} kg";
-    final List<String> musclesWorked = []; // TODO: load from backend
+        ? '${UnitConverter.displayWeight(volumeKg, imperial: true)} lbs'
+        : '${volumeKg.toStringAsFixed(0)} kg';
+    final String durationDisplay = durationSec == 0
+        ? '0m'
+        : durationSec < 3600
+        ? '${durationSec ~/ 60}m'
+        : '${durationSec ~/ 3600}h ${(durationSec % 3600) ~/ 60}m';
 
-    Widget actionButton(IconData icon, VoidCallback? onTap) => GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: Responsive.scale(context, 42),
-        height: Responsive.scale(context, 42),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withAlpha(18),
-          border: Border.all(color: Colors.white.withAlpha(40), width: 1),
-        ),
-        child: Icon(
-          HugeIcons.strokeRoundedAnalyticsUp,
-          color: accent,
-          size: Responsive.scale(context, 20),
-        ),
+    Widget stat(String value, String label) => Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 18),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 2)),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              color: dim,
+              fontSize: Responsive.font(context, 10),
+            ),
+          ),
+        ],
       ),
     );
 
@@ -638,89 +667,67 @@ class _WorkoutState extends State<Workout> {
       context,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 14),
+        vertical: Responsive.height(context, 16),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedWeightScale,
-                      color: accent,
-                      size: Responsive.scale(context, 14),
-                    ),
-                    SizedBox(width: Responsive.width(context, 5)),
-                    Text(
-                      "Lifts",
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 11),
-                        fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              stat(volumeDisplay, 'volume'),
+              stat('$exercises', 'exercises'),
+              stat('$sets', 'sets'),
+              stat('$reps', 'reps'),
+              stat(durationDisplay, 'duration'),
+            ],
+          ),
+          if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
+            SizedBox(height: Responsive.height(context, 12)),
+            for (final entry in [
+              if (primaryMuscles.isNotEmpty) ('Primary', primaryMuscles),
+              if (secondaryMuscles.isNotEmpty) ('Secondary', secondaryMuscles),
+            ]) ...[
+              Text(
+                entry.$1,
+                style: GoogleFonts.manrope(
+                  color: Colors.white.withAlpha(50),
+                  fontSize: Responsive.font(context, 10),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 4)),
+              Wrap(
+                spacing: Responsive.width(context, 6),
+                runSpacing: Responsive.height(context, 4),
+                children: [
+                  for (final muscle in entry.$2)
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 8),
+                        vertical: Responsive.height(context, 3),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(18),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 20),
+                        ),
+                        border: Border.all(color: Colors.white.withAlpha(30)),
+                      ),
+                      child: Text(
+                        muscle,
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 10),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: Responsive.height(context, 6)),
-                Text(
-                  volumeDisplay,
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 22),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  "volume today",
-                  style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(context, 11),
-                  ),
-                ),
-                if (musclesWorked.isNotEmpty) ...[
-                  SizedBox(height: Responsive.height(context, 8)),
-                  Wrap(
-                    spacing: Responsive.width(context, 6),
-                    runSpacing: Responsive.height(context, 4),
-                    children: [
-                      for (final muscle in musclesWorked)
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 8),
-                            vertical: Responsive.height(context, 3),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(18),
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 20),
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(30),
-                            ),
-                          ),
-                          child: Text(
-                            muscle,
-                            style: GoogleFonts.manrope(
-                              color: accent,
-                              fontSize: Responsive.font(context, 10),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 ],
-              ],
-            ),
-          ),
-          actionButton(
-            HugeIcons.strokeRoundedAnalyticsUp,
-            null,
-          ), // TODO: analytics
+              ),
+              SizedBox(height: Responsive.height(context, 8)),
+            ],
+          ],
         ],
       ),
     );
@@ -768,7 +775,7 @@ class _WorkoutState extends State<Workout> {
                     sectionHeader("RECENT WORKOUTS", context),
                     _animate(_buildRecentWorkoutsCard(context), 240.ms),
                     SizedBox(height: Responsive.height(context, 20)),
-                    sectionHeader("LOGGING", context),
+                    sectionHeader("TODAY", context),
                     _animate(_buildLiftsCard(context), 300.ms),
                     SizedBox(height: Responsive.height(context, 120)),
                   ],

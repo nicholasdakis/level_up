@@ -2327,3 +2327,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the option to delete, reorder, and replace exercises
 - Added /get_weekly_workout_count backend route that counts completed workouts since the most recent Monday
 - Weekly goal card on the workout tab now shows the real workout count for the current week
+- Added /get_today_overview backend route returning today's total volume, exercises, sets, reps, duration, and muscles worked
+- Replaced the Lifts card on the workout tab with a Today overview card showing all five stats and muscle chips

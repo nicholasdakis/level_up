@@ -42,6 +42,9 @@ class WorkoutService:
         # Returns the most recently used unique exercises across all of the user's sessions
         return self._repo.get_recent_exercises(uid)
 
+    def get_today_overview(self, uid: str) -> dict:
+        return self._repo.get_today_overview(uid)
+
     def get_weekly_workout_count(self, uid: str) -> int:
         # Returns the number of completed workouts since the most recent Monday
         return self._repo.get_weekly_workout_count(uid)
