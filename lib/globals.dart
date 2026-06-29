@@ -335,11 +335,13 @@ Future<T?> showFrostedDialog<T>({
   EdgeInsetsGeometry? padding,
   double baseRadius = 20,
   double maxWidth = 500,
+  Color barrierColor = const Color(0x80000000),
 }) {
   return showDialog<T>(
     context: context,
     useRootNavigator: true,
     barrierDismissible: dismissible,
+    barrierColor: barrierColor,
     builder: (ctx) => PopScope(
       canPop: dismissible,
       child: _FrostedDialogShell(

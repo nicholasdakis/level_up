@@ -2331,3 +2331,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the Lifts card on the workout tab with a Today overview card showing all five stats and muscle chips
 - Added /get_workout_heatmap backend route returning workout counts per day for the last 16 weeks
 - Built a GitHub-style activity heatmap on the workout tab showing workout frequency by day with month labels, a Less/More legend, and a frosted glass tooltip on tap/hover
+- Added /create_custom_exercise, /edit_custom_exercise, and /delete_custom_exercise backend routes for managing user-created exercises
+- Updated the search_exercises Postgres RPC to include the user's own custom exercises alongside built-in ones, and to return an is_custom flag
+- Custom exercises show a three-dot menu in the exercise picker instead of a chevron, opening an Edit or Delete option
+- Edit pre-fills the create dialog with existing values; delete shows a confirmation before removing the exercise
+- Creating a custom exercise immediately selects it and closes the picker

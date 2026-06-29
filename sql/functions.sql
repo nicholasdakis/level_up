@@ -581,8 +581,9 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- search_exercises: searches the public exercise library with optional filters
+-- search_exercises: searches the public exercise library plus the calling user's custom exercises
 CREATE OR REPLACE FUNCTION search_exercises(
+    p_uid TEXT DEFAULT '',        -- uid of the requesting user, used to include their custom exercises
     p_q TEXT DEFAULT '',          -- name search string, empty means no filter
     p_equipment TEXT[] DEFAULT '{}',  -- e.g. '{barbell,dumbbell}', empty means no filter
     p_muscle TEXT[] DEFAULT '{}',     -- e.g. '{chest,triceps}', empty means no filter
@@ -599,7 +600,8 @@ RETURNS TABLE (
     equipment TEXT,
     instructions TEXT[],
     primary_muscle TEXT,
-    secondary_muscles TEXT[]
+    secondary_muscles TEXT[],
+    is_custom BOOLEAN
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -614,12 +616,12 @@ AS $$
         e.equipment,
         e.instructions,
         MAX(CASE WHEN em.muscle_type = 'primary' THEN mg.name END) AS primary_muscle,              -- one primary muscle per exercise
-        ARRAY_REMOVE(ARRAY_AGG(DISTINCT CASE WHEN em.muscle_type = 'secondary' THEN mg.name END), NULL) AS secondary_muscles  -- all secondary muscles as an array, NULLs removed
+        ARRAY_REMOVE(ARRAY_AGG(DISTINCT CASE WHEN em.muscle_type = 'secondary' THEN mg.name END), NULL) AS secondary_muscles,  -- all secondary muscles as an array, NULLs removed
+        bool_or(e.is_custom) AS is_custom
     FROM exercises e
     LEFT JOIN exercise_muscles em ON em.exercise_id = e.id  -- join muscle mappings (may be 0 or many rows per exercise)
     LEFT JOIN muscle_groups mg ON mg.id = em.muscle_id      -- resolve muscle group name from id
-    WHERE e.is_public = true
-      AND e.created_by IS NULL                              -- only built-in exercises, not user-created ones
+    WHERE (e.is_public = true OR (p_uid <> '' AND e.created_by = p_uid))  -- built-in or the user's own custom exercises
       AND (p_q = '' OR e.name ILIKE '%' || p_q || '%')     -- name filter, skipped if query is empty
       AND (array_length(p_equipment, 1) IS NULL OR LOWER(e.equipment) = ANY(p_equipment))  -- equipment filter, skipped if array is empty
       AND (array_length(p_level, 1) IS NULL OR LOWER(e.level) = ANY(p_level))              -- level filter, skipped if array is empty

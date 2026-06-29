@@ -1466,4 +1466,71 @@ class UserDataManager {
     }
     return [];
   }
+
+  Future<Map<String, dynamic>?> createCustomExercise({
+    required String name,
+    String? primaryMuscle,
+    List<String> secondaryMuscles = const [],
+    String? equipment,
+    String? level,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'create_custom_exercise',
+        body: {
+          'name': name,
+          'primary_muscle': primaryMuscle,
+          'secondary_muscles': secondaryMuscles,
+          'equipment': equipment,
+          'level': level,
+        },
+      );
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('createCustomExercise failed: $e');
+    }
+    return null;
+  }
+
+  Future<bool> editCustomExercise({
+    required int exerciseId,
+    required String name,
+    String? primaryMuscle,
+    List<String> secondaryMuscles = const [],
+    String? equipment,
+    String? level,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'edit_custom_exercise',
+        body: {
+          'exercise_id': exerciseId,
+          'name': name,
+          'primary_muscle': primaryMuscle,
+          'secondary_muscles': secondaryMuscles,
+          'equipment': equipment,
+          'level': level,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('editCustomExercise failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> deleteCustomExercise(int exerciseId) async {
+    try {
+      final response = await authenticatedPost(
+        'delete_custom_exercise',
+        body: {'exercise_id': exerciseId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteCustomExercise failed: $e');
+    }
+    return false;
+  }
 }
