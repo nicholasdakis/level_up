@@ -561,18 +561,21 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       raw.replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '').trim();
 
   // borderless bare input, no fill, no border, just the number
-  InputDecoration _fieldDec(String hint) => InputDecoration(
-    border: InputBorder.none,
-    enabledBorder: InputBorder.none,
-    focusedBorder: InputBorder.none,
-    hintText: hint,
-    hintStyle: GoogleFonts.manrope(
-      color: Colors.white.withAlpha(40),
-      fontSize: Responsive.font(context, 15),
-    ),
-    isDense: true,
-    contentPadding: EdgeInsets.zero,
-  );
+  InputDecoration _fieldDec(String hint) {
+    final onCard = cardColors(appColorNotifier.value).onCard;
+    return InputDecoration(
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      hintText: hint,
+      hintStyle: GoogleFonts.manrope(
+        color: onCard.withAlpha(60),
+        fontSize: Responsive.font(context, 15),
+      ),
+      isDense: true,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -583,20 +586,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         : vol.toStringAsFixed(0);
     final String volUnit = isImperial ? 'lbs' : 'kg';
 
-    // ensure background is dark enough for readable text, only darken if the color is mid/light
-    final hsl = HSLColor.fromColor(appColorNotifier.value);
-    final bg = hsl.lightness > 0.25
-        ? darkenColor(
-            appColorNotifier.value,
-            (hsl.lightness - 0.22).clamp(0.0, 0.3),
-          )
-        : appColorNotifier.value;
-
-    // derive text colors from bg so they're always readable above the actual background
-    final accent = lightenColor(bg, 0.45);
-    final dim = lightenColor(bg, 0.35);
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
     return Container(
-      decoration: BoxDecoration(color: bg),
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Material(
@@ -823,15 +816,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                             widget.routine?['name'] as String? ??
                             'Tap to name',
                         style: GoogleFonts.manrope(
-                          color: _workoutName != null ? dim : Colors.white24,
-                          fontSize: Responsive.font(context, 11),
+                          color:
+                              _workoutName != null ||
+                                  widget.routine?['name'] != null
+                              ? dim
+                              : lightenColor(appColorNotifier.value, 0.35),
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       SizedBox(width: Responsive.width(context, 4)),
                       Icon(
                         Icons.edit_rounded,
-                        color: Colors.white24,
-                        size: Responsive.scale(context, 10),
+                        color: lightenColor(appColorNotifier.value, 0.35),
+                        size: Responsive.scale(context, 11),
                       ),
                     ],
                   ),
@@ -974,6 +972,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       child: frostedGlassCard(
         context,
         padding: EdgeInsets.zero,
+        border: Border.all(
+          color: lightenColor(appColorNotifier.value, 0.3).withAlpha(80),
+          width: 1.5,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1021,7 +1023,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           ? Icon(
                               Icons.drag_handle_rounded,
                               key: const ValueKey('drag'),
-                              color: Colors.white.withAlpha(60),
+                              color: cardColors(
+                                appColorNotifier.value,
+                              ).onCard.withAlpha(120),
                               size: Responsive.scale(context, 20),
                             )
                           : Builder(
@@ -1039,7 +1043,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                   ),
                                   child: Icon(
                                     Icons.more_vert_rounded,
-                                    color: Colors.white.withAlpha(40),
+                                    color: cardColors(
+                                      appColorNotifier.value,
+                                    ).onCard.withAlpha(120),
                                     size: Responsive.scale(context, 18),
                                   ),
                                 ),
@@ -1177,13 +1183,14 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     String label, {
     required double width,
   }) {
+    final subtle = cardColors(appColorNotifier.value).onCard.withAlpha(120);
     return SizedBox(
       width: width,
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          color: Colors.white.withAlpha(40),
+          color: subtle,
           fontSize: Responsive.font(context, 10),
           fontWeight: FontWeight.w600,
           letterSpacing: 0.6,
@@ -1193,12 +1200,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Widget _headerExpanded(BuildContext context, String label) {
+    final subtle = cardColors(appColorNotifier.value).onCard.withAlpha(120);
     return Expanded(
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          color: Colors.white.withAlpha(40),
+          color: subtle,
           fontSize: Responsive.font(context, 10),
           fontWeight: FontWeight.w600,
           letterSpacing: 0.6,
@@ -1217,14 +1225,16 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   ) {
     final set = (_exercises[exIndex]['sets'] as List)[setIndex] as Map;
     final checked = _isChecked(exIndex, setIndex);
+    final c = cardColors(appColorNotifier.value);
+    final onCard = c.onCard;
 
     final rowBg = checked
         ? appColorNotifier.value.withAlpha(28)
         : setIndex.isOdd
-        ? Colors.white.withAlpha(4)
+        ? onCard.withAlpha(8)
         : Colors.transparent;
 
-    final numColor = checked ? accent : Colors.white.withAlpha(220);
+    final numColor = onCard.withAlpha(checked ? 255 : 180);
     final numWeight = checked ? FontWeight.w700 : FontWeight.w500;
 
     return AnimatedContainer(
@@ -1243,7 +1253,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               '${setIndex + 1}',
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                color: checked ? accent : Colors.white.withAlpha(50),
+                color: checked ? onCard : onCard.withAlpha(140),
                 fontSize: Responsive.font(context, 13),
                 fontWeight: FontWeight.w700,
               ),
@@ -1256,7 +1266,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               '—',
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                color: Colors.white.withAlpha(30),
+                color: onCard.withAlpha(80),
                 fontSize: Responsive.font(context, 13),
               ),
             ),
@@ -1270,7 +1280,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 decimal: true,
               ),
               textAlign: TextAlign.center,
-              cursorColor: accent,
+              cursorColor: onCard,
               style: GoogleFonts.manrope(
                 color: numColor,
                 fontSize: Responsive.font(context, 15),
@@ -1288,7 +1298,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textAlign: TextAlign.center,
-              cursorColor: accent,
+              cursorColor: onCard,
               style: GoogleFonts.manrope(
                 color: numColor,
                 fontSize: Responsive.font(context, 15),
@@ -1312,15 +1322,16 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               width: Responsive.scale(context, 28),
               height: Responsive.scale(context, 28),
               decoration: BoxDecoration(
-                color: checked
-                    ? appColorNotifier.value.withAlpha(100)
-                    : Colors.white.withAlpha(12),
+                color: checked ? onCard.withAlpha(220) : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
+                border: checked
+                    ? null
+                    : Border.all(color: onCard.withAlpha(80), width: 1.5),
               ),
               child: Icon(
                 Icons.check_rounded,
                 size: Responsive.scale(context, 16),
-                color: checked ? accent : Colors.white.withAlpha(50),
+                color: checked ? appColorNotifier.value : onCard.withAlpha(80),
               ),
             ),
           ),
@@ -1386,16 +1397,23 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             onTap: () async {
               if (await _confirmDiscard()) Navigator.of(context).pop();
             },
-            child: Padding(
+            child: Container(
+              width: double.infinity,
               padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 4),
+                vertical: Responsive.height(context, 13),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.red.withAlpha(30),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.red.withAlpha(80), width: 1.5),
               ),
               child: Text(
                 'Discard Workout',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w500,
+                  color: lightenColor(appColorNotifier.value, 0.45),
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
