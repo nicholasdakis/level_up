@@ -298,7 +298,7 @@ def trigger_reminders():
     send_due_reminders()
     return jsonify({"message": "Reminders checked."}), 200
 
-@app.route("/get_food", methods=["POST"])
+@app.route("/food", methods=["POST"])
 def get_food():
     # Validate request body with the Pydantic schema
     uid, body, err = _parse_and_auth(SearchFoodRequest)
@@ -376,7 +376,7 @@ def get_food():
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route("/get_food_detail", methods=["POST"])
+@app.route("/food_detail", methods=["POST"])
 def get_food_detail():
     uid, body, err = _parse_and_auth(GetFoodDetailRequest)
     if err:
@@ -825,7 +825,7 @@ def get_achievements():
     return jsonify(response.model_dump()), 200
 
 
-@app.route("/get_achievement_defs", methods=["GET"])
+@app.route("/achievement_defs", methods=["GET"])
 def get_achievement_defs():
     # Public endpoint, no auth needed since definitions are the same for all users
     defs = [AchievementDefItem(**{k: v for k, v in d.items() if k != "server_tracked"}) for d in ACHIEVEMENT_DEFINITIONS]
@@ -1092,7 +1092,7 @@ def edit_custom_exercise():
         return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
 
 
-@app.route("/get_my_routines", methods=["GET"])
+@app.route("/my_routines", methods=["GET"])
 def get_my_routines():
     uid, _, err = _parse_and_auth()
     if err:
@@ -1152,7 +1152,7 @@ def log_workout():
         return jsonify({"error": str(e)}), 400
     return jsonify(LogWorkoutResponse(**result).model_dump()), 200
 
-@app.route("/get_recent_exercises", methods=["GET"])
+@app.route("/recent_exercises", methods=["GET"])
 def get_recent_exercises():
     # Returns the user's most recently used unique exercises for the exercise picker's Recent section
     uid, _, err = _parse_and_auth()
@@ -1163,7 +1163,7 @@ def get_recent_exercises():
         exercises=[RecentExerciseItem(**e) for e in exercises]
     ).model_dump()), 200
 
-@app.route("/get_workout_heatmap", methods=["GET"])
+@app.route("/workout_heatmap", methods=["GET"])
 def get_workout_heatmap():
     # Returns workout counts per day for the last 16 weeks for the heatmap grid
     uid, _, err = _parse_and_auth()
@@ -1173,7 +1173,7 @@ def get_workout_heatmap():
     return jsonify(GetWorkoutHeatmapResponse(days=[HeatmapDay(**d) for d in days]).model_dump()), 200
 
 
-@app.route("/get_today_overview", methods=["GET"])
+@app.route("/today_overview", methods=["GET"])
 def get_today_overview():
     # Returns today's workout totals: volume, exercises, sets, reps, duration, muscles worked
     uid, _, err = _parse_and_auth()
@@ -1183,7 +1183,7 @@ def get_today_overview():
     return jsonify(GetTodayOverviewResponse(**data).model_dump()), 200
 
 
-@app.route("/get_weekly_workout_count", methods=["GET"])
+@app.route("/weekly_workout_count", methods=["GET"])
 def get_weekly_workout_count():
     # Returns the number of completed workouts since the most recent Monday
     uid, _, err = _parse_and_auth()
@@ -1193,7 +1193,7 @@ def get_weekly_workout_count():
     return jsonify(GetWeeklyWorkoutCountResponse(count=count).model_dump()), 200
 
 
-@app.route("/get_recent_workouts", methods=["GET"])
+@app.route("/recent_workouts", methods=["GET"])
 def get_recent_workouts():
     # Returns the 10 most recently completed sessions for the workout tab history card
     uid, _, err = _parse_and_auth()

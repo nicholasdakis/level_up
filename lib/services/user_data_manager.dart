@@ -1027,7 +1027,7 @@ class UserDataManager {
   // Searches for food via the backend, which proxies to FatSecret API
   static Future<http.Response> searchFood(String query) async {
     if (isGuest) return http.Response('{"foods": []}', 200);
-    return await authenticatedPost('get_food', body: {'food_name': query});
+    return await authenticatedPost('food', body: {'food_name': query});
   }
 
   // Refreshes all user data from the backend, called on Food Logging tab switch to keep data fresh across devices
@@ -1315,12 +1315,12 @@ class UserDataManager {
   // Fetches the achievement definitions (public, no auth)
   static Future<List<Map<String, dynamic>>> fetchAchievementDefs() async {
     final response = await http
-        .get(Uri.parse('$backendBaseUrl/get_achievement_defs'))
+        .get(Uri.parse('$backendBaseUrl/achievement_defs'))
         .timeout(const Duration(seconds: 5));
 
     if (response.statusCode != 200) {
       throw Exception(
-        'get_achievement_defs failed: ${response.statusCode} ${response.body}',
+        'achievement_defs failed: ${response.statusCode} ${response.body}',
       );
     }
 
@@ -1378,7 +1378,7 @@ class UserDataManager {
   Future<List<Map<String, dynamic>>> fetchRecentExercises() async {
     try {
       final response = await authenticatedGet(
-        'get_recent_exercises',
+        'recent_exercises',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
@@ -1396,7 +1396,7 @@ class UserDataManager {
   Future<Map<String, int>> fetchWorkoutHeatmap() async {
     try {
       final response = await authenticatedGet(
-        'get_workout_heatmap',
+        'workout_heatmap',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
@@ -1413,7 +1413,7 @@ class UserDataManager {
   Future<Map<String, dynamic>> fetchTodayOverview() async {
     try {
       final response = await authenticatedGet(
-        'get_today_overview',
+        'today_overview',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
@@ -1436,7 +1436,7 @@ class UserDataManager {
   Future<int> fetchWeeklyWorkoutCount() async {
     try {
       final response = await authenticatedGet(
-        'get_weekly_workout_count',
+        'weekly_workout_count',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
@@ -1452,7 +1452,7 @@ class UserDataManager {
   Future<List<Map<String, dynamic>>> fetchRecentWorkouts() async {
     try {
       final response = await authenticatedGet(
-        'get_recent_workouts',
+        'recent_workouts',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
@@ -1525,7 +1525,7 @@ class UserDataManager {
   Future<List<Map<String, dynamic>>> fetchMyRoutines() async {
     try {
       final response = await authenticatedGet(
-        'get_my_routines',
+        'my_routines',
         timeout: const Duration(seconds: 8),
       );
       if (response.statusCode == 200) {
