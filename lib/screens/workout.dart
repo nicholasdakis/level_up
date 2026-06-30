@@ -829,54 +829,55 @@ class _WorkoutState extends State<Workout> {
                 for (int i = 0; i < routines.length; i++) ...[
                   if (i > 0)
                     Divider(color: Colors.white.withAlpha(12), height: 1),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () =>
-                        context.push('/workout/active', extra: routines[i]),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: Responsive.height(context, 10),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  routines[i]['name'] as String,
-                                  style: GoogleFonts.manrope(
-                                    color: accent,
-                                    fontSize: Responsive.font(context, 13),
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Responsive.height(context, 10),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                routines[i]['name'] as String,
+                                style: GoogleFonts.manrope(
+                                  color: accent,
+                                  fontSize: Responsive.font(context, 13),
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                Text(
-                                  "${routines[i]['exercise_count']} exercises",
-                                  style: GoogleFonts.manrope(
-                                    color: dim,
-                                    fontSize: Responsive.font(context, 11),
-                                  ),
+                              ),
+                              Text(
+                                "${routines[i]['exercise_count']} exercises",
+                                style: GoogleFonts.manrope(
+                                  color: dim,
+                                  fontSize: Responsive.font(context, 11),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          GestureDetector(
-                            onTap: () => _deleteRoutine(context, routines[i]),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedDelete02,
-                              color: dim,
-                              size: Responsive.scale(context, 18),
-                            ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _deleteRoutine(context, routines[i]),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            color: dim,
+                            size: Responsive.scale(context, 18),
                           ),
-                          SizedBox(width: Responsive.width(context, 10)),
-                          Icon(
+                        ),
+                        SizedBox(width: Responsive.width(context, 10)),
+                        GestureDetector(
+                          onTap: () => context.push(
+                            '/workout/active',
+                            extra: routines[i],
+                          ),
+                          child: Icon(
                             Icons.play_circle_outline_rounded,
                             color: accent,
                             size: Responsive.scale(context, 22),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
