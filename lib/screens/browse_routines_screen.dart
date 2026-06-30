@@ -297,14 +297,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () {},
-                  child: Icon(
-                    Icons.bookmark_add_outlined,
-                    color: subtle,
-                    size: Responsive.scale(context, 18),
-                  ),
-                ),
               ],
             ),
             SizedBox(height: Responsive.height(context, 10)),
@@ -358,6 +350,44 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   fontSize: Responsive.font(context, 9),
                 ),
               ),
+            const Spacer(),
+            SizedBox(height: Responsive.height(context, 10)),
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 10),
+                ),
+                decoration: BoxDecoration(
+                  color: appColorNotifier.value.withAlpha(55),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: appColorNotifier.value.withAlpha(130),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedBookmark02,
+                      color: accent,
+                      size: Responsive.scale(context, 13),
+                    ),
+                    SizedBox(width: Responsive.width(context, 5)),
+                    Text(
+                      'Save This Routine',
+                      style: GoogleFonts.manrope(
+                        color: accent,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -530,14 +560,14 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.bookmark_add_outlined,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedBookmark02,
                     color: accent,
                     size: Responsive.scale(context, 15),
                   ),
                   SizedBox(width: Responsive.width(context, 6)),
                   Text(
-                    'Add to My Routines',
+                    'Save This Routine',
                     style: GoogleFonts.manrope(
                       color: accent,
                       fontSize: Responsive.font(context, 13),
