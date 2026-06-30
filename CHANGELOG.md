@@ -2373,3 +2373,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added WorkoutSessionService: all active workout state (exercises, sets, checked, weights, reps, rest duration, workout name) is now persisted to SharedPreferences on every mutation and survives navigation away from the screen
 - Active workout screen reads and writes through WorkoutSessionService instead of local state; session is cleared on finish or discard
 - Added chevron down button to workout header to dismiss the screen without losing session state
+- Added persistent mini bar above the nav bar while a workout is active: shows workout name, exercise count, and live elapsed timer; tapping it returns to the full workout screen
+- Mini bar can be collapsed to a circular floating button on the left via a compress icon; tapping the dot expands it back
+- Both the mini bar and collapsed dot pulse in scale to signal an active session; dumbbell icon also pulses in opacity
