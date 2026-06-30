@@ -244,10 +244,11 @@ CREATE TABLE workout_sets (
 -- Saved workout templates (reusable routines a user can start from)
 CREATE TABLE workout_templates (
     template_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,  -- owner of the template
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,           -- null for built-in featured routines
     name TEXT NOT NULL,
     is_public BOOLEAN DEFAULT false,                            -- true if shared publicly for others to discover and copy
     created_by TEXT REFERENCES users(uid) ON DELETE SET NULL,  -- original creator if this was copied from another user's routine
+    estimated_duration_minutes INT,                             -- optional duration hint shown on browse screen
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
