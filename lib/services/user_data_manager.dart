@@ -1522,6 +1522,24 @@ class UserDataManager {
     return false;
   }
 
+  Future<List<Map<String, dynamic>>> fetchMyRoutines() async {
+    try {
+      final response = await authenticatedGet(
+        'get_my_routines',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return (data['routines'] as List)
+            .map((r) => Map<String, dynamic>.from(r as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchMyRoutines failed: $e');
+    }
+    return [];
+  }
+
   Future<bool> createRoutine({
     required String name,
     required List<Map<String, dynamic>> exercises,

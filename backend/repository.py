@@ -603,6 +603,40 @@ class WorkoutRepository:
             ]).execute()
         return template_id
 
+    def get_my_routines(self, uid: str) -> list[dict]:
+        # fetch all templates owned by the user, newest first
+        templates = self._supabase.table("workout_templates") \
+            .select("template_id, name, created_at") \
+            .eq("uid", uid) \
+            .order("created_at", desc=True) \
+            .execute().data or []
+        if not templates:
+            return []
+        template_ids = [t["template_id"] for t in templates]
+        # batch-fetch all exercises for those templates in one query
+        ex_rows = self._supabase.table("workout_template_exercises") \
+            .select("template_id, exercise_name, exercise_order") \
+            .in_("template_id", template_ids) \
+            .order("exercise_order") \
+            .execute().data or []
+        # group exercises by template_id to attach them without N+1 queries
+        ex_by_template: dict[str, list[dict]] = {}
+        for ex in ex_rows:
+            tid = ex["template_id"]
+            if tid not in ex_by_template:
+                ex_by_template[tid] = []
+            ex_by_template[tid].append({"exercise_name": ex["exercise_name"], "exercise_order": ex["exercise_order"]})
+        return [
+            {
+                "template_id": t["template_id"],
+                "name": t["name"],
+                "exercise_count": len(ex_by_template.get(t["template_id"], [])),
+                "exercises": ex_by_template.get(t["template_id"], []),
+                "created_at": t["created_at"],
+            }
+            for t in templates
+        ]
+
     def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
         # Verify ownership before deleting
         existing = self._supabase.table("exercises") \

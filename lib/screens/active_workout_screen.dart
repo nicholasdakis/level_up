@@ -109,6 +109,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         final defaultSets = ex['default_sets'] as int? ?? 3;
         return {
           ...ex,
+          // normalize exercise_name to name so the card header renders correctly
+          'name': ex['name'] ?? ex['exercise_name'] ?? '',
           'sets': List.generate(
             defaultSets,
             (_) => <String, dynamic>{

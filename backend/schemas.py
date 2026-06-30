@@ -381,3 +381,17 @@ class CreateRoutineRequest(BaseModel):
 
 class CreateRoutineResponse(BaseModel):
     template_id: str
+
+class MyRoutineExerciseItem(BaseModel):
+    exercise_name: str
+    exercise_order: int
+
+class MyRoutineItem(BaseModel):
+    template_id: str
+    name: str
+    exercise_count: int
+    exercises: list[MyRoutineExerciseItem]
+    created_at: str
+
+class GetMyRoutinesResponse(BaseModel):
+    routines: list[MyRoutineItem]

@@ -24,6 +24,7 @@ class _WorkoutState extends State<Workout> {
   late final VoidCallback _colorListener;
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
+  List<Map<String, dynamic>> _myRoutines = [];
   int _weeklyWorkoutCount = 0;
   Map<String, int> _heatmap = {};
   OverlayEntry? _heatmapTooltip;
@@ -163,6 +164,7 @@ class _WorkoutState extends State<Workout> {
       userManager.fetchWeeklyWorkoutCount(),
       userManager.fetchTodayOverview(),
       userManager.fetchWorkoutHeatmap(),
+      userManager.fetchMyRoutines(),
     ]);
     if (mounted) {
       setState(() {
@@ -170,6 +172,7 @@ class _WorkoutState extends State<Workout> {
         _weeklyWorkoutCount = results[1] as int;
         _todayOverview = results[2] as Map<String, dynamic>;
         _heatmap = results[3] as Map<String, int>;
+        _myRoutines = results[4] as List<Map<String, dynamic>>;
       });
     }
   }
@@ -482,6 +485,88 @@ class _WorkoutState extends State<Workout> {
     );
   }
 
+  void _showNoRoutinesDialog(BuildContext context, Color accent, Color dim) {
+    showFrostedDialog(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Get started',
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 18),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 16)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _onNewRoutine();
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: accent,
+                    size: Responsive.scale(context, 20),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Text(
+                    'Create my own',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(color: Colors.white.withAlpha(12), height: 1),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _onExploreRoutines();
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.explore_outlined,
+                    color: accent,
+                    size: Responsive.scale(context, 20),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Text(
+                    'Browse routines',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onStartWorkout() {
     context.push('/workout/active');
   }
@@ -634,8 +719,7 @@ class _WorkoutState extends State<Workout> {
   Widget _buildMyRoutinesCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-    // TODO: replace with real routines list
-    const List<Map<String, dynamic>> routines = [];
+    final List<Map<String, dynamic>> routines = _myRoutines;
 
     return frostedGlassCard(
       context,
@@ -644,68 +728,90 @@ class _WorkoutState extends State<Workout> {
         vertical: Responsive.height(context, 16),
       ),
       child: routines.isEmpty
-          ? SizedBox(
-              width: double.infinity,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: Responsive.height(context, 8)),
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedFileNotFound,
-                    color: dim,
-                    size: Responsive.scale(context, 32),
-                  ),
-                  SizedBox(height: Responsive.height(context, 10)),
-                  Text(
-                    "No routines yet",
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 13),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 4)),
-                  Text(
-                    "Create your first routine to stay on track",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
+          ? GestureDetector(
+              onTap: () => _showNoRoutinesDialog(context, accent, dim),
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: Responsive.height(context, 8)),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedFileNotFound,
                       color: dim,
-                      fontSize: Responsive.font(context, 11),
+                      size: Responsive.scale(context, 32),
                     ),
-                  ),
-                  SizedBox(height: Responsive.height(context, 8)),
-                ],
+                    SizedBox(height: Responsive.height(context, 10)),
+                    Text(
+                      "No routines yet",
+                      style: GoogleFonts.manrope(
+                        color: accent,
+                        fontSize: Responsive.font(context, 13),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 4)),
+                    Text(
+                      "Tap to get started",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(context, 11),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 8)),
+                  ],
+                ),
               ),
             )
           : Column(
               children: [
-                for (final r in routines)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.height(context, 6),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            r['name'] as String,
-                            style: GoogleFonts.manrope(
-                              color: accent,
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: FontWeight.w600,
+                for (int i = 0; i < routines.length; i++) ...[
+                  if (i > 0)
+                    Divider(color: Colors.white.withAlpha(12), height: 1),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () =>
+                        context.push('/workout/active', extra: routines[i]),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 10),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  routines[i]['name'] as String,
+                                  style: GoogleFonts.manrope(
+                                    color: accent,
+                                    fontSize: Responsive.font(context, 13),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  "${routines[i]['exercise_count']} exercises",
+                                  style: GoogleFonts.manrope(
+                                    color: dim,
+                                    fontSize: Responsive.font(context, 11),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        Text(
-                          "${r['exercise_count']} exercises",
-                          style: GoogleFonts.manrope(
-                            color: dim,
-                            fontSize: Responsive.font(context, 11),
+                          Icon(
+                            Icons.play_circle_outline_rounded,
+                            color: accent,
+                            size: Responsive.scale(context, 22),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                ],
               ],
             ),
     );

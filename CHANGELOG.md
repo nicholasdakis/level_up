@@ -2341,3 +2341,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Built the Create Routine screen with an inline name field, exercise list with reorder and remove, and a Save button that posts to the new /create_routine backend route
 - /create_routine inserts into workout_templates and workout_template_exercises and returns the generated template_id
 - Wired the New Routine button on the workout dashboard to push the Create Routine screen
+- Built the Browse Routines screen with a horizontally scrollable Featured section and a vertical Community section, each using the home screen card style
+- Added /get_my_routines backend route returning the user's saved routines with their exercise lists, fetched in a single batch query
+- My Routines card on the workout dashboard now shows real data with a Start button per routine that launches an active workout pre-filled with those exercises
+- Empty My Routines state shows a dialog offering to create a routine or browse existing ones
