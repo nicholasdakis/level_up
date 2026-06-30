@@ -584,6 +584,25 @@ class WorkoutRepository:
         if muscle_rows:
             self._supabase.table("exercise_muscles").insert(muscle_rows).execute()
 
+    def create_routine(self, uid: str, name: str, exercises: list[dict]) -> str:
+        row = self._supabase.table("workout_templates").insert({
+            "uid": uid,
+            "name": name,
+            "is_public": False,
+        }).execute().data[0]
+        template_id = row["template_id"]
+        if exercises:
+            self._supabase.table("workout_template_exercises").insert([
+                {
+                    "template_id": template_id,
+                    "exercise_id": ex.get("exercise_id"),
+                    "exercise_name": ex["exercise_name"],
+                    "exercise_order": ex["exercise_order"],
+                }
+                for ex in exercises
+            ]).execute()
+        return template_id
+
     def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
         # Verify ownership before deleting
         existing = self._supabase.table("exercises") \

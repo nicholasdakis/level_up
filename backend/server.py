@@ -82,6 +82,8 @@ from backend.schemas import (
     CreateCustomExerciseResponse,
     EditCustomExerciseRequest,
     DeleteCustomExerciseRequest,
+    CreateRoutineRequest,
+    CreateRoutineResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -1085,6 +1087,19 @@ def edit_custom_exercise():
         return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
     except ValueError as e:
         return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
+
+
+@app.route("/create_routine", methods=["POST"])
+def create_routine():
+    uid, body, err = _parse_and_auth(CreateRoutineRequest)
+    if err:
+        return err
+    template_id = workout_service.create_routine(
+        uid=uid,
+        name=body.name,
+        exercises=[e.model_dump() for e in body.exercises],
+    )
+    return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
 
 
 @app.route("/delete_custom_exercise", methods=["POST"])

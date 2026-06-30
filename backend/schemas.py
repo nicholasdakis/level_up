@@ -369,3 +369,15 @@ class EditCustomExerciseRequest(BaseModel):
 
 class DeleteCustomExerciseRequest(BaseModel):
     exercise_id: int
+
+class RoutineExerciseItem(BaseModel):
+    exercise_id: int | None = None
+    exercise_name: str
+    exercise_order: int
+
+class CreateRoutineRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    exercises: list[RoutineExerciseItem] = Field(default_factory=list)
+
+class CreateRoutineResponse(BaseModel):
+    template_id: str
