@@ -395,6 +395,7 @@ class MyRoutineItem(BaseModel):
     exercise_count: int
     exercises: list[MyRoutineExerciseItem]
     created_at: str
+    source_template_id: str | None = None
 
 class GetMyRoutinesResponse(BaseModel):
     routines: list[MyRoutineItem]

@@ -193,7 +193,11 @@ final GoRouter appRouter = GoRouter(
                   parentNavigatorKey: _rootNavKey,
                   pageBuilder: (context, state) => _slideUpPage(
                     key: state.pageKey,
-                    child: const ActiveWorkoutScreen(),
+                    child: ActiveWorkoutScreen(
+                      routine:
+                          state.extra
+                              as Map<String, dynamic>?, // null = empty session
+                    ),
                   ),
                 ),
                 GoRoute(
