@@ -18,6 +18,7 @@ class CreateRoutineScreen extends StatefulWidget {
 class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   late final VoidCallback _colorListener;
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _durationController = TextEditingController();
   final List<Map<String, dynamic>> _exercises = [];
   bool _reordering = false;
   bool _saving = false;
@@ -35,6 +36,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
     _nameController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 
@@ -103,7 +105,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
             Icons.delete_outline_rounded,
             'Remove',
             'remove',
-            color: Colors.redAccent.shade100,
+            color: accent,
           ),
         ],
       ),
@@ -129,6 +131,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                   _exercises.add({
                     ...ex,
                     'name': ex['name'] ?? ex['exercise_name'] ?? '',
+                    'default_sets': 3,
                   });
                 });
               },
@@ -191,13 +194,16 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
               'exercise_id': ex['id'],
               'exercise_name': _cleanName(ex['name'] as String? ?? ''),
               'exercise_order': _exercises.indexOf(ex),
+              'default_sets': ex['default_sets'] as int? ?? 3,
             },
           )
           .toList();
+      final estimatedMinutes = int.tryParse(_durationController.text.trim());
 
       final ok = await userManager.createRoutine(
         name: name,
         exercises: exercises,
+        estimatedDurationMinutes: estimatedMinutes,
       );
       if (!mounted) return;
       if (ok) {
@@ -318,30 +324,79 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         vertical: Responsive.height(context, 14),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: TextField(
-              controller: _nameController,
-              maxLength: 40,
-              style: GoogleFonts.manrope(
-                color: accent,
-                fontSize: Responsive.font(context, 22),
-                fontWeight: FontWeight.w800,
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Routine name',
-                hintStyle: GoogleFonts.manrope(
-                  color: Colors.white24,
-                  fontSize: Responsive.font(context, 22),
-                  fontWeight: FontWeight.w800,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _nameController,
+                  maxLength: 40,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w800,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Routine name',
+                    hintStyle: GoogleFonts.manrope(
+                      color: Colors.white24,
+                      fontSize: Responsive.font(context, 22),
+                      fontWeight: FontWeight.w800,
+                    ),
+                    counterText: '',
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  cursorColor: accent,
+                  onChanged: (_) => setState(() {}),
                 ),
-                counterText: '',
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              cursorColor: accent,
-              onChanged: (_) => setState(() {}),
+                SizedBox(height: Responsive.height(context, 6)),
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedClock01,
+                      color: dim,
+                      size: Responsive.scale(context, 14),
+                    ),
+                    SizedBox(width: Responsive.width(context, 6)),
+                    SizedBox(
+                      width: Responsive.width(context, 40),
+                      child: TextField(
+                        controller: _durationController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 13),
+                        ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '0',
+                          hintStyle: GoogleFonts.manrope(
+                            color: Colors.white24,
+                            fontSize: Responsive.font(context, 13),
+                          ),
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        cursorColor: accent,
+                      ),
+                    ),
+                    Text(
+                      ' min',
+                      style: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(context, 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
@@ -516,7 +571,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                         padding: EdgeInsets.only(
                           left: Responsive.width(context, 29),
                           right: Responsive.width(context, 16),
-                          bottom: Responsive.height(context, 10),
+                          bottom: Responsive.height(context, 6),
                         ),
                         child: Text(
                           _capitalize(ex['primary_muscle'] as String),
@@ -526,6 +581,63 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                           ),
                         ),
                       ),
+                    // set count stepper
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Sets',
+                            style: GoogleFonts.manrope(
+                              color: dim,
+                              fontSize: Responsive.font(context, 13),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          GestureDetector(
+                            onTap: () {
+                              final current = ex['default_sets'] as int? ?? 3;
+                              if (current > 1)
+                                setState(
+                                  () => ex['default_sets'] = current - 1,
+                                );
+                            },
+                            child: Icon(
+                              Icons.remove_rounded,
+                              color: dim,
+                              size: Responsive.scale(context, 20),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          Text(
+                            '${ex['default_sets'] as int? ?? 3}',
+                            style: GoogleFonts.manrope(
+                              color: accent,
+                              fontSize: Responsive.font(context, 18),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 12)),
+                          GestureDetector(
+                            onTap: () {
+                              final current = ex['default_sets'] as int? ?? 3;
+                              if (current < 10)
+                                setState(
+                                  () => ex['default_sets'] = current + 1,
+                                );
+                            },
+                            child: Icon(
+                              Icons.add_rounded,
+                              color: dim,
+                              size: Responsive.scale(context, 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -581,10 +693,13 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                 vertical: Responsive.height(context, 15),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(55),
+                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: appColorNotifier.value.withAlpha(130),
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.35,
+                  ).withAlpha(120),
                   width: 1.5,
                 ),
               ),

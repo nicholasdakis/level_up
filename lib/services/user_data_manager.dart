@@ -1657,11 +1657,17 @@ class UserDataManager {
   Future<bool> createRoutine({
     required String name,
     required List<Map<String, dynamic>> exercises,
+    int? estimatedDurationMinutes,
   }) async {
     try {
       final response = await authenticatedPost(
         'create_routine',
-        body: {'name': name, 'exercises': exercises},
+        body: {
+          'name': name,
+          'exercises': exercises,
+          if (estimatedDurationMinutes != null)
+            'estimated_duration_minutes': estimatedDurationMinutes,
+        },
       );
       return response.statusCode == 200;
     } catch (e) {

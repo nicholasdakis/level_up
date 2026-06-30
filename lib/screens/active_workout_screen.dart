@@ -50,7 +50,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // rest timer state
   int? _restSeconds;
   Timer? _restTimer;
-  static const int _restDuration = 90;
+  int _restDuration = 90; // user-configurable, default 90 seconds
 
   TextEditingController _ctrl(int ex, int set, String field) {
     final key = '${ex}_${set}_$field';
@@ -538,7 +538,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             Icons.delete_outline_rounded,
             'Remove',
             'remove',
-            color: Colors.redAccent.shade100,
+            color: accent,
           ),
         ],
       ),
@@ -553,6 +553,110 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     } else if (result == 'remove') {
       _removeExercise(exIndex);
     }
+  }
+
+  void _openWorkoutSettings() {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    showFrostedDialog<void>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Workout Settings',
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 16),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 20)),
+          Text(
+            'Rest Timer',
+            style: GoogleFonts.manrope(
+              color: dim,
+              fontSize: Responsive.font(context, 13),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          StatefulBuilder(
+            builder: (context, setDialogState) => Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (_restDuration > 15) {
+                      setDialogState(() => _restDuration -= 15);
+                      setState(() {});
+                    }
+                  },
+                  child: Icon(
+                    Icons.remove_rounded,
+                    color: dim,
+                    size: Responsive.scale(context, 22),
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 16)),
+                Text(
+                  '${_restDuration}s',
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 16)),
+                GestureDetector(
+                  onTap: () {
+                    if (_restDuration < 300) {
+                      setDialogState(() => _restDuration += 15);
+                      setState(() {});
+                    }
+                  },
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: dim,
+                    size: Responsive.scale(context, 22),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 20)),
+          GestureDetector(
+            onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 12),
+              ),
+              decoration: BoxDecoration(
+                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.35,
+                  ).withAlpha(120),
+                  width: 1.5,
+                ),
+              ),
+              child: Text(
+                'Done',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: accent,
+                  fontSize: Responsive.font(context, 14),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openExercisePicker() {
@@ -1409,10 +1513,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 vertical: Responsive.height(context, 15),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(55),
+                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: appColorNotifier.value.withAlpha(130),
+                  color: lightenColor(
+                    appColorNotifier.value,
+                    0.35,
+                  ).withAlpha(120),
                   width: 1.5,
                 ),
               ),
@@ -1438,29 +1545,82 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
-          GestureDetector(
-            onTap: () async {
-              if (await _confirmDiscard()) Navigator.of(context).pop();
-            },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 13),
-              ),
-              decoration: BoxDecoration(
-                color: Colors.red.withAlpha(30),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.red.withAlpha(80), width: 1.5),
-              ),
-              child: Text(
-                'Discard Workout',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  color: lightenColor(appColorNotifier.value, 0.45),
-                  fontSize: Responsive.font(context, 14),
-                  fontWeight: FontWeight.w600,
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      if (await _confirmDiscard()) Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      decoration: BoxDecoration(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(40),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.35,
+                          ).withAlpha(120),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        'Discard',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColorNotifier.value, 0.45),
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                SizedBox(width: Responsive.width(context, 10)),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _openWorkoutSettings,
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 12),
+                      ),
+                      decoration: BoxDecoration(
+                        color: lightenColor(
+                          appColorNotifier.value,
+                          0.1,
+                        ).withAlpha(40),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: lightenColor(
+                            appColorNotifier.value,
+                            0.35,
+                          ).withAlpha(120),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        'Settings',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColorNotifier.value, 0.45),
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
