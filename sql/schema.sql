@@ -251,6 +251,7 @@ CREATE TABLE workout_templates (
     estimated_duration_minutes INT,                             -- optional duration hint shown on browse screen
     source_template_id UUID REFERENCES workout_templates(template_id) ON DELETE SET NULL,  -- set when copied from a browse routine, null for originals
     like_count INTEGER NOT NULL DEFAULT 0,                      -- denormalized count kept in sync by the likes trigger
+    download_count INTEGER NOT NULL DEFAULT 0,                  -- incremented each time a user saves this routine via copy_routine
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -299,3 +300,9 @@ CREATE INDEX IF NOT EXISTS idx_users_rank ON users (level DESC, exp_points DESC,
 
 -- Index to speed up per-user workout history queries filtered by date
 CREATE INDEX IF NOT EXISTS idx_workouts_uid_date ON workouts (uid, date DESC);
+
+-- RPC to atomically increment download_count on a workout template
+CREATE OR REPLACE FUNCTION increment_download_count(tid UUID)
+RETURNS VOID AS $$
+  UPDATE workout_templates SET download_count = download_count + 1 WHERE template_id = tid;
+$$ LANGUAGE SQL SECURITY DEFINER;

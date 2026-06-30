@@ -745,19 +745,21 @@ class WorkoutRepository:
             .eq("template_id", template_id) \
             .order("exercise_order") \
             .execute().data or []
+        # increment download count on the source template
+        self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
         # reuse create_routine so the new copy gets its own template_id, tracking the source
         return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
 
     def get_browse_routines(self, uid: str) -> dict:
         # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately
         featured_rows = self._supabase.table("workout_templates") \
-            .select("template_id, name, estimated_duration_minutes, like_count") \
+            .select("template_id, name, estimated_duration_minutes, like_count, download_count") \
             .is_("uid", "null") \
             .eq("is_public", True) \
             .order("like_count", desc=True) \
             .execute().data or []
         community_rows = self._supabase.table("workout_templates") \
-            .select("template_id, name, estimated_duration_minutes, uid, like_count") \
+            .select("template_id, name, estimated_duration_minutes, uid, like_count, download_count") \
             .not_.is_("uid", "null") \
             .eq("is_public", True) \
             .order("created_at", desc=True) \
@@ -806,6 +808,7 @@ class WorkoutRepository:
                 "exercises": exercises,
                 "estimated_duration_minutes": routine_row.get("estimated_duration_minutes"),
                 "like_count": routine_row.get("like_count", 0),
+                "download_count": routine_row.get("download_count", 0),
                 "liked_by_me": routine_row["template_id"] in liked_ids,
             }
             if is_community:
