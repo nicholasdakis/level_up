@@ -600,10 +600,11 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                           GestureDetector(
                             onTap: () {
                               final current = ex['default_sets'] as int? ?? 3;
-                              if (current > 1)
+                              if (current > 1) {
                                 setState(
                                   () => ex['default_sets'] = current - 1,
                                 );
+                              }
                             },
                             child: Icon(
                               Icons.remove_rounded,
@@ -624,10 +625,11 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                           GestureDetector(
                             onTap: () {
                               final current = ex['default_sets'] as int? ?? 3;
-                              if (current < 10)
+                              if (current < 10) {
                                 setState(
                                   () => ex['default_sets'] = current + 1,
                                 );
+                              }
                             },
                             child: Icon(
                               Icons.add_rounded,

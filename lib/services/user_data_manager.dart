@@ -1665,8 +1665,7 @@ class UserDataManager {
         body: {
           'name': name,
           'exercises': exercises,
-          if (estimatedDurationMinutes != null)
-            'estimated_duration_minutes': estimatedDurationMinutes,
+          'estimated_duration_minutes': ?estimatedDurationMinutes,
         },
       );
       return response.statusCode == 200;
