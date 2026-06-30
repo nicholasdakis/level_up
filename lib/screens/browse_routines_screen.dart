@@ -385,108 +385,106 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // fixed header: badge, name, subtitle
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 7),
+                    vertical: Responsive.height(context, 3),
+                  ),
+                  decoration: BoxDecoration(
+                    color: appColorNotifier.value.withAlpha(50),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: appColorNotifier.value.withAlpha(100),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.star_rounded,
+                        color: accent,
+                        size: Responsive.scale(context, 9),
+                      ),
+                      SizedBox(width: Responsive.width(context, 3)),
+                      Text(
+                        'FEATURED',
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 8),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Responsive.height(context, 10)),
+            Text(
+              routine['name'] as String,
+              style: GoogleFonts.manrope(
+                color: accent,
+                fontSize: Responsive.font(context, 14),
+                fontWeight: FontWeight.w800,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              '$exerciseCount exercises${duration != null ? ' · $duration min' : ''}',
+              style: GoogleFonts.manrope(
+                color: dim,
+                fontSize: Responsive.font(context, 10),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 8)),
             Expanded(
-              child: OverflowBox(
-                alignment: Alignment.topLeft,
-                maxHeight: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 7),
-                            vertical: Responsive.height(context, 3),
-                          ),
-                          decoration: BoxDecoration(
-                            color: appColorNotifier.value.withAlpha(50),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: appColorNotifier.value.withAlpha(100),
-                            ),
+              child: ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final ex in exercises)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: Responsive.height(context, 3),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                Icons.star_rounded,
-                                color: accent,
-                                size: Responsive.scale(context, 9),
+                                Icons.circle,
+                                color: dim.withAlpha(100),
+                                size: Responsive.scale(context, 4),
                               ),
-                              SizedBox(width: Responsive.width(context, 3)),
-                              Text(
-                                'FEATURED',
-                                style: GoogleFonts.manrope(
-                                  color: accent,
-                                  fontSize: Responsive.font(context, 8),
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
+                              SizedBox(width: Responsive.width(context, 5)),
+                              Expanded(
+                                child: Text(
+                                  ex['exercise_name'] as String,
+                                  style: GoogleFonts.manrope(
+                                    color: dim,
+                                    fontSize: Responsive.font(context, 10),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Spacer(),
-                      ],
-                    ),
-                    SizedBox(height: Responsive.height(context, 10)),
-                    Text(
-                      routine['name'] as String,
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w800,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '$exerciseCount exercises${duration != null ? ' · $duration min' : ''}',
-                      style: GoogleFonts.manrope(
-                        color: dim,
-                        fontSize: Responsive.font(context, 10),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 10)),
-                    for (final ex in exercises.take(3))
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 3),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.circle,
-                              color: dim.withAlpha(100),
-                              size: Responsive.scale(context, 4),
-                            ),
-                            SizedBox(width: Responsive.width(context, 5)),
-                            Expanded(
-                              child: Text(
-                                ex['exercise_name'] as String,
-                                style: GoogleFonts.manrope(
-                                  color: dim,
-                                  fontSize: Responsive.font(context, 10),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (exercises.length > 3)
-                      Text(
-                        '+${exercises.length - 3} more',
-                        style: GoogleFonts.manrope(
-                          color: subtle,
-                          fontSize: Responsive.font(context, 9),
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
+            if (exercises.length > 3)
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: subtle,
+                size: Responsive.scale(context, 14),
+              ),
             SizedBox(height: Responsive.height(context, 8)),
             Row(
               children: [
