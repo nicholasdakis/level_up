@@ -88,14 +88,14 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     if (mounted) {
       setState(() {
         _featured = (data['featured'] as List)
-            .map((r) => Map<String, dynamic>.from(r as Map))
+            .map((routine) => Map<String, dynamic>.from(routine as Map))
             .toList();
         _community = (data['community'] as List)
-            .map((r) => Map<String, dynamic>.from(r as Map))
+            .map((routine) => Map<String, dynamic>.from(routine as Map))
             .toList();
         // track which browse templates the user already copied to block duplicates
         _savedSourceIds = myRoutines
-            .map((r) => r['source_template_id'] as String?)
+            .map((routine) => routine['source_template_id'] as String?)
             .whereType<String>()
             .toSet();
         // build optimistic like state from the server response

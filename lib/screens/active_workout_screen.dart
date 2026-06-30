@@ -104,8 +104,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     if (widget.routine != null) {
       final templateExercises =
           widget.routine!['exercises'] as List<dynamic>? ?? [];
-      _exercises = templateExercises.map((e) {
-        final ex = Map<String, dynamic>.from(e as Map);
+      _exercises = templateExercises.map((exercise) {
+        final ex = Map<String, dynamic>.from(exercise as Map);
         final defaultSets = ex['default_sets'] as int? ?? 3;
         return {
           ...ex,

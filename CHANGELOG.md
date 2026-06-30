@@ -2355,3 +2355,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Incremented the workoutLogNotifier when a routine is saved so the My Routines card updates immediately
 - Added a source_template_id column to workout_templates for validity checks to make sure users can't save the same custom workout multiple times
 - Added methods and route for deleting routines
+- Added likes table with a Postgres trigger keeping like_count in sync on workout_templates
+- Wired like/unlike buttons on featured and community browse cards with optimistic UI
+- Fixed active workout screen to pass routine extra through the router so starting from a saved routine pre-populates exercises
+- Replaced personal_records table with user_exercise_stats keyed by (uid, exercise_name), tracking last weight/reps and PRs per exercise
+- log_workout now upserts user_exercise_stats after each session, updating PRs using the Epley 1RM formula where applicable
+- Refactored log_workout into _create_workout, _save_sets_and_collect_stats, and _upsert_exercise_stats

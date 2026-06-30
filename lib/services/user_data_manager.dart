@@ -1384,7 +1384,7 @@ class UserDataManager {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (data['exercises'] as List)
-            .map((e) => Map<String, dynamic>.from(e as Map))
+            .map((exercise) => Map<String, dynamic>.from(exercise as Map))
             .toList();
       }
     } catch (e) {
@@ -1458,7 +1458,7 @@ class UserDataManager {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (data['workouts'] as List)
-            .map((w) => Map<String, dynamic>.from(w as Map))
+            .map((workout) => Map<String, dynamic>.from(workout as Map))
             .toList();
       }
     } catch (e) {
@@ -1546,7 +1546,7 @@ class UserDataManager {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return (data['routines'] as List)
-            .map((r) => Map<String, dynamic>.from(r as Map))
+            .map((routine) => Map<String, dynamic>.from(routine as Map))
             .toList();
       }
     } catch (e) {
