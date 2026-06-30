@@ -414,6 +414,9 @@ class GetBrowseRoutinesResponse(BaseModel):
     featured: list[BrowseRoutineItem]
     community: list[BrowseRoutineItem]
 
+class DeleteRoutineRequest(BaseModel):
+    template_id: str
+
 class LikeRoutineRequest(BaseModel):
     template_id: str
 

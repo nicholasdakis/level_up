@@ -485,6 +485,65 @@ class _WorkoutState extends State<Workout> {
     );
   }
 
+  Future<void> _deleteRoutine(
+    BuildContext context,
+    Map<String, dynamic> routine,
+  ) async {
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final confirmed = await showFrostedAlertDialog<bool>(
+      context: context,
+      title: 'Delete Routine',
+      content: Text(
+        'Remove "${routine['name']}" from your routines?',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.manrope(
+          color: dim,
+          fontSize: Responsive.font(context, 13),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+          child: Text('Cancel', style: GoogleFonts.manrope(color: dim)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+          child: Text(
+            'Delete',
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+    if (confirmed != true) return;
+    final ok = await userManager.deleteRoutine(
+      templateId: routine['template_id'] as String,
+    );
+    if (!mounted) return;
+    if (ok) {
+      setState(
+        () => _myRoutines.removeWhere(
+          (r) => r['template_id'] == routine['template_id'],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete routine.',
+            style: GoogleFonts.manrope(),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _showNoRoutinesDialog(BuildContext context, Color accent, Color dim) {
     showFrostedDialog(
       context: context,
@@ -802,6 +861,15 @@ class _WorkoutState extends State<Workout> {
                               ],
                             ),
                           ),
+                          GestureDetector(
+                            onTap: () => _deleteRoutine(context, routines[i]),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedDelete02,
+                              color: dim,
+                              size: Responsive.scale(context, 18),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 10)),
                           Icon(
                             Icons.play_circle_outline_rounded,
                             color: accent,

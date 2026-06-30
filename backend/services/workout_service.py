@@ -27,6 +27,9 @@ class WorkoutService:
     def get_browse_routines(self, uid: str) -> dict:
         return self._repo.get_browse_routines(uid=uid)
 
+    def delete_routine(self, uid: str, template_id: str) -> None:
+        self._repo.delete_routine(uid=uid, template_id=template_id)
+
     def like_routine(self, uid: str, template_id: str) -> None:
         self._repo.like_routine(uid=uid, template_id=template_id)
 

@@ -1555,6 +1555,19 @@ class UserDataManager {
     return [];
   }
 
+  Future<bool> deleteRoutine({required String templateId}) async {
+    try {
+      final response = await authenticatedPost(
+        'delete_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteRoutine failed: $e');
+    }
+    return false;
+  }
+
   Future<bool> likeRoutine({required String templateId}) async {
     try {
       final response = await authenticatedPost(

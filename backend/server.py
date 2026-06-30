@@ -85,6 +85,7 @@ from backend.schemas import (
     CreateRoutineRequest,
     CreateRoutineResponse,
     CopyRoutineRequest,
+    DeleteRoutineRequest,
     LikeRoutineRequest,
     UnlikeRoutineRequest,
     GetMyRoutinesResponse,
@@ -1107,6 +1108,15 @@ def browse_routines():
         featured=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["featured"]],
         community=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["community"]],
     ).model_dump()), 200
+
+
+@app.route("/delete_routine", methods=["POST"])
+def delete_routine():
+    uid, body, err = _parse_and_auth(DeleteRoutineRequest)
+    if err:
+        return err
+    workout_service.delete_routine(uid=uid, template_id=body.template_id)
+    return jsonify({"success": True}), 200
 
 
 @app.route("/like_routine", methods=["POST"])

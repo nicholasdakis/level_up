@@ -2354,3 +2354,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Wired up the Save This Routine button on featured and community cards in the browse routines screen
 - Incremented the workoutLogNotifier when a routine is saved so the My Routines card updates immediately
 - Added a source_template_id column to workout_templates for validity checks to make sure users can't save the same custom workout multiple times
+- Added methods and route for deleting routines

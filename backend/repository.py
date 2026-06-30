@@ -725,6 +725,14 @@ class WorkoutRepository:
             "community": [build_item(r, True) for r in community_rows],
         }
 
+    def delete_routine(self, uid: str, template_id: str) -> None:
+        # only delete if the user owns the routine
+        self._supabase.table("workout_templates") \
+            .delete() \
+            .eq("template_id", template_id) \
+            .eq("uid", uid) \
+            .execute()
+
     def like_routine(self, uid: str, template_id: str) -> None:
         # insert is a no-op if already liked due to the unique constraint
         self._supabase.table("likes").upsert({
