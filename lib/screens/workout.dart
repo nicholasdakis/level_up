@@ -1167,6 +1167,8 @@ class _WorkoutState extends State<Workout> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           monthNames[date.month - 1],
+                          softWrap: false,
+                          overflow: TextOverflow.visible,
                           style: GoogleFonts.manrope(
                             color: Colors.white,
                             fontSize: Responsive.font(context, 10),

@@ -995,14 +995,19 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ),
                   Row(
                     children: [
-                      Text(
-                        _workoutName ?? _s.routineName ?? 'Tap to name',
-                        style: GoogleFonts.manrope(
-                          color: _workoutName != null || _s.routineName != null
-                              ? dim
-                              : lightenColor(appColorNotifier.value, 0.35),
-                          fontSize: Responsive.font(context, 13),
-                          fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: Text(
+                          _workoutName ?? _s.routineName ?? 'Tap to name',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.manrope(
+                            color:
+                                _workoutName != null || _s.routineName != null
+                                ? dim
+                                : lightenColor(appColorNotifier.value, 0.35),
+                            fontSize: Responsive.font(context, 13),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       SizedBox(width: Responsive.width(context, 4)),
