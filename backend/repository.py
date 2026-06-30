@@ -674,12 +674,13 @@ class WorkoutRepository:
         if muscle_rows:
             self._supabase.table("exercise_muscles").insert(muscle_rows).execute()
 
-    def create_routine(self, uid: str, name: str, exercises: list[dict], source_template_id: str | None = None) -> str:
+    def create_routine(self, uid: str, name: str, exercises: list[dict], source_template_id: str | None = None, estimated_duration_minutes: int | None = None) -> str:
         row = self._supabase.table("workout_templates").insert({
             "uid": uid,
             "name": name,
             "is_public": False,
             "source_template_id": source_template_id,
+            "estimated_duration_minutes": estimated_duration_minutes,
         }).execute().data[0]
         template_id = row["template_id"]
         if exercises:
@@ -689,6 +690,7 @@ class WorkoutRepository:
                     "exercise_id": ex.get("exercise_id"),
                     "exercise_name": ex["exercise_name"],
                     "exercise_order": ex["exercise_order"],
+                    "default_sets": ex.get("default_sets", 3),
                 }
                 for ex in exercises
             ]).execute()

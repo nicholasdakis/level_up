@@ -1189,6 +1189,7 @@ def create_routine():
         uid=uid,
         name=body.name,
         exercises=[e.model_dump() for e in body.exercises],
+        estimated_duration_minutes=body.estimated_duration_minutes,
     )
     return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
 

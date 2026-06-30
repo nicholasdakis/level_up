@@ -24,8 +24,8 @@ class WorkoutService:
     def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
         self._repo.delete_custom_exercise(uid=uid, exercise_id=exercise_id)
 
-    def create_routine(self, uid: str, name: str, exercises: list[dict]) -> str:
-        return self._repo.create_routine(uid=uid, name=name, exercises=exercises)
+    def create_routine(self, uid: str, name: str, exercises: list[dict], estimated_duration_minutes: int | None = None) -> str:
+        return self._repo.create_routine(uid=uid, name=name, exercises=exercises, estimated_duration_minutes=estimated_duration_minutes)
 
     def copy_routine(self, uid: str, template_id: str) -> str:
         return self._repo.copy_routine(uid=uid, template_id=template_id)

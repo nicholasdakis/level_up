@@ -374,10 +374,12 @@ class RoutineExerciseItem(BaseModel):
     exercise_id: int | None = None
     exercise_name: str
     exercise_order: int
+    default_sets: int = 3
 
 class CreateRoutineRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     exercises: list[RoutineExerciseItem] = Field(default_factory=list)
+    estimated_duration_minutes: int | None = None
 
 class CreateRoutineResponse(BaseModel):
     template_id: str
