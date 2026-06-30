@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 
@@ -23,6 +24,48 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   Set<String> _savedSourceIds = {};
   // optimistic like state: maps template_id -> {liked, count}
   final Map<String, Map<String, dynamic>> _likeState = {};
+
+  static const List<Map<String, dynamic>> _skeletonRoutines = [
+    {
+      'template_id': 'sk1',
+      'name': 'Placeholder Routine',
+      'exercise_count': 5,
+      'exercises': [
+        {'exercise_name': 'Exercise One'},
+        {'exercise_name': 'Exercise Two'},
+        {'exercise_name': 'Exercise Three'},
+      ],
+      'estimated_duration_minutes': 30,
+      'like_count': 0,
+      'liked_by_me': false,
+    },
+    {
+      'template_id': 'sk2',
+      'name': 'Placeholder Routine',
+      'exercise_count': 4,
+      'exercises': [
+        {'exercise_name': 'Exercise One'},
+        {'exercise_name': 'Exercise Two'},
+        {'exercise_name': 'Exercise Three'},
+      ],
+      'estimated_duration_minutes': 45,
+      'like_count': 0,
+      'liked_by_me': false,
+    },
+    {
+      'template_id': 'sk3',
+      'name': 'Placeholder Routine',
+      'exercise_count': 6,
+      'exercises': [
+        {'exercise_name': 'Exercise One'},
+        {'exercise_name': 'Exercise Two'},
+        {'exercise_name': 'Exercise Three'},
+      ],
+      'estimated_duration_minutes': 60,
+      'like_count': 0,
+      'liked_by_me': false,
+    },
+  ];
 
   @override
   void initState() {
@@ -138,6 +181,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     if (!ok) {
       // revert on failure
       setState(() => _likeState[templateId] = current);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Couldn\'t save like, try again.',
+            style: GoogleFonts.manrope(),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -192,90 +244,79 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 ),
               ),
               Expanded(
-                child: _loading
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          color: accent,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.only(
-                            bottom: Responsive.height(context, 24),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              sectionHeader(
-                                'FEATURED',
-                                context,
-                                padding: EdgeInsets.only(
-                                  left: Responsive.centeredHorizontalPadding(
-                                    context,
-                                    20,
-                                  ),
-                                  top: Responsive.height(context, 8),
-                                  bottom: Responsive.height(context, 12),
-                                ),
-                              ),
-                              _buildFeaturedRow(
-                                context,
-                                accent,
-                                dim,
-                                subtle,
-                                c,
-                              ),
-                              SizedBox(height: Responsive.height(context, 10)),
-                              // dot indicator showing current featured card position
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(
-                                  _featured.length,
-                                  (i) => AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOutQuart,
-                                    margin: EdgeInsets.symmetric(
-                                      horizontal: Responsive.width(context, 3),
-                                    ),
-                                    width: Responsive.scale(
-                                      context,
-                                      i == _featuredIndex ? 18 : 6,
-                                    ),
-                                    height: Responsive.scale(context, 6),
-                                    decoration: BoxDecoration(
-                                      color: i == _featuredIndex
-                                          ? accent
-                                          : accent.withAlpha(60),
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: Responsive.height(context, 20)),
-                              sectionHeader(
-                                'COMMUNITY',
-                                context,
-                                padding: EdgeInsets.only(
-                                  left: Responsive.centeredHorizontalPadding(
-                                    context,
-                                    20,
-                                  ),
-                                  bottom: Responsive.height(context, 12),
-                                ),
-                              ),
-                              _buildCommunityList(
-                                context,
-                                accent,
-                                dim,
-                                subtle,
-                                c,
-                              ),
-                            ],
-                          ),
-                        ),
+                child: Skeletonizer(
+                  enabled: _loading,
+                  effect: ShimmerEffect(
+                    baseColor: lightenColor(appColorNotifier.value, 0.3),
+                    highlightColor: lightenColor(appColorNotifier.value, 0.1),
+                    duration: const Duration(milliseconds: 1200),
+                  ),
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        bottom: Responsive.height(context, 24),
                       ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          sectionHeader(
+                            'FEATURED',
+                            context,
+                            padding: EdgeInsets.only(
+                              left: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
+                              ),
+                              top: Responsive.height(context, 8),
+                              bottom: Responsive.height(context, 12),
+                            ),
+                          ),
+                          _buildFeaturedRow(context, accent, dim, subtle, c),
+                          SizedBox(height: Responsive.height(context, 10)),
+                          // dot indicator showing current featured card position
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _loading ? 3 : _featured.length,
+                              (i) => AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutQuart,
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 3),
+                                ),
+                                width: Responsive.scale(
+                                  context,
+                                  i == _featuredIndex ? 18 : 6,
+                                ),
+                                height: Responsive.scale(context, 6),
+                                decoration: BoxDecoration(
+                                  color: i == _featuredIndex
+                                      ? accent
+                                      : accent.withAlpha(60),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader(
+                            'COMMUNITY',
+                            context,
+                            padding: EdgeInsets.only(
+                              left: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
+                              ),
+                              bottom: Responsive.height(context, 12),
+                            ),
+                          ),
+                          _buildCommunityList(context, accent, dim, subtle, c),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -294,6 +335,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   ) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
     final cardHeight = Responsive.height(context, 220);
+    final items = _loading ? _skeletonRoutines : _featured;
     return SizedBox(
       height: cardHeight,
       child: ScrollConfiguration(
@@ -304,12 +346,12 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
           controller: _featuredScroll,
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: hPad),
-          itemCount: _featured.length,
+          itemCount: items.length,
           separatorBuilder: (_, _) =>
               SizedBox(width: Responsive.width(context, 12)),
           itemBuilder: (context, i) => _buildFeaturedCard(
             context,
-            _featured[i],
+            items[i],
             accent,
             dim,
             subtle,
@@ -529,7 +571,8 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     dynamic c,
   ) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
-    if (_community.isEmpty) {
+    final items = _loading ? _skeletonRoutines : _community;
+    if (!_loading && items.isEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(
           horizontal: hPad,
@@ -574,9 +617,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: Column(
         children: [
-          for (int i = 0; i < _community.length; i++) ...[
-            _buildCommunityCard(context, _community[i], accent, dim, subtle, c),
-            if (i < _community.length - 1)
+          for (int i = 0; i < items.length; i++) ...[
+            _buildCommunityCard(context, items[i], accent, dim, subtle, c),
+            if (i < items.length - 1)
               SizedBox(height: Responsive.height(context, 12)),
           ],
         ],
