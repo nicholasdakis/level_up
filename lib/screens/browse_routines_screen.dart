@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 
@@ -13,9 +14,11 @@ class BrowseRoutinesScreen extends StatefulWidget {
 
 class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   late final VoidCallback _colorListener;
+  late final ScrollController _featuredScroll;
   List<Map<String, dynamic>> _featured = [];
   List<Map<String, dynamic>> _community = [];
   bool _loading = true;
+  int _featuredIndex = 0;
 
   @override
   void initState() {
@@ -24,6 +27,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    _featuredScroll = ScrollController();
     _fetchData();
   }
 
@@ -39,40 +43,73 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             .toList();
         _loading = false;
       });
+      // update dot indicator as user scrolls
+      _featuredScroll.addListener(() {
+        if (_featured.isEmpty || !_featuredScroll.hasClients) return;
+        final maxScroll = _featuredScroll.position.maxScrollExtent;
+        final offset = _featuredScroll.offset;
+        // map scroll position linearly across all cards
+        final index = maxScroll == 0
+            ? 0
+            : ((offset / maxScroll) * (_featured.length - 1)).round().clamp(
+                0,
+                _featured.length - 1,
+              );
+        if (index != _featuredIndex) setState(() => _featuredIndex = index);
+      });
     }
   }
 
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    _featuredScroll.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final hsl = HSLColor.fromColor(appColorNotifier.value);
-    final bg = hsl.lightness > 0.25
-        ? darkenColor(
-            appColorNotifier.value,
-            (hsl.lightness - 0.22).clamp(0.0, 0.3),
-          )
-        : appColorNotifier.value;
-    final c = cardColors(appColorNotifier.value);
-    // derive text colors from card surface the same way the home screen does
+    final appColor = appColorNotifier.value;
+    final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final subtle = c.onCard.withAlpha(120);
 
     return Container(
-      decoration: BoxDecoration(color: bg),
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context, accent, dim, c),
-              Container(height: 1, color: c.border),
+              // back button only, no title
+              Padding(
+                padding: EdgeInsets.only(
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                  top: Responsive.height(context, 12),
+                  bottom: Responsive.height(context, 4),
+                ),
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: EdgeInsets.all(Responsive.scale(context, 10)),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lightenColor(appColor, 0.1).withAlpha(20),
+                      border: Border.all(
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: lightenColor(appColor, 0.3).withAlpha(180),
+                      size: Responsive.font(context, 13),
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: _loading
                     ? Center(
@@ -98,7 +135,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                                     context,
                                     20,
                                   ),
-                                  top: Responsive.height(context, 16),
+                                  top: Responsive.height(context, 8),
                                   bottom: Responsive.height(context, 12),
                                 ),
                               ),
@@ -109,17 +146,33 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                                 subtle,
                                 c,
                               ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      Responsive.centeredHorizontalPadding(
-                                        context,
-                                        20,
-                                      ),
-                                  vertical: Responsive.height(context, 20),
+                              SizedBox(height: Responsive.height(context, 10)),
+                              // dot indicator showing current featured card position
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                  _featured.length,
+                                  (i) => AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOutQuart,
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: Responsive.width(context, 3),
+                                    ),
+                                    width: Responsive.scale(
+                                      context,
+                                      i == _featuredIndex ? 18 : 6,
+                                    ),
+                                    height: Responsive.scale(context, 6),
+                                    decoration: BoxDecoration(
+                                      color: i == _featuredIndex
+                                          ? accent
+                                          : accent.withAlpha(60),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
                                 ),
-                                child: Divider(color: c.border, height: 1),
                               ),
+                              SizedBox(height: Responsive.height(context, 20)),
                               sectionHeader(
                                 'COMMUNITY',
                                 context,
@@ -150,49 +203,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context,
-    Color accent,
-    Color dim,
-    dynamic c,
-  ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.centeredHorizontalPadding(context, 20),
-        vertical: Responsive.height(context, 14),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              padding: EdgeInsets.all(Responsive.scale(context, 10)),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: appColorNotifier.value.withAlpha(40),
-                border: Border.all(color: c.border, width: 1),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                color: accent,
-                size: Responsive.scale(context, 14),
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.width(context, 14)),
-          Text(
-            'Browse Routines',
-            style: GoogleFonts.manrope(
-              color: accent,
-              fontSize: Responsive.font(context, 20),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // horizontally scrolling row of featured routine cards
   Widget _buildFeaturedRow(
     BuildContext context,
@@ -202,20 +212,29 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     dynamic c,
   ) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    final cardHeight = Responsive.height(context, 220);
     return SizedBox(
-      height: Responsive.height(context, 230),
+      height: cardHeight,
       child: ScrollConfiguration(
         behavior: NoGlowScrollBehavior().copyWith(
           dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
         ),
         child: ListView.separated(
+          controller: _featuredScroll,
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: hPad),
           itemCount: _featured.length,
           separatorBuilder: (_, _) =>
               SizedBox(width: Responsive.width(context, 12)),
-          itemBuilder: (context, i) =>
-              _buildFeaturedCard(context, _featured[i], accent, dim, subtle, c),
+          itemBuilder: (context, i) => _buildFeaturedCard(
+            context,
+            _featured[i],
+            accent,
+            dim,
+            subtle,
+            c,
+            cardHeight,
+          ),
         ),
       ),
     );
@@ -228,17 +247,18 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     Color dim,
     Color subtle,
     dynamic c,
+    double height,
   ) {
     final exercises = (routine['exercises'] as List? ?? []);
     final exerciseCount = routine['exercise_count'] as int? ?? exercises.length;
     final duration = routine['estimated_duration_minutes'] as int?;
     return SizedBox(
-      width: Responsive.width(context, 220),
-      height: double.infinity,
+      width: Responsive.width(context, 200),
+      height: height,
       child: _styledCard(
         context,
         c,
-        padding: EdgeInsets.all(Responsive.scale(context, 16)),
+        padding: EdgeInsets.all(Responsive.scale(context, 14)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -246,7 +266,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 8),
+                    horizontal: Responsive.width(context, 7),
                     vertical: Responsive.height(context, 3),
                   ),
                   decoration: BoxDecoration(
@@ -261,14 +281,14 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                       Icon(
                         Icons.star_rounded,
                         color: accent,
-                        size: Responsive.scale(context, 10),
+                        size: Responsive.scale(context, 9),
                       ),
-                      SizedBox(width: Responsive.width(context, 4)),
+                      SizedBox(width: Responsive.width(context, 3)),
                       Text(
                         'FEATURED',
                         style: GoogleFonts.manrope(
                           color: accent,
-                          fontSize: Responsive.font(context, 9),
+                          fontSize: Responsive.font(context, 8),
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -277,13 +297,12 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   ),
                 ),
                 const Spacer(),
-                // add to my routines placeholder
                 GestureDetector(
                   onTap: () {},
                   child: Icon(
                     Icons.bookmark_add_outlined,
                     color: subtle,
-                    size: Responsive.scale(context, 20),
+                    size: Responsive.scale(context, 18),
                   ),
                 ),
               ],
@@ -293,35 +312,37 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               routine['name'] as String,
               style: GoogleFonts.manrope(
                 color: accent,
-                fontSize: Responsive.font(context, 15),
+                fontSize: Responsive.font(context, 14),
                 fontWeight: FontWeight.w800,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               '$exerciseCount exercises${duration != null ? ' · $duration min' : ''}',
               style: GoogleFonts.manrope(
                 color: dim,
-                fontSize: Responsive.font(context, 11),
+                fontSize: Responsive.font(context, 10),
               ),
             ),
-            SizedBox(height: Responsive.height(context, 8)),
+            SizedBox(height: Responsive.height(context, 10)),
             for (final ex in exercises.take(3))
               Padding(
-                padding: EdgeInsets.only(bottom: Responsive.height(context, 2)),
+                padding: EdgeInsets.only(bottom: Responsive.height(context, 3)),
                 child: Row(
                   children: [
                     Icon(
                       Icons.circle,
                       color: dim.withAlpha(100),
-                      size: Responsive.scale(context, 5),
+                      size: Responsive.scale(context, 4),
                     ),
-                    SizedBox(width: Responsive.width(context, 6)),
+                    SizedBox(width: Responsive.width(context, 5)),
                     Expanded(
                       child: Text(
                         ex['exercise_name'] as String,
                         style: GoogleFonts.manrope(
                           color: dim,
-                          fontSize: Responsive.font(context, 11),
+                          fontSize: Responsive.font(context, 10),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -334,7 +355,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 '+${exercises.length - 3} more',
                 style: GoogleFonts.manrope(
                   color: subtle,
-                  fontSize: Responsive.font(context, 10),
+                  fontSize: Responsive.font(context, 9),
                 ),
               ),
           ],
@@ -350,8 +371,48 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     Color subtle,
     dynamic c,
   ) {
-    if (_community.isEmpty) return const SizedBox.shrink();
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    if (_community.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: hPad,
+          vertical: Responsive.height(context, 20),
+        ),
+        child: _styledCard(
+          context,
+          c,
+          padding: EdgeInsets.all(Responsive.scale(context, 20)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedUserGroup,
+                color: subtle,
+                size: Responsive.scale(context, 32),
+              ),
+              SizedBox(height: Responsive.height(context, 10)),
+              Text(
+                'No community routines yet',
+                style: GoogleFonts.manrope(
+                  color: accent,
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 4)),
+              Text(
+                'Be the first to share a routine',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 11),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: Column(
@@ -420,15 +481,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
           SizedBox(height: Responsive.height(context, 8)),
           for (final ex in exercises.take(3))
             Padding(
-              padding: EdgeInsets.only(bottom: Responsive.height(context, 2)),
+              padding: EdgeInsets.only(bottom: Responsive.height(context, 3)),
               child: Row(
                 children: [
                   Icon(
                     Icons.circle,
                     color: dim.withAlpha(100),
-                    size: Responsive.scale(context, 5),
+                    size: Responsive.scale(context, 4),
                   ),
-                  SizedBox(width: Responsive.width(context, 6)),
+                  SizedBox(width: Responsive.width(context, 5)),
                   Expanded(
                     child: Text(
                       ex['exercise_name'] as String,
@@ -451,7 +512,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               ),
             ),
           SizedBox(height: Responsive.height(context, 12)),
-          // add to my routines placeholder
           GestureDetector(
             onTap: () {},
             child: Container(

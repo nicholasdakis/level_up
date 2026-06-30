@@ -19,7 +19,7 @@ WITH templates AS (
 INSERT INTO workout_template_exercises (template_id, exercise_id, exercise_name, exercise_order)
 SELECT t.template_id, 4460, 'Bodyweight Squat', 0 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
 SELECT t.template_id, 4712, 'Incline Push-Up', 1 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
-SELECT t.template_id, 4473, 'Butt Lift (Bridge)', 2 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
+SELECT t.template_id, 4473, 'Glute Bridge', 2 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
 SELECT t.template_id, 4904, 'Plank', 3 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
 SELECT t.template_id, 4461, 'Bodyweight Walking Lunge', 4 FROM templates t WHERE t.name = 'Bodyweight Foundations' UNION ALL
 
