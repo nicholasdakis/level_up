@@ -42,6 +42,16 @@ class UnitConverter {
   static String displayWaterWithUnit(int ml, {bool imperial = false}) =>
       '${displayWater(ml, imperial: imperial)} ${waterUnit(imperial: imperial)}';
 
+  // formats a kg value for display dropping trailing .0 (e.g. 220.0 -> "220", 102.5 -> "102.5")
+  // rounds to 1 decimal first to avoid floating point noise from unit conversions
+  static String displayWeightCompact(double kg, {bool imperial = false}) {
+    final raw = imperial ? kgToLbs(kg) : kg;
+    final rounded = double.parse(raw.toStringAsFixed(1));
+    return rounded == rounded.roundToDouble()
+        ? rounded.toInt().toString()
+        : rounded.toStringAsFixed(1);
+  }
+
   // convenience: value and unit together e.g. "73.6 kg" or "162.3 lbs"
   static String displayWeightWithUnit(
     double kg, {

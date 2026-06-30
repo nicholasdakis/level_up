@@ -195,8 +195,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     double vol = 0;
     for (final ex in _exercises) {
       for (final set in ex['sets'] as List) {
-        vol +=
-            (set['reps'] as int? ?? 0) * (set['weight_kg'] as double? ?? 0.0);
+        final rawWeight = set['weight_kg'] as double? ?? 0.0;
+        // weight_kg field holds lbs when in imperial mode until converted at save time
+        final weightKg = UnitConverter.isImperial
+            ? UnitConverter.lbsToKg(rawWeight)
+            : rawWeight;
+        vol += (set['reps'] as int? ?? 0) * weightKg;
       }
     }
     return vol;
@@ -344,10 +348,14 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         if ((reps == null || reps == 0) && (weight == null || weight == 0)) {
           continue;
         }
+        // convert to kg before storing if user is in imperial mode
+        final weightKg = (weight != null && UnitConverter.isImperial)
+            ? UnitConverter.lbsToKg(weight)
+            : weight;
         checkedSets.add({
           'set_number': s + 1,
           'reps': reps,
-          'weight_kg': weight,
+          'weight_kg': weightKg,
         });
       }
       if (checkedSets.isEmpty) continue;
@@ -1278,16 +1286,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 final stats = _exerciseStats[exerciseName];
                 final prevWeight = stats?['last_weight_kg'];
                 final prevReps = stats?['last_reps'];
-                String formatWeight(double kg) {
-                  final raw = isImperial ? UnitConverter.kgToLbs(kg) : kg;
-                  final rounded = double.parse(raw.toStringAsFixed(1));
-                  return rounded == rounded.roundToDouble()
-                      ? rounded.toInt().toString()
-                      : rounded.toStringAsFixed(1);
-                }
-
                 final label = (prevWeight != null && prevReps != null)
-                    ? '${formatWeight(prevWeight as double)} x $prevReps'
+                    ? '${UnitConverter.displayWeightCompact(prevWeight as double, imperial: isImperial)} x $prevReps'
                     : '—';
                 return Text(
                   label,
