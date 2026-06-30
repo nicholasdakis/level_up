@@ -9,10 +9,14 @@ import 'services/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
 import 'services/leaderboard_service.dart';
+import 'services/workout_session_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
+
+// Global workout session service, persists in-progress workout across navigation and app kills
+final workoutSessionService = WorkoutSessionService();
 
 const Duration dailyRewardCooldown = Duration(hours: 23);
 const Duration snackBarDuration = Duration(milliseconds: 1500);

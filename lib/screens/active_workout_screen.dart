@@ -11,6 +11,7 @@ import '/guest.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 import '/services/user_data_manager.dart';
+import '/services/workout_session_service.dart';
 import 'exercise_picker_screen.dart';
 
 class ActiveWorkoutScreen extends StatefulWidget {
@@ -25,19 +26,11 @@ class ActiveWorkoutScreen extends StatefulWidget {
 
 class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   late final VoidCallback _colorListener;
-  late final Stopwatch _stopwatch;
+  late final VoidCallback _sessionListener;
   late final Timer _timer;
-
-  late final List<Map<String, dynamic>> _exercises;
-
-  // user-defined session name, defaults to null (shown as "Workout" in history)
-  String? _workoutName;
 
   // controllers keyed by "exIndex_setIndex_field" so they survive rebuilds
   final Map<String, TextEditingController> _controllers = {};
-
-  // which sets are checked off
-  final Map<String, bool> _checked = {};
 
   // exercise stats keyed by exercise_name, loaded on screen open for PREVIOUS column and PR detection
   Map<String, Map<String, dynamic>> _exerciseStats = {};
@@ -47,18 +40,29 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   bool _reordering = false;
 
-  // rest timer state
+  // rest timer state (UI-only, not persisted)
   int? _restSeconds;
   Timer? _restTimer;
-  int _restDuration = 90; // user-configurable, default 90 seconds
+
+  // convenience getters into the global session
+  WorkoutSession get _s => workoutSessionService.session!;
+  List<Map<String, dynamic>> get _exercises => _s.exercises;
+  Map<String, bool> get _checked => _s.checked;
+  String? get _workoutName => _s.workoutName;
+  int get _restDuration => _s.restDuration;
 
   TextEditingController _ctrl(int ex, int set, String field) {
     final key = '${ex}_${set}_$field';
     if (!_controllers.containsKey(key)) {
-      final setMap = (_exercises[ex]['sets'] as List)[set] as Map;
-      final initial = field == 'reps'
-          ? (setMap['reps']?.toString() ?? '')
-          : (setMap['weight_kg']?.toString() ?? '');
+      // prefer restored session value, fall back to set map default
+      final sessionVal = field == 'reps' ? _s.reps[key] : _s.weights[key];
+      String initial = sessionVal ?? '';
+      if (initial.isEmpty) {
+        final setMap = (_exercises[ex]['sets'] as List)[set] as Map;
+        initial = field == 'reps'
+            ? (setMap['reps']?.toString() ?? '')
+            : (setMap['weight_kg']?.toString() ?? '');
+      }
       _controllers[key] = TextEditingController(text: initial);
     }
     return _controllers[key]!;
@@ -105,30 +109,54 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     _colorListener = () {
       if (mounted) setState(() {});
     };
+    _sessionListener = () {
+      if (mounted) setState(() {});
+    };
     appColorNotifier.addListener(_colorListener);
-    // pre-fill exercises from routine if provided
-    if (widget.routine != null) {
-      final templateExercises =
-          widget.routine!['exercises'] as List<dynamic>? ?? [];
-      _exercises = templateExercises.map((exercise) {
-        final ex = Map<String, dynamic>.from(exercise as Map);
-        final defaultSets = ex['default_sets'] as int? ?? 3;
-        return {
-          ...ex,
-          // normalize exercise_name to name so the card header renders correctly
-          'name': ex['name'] ?? ex['exercise_name'] ?? '',
-          'sets': List.generate(
-            defaultSets,
-            (_) => <String, dynamic>{
-              'reps': ex['default_reps'],
-              'weight_kg': ex['default_weight_kg'],
-            },
-          ),
-        };
-      }).toList();
-    } else {
-      _exercises = [];
+    workoutSessionService.addListener(_sessionListener);
+
+    // if no session is active, start one now (new workout or from routine)
+    if (!workoutSessionService.isActive) {
+      final exercises = <Map<String, dynamic>>[];
+      if (widget.routine != null) {
+        final templateExercises =
+            widget.routine!['exercises'] as List<dynamic>? ?? [];
+        for (final exercise in templateExercises) {
+          final ex = Map<String, dynamic>.from(exercise as Map);
+          final defaultSets = ex['default_sets'] as int? ?? 3;
+          exercises.add({
+            ...ex,
+            // normalize exercise_name to name so the card header renders correctly
+            'name': ex['name'] ?? ex['exercise_name'] ?? '',
+            'sets': List.generate(
+              defaultSets,
+              (_) => <String, dynamic>{
+                'reps': ex['default_reps'],
+                'weight_kg': ex['default_weight_kg'],
+              },
+            ),
+          });
+        }
+      }
+      workoutSessionService.startSession(
+        WorkoutSession(
+          exercises: exercises,
+          startedAtMs: DateTime.now().millisecondsSinceEpoch,
+          routineName: widget.routine?['name'] as String?,
+          routineId: widget.routine?['id']?.toString(),
+        ),
+      );
     }
+
+    // pre-populate controllers from restored session values
+    final session = workoutSessionService.session!;
+    for (final entry in session.weights.entries) {
+      _controllers[entry.key] = TextEditingController(text: entry.value);
+    }
+    for (final entry in session.reps.entries) {
+      _controllers[entry.key] = TextEditingController(text: entry.value);
+    }
+
     if (!isGuest) {
       userManager.fetchExerciseStats().then((stats) {
         if (mounted) setState(() => _exerciseStats = stats);
@@ -143,7 +171,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         });
       }
     }
-    _stopwatch = Stopwatch()..start();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -152,9 +179,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    workoutSessionService.removeListener(_sessionListener);
     _timer.cancel();
     _restTimer?.cancel();
-    _stopwatch.stop();
     for (final c in _controllers.values) {
       c.dispose();
     }
@@ -176,10 +203,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       _checked.remove(k);
     }
     setState(() => _exercises.removeAt(exIndex));
+    workoutSessionService.persist();
   }
 
   String get _durationLabel {
-    final s = _stopwatch.elapsed;
+    final s = _s.elapsed;
     final h = s.inHours;
     final m = s.inMinutes % 60;
     final sec = s.inSeconds % 60;
@@ -268,7 +296,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
     // prompt for a name before saving
     final nameCtrl = TextEditingController(
-      text: _workoutName ?? widget.routine?['name'] as String? ?? '',
+      text: _workoutName ?? _s.routineName ?? '',
     );
     final confirmedName = await showFrostedDialog<String>(
       context: context,
@@ -334,9 +362,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
     nameCtrl.dispose();
     if (confirmedName == null) return; // user tapped Cancel
-    _workoutName = confirmedName.isEmpty ? null : confirmedName;
+    _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
+    workoutSessionService.persist();
 
-    final durationSeconds = _stopwatch.elapsed.inSeconds;
+    final durationSeconds = _s.elapsed.inSeconds;
     final date = DateTime.now();
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -400,7 +429,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       final response = await authenticatedPost(
         'log_workout',
         body: {
-          'name': _workoutName ?? widget.routine?['name'],
+          'name': _workoutName ?? _s.routineName,
           'date': dateStr,
           'duration_seconds': durationSeconds,
           'exercises': exercises,
@@ -424,6 +453,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             totalSets++;
           }
         }
+        workoutSessionService.clearSession();
         context.pushReplacement(
           '/workout/finish',
           extra: <String, dynamic>{
@@ -588,7 +618,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 GestureDetector(
                   onTap: () {
                     if (_restDuration > 15) {
-                      setDialogState(() => _restDuration -= 15);
+                      setDialogState(() {
+                        _s.restDuration -= 15;
+                        workoutSessionService.persist();
+                      });
                       setState(() {});
                     }
                   },
@@ -611,7 +644,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 GestureDetector(
                   onTap: () {
                     if (_restDuration < 300) {
-                      setDialogState(() => _restDuration += 15);
+                      setDialogState(() {
+                        _s.restDuration += 15;
+                        workoutSessionService.persist();
+                      });
                       setState(() {});
                     }
                   },
@@ -674,6 +710,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                     ],
                   });
                 });
+                workoutSessionService.persist();
               },
             ),
         transitionsBuilder: (_, animation, secondaryAnimation, child) =>
@@ -791,6 +828,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                     ..clear()
                                     ..addAll(newChecked);
                                 });
+                                workoutSessionService.persist();
                               }
                             : (oldI, newI) {},
                         children: [
@@ -905,7 +943,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     );
     ctrl.dispose();
     if (result != null && mounted) {
-      setState(() => _workoutName = result.isEmpty ? null : result);
+      setState(() {
+        _s.workoutName = result.isEmpty ? null : result;
+        workoutSessionService.persist();
+      });
     }
   }
 
@@ -924,6 +965,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Padding(
+              padding: EdgeInsets.only(right: Responsive.width(context, 12)),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: lightenColor(appColorNotifier.value, 0.35),
+                size: Responsive.scale(context, 28),
+              ),
+            ),
+          ),
           Expanded(
             child: GestureDetector(
               onTap: _renameWorkout,
@@ -944,13 +996,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   Row(
                     children: [
                       Text(
-                        _workoutName ??
-                            widget.routine?['name'] as String? ??
-                            'Tap to name',
+                        _workoutName ?? _s.routineName ?? 'Tap to name',
                         style: GoogleFonts.manrope(
-                          color:
-                              _workoutName != null ||
-                                  widget.routine?['name'] != null
+                          color: _workoutName != null || _s.routineName != null
                               ? dim
                               : lightenColor(appColorNotifier.value, 0.35),
                           fontSize: Responsive.font(context, 13),
@@ -1248,12 +1296,15 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
                     // add set
                     GestureDetector(
-                      onTap: () => setState(
-                        () => sets.add(<String, dynamic>{
-                          'reps': null,
-                          'weight_kg': null,
-                        }),
-                      ),
+                      onTap: () {
+                        setState(
+                          () => sets.add(<String, dynamic>{
+                            'reps': null,
+                            'weight_kg': null,
+                          }),
+                        );
+                        workoutSessionService.persist();
+                      },
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
@@ -1436,7 +1487,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 fontWeight: numWeight,
               ),
               decoration: _fieldDec('0'),
-              onChanged: (v) => set['weight_kg'] = double.tryParse(v),
+              onChanged: (v) {
+                set['weight_kg'] = double.tryParse(v);
+                _s.weights['${exIndex}_${setIndex}_weight'] = v;
+                workoutSessionService.persist();
+              },
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
@@ -1454,7 +1509,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 fontWeight: numWeight,
               ),
               decoration: _fieldDec('0'),
-              onChanged: (v) => set['reps'] = int.tryParse(v),
+              onChanged: (v) {
+                set['reps'] = int.tryParse(v);
+                _s.reps['${exIndex}_${setIndex}_reps'] = v;
+                workoutSessionService.persist();
+              },
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
@@ -1464,6 +1523,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               HapticFeedback.lightImpact();
               final nowChecked = !checked;
               setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
+              workoutSessionService.persist();
               if (nowChecked) _startRestTimer();
             },
             child: AnimatedContainer(
@@ -1552,7 +1612,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      if (await _confirmDiscard()) Navigator.of(context).pop();
+                      if (await _confirmDiscard()) {
+                        workoutSessionService.clearSession();
+                        if (context.mounted) Navigator.of(context).pop();
+                      }
                     },
                     child: Container(
                       width: double.infinity,

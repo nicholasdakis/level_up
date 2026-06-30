@@ -2370,3 +2370,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Create routine now supports a set count stepper per exercise and an estimated duration field
 - default_sets and estimated_duration_minutes are saved to the DB and used when starting a workout from a routine
 - Made heatmap legend hoverable / clickable to show exactly how many workouts correspond to each color
+- Added WorkoutSessionService: all active workout state (exercises, sets, checked, weights, reps, rest duration, workout name) is now persisted to SharedPreferences on every mutation and survives navigation away from the screen
+- Active workout screen reads and writes through WorkoutSessionService instead of local state; session is cleared on finish or discard
+- Added chevron down button to workout header to dismiss the screen without losing session state
