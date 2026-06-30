@@ -5,6 +5,9 @@ class WorkoutService:
     def __init__(self, repo: WorkoutRepository):
         self._repo = repo
 
+    def get_every_prev_set(self, uid: str, exercise_names: list[str]) -> list[dict]:
+        return self._repo.get_every_prev_set(uid=uid, exercise_names=exercise_names)
+
     def get_exercise_stats(self, uid: str) -> list[dict]:
         return self._repo.get_exercise_stats(uid=uid)
 

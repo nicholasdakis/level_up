@@ -481,6 +481,13 @@ class WorkoutRepository:
             self._upsert_exercise_stats(uid, exercise_name, stats)
         return workout_id
 
+    def get_every_prev_set(self, uid: str, exercise_names: list[str]) -> list[dict]:
+        # calls the RPC that returns all sets from the most recent session per exercise
+        return self._supabase.rpc("get_every_prev_set", {
+            "p_uid": uid,
+            "p_exercise_names": exercise_names,
+        }).execute().data or []
+
     def get_exercise_stats(self, uid: str) -> list[dict]:
         return self._supabase.table("user_exercise_stats") \
             .select("exercise_name, pr_weight_kg, pr_reps, pr_volume_kg, estimated_1rm, last_weight_kg, last_reps, total_sets") \

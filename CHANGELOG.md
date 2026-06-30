@@ -2363,3 +2363,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Refactored log_workout into _create_workout, _save_sets_and_collect_stats, and _upsert_exercise_stats
 - Added exercise_stats GET route and methods for loading the stats in when a user starts an exercise
 - Fixed unit conversion causing decimals when loading past workout stats
+- Added get_every_prev_set Postgres RPC and every_prev_set endpoint returning all sets from the most recent session per exercise
+- Active workout screen now shows per-set previous weight and reps in the PREVIOUS column, falling back to the last session summary for sets beyond the previous session's count
+- Fixed imperial weight entries being stored as kg without conversion
+- Added displayWeightCompact to UnitConverter for clean weight formatting without trailing decimal zeros

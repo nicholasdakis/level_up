@@ -1555,6 +1555,33 @@ class UserDataManager {
     return [];
   }
 
+  // returns previous sets keyed by exercise_name -> set_number -> {weight_kg, reps}
+  Future<Map<String, Map<int, Map<String, dynamic>>>> fetchEveryPrevSet(
+    List<String> exerciseNames,
+  ) async {
+    try {
+      final response = await authenticatedPost(
+        'every_prev_set',
+        body: {'exercise_names': exerciseNames},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final result = <String, Map<int, Map<String, dynamic>>>{};
+        for (final prevSet in data['sets'] as List) {
+          final setMap = Map<String, dynamic>.from(prevSet as Map);
+          final exerciseName = setMap['exercise_name'] as String;
+          final setNumber = setMap['set_number'] as int;
+          result.putIfAbsent(exerciseName, () => {});
+          result[exerciseName]![setNumber] = setMap;
+        }
+        return result;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchEveryPrevSet failed: $e');
+    }
+    return {};
+  }
+
   Future<Map<String, Map<String, dynamic>>> fetchExerciseStats() async {
     try {
       final response = await authenticatedGet('exercise_stats');

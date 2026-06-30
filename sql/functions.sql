@@ -656,6 +656,39 @@ CREATE TRIGGER likes_update_count
 AFTER INSERT OR DELETE ON likes
 FOR EACH ROW EXECUTE FUNCTION update_like_count();
 
+-- get_every_prev_set: for each exercise name in p_exercise_names, returns all sets from the
+-- most recent completed session where that exercise appears, ordered by set_number.
+-- used to populate the PREVIOUS column in the active workout screen on a per-set basis.
+CREATE OR REPLACE FUNCTION get_every_prev_set(p_uid TEXT, p_exercise_names TEXT[])
+RETURNS TABLE(exercise_name TEXT, set_number INT, weight_kg NUMERIC, reps INT)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT
+        we.exercise_name,
+        ws.set_number,
+        ws.weight_kg,
+        ws.reps
+    FROM workout_sets ws
+    JOIN workout_exercises we USING (workout_exercise_id)
+    JOIN workouts w USING (workout_id)
+    WHERE w.uid = p_uid
+      AND w.completed = true
+      AND we.exercise_name = ANY(p_exercise_names)
+      AND w.workout_id = (
+          -- most recent workout containing this exercise for this user
+          SELECT w2.workout_id
+          FROM workouts w2
+          JOIN workout_exercises we2 USING (workout_id)
+          WHERE w2.uid = p_uid
+            AND w2.completed = true
+            AND we2.exercise_name = we.exercise_name
+          ORDER BY w2.created_at DESC
+          LIMIT 1
+      )
+    ORDER BY we.exercise_name, ws.set_number;
+$$;
+
 -- get_recent_exercises: most recently used unique exercises for a user, sorted by recency
 CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
 RETURNS TABLE(exercise_id INT, exercise_name TEXT)

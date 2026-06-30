@@ -382,6 +382,18 @@ class CreateRoutineRequest(BaseModel):
 class CreateRoutineResponse(BaseModel):
     template_id: str
 
+class GetEveryPrevSetRequest(BaseModel):
+    exercise_names: list[str]
+
+class PrevSetItem(BaseModel):
+    exercise_name: str
+    set_number: int
+    weight_kg: float | None = None
+    reps: int | None = None
+
+class GetEveryPrevSetResponse(BaseModel):
+    sets: list[PrevSetItem]
+
 class ExerciseStatItem(BaseModel):
     exercise_name: str
     pr_weight_kg: float | None = None

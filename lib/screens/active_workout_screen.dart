@@ -42,6 +42,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // exercise stats keyed by exercise_name, loaded on screen open for PREVIOUS column and PR detection
   Map<String, Map<String, dynamic>> _exerciseStats = {};
 
+  // per-set previous data keyed by exercise_name -> set_number -> {weight_kg, reps}
+  Map<String, Map<int, Map<String, dynamic>>> _prevSets = {};
+
   bool _reordering = false;
 
   // rest timer state
@@ -130,6 +133,15 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       userManager.fetchExerciseStats().then((stats) {
         if (mounted) setState(() => _exerciseStats = stats);
       });
+      final exerciseNames = _exercises
+          .map((exercise) => _cleanName(exercise['name'] as String? ?? ''))
+          .where((name) => name.isNotEmpty)
+          .toList();
+      if (exerciseNames.isNotEmpty) {
+        userManager.fetchEveryPrevSet(exerciseNames).then((prevSets) {
+          if (mounted) setState(() => _prevSets = prevSets);
+        });
+      }
     }
     _stopwatch = Stopwatch()..start();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -1276,18 +1288,22 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
-          // previous best weight x reps from user_exercise_stats
+          // per-set previous: uses _prevSets for exact set match, falls back to _exerciseStats summary
           Expanded(
             child: Builder(
               builder: (context) {
                 final exerciseName = _cleanName(
                   _exercises[exIndex]['name'] as String? ?? '',
                 );
-                final stats = _exerciseStats[exerciseName];
-                final prevWeight = stats?['last_weight_kg'];
-                final prevReps = stats?['last_reps'];
+                final prevSet = _prevSets[exerciseName]?[setIndex + 1];
+                final prevWeight =
+                    prevSet?['weight_kg'] ??
+                    _exerciseStats[exerciseName]?['last_weight_kg'];
+                final prevReps =
+                    prevSet?['reps'] ??
+                    _exerciseStats[exerciseName]?['last_reps'];
                 final label = (prevWeight != null && prevReps != null)
-                    ? '${UnitConverter.displayWeightCompact(prevWeight as double, imperial: isImperial)} x $prevReps'
+                    ? '${UnitConverter.displayWeightCompact((prevWeight as num).toDouble(), imperial: isImperial)} x $prevReps'
                     : '—';
                 return Text(
                   label,

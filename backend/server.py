@@ -84,6 +84,9 @@ from backend.schemas import (
     DeleteCustomExerciseRequest,
     CreateRoutineRequest,
     CreateRoutineResponse,
+    GetEveryPrevSetRequest,
+    PrevSetItem,
+    GetEveryPrevSetResponse,
     ExerciseStatItem,
     GetExerciseStatsResponse,
     CopyRoutineRequest,
@@ -1098,6 +1101,17 @@ def edit_custom_exercise():
         return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
     except ValueError as e:
         return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
+
+
+@app.route("/every_prev_set", methods=["POST"])
+def every_prev_set():
+    uid, body, err = _parse_and_auth(GetEveryPrevSetRequest)
+    if err:
+        return err
+    sets = workout_service.get_every_prev_set(uid=uid, exercise_names=body.exercise_names)
+    return jsonify(GetEveryPrevSetResponse(
+        sets=[PrevSetItem(**prev_set) for prev_set in sets]
+    ).model_dump()), 200
 
 
 @app.route("/exercise_stats", methods=["GET"])
