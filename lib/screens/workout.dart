@@ -491,7 +491,7 @@ class _WorkoutState extends State<Workout> {
   }
 
   void _onExploreRoutines() {
-    // TODO: open explore routines screen
+    context.push('/workout/browse_routines');
   }
 
   Widget _buildStartWorkoutCard(BuildContext context) {

@@ -25,6 +25,7 @@ import 'screens/workout.dart';
 import 'screens/active_workout_screen.dart';
 import 'screens/finish_workout_screen.dart';
 import 'screens/create_routine_screen.dart';
+import 'screens/browse_routines_screen.dart';
 import 'screens/settings/personal_preferences.dart';
 import 'screens/settings/about_the_developer.dart';
 import 'screens/settings/install_guide.dart';
@@ -201,6 +202,14 @@ final GoRouter appRouter = GoRouter(
                   pageBuilder: (context, state) => _slideUpPage(
                     key: state.pageKey,
                     child: const CreateRoutineScreen(),
+                  ),
+                ),
+                GoRoute(
+                  path: 'browse_routines',
+                  parentNavigatorKey: _rootNavKey,
+                  pageBuilder: (context, state) => _slideUpPage(
+                    key: state.pageKey,
+                    child: const BrowseRoutinesScreen(),
                   ),
                 ),
                 GoRoute(
