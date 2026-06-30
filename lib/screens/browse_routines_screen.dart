@@ -21,6 +21,8 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   int _featuredIndex = 0;
   String? _savingId;
   Set<String> _savedSourceIds = {};
+  // optimistic like state: maps template_id -> {liked, count}
+  final Map<String, Map<String, dynamic>> _likeState = {};
 
   @override
   void initState() {
@@ -53,6 +55,13 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             .map((r) => r['source_template_id'] as String?)
             .whereType<String>()
             .toSet();
+        // build optimistic like state from the server response
+        for (final r in _featured + _community) {
+          _likeState[r['template_id'] as String] = {
+            'liked': r['liked_by_me'] as bool? ?? false,
+            'count': r['like_count'] as int? ?? 0,
+          };
+        }
         _loading = false;
       });
       // update dot indicator as user scrolls
@@ -110,6 +119,26 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _toggleLike(String templateId) async {
+    final current = _likeState[templateId] ?? {'liked': false, 'count': 0};
+    final wasLiked = current['liked'] as bool;
+    // optimistic update
+    setState(() {
+      _likeState[templateId] = {
+        'liked': !wasLiked,
+        'count': (current['count'] as int) + (wasLiked ? -1 : 1),
+      };
+    });
+    final ok = wasLiked
+        ? await userManager.unlikeRoutine(templateId: templateId)
+        : await userManager.likeRoutine(templateId: templateId);
+    if (!mounted) return;
+    if (!ok) {
+      // revert on failure
+      setState(() => _likeState[templateId] = current);
+    }
   }
 
   @override
@@ -416,7 +445,38 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 ),
               ),
             ),
-            SizedBox(height: Responsive.height(context, 10)),
+            SizedBox(height: Responsive.height(context, 8)),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _toggleLike(routine['template_id'] as String),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedFavourite,
+                        color:
+                            (_likeState[routine['template_id']]?['liked']
+                                    as bool? ??
+                                false)
+                            ? accent
+                            : subtle,
+                        size: Responsive.scale(context, 13),
+                      ),
+                      SizedBox(width: Responsive.width(context, 3)),
+                      Text(
+                        '${_likeState[routine['template_id']]?['count'] ?? 0}',
+                        style: GoogleFonts.manrope(
+                          color: subtle,
+                          fontSize: Responsive.font(context, 10),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Responsive.height(context, 8)),
             GestureDetector(
               onTap: _savingId == null
                   ? () => _copyRoutine(routine['template_id'] as String)
@@ -609,6 +669,43 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               ),
             ),
           SizedBox(height: Responsive.height(context, 12)),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _toggleLike(routine['template_id'] as String),
+                child: Row(
+                  children: [
+                    HugeIcon(
+                      icon:
+                          (_likeState[routine['template_id']]?['liked']
+                                  as bool? ??
+                              false)
+                          ? HugeIcons.strokeRoundedFavourite
+                          : HugeIcons.strokeRoundedFavourite,
+                      color:
+                          (_likeState[routine['template_id']]?['liked']
+                                  as bool? ??
+                              false)
+                          ? accent
+                          : subtle,
+                      size: Responsive.scale(context, 15),
+                    ),
+                    SizedBox(width: Responsive.width(context, 4)),
+                    Text(
+                      '${_likeState[routine['template_id']]?['count'] ?? 0}',
+                      style: GoogleFonts.manrope(
+                        color: subtle,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
           GestureDetector(
             onTap: _savingId == null
                 ? () => _copyRoutine(routine['template_id'] as String)

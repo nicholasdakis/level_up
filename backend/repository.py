@@ -656,16 +656,16 @@ class WorkoutRepository:
         # reuse create_routine so the new copy gets its own template_id, tracking the source
         return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
 
-    def get_browse_routines(self) -> dict:
+    def get_browse_routines(self, uid: str) -> dict:
         # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately
         featured_rows = self._supabase.table("workout_templates") \
-            .select("template_id, name, estimated_duration_minutes") \
+            .select("template_id, name, estimated_duration_minutes, like_count") \
             .is_("uid", "null") \
             .eq("is_public", True) \
             .order("created_at") \
             .execute().data or []
         community_rows = self._supabase.table("workout_templates") \
-            .select("template_id, name, estimated_duration_minutes, uid") \
+            .select("template_id, name, estimated_duration_minutes, uid, like_count") \
             .not_.is_("uid", "null") \
             .eq("is_public", True) \
             .order("created_at", desc=True) \
@@ -696,6 +696,14 @@ class WorkoutRepository:
                 .execute().data or []
             for u in user_rows:
                 username_map[u["uid"]] = u["username"]
+        # fetch which templates this user has already liked in one query
+        liked_rows = self._supabase.table("likes") \
+            .select("content_id") \
+            .eq("uid", uid) \
+            .eq("content_type", "routine") \
+            .in_("content_id", all_ids) \
+            .execute().data or []
+        liked_ids = {r["content_id"] for r in liked_rows}
 
         def build_item(r: dict, is_community: bool) -> dict:
             exs = ex_by_template.get(r["template_id"], [])
@@ -705,6 +713,8 @@ class WorkoutRepository:
                 "exercise_count": len(exs),
                 "exercises": exs,
                 "estimated_duration_minutes": r.get("estimated_duration_minutes"),
+                "like_count": r.get("like_count", 0),
+                "liked_by_me": r["template_id"] in liked_ids,
             }
             if is_community:
                 item["creator_username"] = username_map.get(r["uid"])
@@ -714,6 +724,22 @@ class WorkoutRepository:
             "featured": [build_item(r, False) for r in featured_rows],
             "community": [build_item(r, True) for r in community_rows],
         }
+
+    def like_routine(self, uid: str, template_id: str) -> None:
+        # insert is a no-op if already liked due to the unique constraint
+        self._supabase.table("likes").upsert({
+            "uid": uid,
+            "content_type": "routine",
+            "content_id": template_id,
+        }, on_conflict="uid,content_type,content_id").execute()
+
+    def unlike_routine(self, uid: str, template_id: str) -> None:
+        self._supabase.table("likes") \
+            .delete() \
+            .eq("uid", uid) \
+            .eq("content_type", "routine") \
+            .eq("content_id", template_id) \
+            .execute()
 
     def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
         # Verify ownership before deleting

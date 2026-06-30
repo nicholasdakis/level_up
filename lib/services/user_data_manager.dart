@@ -1555,6 +1555,32 @@ class UserDataManager {
     return [];
   }
 
+  Future<bool> likeRoutine({required String templateId}) async {
+    try {
+      final response = await authenticatedPost(
+        'like_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('likeRoutine failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> unlikeRoutine({required String templateId}) async {
+    try {
+      final response = await authenticatedPost(
+        'unlike_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('unlikeRoutine failed: $e');
+    }
+    return false;
+  }
+
   // copies a public browse routine into the user's own routines
   Future<bool> copyRoutine({required String templateId}) async {
     try {

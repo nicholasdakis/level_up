@@ -24,8 +24,14 @@ class WorkoutService:
     def copy_routine(self, uid: str, template_id: str) -> str:
         return self._repo.copy_routine(uid=uid, template_id=template_id)
 
-    def get_browse_routines(self) -> dict:
-        return self._repo.get_browse_routines()
+    def get_browse_routines(self, uid: str) -> dict:
+        return self._repo.get_browse_routines(uid=uid)
+
+    def like_routine(self, uid: str, template_id: str) -> None:
+        self._repo.like_routine(uid=uid, template_id=template_id)
+
+    def unlike_routine(self, uid: str, template_id: str) -> None:
+        self._repo.unlike_routine(uid=uid, template_id=template_id)
 
     def get_my_routines(self, uid: str) -> list[dict]:
         return self._repo.get_my_routines(uid=uid)

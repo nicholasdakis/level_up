@@ -85,6 +85,8 @@ from backend.schemas import (
     CreateRoutineRequest,
     CreateRoutineResponse,
     CopyRoutineRequest,
+    LikeRoutineRequest,
+    UnlikeRoutineRequest,
     GetMyRoutinesResponse,
     MyRoutineItem,
     MyRoutineExerciseItem,
@@ -1097,14 +1099,32 @@ def edit_custom_exercise():
 
 @app.route("/browse_routines", methods=["GET"])
 def browse_routines():
-    _, _, err = _parse_and_auth()
+    uid, _, err = _parse_and_auth()
     if err:
         return err
-    data = workout_service.get_browse_routines()
+    data = workout_service.get_browse_routines(uid=uid)
     return jsonify(GetBrowseRoutinesResponse(
         featured=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["featured"]],
         community=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["community"]],
     ).model_dump()), 200
+
+
+@app.route("/like_routine", methods=["POST"])
+def like_routine():
+    uid, body, err = _parse_and_auth(LikeRoutineRequest)
+    if err:
+        return err
+    workout_service.like_routine(uid=uid, template_id=body.template_id)
+    return jsonify({"success": True}), 200
+
+
+@app.route("/unlike_routine", methods=["POST"])
+def unlike_routine():
+    uid, body, err = _parse_and_auth(UnlikeRoutineRequest)
+    if err:
+        return err
+    workout_service.unlike_routine(uid=uid, template_id=body.template_id)
+    return jsonify({"success": True}), 200
 
 
 @app.route("/my_routines", methods=["GET"])
