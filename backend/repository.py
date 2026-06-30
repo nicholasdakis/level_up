@@ -584,11 +584,12 @@ class WorkoutRepository:
         if muscle_rows:
             self._supabase.table("exercise_muscles").insert(muscle_rows).execute()
 
-    def create_routine(self, uid: str, name: str, exercises: list[dict]) -> str:
+    def create_routine(self, uid: str, name: str, exercises: list[dict], source_template_id: str | None = None) -> str:
         row = self._supabase.table("workout_templates").insert({
             "uid": uid,
             "name": name,
             "is_public": False,
+            "source_template_id": source_template_id,
         }).execute().data[0]
         template_id = row["template_id"]
         if exercises:
@@ -606,7 +607,7 @@ class WorkoutRepository:
     def get_my_routines(self, uid: str) -> list[dict]:
         # fetch all templates owned by the user, newest first
         templates = self._supabase.table("workout_templates") \
-            .select("template_id, name, created_at") \
+            .select("template_id, name, created_at, source_template_id") \
             .eq("uid", uid) \
             .order("created_at", desc=True) \
             .execute().data or []
@@ -633,6 +634,7 @@ class WorkoutRepository:
                 "exercise_count": len(ex_by_template.get(t["template_id"], [])),
                 "exercises": ex_by_template.get(t["template_id"], []),
                 "created_at": t["created_at"],
+                "source_template_id": t.get("source_template_id"),
             }
             for t in templates
         ]
@@ -651,8 +653,8 @@ class WorkoutRepository:
             .eq("template_id", template_id) \
             .order("exercise_order") \
             .execute().data or []
-        # reuse create_routine so the new copy gets its own template_id
-        return self.create_routine(uid=uid, name=template["name"], exercises=exercises)
+        # reuse create_routine so the new copy gets its own template_id, tracking the source
+        return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
 
     def get_browse_routines(self) -> dict:
         # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately

@@ -20,6 +20,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   bool _loading = true;
   int _featuredIndex = 0;
   String? _savingId;
+  Set<String> _savedSourceIds = {};
 
   @override
   void initState() {
@@ -33,7 +34,12 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   }
 
   Future<void> _fetchData() async {
-    final data = await userManager.fetchBrowseRoutines();
+    final results = await Future.wait([
+      userManager.fetchBrowseRoutines(),
+      userManager.fetchMyRoutines(),
+    ]);
+    final data = results[0] as Map<String, dynamic>;
+    final myRoutines = results[1] as List<Map<String, dynamic>>;
     if (mounted) {
       setState(() {
         _featured = (data['featured'] as List)
@@ -42,6 +48,11 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         _community = (data['community'] as List)
             .map((r) => Map<String, dynamic>.from(r as Map))
             .toList();
+        // track which browse templates the user already copied to block duplicates
+        _savedSourceIds = myRoutines
+            .map((r) => r['source_template_id'] as String?)
+            .whereType<String>()
+            .toSet();
         _loading = false;
       });
       // update dot indicator as user scrolls
@@ -63,10 +74,33 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
 
   Future<void> _copyRoutine(String templateId) async {
     if (_savingId != null) return;
+    if (_savedSourceIds.contains(templateId)) {
+      // already copied this template
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You already have this routine saved',
+            style: GoogleFonts.manrope(),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
     setState(() => _savingId = templateId);
     final ok = await userManager.copyRoutine(templateId: templateId);
     if (!mounted) return;
-    setState(() => _savingId = null);
+    if (ok) {
+      setState(() {
+        _savingId = null;
+        _savedSourceIds.add(
+          templateId,
+        ); // prevent duplicate saves without refetching
+      });
+      workoutLogNotifier.value++;
+    } else {
+      setState(() => _savingId = null);
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
