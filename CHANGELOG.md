@@ -2376,3 +2376,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added persistent mini bar above the nav bar while a workout is active: shows workout name, exercise count, and live elapsed timer; tapping it returns to the full workout screen
 - Mini bar can be collapsed to a circular floating button on the left via a compress icon; tapping the dot expands it back
 - Both the mini bar and collapsed dot pulse in scale to signal an active session; dumbbell icon also pulses in opacity
+- In-progress workout session is fully restored on app kill and relaunch via checkAndRestoreWorkoutSession called during app init
+- Workout session is UID-stamped on start; restore is skipped for guest users and rejected if the saved session belongs to a different account

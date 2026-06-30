@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
+import '../globals.dart' show isGuest;
 
 // Holds all mutable state for an in-progress workout session
 // The active workout screen reads and writes through this object so that
@@ -17,6 +19,7 @@ class WorkoutSession {
   int restDuration; // seconds, user-configurable
   final String? routineId;
   final String? routineName;
+  final String? uid; // Firebase UID of the user who started this session
 
   WorkoutSession({
     required this.exercises,
@@ -28,6 +31,7 @@ class WorkoutSession {
     this.restDuration = 90,
     this.routineId,
     this.routineName,
+    this.uid,
   }) : checked = checked ?? {},
        weights = weights ?? {},
        reps = reps ?? {};
@@ -46,6 +50,7 @@ class WorkoutSession {
     'restDuration': restDuration,
     'routineId': routineId,
     'routineName': routineName,
+    'uid': uid,
   };
 
   factory WorkoutSession.fromJson(Map<String, dynamic> json) {
@@ -67,6 +72,7 @@ class WorkoutSession {
       restDuration: json['restDuration'] as int? ?? 90,
       routineId: json['routineId'] as String?,
       routineName: json['routineName'] as String?,
+      uid: json['uid'] as String?,
     );
   }
 }
@@ -81,7 +87,20 @@ class WorkoutSessionService extends ChangeNotifier {
 
   // Start a new session, replaces any existing session
   void startSession(WorkoutSession session) {
-    _session = session;
+    // stamp the current user's UID so restore can reject sessions from other accounts
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    _session = WorkoutSession(
+      exercises: session.exercises,
+      startedAtMs: session.startedAtMs,
+      workoutName: session.workoutName,
+      checked: session.checked,
+      weights: session.weights,
+      reps: session.reps,
+      restDuration: session.restDuration,
+      routineId: session.routineId,
+      routineName: session.routineName,
+      uid: uid,
+    );
     notifyListeners();
     _persist();
   }
@@ -104,14 +123,26 @@ class WorkoutSessionService extends ChangeNotifier {
   }
 
   // Called on app launch, returns true if a session was restored
-  Future<bool> tryRestore() async {
+  Future<bool> checkAndRestoreWorkoutSession() async {
+    // never restore for guests
+    if (isGuest) return false;
+
     try {
       final raw = await _prefs.getString(
         SharedPreferencesKey.activeWorkoutSession,
       );
       if (raw == null) return false;
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      _session = WorkoutSession.fromJson(json);
+      final restored = WorkoutSession.fromJson(json);
+
+      // reject if the saved session belongs to a different account
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
+      if (restored.uid != null && restored.uid != currentUid) {
+        await _prefs.remove(SharedPreferencesKey.activeWorkoutSession);
+        return false;
+      }
+
+      _session = restored;
       notifyListeners();
       return true;
     } catch (_) {
