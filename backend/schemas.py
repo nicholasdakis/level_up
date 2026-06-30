@@ -382,6 +382,9 @@ class CreateRoutineRequest(BaseModel):
 class CreateRoutineResponse(BaseModel):
     template_id: str
 
+class CopyRoutineRequest(BaseModel):
+    template_id: str
+
 class MyRoutineExerciseItem(BaseModel):
     exercise_name: str
     exercise_order: int

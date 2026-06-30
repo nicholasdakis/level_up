@@ -84,6 +84,7 @@ from backend.schemas import (
     DeleteCustomExerciseRequest,
     CreateRoutineRequest,
     CreateRoutineResponse,
+    CopyRoutineRequest,
     GetMyRoutinesResponse,
     MyRoutineItem,
     MyRoutineExerciseItem,
@@ -1133,6 +1134,19 @@ def create_routine():
         exercises=[e.model_dump() for e in body.exercises],
     )
     return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
+
+
+@app.route("/copy_routine", methods=["POST"])
+def copy_routine():
+    # saves a browse routine to the user's own routines as a private copy
+    uid, body, err = _parse_and_auth(CopyRoutineRequest)
+    if err:
+        return err
+    try:
+        template_id = workout_service.copy_routine(uid=uid, template_id=body.template_id)
+        return jsonify(CreateRoutineResponse(template_id=template_id).model_dump()), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
 
 
 @app.route("/delete_custom_exercise", methods=["POST"])

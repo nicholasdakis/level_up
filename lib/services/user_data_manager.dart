@@ -1555,6 +1555,20 @@ class UserDataManager {
     return [];
   }
 
+  // copies a public browse routine into the user's own routines
+  Future<bool> copyRoutine({required String templateId}) async {
+    try {
+      final response = await authenticatedPost(
+        'copy_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('copyRoutine failed: $e');
+    }
+    return false;
+  }
+
   Future<bool> createRoutine({
     required String name,
     required List<Map<String, dynamic>> exercises,

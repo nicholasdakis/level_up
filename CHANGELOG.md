@@ -2348,3 +2348,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added /browse_routines backend route returning featured (uid null) and community (is_public true) routines in a single call with exercise lists and creator usernames
 - Added 9 built-in featured routines to workout_templates covering all fitness levels and equipment availability
 - Browse Routines screen now fetches real data
+
+## 2026-06-30
+- Added copy_routine endpoint that copies a public browsed routine into the user's own routines using just the template_id
+- Wired up the Save This Routine button on featured and community cards in the browse routines screen

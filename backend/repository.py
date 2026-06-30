@@ -637,6 +637,23 @@ class WorkoutRepository:
             for t in templates
         ]
 
+    def copy_routine(self, uid: str, template_id: str) -> str:
+        # copy a public browse template into the user's own routines (uid set, is_public false)
+        template = self._supabase.table("workout_templates") \
+            .select("name") \
+            .eq("template_id", template_id) \
+            .single() \
+            .execute().data
+        if not template:
+            raise ValueError("template not found")
+        exercises = self._supabase.table("workout_template_exercises") \
+            .select("exercise_id, exercise_name, exercise_order") \
+            .eq("template_id", template_id) \
+            .order("exercise_order") \
+            .execute().data or []
+        # reuse create_routine so the new copy gets its own template_id
+        return self.create_routine(uid=uid, name=template["name"], exercises=exercises)
+
     def get_browse_routines(self) -> dict:
         # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately
         featured_rows = self._supabase.table("workout_templates") \

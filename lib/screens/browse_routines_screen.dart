@@ -19,6 +19,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   List<Map<String, dynamic>> _community = [];
   bool _loading = true;
   int _featuredIndex = 0;
+  String? _savingId;
 
   @override
   void initState() {
@@ -58,6 +59,23 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         if (index != _featuredIndex) setState(() => _featuredIndex = index);
       });
     }
+  }
+
+  Future<void> _copyRoutine(String templateId) async {
+    if (_savingId != null) return;
+    setState(() => _savingId = templateId);
+    final ok = await userManager.copyRoutine(templateId: templateId);
+    if (!mounted) return;
+    setState(() => _savingId = null);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok ? 'Routine saved to My Routines' : 'Failed to save routine',
+          style: GoogleFonts.manrope(),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -353,7 +371,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             const Spacer(),
             SizedBox(height: Responsive.height(context, 10)),
             GestureDetector(
-              onTap: () {},
+              onTap: _savingId == null
+                  ? () => _copyRoutine(routine['template_id'] as String)
+                  : null,
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(
@@ -543,7 +563,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             ),
           SizedBox(height: Responsive.height(context, 12)),
           GestureDetector(
-            onTap: () {},
+            onTap: _savingId == null
+                ? () => _copyRoutine(routine['template_id'] as String)
+                : null,
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
