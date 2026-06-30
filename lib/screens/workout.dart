@@ -68,44 +68,16 @@ class _WorkoutState extends State<Workout> {
     _heatmapTooltip = null;
   }
 
-  void _showHeatmapTooltip(
+  void _showCellTooltip(
     BuildContext cellContext,
-    String dateStr,
-    int count,
-  ) {
+    String title, {
+    String? subtitle,
+  }) {
     _dismissHeatmapTooltip();
     final box = cellContext.findRenderObject() as RenderBox;
     final offset = box.localToGlobal(Offset.zero);
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
-
-    final parts = dateStr.split('-');
-    final dt = DateTime(
-      int.parse(parts[0]),
-      int.parse(parts[1]),
-      int.parse(parts[2]),
-    );
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final label = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
-    final countLabel = count == 0
-        ? 'No workouts'
-        : count == 1
-        ? '1 workout'
-        : '$count workouts';
-
     _heatmapTooltip = OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -131,17 +103,18 @@ class _WorkoutState extends State<Workout> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        label,
+                        title,
                         style: GoogleFonts.manrope(
                           color: accent,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        countLabel,
-                        style: GoogleFonts.manrope(color: dim, fontSize: 10),
-                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.manrope(color: dim, fontSize: 10),
+                        ),
                     ],
                   ),
                 ),
@@ -152,6 +125,40 @@ class _WorkoutState extends State<Workout> {
       ),
     );
     Overlay.of(cellContext).insert(_heatmapTooltip!);
+  }
+
+  void _showHeatmapTooltip(
+    BuildContext cellContext,
+    String dateStr,
+    int count,
+  ) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final parts = dateStr.split('-');
+    final dt = DateTime(
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      int.parse(parts[2]),
+    );
+    final dateLabel = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    final countLabel = count == 0
+        ? 'No workouts'
+        : count == 1
+        ? '1 workout'
+        : '$count workouts';
+    _showCellTooltip(cellContext, dateLabel, subtitle: countLabel);
   }
 
   void _onWorkoutLogged() {
@@ -1052,7 +1059,7 @@ class _WorkoutState extends State<Workout> {
                           vertical: Responsive.height(context, 3),
                         ),
                         decoration: BoxDecoration(
-                          color: c.onCard.withAlpha(18),
+                          color: c.onCard.withAlpha(45),
                           borderRadius: BorderRadius.circular(
                             Responsive.scale(context, 20),
                           ),
@@ -1083,7 +1090,6 @@ class _WorkoutState extends State<Workout> {
   Widget _buildHeatmapCard(BuildContext context) {
     final c = cardColors(appColorNotifier.value);
     final accent = c.onCard;
-    final labelColor = c.onCard.withAlpha(120);
     const int weeks = 16;
     const int daysPerWeek = 7;
     final today = DateTime.now();
@@ -1110,7 +1116,7 @@ class _WorkoutState extends State<Workout> {
     ];
 
     Color cellColor(int count, bool isFuture) {
-      if (isFuture || count == 0) return c.onCard.withAlpha(18);
+      if (isFuture || count == 0) return c.onCard.withAlpha(45);
       if (count == 1) return accent.withAlpha(80);
       if (count == 2) return accent.withAlpha(150);
       return accent.withAlpha(230);
@@ -1128,14 +1134,23 @@ class _WorkoutState extends State<Workout> {
               constraints.maxWidth - dayLabelWidth - cellGap;
           final double cellSize = (gridWidth - cellGap * (weeks - 1)) / weeks;
 
-          Widget legendCell(int alpha) => Container(
-            width: Responsive.scale(context, 12),
-            height: Responsive.scale(context, 12),
-            decoration: BoxDecoration(
-              color: alpha == 0
-                  ? c.onCard.withAlpha(18)
-                  : accent.withAlpha(alpha),
-              borderRadius: BorderRadius.circular(2),
+          Widget legendCell(int alpha, String label) => Builder(
+            builder: (cellContext) => MouseRegion(
+              onEnter: (_) => _showCellTooltip(cellContext, label),
+              onExit: (_) => _dismissHeatmapTooltip(),
+              child: GestureDetector(
+                onTap: () => _showCellTooltip(cellContext, label),
+                child: Container(
+                  width: Responsive.scale(context, 12),
+                  height: Responsive.scale(context, 12),
+                  decoration: BoxDecoration(
+                    color: alpha == 0
+                        ? c.onCard.withAlpha(45)
+                        : accent.withAlpha(alpha),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
             ),
           );
 
@@ -1153,7 +1168,7 @@ class _WorkoutState extends State<Workout> {
                         child: Text(
                           monthNames[date.month - 1],
                           style: GoogleFonts.manrope(
-                            color: labelColor,
+                            color: Colors.white,
                             fontSize: Responsive.font(context, 10),
                             fontWeight: FontWeight.w500,
                           ),
@@ -1189,7 +1204,7 @@ class _WorkoutState extends State<Workout> {
                           child: Text(
                             dayLabels[d],
                             style: GoogleFonts.manrope(
-                              color: Colors.white.withAlpha(120),
+                              color: Colors.white,
                               fontSize: Responsive.font(context, 10),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1260,24 +1275,24 @@ class _WorkoutState extends State<Workout> {
                   Text(
                     'Less',
                     style: GoogleFonts.manrope(
-                      color: Colors.white.withAlpha(120),
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 10),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(width: cellGap * 2),
-                  legendCell(0),
+                  legendCell(0, '0 workouts'),
                   SizedBox(width: cellGap),
-                  legendCell(80),
+                  legendCell(80, '1 workout'),
                   SizedBox(width: cellGap),
-                  legendCell(150),
+                  legendCell(150, '2 workouts'),
                   SizedBox(width: cellGap),
-                  legendCell(230),
+                  legendCell(230, '3+ workouts'),
                   SizedBox(width: cellGap * 2),
                   Text(
                     'More',
                     style: GoogleFonts.manrope(
-                      color: Colors.white.withAlpha(120),
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 10),
                       fontWeight: FontWeight.w500,
                     ),

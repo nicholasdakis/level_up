@@ -2367,3 +2367,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Active workout screen now shows per-set previous weight and reps in the PREVIOUS column, falling back to the last session summary for sets beyond the previous session's count
 - Fixed imperial weight entries being stored as kg without conversion
 - Added displayWeightCompact to UnitConverter for clean weight formatting without trailing decimal zeros
+- Made heatmap legend hoverable / clickable to show exactly how many workouts correspond to each color

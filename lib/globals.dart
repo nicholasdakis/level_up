@@ -1072,19 +1072,35 @@ class _OnboardingHintState extends State<OnboardingHint>
 Widget sectionHeader(
   String text,
   BuildContext context, {
-  double baseFontSize = 11,
+  double baseFontSize = 15,
   EdgeInsetsGeometry? padding,
 }) {
   return Padding(
     padding: padding ?? EdgeInsets.only(bottom: Responsive.height(context, 12)),
-    child: Text(
-      text,
-      style: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, baseFontSize),
-        color: lightenColor(appColorNotifier.value, 0.45),
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.4,
-      ),
+    child: Stack(
+      children: [
+        Text(
+          text,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, baseFontSize),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.4,
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.5
+              ..color = Colors.black.withAlpha(25),
+          ),
+        ),
+        Text(
+          text,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, baseFontSize),
+            color: lightenColor(appColorNotifier.value, 0.45),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.4,
+          ),
+        ),
+      ],
     ),
   );
 }
