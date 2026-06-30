@@ -5,6 +5,9 @@ class WorkoutService:
     def __init__(self, repo: WorkoutRepository):
         self._repo = repo
 
+    def get_exercise_stats(self, uid: str) -> list[dict]:
+        return self._repo.get_exercise_stats(uid=uid)
+
     def search_exercises(self, uid: str, q: str, equipment: list[str], muscle: list[str], level: list[str]) -> list[dict]:
         # Delegates to a Postgres RPC that JOINs exercises with muscle_groups server-side
         return self._repo.search_exercises(uid=uid, q=q, equipment=equipment, muscle=muscle, level=level)

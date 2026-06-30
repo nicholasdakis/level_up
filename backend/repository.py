@@ -481,6 +481,12 @@ class WorkoutRepository:
             self._upsert_exercise_stats(uid, exercise_name, stats)
         return workout_id
 
+    def get_exercise_stats(self, uid: str) -> list[dict]:
+        return self._supabase.table("user_exercise_stats") \
+            .select("exercise_name, pr_weight_kg, pr_reps, pr_volume_kg, estimated_1rm, last_weight_kg, last_reps, total_sets") \
+            .eq("uid", uid) \
+            .execute().data or []
+
     def get_recent_workouts(self, uid: str, limit: int = 10) -> list[dict]:
         # Orders by created_at (timestamp) rather than date (date-only) so two sessions
         # on the same day are returned in the correct chronological order

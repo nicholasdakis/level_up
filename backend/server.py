@@ -84,6 +84,8 @@ from backend.schemas import (
     DeleteCustomExerciseRequest,
     CreateRoutineRequest,
     CreateRoutineResponse,
+    ExerciseStatItem,
+    GetExerciseStatsResponse,
     CopyRoutineRequest,
     DeleteRoutineRequest,
     LikeRoutineRequest,
@@ -1096,6 +1098,17 @@ def edit_custom_exercise():
         return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
     except ValueError as e:
         return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
+
+
+@app.route("/exercise_stats", methods=["GET"])
+def get_exercise_stats():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    stats = workout_service.get_exercise_stats(uid=uid)
+    return jsonify(GetExerciseStatsResponse(
+        stats=[ExerciseStatItem(**stat) for stat in stats]
+    ).model_dump()), 200
 
 
 @app.route("/browse_routines", methods=["GET"])

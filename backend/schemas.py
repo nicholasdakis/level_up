@@ -382,6 +382,19 @@ class CreateRoutineRequest(BaseModel):
 class CreateRoutineResponse(BaseModel):
     template_id: str
 
+class ExerciseStatItem(BaseModel):
+    exercise_name: str
+    pr_weight_kg: float | None = None
+    pr_reps: int | None = None
+    pr_volume_kg: float | None = None
+    estimated_1rm: float | None = None
+    last_weight_kg: float | None = None
+    last_reps: int | None = None
+    total_sets: int = 0
+
+class GetExerciseStatsResponse(BaseModel):
+    stats: list[ExerciseStatItem]
+
 class CopyRoutineRequest(BaseModel):
     template_id: str
 
