@@ -39,6 +39,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   // which sets are checked off
   final Map<String, bool> _checked = {};
 
+  // exercise stats keyed by exercise_name, loaded on screen open for PREVIOUS column and PR detection
+  Map<String, Map<String, dynamic>> _exerciseStats = {};
+
   bool _reordering = false;
 
   // rest timer state
@@ -122,6 +125,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       }).toList();
     } else {
       _exercises = [];
+    }
+    if (!isGuest) {
+      userManager.fetchExerciseStats().then((stats) {
+        if (mounted) setState(() => _exerciseStats = stats);
+      });
     }
     _stopwatch = Stopwatch()..start();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -1260,15 +1268,36 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
-          // previous, dash until history is wired
+          // previous best weight x reps from user_exercise_stats
           Expanded(
-            child: Text(
-              '—',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                color: onCard.withAlpha(80),
-                fontSize: Responsive.font(context, 13),
-              ),
+            child: Builder(
+              builder: (context) {
+                final exerciseName = _cleanName(
+                  _exercises[exIndex]['name'] as String? ?? '',
+                );
+                final stats = _exerciseStats[exerciseName];
+                final prevWeight = stats?['last_weight_kg'];
+                final prevReps = stats?['last_reps'];
+                String formatWeight(double kg) {
+                  final raw = isImperial ? UnitConverter.kgToLbs(kg) : kg;
+                  final rounded = double.parse(raw.toStringAsFixed(1));
+                  return rounded == rounded.roundToDouble()
+                      ? rounded.toInt().toString()
+                      : rounded.toStringAsFixed(1);
+                }
+
+                final label = (prevWeight != null && prevReps != null)
+                    ? '${formatWeight(prevWeight as double)} x $prevReps'
+                    : '—';
+                return Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    color: onCard.withAlpha(160),
+                    fontSize: Responsive.font(context, 11),
+                  ),
+                );
+              },
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),

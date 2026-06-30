@@ -1555,6 +1555,25 @@ class UserDataManager {
     return [];
   }
 
+  Future<Map<String, Map<String, dynamic>>> fetchExerciseStats() async {
+    try {
+      final response = await authenticatedGet('exercise_stats');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final stats = (data['stats'] as List)
+            .map((stat) => Map<String, dynamic>.from(stat as Map))
+            .toList();
+        // keyed by exercise_name for O(1) lookup during workout
+        return {
+          for (final stat in stats) stat['exercise_name'] as String: stat,
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchExerciseStats failed: $e');
+    }
+    return {};
+  }
+
   Future<bool> deleteRoutine({required String templateId}) async {
     try {
       final response = await authenticatedPost(

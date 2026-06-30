@@ -2361,3 +2361,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced personal_records table with user_exercise_stats keyed by (uid, exercise_name), tracking last weight/reps and PRs per exercise
 - log_workout now upserts user_exercise_stats after each session, updating PRs using the Epley 1RM formula where applicable
 - Refactored log_workout into _create_workout, _save_sets_and_collect_stats, and _upsert_exercise_stats
+- Added exercise_stats GET route and methods for loading the stats in when a user starts an exercise
+- Fixed unit conversion causing decimals when loading past workout stats

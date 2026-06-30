@@ -227,19 +227,11 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // darken mid/light theme colors so text is always readable against the background
-    final hsl = HSLColor.fromColor(appColorNotifier.value);
-    final bg = hsl.lightness > 0.25
-        ? darkenColor(
-            appColorNotifier.value,
-            (hsl.lightness - 0.22).clamp(0.0, 0.3),
-          )
-        : appColorNotifier.value;
-    final accent = lightenColor(bg, 0.45);
-    final dim = lightenColor(bg, 0.35);
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final dim = lightenColor(appColorNotifier.value, 0.35);
 
     return Container(
-      decoration: BoxDecoration(color: bg),
+      decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Material(
