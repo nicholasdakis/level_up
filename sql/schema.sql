@@ -279,20 +279,19 @@ CREATE TABLE workout_template_exercises (
     default_weight_kg NUMERIC(6, 2)         -- pre-filled weight
 );
 
--- Caches lifetime PRs per user per exercise, updated after each workout
-CREATE TABLE personal_records (
+-- Tracks per-user per-exercise stats: PRs, last session values, updated after each workout
+CREATE TABLE user_exercise_stats (
     uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
-    exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
-    exercise_name TEXT NOT NULL,              -- cached at log time so name survives exercise deletion
-    max_weight_kg NUMERIC(6, 2),              -- heaviest single weight lifted
-    max_reps INTEGER,                         -- most reps in a single set (weighted)
-    max_reps_bodyweight INTEGER,              -- most reps in a single set at bodyweight (weight = 0 or null)
-    estimated_1rm NUMERIC(6, 2),             -- best estimated 1RM via Epley: weight * (1 + reps/30)
-    max_volume_kg NUMERIC(10, 2),            -- highest total volume in a single session (sum of weight * reps)
-    max_duration_seconds INTEGER,             -- longest single set duration (for timed exercises)
-    max_distance_km NUMERIC(6, 3),           -- longest single set distance (for cardio)
-    last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (uid, exercise_id)
+    exercise_name TEXT NOT NULL,
+    pr_weight_kg NUMERIC(6,2),               -- heaviest single weight ever lifted
+    pr_reps INT,                             -- most reps in a single set
+    pr_volume_kg NUMERIC(10,2),              -- best single-session volume for this exercise
+    estimated_1rm NUMERIC(6,2),             -- best estimated 1RM: weight * (1 + reps/30)
+    last_weight_kg NUMERIC(6,2),            -- weight from the most recent set
+    last_reps INT,                           -- reps from the most recent set
+    last_logged_at TIMESTAMPTZ,              -- when the exercise was last logged
+    total_sets INT NOT NULL DEFAULT 0,       -- lifetime set count
+    PRIMARY KEY (uid, exercise_name)
 );
 
 -- Index to speed up leaderboard rank queries at scale, matches sort order: level DESC, exp_points DESC, uid ASC
