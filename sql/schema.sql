@@ -249,8 +249,23 @@ CREATE TABLE workout_templates (
     is_public BOOLEAN DEFAULT false,                            -- true if shared publicly for others to discover and copy
     created_by TEXT REFERENCES users(uid) ON DELETE SET NULL,  -- original creator if this was copied from another user's routine
     estimated_duration_minutes INT,                             -- optional duration hint shown on browse screen
+    source_template_id UUID REFERENCES workout_templates(template_id) ON DELETE SET NULL,  -- set when copied from a browse routine, null for originals
+    like_count INTEGER NOT NULL DEFAULT 0,                      -- denormalized count kept in sync by the likes trigger
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Polymorphic likes table shared across all likeable content types
+CREATE TABLE likes (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uid          TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    content_type TEXT NOT NULL,  -- e.g. 'routine', 'status_post'
+    content_id   TEXT NOT NULL,  -- id of the liked item in its own table
+    created_at   TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (uid, content_type, content_id)
+);
+
+-- Index for fast like-count lookups and feed queries
+CREATE INDEX IF NOT EXISTS idx_likes_content ON likes (content_type, content_id);
 
 -- Exercises within a saved template, with default values pre-filled when the user starts a workout
 CREATE TABLE workout_template_exercises (

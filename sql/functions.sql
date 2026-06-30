@@ -634,6 +634,28 @@ AS $$
     LIMIT p_limit;
 $$;
 
+-- update_like_count: fires after any insert or delete on the likes table and keeps the
+-- denormalized like_count column on the target table in sync automatically
+CREATE OR REPLACE FUNCTION update_like_count() RETURNS trigger AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        IF NEW.content_type = 'routine' THEN
+            UPDATE workout_templates SET like_count = like_count + 1 WHERE template_id = NEW.content_id::uuid;
+        END IF;
+    ELSIF TG_OP = 'DELETE' THEN
+        IF OLD.content_type = 'routine' THEN
+            -- GREATEST guards against like_count going negative from stale data
+            UPDATE workout_templates SET like_count = GREATEST(like_count - 1, 0) WHERE template_id = OLD.content_id::uuid;
+        END IF;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER likes_update_count
+AFTER INSERT OR DELETE ON likes
+FOR EACH ROW EXECUTE FUNCTION update_like_count();
+
 -- get_recent_exercises: most recently used unique exercises for a user, sorted by recency
 CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
 RETURNS TABLE(exercise_id INT, exercise_name TEXT)
