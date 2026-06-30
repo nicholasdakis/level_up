@@ -2338,3 +2338,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Creating a custom exercise immediately selects it and closes the picker
 - Added a unique constraint on (name, created_by) in the exercises table so a user cannot create two exercises with the same name
 - Duplicate name attempts return a 409 with a user-facing error shown inline in the create dialog
+- Built the Create Routine screen with an inline name field, exercise list with reorder and remove, and a Save button that posts to the new /create_routine backend route
+- /create_routine inserts into workout_templates and workout_template_exercises and returns the generated template_id
+- Wired the New Routine button on the workout dashboard to push the Create Routine screen

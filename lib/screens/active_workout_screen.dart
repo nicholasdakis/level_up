@@ -604,79 +604,82 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               children: [
                 _buildHeader(context, accent, dim, volDisplay, volUnit),
                 Container(height: 1, color: Colors.white.withAlpha(15)),
-                Expanded(
-                  child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(),
-                    child: ReorderableListView(
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(context, 8),
-                      ),
-                      buildDefaultDragHandles: false,
-                      proxyDecorator: (child, index, animation) => child,
-                      onReorder: _reordering
-                          ? (oldIndex, newIndex) {
-                              setState(() {
-                                if (newIndex > oldIndex) newIndex--;
-                                final oldOrder = List.of(_exercises);
-                                final ex = _exercises.removeAt(oldIndex);
-                                _exercises.insert(newIndex, ex);
-                                final newControllers =
-                                    <String, TextEditingController>{};
-                                final newChecked = <String, bool>{};
-                                for (
-                                  int newI = 0;
-                                  newI < _exercises.length;
-                                  newI++
-                                ) {
-                                  final oldI = oldOrder.indexOf(
-                                    _exercises[newI],
-                                  );
-                                  final sets =
-                                      (_exercises[newI]['sets'] as List).length;
-                                  for (int s = 0; s < sets; s++) {
-                                    for (final field in ['reps', 'weight']) {
-                                      final oldKey = '${oldI}_${s}_$field';
-                                      final newKey = '${newI}_${s}_$field';
-                                      if (_controllers.containsKey(oldKey)) {
-                                        newControllers[newKey] =
-                                            _controllers[oldKey]!;
-                                      }
-                                    }
-                                    final oldCheckedKey = '${oldI}_$s';
-                                    if (_checked.containsKey(oldCheckedKey)) {
-                                      newChecked['${newI}_$s'] =
-                                          _checked[oldCheckedKey]!;
-                                    }
-                                  }
-                                }
-                                _controllers
-                                  ..clear()
-                                  ..addAll(newControllers);
-                                _checked
-                                  ..clear()
-                                  ..addAll(newChecked);
-                              });
-                            }
-                          : (oldI, newI) {},
-                      children: [
-                        if (_exercises.isEmpty && !_reordering)
-                          KeyedSubtree(
-                            key: const ValueKey('empty'),
-                            child: _buildEmptyState(context, accent, dim),
-                          ),
-                        for (int i = 0; i < _exercises.length; i++)
-                          _buildExerciseSection(
-                            context,
-                            i,
-                            accent,
-                            dim,
-                            isImperial,
-                            key: ValueKey(i),
-                          ),
-                      ],
+                if (_exercises.isEmpty && !_reordering)
+                  Expanded(
+                    child: Center(
+                      child: _buildEmptyState(context, accent, dim),
                     ),
                   ),
-                ),
+                if (_exercises.isNotEmpty || _reordering)
+                  Expanded(
+                    child: ScrollConfiguration(
+                      behavior: NoGlowScrollBehavior(),
+                      child: ReorderableListView(
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.height(context, 8),
+                        ),
+                        buildDefaultDragHandles: false,
+                        proxyDecorator: (child, index, animation) => child,
+                        onReorder: _reordering
+                            ? (oldIndex, newIndex) {
+                                setState(() {
+                                  if (newIndex > oldIndex) newIndex--;
+                                  final oldOrder = List.of(_exercises);
+                                  final ex = _exercises.removeAt(oldIndex);
+                                  _exercises.insert(newIndex, ex);
+                                  final newControllers =
+                                      <String, TextEditingController>{};
+                                  final newChecked = <String, bool>{};
+                                  for (
+                                    int newI = 0;
+                                    newI < _exercises.length;
+                                    newI++
+                                  ) {
+                                    final oldI = oldOrder.indexOf(
+                                      _exercises[newI],
+                                    );
+                                    final sets =
+                                        (_exercises[newI]['sets'] as List)
+                                            .length;
+                                    for (int s = 0; s < sets; s++) {
+                                      for (final field in ['reps', 'weight']) {
+                                        final oldKey = '${oldI}_${s}_$field';
+                                        final newKey = '${newI}_${s}_$field';
+                                        if (_controllers.containsKey(oldKey)) {
+                                          newControllers[newKey] =
+                                              _controllers[oldKey]!;
+                                        }
+                                      }
+                                      final oldCheckedKey = '${oldI}_$s';
+                                      if (_checked.containsKey(oldCheckedKey)) {
+                                        newChecked['${newI}_$s'] =
+                                            _checked[oldCheckedKey]!;
+                                      }
+                                    }
+                                  }
+                                  _controllers
+                                    ..clear()
+                                    ..addAll(newControllers);
+                                  _checked
+                                    ..clear()
+                                    ..addAll(newChecked);
+                                });
+                              }
+                            : (oldI, newI) {},
+                        children: [
+                          for (int i = 0; i < _exercises.length; i++)
+                            _buildExerciseSection(
+                              context,
+                              i,
+                              accent,
+                              dim,
+                              isImperial,
+                              key: ValueKey(i),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                 if (_reordering)
                   GestureDetector(
                     onTap: () {
@@ -906,35 +909,33 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context, Color accent, Color dim) {
-    return Padding(
-      padding: EdgeInsets.only(top: Responsive.height(context, 80)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedDumbbell01,
-            color: Colors.white.withAlpha(35),
-            size: Responsive.scale(context, 44),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedDumbbell01,
+          color: Colors.white.withAlpha(35),
+          size: Responsive.scale(context, 44),
+        ),
+        SizedBox(height: Responsive.height(context, 14)),
+        Text(
+          'No exercises yet',
+          style: GoogleFonts.manrope(
+            color: accent,
+            fontSize: Responsive.font(context, 15),
+            fontWeight: FontWeight.w700,
           ),
-          SizedBox(height: Responsive.height(context, 14)),
-          Text(
-            'No exercises yet',
-            style: GoogleFonts.manrope(
-              color: accent,
-              fontSize: Responsive.font(context, 15),
-              fontWeight: FontWeight.w700,
-            ),
+        ),
+        SizedBox(height: Responsive.height(context, 4)),
+        Text(
+          'Tap Add Exercise below to get started',
+          style: GoogleFonts.manrope(
+            color: dim,
+            fontSize: Responsive.font(context, 12),
           ),
-          SizedBox(height: Responsive.height(context, 4)),
-          Text(
-            'Tap Add Exercise below to get started',
-            style: GoogleFonts.manrope(
-              color: dim,
-              fontSize: Responsive.font(context, 12),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

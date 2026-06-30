@@ -1522,6 +1522,22 @@ class UserDataManager {
     return false;
   }
 
+  Future<bool> createRoutine({
+    required String name,
+    required List<Map<String, dynamic>> exercises,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'create_routine',
+        body: {'name': name, 'exercises': exercises},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('createRoutine failed: $e');
+    }
+    return false;
+  }
+
   Future<bool> deleteCustomExercise(int exerciseId) async {
     try {
       final response = await authenticatedPost(

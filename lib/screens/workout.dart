@@ -487,7 +487,7 @@ class _WorkoutState extends State<Workout> {
   }
 
   void _onNewRoutine() {
-    // TODO: open create routine screen
+    context.push('/workout/create_routine');
   }
 
   void _onExploreRoutines() {

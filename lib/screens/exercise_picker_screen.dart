@@ -563,10 +563,11 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                                                 ),
                                                 child: GestureDetector(
                                                   onTap: () => setInner(() {
-                                                    if (temp.contains(opt))
+                                                    if (temp.contains(opt)) {
                                                       temp.remove(opt);
-                                                    else
+                                                    } else {
                                                       temp.add(opt);
+                                                    }
                                                   }),
                                                   child: AnimatedContainer(
                                                     duration: const Duration(
@@ -811,10 +812,13 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                                         level: selectedLevel,
                                       );
                                   if (!mounted) return;
-                                  if (result == null || result.containsKey('error')) {
+                                  if (result == null ||
+                                      result.containsKey('error')) {
                                     setDialogState(() {
                                       saving = false;
-                                      errorMsg = result?['error'] as String? ?? 'Failed to create exercise';
+                                      errorMsg =
+                                          result?['error'] as String? ??
+                                          'Failed to create exercise';
                                     });
                                     return;
                                   }
