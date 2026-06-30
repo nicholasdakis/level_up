@@ -2345,3 +2345,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added /get_my_routines backend route returning the user's saved routines with their exercise lists, fetched in a single batch query
 - My Routines card on the workout dashboard now shows real data with a Start button per routine that launches an active workout pre-filled with those exercises
 - Empty My Routines state shows a dialog offering to create a routine or browse existing ones
+- Added /browse_routines backend route returning featured (uid null) and community (is_public true) routines in a single call with exercise lists and creator usernames
+- Added 9 built-in featured routines to workout_templates covering all fitness levels and equipment availability
+- Browse Routines screen now fetches real data

@@ -21,6 +21,9 @@ class WorkoutService:
     def create_routine(self, uid: str, name: str, exercises: list[dict]) -> str:
         return self._repo.create_routine(uid=uid, name=name, exercises=exercises)
 
+    def get_browse_routines(self) -> dict:
+        return self._repo.get_browse_routines()
+
     def get_my_routines(self, uid: str) -> list[dict]:
         return self._repo.get_my_routines(uid=uid)
 

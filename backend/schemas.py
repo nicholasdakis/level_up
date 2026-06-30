@@ -395,3 +395,15 @@ class MyRoutineItem(BaseModel):
 
 class GetMyRoutinesResponse(BaseModel):
     routines: list[MyRoutineItem]
+
+class BrowseRoutineItem(BaseModel):
+    template_id: str
+    name: str
+    exercise_count: int
+    exercises: list[MyRoutineExerciseItem]
+    estimated_duration_minutes: int | None = None
+    creator_username: str | None = None  # null for featured routines
+
+class GetBrowseRoutinesResponse(BaseModel):
+    featured: list[BrowseRoutineItem]
+    community: list[BrowseRoutineItem]

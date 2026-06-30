@@ -87,6 +87,8 @@ from backend.schemas import (
     GetMyRoutinesResponse,
     MyRoutineItem,
     MyRoutineExerciseItem,
+    BrowseRoutineItem,
+    GetBrowseRoutinesResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -1090,6 +1092,18 @@ def edit_custom_exercise():
         return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
     except ValueError as e:
         return jsonify(SimpleSuccessResponse(success=False, error=str(e)).model_dump()), 403
+
+
+@app.route("/browse_routines", methods=["GET"])
+def browse_routines():
+    _, _, err = _parse_and_auth()
+    if err:
+        return err
+    data = workout_service.get_browse_routines()
+    return jsonify(GetBrowseRoutinesResponse(
+        featured=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["featured"]],
+        community=[BrowseRoutineItem(**{**r, "exercises": [MyRoutineExerciseItem(**e) for e in r["exercises"]]}) for r in data["community"]],
+    ).model_dump()), 200
 
 
 @app.route("/my_routines", methods=["GET"])

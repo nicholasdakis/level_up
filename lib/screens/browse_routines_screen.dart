@@ -4,79 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 
-// placeholder data shapes used until the backend is wired up
-class _RoutinePreview {
-  final String name;
-  final int exerciseCount;
-  final List<String> muscles;
-  final List<String> exercises;
-  final int? estimatedMinutes;
-  final String? creatorUsername;
-
-  const _RoutinePreview({
-    required this.name,
-    required this.exerciseCount,
-    required this.muscles,
-    required this.exercises,
-    this.estimatedMinutes,
-    this.creatorUsername,
-  });
-}
-
-// stub data shown until real backend data is fetched
-const _featuredStubs = [
-  _RoutinePreview(
-    name: 'Push Day',
-    exerciseCount: 6,
-    muscles: ['Chest', 'Shoulders', 'Triceps'],
-    exercises: [
-      'Bench Press',
-      'Incline DB Press',
-      'Overhead Press',
-      'Tricep Pushdown',
-    ],
-    estimatedMinutes: 60,
-  ),
-  _RoutinePreview(
-    name: 'Pull Day',
-    exerciseCount: 6,
-    muscles: ['Back', 'Biceps'],
-    exercises: ['Deadlift', 'Pull-Ups', 'Barbell Row', 'Hammer Curl'],
-    estimatedMinutes: 55,
-  ),
-  _RoutinePreview(
-    name: 'Leg Day',
-    exerciseCount: 7,
-    muscles: ['Quadriceps', 'Hamstrings', 'Glutes'],
-    exercises: ['Squat', 'Romanian Deadlift', 'Leg Press', 'Lunges'],
-    estimatedMinutes: 70,
-  ),
-];
-
-const _communityStubs = [
-  _RoutinePreview(
-    name: 'Morning Upper Body',
-    exerciseCount: 5,
-    muscles: ['Chest', 'Shoulders'],
-    exercises: ['Push-Up Warm-Up', 'Overhead Press', 'Skull Crushers'],
-    creatorUsername: 'marcus_lifts',
-  ),
-  _RoutinePreview(
-    name: 'Core Crusher',
-    exerciseCount: 6,
-    muscles: ['Abdominals'],
-    exercises: ['Plank Hold', 'Russian Twist', 'Hanging Knee Raise'],
-    creatorUsername: 'sarafit',
-  ),
-  _RoutinePreview(
-    name: 'Full Body Blast',
-    exerciseCount: 8,
-    muscles: ['Chest', 'Back', 'Quadriceps'],
-    exercises: ['Squat', 'Bench Press', 'Pull-Ups', 'Deadlift'],
-    creatorUsername: 'coach_dan',
-  ),
-];
-
 class BrowseRoutinesScreen extends StatefulWidget {
   const BrowseRoutinesScreen({super.key});
 
@@ -86,6 +13,9 @@ class BrowseRoutinesScreen extends StatefulWidget {
 
 class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   late final VoidCallback _colorListener;
+  List<Map<String, dynamic>> _featured = [];
+  List<Map<String, dynamic>> _community = [];
+  bool _loading = true;
 
   @override
   void initState() {
@@ -94,6 +24,22 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final data = await userManager.fetchBrowseRoutines();
+    if (mounted) {
+      setState(() {
+        _featured = (data['featured'] as List)
+            .map((r) => Map<String, dynamic>.from(r as Map))
+            .toList();
+        _community = (data['community'] as List)
+            .map((r) => Map<String, dynamic>.from(r as Map))
+            .toList();
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -128,54 +74,74 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               _buildHeader(context, accent, dim, c),
               Container(height: 1, color: c.border),
               Expanded(
-                child: ScrollConfiguration(
-                  behavior: NoGlowScrollBehavior(),
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.only(
-                      bottom: Responsive.height(context, 24),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        sectionHeader(
-                          'FEATURED',
-                          context,
+                child: _loading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: accent,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : ScrollConfiguration(
+                        behavior: NoGlowScrollBehavior(),
+                        child: SingleChildScrollView(
                           padding: EdgeInsets.only(
-                            left: Responsive.centeredHorizontalPadding(
-                              context,
-                              20,
-                            ),
-                            top: Responsive.height(context, 16),
-                            bottom: Responsive.height(context, 12),
+                            bottom: Responsive.height(context, 24),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              sectionHeader(
+                                'FEATURED',
+                                context,
+                                padding: EdgeInsets.only(
+                                  left: Responsive.centeredHorizontalPadding(
+                                    context,
+                                    20,
+                                  ),
+                                  top: Responsive.height(context, 16),
+                                  bottom: Responsive.height(context, 12),
+                                ),
+                              ),
+                              _buildFeaturedRow(
+                                context,
+                                accent,
+                                dim,
+                                subtle,
+                                c,
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      Responsive.centeredHorizontalPadding(
+                                        context,
+                                        20,
+                                      ),
+                                  vertical: Responsive.height(context, 20),
+                                ),
+                                child: Divider(color: c.border, height: 1),
+                              ),
+                              sectionHeader(
+                                'COMMUNITY',
+                                context,
+                                padding: EdgeInsets.only(
+                                  left: Responsive.centeredHorizontalPadding(
+                                    context,
+                                    20,
+                                  ),
+                                  bottom: Responsive.height(context, 12),
+                                ),
+                              ),
+                              _buildCommunityList(
+                                context,
+                                accent,
+                                dim,
+                                subtle,
+                                c,
+                              ),
+                            ],
                           ),
                         ),
-                        _buildFeaturedRow(context, accent, dim, subtle, c),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.centeredHorizontalPadding(
-                              context,
-                              20,
-                            ),
-                            vertical: Responsive.height(context, 20),
-                          ),
-                          child: Divider(color: c.border, height: 1),
-                        ),
-                        sectionHeader(
-                          'COMMUNITY',
-                          context,
-                          padding: EdgeInsets.only(
-                            left: Responsive.centeredHorizontalPadding(
-                              context,
-                              20,
-                            ),
-                            bottom: Responsive.height(context, 12),
-                          ),
-                        ),
-                        _buildCommunityList(context, accent, dim, subtle, c),
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
               ),
             ],
           ),
@@ -245,17 +211,11 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: hPad),
-          itemCount: _featuredStubs.length,
+          itemCount: _featured.length,
           separatorBuilder: (_, _) =>
               SizedBox(width: Responsive.width(context, 12)),
-          itemBuilder: (context, i) => _buildFeaturedCard(
-            context,
-            _featuredStubs[i],
-            accent,
-            dim,
-            subtle,
-            c,
-          ),
+          itemBuilder: (context, i) =>
+              _buildFeaturedCard(context, _featured[i], accent, dim, subtle, c),
         ),
       ),
     );
@@ -263,12 +223,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
 
   Widget _buildFeaturedCard(
     BuildContext context,
-    _RoutinePreview routine,
+    Map<String, dynamic> routine,
     Color accent,
     Color dim,
     Color subtle,
     dynamic c,
   ) {
+    final exercises = (routine['exercises'] as List? ?? []);
+    final exerciseCount = routine['exercise_count'] as int? ?? exercises.length;
+    final duration = routine['estimated_duration_minutes'] as int?;
     return SizedBox(
       width: Responsive.width(context, 220),
       height: double.infinity,
@@ -327,7 +290,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             ),
             SizedBox(height: Responsive.height(context, 10)),
             Text(
-              routine.name,
+              routine['name'] as String,
               style: GoogleFonts.manrope(
                 color: accent,
                 fontSize: Responsive.font(context, 15),
@@ -335,22 +298,14 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
               ),
             ),
             Text(
-              '${routine.exerciseCount} exercises${routine.estimatedMinutes != null ? ' · ${routine.estimatedMinutes} min' : ''}',
+              '$exerciseCount exercises${duration != null ? ' · $duration min' : ''}',
               style: GoogleFonts.manrope(
                 color: dim,
                 fontSize: Responsive.font(context, 11),
               ),
             ),
             SizedBox(height: Responsive.height(context, 8)),
-            Wrap(
-              spacing: Responsive.width(context, 4),
-              runSpacing: Responsive.height(context, 4),
-              children: routine.muscles
-                  .map((m) => _muscleChip(context, m, accent))
-                  .toList(),
-            ),
-            SizedBox(height: Responsive.height(context, 8)),
-            for (final ex in routine.exercises.take(3))
+            for (final ex in exercises.take(3))
               Padding(
                 padding: EdgeInsets.only(bottom: Responsive.height(context, 2)),
                 child: Row(
@@ -363,7 +318,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                     SizedBox(width: Responsive.width(context, 6)),
                     Expanded(
                       child: Text(
-                        ex,
+                        ex['exercise_name'] as String,
                         style: GoogleFonts.manrope(
                           color: dim,
                           fontSize: Responsive.font(context, 11),
@@ -374,9 +329,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   ],
                 ),
               ),
-            if (routine.exercises.length > 3)
+            if (exercises.length > 3)
               Text(
-                '+${routine.exercises.length - 3} more',
+                '+${exercises.length - 3} more',
                 style: GoogleFonts.manrope(
                   color: subtle,
                   fontSize: Responsive.font(context, 10),
@@ -395,21 +350,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     Color subtle,
     dynamic c,
   ) {
+    if (_community.isEmpty) return const SizedBox.shrink();
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: Column(
         children: [
-          for (int i = 0; i < _communityStubs.length; i++) ...[
-            _buildCommunityCard(
-              context,
-              _communityStubs[i],
-              accent,
-              dim,
-              subtle,
-              c,
-            ),
-            if (i < _communityStubs.length - 1)
+          for (int i = 0; i < _community.length; i++) ...[
+            _buildCommunityCard(context, _community[i], accent, dim, subtle, c),
+            if (i < _community.length - 1)
               SizedBox(height: Responsive.height(context, 12)),
           ],
         ],
@@ -419,12 +368,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
 
   Widget _buildCommunityCard(
     BuildContext context,
-    _RoutinePreview routine,
+    Map<String, dynamic> routine,
     Color accent,
     Color dim,
     Color subtle,
     dynamic c,
   ) {
+    final exercises = (routine['exercises'] as List? ?? []);
+    final exerciseCount = routine['exercise_count'] as int? ?? exercises.length;
+    final creator = routine['creator_username'] as String?;
     return _styledCard(
       context,
       c,
@@ -432,59 +384,41 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            routine['name'] as String,
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 15),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           Row(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      routine.name,
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 15),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person_outline_rounded,
-                          color: subtle,
-                          size: Responsive.scale(context, 12),
-                        ),
-                        SizedBox(width: Responsive.width(context, 4)),
-                        Text(
-                          '@${routine.creatorUsername}',
-                          style: GoogleFonts.manrope(
-                            color: dim,
-                            fontSize: Responsive.font(context, 11),
-                          ),
-                        ),
-                        Text(
-                          ' · ${routine.exerciseCount} exercises',
-                          style: GoogleFonts.manrope(
-                            color: subtle,
-                            fontSize: Responsive.font(context, 11),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              Icon(
+                Icons.person_outline_rounded,
+                color: subtle,
+                size: Responsive.scale(context, 12),
+              ),
+              SizedBox(width: Responsive.width(context, 4)),
+              if (creator != null)
+                Text(
+                  '@$creator',
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(context, 11),
+                  ),
+                ),
+              Text(
+                ' · $exerciseCount exercises',
+                style: GoogleFonts.manrope(
+                  color: subtle,
+                  fontSize: Responsive.font(context, 11),
                 ),
               ),
             ],
           ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Wrap(
-            spacing: Responsive.width(context, 4),
-            runSpacing: Responsive.height(context, 4),
-            children: routine.muscles
-                .map((m) => _muscleChip(context, m, accent))
-                .toList(),
-          ),
           SizedBox(height: Responsive.height(context, 8)),
-          for (final ex in routine.exercises.take(3))
+          for (final ex in exercises.take(3))
             Padding(
               padding: EdgeInsets.only(bottom: Responsive.height(context, 2)),
               child: Row(
@@ -497,7 +431,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   SizedBox(width: Responsive.width(context, 6)),
                   Expanded(
                     child: Text(
-                      ex,
+                      ex['exercise_name'] as String,
                       style: GoogleFonts.manrope(
                         color: dim,
                         fontSize: Responsive.font(context, 12),
@@ -508,9 +442,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 ],
               ),
             ),
-          if (routine.exercises.length > 3)
+          if (exercises.length > 3)
             Text(
-              '+${routine.exercises.length - 3} more',
+              '+${exercises.length - 3} more',
               style: GoogleFonts.manrope(
                 color: subtle,
                 fontSize: Responsive.font(context, 10),
@@ -578,28 +512,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       ),
       padding: padding,
       child: child,
-    );
-  }
-
-  Widget _muscleChip(BuildContext context, String label, Color accent) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 8),
-        vertical: Responsive.height(context, 3),
-      ),
-      decoration: BoxDecoration(
-        color: accent.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withAlpha(60)),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.manrope(
-          color: accent,
-          fontSize: Responsive.font(context, 10),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }

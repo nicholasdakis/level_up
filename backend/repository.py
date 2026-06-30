@@ -637,6 +637,65 @@ class WorkoutRepository:
             for t in templates
         ]
 
+    def get_browse_routines(self) -> dict:
+        # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately
+        featured_rows = self._supabase.table("workout_templates") \
+            .select("template_id, name, estimated_duration_minutes") \
+            .is_("uid", "null") \
+            .eq("is_public", True) \
+            .order("created_at") \
+            .execute().data or []
+        community_rows = self._supabase.table("workout_templates") \
+            .select("template_id, name, estimated_duration_minutes, uid") \
+            .not_.is_("uid", "null") \
+            .eq("is_public", True) \
+            .order("created_at", desc=True) \
+            .limit(20) \
+            .execute().data or []
+        all_ids = [r["template_id"] for r in featured_rows + community_rows]
+        if not all_ids:
+            return {"featured": [], "community": []}
+        ex_rows = self._supabase.table("workout_template_exercises") \
+            .select("template_id, exercise_name, exercise_order") \
+            .in_("template_id", all_ids) \
+            .order("exercise_order") \
+            .execute().data or []
+        # group exercises by template_id to avoid N+1 queries
+        ex_by_template: dict[str, list[dict]] = {}
+        for ex in ex_rows:
+            tid = ex["template_id"]
+            if tid not in ex_by_template:
+                ex_by_template[tid] = []
+            ex_by_template[tid].append({"exercise_name": ex["exercise_name"], "exercise_order": ex["exercise_order"]})
+        # fetch usernames for community routine creators
+        community_uids = list({r["uid"] for r in community_rows if r.get("uid")})
+        username_map: dict[str, str] = {}
+        if community_uids:
+            user_rows = self._supabase.table("users") \
+                .select("uid, username") \
+                .in_("uid", community_uids) \
+                .execute().data or []
+            for u in user_rows:
+                username_map[u["uid"]] = u["username"]
+
+        def build_item(r: dict, is_community: bool) -> dict:
+            exs = ex_by_template.get(r["template_id"], [])
+            item = {
+                "template_id": r["template_id"],
+                "name": r["name"],
+                "exercise_count": len(exs),
+                "exercises": exs,
+                "estimated_duration_minutes": r.get("estimated_duration_minutes"),
+            }
+            if is_community:
+                item["creator_username"] = username_map.get(r["uid"])
+            return item
+
+        return {
+            "featured": [build_item(r, False) for r in featured_rows],
+            "community": [build_item(r, True) for r in community_rows],
+        }
+
     def delete_custom_exercise(self, uid: str, exercise_id: int) -> None:
         # Verify ownership before deleting
         existing = self._supabase.table("exercises") \

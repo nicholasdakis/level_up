@@ -1522,6 +1522,21 @@ class UserDataManager {
     return false;
   }
 
+  Future<Map<String, dynamic>> fetchBrowseRoutines() async {
+    try {
+      final response = await authenticatedGet(
+        'browse_routines',
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchBrowseRoutines failed: $e');
+    }
+    return {'featured': [], 'community': []};
+  }
+
   Future<List<Map<String, dynamic>>> fetchMyRoutines() async {
     try {
       final response = await authenticatedGet(
