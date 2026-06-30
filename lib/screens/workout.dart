@@ -887,8 +887,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildLiftsCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final c = cardColors(appColorNotifier.value);
+    final accent = c.onCard;
+    final dim = c.onCard.withAlpha(180);
+    final subtle = c.onCard.withAlpha(120);
     final bool isImperial = UnitConverter.isImperial;
     final double volumeKg = (_todayOverview['volume_kg'] as num).toDouble();
     final int exercises = _todayOverview['exercises'] as int? ?? 0;
@@ -997,7 +999,11 @@ class _WorkoutState extends State<Workout> {
             ],
           ),
           SizedBox(height: Responsive.height(context, 14)),
-          Divider(color: Colors.white.withAlpha(15), height: 1, thickness: 1),
+          Divider(
+            color: c.onCard.withAlpha(30),
+            height: Responsive.height(context, 1),
+            thickness: Responsive.height(context, 1.5),
+          ),
           SizedBox(height: Responsive.height(context, 14)),
           Row(
             children: [
@@ -1008,51 +1014,63 @@ class _WorkoutState extends State<Workout> {
           ),
           if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 12)),
+            Divider(
+              color: c.onCard.withAlpha(30),
+              height: Responsive.height(context, 1),
+              thickness: Responsive.height(context, 1.5),
+            ),
+            SizedBox(height: Responsive.height(context, 12)),
             for (final entry in [
               if (primaryMuscles.isNotEmpty)
-                ('Primary muscles worked', primaryMuscles),
+                ('PRIMARY MUSCLES WORKED', primaryMuscles),
               if (secondaryMuscles.isNotEmpty)
-                ('Secondary muscles worked', secondaryMuscles),
+                ('SECONDARY MUSCLES WORKED', secondaryMuscles),
             ]) ...[
-              Text(
-                entry.$1,
-                style: GoogleFonts.manrope(
-                  color: Colors.white.withAlpha(50),
-                  fontSize: Responsive.font(context, 10),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.6,
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  entry.$1,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    color: subtle,
+                    fontSize: Responsive.font(context, 10),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
-              SizedBox(height: Responsive.height(context, 4)),
-              Wrap(
-                spacing: Responsive.width(context, 6),
-                runSpacing: Responsive.height(context, 4),
-                children: [
-                  for (final muscle in entry.$2)
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 8),
-                        vertical: Responsive.height(context, 3),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(18),
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 20),
+              SizedBox(height: Responsive.height(context, 6)),
+              Center(
+                child: Wrap(
+                  spacing: Responsive.width(context, 6),
+                  runSpacing: Responsive.height(context, 4),
+                  children: [
+                    for (final muscle in entry.$2)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 8),
+                          vertical: Responsive.height(context, 3),
                         ),
-                        border: Border.all(color: Colors.white.withAlpha(30)),
-                      ),
-                      child: Text(
-                        muscle.isEmpty
-                            ? muscle
-                            : '${muscle[0].toUpperCase()}${muscle.substring(1)}',
-                        style: GoogleFonts.manrope(
-                          color: accent,
-                          fontSize: Responsive.font(context, 10),
-                          fontWeight: FontWeight.w600,
+                        decoration: BoxDecoration(
+                          color: c.onCard.withAlpha(18),
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 20),
+                          ),
+                          border: Border.all(color: c.onCard.withAlpha(40)),
+                        ),
+                        child: Text(
+                          muscle.isEmpty
+                              ? muscle
+                              : '${muscle[0].toUpperCase()}${muscle.substring(1)}',
+                          style: GoogleFonts.manrope(
+                            color: accent,
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: Responsive.height(context, 8)),
             ],
@@ -1063,7 +1081,9 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildHeatmapCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final c = cardColors(appColorNotifier.value);
+    final accent = c.onCard;
+    final labelColor = c.onCard.withAlpha(120);
     const int weeks = 16;
     const int daysPerWeek = 7;
     final today = DateTime.now();
@@ -1090,7 +1110,7 @@ class _WorkoutState extends State<Workout> {
     ];
 
     Color cellColor(int count, bool isFuture) {
-      if (isFuture || count == 0) return Colors.white.withAlpha(18);
+      if (isFuture || count == 0) return c.onCard.withAlpha(18);
       if (count == 1) return accent.withAlpha(80);
       if (count == 2) return accent.withAlpha(150);
       return accent.withAlpha(230);
@@ -1113,7 +1133,7 @@ class _WorkoutState extends State<Workout> {
             height: Responsive.scale(context, 12),
             decoration: BoxDecoration(
               color: alpha == 0
-                  ? Colors.white.withAlpha(18)
+                  ? c.onCard.withAlpha(18)
                   : accent.withAlpha(alpha),
               borderRadius: BorderRadius.circular(2),
             ),
@@ -1133,7 +1153,7 @@ class _WorkoutState extends State<Workout> {
                         child: Text(
                           monthNames[date.month - 1],
                           style: GoogleFonts.manrope(
-                            color: Colors.white.withAlpha(120),
+                            color: labelColor,
                             fontSize: Responsive.font(context, 10),
                             fontWeight: FontWeight.w500,
                           ),
