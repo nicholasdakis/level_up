@@ -334,9 +334,11 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     dynamic c,
   ) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    final isDesktop = Responsive.isDesktop(context);
     final cardHeight = Responsive.height(context, 220);
     final items = _loading ? _skeletonRoutines : _featured;
-    return SizedBox(
+
+    final list = SizedBox(
       height: cardHeight,
       child: ScrollConfiguration(
         behavior: NoGlowScrollBehavior().copyWith(
@@ -345,7 +347,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         child: ListView.separated(
           controller: _featuredScroll,
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: hPad),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? Responsive.padding(context, 8) : hPad,
+          ),
           itemCount: items.length,
           separatorBuilder: (_, _) =>
               SizedBox(width: Responsive.width(context, 12)),
@@ -358,6 +362,42 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             c,
             cardHeight,
           ),
+        ),
+      ),
+    );
+
+    if (!isDesktop) return list;
+
+    // on desktop wrap with prev/next arrow buttons
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 860),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.chevron_left_rounded, color: subtle),
+              onPressed: () => _featuredScroll.animateTo(
+                (_featuredScroll.offset - 280).clamp(
+                  0,
+                  _featuredScroll.position.maxScrollExtent,
+                ),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+            ),
+            Expanded(child: list),
+            IconButton(
+              icon: Icon(Icons.chevron_right_rounded, color: subtle),
+              onPressed: () => _featuredScroll.animateTo(
+                (_featuredScroll.offset + 280).clamp(
+                  0,
+                  _featuredScroll.position.maxScrollExtent,
+                ),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -376,7 +416,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     final exerciseCount = routine['exercise_count'] as int? ?? exercises.length;
     final duration = routine['estimated_duration_minutes'] as int?;
     return SizedBox(
-      width: Responsive.width(context, 200),
+      width: Responsive.width(context, 200).clamp(0, 260),
       height: height,
       child: _styledCard(
         context,
@@ -514,6 +554,25 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                     ],
                   ),
                 ),
+                SizedBox(width: Responsive.width(context, 10)),
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedDownload01,
+                      color: subtle,
+                      size: Responsive.scale(context, 13),
+                    ),
+                    SizedBox(width: Responsive.width(context, 3)),
+                    Text(
+                      '${routine['download_count'] ?? 0}',
+                      style: GoogleFonts.manrope(
+                        color: subtle,
+                        fontSize: Responsive.font(context, 10),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             SizedBox(height: Responsive.height(context, 8)),
@@ -568,59 +627,72 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     Color subtle,
     dynamic c,
   ) {
-    final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    final isDesktop = Responsive.isDesktop(context);
+    final hPad = isDesktop
+        ? Responsive.padding(context, 20)
+        : Responsive.centeredHorizontalPadding(context, 20);
     final items = _loading ? _skeletonRoutines : _community;
     if (!_loading && items.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: hPad,
-          vertical: Responsive.height(context, 20),
-        ),
-        child: _styledCard(
-          context,
-          c,
-          padding: EdgeInsets.all(Responsive.scale(context, 20)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedUserGroup,
-                color: subtle,
-                size: Responsive.scale(context, 32),
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: hPad,
+              vertical: Responsive.height(context, 20),
+            ),
+            child: _styledCard(
+              context,
+              c,
+              padding: EdgeInsets.all(Responsive.scale(context, 20)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                    color: subtle,
+                    size: Responsive.scale(context, 32),
+                  ),
+                  SizedBox(height: Responsive.height(context, 10)),
+                  Text(
+                    'No community routines yet',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    'Be the first to share a routine',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 11),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: Responsive.height(context, 10)),
-              Text(
-                'No community routines yet',
-                style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 4)),
-              Text(
-                'Be the first to share a routine',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(context, 11),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: hPad),
-      child: Column(
-        children: [
-          for (int i = 0; i < items.length; i++) ...[
-            _buildCommunityCard(context, items[i], accent, dim, subtle, c),
-            if (i < items.length - 1)
-              SizedBox(height: Responsive.height(context, 12)),
-          ],
-        ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 860),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: hPad),
+          child: Column(
+            children: [
+              for (int i = 0; i < items.length; i++) ...[
+                _buildCommunityCard(context, items[i], accent, dim, subtle, c),
+                if (i < items.length - 1)
+                  SizedBox(height: Responsive.height(context, 12)),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -742,6 +814,25 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                     ),
                   ],
                 ),
+              ),
+              SizedBox(width: Responsive.width(context, 10)),
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedDownload01,
+                    color: subtle,
+                    size: Responsive.scale(context, 15),
+                  ),
+                  SizedBox(width: Responsive.width(context, 4)),
+                  Text(
+                    '${routine['download_count'] ?? 0}',
+                    style: GoogleFonts.manrope(
+                      color: subtle,
+                      fontSize: Responsive.font(context, 11),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
               const Spacer(),
             ],
