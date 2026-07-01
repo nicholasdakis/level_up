@@ -101,14 +101,16 @@ class WorkoutSessionService extends ChangeNotifier {
       routineName: session.routineName,
       uid: uid,
     );
-    // defer notify so callers inside initState don't trigger setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
+    // wait for the active workout screen's slide-up transition (350ms) to finish
+    // covering AppShell before notifying, so the mini bar never flashes mid-slide
+    Future.delayed(const Duration(milliseconds: 500), notifyListeners);
     _persist();
   }
 
   // Called by the active workout screen on every mutation that should survive a kill
   void persist() {
     _persist();
+    notifyListeners();
   }
 
   // Notify listeners without changing state, used to trigger UI rebuilds (e.g. timer tick).
