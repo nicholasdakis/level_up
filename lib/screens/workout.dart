@@ -39,6 +39,8 @@ class _WorkoutState extends State<Workout> {
     'secondary_muscles': [],
   };
 
+  late final VoidCallback _sessionListener;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,12 @@ class _WorkoutState extends State<Workout> {
     _colorListener = () {
       if (mounted) setState(() {});
     };
+
+    _sessionListener = () {
+      if (mounted) setState(() {});
+    };
+    workoutSessionService.addListener(_sessionListener);
+
     appColorNotifier.addListener(_colorListener);
     userDataNotifier.addListener(_colorListener);
     workoutLogNotifier.addListener(_onWorkoutLogged);
@@ -198,6 +206,7 @@ class _WorkoutState extends State<Workout> {
     appColorNotifier.removeListener(_colorListener);
     userDataNotifier.removeListener(_colorListener);
     workoutLogNotifier.removeListener(_onWorkoutLogged);
+    workoutSessionService.removeListener(_sessionListener);
     super.dispose();
   }
 
@@ -649,6 +658,8 @@ class _WorkoutState extends State<Workout> {
   Widget _buildStartWorkoutCard(BuildContext context) {
     final accent = lightenColor(appColorNotifier.value, 0.45);
     final dim = lightenColor(appColorNotifier.value, 0.35);
+    final bool inProgress = workoutSessionService.isActive;
+
     return GestureDetector(
       onTap: _onStartWorkout,
       child: frostedGlassCard(
@@ -671,7 +682,9 @@ class _WorkoutState extends State<Workout> {
               ),
               child: Center(
                 child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedDumbbell01,
+                  icon: inProgress
+                      ? HugeIcons.strokeRoundedPlay
+                      : HugeIcons.strokeRoundedDumbbell01,
                   color: accent,
                   size: Responsive.scale(context, 24),
                 ),
@@ -683,7 +696,7 @@ class _WorkoutState extends State<Workout> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Start Workout",
+                    inProgress ? "Continue Workout" : "Start Workout",
                     style: GoogleFonts.manrope(
                       color: accent,
                       fontSize: Responsive.font(context, 15),
@@ -691,7 +704,11 @@ class _WorkoutState extends State<Workout> {
                     ),
                   ),
                   Text(
-                    "Begin an empty session",
+                    inProgress
+                        ? (workoutSessionService.session!.workoutName ??
+                              workoutSessionService.session!.routineName ??
+                              "Resume your session")
+                        : "Begin an empty session",
                     style: GoogleFonts.manrope(
                       color: dim,
                       fontSize: Responsive.font(context, 12),
@@ -865,6 +882,7 @@ class _WorkoutState extends State<Workout> {
                             ],
                           ),
                         ),
+                        // Delete icon in My Routines
                         GestureDetector(
                           onTap: () => _deleteRoutine(context, routines[i]),
                           child: HugeIcon(
@@ -874,14 +892,42 @@ class _WorkoutState extends State<Workout> {
                           ),
                         ),
                         SizedBox(width: Responsive.width(context, 10)),
+
+                        // Start icon in My Routines
                         GestureDetector(
-                          onTap: () => context.push(
-                            '/workout/active',
-                            extra: routines[i],
-                          ),
+                          onTap: () {
+                            if (workoutSessionService.isActive) {
+                              showFrostedAlertDialog<void>(
+                                context: context,
+                                title: 'Workout in progress',
+                                content: Text(
+                                  'Finish or discard your current workout before starting a new one.',
+                                  style: GoogleFonts.manrope(
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop(),
+                                    child: Text(
+                                      'OK',
+                                      style: dialogButtonStyle(confirm: true),
+                                    ),
+                                  ),
+                                ],
+                              );
+                              return;
+                            }
+                            context.push('/workout/active', extra: routines[i]);
+                          },
                           child: Icon(
                             Icons.play_circle_outline_rounded,
-                            color: accent,
+                            color: workoutSessionService.isActive
+                                ? dim.withAlpha(100)
+                                : accent,
                             size: Responsive.scale(context, 22),
                           ),
                         ),

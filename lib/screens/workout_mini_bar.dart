@@ -110,9 +110,11 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          widget.session.workoutName ??
-                              widget.session.routineName ??
-                              'Workout in progress',
+                          (widget.session.workoutName ??
+                                      widget.session.routineName) !=
+                                  null
+                              ? '${widget.session.workoutName ?? widget.session.routineName} in progress'
+                              : 'Workout in progress',
                           style: TextStyle(
                             color: accent,
                             fontSize: Responsive.font(context, 13),

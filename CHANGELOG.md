@@ -2384,3 +2384,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed setState during build crash when starting a workout by deferring workoutSessionService.startSession notify to post-frame
 - Sorted featured cards by like count AND download count AND created at to enforce determinism
 - Updated the onboarding flow to mention the new workout features with an activation card at the end redirecting to the workout tab
+
+## 2026-07-01
+- Added a listener into the workout tab so that instead of showing "Start Workout" it shows specific text if a workout is already in progress
+- Blocked quick starting a workout from a routine if a workout is already in progress
