@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
+import '/guest.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 
@@ -1316,64 +1317,154 @@ class _WorkoutState extends State<Workout> {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            Skeletonizer(
-              enabled: _loading,
-              effect: ShimmerEffect(
-                baseColor: lightenColor(appColorNotifier.value, 0.3),
-                highlightColor: lightenColor(appColorNotifier.value, 0.1),
-                duration: const Duration(milliseconds: 1200),
-              ),
-              child: ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.centeredHorizontalPadding(
-                        context,
-                        20,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(
-                          height:
-                              MediaQuery.paddingOf(context).top +
-                              Responsive.height(context, 24),
+            if (isGuest)
+              _buildWorkoutContent(context)
+            else ...[
+              Skeletonizer(
+                enabled: _loading,
+                effect: ShimmerEffect(
+                  baseColor: lightenColor(appColorNotifier.value, 0.3),
+                  highlightColor: lightenColor(appColorNotifier.value, 0.1),
+                  duration: const Duration(milliseconds: 1200),
+                ),
+                child: ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.centeredHorizontalPadding(
+                          context,
+                          20,
                         ),
-                        sectionHeader("WORKOUT", context),
-                        _animate(_buildGoalCard(context), 0.ms),
-                        SizedBox(height: Responsive.height(context, 20)),
-                        sectionHeader("START", context),
-                        _animate(_buildStartWorkoutCard(context), 60.ms),
-                        SizedBox(height: Responsive.height(context, 12)),
-                        _animate(_buildRoutineActionCards(context), 120.ms),
-                        SizedBox(height: Responsive.height(context, 20)),
-                        sectionHeader("MY ROUTINES", context),
-                        _animate(_buildMyRoutinesCard(context), 180.ms),
-                        SizedBox(height: Responsive.height(context, 20)),
-                        sectionHeader("RECENT WORKOUTS", context),
-                        _animate(_buildRecentWorkoutsCard(context), 240.ms),
-                        SizedBox(height: Responsive.height(context, 20)),
-                        sectionHeader("TODAY'S OVERVIEW", context),
-                        _animate(_buildLiftsCard(context), 300.ms),
-                        SizedBox(height: Responsive.height(context, 20)),
-                        sectionHeader("ACTIVITY HEATMAP", context),
-                        _animate(_buildHeatmapCard(context), 360.ms),
-                        SizedBox(height: Responsive.height(context, 120)),
-                      ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            height:
+                                MediaQuery.paddingOf(context).top +
+                                Responsive.height(context, 24),
+                          ),
+                          sectionHeader("WORKOUT", context),
+                          _animate(_buildGoalCard(context), 0.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader("START", context),
+                          _animate(_buildStartWorkoutCard(context), 60.ms),
+                          SizedBox(height: Responsive.height(context, 12)),
+                          _animate(_buildRoutineActionCards(context), 120.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader("MY ROUTINES", context),
+                          _animate(_buildMyRoutinesCard(context), 180.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader("RECENT WORKOUTS", context),
+                          _animate(_buildRecentWorkoutsCard(context), 240.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader("TODAY'S OVERVIEW", context),
+                          _animate(_buildLiftsCard(context), 300.ms),
+                          SizedBox(height: Responsive.height(context, 20)),
+                          sectionHeader("ACTIVITY HEATMAP", context),
+                          _animate(_buildHeatmapCard(context), 360.ms),
+                          SizedBox(height: Responsive.height(context, 120)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            OnboardingHint(
-              hintKey: 'workout',
-              title: 'Start your first workout',
-              description:
-                  'Tap Start Workout to begin, or browse routines to follow a plan',
-            ),
+              OnboardingHint(
+                hintKey: 'workout',
+                title: 'Start your first workout',
+                description:
+                    'Tap Start Workout to begin, or browse routines to follow a plan',
+              ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _guestLock(BuildContext context, Widget child) {
+    if (!isGuest) return child;
+    final accent = lightenColor(appColorNotifier.value, 0.45);
+    return GestureDetector(
+      onTap: Guest.exit,
+      child: Stack(
+        children: [
+          IgnorePointer(child: Opacity(opacity: 0.35, child: child)),
+          Positioned.fill(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedLockPassword,
+                    color: accent,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    'Sign up to unlock',
+                    style: GoogleFonts.manrope(
+                      color: accent,
+                      fontSize: Responsive.font(context, 12),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkoutContent(BuildContext context) {
+    return ScrollConfiguration(
+      behavior: NoGlowScrollBehavior(),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.centeredHorizontalPadding(context, 20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                height:
+                    MediaQuery.paddingOf(context).top +
+                    Responsive.height(context, 24),
+              ),
+              sectionHeader("WORKOUT", context),
+              _guestLock(context, _buildGoalCard(context)),
+              SizedBox(height: Responsive.height(context, 20)),
+              sectionHeader("START", context),
+              _guestLock(
+                context,
+                Column(
+                  children: [
+                    _buildStartWorkoutCard(context),
+                    SizedBox(height: Responsive.height(context, 12)),
+                    _buildRoutineActionCards(context),
+                  ],
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              sectionHeader("MY ROUTINES", context),
+              _guestLock(context, _buildMyRoutinesCard(context)),
+              SizedBox(height: Responsive.height(context, 20)),
+              sectionHeader("RECENT WORKOUTS", context),
+              _guestLock(context, _buildRecentWorkoutsCard(context)),
+              SizedBox(height: Responsive.height(context, 20)),
+              sectionHeader("TODAY'S OVERVIEW", context),
+              _guestLock(context, _buildLiftsCard(context)),
+              SizedBox(height: Responsive.height(context, 20)),
+              sectionHeader("ACTIVITY HEATMAP", context),
+              _guestLock(context, _buildHeatmapCard(context)),
+              SizedBox(height: Responsive.height(context, 120)),
+            ],
+          ),
         ),
       ),
     );

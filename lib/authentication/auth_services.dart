@@ -39,6 +39,7 @@ class AuthService {
       if (kDebugMode) debugPrint('Error removing FCM token during signOut: $e');
     }
 
+    workoutSessionService.clearSession();
     await firebaseAuth.signOut();
     appInitialized = false;
     appReadyNotifier.value = false;
