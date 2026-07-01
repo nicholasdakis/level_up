@@ -745,8 +745,15 @@ class WorkoutRepository:
             .eq("template_id", template_id) \
             .order("exercise_order") \
             .execute().data or []
-        # increment download count on the source template
-        self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
+        # insert into routine_downloads; primary key (uid, template_id) prevents duplicates
+        # only increment download_count if this is the first time this user downloads this template
+        result = self._supabase.table("routine_downloads").upsert(
+            {"uid": uid, "template_id": template_id},
+            on_conflict="uid,template_id",
+            ignore_duplicates=True,
+        ).execute()
+        if result.data:
+            self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
         # reuse create_routine so the new copy gets its own template_id, tracking the source
         return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
 

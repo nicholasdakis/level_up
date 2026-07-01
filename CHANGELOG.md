@@ -2378,3 +2378,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Both the mini bar and collapsed dot pulse in scale to signal an active session; dumbbell icon also pulses in opacity
 - In-progress workout session is fully restored on app kill and relaunch via checkAndRestoreWorkoutSession called during app init
 - Workout session is UID-stamped on start; restore is skipped for guest users and rejected if the saved session belongs to a different account
+- Added download count to browse routines; shown next to like count on featured and community cards
+- Added routine_downloads table to enforce one download per user per template; copy_routine now upserts into routine_downloads and only increments download_count if the row is new
+- Browse screen re-fetches after any workout change so saved/deleted routines and download counts stay in sync
+- Fixed setState during build crash when starting a workout by deferring workoutSessionService.startSession notify to post-frame

@@ -301,6 +301,14 @@ CREATE INDEX IF NOT EXISTS idx_users_rank ON users (level DESC, exp_points DESC,
 -- Index to speed up per-user workout history queries filtered by date
 CREATE INDEX IF NOT EXISTS idx_workouts_uid_date ON workouts (uid, date DESC);
 
+-- Tracks which users have downloaded which browse routines, enforces one download per user per template
+CREATE TABLE routine_downloads (
+    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
+    template_id UUID REFERENCES workout_templates(template_id) ON DELETE CASCADE,
+    downloaded_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (uid, template_id)
+);
+
 -- RPC to atomically increment download_count on a workout template
 CREATE OR REPLACE FUNCTION increment_download_count(tid UUID)
 RETURNS VOID AS $$
