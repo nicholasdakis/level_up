@@ -2383,3 +2383,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Browse screen re-fetches after any workout change so saved/deleted routines and download counts stay in sync
 - Fixed setState during build crash when starting a workout by deferring workoutSessionService.startSession notify to post-frame
 - Sorted featured cards by like count AND download count AND created at to enforce determinism
+- Updated the onboarding flow to mention the new workout features with an activation card at the end redirecting to the workout tab

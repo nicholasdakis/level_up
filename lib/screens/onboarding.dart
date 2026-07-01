@@ -252,6 +252,14 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
             SizedBox(height: Responsive.height(ctx, 14)),
             _featurePill(
               ctx,
+              HugeIcons.strokeRoundedDumbbell01,
+              'Log workouts, track PRs and follow built-in routines',
+              accent,
+              dim,
+            ),
+            SizedBox(height: Responsive.height(ctx, 10)),
+            _featurePill(
+              ctx,
               HugeIcons.strokeRoundedRestaurant03,
               'Log food, water and weight, all in one place',
               accent,
@@ -1631,6 +1639,20 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                 ),
               ),
               SizedBox(height: Responsive.height(ctx, 20)),
+              _activationOption(
+                ctx,
+                icon: HugeIcons.strokeRoundedDumbbell01,
+                title: 'Start my first workout',
+                subtitle: 'Log exercises, track sets and follow a routine',
+                accent: accent,
+                dim: dim,
+                onTap: () {
+                  commitAll();
+                  finishOnboarding(context);
+                  Navigator.of(context, rootNavigator: true).pop('workout');
+                },
+              ),
+              SizedBox(height: Responsive.height(ctx, 10)),
               _activationOption(
                 ctx,
                 icon: HugeIcons.strokeRoundedRestaurant03,

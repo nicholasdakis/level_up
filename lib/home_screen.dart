@@ -244,6 +244,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           } else if (choice == 'settings') {
             onboardingHintNotifier.value = 'settings';
             context.push('/settings/preferences');
+          } else if (choice == 'workout') {
+            onboardingHintNotifier.value = 'workout';
+            context.go('/workout');
           } else {
             onboardingHintNotifier.value = 'reward';
             if (mounted) await requestNotificationPermissionIfNeeded(context);
