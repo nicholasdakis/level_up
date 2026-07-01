@@ -74,8 +74,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    workoutLogNotifier.addListener(_onWorkoutChanged);
     _featuredScroll = ScrollController();
     _fetchData();
+  }
+
+  void _onWorkoutChanged() {
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
+    }
   }
 
   Future<void> _fetchData() async {
@@ -93,14 +100,15 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
         _community = (data['community'] as List)
             .map((routine) => Map<String, dynamic>.from(routine as Map))
             .toList();
-        // track which browse templates the user already copied to block duplicates
+        // track which browse templates the user currently has saved
         _savedSourceIds = myRoutines
             .map((routine) => routine['source_template_id'] as String?)
             .whereType<String>()
             .toSet();
-        // build optimistic like state from the server response
+        // rebuild like state from server response
         for (final r in _featured + _community) {
-          _likeState[r['template_id'] as String] = {
+          final id = r['template_id'] as String;
+          _likeState[id] = {
             'liked': r['liked_by_me'] as bool? ?? false,
             'count': r['like_count'] as int? ?? 0,
           };
@@ -145,9 +153,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
     if (ok) {
       setState(() {
         _savingId = null;
-        _savedSourceIds.add(
-          templateId,
-        ); // prevent duplicate saves without refetching
+        _savedSourceIds.add(templateId);
       });
       workoutLogNotifier.value++;
     } else {
@@ -196,6 +202,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    workoutLogNotifier.removeListener(_onWorkoutChanged);
     _featuredScroll.dispose();
     super.dispose();
   }

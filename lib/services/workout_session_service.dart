@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import '../globals.dart' show isGuest;
@@ -101,7 +101,8 @@ class WorkoutSessionService extends ChangeNotifier {
       routineName: session.routineName,
       uid: uid,
     );
-    notifyListeners();
+    // defer notify so callers inside initState don't trigger setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     _persist();
   }
 
