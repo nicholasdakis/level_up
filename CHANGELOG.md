@@ -2382,3 +2382,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added routine_downloads table to enforce one download per user per template; copy_routine now upserts into routine_downloads and only increments download_count if the row is new
 - Browse screen re-fetches after any workout change so saved/deleted routines and download counts stay in sync
 - Fixed setState during build crash when starting a workout by deferring workoutSessionService.startSession notify to post-frame
+- Sorted featured cards by like count AND download count AND created at to enforce determinism

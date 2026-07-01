@@ -764,11 +764,15 @@ class WorkoutRepository:
             .is_("uid", "null") \
             .eq("is_public", True) \
             .order("like_count", desc=True) \
+            .order("download_count", desc=True) \
+            .order("created_at", desc=True) \
             .execute().data or []
         community_rows = self._supabase.table("workout_templates") \
             .select("template_id, name, estimated_duration_minutes, uid, like_count, download_count") \
             .not_.is_("uid", "null") \
             .eq("is_public", True) \
+            .order("like_count", desc=True) \
+            .order("download_count", desc=True) \
             .order("created_at", desc=True) \
             .limit(20) \
             .execute().data or []
