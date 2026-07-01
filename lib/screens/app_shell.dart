@@ -75,38 +75,6 @@ class _AppShellState extends State<AppShell> {
           // Tab content
           widget.navigationShell,
 
-          // Mini workout bar / collapsed dot, shown above nav bar while a session is active
-          if (showMiniBar && selectedIndex != kTabExplore)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeInOutCubic,
-              bottom: miniBarBottom,
-              left: Responsive.padding(context, 40),
-              right: _miniCollapsed ? null : Responsive.padding(context, 40),
-              child: _miniCollapsed
-                  ? CollapsedWorkoutDot(
-                      appColor: appColor,
-                      onTap: () => setState(() => _miniCollapsed = false),
-                    )
-                  : AnimatedSize(
-                      duration: const Duration(milliseconds: 450),
-                      curve: Curves.easeInOutCubic,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: Responsive.scale(context, 320),
-                        ),
-                        child: MiniWorkoutBar(
-                          session: session,
-                          elapsedLabel: _elapsedLabel(session),
-                          appColor: appColor,
-                          onTap: () => context.push('/workout/active'),
-                          onCollapse: () =>
-                              setState(() => _miniCollapsed = true),
-                        ),
-                      ),
-                    ),
-            ),
-
           // Floating nav bar, hidden on Explore since it covers the map
           if (selectedIndex != kTabExplore)
             Positioned(
@@ -122,6 +90,47 @@ class _AppShellState extends State<AppShell> {
                     initialLocation: index == selectedIndex,
                   );
                 },
+              ),
+            ),
+
+          // Mini workout bar / collapsed dot, shown above nav bar while a session is active
+          if (showMiniBar && selectedIndex != kTabExplore)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeInOutCubic,
+              bottom: miniBarBottom,
+              left: Responsive.padding(context, 24),
+              right: Responsive.padding(context, 24),
+              child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: Responsive.scale(context, 320),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: AnimatedSize(
+                        duration: const Duration(milliseconds: 450),
+                        curve: Curves.easeInOutCubic,
+                        alignment: Alignment.centerLeft,
+                        child: _miniCollapsed
+                            ? CollapsedWorkoutDot(
+                                appColor: appColor,
+                                onTap: () =>
+                                    setState(() => _miniCollapsed = false),
+                              )
+                            : MiniWorkoutBar(
+                                session: session,
+                                elapsedLabel: _elapsedLabel(session),
+                                appColor: appColor,
+                                onTap: () => context.push('/workout/active'),
+                                onCollapse: () =>
+                                    setState(() => _miniCollapsed = true),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
         ],
