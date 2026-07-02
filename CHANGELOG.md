@@ -2388,3 +2388,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-01
 - Added a listener into the workout tab so that instead of showing "Start Workout" it shows specific text if a workout is already in progress
 - Blocked quick starting a workout from a routine if a workout is already in progress
+
+## 2026-07-02
+- Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food when the screen was accessed by the quick log button in the Home tab

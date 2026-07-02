@@ -91,6 +91,7 @@ class _FoodLoggingState extends State<FoodLogging> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
+    foodLogNotifier.addListener(_onFoodChanged);
     _loadCollapsedState();
     _loadUserDataFuture = _loadUserDataAndInit();
     // Track that the user opened food logging
@@ -100,7 +101,12 @@ class _FoodLoggingState extends State<FoodLogging> {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
+    foodLogNotifier.removeListener(_onFoodChanged);
     super.dispose();
+  }
+
+  void _onFoodChanged() {
+    if (mounted) loadFoodForDate(currentDate);
   }
 
   Future<void> _loadUserDataAndInit() async {
