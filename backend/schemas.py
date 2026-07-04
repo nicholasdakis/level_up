@@ -435,6 +435,7 @@ class BrowseRoutineItem(BaseModel):
     estimated_duration_minutes: int | None = None
     creator_username: str | None = None  # null for featured routines
     like_count: int = 0
+    download_count: int = 0
     liked_by_me: bool = False
 
 class GetBrowseRoutinesResponse(BaseModel):
