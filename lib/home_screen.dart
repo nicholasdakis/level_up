@@ -399,10 +399,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildStreakCard() {
     final foodStreak = isGuest ? 0 : _foodLogStreak();
     final claimStreak = isGuest ? 0 : _dailyClaimStreak();
+    final workoutStreak = isGuest ? 0 : (currentUserData?.workoutStreak ?? 0);
     final accentColor = lightenColor(appColorNotifier.value, 0.45);
     final foodStreakBest = isGuest
         ? 0
         : (currentUserData?.foodLogStreakBest ?? 0);
+    final workoutStreakBest = isGuest
+        ? 0
+        : (currentUserData?.workoutStreakBest ?? 0);
     final guestSubtitle = "Create an account to track your streaks";
     return frostedGlassCard(
       context,
@@ -426,6 +430,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             label: "Food logging streak",
             count: foodStreak,
             best: foodStreakBest,
+            accentColor: accentColor,
+            isLast: false,
+            overrideSubtitle: isGuest ? guestSubtitle : null,
+          ),
+          _buildStreakRow(
+            icon: HugeIcons.strokeRoundedDumbbell01,
+            label: "Workout streak",
+            count: workoutStreak,
+            best: workoutStreakBest,
             accentColor: accentColor,
             isLast: true,
             overrideSubtitle: isGuest ? guestSubtitle : null,

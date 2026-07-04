@@ -285,6 +285,10 @@ class UserDataManager {
           (s) => s['streak_type'] == 'daily_consecutive_streak',
           orElse: () => {},
         );
+        final workoutRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'workout_streak',
+          orElse: () => {},
+        );
         currentUserData?.foodLogStreak = (foodRow['streak'] as int?) ?? 0;
         currentUserData?.foodLogStreakBest =
             (foodRow['highest_streak'] as int?) ?? 0;
@@ -292,6 +296,9 @@ class UserDataManager {
             foodRow['last_date'] as String?;
         currentUserData?.dailyClaimStreakBest =
             (claimRow['highest_streak'] as int?) ?? 0;
+        currentUserData?.workoutStreak = (workoutRow['streak'] as int?) ?? 0;
+        currentUserData?.workoutStreakBest =
+            (workoutRow['highest_streak'] as int?) ?? 0;
         userDataNotifier.notifyListeners();
       } catch (_) {}
 

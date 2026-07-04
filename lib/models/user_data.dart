@@ -15,6 +15,8 @@ class UserData {
   int foodLogStreak;
   int foodLogStreakBest;
   String? foodLogStreakLastDate;
+  int workoutStreak;
+  int workoutStreakBest;
   List<ReminderData> reminders;
   String? username;
   Color appColor;
@@ -49,6 +51,8 @@ class UserData {
     this.dailyClaimStreakBest = 0,
     this.foodLogStreak = 0,
     this.foodLogStreakBest = 0,
+    this.workoutStreak = 0,
+    this.workoutStreakBest = 0,
     this.appColor = defaultAppColor,
     List<Map<String, dynamic>>? foodLogs,
     String? username,

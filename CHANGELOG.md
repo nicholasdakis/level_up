@@ -2423,3 +2423,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-04
 - Fixed the mini workout bar border clipping
 - Removed the open chevron from the mini workout bar, instead making the whole card tappable but also making the collapse icon have a much bigger hitbox so it won't be missed
+CUTOFF POINT FOR VERSION 1.2.0
+- Made current and best workout streaks load into UserData to wire up a Streaks card for Workout Streaks on the home dashboard
