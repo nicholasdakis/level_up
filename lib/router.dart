@@ -492,15 +492,16 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _initApp() async {
-    // Navigate immediately so the skeletonizer shows instead of a blank loading screen
-    appInitialized = true;
-    Future.microtask(appRouter.refresh);
-
     if (await _isOutdated()) {
       isAppOutdated = true;
+      appInitialized = true;
       appRouter.refresh();
       return;
     }
+
+    // Navigate immediately so the skeletonizer shows instead of a blank loading screen
+    appInitialized = true;
+    Future.microtask(appRouter.refresh);
 
     await userManager.loadUserData();
     await workoutSessionService.checkAndRestoreWorkoutSession();

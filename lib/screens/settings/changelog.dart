@@ -85,6 +85,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                   'View your activity heatmap, recent workouts, muscles trained, and a daily overview of volume, sets, and reps',
                   'Completing a workout earns XP, with a bonus for longer sessions',
                   'New workout achievements to unlock',
+                  'Replacing an exercise now shows recommended alternatives that target the same muscle group',
                 ],
               ),
               _buildChangelogCard(
