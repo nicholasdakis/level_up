@@ -752,6 +752,7 @@ class WorkoutRepository:
             on_conflict="uid,template_id",
             ignore_duplicates=True,
         ).execute()
+        print(f"[copy_routine] upsert result.data={result.data!r} for uid={uid} template={template_id}")
         if result.data:
             self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
         # reuse create_routine so the new copy gets its own template_id, tracking the source

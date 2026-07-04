@@ -2390,4 +2390,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Blocked quick starting a workout from a routine if a workout is already in progress
 
 ## 2026-07-02
-- Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food when the screen was accessed by the quick log button in the Home tab
+- Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food manually when the screen was accessed by the quick log button in the Home tab

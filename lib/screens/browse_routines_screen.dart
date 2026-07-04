@@ -24,6 +24,8 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   Set<String> _savedSourceIds = {};
   // optimistic like state: maps template_id -> {liked, count}
   final Map<String, Map<String, dynamic>> _likeState = {};
+  // optimistic download count: maps template_id -> count
+  final Map<String, int> _downloadState = {};
 
   static const List<Map<String, dynamic>> _skeletonRoutines = [
     {
@@ -74,15 +76,8 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
-    workoutLogNotifier.addListener(_onWorkoutChanged);
     _featuredScroll = ScrollController();
     _fetchData();
-  }
-
-  void _onWorkoutChanged() {
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
-    }
   }
 
   Future<void> _fetchData() async {
@@ -105,13 +100,14 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
             .map((routine) => routine['source_template_id'] as String?)
             .whereType<String>()
             .toSet();
-        // rebuild like state from server response
+        // rebuild like + download state from server response
         for (final r in _featured + _community) {
           final id = r['template_id'] as String;
           _likeState[id] = {
             'liked': r['liked_by_me'] as bool? ?? false,
             'count': r['like_count'] as int? ?? 0,
           };
+          _downloadState[id] = r['download_count'] as int? ?? 0;
         }
         _loading = false;
       });
@@ -147,7 +143,10 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       );
       return;
     }
-    setState(() => _savingId = templateId);
+    setState(() {
+      _savingId = templateId;
+      _downloadState[templateId] = (_downloadState[templateId] ?? 0) + 1;
+    });
     final ok = await userManager.copyRoutine(templateId: templateId);
     if (!mounted) return;
     if (ok) {
@@ -157,7 +156,10 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
       });
       workoutLogNotifier.value++;
     } else {
-      setState(() => _savingId = null);
+      setState(() {
+        _savingId = null;
+        _downloadState[templateId] = (_downloadState[templateId] ?? 1) - 1;
+      });
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -202,7 +204,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   @override
   void dispose() {
     appColorNotifier.removeListener(_colorListener);
-    workoutLogNotifier.removeListener(_onWorkoutChanged);
     _featuredScroll.dispose();
     super.dispose();
   }
@@ -571,7 +572,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                     ),
                     SizedBox(width: Responsive.width(context, 3)),
                     Text(
-                      '${routine['download_count'] ?? 0}',
+                      '${_downloadState[routine['template_id']] ?? routine['download_count'] ?? 0}',
                       style: GoogleFonts.manrope(
                         color: subtle,
                         fontSize: Responsive.font(context, 10),
@@ -832,7 +833,7 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   ),
                   SizedBox(width: Responsive.width(context, 4)),
                   Text(
-                    '${routine['download_count'] ?? 0}',
+                    '${_downloadState[routine['template_id']] ?? routine['download_count'] ?? 0}',
                     style: GoogleFonts.manrope(
                       color: subtle,
                       fontSize: Responsive.font(context, 11),
