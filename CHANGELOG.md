@@ -2419,3 +2419,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - is_personal_record flag now stamped on workout_sets rows at log time, enabling future PR history queries by date range or exercise
 - Updated the badge card UI to look like the other cards, making them look better on light themes
 - Removed the accent bar from badge cards
+
+## 2026-07-04
+- Fixed the mini workout bar border clipping
+- Removed the open chevron from the mini workout bar, instead making the whole card tappable but also making the collapse icon have a much bigger hitbox so it won't be missed

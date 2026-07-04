@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
 import '../services/workout_session_service.dart';
@@ -66,8 +67,9 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
         scale: 0.97 + (_pulseAnim.value * 0.03),
         child: child,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(Responsive.scale(context, 21)),
+      // whole bar is tappable to navigate to the active workout screen
+      child: GestureDetector(
+        onTap: widget.onTap,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: frostedGlassCard(
@@ -89,7 +91,7 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
             ),
             child: Row(
               children: [
-                // dumbbell fades in opacity in sync with the scale pulse
+                // dumbbell fades in opacity to signal an active session
                 AnimatedBuilder(
                   animation: _pulseAnim,
                   builder: (context, _) => Opacity(
@@ -139,28 +141,20 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(width: Responsive.width(context, 4)),
-                // collapse button shrinks the bar to CollapsedWorkoutDot
+                SizedBox(width: Responsive.width(context, 8)),
+                // collapse button — tap target is large, visually separated from the rest
                 GestureDetector(
                   onTap: widget.onCollapse,
+                  behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: EdgeInsets.all(Responsive.scale(context, 6)),
-                    child: Icon(
-                      Icons.close_fullscreen_rounded,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.padding(context, 8),
+                      vertical: Responsive.padding(context, 6),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedMenuCollapse,
                       color: dim,
                       size: Responsive.scale(context, 22),
-                    ),
-                  ),
-                ),
-                // chevron navigates to the full workout screen
-                GestureDetector(
-                  onTap: widget.onTap,
-                  child: Padding(
-                    padding: EdgeInsets.all(Responsive.scale(context, 6)),
-                    child: Icon(
-                      Icons.keyboard_arrow_up_rounded,
-                      color: dim,
-                      size: Responsive.scale(context, 28),
                     ),
                   ),
                 ),

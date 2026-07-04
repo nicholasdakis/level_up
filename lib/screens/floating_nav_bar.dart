@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
@@ -97,14 +96,13 @@ class FloatingNavBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         for (int i = 0; i < _navIcons.length; i++)
-                          if (kDebugMode || i != kTabWorkout)
-                            _NavItem(
-                              icon: _navIcons[i],
-                              label: _navLabels[i],
-                              isActive: selectedIndex == i,
-                              appColor: appColor,
-                              onTap: () => onTap(i),
-                            ),
+                          _NavItem(
+                            icon: _navIcons[i],
+                            label: _navLabels[i],
+                            isActive: selectedIndex == i,
+                            appColor: appColor,
+                            onTap: () => onTap(i),
+                          ),
                       ],
                     ),
                   ),

@@ -72,6 +72,16 @@ class _AppShellState extends State<AppShell> {
         Responsive.height(context, 10) +
         systemBottomPad;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final navHPad = Responsive.centeredHorizontalPadding(context, 24);
+    final navBarWidth = screenWidth - navHPad * 2;
+    // cap the mini bar so it stays visibly shorter than the nav bar on all screen sizes
+    final miniBarMaxWidth = Responsive.scale(context, 300);
+    // left offset that centers the bar within the nav bar bounds
+    final miniBarLeft =
+        navHPad +
+        ((navBarWidth - miniBarMaxWidth) / 2).clamp(0, double.infinity);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -83,8 +93,8 @@ class _AppShellState extends State<AppShell> {
           if (selectedIndex != kTabExplore)
             Positioned(
               bottom: navBarBottomPad,
-              left: Responsive.padding(context, 24),
-              right: Responsive.padding(context, 24),
+              left: Responsive.centeredHorizontalPadding(context, 24),
+              right: Responsive.centeredHorizontalPadding(context, 24),
               child: FloatingNavBar(
                 selectedIndex: selectedIndex,
                 onTap: (index) {
@@ -103,36 +113,30 @@ class _AppShellState extends State<AppShell> {
               duration: const Duration(milliseconds: 450),
               curve: Curves.easeInOutCubic,
               bottom: miniBarBottom,
-              left: Responsive.padding(context, 24),
-              right: Responsive.padding(context, 24),
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: Responsive.scale(context, 320),
-                  child: Align(
+              left: miniBarLeft,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: miniBarMaxWidth),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 21),
+                  ),
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeInOutCubic,
                     alignment: Alignment.centerLeft,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: AnimatedSize(
-                        duration: const Duration(milliseconds: 450),
-                        curve: Curves.easeInOutCubic,
-                        alignment: Alignment.centerLeft,
-                        child: _miniCollapsed
-                            ? CollapsedWorkoutDot(
-                                appColor: appColor,
-                                onTap: () =>
-                                    setState(() => _miniCollapsed = false),
-                              )
-                            : MiniWorkoutBar(
-                                session: session,
-                                elapsedLabel: _elapsedLabel(session),
-                                appColor: appColor,
-                                onTap: () => context.push('/workout/active'),
-                                onCollapse: () =>
-                                    setState(() => _miniCollapsed = true),
-                              ),
-                      ),
-                    ),
+                    child: _miniCollapsed
+                        ? CollapsedWorkoutDot(
+                            appColor: appColor,
+                            onTap: () => setState(() => _miniCollapsed = false),
+                          )
+                        : MiniWorkoutBar(
+                            session: session,
+                            elapsedLabel: _elapsedLabel(session),
+                            appColor: appColor,
+                            onTap: () => context.push('/workout/active'),
+                            onCollapse: () =>
+                                setState(() => _miniCollapsed = true),
+                          ),
                   ),
                 ),
               ),
