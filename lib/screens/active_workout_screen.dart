@@ -1117,6 +1117,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Flexible(
                         child: Text(
@@ -1133,11 +1134,16 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(width: Responsive.width(context, 4)),
-                      Icon(
-                        Icons.edit_rounded,
-                        color: lightenColor(appColorNotifier.value, 0.35),
-                        size: Responsive.scale(context, 12),
+                      SizedBox(width: Responsive.width(context, 3)),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: Responsive.padding(context, 1),
+                        ),
+                        child: Icon(
+                          Icons.edit_rounded,
+                          color: lightenColor(appColorNotifier.value, 0.35),
+                          size: Responsive.scale(context, 12),
+                        ),
                       ),
                     ],
                   ),
