@@ -720,6 +720,7 @@ class WorkoutRepository:
             tid = exercise_row["template_id"]
             if tid not in ex_by_template:
                 ex_by_template[tid] = []
+            print(f"[get_my_routines] exercise_row keys={list(exercise_row.keys())} exercises={exercise_row.get('exercises')}")
             # extract primary and secondary muscles from the joined data
             primary_muscle = None
             secondary_muscles = []
