@@ -98,9 +98,9 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
-          Divider(color: Colors.white.withAlpha(15), height: 1),
+          Divider(color: dim.withAlpha(40), height: 1),
           menuItem(Icons.swap_vert_rounded, 'Reorder', 'reorder'),
-          Divider(color: Colors.white.withAlpha(15), height: 1),
+          Divider(color: dim.withAlpha(40), height: 1),
           menuItem(
             Icons.delete_outline_rounded,
             'Remove',
@@ -246,7 +246,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
             child: Column(
               children: [
                 _buildHeader(context, accent, dim),
-                Container(height: 1, color: Colors.white.withAlpha(15)),
+                Container(height: 1, color: dim.withAlpha(40)),
                 if (_exercises.isEmpty && !_reordering)
                   Expanded(
                     child: Center(
@@ -454,7 +454,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       children: [
         HugeIcon(
           icon: HugeIcons.strokeRoundedDumbbell01,
-          color: Colors.white.withAlpha(35),
+          color: dim.withAlpha(80),
           size: Responsive.scale(context, 44),
         ),
         SizedBox(height: Responsive.height(context, 14)),
@@ -544,7 +544,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                                   ? Icon(
                                       Icons.drag_handle_rounded,
                                       key: const ValueKey('drag'),
-                                      color: Colors.white.withAlpha(60),
+                                      color: dim,
                                       size: Responsive.scale(context, 20),
                                     )
                                   : Builder(
@@ -562,7 +562,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                                           ),
                                           child: Icon(
                                             Icons.more_vert_rounded,
-                                            color: Colors.white.withAlpha(40),
+                                            color: dim,
                                             size: Responsive.scale(context, 18),
                                           ),
                                         ),
@@ -682,9 +682,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
     return Container(
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(15), width: 1),
-        ),
+        border: Border(top: BorderSide(color: dim.withAlpha(40), width: 1)),
       ),
       padding: EdgeInsets.only(
         left: Responsive.centeredHorizontalPadding(context, 20),
