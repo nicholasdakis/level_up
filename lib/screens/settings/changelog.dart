@@ -75,6 +75,20 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                date: 'July 4, 2026',
+                version: '1.2.0',
+                changes: [
+                  'The Workout tab has been introduced',
+                  'Log any workout with full set, weight, and rep tracking and a live elapsed timer',
+                  'A collapsible mini bar stays above the nav bar while a session is active so you can use the rest of the app without losing your workout',
+                  'Browse featured and community routines, or build your own with custom exercises',
+                  'View your activity heatmap, recent workouts, muscles trained, and a daily overview of volume, sets, and reps',
+                  'Completing a workout earns XP, with a bonus for longer sessions',
+                  'New workout achievements to unlock',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
                 date: 'June 27, 2026',
                 version: '1.1.52',
                 changes: [

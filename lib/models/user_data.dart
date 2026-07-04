@@ -45,7 +45,7 @@ class UserData {
     this.canClaimDailyReward = true,
     this.notificationsEnabled = true,
     this.lastDailyClaim,
-    this.dailyClaimStreak = 1,
+    this.dailyClaimStreak = 0,
     this.dailyClaimStreakBest = 0,
     this.foodLogStreak = 0,
     this.foodLogStreakBest = 0,

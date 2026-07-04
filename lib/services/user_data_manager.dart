@@ -189,7 +189,7 @@ class UserDataManager {
         appColorNotifier.value = currentUserData!.appColor;
       }
 
-      currentUserData?.dailyClaimStreak = data['daily_streak'] ?? 1;
+      currentUserData?.dailyClaimStreak = data['daily_streak'] ?? 0;
 
       // Compute canClaimDailyReward directly from last_daily_claim (23-hour cooldown)
       if (data['last_daily_claim'] != null) {
