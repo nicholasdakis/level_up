@@ -2417,3 +2417,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Previous column set 1 falls back to exercise summary stats when no per-set match exists from the previous session
 - Fixed routine-started workouts not showing muscle data on the finish screen by joining muscle groups when fetching routine template exercises
 - is_personal_record flag now stamped on workout_sets rows at log time, enabling future PR history queries by date range or exercise
+- Updated the badge card UI to look like the other cards, making them look better on light themes
+- Removed the accent bar from badge cards

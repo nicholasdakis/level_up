@@ -446,232 +446,192 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
             child: Container(
               decoration: BoxDecoration(
-                color: allClaimed
-                    ? appColorNotifier.value.withAlpha(40)
-                    : Colors.white.withAlpha(14),
+                color: cardColors(
+                  appColorNotifier.value,
+                ).gradient.first.withAlpha(180),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 18),
                 ),
                 border: Border.all(
-                  color: Colors.white.withAlpha(18),
-                  width: Responsive.width(context, 1),
+                  color: allClaimed
+                      ? lightenColor(
+                          appColorNotifier.value,
+                          0.45,
+                        ).withAlpha(120)
+                      : cardColors(appColorNotifier.value).border,
+                  width: allClaimed
+                      ? Responsive.width(context, 1.5)
+                      : Responsive.width(context, 1),
                 ),
               ),
-              child: Stack(
-                children: [
-                  // Colored left accent bar
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: Responsive.width(context, 3),
-                      decoration: BoxDecoration(
-                        color: allClaimed
-                            ? lightenColor(
-                                appColorNotifier.value,
-                                0.35,
-                              ).withAlpha(180)
-                            : unclaimedCount > 0
-                            ? lightenColor(
-                                appColorNotifier.value,
-                                0.4,
-                              ).withAlpha(200)
-                            : Colors.white.withAlpha(30),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(
-                            Responsive.scale(context, 18),
-                          ),
-                          bottomLeft: Radius.circular(
-                            Responsive.scale(context, 18),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      Responsive.scale(context, 20),
-                      Responsive.scale(context, 16),
-                      Responsive.scale(context, 16),
-                      Responsive.scale(context, 16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  Responsive.scale(context, 16),
+                  Responsive.scale(context, 16),
+                  Responsive.scale(context, 16),
+                  Responsive.scale(context, 16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row: icon + name + unclaimed pill
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Header row: icon + name + unclaimed pill
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 10),
-                              ),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    Responsive.scale(context, 9),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: appColorNotifier.value.withAlpha(50),
-                                    borderRadius: BorderRadius.circular(
-                                      Responsive.scale(context, 10),
-                                    ),
-                                    border: Border.all(
-                                      color: barColor.withAlpha(80),
-                                      width: Responsive.width(context, 1),
-                                    ),
-                                  ),
-                                  child: HugeIcon(
-                                    icon: def.icon,
-                                    color: barColor,
-                                    size: Responsive.scale(context, 22),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: Responsive.width(context, 12)),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    def.name,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 16),
-                                      color: accent,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  Text(
-                                    def.description,
-                                    style: GoogleFonts.manrope(
-                                      fontSize: Responsive.font(context, 11),
-                                      color: lightenColor(
-                                        appColorNotifier.value,
-                                        0.35,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (unclaimedCount > 0) ...[
-                              SizedBox(width: Responsive.width(context, 8)),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 20),
-                                ),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 8,
-                                    sigmaY: 8,
-                                  ),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: Responsive.width(context, 8),
-                                      vertical: Responsive.height(context, 4),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: lightenColor(
-                                        appColorNotifier.value,
-                                        0.3,
-                                      ).withAlpha(60),
-                                      borderRadius: BorderRadius.circular(
-                                        Responsive.scale(context, 20),
-                                      ),
-                                      border: Border.all(
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.4,
-                                        ).withAlpha(160),
-                                        width: Responsive.width(context, 1),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      "$unclaimedCount to claim",
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 10),
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.45,
-                                        ),
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (allClaimed) ...[
-                              SizedBox(width: Responsive.width(context, 8)),
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.4,
-                                ),
-                                size: Responsive.scale(context, 18),
-                              ),
-                            ],
-                          ],
-                        ),
-
-                        SizedBox(height: Responsive.height(context, 12)),
-
-                        // Progress label + bar
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              allClaimed
-                                  ? "All tiers complete!"
-                                  : "$currentProgress / $nextTier ${def.unit}",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: accent,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              "${(progressFraction * 100).toStringAsFixed(0)}%",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: barColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: Responsive.height(context, 6)),
-                        _ProgressBar(
-                          fraction: progressFraction,
-                          barColor: barColor,
-                          tiers: def.tiers,
-                          maxTier: def.tiers.last,
-                        ),
-
-                        SizedBox(height: Responsive.height(context, 12)),
-
-                        // Tier chips row: single tier renders inline, multiple tiers use swipeable carousel
-                        if (def.tiers.length == 1)
-                          Center(
-                            child: _buildTierChip(
-                              def,
-                              def.tiers.first,
-                              index: 0,
-                            ),
-                          )
-                        else
-                          _TierCarousel(
-                            def: def,
-                            tierChipBuilder: _buildTierChip,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 10),
                           ),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 9),
+                              ),
+                              decoration: BoxDecoration(
+                                color: appColorNotifier.value.withAlpha(50),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 10),
+                                ),
+                                border: Border.all(
+                                  color: barColor.withAlpha(80),
+                                  width: Responsive.width(context, 1),
+                                ),
+                              ),
+                              child: HugeIcon(
+                                icon: def.icon,
+                                color: barColor,
+                                size: Responsive.scale(context, 22),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 12)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                def.name,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 16),
+                                  color: accent,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                def.description,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.35,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (unclaimedCount > 0) ...[
+                          SizedBox(width: Responsive.width(context, 8)),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 8),
+                                  vertical: Responsive.height(context, 4),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: lightenColor(
+                                    appColorNotifier.value,
+                                    0.3,
+                                  ).withAlpha(60),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 20),
+                                  ),
+                                  border: Border.all(
+                                    color: lightenColor(
+                                      appColorNotifier.value,
+                                      0.4,
+                                    ).withAlpha(160),
+                                    width: Responsive.width(context, 1),
+                                  ),
+                                ),
+                                child: Text(
+                                  "$unclaimedCount to claim",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 10),
+                                    color: lightenColor(
+                                      appColorNotifier.value,
+                                      0.45,
+                                    ),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (allClaimed) ...[
+                          SizedBox(width: Responsive.width(context, 8)),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                            color: lightenColor(appColorNotifier.value, 0.4),
+                            size: Responsive.scale(context, 18),
+                          ),
+                        ],
                       ],
                     ),
-                  ),
-                ],
+
+                    SizedBox(height: Responsive.height(context, 12)),
+
+                    // Progress label + bar — hidden when all tiers are claimed
+                    if (!allClaimed) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "$currentProgress / $nextTier ${def.unit}",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: accent,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            "${(progressFraction * 100).toStringAsFixed(0)}%",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: barColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.height(context, 6)),
+                      _ProgressBar(
+                        fraction: progressFraction,
+                        barColor: barColor,
+                        tiers: def.tiers,
+                        maxTier: def.tiers.last,
+                      ),
+                    ],
+
+                    SizedBox(height: Responsive.height(context, 12)),
+
+                    // Tier chips row: single tier renders inline, multiple tiers use swipeable carousel
+                    if (def.tiers.length == 1)
+                      Center(
+                        child: _buildTierChip(def, def.tiers.first, index: 0),
+                      )
+                    else
+                      _TierCarousel(def: def, tierChipBuilder: _buildTierChip),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1103,61 +1063,37 @@ class _ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final barHeight = Responsive.height(context, 8);
-    final markerColor = Colors.white.withAlpha(60);
     final value = fraction.clamp(0.0, 1.0);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final barWidth = constraints.maxWidth;
-        return SizedBox(
-          height: barHeight,
-          child: Stack(
-            children: [
-              // Background track
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 6),
-                ),
-                child: Container(
-                  height: barHeight,
-                  color: Colors.white.withAlpha(18),
-                ),
-              ),
-              // Filled portion
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 6),
-                ),
-                child: FractionallySizedBox(
-                  widthFactor: value,
-                  child: Container(
-                    height: barHeight,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [barColor.withAlpha(180), barColor],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Tier milestone markers, only between tiers not at the end
-              for (final tier in tiers)
-                if (tier < maxTier)
-                  Positioned(
-                    left:
-                        (tier / maxTier) * barWidth -
-                        Responsive.width(context, 0.75),
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: Responsive.width(context, 1.5),
-                      color: markerColor,
-                    ),
-                  ),
-            ],
+    return SizedBox(
+      height: barHeight,
+      child: Stack(
+        children: [
+          // Background track
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+            child: Container(
+              height: barHeight,
+              color: Colors.white.withAlpha(18),
+            ),
           ),
-        );
-      },
+          // Filled portion
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+            child: FractionallySizedBox(
+              widthFactor: value,
+              child: Container(
+                height: barHeight,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [barColor.withAlpha(180), barColor],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
