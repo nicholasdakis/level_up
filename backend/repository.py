@@ -708,9 +708,9 @@ class WorkoutRepository:
         if not templates:
             return []
         template_ids = [template["template_id"] for template in templates]
-        # batch-fetch all exercises for those templates in one query
+        # batch-fetch all exercises for those templates, joining muscle data via the exercises table
         ex_rows = self._supabase.table("workout_template_exercises") \
-            .select("template_id, exercise_name, exercise_order") \
+            .select("template_id, exercise_id, exercise_name, exercise_order, exercises(exercise_muscles(muscle_type, muscle_groups(name)))") \
             .in_("template_id", template_ids) \
             .order("exercise_order") \
             .execute().data or []
@@ -720,7 +720,23 @@ class WorkoutRepository:
             tid = exercise_row["template_id"]
             if tid not in ex_by_template:
                 ex_by_template[tid] = []
-            ex_by_template[tid].append({"exercise_name": exercise_row["exercise_name"], "exercise_order": exercise_row["exercise_order"]})
+            # extract primary and secondary muscles from the joined data
+            primary_muscle = None
+            secondary_muscles = []
+            for em in (exercise_row.get("exercises") or {}).get("exercise_muscles") or []:
+                muscle_name = (em.get("muscle_groups") or {}).get("name")
+                if not muscle_name:
+                    continue
+                if em.get("muscle_type") == "primary" and primary_muscle is None:
+                    primary_muscle = muscle_name
+                elif em.get("muscle_type") == "secondary":
+                    secondary_muscles.append(muscle_name)
+            ex_by_template[tid].append({
+                "exercise_name": exercise_row["exercise_name"],
+                "exercise_order": exercise_row["exercise_order"],
+                "primary_muscle": primary_muscle or "",
+                "secondary_muscles": secondary_muscles,
+            })
         return [
             {
                 "template_id": template["template_id"],
