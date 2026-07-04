@@ -1,6 +1,6 @@
 # Level Up!
 
-**Level Up!** is a health and fitness app that turns your daily habits into a game. Log food, drink water, track your weight, explore your city, and earn XP for every healthy choice you make.
+**Level Up!** is a health and fitness app that turns your daily habits into a game. Log food, track workouts, drink water, track your weight, explore your city, and earn XP for every healthy choice you make.
 
 ## Availability
 
@@ -18,7 +18,7 @@ This project contains a comprehensive **CHANGELOG.md** file which is updated thr
 
 ## Features
 
-**Level Up!** has 4 main tabs navigated via a floating bottom nav bar:
+**Level Up!** has 5 main tabs navigated via a floating bottom nav bar:
 
 ### 1) Home
 
@@ -49,7 +49,23 @@ A full-featured nutrition tracker with macro-level detail:
 - **Recent foods** synced across devices for quick re-logging
 - **Voice search** to find foods hands-free
 
-### 3) Progress
+### 3) Workout
+
+A full-featured workout tracker for building and logging workout sessions:
+
+- **Browse routines** from a curated featured list or the community, and save them to your library
+- **Build your own routines** with custom exercises, set counts, and estimated duration
+- **Create custom exercises** with your own name, muscle groups, and equipment
+- **Log any workout** with per-set weight and reps tracking, a live elapsed timer, and a Previous column showing your last session's numbers
+- **Personal Record detection** in real time during a session, with a summary on the finish screen
+- **Earn XP** on workout completion with a bonus for longer sessions
+- **Activity heatmap** showing 16 weeks of training frequency
+- **Today's overview** card with daily volume, sets, reps, duration, and muscles worked
+- **Recent workouts** card for a quick look at past sessions
+- **Collapsible mini bar** stays above the nav bar while a session is active so you can use other tabs without losing your workout
+- **Session persistence** so active workouts survive app kills and are fully restored on relaunch
+
+### 4) Progress
 
 A dedicated progression hub combining leveling, achievements, and leaderboard in one place:
 
@@ -58,7 +74,7 @@ A dedicated progression hub combining leveling, achievements, and leaderboard in
 - **Badges** earned by completing achievements across food logging, exploration, streaks, referrals, and more
 - **Multi-tier badges** with progress bars and percentage labels showing advancement toward the next tier
 
-### 4) Explore
+### 5) Explore
 
 Turn your surroundings into an XP source:
 
@@ -93,7 +109,7 @@ Turn your surroundings into an XP source:
 - **Theme color picker** that adapts the entire app to your chosen color using perceptual color math
 - **Profile picture** upload with cropping and compression
 - **Username** with server-side uniqueness checking
-- **Nutrition goals** for calories, protein, carbs, fat, water, and weight targets
+- **Nutrition goals** for calories, protein, carbs, fat, water, weight targets, and weekly workout count
 - **Unit preferences** for using metric or imperial throughout the app
 - **Notification toggle** and push notification management
 - **Changelog** viewable in-app
