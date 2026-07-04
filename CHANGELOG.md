@@ -2428,3 +2428,5 @@ CUTOFF POINT FOR VERSION 1.2.0
 - Replaced the "Resets on Monday" text for weekly workout with a timer to the actual reset time
 - Added a replacingExercisePrimaryMuscle variable so that when a user presses "replace" on an exercise it passes it to the search exercises route and also searches for recommended exercises that match that primary muscle
 - Added a fetchRecommended method that uses the search_exercises route by filtering for that primary muscle and returning the first 5
+- Reduced the activity heatmap from 16 weeks to 12 weeks so cells are a more comfortable size
+- Added Firebase Analytics events for workout_started, workout_completed, workout_discarded, routine_created, routine_started, daily_reward_claimed, ad_watched, onboarding_completed, onboarding_skipped, food_logged, and streak_milestone

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:confetti/confetti.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -82,6 +83,15 @@ class DailyRewardDialog {
     }
 
     final (xpGained, baseXp, streak, multiplier) = result;
+
+    FirebaseAnalytics.instance.logEvent(
+      name: 'daily_reward_claimed',
+      parameters: {
+        'xp_gained': xpGained,
+        'streak': streak,
+        'multiplier': multiplier,
+      },
+    );
 
     if (!context.mounted) return;
 

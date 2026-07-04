@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -207,6 +208,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       );
       if (!mounted) return;
       if (ok) {
+        FirebaseAnalytics.instance.logEvent(
+          name: 'routine_created',
+          parameters: {'exercise_count': exercises.length},
+        );
         // bump notifier so the workout dashboard refreshes its routines list
         workoutLogNotifier.value++;
         context.pop();

@@ -998,6 +998,18 @@ class UserDataManager {
         }
       }
 
+      if (!isBeingDeleted) {
+        FirebaseAnalytics.instance.logEvent(name: 'food_logged');
+        const milestones = [3, 7, 14, 30, 60, 100];
+        final streak = currentUserData?.foodLogStreak ?? 0;
+        if (milestones.contains(streak)) {
+          FirebaseAnalytics.instance.logEvent(
+            name: 'streak_milestone',
+            parameters: {'streak_type': 'food', 'streak': streak},
+          );
+        }
+      }
+
       // Only show success snackbar if connected, otherwise the error snackbar is shown in the catch block
       final msg = isBeingDeleted
           ? "Food deleted successfully."

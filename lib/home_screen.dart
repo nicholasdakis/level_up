@@ -232,6 +232,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           final choice = await showOnboardingWizard(context);
           if (!mounted) return;
 
+          FirebaseAnalytics.instance.logEvent(
+            name: choice != null
+                ? 'onboarding_completed'
+                : 'onboarding_skipped',
+            parameters: {'choice': choice ?? ''},
+          );
+
           setState(() => _onboardingInProgress = false);
           if (mounted) setState(() => _greeting = _buildGreeting());
 
@@ -957,6 +964,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               setState(() => _adWatching = true);
               await adService.showRewardedAd(
                 onRewarded: () async {
+                  FirebaseAnalytics.instance.logEvent(name: 'ad_watched');
                   if (isGuest) {
                     // show signup prompt after the ad reward fires (user finished watching)
                     if (mounted) {

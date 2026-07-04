@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -150,6 +151,14 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           routineName: widget.routine?['name'] as String?,
           routineId: widget.routine?['id']?.toString(),
         ),
+      );
+      FirebaseAnalytics.instance.logEvent(
+        name: 'workout_started',
+        parameters: {
+          'source': widget.routine != null ? 'routine' : 'blank',
+          'routine_name': widget.routine?['name'] as String? ?? '',
+          'exercise_count': exercises.length,
+        },
       );
     }
 
@@ -456,6 +465,22 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       if (response.statusCode == 200) {
         workoutLogNotifier.value++;
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        FirebaseAnalytics.instance.logEvent(
+          name: 'workout_completed',
+          parameters: {
+            'duration_seconds': durationSeconds,
+            'exercise_count': exercises.length,
+            'xp_gained': data['xp_gained'] as int? ?? 0,
+          },
+        );
+        const streakMilestones = [3, 7, 14, 30, 60, 100];
+        final workoutStreak = currentUserData?.workoutStreak ?? 0;
+        if (streakMilestones.contains(workoutStreak)) {
+          FirebaseAnalytics.instance.logEvent(
+            name: 'streak_milestone',
+            parameters: {'streak_type': 'workout', 'streak': workoutStreak},
+          );
+        }
         // update XP and level from the response so the XP bar reflects the reward immediately
         final levelBefore = currentUserData?.level ?? 1;
         if (data['new_level'] != null) {
@@ -1848,6 +1873,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   child: GestureDetector(
                     onTap: () async {
                       if (await _confirmDiscard()) {
+                        FirebaseAnalytics.instance.logEvent(
+                          name: 'workout_discarded',
+                          parameters: {
+                            'duration_seconds': _s.elapsed.inSeconds,
+                            'exercise_count': _exercises.length,
+                          },
+                        );
                         workoutSessionService.clearSession();
                         if (context.mounted) Navigator.of(context).pop();
                       }

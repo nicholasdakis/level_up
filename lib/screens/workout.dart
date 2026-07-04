@@ -951,6 +951,14 @@ class _WorkoutState extends State<Workout> {
                               );
                               return;
                             }
+                            FirebaseAnalytics.instance.logEvent(
+                              name: 'routine_started',
+                              parameters: {
+                                'source': 'my_routines',
+                                'routine_name':
+                                    routines[i]['name'] as String? ?? '',
+                              },
+                            );
                             context.push('/workout/active', extra: routines[i]);
                           },
                           child: Icon(
