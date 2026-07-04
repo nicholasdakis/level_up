@@ -532,7 +532,7 @@ class WorkoutRepository:
             .eq("date", today) \
             .execute().data or []
         if not workouts:
-            return {"volume_kg": 0.0, "exercises": 0, "sets": 0, "reps": 0, "duration_seconds": 0, "muscles": []}
+            return {"volume_kg": 0.0, "exercises": 0, "sets": 0, "reps": 0, "duration_seconds": 0, "primary_muscles": [], "secondary_muscles": []}
         workout_ids = [w["workout_id"] for w in workouts]
         duration_seconds = sum(w["duration_seconds"] or 0 for w in workouts)
         # fetch all exercises logged in those workouts
@@ -752,7 +752,6 @@ class WorkoutRepository:
             on_conflict="uid,template_id",
             ignore_duplicates=True,
         ).execute()
-        print(f"[copy_routine] upsert result.data={result.data!r} for uid={uid} template={template_id}")
         if result.data:
             self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
         # reuse create_routine so the new copy gets its own template_id, tracking the source
