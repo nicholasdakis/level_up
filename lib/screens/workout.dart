@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -40,6 +41,8 @@ class _WorkoutState extends State<Workout> {
   };
 
   late final VoidCallback _sessionListener;
+  Timer? _resetTimer;
+  Duration _timeUntilReset = Duration.zero;
 
   @override
   void initState() {
@@ -60,6 +63,10 @@ class _WorkoutState extends State<Workout> {
     appColorNotifier.addListener(_colorListener);
     userDataNotifier.addListener(_colorListener);
     workoutLogNotifier.addListener(_onWorkoutLogged);
+    _updateResetCountdown();
+    _resetTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) _updateResetCountdown();
+    });
     if (!isGuest && currentUserData == null) {
       _loading = true;
       userManager.loadUserData().then((_) {
@@ -70,6 +77,19 @@ class _WorkoutState extends State<Workout> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
+  }
+
+  void _updateResetCountdown() {
+    final now = DateTime.now();
+    // DateTime.monday == 1, weekday is 1-7, so this gives 0 on Monday and counts up to 6 on Sunday
+    final daysUntilMonday = (DateTime.monday - now.weekday + 7) % 7;
+    // midnight of the next Monday (day arithmetic overflows correctly into the next month/year)
+    final nextMonday = DateTime(now.year, now.month, now.day + daysUntilMonday);
+    final remaining = nextMonday.difference(now);
+    // guard against the edge case where this fires just after midnight on Monday
+    setState(
+      () => _timeUntilReset = remaining.isNegative ? Duration.zero : remaining,
+    );
   }
 
   void _dismissHeatmapTooltip() {
@@ -207,6 +227,7 @@ class _WorkoutState extends State<Workout> {
     userDataNotifier.removeListener(_colorListener);
     workoutLogNotifier.removeListener(_onWorkoutLogged);
     workoutSessionService.removeListener(_sessionListener);
+    _resetTimer?.cancel();
     super.dispose();
   }
 
@@ -251,7 +272,7 @@ class _WorkoutState extends State<Workout> {
                     SizedBox(width: Responsive.width(context, 8)),
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedPencilEdit01,
-                      color: Colors.white24,
+                      color: dim,
                       size: Responsive.scale(context, 14),
                     ),
                   ],
@@ -272,9 +293,18 @@ class _WorkoutState extends State<Workout> {
             ),
             SizedBox(height: Responsive.height(context, 6)),
             Text(
-              'Resets every Monday',
+              () {
+                final d = _timeUntilReset;
+                if (d.inSeconds <= 0) return 'Resets today';
+                final days = d.inDays;
+                final hours = d.inHours % 24;
+                final minutes = d.inMinutes % 60;
+                if (days > 0) return 'Resets in ${days}d ${hours}h ${minutes}m';
+                if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
+                return 'Resets in ${minutes}m';
+              }(),
               style: GoogleFonts.manrope(
-                color: Colors.white.withAlpha(50),
+                color: lightenColor(appColorNotifier.value, 0.35),
                 fontSize: Responsive.font(context, 10),
               ),
             ),
