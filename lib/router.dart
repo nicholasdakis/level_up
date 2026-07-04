@@ -233,6 +233,7 @@ final GoRouter appRouter = GoRouter(
                         exercises: (p['exercises'] as List)
                             .map((e) => Map<String, dynamic>.from(e as Map))
                             .toList(),
+                        xpGained: p['xp_gained'] as int? ?? 0,
                       ),
                     );
                   },

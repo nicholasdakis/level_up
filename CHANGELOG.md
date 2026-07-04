@@ -2391,3 +2391,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-02
 - Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food manually when the screen was accessed by the quick log button in the Home tab
+
+## 2026-07-03
+- Fixed download count on Browse Routines not persisting after navigating away by removing the workoutLogNotifier listener that was triggering a refetch and wiping the optimistic state
+- Fixed download_count being stripped from the Browse Routines API response due to a missing field in BrowseRoutineItem schema
+- Fixed /today_overview crashing when the user had no workouts logged today due to a stale "muscles" key in the no-workouts early return
+- Replaced the multi-step log_workout backend flow with a single atomic Postgres RPC that inserts the workout, exercises, and sets, updates exercise PRs and stats, awards XP scaled to level and duration, updates the workout streak, and increments achievement progress in one transaction
+- Added XP reward on workout completion: base XP is 40% of the daily reward for the user's level, plus a duration bonus of up to 30% of base XP for workouts 60 minutes or longer
+- Added workouts_logged and workout_streak achievements
+- Workout completion now updates the XP bar immediately and shows a level-up overlay if the user leveled up
+- Finish Workout screen now displays the XP earned

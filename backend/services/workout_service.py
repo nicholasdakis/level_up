@@ -60,14 +60,13 @@ class WorkoutService:
         if not clean_exercises:
             raise ValueError("No valid sets to log")  # caught in the route and returned as 400
 
-        workout_id = self._repo.log_workout(
+        return self._repo.log_workout(
             uid=uid,
             name=name,
             date=date,
             duration_seconds=duration_seconds,
             exercises=clean_exercises,
         )
-        return {"workout_id": workout_id}
 
     def get_recent_workouts(self, uid: str) -> list[dict]:
         # Returns the 10 most recently completed sessions, ordered by created_at so two

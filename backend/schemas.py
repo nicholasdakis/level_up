@@ -298,6 +298,9 @@ class LogWorkoutRequest(BaseModel):
 
 class LogWorkoutResponse(BaseModel):
     workout_id: str
+    xp_gained: int = 0
+    new_level: int = 1
+    new_exp: int = 0
 
 class RecentWorkoutItem(BaseModel):
     workout_id: str

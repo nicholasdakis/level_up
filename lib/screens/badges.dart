@@ -39,9 +39,10 @@ const int tabProgression = 0;
 const int tabExplore = 1;
 const int tabTabs = 2;
 const int tabFood = 3;
-const int tabReminders = 4;
-const int tabPersonalization = 5;
-const int tabMeta = 6;
+const int tabWorkout = 4;
+const int tabReminders = 5;
+const int tabPersonalization = 6;
+const int tabMeta = 7;
 
 // Tab definitions in display order
 const List<String> tabSections = [
@@ -49,6 +50,7 @@ const List<String> tabSections = [
   "EXPLORE",
   "TABS",
   "FOOD",
+  "WORKOUT",
   "REMINDERS",
   "PERSONALIZATION",
   "SOCIAL",
@@ -61,6 +63,7 @@ const List<String> tabLabels = [
   "Explore",
   "Tabs",
   "Food",
+  "Workout",
   "Reminders",
   "Personal",
   "Social",
@@ -102,6 +105,8 @@ const Map<String, IconData> _achievementIcons = {
   "switch_imperial": HugeIcons.strokeRoundedRuler,
   "color_indecisive": HugeIcons.strokeRoundedColorPicker,
   "change_username": HugeIcons.strokeRoundedUserCircle,
+  "workouts_logged": HugeIcons.strokeRoundedDumbbell01,
+  "workout_streak": HugeIcons.strokeRoundedFire,
   "referrals": HugeIcons.strokeRoundedUserAdd01,
   "total_achievements": HugeIcons.strokeRoundedMedal02,
 };

@@ -41,6 +41,9 @@ ACHIEVEMENT_DEFINITIONS = [
     {"id": "switch_imperial",    "name": "Freedom Units",    "description": "Switch your units to imperial in the Calorie Calculator tab",      "tiers": [1],                                           "unit": "switched to imperial",      "section": "PERSONALIZATION", "server_tracked": False},
     {"id": "color_indecisive",   "name": "Indecisive",       "description": "Change the app color 5 times",                                     "tiers": [5],                                           "unit": "color changes",             "section": "PERSONALIZATION", "server_tracked": True},
     {"id": "change_username",    "name": "Identity Crisis",  "description": "Change your username after setting it",                            "tiers": [1],                                           "unit": "username changed",          "section": "PERSONALIZATION", "server_tracked": True},
+    # Workout
+    {"id": "workouts_logged",  "name": "Gym Rat",          "description": "Complete the specified number of workouts",                         "tiers": [1, 5, 10, 25, 50, 100, 200, 365],            "unit": "workouts",                  "section": "WORKOUT",     "server_tracked": True},
+    {"id": "workout_streak",   "name": "No Days Off",      "description": "Work out on the specified number of consecutive days",              "tiers": [3, 7, 14, 30, 60, 100],                      "unit": "consecutive days",          "section": "WORKOUT",     "server_tracked": True},
     # Social
     {"id": "referrals",          "name": "Recruiter",        "description": "Refer the specified number of friends",                            "tiers": [1, 2, 3],                                     "unit": "friends referred",          "section": "SOCIAL",      "server_tracked": True},
     # Meta

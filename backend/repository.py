@@ -466,20 +466,22 @@ class WorkoutRepository:
                 "total_sets": stats["set_count"],
             }).execute()
 
-    def log_workout(self, uid: str, name: str | None, date: str, duration_seconds: int, exercises: list[dict]) -> str:
-        workout_id = self._create_workout(uid, name, date, duration_seconds)
-        for order, exercise in enumerate(exercises):
-            # exercise_id is nullable in case the exercise was deleted from the exercises table after the session started
-            exercise_name = re.sub(r'\s*\(.*?\)\s*$', '', exercise["exercise_name"]).strip()
-            exercise_row = self._supabase.table("workout_exercises").insert({
-                "workout_id": workout_id,
-                "exercise_id": exercise.get("exercise_id"),
-                "exercise_name": exercise_name,
-                "exercise_order": order,
-            }).execute().data[0]
-            stats = self._save_sets_and_collect_stats(exercise_row["workout_exercise_id"], exercise["sets"])
-            self._upsert_exercise_stats(uid, exercise_name, stats)
-        return workout_id
+    def log_workout(self, uid: str, name: str | None, date: str, duration_seconds: int, exercises: list[dict]) -> dict:
+        # strip parenthetical suffixes from exercise names before sending to the RPC
+        clean = []
+        for ex in exercises:
+            clean.append({
+                **ex,
+                "exercise_name": re.sub(r'\s*\(.*?\)\s*$', '', ex["exercise_name"]).strip(),
+            })
+        result = self._supabase.rpc("log_workout", {
+            "p_uid": uid,
+            "p_name": name,
+            "p_date": date,
+            "p_duration_seconds": duration_seconds,
+            "p_exercises": clean,
+        }).execute()
+        return result.data
 
     def get_every_prev_set(self, uid: str, exercise_names: list[str]) -> list[dict]:
         # calls the RPC that returns all sets from the most recent session per exercise

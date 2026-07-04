@@ -12,6 +12,7 @@ class FinishWorkoutScreen extends StatefulWidget {
   final double totalVolumeKg;
   final int completedSets;
   final List<Map<String, dynamic>> exercises;
+  final int xpGained;
 
   const FinishWorkoutScreen({
     super.key,
@@ -20,6 +21,7 @@ class FinishWorkoutScreen extends StatefulWidget {
     required this.totalVolumeKg,
     required this.completedSets,
     required this.exercises,
+    required this.xpGained,
   });
 
   @override
@@ -99,7 +101,18 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
                           ),
                         ),
 
-                        SizedBox(height: Responsive.height(context, 28)),
+                        SizedBox(height: Responsive.height(context, 10)),
+                        if (widget.xpGained > 0)
+                          Text(
+                            '+${widget.xpGained} XP',
+                            style: GoogleFonts.manrope(
+                              color: dim,
+                              fontSize: Responsive.font(context, 16),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+
+                        SizedBox(height: Responsive.height(context, 20)),
 
                         // stat row
                         frostedGlassCard(

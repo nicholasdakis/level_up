@@ -13,6 +13,7 @@ import '/utility/unit_converter.dart';
 import '/services/user_data_manager.dart';
 import '/services/workout_session_service.dart';
 import 'exercise_picker_screen.dart';
+import 'level_up_overlay.dart';
 
 class ActiveWorkoutScreen extends StatefulWidget {
   final Map<String, dynamic>?
@@ -442,6 +443,14 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       if (response.statusCode == 200) {
         workoutLogNotifier.value++;
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        // update XP and level from the response so the XP bar reflects the reward immediately
+        final levelBefore = currentUserData?.level ?? 1;
+        if (data['new_level'] != null)
+          currentUserData?.level = data['new_level'] as int;
+        if (data['new_exp'] != null) {
+          currentUserData?.expPoints = data['new_exp'] as int;
+          expNotifier.value = data['new_exp'] as int;
+        }
         // compute volume from the clean exercises list since the in-memory set maps
         // may not have been updated if onChanged never fired before the user tapped check
         double totalVolumeKg = 0;
@@ -454,14 +463,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           }
         }
         workoutSessionService.clearSession();
+        if (mounted) await handleLevelUpOverlay(context, levelBefore);
+        if (!mounted) return;
         context.pushReplacement(
           '/workout/finish',
           extra: <String, dynamic>{
-            'workout_id': data['workout_id'],
+            'workout_id': data['workout_id'] as String,
             'duration_seconds': durationSeconds,
             'total_volume_kg': totalVolumeKg,
             'completed_sets': totalSets,
             'exercises': exercises,
+            'xp_gained': data['xp_gained'] as int? ?? 0,
           },
         );
       } else {

@@ -520,6 +520,7 @@ BEGIN
     v_streak_type := CASE p_achievement_id
         WHEN 'daily_claim_streak' THEN 'daily_consecutive_streak'
         WHEN 'food_streak'        THEN 'food_streak'
+        WHEN 'workout_streak'     THEN 'workout_streak'
         ELSE NULL
     END;
 
@@ -633,6 +634,206 @@ AS $$
     ORDER BY e.name
     LIMIT p_limit;
 $$;
+
+-- log_workout: atomically inserts the workout, exercises, sets, updates exercise stats,
+-- awards XP scaled to level and duration, updates workout streak, and tracks achievements.
+-- p_exercises is a JSONB array of {exercise_id, exercise_name, sets: [{set_number, reps, weight_kg}]}
+CREATE OR REPLACE FUNCTION log_workout(
+    p_uid              TEXT,
+    p_name             TEXT,
+    p_date             DATE,
+    p_duration_seconds INTEGER,
+    p_exercises        JSONB
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_workout_id        UUID;
+    v_exercise          JSONB;
+    v_set               JSONB;
+    v_ex_id             UUID;
+    v_exercise_name     TEXT;
+    v_set_count         INTEGER;
+    v_best_weight       NUMERIC;
+    v_best_reps         INTEGER;
+    v_last_weight       NUMERIC;
+    v_last_reps         INTEGER;
+    v_session_volume    NUMERIC;
+    v_estimated_1rm     NUMERIC;
+    v_ex_order          INTEGER := 0;
+    -- XP calculation
+    v_level             INTEGER;
+    v_exp               INTEGER;
+    v_daily_base        NUMERIC;
+    v_base_xp           INTEGER;
+    v_duration_bonus    INTEGER;
+    v_xp_gained         INTEGER;
+    v_new_level         INTEGER;
+    v_new_exp           INTEGER;
+    -- workout streak
+    v_last_date                DATE;
+    v_current_streak           INTEGER;
+    v_new_streak               INTEGER;
+    v_today                    DATE := CURRENT_DATE;
+    v_xp_already_awarded_today BOOLEAN;
+BEGIN
+    -- check if the user already completed a workout today (XP is once per day)
+    SELECT EXISTS (
+        SELECT 1 FROM workouts
+        WHERE uid = p_uid AND completed = true AND date = v_today
+    ) INTO v_xp_already_awarded_today;
+
+    -- insert workout row
+    INSERT INTO workouts (uid, name, date, duration_seconds, completed)
+    VALUES (p_uid, p_name, p_date, p_duration_seconds, true)
+    RETURNING workout_id INTO v_workout_id;
+
+    -- insert exercises and sets
+    FOR v_exercise IN SELECT * FROM jsonb_array_elements(p_exercises) LOOP
+        v_exercise_name := v_exercise->>'exercise_name';
+
+        INSERT INTO workout_exercises (workout_id, exercise_id, exercise_name, exercise_order)
+        VALUES (
+            v_workout_id,
+            NULLIF(v_exercise->>'exercise_id', '')::INTEGER,
+            v_exercise_name,
+            v_ex_order
+        )
+        RETURNING workout_exercise_id INTO v_ex_id;
+
+        v_ex_order      := v_ex_order + 1;
+        v_set_count     := 0;
+        v_best_weight   := NULL;
+        v_best_reps     := NULL;
+        v_last_weight   := NULL;
+        v_last_reps     := NULL;
+        v_session_volume := 0;
+
+        FOR v_set IN SELECT * FROM jsonb_array_elements(v_exercise->'sets') LOOP
+            INSERT INTO workout_sets (workout_exercise_id, set_number, reps, weight_kg, set_type)
+            VALUES (
+                v_ex_id,
+                (v_set->>'set_number')::INTEGER,
+                NULLIF(v_set->>'reps', '')::INTEGER,
+                NULLIF(v_set->>'weight_kg', '')::NUMERIC,
+                'working'
+            );
+
+            v_set_count := v_set_count + 1;
+            v_last_weight := NULLIF(v_set->>'weight_kg', '')::NUMERIC;
+            v_last_reps   := NULLIF(v_set->>'reps', '')::INTEGER;
+
+            IF v_last_weight IS NOT NULL AND v_last_reps IS NOT NULL THEN
+                v_session_volume := v_session_volume + (v_last_weight * v_last_reps);
+                v_best_weight := GREATEST(COALESCE(v_best_weight, v_last_weight), v_last_weight);
+                v_best_reps   := GREATEST(COALESCE(v_best_reps, v_last_reps), v_last_reps);
+            END IF;
+        END LOOP;
+
+        -- Epley 1RM estimate
+        IF v_best_weight IS NOT NULL AND v_best_reps IS NOT NULL THEN
+            v_estimated_1rm := ROUND(v_best_weight * (1.0 + v_best_reps / 30.0), 2);
+        ELSE
+            v_estimated_1rm := NULL;
+        END IF;
+
+        -- upsert exercise stats with PR tracking
+        INSERT INTO user_exercise_stats (
+            uid, exercise_name,
+            pr_weight_kg, pr_reps, pr_volume_kg, estimated_1rm,
+            last_weight_kg, last_reps, last_logged_at, total_sets
+        )
+        VALUES (
+            p_uid, v_exercise_name,
+            v_best_weight, v_best_reps, ROUND(v_session_volume, 2), v_estimated_1rm,
+            v_last_weight, v_last_reps, NOW(), v_set_count
+        )
+        ON CONFLICT (uid, exercise_name) DO UPDATE SET
+            pr_weight_kg   = GREATEST(user_exercise_stats.pr_weight_kg, EXCLUDED.pr_weight_kg),
+            pr_reps        = GREATEST(user_exercise_stats.pr_reps, EXCLUDED.pr_reps),
+            pr_volume_kg   = GREATEST(user_exercise_stats.pr_volume_kg, EXCLUDED.pr_volume_kg),
+            estimated_1rm  = GREATEST(user_exercise_stats.estimated_1rm, EXCLUDED.estimated_1rm),
+            last_weight_kg = EXCLUDED.last_weight_kg,
+            last_reps      = EXCLUDED.last_reps,
+            last_logged_at = EXCLUDED.last_logged_at,
+            total_sets     = user_exercise_stats.total_sets + EXCLUDED.total_sets;
+    END LOOP;
+
+    -- XP, streak, and achievements are only awarded once per day
+    IF NOT v_xp_already_awarded_today THEN
+        -- lock user row for XP update
+        SELECT level, exp_points INTO v_level, v_exp
+        FROM users WHERE uid = p_uid FOR UPDATE;
+
+        -- XP formula: 40% of daily reward base + up to 30% of that as duration bonus (scales with level)
+        -- daily reward base mirrors calculate_daily_reward_xp in progression_service.py: 25*level + 2*randint(1,level)
+        -- use level as the random seed stand-in for determinism (no randomness needed in SQL)
+        v_daily_base     := 25.0 * v_level + 2.0 * v_level;
+        v_base_xp        := ROUND(v_daily_base * 0.4)::INTEGER;
+        v_duration_bonus := ROUND(v_base_xp * LEAST(p_duration_seconds::NUMERIC / 3600.0, 0.3))::INTEGER;
+        v_xp_gained      := v_base_xp + v_duration_bonus;
+
+        -- apply level-ups
+        v_new_exp   := v_exp + v_xp_gained;
+        v_new_level := v_level;
+        WHILE v_new_exp >= experience_needed(v_new_level) LOOP
+            v_new_exp   := v_new_exp - experience_needed(v_new_level);
+            v_new_level := v_new_level + 1;
+        END LOOP;
+
+        UPDATE users SET level = v_new_level, exp_points = v_new_exp WHERE uid = p_uid;
+
+        -- update workout streak
+        SELECT last_date, streak INTO v_last_date, v_current_streak
+        FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak' FOR UPDATE;
+
+        IF FOUND THEN
+            IF v_today = v_last_date THEN
+                v_new_streak := v_current_streak;
+            ELSIF v_today = v_last_date + 1 THEN
+                v_new_streak := v_current_streak + 1;
+            ELSE
+                v_new_streak := 1;
+            END IF;
+        ELSE
+            v_new_streak := 1;
+        END IF;
+
+        INSERT INTO streaks (uid, streak_type, streak, highest_streak, last_date)
+        VALUES (p_uid, 'workout_streak', v_new_streak, v_new_streak, v_today)
+        ON CONFLICT (uid, streak_type) DO UPDATE SET
+            streak         = v_new_streak,
+            highest_streak = GREATEST(streaks.highest_streak, v_new_streak),
+            last_date      = v_today;
+
+        INSERT INTO achievement_progress (uid, achievement_id, progress)
+        VALUES (p_uid, 'workouts_logged', 1)
+        ON CONFLICT (uid, achievement_id) DO UPDATE
+        SET progress = achievement_progress.progress + 1;
+
+        INSERT INTO achievement_progress (uid, achievement_id, progress)
+        VALUES (p_uid, 'workout_streak', v_new_streak)
+        ON CONFLICT (uid, achievement_id) DO UPDATE
+        SET progress = v_new_streak;
+
+        INSERT INTO achievement_progress (uid, achievement_id, progress)
+        VALUES (p_uid, 'level', v_new_level)
+        ON CONFLICT (uid, achievement_id) DO UPDATE
+        SET progress = v_new_level;
+    ELSE
+        -- already awarded today: still need valid return values
+        SELECT level, exp_points INTO v_new_level, v_new_exp
+        FROM users WHERE uid = p_uid;
+        v_xp_gained := 0;
+    END IF;
+
+    RETURN jsonb_build_object(
+        'workout_id', v_workout_id,
+        'xp_gained',  v_xp_gained,
+        'new_level',  v_new_level,
+        'new_exp',    v_new_exp
+    );
+END;
+$$ LANGUAGE plpgsql;
 
 -- update_like_count: fires after any insert or delete on the likes table and keeps the
 -- denormalized like_count column on the target table in sync automatically
