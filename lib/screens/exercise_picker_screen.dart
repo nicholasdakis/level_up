@@ -50,8 +50,13 @@ const _muscleOptions = [
 
 class ExercisePickerScreen extends StatefulWidget {
   final void Function(Map<String, dynamic> exercise) onExerciseSelected;
+  final String? replacingExercisePrimaryMuscle;
 
-  const ExercisePickerScreen({super.key, required this.onExerciseSelected});
+  const ExercisePickerScreen({
+    super.key,
+    required this.onExerciseSelected,
+    this.replacingExercisePrimaryMuscle,
+  });
 
   @override
   State<ExercisePickerScreen> createState() => _ExercisePickerScreenState();
@@ -64,6 +69,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
 
   List<Map<String, dynamic>> _results = [];
   List<Map<String, dynamic>> _recentExercises = [];
+  List<Map<String, dynamic>> _recommendedExercises = [];
   bool _isLoading = false;
   bool _loadingRecents = true;
   bool _hasSearched = false;
@@ -78,7 +84,26 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       if (mounted) setState(() {});
     };
     appColorNotifier.addListener(_colorListener);
-    if (!isGuest) _fetchRecentExercises();
+    if (!isGuest) {
+      _fetchRecentExercises();
+      final muscle = widget.replacingExercisePrimaryMuscle;
+      if (muscle != null && muscle.isNotEmpty) _fetchRecommended(muscle);
+    }
+  }
+
+  Future<void> _fetchRecommended(String muscle) async {
+    try {
+      final response = await authenticatedGet(
+        'search_exercises?q=&muscle=${Uri.encodeComponent(muscle.toLowerCase())}&limit=5',
+      );
+      if (response.statusCode == 200 && mounted) {
+        final data = (jsonDecode(response.body) as List<dynamic>)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .take(5)
+            .toList();
+        setState(() => _recommendedExercises = data);
+      }
+    } catch (_) {}
   }
 
   // Three-dot menu for custom exercises, shows Edit and Delete options
@@ -1621,22 +1646,53 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
     Color accent,
     Color dim,
   ) {
+    Widget sectionHeader(String label) => Padding(
+      padding: EdgeInsets.only(
+        bottom: Responsive.height(context, 10),
+        top: Responsive.height(context, 4),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.manrope(
+          color: dim,
+          fontSize: Responsive.font(context, 10),
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+
     return ScrollConfiguration(
       behavior: NoGlowScrollBehavior(),
       child: ListView(
         children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
-            child: Text(
-              'RECENT EXERCISES',
-              style: GoogleFonts.manrope(
-                color: Colors.white.withAlpha(50),
-                fontSize: Responsive.font(context, 10),
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
+          if (_recommendedExercises.isNotEmpty) ...[
+            sectionHeader('RECOMMENDED'),
+            for (int i = 0; i < _recommendedExercises.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  color: Colors.white.withAlpha(12),
+                  height: 1,
+                  thickness: 1,
+                ),
+              _buildExerciseRow(
+                context,
+                accent,
+                dim,
+                name: (_recommendedExercises[i]['name'] as String? ?? '')
+                    .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                    .trim(),
+                subtitle:
+                    (_recommendedExercises[i]['equipment'] as String?) ?? '',
+                onTap: () {
+                  widget.onExerciseSelected(_recommendedExercises[i]);
+                  context.pop();
+                },
               ),
-            ),
-          ),
+            ],
+            SizedBox(height: Responsive.height(context, 16)),
+          ],
+          sectionHeader('RECENT EXERCISES'),
           for (int i = 0; i < _recentExercises.length; i++) ...[
             if (i > 0)
               Divider(

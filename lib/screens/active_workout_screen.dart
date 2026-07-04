@@ -512,10 +512,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   void _replaceExercise(int exIndex) {
+    final primaryMuscle =
+        _exercises[exIndex]['primary_muscle'] as String? ?? '';
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             ExercisePickerScreen(
+              replacingExercisePrimaryMuscle: primaryMuscle,
               onExerciseSelected: (ex) {
                 setState(() {
                   final existingSets = _exercises[exIndex]['sets'];

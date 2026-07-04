@@ -2426,3 +2426,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 CUTOFF POINT FOR VERSION 1.2.0
 - Made current and best workout streaks load into UserData to wire up a Streaks card for Workout Streaks on the home dashboard
 - Replaced the "Resets on Monday" text for weekly workout with a timer to the actual reset time
+- Added a replacingExercisePrimaryMuscle variable so that when a user presses "replace" on an exercise it passes it to the search exercises route and also searches for recommended exercises that match that primary muscle
+- Added a fetchRecommended method that uses the search_exercises route by filtering for that primary muscle and returning the first 5
