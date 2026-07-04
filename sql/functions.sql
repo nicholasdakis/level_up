@@ -660,6 +660,9 @@ DECLARE
     v_session_volume    NUMERIC;
     v_estimated_1rm     NUMERIC;
     v_ex_order          INTEGER := 0;
+    -- existing PR values read before sets are inserted, used to mark is_personal_record
+    v_existing_pr_weight NUMERIC;
+    v_existing_pr_reps   INTEGER;
     -- XP calculation
     v_level             INTEGER;
     v_exp               INTEGER;
@@ -708,14 +711,26 @@ BEGIN
         v_last_reps     := NULL;
         v_session_volume := 0;
 
+        -- read existing PRs before inserting sets to mark is_personal_record correctly
+        SELECT pr_weight_kg, pr_reps
+        INTO v_existing_pr_weight, v_existing_pr_reps
+        FROM user_exercise_stats
+        WHERE uid = p_uid AND exercise_name = v_exercise_name;
+
         FOR v_set IN SELECT * FROM jsonb_array_elements(v_exercise->'sets') LOOP
-            INSERT INTO workout_sets (workout_exercise_id, set_number, reps, weight_kg, set_type)
+            INSERT INTO workout_sets (workout_exercise_id, set_number, reps, weight_kg, set_type, is_personal_record)
             VALUES (
                 v_ex_id,
                 (v_set->>'set_number')::INTEGER,
                 NULLIF(v_set->>'reps', '')::INTEGER,
                 NULLIF(v_set->>'weight_kg', '')::NUMERIC,
-                'working'
+                'working',
+                -- mark as PR if this set beats the stored weight or reps record
+                (
+                    (NULLIF(v_set->>'weight_kg', '')::NUMERIC IS NOT NULL AND (v_existing_pr_weight IS NULL OR NULLIF(v_set->>'weight_kg', '')::NUMERIC > v_existing_pr_weight))
+                    OR
+                    (NULLIF(v_set->>'reps', '')::INTEGER IS NOT NULL AND (v_existing_pr_reps IS NULL OR NULLIF(v_set->>'reps', '')::INTEGER > v_existing_pr_reps))
+                )
             );
 
             v_set_count := v_set_count + 1;
