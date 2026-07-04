@@ -260,10 +260,9 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
                                 .fadeIn(delay: 240.ms, duration: 300.ms)
                                 .slideY(begin: 0.1, curve: Curves.easeOut),
 
-                            SizedBox(height: Responsive.height(context, 20)),
-
                             // PR detail card
                             if (prCount > 0) ...[
+                              SizedBox(height: Responsive.height(context, 20)),
                               Text(
                                 'PERSONAL RECORDS',
                                 style: GoogleFonts.manrope(
@@ -327,8 +326,6 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
                               ),
                               SizedBox(height: Responsive.height(context, 20)),
                             ],
-
-                            SizedBox(height: Responsive.height(context, 24)),
 
                             Text(
                               'EXERCISES',

@@ -66,102 +66,105 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
         scale: 0.97 + (_pulseAnim.value * 0.03),
         child: child,
       ),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: frostedGlassCard(
-              context,
-              baseRadius: 20,
-              // lighter surface on light themes so the bar pops against the page
-              backgroundColor: isLight
-                  ? Colors.white.withAlpha(65)
-                  : Colors.white.withAlpha(25),
-              border: Border.all(
-                color: isLight
-                    ? Colors.white.withAlpha(90)
-                    : Colors.white.withAlpha(50),
-                width: Responsive.width(context, 1.5),
-              ),
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.padding(context, 14),
-                vertical: Responsive.padding(context, 7),
-              ),
-              child: Row(
-                children: [
-                  // dumbbell fades in opacity in sync with the scale pulse
-                  AnimatedBuilder(
-                    animation: _pulseAnim,
-                    builder: (context, _) => Opacity(
-                      opacity: _pulseAnim.value,
-                      child: Icon(
-                        Icons.fitness_center_rounded,
-                        color: accent,
-                        size: Responsive.scale(context, 18),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: Responsive.width(context, 10)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          (widget.session.workoutName ??
-                                      widget.session.routineName) !=
-                                  null
-                              ? '${widget.session.workoutName ?? widget.session.routineName} in progress'
-                              : 'Workout in progress',
-                          style: TextStyle(
-                            color: accent,
-                            fontSize: Responsive.font(context, 13),
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '$exerciseCount exercise${exerciseCount == 1 ? '' : 's'}',
-                          style: TextStyle(
-                            color: dim,
-                            fontSize: Responsive.font(context, 11),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    widget.elapsedLabel,
-                    style: TextStyle(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 21)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: frostedGlassCard(
+            context,
+            baseRadius: 20,
+            // lighter surface on light themes so the bar pops against the page
+            backgroundColor: isLight
+                ? Colors.white.withAlpha(65)
+                : Colors.white.withAlpha(25),
+            border: Border.all(
+              color: isLight
+                  ? Colors.white.withAlpha(90)
+                  : Colors.white.withAlpha(50),
+              width: Responsive.width(context, 1.5),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.padding(context, 14),
+              vertical: Responsive.padding(context, 7),
+            ),
+            child: Row(
+              children: [
+                // dumbbell fades in opacity in sync with the scale pulse
+                AnimatedBuilder(
+                  animation: _pulseAnim,
+                  builder: (context, _) => Opacity(
+                    opacity: _pulseAnim.value,
+                    child: Icon(
+                      Icons.fitness_center_rounded,
                       color: accent,
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w700,
+                      size: Responsive.scale(context, 18),
                     ),
                   ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  Icon(
-                    Icons.keyboard_arrow_up_rounded,
-                    color: dim,
-                    size: Responsive.scale(context, 20),
-                  ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  // collapse button shrinks the bar to CollapsedWorkoutDot
-                  GestureDetector(
-                    onTap: widget.onCollapse,
-                    child: Padding(
-                      padding: EdgeInsets.all(Responsive.scale(context, 4)),
-                      child: Icon(
-                        Icons.close_fullscreen_rounded,
-                        color: dim,
-                        size: Responsive.scale(context, 16),
+                ),
+                SizedBox(width: Responsive.width(context, 10)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        (widget.session.workoutName ??
+                                    widget.session.routineName) !=
+                                null
+                            ? '${widget.session.workoutName ?? widget.session.routineName} in progress'
+                            : 'Workout in progress',
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      Text(
+                        '$exerciseCount exercise${exerciseCount == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          color: dim,
+                          fontSize: Responsive.font(context, 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  widget.elapsedLabel,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: Responsive.font(context, 14),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 4)),
+                // collapse button shrinks the bar to CollapsedWorkoutDot
+                GestureDetector(
+                  onTap: widget.onCollapse,
+                  child: Padding(
+                    padding: EdgeInsets.all(Responsive.scale(context, 6)),
+                    child: Icon(
+                      Icons.close_fullscreen_rounded,
+                      color: dim,
+                      size: Responsive.scale(context, 22),
                     ),
                   ),
-                ],
-              ),
+                ),
+                // chevron navigates to the full workout screen
+                GestureDetector(
+                  onTap: widget.onTap,
+                  child: Padding(
+                    padding: EdgeInsets.all(Responsive.scale(context, 6)),
+                    child: Icon(
+                      Icons.keyboard_arrow_up_rounded,
+                      color: dim,
+                      size: Responsive.scale(context, 28),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

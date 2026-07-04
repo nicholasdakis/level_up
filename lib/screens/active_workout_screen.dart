@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
-import 'package:skeletonizer/skeletonizer.dart'
-    show Skeletonizer, ShimmerEffect;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -374,7 +372,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         ],
       ),
     );
-    nameCtrl.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
     if (confirmedName == null) return; // user tapped Cancel
     _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
     workoutSessionService.persist();
@@ -1065,7 +1063,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         ],
       ),
     );
-    ctrl.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) => ctrl.dispose());
     if (result != null && mounted) {
       setState(() {
         _s.workoutName = result.isEmpty ? null : result;
@@ -1118,6 +1116,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                     ),
                   ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Flexible(
                         child: Text(
@@ -1138,7 +1137,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       Icon(
                         Icons.edit_rounded,
                         color: lightenColor(appColorNotifier.value, 0.35),
-                        size: Responsive.scale(context, 11),
+                        size: Responsive.scale(context, 12),
                       ),
                     ],
                   ),
@@ -1618,14 +1617,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 final label = (prevWeight != null && prevReps != null)
                     ? '${UnitConverter.displayWeightCompact((prevWeight as num).toDouble(), imperial: isImperial)} x $prevReps'
                     : '—';
-                return Skeletonizer(
-                  enabled: _prevSetsLoading,
-                  effect: ShimmerEffect(
-                    baseColor: lightenColor(appColorNotifier.value, 0.3),
-                    highlightColor: lightenColor(appColorNotifier.value, 0.38),
-                  ),
+                return AnimatedOpacity(
+                  opacity: _prevSetsLoading ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 300),
                   child: Text(
-                    _prevSetsLoading ? '00 x 00' : label,
+                    label,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       color: onCard.withAlpha(160),

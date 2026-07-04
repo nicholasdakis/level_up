@@ -164,7 +164,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                     child: Text(
                       'Delete',
                       style: GoogleFonts.manrope(
-                        color: Colors.redAccent,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -187,14 +187,14 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                 children: [
                   Icon(
                     Icons.delete_outline,
-                    color: Colors.redAccent,
+                    color: lightenColor(appColorNotifier.value, 0.45),
                     size: Responsive.scale(context, 18),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Delete',
                     style: GoogleFonts.manrope(
-                      color: Colors.redAccent,
+                      color: lightenColor(appColorNotifier.value, 0.45),
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -748,7 +748,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                     Text(
                       errorMsg!,
                       style: GoogleFonts.manrope(
-                        color: Colors.redAccent,
+                        color: lightenColor(appColorNotifier.value, 0.45),
                         fontSize: Responsive.font(context, 12),
                       ),
                     ),
@@ -868,7 +868,9 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
         },
       ),
     );
-    nameController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => nameController.dispose(),
+    );
   }
 
   Future<void> _fetchRecentExercises() async {
@@ -1331,7 +1333,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                             ),
                             duration: const Duration(milliseconds: 1200),
                           ),
-                          child: Column(
+                          child: ListView(
+                            physics: const NeverScrollableScrollPhysics(),
                             children: List.generate(
                               8,
                               (i) => Padding(

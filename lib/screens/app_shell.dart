@@ -65,8 +65,12 @@ class _AppShellState extends State<AppShell> {
 
     final navBarBottomPad = Responsive.padding(context, 16);
     final navBarHeight = Responsive.scale(context, 72);
+    final systemBottomPad = MediaQuery.of(context).padding.bottom;
     final miniBarBottom =
-        navBarBottomPad + navBarHeight + Responsive.height(context, 20);
+        navBarBottomPad +
+        navBarHeight +
+        Responsive.height(context, 10) +
+        systemBottomPad;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
