@@ -1167,7 +1167,7 @@ class _WorkoutState extends State<Workout> {
   Widget _buildHeatmapCard(BuildContext context) {
     final c = cardColors(appColorNotifier.value);
     final accent = c.onCard;
-    const int weeks = 16;
+    const int weeks = 12;
     const int daysPerWeek = 7;
     final today = DateTime.now();
     final startDate = today.subtract(

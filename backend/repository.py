@@ -508,7 +508,7 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
-    def get_workout_heatmap(self, uid: str, weeks: int = 16) -> list[dict]:
+    def get_workout_heatmap(self, uid: str, weeks: int = 12) -> list[dict]:
         from datetime import date, timedelta
         since = (date.today() - timedelta(weeks=weeks)).isoformat()
         rows = self._supabase.table("workouts") \

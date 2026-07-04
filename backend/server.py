@@ -1251,7 +1251,7 @@ def get_recent_exercises():
 
 @app.route("/workout_heatmap", methods=["GET"])
 def get_workout_heatmap():
-    # Returns workout counts per day for the last 16 weeks for the heatmap grid
+    # Returns workout counts per day for the last 12 weeks for the heatmap grid
     uid, _, err = _parse_and_auth()
     if err:
         return err
