@@ -2392,7 +2392,15 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-02
 - Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food manually when the screen was accessed by the quick log button in the Home tab
 
-## 2026-07-04
+## 2026-07-03
+- Fixed download count on Browse Routines not persisting after navigating away by removing the workoutLogNotifier listener that was triggering a refetch and wiping the optimistic state
+- Fixed download_count being stripped from the Browse Routines API response due to a missing field in BrowseRoutineItem schema
+- Fixed /today_overview crashing when the user had no workouts logged today due to a stale "muscles" key in the no-workouts early return
+- Replaced the multi-step log_workout backend flow with a single atomic Postgres RPC that inserts the workout, exercises, and sets, updates exercise PRs and stats, awards XP scaled to level and duration, updates the workout streak, and increments achievement progress in one transaction
+- Added XP reward on workout completion: base XP is 40% of the daily reward for the user's level, plus a duration bonus of up to 30% of base XP for workouts 60 minutes or longer
+- Added workouts_logged and workout_streak achievements
+- Workout completion now updates the XP bar immediately and shows a level-up overlay if the user leveled up
+- Finish Workout screen now displays the XP earned
 - Added real-time PR detection during active workouts: a PR chip appears on the exercise header when a new weight or reps record is hit on a checked set
 - PR detection shows a snackbar on check describing the exact improvement (e.g. "Bench Press: Weight PR: 80kg -> 100kg")
 - PR badge on the Finish Workout screen now shows the type of PR (Weight PR, Reps PR, or Weight + Reps PR) per exercise
@@ -2404,13 +2412,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added skeleton shimmer to the Previous column while previous set data is loading
 - Fixed /today_overview XP fields returning null when no workout had been logged that day
 - XP is now awarded once per calendar day per user rather than on every workout log
-
-## 2026-07-03
-- Fixed download count on Browse Routines not persisting after navigating away by removing the workoutLogNotifier listener that was triggering a refetch and wiping the optimistic state
-- Fixed download_count being stripped from the Browse Routines API response due to a missing field in BrowseRoutineItem schema
-- Fixed /today_overview crashing when the user had no workouts logged today due to a stale "muscles" key in the no-workouts early return
-- Replaced the multi-step log_workout backend flow with a single atomic Postgres RPC that inserts the workout, exercises, and sets, updates exercise PRs and stats, awards XP scaled to level and duration, updates the workout streak, and increments achievement progress in one transaction
-- Added XP reward on workout completion: base XP is 40% of the daily reward for the user's level, plus a duration bonus of up to 30% of base XP for workouts 60 minutes or longer
-- Added workouts_logged and workout_streak achievements
-- Workout completion now updates the XP bar immediately and shows a level-up overlay if the user leveled up
-- Finish Workout screen now displays the XP earned
+- Overhauled the Finish Workout screen: centered header, larger title and XP text, animated XP bar showing current progress, confetti on XP earned, staggered section animations, Personal Records card with before/after values, Muscles Worked chips showing primary and secondary muscles, consistent section labels throughout
+- PR chip and snackbar now update in real time as weight or reps are edited on a checked set, and clear if the value drops back below the record
+- Previous column set 1 falls back to exercise summary stats when no per-set match exists from the previous session
+- Fixed routine-started workouts not showing muscle data on the finish screen by joining muscle groups when fetching routine template exercises
+- is_personal_record flag now stamped on workout_sets rows at log time, enabling future PR history queries by date range or exercise

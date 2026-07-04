@@ -417,6 +417,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       exercises.add({
         'exercise_id': ex['id'],
         'exercise_name': _cleanName(ex['name'] as String? ?? ''),
+        'primary_muscle': ex['primary_muscle'] as String? ?? '',
+        'secondary_muscles': ex['secondary_muscles'] as List<dynamic>? ?? [],
         'sets': checkedSets,
       });
     }
@@ -476,9 +478,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             totalSets++;
           }
         }
-        workoutSessionService.clearSession();
         if (mounted) await handleLevelUpOverlay(context, levelBefore);
         if (!mounted) return;
+        // detach session listener before clearing so the transition animation
+        // doesn't trigger a rebuild with a null session and disposed controllers
+        workoutSessionService.removeListener(_sessionListener);
+        workoutSessionService.clearSession();
         context.pushReplacement(
           '/workout/finish',
           extra: <String, dynamic>{
@@ -781,8 +786,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         for (final ps in prevSetsForExercise.values) {
           final pw = (ps['weight_kg'] as num?)?.toDouble();
           final pr = ps['reps'] as int?;
-          if (pw != null && (oldWeight == null || pw > oldWeight))
+          if (pw != null && (oldWeight == null || pw > oldWeight)) {
             oldWeight = pw;
+          }
           if (pr != null && (oldReps == null || pr > oldReps)) oldReps = pr;
         }
       }
@@ -1592,8 +1598,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
-          // per-set previous: only shows a value if the previous session had a matching set number
-          // no fallback to summary stats; if set 2 was not logged last time, show -
+          // per-set previous: exact match from the previous session by set number.
+          // set 1 falls back to exercise summary stats so first-time users see something useful.
+          // set 2+ shows - if the previous session had fewer sets.
           Expanded(
             child: Builder(
               builder: (context) {
@@ -1601,8 +1608,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   _exercises[exIndex]['name'] as String? ?? '',
                 );
                 final prevSet = _prevSets[exerciseName]?[setIndex + 1];
-                final prevWeight = prevSet?['weight_kg'];
-                final prevReps = prevSet?['reps'];
+                var prevWeight = prevSet?['weight_kg'];
+                var prevReps = prevSet?['reps'];
+                if (prevWeight == null && prevReps == null && setIndex == 0) {
+                  final stats = _exerciseStats[exerciseName];
+                  prevWeight = stats?['last_weight_kg'];
+                  prevReps = stats?['last_reps'];
+                }
                 final label = (prevWeight != null && prevReps != null)
                     ? '${UnitConverter.displayWeightCompact((prevWeight as num).toDouble(), imperial: isImperial)} x $prevReps'
                     : '—';
@@ -1680,6 +1692,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 set['reps'] = int.tryParse(v);
                 _s.reps['${exIndex}_${setIndex}_reps'] = v;
                 workoutSessionService.persist();
+                // re-evaluate PR silently if this set is already checked
+                if (checked) {
+                  final name = _cleanName(
+                    _exercises[exIndex]['name'] as String? ?? '',
+                  );
+                  final pr = _detectPR(name, exIndex, setIndex);
+                  setState(() {
+                    if (pr != null) {
+                      _prDetails[name] = pr;
+                    } else {
+                      _prDetails.remove(name);
+                    }
+                  });
+                }
               },
             ),
           ),

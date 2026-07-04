@@ -247,7 +247,6 @@ CREATE TABLE workout_templates (
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,           -- null for built-in featured routines
     name TEXT NOT NULL,
     is_public BOOLEAN DEFAULT false,                            -- true if shared publicly for others to discover and copy
-    created_by TEXT REFERENCES users(uid) ON DELETE SET NULL,  -- original creator if this was copied from another user's routine
     estimated_duration_minutes INT,                             -- optional duration hint shown on browse screen
     source_template_id UUID REFERENCES workout_templates(template_id) ON DELETE SET NULL,  -- set when copied from a browse routine, null for originals
     like_count INTEGER NOT NULL DEFAULT 0,                      -- denormalized count kept in sync by the likes trigger

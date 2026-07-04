@@ -418,6 +418,8 @@ class CopyRoutineRequest(BaseModel):
 class MyRoutineExerciseItem(BaseModel):
     exercise_name: str
     exercise_order: int
+    primary_muscle: str = ''
+    secondary_muscles: list[str] = []
 
 class MyRoutineItem(BaseModel):
     template_id: str

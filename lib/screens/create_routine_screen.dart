@@ -318,13 +318,15 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Color accent, Color dim) {
+    final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    final dimmer = lightenColor(appColorNotifier.value, 0.30);
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: Responsive.centeredHorizontalPadding(context, 20),
-        vertical: Responsive.height(context, 14),
+        horizontal: hPad,
+        vertical: Responsive.height(context, 16),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -335,15 +337,17 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                   maxLength: 40,
                   style: GoogleFonts.manrope(
                     color: accent,
-                    fontSize: Responsive.font(context, 22),
+                    fontSize: Responsive.font(context, 24),
                     fontWeight: FontWeight.w800,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: 'Routine name',
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    hintText: 'Routine Name',
                     hintStyle: GoogleFonts.manrope(
-                      color: Colors.white24,
-                      fontSize: Responsive.font(context, 22),
+                      color: accent.withAlpha(50),
+                      fontSize: Responsive.font(context, 24),
                       fontWeight: FontWeight.w800,
                     ),
                     counterText: '',
@@ -358,29 +362,33 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                   children: [
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedClock01,
-                      color: dim,
-                      size: Responsive.scale(context, 14),
+                      color: dimmer,
+                      size: Responsive.scale(context, 13),
                     ),
-                    SizedBox(width: Responsive.width(context, 6)),
-                    SizedBox(
-                      width: Responsive.width(context, 40),
+                    SizedBox(width: Responsive.width(context, 5)),
+                    IntrinsicWidth(
                       child: TextField(
                         controller: _durationController,
                         keyboardType: TextInputType.number,
+                        maxLength: 3,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         style: GoogleFonts.manrope(
-                          color: accent,
+                          color: dim,
                           fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w600,
                         ),
                         decoration: InputDecoration(
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           hintText: '0',
                           hintStyle: GoogleFonts.manrope(
-                            color: Colors.white24,
+                            color: dimmer,
                             fontSize: Responsive.font(context, 13),
                           ),
+                          counterText: '',
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -390,7 +398,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                     Text(
                       ' min',
                       style: GoogleFonts.manrope(
-                        color: dim,
+                        color: dimmer,
                         fontSize: Responsive.font(context, 13),
                       ),
                     ),
