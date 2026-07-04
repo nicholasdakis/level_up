@@ -2392,6 +2392,19 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-02
 - Added a listener to Food Logging to refresh the page on food logs to fix a stale data bug when logging a food manually when the screen was accessed by the quick log button in the Home tab
 
+## 2026-07-04
+- Added real-time PR detection during active workouts: a PR chip appears on the exercise header when a new weight or reps record is hit on a checked set
+- PR detection shows a snackbar on check describing the exact improvement (e.g. "Bench Press: Weight PR: 80kg -> 100kg")
+- PR badge on the Finish Workout screen now shows the type of PR (Weight PR, Reps PR, or Weight + Reps PR) per exercise
+- Fixed PR detection false-positives for exercises with no stored weight PR by falling back to previous session set data before treating a value as a first-ever record
+- Fixed PR detection unit mismatch in imperial mode by converting the typed value to kg before comparing against stored pr_weight_kg
+- Fixed PR chip staying visible after unchecking the set that triggered it
+- Blocked checking a set with 0 weight and 0 reps
+- Fixed the Previous column showing the same value for all sets when the previous session had fewer sets logged; unmatched set numbers now show - instead of falling back to the session summary
+- Added skeleton shimmer to the Previous column while previous set data is loading
+- Fixed /today_overview XP fields returning null when no workout had been logged that day
+- XP is now awarded once per calendar day per user rather than on every workout log
+
 ## 2026-07-03
 - Fixed download count on Browse Routines not persisting after navigating away by removing the workoutLogNotifier listener that was triggering a refetch and wiping the optimistic state
 - Fixed download_count being stripped from the Browse Routines API response due to a missing field in BrowseRoutineItem schema

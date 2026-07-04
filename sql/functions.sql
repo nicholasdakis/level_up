@@ -666,7 +666,7 @@ DECLARE
     v_daily_base        NUMERIC;
     v_base_xp           INTEGER;
     v_duration_bonus    INTEGER;
-    v_xp_gained         INTEGER;
+    v_xp_gained         INTEGER := 0;
     v_new_level         INTEGER;
     v_new_exp           INTEGER;
     -- workout streak
@@ -820,10 +820,9 @@ BEGIN
         ON CONFLICT (uid, achievement_id) DO UPDATE
         SET progress = v_new_level;
     ELSE
-        -- already awarded today: still need valid return values
+        -- already awarded XP today, just read current values for the return
         SELECT level, exp_points INTO v_new_level, v_new_exp
         FROM users WHERE uid = p_uid;
-        v_xp_gained := 0;
     END IF;
 
     RETURN jsonb_build_object(

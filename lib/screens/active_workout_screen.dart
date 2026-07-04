@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import 'package:skeletonizer/skeletonizer.dart'
+    show Skeletonizer, ShimmerEffect;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -38,6 +40,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   // per-set previous data keyed by exercise_name -> set_number -> {weight_kg, reps}
   Map<String, Map<int, Map<String, dynamic>>> _prevSets = {};
+  bool _prevSetsLoading = true;
+
+  // PR details per exercise hit this session: name -> {weightPR, repsPR, oldWeight, newWeight, oldReps, newReps}
+  final Map<String, Map<String, dynamic>> _prDetails = {};
 
   bool _reordering = false;
 
@@ -168,8 +174,15 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           .toList();
       if (exerciseNames.isNotEmpty) {
         userManager.fetchEveryPrevSet(exerciseNames).then((prevSets) {
-          if (mounted) setState(() => _prevSets = prevSets);
+          if (mounted) {
+            setState(() {
+              _prevSets = prevSets;
+              _prevSetsLoading = false;
+            });
+          }
         });
+      } else {
+        _prevSetsLoading = false;
       }
     }
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -445,8 +458,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         // update XP and level from the response so the XP bar reflects the reward immediately
         final levelBefore = currentUserData?.level ?? 1;
-        if (data['new_level'] != null)
+        if (data['new_level'] != null) {
           currentUserData?.level = data['new_level'] as int;
+        }
         if (data['new_exp'] != null) {
           currentUserData?.expPoints = data['new_exp'] as int;
           expNotifier.value = data['new_exp'] as int;
@@ -474,6 +488,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             'completed_sets': totalSets,
             'exercises': exercises,
             'xp_gained': data['xp_gained'] as int? ?? 0,
+            'pr_details': _prDetails,
           },
         );
       } else {
@@ -741,6 +756,94 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   String _cleanName(String raw) =>
       raw.replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '').trim();
 
+  // compares current weight/reps in the controllers against stored lifetime PRs.
+  // returns a detail map if either is a new PR, null if not.
+  Map<String, dynamic>? _detectPR(
+    String exerciseName,
+    int exIndex,
+    int setIndex,
+  ) {
+    final stats = _exerciseStats[exerciseName];
+    final isImperial = UnitConverter.isImperial;
+    final wRaw = double.tryParse(_ctrl(exIndex, setIndex, 'weight').text);
+    // controller value is in display units; convert to kg for comparison against stored pr_weight_kg
+    final w = wRaw == null
+        ? null
+        : (isImperial ? UnitConverter.lbsToKg(wRaw) : wRaw);
+    final r = int.tryParse(_ctrl(exIndex, setIndex, 'reps').text);
+    var oldWeight = (stats?['pr_weight_kg'] as num?)?.toDouble();
+    var oldReps = stats?['pr_reps'] as int?;
+    // pr_weight_kg/pr_reps can be null for bodyweight exercises that were never stored with weight.
+    // fall back to the best value seen in _prevSets so we don't false-positive on a "first ever" PR
+    if (oldWeight == null || oldReps == null) {
+      final prevSetsForExercise = _prevSets[exerciseName];
+      if (prevSetsForExercise != null) {
+        for (final ps in prevSetsForExercise.values) {
+          final pw = (ps['weight_kg'] as num?)?.toDouble();
+          final pr = ps['reps'] as int?;
+          if (pw != null && (oldWeight == null || pw > oldWeight))
+            oldWeight = pw;
+          if (pr != null && (oldReps == null || pr > oldReps)) oldReps = pr;
+        }
+      }
+    }
+    final isWeightPR =
+        w != null && w > 0 && (oldWeight == null || w > oldWeight);
+    final isRepsPR = r != null && r > 0 && (oldReps == null || r > oldReps);
+    if (!isWeightPR && !isRepsPR) return null;
+    return {
+      'weightPR': isWeightPR,
+      'repsPR': isRepsPR,
+      'oldWeight': oldWeight,
+      'newWeight': w,
+      'oldReps': oldReps,
+      'newReps': r,
+    };
+  }
+
+  // shows a snackbar describing what kind of PR was hit and by how much
+  void _showPRSnackbar(String exerciseName, Map<String, dynamic> pr) {
+    final isImperial = UnitConverter.isImperial;
+    final parts = <String>[];
+    if (pr['weightPR'] as bool) {
+      final oldW = pr['oldWeight'] as double?;
+      final newW = pr['newWeight'] as double;
+      final newDisplay = UnitConverter.displayWeightCompact(
+        newW,
+        imperial: isImperial,
+      );
+      final unit = isImperial ? 'lbs' : 'kg';
+      if (oldW != null) {
+        final oldDisplay = UnitConverter.displayWeightCompact(
+          oldW,
+          imperial: isImperial,
+        );
+        parts.add('Weight PR: $oldDisplay -> $newDisplay $unit');
+      } else {
+        parts.add('First weight logged: $newDisplay $unit');
+      }
+    }
+    if (pr['repsPR'] as bool) {
+      final oldR = pr['oldReps'] as int?;
+      final newR = pr['newReps'] as int;
+      if (oldR != null) {
+        parts.add('Reps PR: $oldR -> $newR');
+      } else {
+        parts.add('First reps logged: $newR');
+      }
+    }
+    if (parts.isEmpty || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$exerciseName: ${parts.join(' | ')}',
+          style: GoogleFonts.manrope(),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   // borderless bare input, no fill, no border, just the number
   InputDecoration _fieldDec(String hint) {
     final onCard = cardColors(appColorNotifier.value).onCard;
@@ -760,6 +863,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // session is cleared just before pushReplacement to finish screen;
+    // guard here so the brief rebuild during the transition doesn't crash
+    if (!workoutSessionService.isActive) return const SizedBox.shrink();
     final bool isImperial = UnitConverter.isImperial;
     final double vol = _totalVolumeKg;
     final String volDisplay = isImperial
@@ -1214,6 +1320,32 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         ),
                       ),
                     ),
+                    if (_prDetails.containsKey(name)) ...[
+                      SizedBox(width: Responsive.width(context, 8)),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 7),
+                          vertical: Responsive.height(context, 3),
+                        ),
+                        decoration: BoxDecoration(
+                          color: appColorNotifier.value.withAlpha(60),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: accent.withAlpha(120),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'PR',
+                          style: GoogleFonts.manrope(
+                            color: accent,
+                            fontSize: Responsive.font(context, 10),
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 200),
                       child: _reordering
@@ -1460,7 +1592,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
-          // per-set previous: uses _prevSets for exact set match, falls back to _exerciseStats summary
+          // per-set previous: only shows a value if the previous session had a matching set number
+          // no fallback to summary stats; if set 2 was not logged last time, show -
           Expanded(
             child: Builder(
               builder: (context) {
@@ -1468,21 +1601,24 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   _exercises[exIndex]['name'] as String? ?? '',
                 );
                 final prevSet = _prevSets[exerciseName]?[setIndex + 1];
-                final prevWeight =
-                    prevSet?['weight_kg'] ??
-                    _exerciseStats[exerciseName]?['last_weight_kg'];
-                final prevReps =
-                    prevSet?['reps'] ??
-                    _exerciseStats[exerciseName]?['last_reps'];
+                final prevWeight = prevSet?['weight_kg'];
+                final prevReps = prevSet?['reps'];
                 final label = (prevWeight != null && prevReps != null)
                     ? '${UnitConverter.displayWeightCompact((prevWeight as num).toDouble(), imperial: isImperial)} x $prevReps'
                     : '—';
-                return Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: onCard.withAlpha(160),
-                    fontSize: Responsive.font(context, 11),
+                return Skeletonizer(
+                  enabled: _prevSetsLoading,
+                  effect: ShimmerEffect(
+                    baseColor: lightenColor(appColorNotifier.value, 0.3),
+                    highlightColor: lightenColor(appColorNotifier.value, 0.38),
+                  ),
+                  child: Text(
+                    _prevSetsLoading ? '00 x 00' : label,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: onCard.withAlpha(160),
+                      fontSize: Responsive.font(context, 11),
+                    ),
                   ),
                 );
               },
@@ -1508,6 +1644,20 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 set['weight_kg'] = double.tryParse(v);
                 _s.weights['${exIndex}_${setIndex}_weight'] = v;
                 workoutSessionService.persist();
+                // re-evaluate PR silently if this set is already checked
+                if (checked) {
+                  final name = _cleanName(
+                    _exercises[exIndex]['name'] as String? ?? '',
+                  );
+                  final pr = _detectPR(name, exIndex, setIndex);
+                  setState(() {
+                    if (pr != null) {
+                      _prDetails[name] = pr;
+                    } else {
+                      _prDetails.remove(name);
+                    }
+                  });
+                }
               },
             ),
           ),
@@ -1537,8 +1687,45 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           // check button
           GestureDetector(
             onTap: () {
-              HapticFeedback.lightImpact();
               final nowChecked = !checked;
+              // block checking a set with no weight and no reps entered
+              if (nowChecked) {
+                final w =
+                    double.tryParse(_ctrl(exIndex, setIndex, 'weight').text) ??
+                    0.0;
+                final r =
+                    int.tryParse(_ctrl(exIndex, setIndex, 'reps').text) ?? 0;
+                if (w == 0 && r == 0) return;
+              }
+              HapticFeedback.lightImpact();
+              final exerciseName = _cleanName(
+                _exercises[exIndex]['name'] as String? ?? '',
+              );
+              if (nowChecked) {
+                final pr = _detectPR(exerciseName, exIndex, setIndex);
+                if (pr != null) {
+                  setState(() => _prDetails[exerciseName] = pr);
+                  _showPRSnackbar(exerciseName, pr);
+                }
+              } else {
+                // re-evaluate PR across all remaining checked sets for this exercise;
+                // if none still hold a PR, remove the badge
+                final sets = (_exercises[exIndex]['sets'] as List);
+                Map<String, dynamic>? bestPR;
+                for (int s = 0; s < sets.length; s++) {
+                  if (s == setIndex) continue; // this set is being unchecked
+                  if (!(_checked['${exIndex}_$s'] ?? false)) continue;
+                  final pr = _detectPR(exerciseName, exIndex, s);
+                  if (pr != null) bestPR = pr;
+                }
+                setState(() {
+                  if (bestPR != null) {
+                    _prDetails[exerciseName] = bestPR;
+                  } else {
+                    _prDetails.remove(exerciseName);
+                  }
+                });
+              }
               setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
               workoutSessionService.persist();
               if (nowChecked) _startRestTimer();

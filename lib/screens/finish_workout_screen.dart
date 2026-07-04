@@ -13,6 +13,8 @@ class FinishWorkoutScreen extends StatefulWidget {
   final int completedSets;
   final List<Map<String, dynamic>> exercises;
   final int xpGained;
+  // keyed by exercise_name -> {weightPR, repsPR, oldWeight, newWeight, oldReps, newReps}
+  final Map<String, Map<String, dynamic>> prDetails;
 
   const FinishWorkoutScreen({
     super.key,
@@ -22,6 +24,7 @@ class FinishWorkoutScreen extends StatefulWidget {
     required this.completedSets,
     required this.exercises,
     required this.xpGained,
+    required this.prDetails,
   });
 
   @override
@@ -175,13 +178,81 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  ex['exercise_name'] as String? ?? '',
-                                  style: GoogleFonts.manrope(
-                                    color: accent,
-                                    fontSize: Responsive.font(context, 14),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        ex['exercise_name'] as String? ?? '',
+                                        style: GoogleFonts.manrope(
+                                          color: accent,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            14,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    if (widget.prDetails.containsKey(
+                                      ex['exercise_name'] as String? ?? '',
+                                    )) ...[
+                                      SizedBox(
+                                        width: Responsive.width(context, 8),
+                                      ),
+                                      Builder(
+                                        builder: (context) {
+                                          final pr =
+                                              widget
+                                                  .prDetails[ex['exercise_name']
+                                                      as String? ??
+                                                  '']!;
+                                          final weightPR =
+                                              pr['weightPR'] as bool;
+                                          final repsPR = pr['repsPR'] as bool;
+                                          // label describes exactly what kind of PR was hit
+                                          final label = (weightPR && repsPR)
+                                              ? 'Weight + Reps PR'
+                                              : weightPR
+                                              ? 'Weight PR'
+                                              : 'Reps PR';
+                                          return Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: Responsive.width(
+                                                context,
+                                                7,
+                                              ),
+                                              vertical: Responsive.height(
+                                                context,
+                                                3,
+                                              ),
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: appColorNotifier.value
+                                                  .withAlpha(60),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: accent.withAlpha(120),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              label,
+                                              style: GoogleFonts.manrope(
+                                                color: accent,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  10,
+                                                ),
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 SizedBox(height: Responsive.height(context, 8)),
                                 for (final s in ex['sets'] as List) ...[

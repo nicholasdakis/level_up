@@ -234,6 +234,14 @@ final GoRouter appRouter = GoRouter(
                             .map((e) => Map<String, dynamic>.from(e as Map))
                             .toList(),
                         xpGained: p['xp_gained'] as int? ?? 0,
+                        prDetails:
+                            (p['pr_details'] as Map?)?.map(
+                              (k, v) => MapEntry(
+                                k as String,
+                                Map<String, dynamic>.from(v as Map),
+                              ),
+                            ) ??
+                            {},
                       ),
                     );
                   },
