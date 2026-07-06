@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../models/reminder_data.dart';
@@ -902,8 +903,33 @@ class _RemindersState extends ConsumerState<Reminders> {
                       // Reminder list or empty state
                       Builder(
                         builder: (context) {
-                          final reminders =
-                              ref.watch(remindersProvider).value ?? [];
+                          final remindersAsync = ref.watch(remindersProvider);
+                          final isLoading = remindersAsync.isLoading;
+                          final reminders = remindersAsync.value ?? [];
+
+                          if (isLoading) {
+                            return Skeletonizer(
+                              effect: ShimmerEffect(
+                                baseColor: darkenColor(appColor, 0.1),
+                                highlightColor: lightenColor(appColor, 0.2),
+                                duration: const Duration(milliseconds: 1200),
+                              ),
+                              child: Column(
+                                children: List.generate(
+                                  3,
+                                  (_) => _buildReminderCard(
+                                    ReminderData(
+                                      id: 'placeholder',
+                                      message: 'Loading reminder message here',
+                                      scheduledAt: DateTime.now(),
+                                      notificationId: 0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
                           return reminders.isEmpty
                               ? Padding(
                                   padding: EdgeInsets.symmetric(

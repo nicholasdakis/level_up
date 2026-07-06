@@ -7,19 +7,22 @@ import '../services/user_data_manager.dart';
 class RemindersNotifier extends AsyncNotifier<List<ReminderData>> {
   @override
   Future<List<ReminderData>> build() async {
-    fetchReminders();
-    return [];
+    return await _getReminders();
+  }
+
+  Future<List<ReminderData>> _getReminders() async {
+    final response = await authenticatedGet('reminders');
+    if (response.statusCode != 200) {
+      throw Exception('getReminders failed: ${response.body}');
+    }
+    final List data = jsonDecode(response.body)['reminders'];
+    return data.map((r) => ReminderData.fromJson(r)).toList();
   }
 
   // fetches all reminders from the server and replaces local state
   Future<void> fetchReminders() async {
     try {
-      final response = await authenticatedGet('reminders');
-      if (response.statusCode != 200) {
-        throw Exception('getReminders failed: ${response.body}');
-      }
-      final List data = jsonDecode(response.body)['reminders'];
-      state = AsyncData(data.map((r) => ReminderData.fromJson(r)).toList());
+      state = AsyncData(await _getReminders());
     } catch (e) {
       if (kDebugMode) debugPrint('Failed to fetch reminders: $e');
     }

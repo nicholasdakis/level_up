@@ -2443,3 +2443,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-06
 - Continued Riverpod migration
 - Created a reminders provider to become the pure source of truth of all reminder data. This also required removing the reminders list from being loaded into UserData so that there are not conflicting sources of truth
+- Added a skeletonizer to the Reminders screen
