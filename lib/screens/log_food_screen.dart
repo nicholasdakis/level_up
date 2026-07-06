@@ -412,11 +412,10 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     };
     mealMap[widget.meal]!.add(newFood);
 
-    try {
-      await ref.read(foodLogsProvider.notifier).upsertForDate(dateKey, mealMap);
-    } catch (e) {
-      if (kDebugMode) debugPrint("Error saving food data: $e");
-    }
+    final success = await ref
+        .read(foodLogsProvider.notifier)
+        .upsertForDate(dateKey, mealMap);
+    if (!success && kDebugMode) debugPrint("Error saving food data");
 
     _loadRecentFoods();
 
@@ -442,7 +441,21 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
 
     widget.onFoodLogged();
-    if (mounted) context.pop();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? "Food logged successfully."
+                : (isConnected
+                      ? "Error saving food."
+                      : "No connection. Please try again when online."),
+          ),
+          duration: snackBarDuration,
+        ),
+      );
+      context.pop();
+    }
   }
 
   Future<void> _showManualEntrySheet() async {

@@ -31,8 +31,8 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
-  // upserts food items for a given date and patches local state with the backend response
-  Future<void> upsertForDate(
+  // upserts food items for a given date and patches local state with the backend response; returns false on failure
+  Future<bool> upsertForDate(
     String date,
     Map<String, List<FoodLog>> mealMap,
   ) async {
@@ -43,30 +43,28 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
       }
     }
 
-    final response = await authenticatedPost(
-      'upsert_food_log_v2',
-      body: {'date': date, 'items': items},
-      timeout: const Duration(seconds: 10),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-        'upsert_food_log_v2 failed: ${response.statusCode} ${response.body}',
+    try {
+      final response = await authenticatedPost(
+        'upsert_food_log_v2',
+        body: {'date': date, 'items': items},
+        timeout: const Duration(seconds: 10),
       );
+
+      if (response.statusCode != 200) return false;
+
+      final responseData = jsonDecode(response.body);
+      final returnedItems = (responseData['items'] as List<dynamic>? ?? [])
+          .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+
+      final current = List<FoodLog>.from(state.value ?? []);
+      current.removeWhere((f) => f.date == date);
+      current.addAll(returnedItems);
+      state = AsyncData(current);
+      return true;
+    } catch (_) {
+      return false;
     }
-
-    final responseData = jsonDecode(response.body);
-    final returnedItems = (responseData['items'] as List<dynamic>? ?? [])
-        .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-
-    final current = List<FoodLog>.from(state.value ?? []);
-
-    // remove all existing entries for this date then add the returned ones
-    current.removeWhere((f) => f.date == date);
-    current.addAll(returnedItems);
-
-    state = AsyncData(current);
   }
 
   // removes a single entry from local state; the backend deletion is handled by upsertForDate

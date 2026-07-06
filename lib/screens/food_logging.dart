@@ -290,7 +290,22 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       'dinner': dinnerFoods.map(FoodLog.fromJson).toList(),
       'snacks': snacksFoods.map(FoodLog.fromJson).toList(),
     };
-    await ref.read(foodLogsProvider.notifier).upsertForDate(dateKey, mealMap);
+    final success = await ref
+        .read(foodLogsProvider.notifier)
+        .upsertForDate(dateKey, mealMap);
+    if (!mounted) return;
+    final msg = success
+        ? (addOrDelete == "delete"
+              ? "Food deleted successfully."
+              : addOrDelete == "edit"
+              ? "Food edited successfully."
+              : "Food logged successfully.")
+        : (isConnected
+              ? "Error updating food data."
+              : "No connection. Please try again when online.");
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), duration: snackBarDuration));
   }
 
   String _formatLoggedAt(String loggedAt) {
