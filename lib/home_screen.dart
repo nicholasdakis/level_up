@@ -227,7 +227,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (!mounted) return;
 
           // Steps 1-4: unified wizard (value pitch, goals, calorie setup, activation)
-          final choice = await showOnboardingWizard(context, appColor);
+          final choice = await showOnboardingWizard(context, appColor, ref);
           if (!mounted) return;
 
           FirebaseAnalytics.instance.logEvent(
@@ -1166,7 +1166,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     child: ListenableBuilder(
                                       listenable: userDataNotifier,
                                       builder: (context, _) =>
-                                          buildReferralsCard(context, appColor, ref),
+                                          buildReferralsCard(
+                                            context,
+                                            appColor,
+                                            ref,
+                                          ),
                                     ),
                                   ),
                                 ],

@@ -9,7 +9,10 @@ import 'package:flutter/services.dart'
         TextEditingValue;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/globals.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
@@ -17,6 +20,7 @@ import '/utility/tdee_calculator.dart';
 Future<String?> showOnboardingWizard(
   BuildContext context,
   Color appColor,
+  WidgetRef ref,
 ) async {
   // Step 2 state
   final weightGoals = [
@@ -89,7 +93,9 @@ Future<String?> showOnboardingWizard(
         // Step 3 derived
         // selectedGoal takes priority so back-navigation reflects the current pick
         final goalType =
-            selectedGoal ?? currentUserData?.weightGoalType ?? 'maintain';
+            selectedGoal ??
+            ref.read(userDataProvider).value?.weightGoalType ??
+            'maintain';
         final age = int.tryParse(ageController.text.trim());
         double? heightCm;
         if (isMetricCalorie) {
@@ -103,7 +109,10 @@ Future<String?> showOnboardingWizard(
         final today = DateTime.now();
         final dateKey =
             '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-        currentWeightKg = currentUserData?.weightByDate[dateKey];
+        currentWeightKg = ref
+            .read(userDataProvider)
+            .value
+            ?.weightByDate[dateKey];
         // also read from what was just typed on step 2
         if (currentWeightKg == null) {
           final raw = double.tryParse(currentWeightController.text.trim());
@@ -142,58 +151,36 @@ Future<String?> showOnboardingWizard(
 
         // all writes happen once, right before the dialog closes
         void commitAll() {
-          if (selectedGoal != null) {
-            currentUserData?.weightGoalType = selectedGoal;
-            userManager.updateWeightGoal(weightGoalType: selectedGoal);
-          }
-          if (selectedUnits != (currentUserData?.units ?? 'metric')) {
-            currentUserData?.units = selectedUnits;
-            userManager.updateUnits(
-              selectedUnits,
-              context,
-              showFeedback: false,
-            );
-          }
           final currentWeightRaw = double.tryParse(
             currentWeightController.text.trim(),
           );
-          if (currentWeightRaw != null && currentWeightRaw > 0) {
-            final kg = isMetricGoal
-                ? currentWeightRaw
-                : currentWeightRaw * 0.453592;
-            currentUserData?.weightByDate[dateKey] = kg;
-            userManager.updateWeightLog(dateKey, kg);
-          }
-          final showTarget = selectedGoal == 'lose' || selectedGoal == 'gain';
-          if (showTarget) {
-            final targetWeightRaw = double.tryParse(
-              targetWeightController.text.trim(),
-            );
-            if (targetWeightRaw != null && targetWeightRaw > 0) {
-              final kg = isMetricGoal
-                  ? targetWeightRaw
-                  : targetWeightRaw * 0.453592;
-              currentUserData?.weightKgGoal = kg;
-              userManager.updateWeightGoal(weightKgGoal: kg);
-            }
-          }
-          if (liveCalories != null && liveCalories > 0) {
-            currentUserData?.caloriesGoal = liveCalories;
-            userManager.updateGoals(caloriesGoal: liveCalories);
-          }
-          if (pendingProtein != null &&
-              pendingCarbs != null &&
-              pendingFat != null) {
-            currentUserData?.proteinGoal = pendingProtein;
-            currentUserData?.carbsGoal = pendingCarbs;
-            currentUserData?.fatGoal = pendingFat;
-            userManager.updateGoals(
-              proteinGoal: pendingProtein,
-              carbsGoal: pendingCarbs,
-              fatGoal: pendingFat,
-            );
-          }
-          userDataNotifier.notifyListeners();
+          final currentWeightKg =
+              currentWeightRaw != null && currentWeightRaw > 0
+              ? (isMetricGoal ? currentWeightRaw : currentWeightRaw * 0.453592)
+              : null;
+          final targetWeightRaw =
+              (selectedGoal == 'lose' || selectedGoal == 'gain')
+              ? double.tryParse(targetWeightController.text.trim())
+              : null;
+          final weightKgGoal = targetWeightRaw != null && targetWeightRaw > 0
+              ? (isMetricGoal ? targetWeightRaw : targetWeightRaw * 0.453592)
+              : null;
+          ref
+              .read(userDataProvider.notifier)
+              .commitOnboarding(
+                context: context,
+                currentUnits:
+                    ref.read(userDataProvider).value?.units ?? 'metric',
+                weightGoalType: selectedGoal,
+                selectedUnits: selectedUnits,
+                currentWeightKg: currentWeightKg,
+                weightKgGoal: weightKgGoal,
+                caloriesGoal: liveCalories,
+                proteinGoal: pendingProtein,
+                carbsGoal: pendingCarbs,
+                fatGoal: pendingFat,
+                dateKey: dateKey,
+              );
         }
 
         Widget buildDots() {
@@ -1568,8 +1555,9 @@ Future<String?> showOnboardingWizard(
                       showFeedback: false,
                     );
                     if (ok) {
-                      currentUserData?.username = name;
-                      userDataNotifier.notifyListeners();
+                      ref
+                          .read(userDataProvider.notifier)
+                          .patch((u) => u.copyWith(username: name));
                       if (ctx.mounted) setState(() => currentStep = 5);
                     } else {
                       setState(() => usernameError = 'Username already taken');
@@ -1616,8 +1604,9 @@ Future<String?> showOnboardingWizard(
         }
 
         Widget buildStep6() {
-          final name = currentUserData?.username;
-          final hasName = name != null && name != currentUserData?.uid;
+          final name = ref.read(userDataProvider).value?.username;
+          final hasName =
+              name != null && name != ref.read(userDataProvider).value?.uid;
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1649,7 +1638,7 @@ Future<String?> showOnboardingWizard(
                 dim: dim,
                 onTap: () {
                   commitAll();
-                  finishOnboarding(context);
+                  finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('workout');
                 },
               ),
@@ -1663,7 +1652,7 @@ Future<String?> showOnboardingWizard(
                 dim: dim,
                 onTap: () {
                   commitAll();
-                  finishOnboarding(context);
+                  finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('food');
                 },
               ),
@@ -1677,7 +1666,7 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
-                  finishOnboarding(context);
+                  finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('reward');
                 },
               ),
@@ -1690,7 +1679,7 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
-                  finishOnboarding(context);
+                  finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('settings');
                 },
               ),
@@ -1941,11 +1930,13 @@ Widget _weightField(
 }
 
 // Called at the end of onboarding to assign a random username and mark the user as no longer new
-void finishOnboarding(BuildContext context) {
-  if (currentUserData?.username == currentUserData?.uid) {
+void finishOnboarding(BuildContext context, WidgetRef ref) {
+  final userData = ref.read(userDataProvider).value;
+  if (userData?.username == userData?.uid) {
     final name = generateRandomUsername();
-    currentUserData?.username = name;
-    userDataNotifier.notifyListeners();
+    ref
+        .read(userDataProvider.notifier)
+        .patch((u) => u.copyWith(username: name));
     userManager
         .updateUsername(name, context, showFeedback: false)
         .catchError((_) => false);
