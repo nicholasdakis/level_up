@@ -14,11 +14,10 @@ import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
 // Unified onboarding wizard: steps 1-3 in a single dialog with dots + back nav
-Future<String?> showOnboardingWizard(BuildContext context) async {
-  // Step 1 state is a static list
-  // appColor is captured once here so nested builders share the same value
-  Color appColor = currentUserData?.appColor ?? appColorNotifier.value;
-
+Future<String?> showOnboardingWizard(
+  BuildContext context,
+  Color appColor,
+) async {
   // Step 2 state
   final weightGoals = [
     (label: 'Lose Weight', value: 'lose'),

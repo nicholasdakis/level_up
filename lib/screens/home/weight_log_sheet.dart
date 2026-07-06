@@ -8,8 +8,7 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 
-Future<void> showWeightLogSheet(BuildContext context) async {
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+Future<void> showWeightLogSheet(BuildContext context, Color appColor) async {
   final isImperial = UnitConverter.isImperial;
   DateTime selectedDate = DateTime.now();
   final controller = TextEditingController();

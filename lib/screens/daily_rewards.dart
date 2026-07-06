@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:confetti/confetti.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +57,7 @@ class DailyRewardDialog {
   Future<void> showDailyRewardDialog(
     BuildContext context,
     ConfettiController controller,
+    Color appColor,
   ) async {
     if (isGuest) {
       Guest.block(context);
@@ -95,10 +96,9 @@ class DailyRewardDialog {
 
     if (!context.mounted) return;
 
-    final color = currentUserData?.appColor ?? appColorNotifier.value;
-    final accent = lightenColor(color, 0.45);
-    final dim = lightenColor(color, 0.35);
-    final faint = lightenColor(color, 0.3);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+    final faint = lightenColor(appColor, 0.3);
     const milestones = [(3, 1.1), (10, 1.25), (30, 1.4), (50, 1.5)];
     int? nextDays;
     double? nextMult;
@@ -246,7 +246,9 @@ class DailyRewardDialog {
     );
 
     expNotifier.value = currentUserData!.expPoints;
-    if (context.mounted) await handleLevelUpOverlay(context, levelBefore);
+    if (context.mounted) {
+      await handleLevelUpOverlay(context, levelBefore, appColor);
+    }
 
     // Set a reminder 23 hours from now
     if (currentUserData!.notificationsEnabled) {

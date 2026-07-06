@@ -89,9 +89,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  Future<void> _showWaterLogSheet() => showWaterLogSheet(context);
+  Future<void> _showWaterLogSheet() => showWaterLogSheet(context, appColor);
 
-  Future<void> _showWeightLogSheet() => showWeightLogSheet(context);
+  Future<void> _showWeightLogSheet() => showWeightLogSheet(context, appColor);
 
   String _formatNumber(int n) {
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
@@ -184,6 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     await DailyRewardDialog().showDailyRewardDialog(
       context,
       dailyRewardConfettiController,
+      appColor,
     );
     if (mounted) {
       _updateCountdown();
@@ -230,7 +231,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (!mounted) return;
 
           // Steps 1-4: unified wizard (value pitch, goals, calorie setup, activation)
-          final choice = await showOnboardingWizard(context);
+          final choice = await showOnboardingWizard(context, appColor);
           if (!mounted) return;
 
           FirebaseAnalytics.instance.logEvent(
@@ -264,7 +265,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
 
       if (!isGuest && mounted) {
-        await checkPendingReferralReward(context, setState);
+        await checkPendingReferralReward(context, setState, appColor);
       }
     }
   }
@@ -1068,6 +1069,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           key: _scaffoldKey,
           drawer: buildSettingsDrawer(
             context,
+            appColor,
             scaffoldKey: _scaffoldKey,
             onProfileImageUpdated: () {
               if (!mounted) return;
@@ -1168,7 +1170,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     child: ListenableBuilder(
                                       listenable: userDataNotifier,
                                       builder: (context, _) =>
-                                          buildReferralsCard(context),
+                                          buildReferralsCard(context, appColor),
                                     ),
                                   ),
                                 ],

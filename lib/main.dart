@@ -120,7 +120,13 @@ class _MyAppState extends ConsumerState<MyApp> {
           // postFrameCallback avoids showing the overlay mid-build
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             final c = appRouter.routerDelegate.navigatorKey.currentContext;
-            if (c != null && c.mounted) await showLevelUpOverlay(c, newLevel);
+            if (c != null && c.mounted) {
+              await showLevelUpOverlay(
+                c,
+                newLevel,
+                ref.read(userDataProvider).value?.appColor ?? defaultAppColor,
+              );
+            }
           });
         }
       } else {

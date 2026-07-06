@@ -116,22 +116,25 @@ String _fmt(int n) {
 
 // Call after any XP grant with the level before the grant
 // Shows the overlay only if the user actually leveled up
-Future<void> handleLevelUpOverlay(BuildContext context, int levelBefore) async {
+Future<void> handleLevelUpOverlay(
+  BuildContext context,
+  int levelBefore,
+  Color appColor,
+) async {
   final newLevel = currentUserData?.level ?? 0;
-  if (newLevel > levelBefore) await showLevelUpOverlay(context, newLevel);
+  if (newLevel > levelBefore)
+    await showLevelUpOverlay(context, newLevel, appColor);
 }
 
-Future<void> showLevelUpOverlay(BuildContext context, int newLevel) async {
+Future<void> showLevelUpOverlay(
+  BuildContext context,
+  int newLevel,
+  Color appColor,
+) async {
   if (isGuest) return;
   final controller = ConfettiController(duration: const Duration(seconds: 4));
-  final accent = lightenColor(
-    currentUserData?.appColor ?? appColorNotifier.value,
-    0.45,
-  );
-  final dim = lightenColor(
-    currentUserData?.appColor ?? appColorNotifier.value,
-    0.35,
-  );
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
   final xpNeeded = userManager.experienceNeeded ?? 0;
   final currentXp = currentUserData?.expPoints ?? 0;
   // xpProgress is how far into the new level the user already is, used to fill the bar

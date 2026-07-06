@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -420,7 +420,7 @@ class _ExploreState extends ConsumerState<Explore> {
           currentUserData!.expPoints = result['new_exp'];
           expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
-        if (mounted) await handleLevelUpOverlay(context, levelBefore);
+        if (mounted) await handleLevelUpOverlay(context, levelBefore, appColor);
 
         setState(() {
           xpAwarded = result['xp_gained']; // show XP in the button briefly

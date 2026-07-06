@@ -15,6 +15,7 @@ import 'level_up_overlay.dart';
 Future<void> checkPendingReferralReward(
   BuildContext context,
   StateSetter setState,
+  Color appColor,
 ) async {
   final res = await authenticatedGet('pending_referral_reward');
   if (!context.mounted) return;
@@ -87,7 +88,7 @@ Future<void> checkPendingReferralReward(
                         currentUserData!.referralCount + 1;
                   }
                   if (context.mounted) {
-                    await handleLevelUpOverlay(context, prevLevel);
+                    await handleLevelUpOverlay(context, prevLevel, appColor);
                   }
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -108,11 +109,10 @@ Future<void> checkPendingReferralReward(
 }
 
 // Referrals card widget for the home dashboard
-Widget buildReferralsCard(BuildContext context) {
+Widget buildReferralsCard(BuildContext context, Color appColor) {
   // Square action tile matching the Watch an Ad card layout
   return Builder(
     builder: (context) {
-      final appColor = currentUserData?.appColor ?? appColorNotifier.value;
       final base = appColor;
       final radius = BorderRadius.circular(Responsive.scale(context, 16));
       final referralCount = currentUserData?.referralCount ?? 0;
@@ -342,10 +342,7 @@ Widget buildReferralsCard(BuildContext context) {
                             suffixIcon: IconButton(
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowRight01,
-                                color: lightenColor(
-                                  appColor,
-                                  0.45,
-                                ),
+                                color: lightenColor(appColor, 0.45),
                                 size: Responsive.scale(context, 20),
                               ),
                               onPressed: () async {
@@ -378,6 +375,7 @@ Widget buildReferralsCard(BuildContext context) {
                                     await handleLevelUpOverlay(
                                       context,
                                       prevLevel2,
+                                      appColor,
                                     );
                                   }
                                   Navigator.of(

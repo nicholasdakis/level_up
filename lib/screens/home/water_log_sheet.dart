@@ -7,8 +7,7 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 
-Future<void> showWaterLogSheet(BuildContext context) async {
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+Future<void> showWaterLogSheet(BuildContext context, Color appColor) async {
   final isImperial = UnitConverter.isImperial;
   DateTime selectedDate = DateTime.now();
   final customController = TextEditingController();

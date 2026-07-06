@@ -13,12 +13,12 @@ import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
 
 Widget buildSettingsDrawer(
-  BuildContext context, {
+  BuildContext context,
+  Color appColor, {
   VoidCallback? onProfileImageUpdated,
   GlobalKey<ScaffoldState>?
   scaffoldKey, // for opening the settings drawer outside its build method
 }) {
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   final openedAsPwa = kIsWeb
       ? isPwa()
       : false; // fallback to prevent error if called before JS is loaded
