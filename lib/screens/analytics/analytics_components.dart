@@ -291,7 +291,7 @@ Widget buildRangeChips(
   int selectedIndex,
   void Function(int) onTap,
 ) {
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final appColor = currentUserData?.appColor ?? defaultAppColor;
   final accent = lightenColor(appColor, 0.45);
   Widget chip(int i) => GestureDetector(
     onTap: () => onTap(i),

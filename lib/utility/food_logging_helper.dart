@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
-import '../services/user_data_manager.dart' show trackTrivialAchievement;
+import '../services/user_data_manager.dart'
+    show trackTrivialAchievement, defaultAppColor;
 import 'responsive.dart';
 
 class FoodLoggingHelper {
@@ -183,10 +184,7 @@ Widget calcSuffixIcon(
         icon: HugeIcons.strokeRoundedCalculator,
         color:
             color ??
-            lightenColor(
-              currentUserData?.appColor ?? appColorNotifier.value,
-              0.35,
-            ),
+            lightenColor(currentUserData?.appColor ?? defaultAppColor, 0.35),
         size: Responsive.scale(context, 18),
       ),
     ),
@@ -198,7 +196,7 @@ Future<String?> showCalcDialog(
   BuildContext context, {
   String initialValue = '',
 }) {
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final appColor = currentUserData?.appColor ?? defaultAppColor;
   trackTrivialAchievement(
     'serving_calculator',
   ); // fire once each time the calc is opened
@@ -510,7 +508,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
   final baseAmt = serving['amount'] as double;
   final unit = serving['unit'] as String;
   final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final appColor = currentUserData?.appColor ?? defaultAppColor;
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
 

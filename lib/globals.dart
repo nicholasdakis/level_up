@@ -45,9 +45,6 @@ bool suppressAuthRedirect = false;
 // Notifies go_router to re-run redirect when guest state changes
 ValueNotifier<bool> guestNotifier = ValueNotifier<bool>(false);
 
-// for updating HomeScreen when app color is updated
-ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
-
 // incremented each time a workout is saved so the workout tab can refresh recent sessions
 ValueNotifier<int> workoutLogNotifier = ValueNotifier<int>(0);
 
@@ -71,6 +68,7 @@ final UserDataNotifier userDataNotifier = UserDataNotifier(null);
 
 // Getter so all existing reads of currentUserData require zero changes
 UserData? get currentUserData => userDataNotifier.value;
+Color get appColor => currentUserData?.appColor ?? defaultAppColor;
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
 
@@ -105,7 +103,7 @@ Widget socialLink({
   VoidCallback? onTap,
 }) {
   return InkWell(
-    splashColor: appColorNotifier.value.withAlpha(60),
+    splashColor: appColor.withAlpha(60),
     borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
     onTap:
         onTap ??
@@ -116,8 +114,8 @@ Widget socialLink({
     child: frostedGlassCard(
       context,
       baseRadius: 14,
-      backgroundColor: appColorNotifier.value.computeLuminance() < 0.2
-          ? darkenColor(appColorNotifier.value, 0.08).withAlpha(60)
+      backgroundColor: appColor.computeLuminance() < 0.2
+          ? darkenColor(appColor, 0.08).withAlpha(60)
           : Colors.white.withAlpha(40),
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
@@ -140,14 +138,14 @@ Widget socialLink({
               width: Responsive.width(context, 36),
               height: Responsive.width(context, 36),
               decoration: BoxDecoration(
-                color: cardColors(appColorNotifier.value).iconBox,
+                color: cardColors(appColor).iconBox,
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 8),
                 ),
               ),
               child: Icon(
                 icon,
-                color: cardColors(appColorNotifier.value).onCard,
+                color: cardColors(appColor).onCard,
                 size: Responsive.scale(context, 20),
               ),
             ),
@@ -157,14 +155,14 @@ Widget socialLink({
               label,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 18),
-                color: cardColors(appColorNotifier.value).onCard,
+                color: cardColors(appColor).onCard,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           Icon(
             Icons.chevron_right,
-            color: cardColors(appColorNotifier.value).onCard.withAlpha(160),
+            color: cardColors(appColor).onCard.withAlpha(160),
             size: Responsive.width(context, 22),
           ),
         ],
@@ -259,8 +257,8 @@ Future<DateTime?> showThemedDatePicker({
   required DateTime lastDate,
   DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
 }) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
   DateTime selected = initialDate;
 
   return showFrostedDialog<DateTime>(
@@ -643,9 +641,9 @@ Widget frostedButton(
 LinearGradient subtleTextGradient() {
   return LinearGradient(
     colors: [
-      lightenColor(appColorNotifier.value, 0.45),
-      lightenColor(appColorNotifier.value, 0.50),
-      lightenColor(appColorNotifier.value, 0.45),
+      lightenColor(appColor, 0.45),
+      lightenColor(appColor, 0.50),
+      lightenColor(appColor, 0.45),
     ],
   );
 }
@@ -971,7 +969,7 @@ class _OnboardingHintState extends State<OnboardingHint>
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
 
-    final color = appColorNotifier.value;
+    final color = appColor;
     final accentColor = lightenColor(color, 0.45);
     final radius = BorderRadius.circular(Responsive.scale(context, 20));
 
@@ -1096,7 +1094,7 @@ Widget sectionHeader(
           text,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, baseFontSize),
-            color: lightenColor(appColorNotifier.value, 0.45),
+            color: lightenColor(appColor, 0.45),
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
           ),
@@ -1120,7 +1118,7 @@ Widget frostedGlassCard(
   final cardRadius = BorderRadius.circular(
     Responsive.scale(context, baseRadius),
   );
-  final c = cardColors(appColorNotifier.value);
+  final c = cardColors(appColor);
   return DecoratedBox(
     decoration: BoxDecoration(
       borderRadius: cardRadius,
@@ -1187,7 +1185,7 @@ class DateNavigationRow extends StatelessWidget {
       'November',
       'December',
     ];
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accent = lightenColor(appColor, 0.45);
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1229,7 +1227,5 @@ class DateNavigationRow extends StatelessWidget {
 
 // Returns a flat solid background using the chosen theme color
 Gradient buildThemeGradient() {
-  return LinearGradient(
-    colors: [appColorNotifier.value, appColorNotifier.value],
-  );
+  return LinearGradient(colors: [appColor, appColor]);
 }

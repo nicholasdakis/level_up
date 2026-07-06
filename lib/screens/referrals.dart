@@ -8,7 +8,7 @@ import '../globals.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart'
-    show authenticatedGet, authenticatedPost;
+    show authenticatedGet, authenticatedPost, defaultAppColor;
 import 'level_up_overlay.dart';
 
 // Checks for a pending referral reward and shows the claim dialog if one exists
@@ -23,7 +23,7 @@ Future<void> checkPendingReferralReward(
   final data = jsonDecode(res.body) as Map<String, dynamic>;
   if (data['pending'] != true) return;
 
-  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final appColor = currentUserData?.appColor ?? defaultAppColor;
   final refereeUid = data['referee_uid'] as String;
   final refereeUsername = data['referee_username'] as String;
 

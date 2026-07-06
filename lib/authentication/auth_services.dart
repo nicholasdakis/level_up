@@ -44,7 +44,7 @@ class AuthService {
     appInitialized = false;
     appReadyNotifier.value = false;
     userDataNotifier.value = null;
-    appColorNotifier.value = defaultAppColor;
+
   }
 
   // CONTINUE WITH GOOGLE BUTTON

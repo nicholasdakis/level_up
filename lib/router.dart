@@ -504,7 +504,6 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     notifier.setUserData(currentUserData);
 
     if (currentUserData != null) {
-      appColorNotifier.value = currentUserData!.appColor;
       try {
         // Update the body background so the notch / loading screen matches the app color
         String toHex(Color c) {

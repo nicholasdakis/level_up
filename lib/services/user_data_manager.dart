@@ -183,7 +183,6 @@ class UserDataManager {
 
       if (data['app_color'] != null) {
         currentUserData?.appColor = Color(data['app_color'] as int);
-        appColorNotifier.value = currentUserData!.appColor;
       }
 
       currentUserData?.dailyClaimStreak = data['daily_streak'] ?? 0;

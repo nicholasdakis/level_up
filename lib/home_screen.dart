@@ -275,7 +275,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (!mounted) return;
       if (!userManager.lastLoadFailed &&
           ref.read(userDataProvider).value != null) {
-        appColorNotifier.value = ref.read(userDataProvider).value!.appColor;
         expNotifier.value = ref.read(userDataProvider).value!.expPoints;
         // notifyListeners won't fire if value was already true, so call initializeUser directly
         appReadyNotifier.value = true;
