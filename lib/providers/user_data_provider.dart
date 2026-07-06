@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
-import '../globals.dart' show userManager;
+import '../globals.dart' show userManager, isGuest;
 import '../services/user_data_manager.dart'
     show authenticatedPost, authenticatedGet;
 
@@ -170,6 +172,50 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       }
     } catch (_) {}
     return null;
+  }
+
+  // claims the daily reward from the backend and patches state on success
+  Future<(int, int, int, double, int)?> claimDailyReward() async {
+    if (isGuest) return null;
+    try {
+      final response = await authenticatedPost('claim_daily_reward');
+      if (response.statusCode != 200) {
+        throw Exception(
+          'claimDailyReward failed: ${response.statusCode} ${response.body}',
+        );
+      }
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
+      if (!result['claimed']) {
+        patch((u) => u.copyWith(canClaimDailyReward: false));
+        return null;
+      }
+      final newLevel = result['new_level'] as int;
+      final prevLevel = state.value?.level ?? 1;
+      if (prevLevel < 3 && newLevel >= 3) {
+        FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+      }
+      final xpGained = result['xp_gained'] as int;
+      final baseXp = (result['base_xp'] ?? xpGained) as int;
+      final streak = (result['daily_streak'] ?? 1) as int;
+      final multiplier = ((result['streak_multiplier'] ?? 1.0) as num)
+          .toDouble();
+      patch(
+        (u) => u.copyWith(
+          level: newLevel,
+          expPoints: result['new_exp'] as int,
+          canClaimDailyReward: false,
+          lastDailyClaim: DateTime.now().toUtc(),
+          dailyClaimStreak: streak,
+          dailyClaimStreakBest: streak > u.dailyClaimStreakBest
+              ? streak
+              : u.dailyClaimStreakBest,
+        ),
+      );
+      return (xpGained, baseXp, streak, multiplier, prevLevel);
+    } catch (e) {
+      if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
+      return (-1, -1, -1, -1.0, -1); // sentinel for network failure
+    }
   }
 
   // optimistically applies the color locally, rolls back if the backend call fails

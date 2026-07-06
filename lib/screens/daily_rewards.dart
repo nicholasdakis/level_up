@@ -67,11 +67,8 @@ class DailyRewardDialog {
       return;
     }
 
-    final userData = ref.read(userDataProvider).value;
-    final levelBefore = userData?.level ?? 0;
-
     // Claim the daily reward from backend first to get the actual XP awarded
-    final result = await userManager.claimDailyReward();
+    final result = await ref.read(userDataProvider.notifier).claimDailyReward();
 
     if (result == null) return; // cooldown not met
     if (result.$1 == -1) {
@@ -87,7 +84,7 @@ class DailyRewardDialog {
       return;
     }
 
-    final (xpGained, baseXp, streak, multiplier) = result;
+    final (xpGained, baseXp, streak, multiplier, levelBefore) = result;
 
     FirebaseAnalytics.instance.logEvent(
       name: 'daily_reward_claimed',

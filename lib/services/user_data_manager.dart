@@ -455,60 +455,6 @@ class UserDataManager {
     }
   }
 
-  // Updates the user's XP by sending a verified event to the backend
-  // The backend validates the 23-hour cooldown and writes XP/level atomically in a transaction
-  // This prevents double-claiming even if the user taps the button twice rapidly
-  Future<(int, int, int, double)?> claimDailyReward() async {
-    if (isGuest) return null;
-
-    try {
-      // Call backend to claim daily reward
-      final response = await authenticatedPost('claim_daily_reward');
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'claimDailyReward failed: ${response.statusCode} ${response.body}',
-        );
-      }
-
-      final result = jsonDecode(response.body) as Map<String, dynamic>;
-
-      // If reward wasn't claimed (cooldown not met), lock the button locally
-      if (!result['claimed']) {
-        currentUserData!.canClaimDailyReward = false;
-        return null; // Not enough time has passed
-      }
-
-      // Update local state from the backend response
-      final prevLevel = currentUserData!.level;
-      currentUserData!.level = result['new_level'];
-      currentUserData!.expPoints = result['new_exp'];
-      if (prevLevel < 3 && currentUserData!.level >= 3) {
-        FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
-      }
-      currentUserData!.canClaimDailyReward = false;
-      currentUserData!.lastDailyClaim = DateTime.now().toUtc();
-
-      final xpGained = result['xp_gained'] as int;
-      final baseXp = (result['base_xp'] ?? xpGained) as int;
-      final streak = (result['daily_streak'] ?? 1) as int;
-      final multiplier = ((result['streak_multiplier'] ?? 1.0) as num)
-          .toDouble();
-
-      // Keep local streak in sync so home screen reflects the new value immediately
-      currentUserData!.dailyClaimStreak = streak;
-      if (streak > (currentUserData!.dailyClaimStreakBest)) {
-        currentUserData!.dailyClaimStreakBest = streak;
-      }
-      userDataNotifier.notifyListeners();
-
-      return (xpGained, baseXp, streak, multiplier);
-    } catch (e) {
-      if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
-      return (-1, -1, -1, -1.0); // sentinel for network failure
-    }
-  }
-
   // Method for storing the user's updated username, verified and checked for uniqueness by the backend
   Future<bool> updateUsername(
     // returns a bool to handle whether the dialog box should close or open
