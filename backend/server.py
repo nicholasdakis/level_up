@@ -47,6 +47,8 @@ from backend.schemas import (
     SetReminderRequest,
     ReminderItem,
     GetRemindersResponse,
+    FoodLogItem,
+    GetFoodLogsV2Response,
     DeleteReminderRequest,
     GetAchievementsResponse,
     AchievementProgressEntry,
@@ -807,6 +809,17 @@ def get_reminders():
     result = progression_service.get_reminders(uid=uid)
     reminders = [ReminderItem(**r) for r in result]
     response = GetRemindersResponse(reminders=reminders)
+    return jsonify(response.model_dump()), 200
+
+# TODO: once old app versions are gone, remove food_logs_v2 from the /user_data response and rely solely on this endpoint
+@app.route("/food_logs_v2", methods=["GET"])
+def get_food_logs_v2():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+
+    logs = progression_service.get_food_logs_v2(uid=uid)
+    response = GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs])
     return jsonify(response.model_dump()), 200
 
 @app.route("/delete_reminder", methods=["POST"])

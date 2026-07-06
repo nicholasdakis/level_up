@@ -365,6 +365,9 @@ class ProgressionService: # Service class to handle all progression-related busi
         # kept for users on older app versions, remove after forced update
         return self._repo.get_food_logs(uid)
 
+    def get_food_logs_v2(self, uid: str):
+        return self._repo.get_food_logs_v2(uid)
+
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._repo.upsert_water_log(uid, date, entries_ml)
 

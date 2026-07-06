@@ -138,6 +138,26 @@ class ReminderItem(BaseModel):
     scheduled_at: str
     notification_id: int
 
+class FoodLogItem(BaseModel):
+    id: str | None = None
+    date: str
+    meal: str
+    food_name: str
+    brand_name: str | None = None
+    food_description: str | None = None
+    calories: float | None = None
+    protein: float | None = None
+    carbs: float | None = None
+    fat: float | None = None
+    fiber: float | None = None
+    sugar: float | None = None
+    sodium: float | None = None
+    serving_size: str | None = None
+    logged_at: str | None = None
+
+class GetFoodLogsV2Response(BaseModel):
+    food_logs_v2: list[FoodLogItem] = []
+
 class AchievementProgressEntry(BaseModel):
     # A single achievement's progress for the user
     achievement_id: str
