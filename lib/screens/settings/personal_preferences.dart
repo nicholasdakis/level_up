@@ -249,9 +249,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         );
       }
     }
-    // TODO: migrate mutation to notifier
-    currentUserData!.appColor = color;
-    unawaited(userManager.updateAppColor(color, context));
+    unawaited(ref.read(userDataProvider.notifier).setAppColor(color, context));
 
     _animFromColor = appColor; // snapshot start color
     _colorAnimController.forward(from: 0); // animate setState for background
