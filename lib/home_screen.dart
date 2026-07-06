@@ -1065,6 +1065,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           drawer: buildSettingsDrawer(
             context,
             appColor,
+            ref,
             scaffoldKey: _scaffoldKey,
             onProfileImageUpdated: () {
               if (!mounted) return;

@@ -5,16 +5,20 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
+import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
-import '../services/user_data_manager.dart' show trackTrivialAchievement;
+import '../services/user_data_manager.dart'
+    show defaultAppColor, trackTrivialAchievement;
 import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
 
 Widget buildSettingsDrawer(
   BuildContext context,
-  Color appColor, {
+  Color appColor,
+  WidgetRef ref, {
   VoidCallback? onProfileImageUpdated,
   GlobalKey<ScaffoldState>?
   scaffoldKey, // for opening the settings drawer outside its build method
@@ -29,11 +33,11 @@ Widget buildSettingsDrawer(
       ? hasInstallPrompt()
       : false; // true if install prompt was captured (app not yet installed)
 
+  final userData = ref.read(userDataProvider).value;
   final username =
-      (currentUserData?.username == null ||
-          currentUserData?.username == currentUserData?.uid)
+      (userData?.username == null || userData?.username == userData?.uid)
       ? "Unnamed"
-      : currentUserData!.username!;
+      : userData!.username!;
 
   // Consistent tile for items that show a dialog or external action instead of navigating
   final accentColor = lightenColor(appColor, 0.45);
@@ -154,7 +158,7 @@ Widget buildSettingsDrawer(
                               ),
                               SizedBox(height: Responsive.height(context, 2)),
                               Text(
-                                "Level ${currentUserData?.level ?? 1}",
+                                "Level ${userData?.level ?? 1}",
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 12),
                                   color: accentColor,
