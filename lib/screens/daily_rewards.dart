@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../guest.dart';
+import '../providers/user_data_provider.dart';
 import '../services/user_data_manager.dart';
 import 'level_up_overlay.dart';
 import '../utility/responsive.dart';
@@ -58,13 +60,15 @@ class DailyRewardDialog {
     BuildContext context,
     ConfettiController controller,
     Color appColor,
+    WidgetRef ref,
   ) async {
     if (isGuest) {
       Guest.block(context);
       return;
     }
 
-    final levelBefore = currentUserData?.level ?? 0;
+    final userData = ref.read(userDataProvider).value;
+    final levelBefore = userData?.level ?? 0;
 
     // Claim the daily reward from backend first to get the actual XP awarded
     final result = await userManager.claimDailyReward();
@@ -245,13 +249,14 @@ class DailyRewardDialog {
       ),
     );
 
-    expNotifier.value = currentUserData!.expPoints;
+    final updatedData = ref.read(userDataProvider).value;
+    expNotifier.value = updatedData?.expPoints ?? 0;
     if (context.mounted) {
-      await handleLevelUpOverlay(context, levelBefore, appColor);
+      await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }
 
     // Set a reminder 23 hours from now
-    if (currentUserData!.notificationsEnabled) {
+    if (updatedData?.notificationsEnabled ?? false) {
       await setDailyRewardNotification();
     }
     // Show the confetti celebration

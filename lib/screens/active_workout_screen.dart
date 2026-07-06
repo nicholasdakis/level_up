@@ -499,7 +499,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             totalSets++;
           }
         }
-        if (mounted) await handleLevelUpOverlay(context, levelBefore, appColor);
+        if (mounted) {
+          await handleLevelUpOverlay(context, levelBefore, appColor, ref);
+        }
         if (!mounted) return;
         // detach session listener before clearing so the transition animation
         // doesn't trigger a rebuild with a null session and disposed controllers

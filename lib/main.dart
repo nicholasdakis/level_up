@@ -125,6 +125,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                 c,
                 newLevel,
                 ref.read(userDataProvider).value?.appColor ?? defaultAppColor,
+                ref,
               );
             }
           });

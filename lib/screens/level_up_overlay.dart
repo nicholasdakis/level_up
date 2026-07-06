@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../providers/food_logs_provider.dart';
+import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 
 // Animates the XP bar fill from 0 to progress on mount, with a short entry delay
@@ -122,10 +123,11 @@ Future<void> handleLevelUpOverlay(
   BuildContext context,
   int levelBefore,
   Color appColor,
+  WidgetRef ref,
 ) async {
-  final newLevel = currentUserData?.level ?? 0;
+  final newLevel = ref.read(userDataProvider).value?.level ?? 0;
   if (newLevel > levelBefore) {
-    await showLevelUpOverlay(context, newLevel, appColor);
+    await showLevelUpOverlay(context, newLevel, appColor, ref);
   }
 }
 
@@ -133,18 +135,19 @@ Future<void> showLevelUpOverlay(
   BuildContext context,
   int newLevel,
   Color appColor,
+  WidgetRef ref,
 ) async {
   if (isGuest) return;
   final controller = ConfettiController(duration: const Duration(seconds: 4));
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
   final xpNeeded = userManager.experienceNeeded ?? 0;
-  final currentXp = currentUserData?.expPoints ?? 0;
+  final currentXp = ref.read(userDataProvider).value?.expPoints ?? 0;
   // xpProgress is how far into the new level the user already is, used to fill the bar
   final xpProgress = xpNeeded > 0
       ? (currentXp / xpNeeded).clamp(0.0, 1.0)
       : 0.0;
-  final data = currentUserData;
+  final data = ref.read(userDataProvider).value;
 
   // only include stats with nonzero values so the grid never shows empty chips
   // all values are peak/best/total, not current state, since this is an accomplishments summary
@@ -172,8 +175,7 @@ Future<void> showLevelUpOverlay(
         value: '${data.dailyClaimStreakBest}d',
       ));
     }
-    final foodLogs =
-        ProviderScope.containerOf(context).read(foodLogsProvider).value ?? [];
+    final foodLogs = ref.read(foodLogsProvider).value ?? [];
     final daysLogged = foodLogs.map((f) => f.date).toSet().length;
     if (daysLogged > 0) {
       stats.add((

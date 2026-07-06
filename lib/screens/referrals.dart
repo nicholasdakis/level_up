@@ -2,6 +2,7 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
@@ -16,6 +17,7 @@ Future<void> checkPendingReferralReward(
   BuildContext context,
   StateSetter setState,
   Color appColor,
+  WidgetRef ref,
 ) async {
   final res = await authenticatedGet('pending_referral_reward');
   if (!context.mounted) return;
@@ -88,7 +90,12 @@ Future<void> checkPendingReferralReward(
                         currentUserData!.referralCount + 1;
                   }
                   if (context.mounted) {
-                    await handleLevelUpOverlay(context, prevLevel, appColor);
+                    await handleLevelUpOverlay(
+                      context,
+                      prevLevel,
+                      appColor,
+                      ref,
+                    );
                   }
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +116,7 @@ Future<void> checkPendingReferralReward(
 }
 
 // Referrals card widget for the home dashboard
-Widget buildReferralsCard(BuildContext context, Color appColor) {
+Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
   // Square action tile matching the Watch an Ad card layout
   return Builder(
     builder: (context) {
@@ -376,6 +383,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor) {
                                       context,
                                       prevLevel2,
                                       appColor,
+                                      ref,
                                     );
                                   }
                                   Navigator.of(

@@ -420,7 +420,9 @@ class _ExploreState extends ConsumerState<Explore> {
           currentUserData!.expPoints = result['new_exp'];
           expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
-        if (mounted) await handleLevelUpOverlay(context, levelBefore, appColor);
+        if (mounted) {
+          await handleLevelUpOverlay(context, levelBefore, appColor, ref);
+        }
 
         setState(() {
           xpAwarded = result['xp_gained']; // show XP in the button briefly

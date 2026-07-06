@@ -51,13 +51,15 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
 
   String labelFor(DateTime d) {
     final today = DateTime.now();
-    if (d.year == today.year && d.month == today.month && d.day == today.day)
+    if (d.year == today.year && d.month == today.month && d.day == today.day) {
       return "Today";
+    }
     final yesterday = today.subtract(const Duration(days: 1));
     if (d.year == yesterday.year &&
         d.month == yesterday.month &&
-        d.day == yesterday.day)
+        d.day == yesterday.day) {
       return "Yesterday";
+    }
     const months = [
       'January',
       'February',

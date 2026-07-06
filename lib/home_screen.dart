@@ -180,6 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       context,
       dailyRewardConfettiController,
       appColor,
+      ref,
     );
     if (mounted) {
       _updateCountdown();
@@ -260,7 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
 
       if (!isGuest && mounted) {
-        await checkPendingReferralReward(context, setState, appColor);
+        await checkPendingReferralReward(context, setState, appColor, ref);
       }
     }
   }
@@ -1164,7 +1165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     child: ListenableBuilder(
                                       listenable: userDataNotifier,
                                       builder: (context, _) =>
-                                          buildReferralsCard(context, appColor),
+                                          buildReferralsCard(context, appColor, ref),
                                     ),
                                   ),
                                 ],
