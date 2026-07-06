@@ -250,7 +250,6 @@ class DailyRewardDialog {
     );
 
     final updatedData = ref.read(userDataProvider).value;
-    expNotifier.value = updatedData?.expPoints ?? 0;
     if (context.mounted) {
       await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }

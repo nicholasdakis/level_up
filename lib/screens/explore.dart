@@ -35,7 +35,7 @@ class Explore extends ConsumerStatefulWidget {
 
 class _ExploreState extends ConsumerState<Explore> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   LatLng? userLocation;
   bool _locationRequested =
@@ -69,7 +69,7 @@ class _ExploreState extends ConsumerState<Explore> {
 
   // Restricted to the Google Play reviewer account so real users cannot fake check-ins
   static const _testUid = 'Inu2nmOe0lbwhj1zbjsk4oSf5R42';
-  bool get _isTestAccount => ref.read(userDataProvider).value?.uid == _testUid;
+  bool get _isTestAccount => ref.watch(userDataProvider).value?.uid == _testUid;
 
   // Simulated NYC spawn point (Times Square). One POI is placed exactly here so it is immediately claimable
   // User spawns ~10m from Times Square so it looks natural but is still within the 30m check-in range
@@ -418,7 +418,6 @@ class _ExploreState extends ConsumerState<Explore> {
         if (result['new_exp'] != null) {
           // TODO: migrate mutation to notifier
           currentUserData!.expPoints = result['new_exp'];
-          expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
         if (mounted) {
           await handleLevelUpOverlay(context, levelBefore, appColor, ref);

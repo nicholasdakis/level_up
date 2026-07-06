@@ -76,7 +76,6 @@ Future<void> checkPendingReferralReward(
                     .claimReferralReward(refereeUid);
                 if (!context.mounted) return;
                 if (claimData != null) {
-                  expNotifier.value = claimData['new_exp'];
                   if (prevLevel < 3 &&
                       (ref.read(userDataProvider).value?.level ?? 0) >= 3) {
                     FirebaseAnalytics.instance.logEvent(
@@ -352,7 +351,6 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                       name: 'reached_level_3',
                                     );
                                   }
-                                  expNotifier.value = data['new_exp'];
                                   if (context.mounted) {
                                     await handleLevelUpOverlay(
                                       context,

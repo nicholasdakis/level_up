@@ -2447,3 +2447,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made a model class for FoodData to remove raw Map<String, dynamic> usage in the food logging screens
 - Added a GET food_logs_v2 route so food logs can be fetched on their own instead of being returned as a part of the user data GET
 - Converted water log sheet and weight log sheet from StatefulBuilder functions to ConsumerStatefulWidget classes so they can read from userDataProvider directly instead of the currentUserData global
+- Migrated food logging screens (food_logging, log_food_screen, food_analytics, home_logging_cards) to foodLogsProvider — removed foodLogNotifier counter and currentUserData.foodLogs
+- Migrated remaining screens to read from userDataProvider: settings drawer, personal preferences, home logging cards, onboarding, referrals, daily rewards, level up overlay
+- Extracted referral HTTP calls into userDataProvider notifier (claimReferralReward, useReferralCode, fetchReferralCode)
+- Extracted onboarding write logic into commitOnboarding on userDataProvider notifier
+- Removed appColorNotifier, replaced with a top-level appColor getter backed by currentUserData
+- Removed expNotifier, XP bar now reacts to userDataProvider via ref.watch with select, removing the last ValueNotifier-based rebuild trigger
+- Fixed classes using .read instead of .watch for user data related changes

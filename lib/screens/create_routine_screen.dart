@@ -21,7 +21,8 @@ class CreateRoutineScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
@@ -325,8 +326,6 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Color accent, Color dim) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
     final dimmer = lightenColor(appColor, 0.30);
     return Padding(
@@ -686,8 +685,6 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: dim.withAlpha(40), width: 1)),

@@ -39,18 +39,13 @@ class FinishWorkoutScreen extends ConsumerStatefulWidget {
 
 class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
-  late final VoidCallback _expListener;
   late final ConfettiController _confetti;
 
   @override
   void initState() {
     super.initState();
-    _expListener = () {
-      if (mounted) setState(() {});
-    };
-    expNotifier.addListener(_expListener);
     _confetti = ConfettiController(duration: const Duration(milliseconds: 600));
     if (widget.xpGained > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _confetti.play());
@@ -59,7 +54,6 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
 
   @override
   void dispose() {
-    expNotifier.removeListener(_expListener);
     _confetti.dispose();
     super.dispose();
   }
@@ -86,7 +80,8 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         ? '${UnitConverter.displayWeight(widget.totalVolumeKg, imperial: true)} lbs'
         : '${widget.totalVolumeKg.toStringAsFixed(0)} kg';
 
-    final exp = expNotifier.value;
+    final exp =
+        ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0;
     final expNeeded = userManager.experienceNeeded ?? 1;
     final barFraction = (exp / expNeeded).clamp(0.0, 1.0);
 
@@ -450,7 +445,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Level ${currentUserData?.level ?? 1}',
+              'Level ${ref.watch(userDataProvider).value?.level ?? 1}',
               style: GoogleFonts.manrope(
                 color: dim,
                 fontSize: Responsive.font(context, 11),

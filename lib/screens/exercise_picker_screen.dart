@@ -67,7 +67,7 @@ class ExercisePickerScreen extends ConsumerStatefulWidget {
 
 class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;

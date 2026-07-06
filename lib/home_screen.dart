@@ -46,7 +46,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -157,14 +157,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  bool get isNewUser =>
-      appReadyNotifier.value &&
-      ref.read(userDataProvider).value?.username != null &&
-      ref.read(userDataProvider).value?.username ==
-          ref.read(userDataProvider).value?.uid;
+  bool get isNewUser {
+    final u = ref.watch(userDataProvider).value;
+    return appReadyNotifier.value &&
+        u?.username != null &&
+        u?.username == u?.uid;
+  }
 
   bool canClaimDailyReward() {
-    final last = ref.read(userDataProvider).value?.lastDailyClaim;
+    final last = ref.watch(userDataProvider).value?.lastDailyClaim;
     if (last == null) return true;
     final secondsSince = DateTime.now()
         .toUtc()
@@ -276,7 +277,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (!mounted) return;
       if (!userManager.lastLoadFailed &&
           ref.read(userDataProvider).value != null) {
-        expNotifier.value = ref.read(userDataProvider).value!.expPoints;
         // notifyListeners won't fire if value was already true, so call initializeUser directly
         appReadyNotifier.value = true;
         initializeUser();
@@ -308,7 +308,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Builds a greeting based on time of day plus a random variant from that pool
 
-  int _foodLogStreak() => ref.read(userDataProvider).value?.foodLogStreak ?? 0;
+  int _foodLogStreak() => ref.watch(userDataProvider).value?.foodLogStreak ?? 0;
 
   // Picks a fresh greeting and updates the question flag together
   String _buildGreeting() {
@@ -321,7 +321,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Reads the daily claim streak from the backend-populated UserData field
   int _dailyClaimStreak() =>
-      ref.read(userDataProvider).value?.dailyClaimStreak ?? 0;
+      ref.watch(userDataProvider).value?.dailyClaimStreak ?? 0;
 
   Widget _buildStreakRow({
     required IconData icon,
@@ -332,8 +332,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     required bool isLast,
     String? overrideSubtitle,
   }) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Column(
       children: [
         Padding(
@@ -405,20 +403,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Streak card showing food log streak and daily claim streak
   Widget _buildStreakCard() {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final foodStreak = isGuest ? 0 : _foodLogStreak();
     final claimStreak = isGuest ? 0 : _dailyClaimStreak();
     final workoutStreak = isGuest
         ? 0
-        : (ref.read(userDataProvider).value?.workoutStreak ?? 0);
+        : (ref.watch(userDataProvider).value?.workoutStreak ?? 0);
     final accentColor = lightenColor(appColor, 0.45);
     final foodStreakBest = isGuest
         ? 0
-        : (ref.read(userDataProvider).value?.foodLogStreakBest ?? 0);
+        : (ref.watch(userDataProvider).value?.foodLogStreakBest ?? 0);
     final workoutStreakBest = isGuest
         ? 0
-        : (ref.read(userDataProvider).value?.workoutStreakBest ?? 0);
+        : (ref.watch(userDataProvider).value?.workoutStreakBest ?? 0);
     final guestSubtitle = "Create an account to track your streaks";
     return frostedGlassCard(
       context,
@@ -434,7 +430,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             count: claimStreak,
             best: isGuest
                 ? -1
-                : (ref.read(userDataProvider).value?.dailyClaimStreakBest ?? 0),
+                : (ref.watch(userDataProvider).value?.dailyClaimStreakBest ??
+                      0),
             accentColor: accentColor,
             isLast: false,
             overrideSubtitle: isGuest ? guestSubtitle : null,
@@ -464,8 +461,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Guest banner card
   Widget _buildGuestBanner() {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return frostedGlassCard(
       context,
       padding: EdgeInsets.symmetric(
@@ -512,253 +507,241 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // XP bar card: hero layout with level badge on the left and XP count on the right
   Widget _buildXpCard() {
-    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
-    final c = cardColors(base);
+    final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
-    final level = isGuest ? 0 : (ref.read(userDataProvider).value?.level ?? 1);
+    final level = isGuest ? 0 : (ref.watch(userDataProvider).value?.level ?? 1);
+    final exp = isGuest
+        ? 0
+        : (ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0);
 
-    return ValueListenableBuilder<int>(
-      valueListenable: expNotifier,
-      builder: (context, exp, _) {
-        return TweenAnimationBuilder<double>(
-          key: ValueKey(
-            isLoading,
-          ), // forces tween to restart from 0 once loading finishes
-          tween: Tween(
-            begin: _lastRenderedExp,
-            end: isLoading ? 0.0 : exp.toDouble(),
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(
+        isLoading,
+      ), // forces tween to restart from 0 once loading finishes
+      tween: Tween(
+        begin: _lastRenderedExp,
+        end: isLoading ? 0.0 : exp.toDouble(),
+      ),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOut,
+      onEnd: () => _lastRenderedExp = exp.toDouble(),
+      builder: (context, animatedExp, _) {
+        final needed = (userManager.experienceNeeded ?? 1).toDouble();
+        final progress = (animatedExp / needed).clamp(0.0, 1.0);
+        final remaining = ((needed - animatedExp).ceil()).clamp(
+          0,
+          needed.toInt(),
+        );
+
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: c.gradient,
+            ),
+            border: Border.all(color: c.border, width: 1),
           ),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeOut,
-          onEnd: () => _lastRenderedExp = exp.toDouble(),
-          builder: (context, animatedExp, _) {
-            final needed = (userManager.experienceNeeded ?? 1).toDouble();
-            final progress = (animatedExp / needed).clamp(0.0, 1.0);
-            final remaining = ((needed - animatedExp).ceil()).clamp(
-              0,
-              needed.toInt(),
-            );
-
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 20),
-                ),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: c.gradient,
-                ),
-                border: Border.all(color: c.border, width: 1),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 20),
-                  vertical: Responsive.height(context, 16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 20),
+              vertical: Responsive.height(context, 16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Level badge: white fill always visible, pfp fades in on top once decoded
-                        Builder(
-                          builder: (context) {
-                            final hasPfp = _pfpBytes != null;
-                            final borderRadius = BorderRadius.circular(
-                              Responsive.scale(context, 10),
-                            );
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: borderRadius,
-                                border: hasPfp
-                                    ? Border.all(
-                                        color: Colors.white.withAlpha(180),
-                                        width: Responsive.width(context, 1.5),
-                                      )
-                                    : null,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: borderRadius,
-                                child: SizedBox(
-                                  width: Responsive.scale(context, 44),
-                                  height: Responsive.scale(context, 44),
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      Container(
-                                        color: Colors.white.withAlpha(220),
+                    // Level badge: white fill always visible, pfp fades in on top once decoded
+                    Builder(
+                      builder: (context) {
+                        final hasPfp = _pfpBytes != null;
+                        final borderRadius = BorderRadius.circular(
+                          Responsive.scale(context, 10),
+                        );
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: borderRadius,
+                            border: hasPfp
+                                ? Border.all(
+                                    color: Colors.white.withAlpha(180),
+                                    width: Responsive.width(context, 1.5),
+                                  )
+                                : null,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: borderRadius,
+                            child: SizedBox(
+                              width: Responsive.scale(context, 44),
+                              height: Responsive.scale(context, 44),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Container(color: Colors.white.withAlpha(220)),
+                                  if (hasPfp)
+                                    AnimatedOpacity(
+                                      opacity: _pfpVisible ? 1.0 : 0.0,
+                                      duration: const Duration(
+                                        milliseconds: 400,
                                       ),
-                                      if (hasPfp)
-                                        AnimatedOpacity(
-                                          opacity: _pfpVisible ? 1.0 : 0.0,
-                                          duration: const Duration(
-                                            milliseconds: 400,
-                                          ),
-                                          child: Image.memory(
-                                            _pfpBytes!,
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                          ),
+                                      child: Image.memory(
+                                        _pfpBytes!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                    ),
+                                  // Scrim fades in with the pfp so text stays readable
+                                  if (hasPfp)
+                                    AnimatedOpacity(
+                                      opacity: _pfpVisible ? 1.0 : 0.0,
+                                      duration: const Duration(
+                                        milliseconds: 400,
+                                      ),
+                                      child: Container(
+                                        color: Colors.black.withAlpha(100),
+                                      ),
+                                    ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "LVL",
+                                        style: GoogleFonts.manrope(
+                                          color: hasPfp
+                                              ? Colors.white
+                                              : darkenColor(appColor, 0.05),
+                                          fontSize: Responsive.font(context, 8),
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
                                         ),
-                                      // Scrim fades in with the pfp so text stays readable
-                                      if (hasPfp)
-                                        AnimatedOpacity(
-                                          opacity: _pfpVisible ? 1.0 : 0.0,
-                                          duration: const Duration(
-                                            milliseconds: 400,
+                                      ),
+                                      Text(
+                                        "$level",
+                                        style: GoogleFonts.manrope(
+                                          color: hasPfp
+                                              ? Colors.white
+                                              : darkenColor(appColor, 0.05),
+                                          fontSize: Responsive.font(
+                                            context,
+                                            18,
                                           ),
-                                          child: Container(
-                                            color: Colors.black.withAlpha(100),
-                                          ),
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.1,
                                         ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "LVL",
-                                            style: GoogleFonts.manrope(
-                                              color: hasPfp
-                                                  ? Colors.white
-                                                  : darkenColor(base, 0.05),
-                                              fontSize: Responsive.font(
-                                                context,
-                                                8,
-                                              ),
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                          Text(
-                                            "$level",
-                                            style: GoogleFonts.manrope(
-                                              color: hasPfp
-                                                  ? Colors.white
-                                                  : darkenColor(base, 0.05),
-                                              fontSize: Responsive.font(
-                                                context,
-                                                18,
-                                              ),
-                                              fontWeight: FontWeight.w800,
-                                              height: 1.1,
-                                            ),
-                                          ),
-                                        ],
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(width: Responsive.width(context, 14)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    isGuest
-                                        ? "Sign up to level up"
-                                        : "Level $level",
-                                    style: GoogleFonts.manrope(
-                                      color: isGuest ? Colors.white54 : accent,
-                                      fontSize: Responsive.font(context, 15),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  if (!isGuest)
-                                    Text(
-                                      "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
-                                      style: GoogleFonts.manrope(
-                                        color: dim,
-                                        fontSize: Responsive.font(context, 12),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
                                 ],
                               ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(width: Responsive.width(context, 14)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isGuest
+                                    ? "Sign up to level up"
+                                    : "Level $level",
+                                style: GoogleFonts.manrope(
+                                  color: isGuest ? Colors.white54 : accent,
+                                  fontSize: Responsive.font(context, 15),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (!isGuest)
+                                Text(
+                                  "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
+                                  style: GoogleFonts.manrope(
+                                    color: dim,
+                                    fontSize: Responsive.font(context, 12),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                             ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Responsive.height(context, 14)),
+                // XP bar, styled to match the calorie bar in food logging
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 7),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(45),
+                      width: Responsive.scale(context, 1),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 6),
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: Responsive.height(context, 10),
+                          width: double.infinity,
+                          color: Colors.white.withAlpha(18),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            height: Responsive.height(context, 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(200),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 6),
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: Responsive.height(context, 14)),
-                    // XP bar, styled to match the calorie bar in food logging
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 7),
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(45),
-                          width: Responsive.scale(context, 1),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 6),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: Responsive.height(context, 10),
-                              width: double.infinity,
-                              color: Colors.white.withAlpha(18),
-                            ),
-                            FractionallySizedBox(
-                              widthFactor: progress,
-                              child: Container(
-                                height: Responsive.height(context, 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(200),
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 6),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    // XP to next level + total XP earned
-                    if (!isGuest)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "$remaining XP to Level ${level + 1}",
-                            style: GoogleFonts.manrope(
-                              color: accent,
-                              fontSize: Responsive.font(context, 11),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
-                            style: GoogleFonts.manrope(
-                              color: dim,
-                              fontSize: Responsive.font(context, 11),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+                SizedBox(height: Responsive.height(context, 6)),
+                // XP to next level + total XP earned
+                if (!isGuest)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "$remaining XP to Level ${level + 1}",
+                        style: GoogleFonts.manrope(
+                          color: accent,
+                          fontSize: Responsive.font(context, 11),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
+                        style: GoogleFonts.manrope(
+                          color: dim,
+                          fontSize: Responsive.font(context, 11),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -766,9 +749,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Daily reward card: same gradient tile style as the earn XP cards
   Widget _buildDailyRewardCard() {
-    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final canClaim = canClaimDailyReward();
-    final c = cardColors(base);
+    final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
@@ -872,8 +854,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // Earn XP card: square action tile with icon on top and label below
   // Wrapped in a blur overlay while ads are unavailable
   Widget _buildEarnXpCard() {
-    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
-    final c = cardColors(base);
+    final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
@@ -1016,8 +997,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   }
                   await userManager.loadUserData();
                   if (mounted) {
-                    expNotifier.value =
-                        ref.read(userDataProvider).value?.expPoints ?? 0;
                     userDataNotifier.notifyListeners();
                   }
                 },
@@ -1045,7 +1024,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildBody() {
-    final userData = ref.read(userDataProvider).value;
+    final userData = ref.watch(userDataProvider).value;
     final username =
         (userData?.username == null || userData?.username == userData?.uid)
         ? null

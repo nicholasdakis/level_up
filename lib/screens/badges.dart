@@ -123,7 +123,8 @@ class Badges extends ConsumerStatefulWidget {
 }
 
 class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   bool _isLoading = true; // for the skeletonizer
   // Populated from the backend on init
@@ -293,8 +294,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
   // Builds a single tier chip showing the milestone, its status, and a claim button if ready
   Widget _buildTierChip(AchievementDef def, int tier, {int index = 0}) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final currentProgress =
         progress[def.id] ??
         0; // reads the progress in the achievement_progress table
@@ -400,8 +399,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
   // Builds a single achievement card with icon, name, progress bar, and tier chips
   Widget _buildAchievementCard(AchievementDef def) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final currentProgress = progress[def.id] ?? 0;
 
     // Find the next tier the user hasn't reached yet

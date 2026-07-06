@@ -31,7 +31,7 @@ class ActiveWorkoutScreen extends ConsumerStatefulWidget {
 
 class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   late final VoidCallback _sessionListener;
   late final Timer _timer;
@@ -486,7 +486,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         }
         if (data['new_exp'] != null) {
           currentUserData?.expPoints = data['new_exp'] as int;
-          expNotifier.value = data['new_exp'] as int;
         }
         // compute volume from the clean exercises list since the in-memory set maps
         // may not have been updated if onChanged never fired before the user tapped check

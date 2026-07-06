@@ -42,7 +42,8 @@ class Results extends ConsumerStatefulWidget {
 }
 
 class _ResultsState extends ConsumerState<Results> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   @override
   void initState() {
@@ -253,8 +254,6 @@ class _ResultsState extends ConsumerState<Results> {
   }
 
   Widget _setGoalButton(int calories) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isSet = _goalSetCalories == calories;
     return GestureDetector(
       onTap: isSet

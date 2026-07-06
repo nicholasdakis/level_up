@@ -169,7 +169,6 @@ class _MyAppState extends ConsumerState<MyApp> {
     if (appInitialized && userManager.lastLoadFailed) {
       await userManager.loadUserData();
       if (currentUserData != null && !userManager.lastLoadFailed) {
-        expNotifier.value = currentUserData!.expPoints;
         userDataNotifier.notifyListeners();
         appReadyNotifier.value = true;
       }

@@ -24,7 +24,7 @@ class WaterAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
@@ -133,7 +133,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
   // Returns all water entries as (date, totalMl) sorted chronologically oldest-first
   List<MapEntry<String, int>> _sortedEntries() {
-    final byDate = ref.read(userDataProvider).value?.waterEntriesByDate ?? {};
+    final byDate = ref.watch(userDataProvider).value?.waterEntriesByDate ?? {};
     final entries = byDate.entries.map((e) {
       final total = e.value.fold(0, (s, v) => s + v);
       return MapEntry(e.key, total);
@@ -158,12 +158,10 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.3);
-    final goalMl = ref.read(userDataProvider).value?.waterMlGoal ?? 0;
+    final goalMl = ref.watch(userDataProvider).value?.waterMlGoal ?? 0;
 
     if (entries.isEmpty) {
       return frostedGlassCard(
@@ -365,8 +363,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColor, 0.45);
@@ -455,8 +451,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColor, 0.45);

@@ -23,7 +23,8 @@ class WeightAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
@@ -96,7 +97,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   // Returns all weight entries sorted chronologically oldest-first
   List<MapEntry<String, double>> _sortedEntries() {
-    final byDate = ref.read(userDataProvider).value?.weightByDate ?? {};
+    final byDate = ref.watch(userDataProvider).value?.weightByDate ?? {};
     final entries = byDate.entries.toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
@@ -156,12 +157,10 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.3);
-    final goalKg = ref.read(userDataProvider).value?.weightKgGoal;
+    final goalKg = ref.watch(userDataProvider).value?.weightKgGoal;
 
     if (entries.isEmpty) {
       return frostedGlassCard(
@@ -363,8 +362,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
     final accent = lightenColor(appColor, 0.45);
@@ -466,8 +463,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
     final accent = lightenColor(appColor, 0.45);

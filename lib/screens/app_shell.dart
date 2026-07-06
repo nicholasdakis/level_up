@@ -20,7 +20,8 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   late final VoidCallback _sessionListener;
   late final Timer _timer;

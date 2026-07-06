@@ -499,8 +499,6 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     await workoutSessionService.checkAndRestoreWorkoutSession();
 
     userManager.updateUtcOffset();
-    expNotifier.value = currentUserData?.expPoints ?? 0;
-
     notifier.setUserData(currentUserData);
 
     if (currentUserData != null) {

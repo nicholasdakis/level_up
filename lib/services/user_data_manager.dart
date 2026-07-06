@@ -253,9 +253,6 @@ class UserDataManager {
         currentUserData?.weightByDate = weightData;
       }
 
-      // keep the notifier in sync so XP bar rebuilds immediately
-      expNotifier.value = currentUserData!.expPoints;
-
       // fetch current and best streaks from the streaks table
       try {
         final streaks = await fetchStreaks();

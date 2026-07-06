@@ -22,8 +22,6 @@ const Duration dailyRewardCooldown = Duration(hours: 23);
 const Duration snackBarDuration = Duration(milliseconds: 1500);
 const Duration snackBarDurationImportant = Duration(seconds: 3);
 
-ValueNotifier<int> expNotifier = ValueNotifier<int>(0);
-
 // Flips to true when AppInitScreen finishes loading user data
 ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
 

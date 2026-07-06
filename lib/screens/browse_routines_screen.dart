@@ -19,7 +19,7 @@ class BrowseRoutinesScreen extends ConsumerStatefulWidget {
 
 class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
   Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
 
   late final ScrollController _featuredScroll;
   List<Map<String, dynamic>> _featured = [];
