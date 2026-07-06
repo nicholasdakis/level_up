@@ -1,4 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/foundation.dart';
@@ -10,14 +13,17 @@ import '/utility/responsive.dart';
 import '/utility/shared_preferences/shared_prefs_async.dart';
 import '../services/user_data_manager.dart' show trackTrivialAchievement;
 
-class CalorieCalculator extends StatefulWidget {
+class CalorieCalculator extends ConsumerStatefulWidget {
   const CalorieCalculator({super.key});
 
   @override
-  State<CalorieCalculator> createState() => _CalorieCalculatorState();
+  ConsumerState<CalorieCalculator> createState() => _CalorieCalculatorState();
 }
 
-class _CalorieCalculatorState extends State<CalorieCalculator> {
+class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // Prevent memory leaks
   @override
   void dispose() {
@@ -102,9 +108,11 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
         applyCalculatorData(mappedData);
         weightController.text = weight?.toString() ?? '';
       });
-    } else if (currentUserData != null) {
+    } else if (ref.read(userDataProvider).value != null) {
       setState(() {
-        units = currentUserData!.units == 'imperial' ? 'Imperial' : 'Metric';
+        units = ref.read(userDataProvider).value!.units == 'imperial'
+            ? 'Imperial'
+            : 'Metric';
         currentUnits = units;
         previousUnits = units;
       });
@@ -158,15 +166,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? appColorNotifier.value.withAlpha(200)
+                        ? appColor.withAlpha(200)
                         : Colors.white.withAlpha(18),
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 12),
                     ),
                     border: Border.all(
-                      color: isSelected
-                          ? appColorNotifier.value
-                          : Colors.white.withAlpha(30),
+                      color: isSelected ? appColor : Colors.white.withAlpha(30),
                       width: 1,
                     ),
                   ),
@@ -266,9 +272,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   isSet ? valueLabel(value) : "Tap to choose",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, isSet ? 13 : 11),
-                    color: isSet
-                        ? lightenColor(appColorNotifier.value, 0.5)
-                        : Colors.white38,
+                    color: isSet ? lightenColor(appColor, 0.5) : Colors.white38,
                     fontWeight: isSet ? FontWeight.w700 : FontWeight.w400,
                   ),
                 ),
@@ -283,9 +287,9 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: appColorNotifier.value,
+                    activeTrackColor: appColor,
                     inactiveTrackColor: Colors.white.withAlpha(30),
-                    thumbColor: appColorNotifier.value,
+                    thumbColor: appColor,
                     overlayColor: Colors.transparent,
                     trackHeight: Responsive.scale(context, 3),
                     thumbShape: RoundSliderThumbShape(
@@ -366,15 +370,13 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? appColorNotifier.value.withAlpha(200)
+                      ? appColor.withAlpha(200)
                       : Colors.white.withAlpha(18),
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
                   border: Border.all(
-                    color: isSelected
-                        ? appColorNotifier.value
-                        : Colors.white.withAlpha(30),
+                    color: isSelected ? appColor : Colors.white.withAlpha(30),
                     width: 1,
                   ),
                 ),
@@ -515,24 +517,15 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -975,7 +968,7 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                   frostedButton(
                     "Get Results",
                     context,
-                    color: appColorNotifier.value,
+                    color: appColor,
                     onPressed: () {
                       // Validity checks: all fields must be filled
                       if (units == null ||
@@ -1005,7 +998,12 @@ class _CalorieCalculatorState extends State<CalorieCalculator> {
                                     SizedBox(
                                       width: Responsive.width(context, 10),
                                     ),
-                                    const Expanded(child: Text("All fields must be filled.", softWrap: true)),
+                                    const Expanded(
+                                      child: Text(
+                                        "All fields must be filled.",
+                                        softWrap: true,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

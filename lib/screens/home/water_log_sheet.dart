@@ -8,6 +8,7 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 
 Future<void> showWaterLogSheet(BuildContext context) async {
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   final isImperial = UnitConverter.isImperial;
   DateTime selectedDate = DateTime.now();
   final customController = TextEditingController();
@@ -59,7 +60,7 @@ Future<void> showWaterLogSheet(BuildContext context) async {
           currentUserData?.waterEntriesByDate[dateKey] ?? [],
         );
 
-        final c = cardColors(appColorNotifier.value);
+        final c = cardColors(appColor);
         final onCard = c.onCard;
         final onCardDim = c.onCard.withAlpha(140);
         // keyboard pushes up the sheet so we grow the height to match, then pad the bottom by the same amount
@@ -79,10 +80,7 @@ Future<void> showWaterLogSheet(BuildContext context) async {
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: darkenColor(
-                      appColorNotifier.value,
-                      0.05,
-                    ).withAlpha(220),
+                    color: darkenColor(appColor, 0.05).withAlpha(220),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),

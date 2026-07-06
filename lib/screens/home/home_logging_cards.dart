@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -38,7 +41,7 @@ int _todayCalories() {
   return (protein: protein, carbs: carbs, fat: fat);
 }
 
-class HomeLoggingCards extends StatelessWidget {
+class HomeLoggingCards extends ConsumerStatefulWidget {
   // sheet methods live on the home screen state, so they're passed in as callbacks
   final VoidCallback onShowWaterSheet;
   final VoidCallback onShowWeightSheet;
@@ -49,9 +52,20 @@ class HomeLoggingCards extends StatelessWidget {
     required this.onShowWeightSheet,
   });
 
+  @override
+  ConsumerState<HomeLoggingCards> createState() => _HomeLoggingCardsState();
+}
+
+class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
+  VoidCallback get onShowWaterSheet => widget.onShowWaterSheet;
+  VoidCallback get onShowWeightSheet => widget.onShowWeightSheet;
+
   void _showMealPicker(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final meals = [
       (
         label: 'Breakfast',
@@ -157,7 +171,7 @@ class HomeLoggingCards extends StatelessWidget {
     VoidCallback? onChart,
     Widget? progressBar,
   }) {
-    final accentColor = lightenColor(appColorNotifier.value, 0.45);
+    final accentColor = lightenColor(appColor, 0.45);
 
     Widget actionButton(IconData btnIcon, VoidCallback? onTap) =>
         GestureDetector(
@@ -257,8 +271,8 @@ class HomeLoggingCards extends StatelessWidget {
   }
 
   Widget _buildMacrosCard(BuildContext context) {
-    final accentColor = lightenColor(appColorNotifier.value, 0.45);
-    final dimColor = lightenColor(appColorNotifier.value, 0.35);
+    final accentColor = lightenColor(appColor, 0.45);
+    final dimColor = lightenColor(appColor, 0.35);
     final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
 
     Widget macroRow(String label, IconData icon, int value, int? goal) {
@@ -365,7 +379,7 @@ class HomeLoggingCards extends StatelessWidget {
   }
 
   Widget _buildGuestLoggingCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accent = lightenColor(appColor, 0.45);
     return GestureDetector(
       onTap: () async => authService.value.signOut(),
       child: Stack(
@@ -442,8 +456,8 @@ class HomeLoggingCards extends StatelessWidget {
                     height: Responsive.height(context, 8),
                     decoration: BoxDecoration(
                       color: overIsRed && fraction >= 1.0
-                          ? lightenColor(appColorNotifier.value, 0.45)
-                          : lightenColor(appColorNotifier.value, 0.3),
+                          ? lightenColor(appColor, 0.45)
+                          : lightenColor(appColor, 0.3),
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 6),
                       ),
@@ -461,7 +475,7 @@ class HomeLoggingCards extends StatelessWidget {
             "No calorie goal set",
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 10),
-              color: lightenColor(appColorNotifier.value, 0.35),
+              color: lightenColor(appColor, 0.35),
             ),
           );
     final waterProgressBar = waterGoalMl > 0

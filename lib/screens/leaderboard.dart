@@ -1,4 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:level_up/utility/responsive.dart';
@@ -11,14 +14,16 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
-class Leaderboard extends StatefulWidget {
+class Leaderboard extends ConsumerStatefulWidget {
   const Leaderboard({super.key});
 
   @override
-  State<Leaderboard> createState() => _LeaderboardState();
+  ConsumerState<Leaderboard> createState() => _LeaderboardState();
 }
 
-class _LeaderboardState extends State<Leaderboard> {
+class _LeaderboardState extends ConsumerState<Leaderboard> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // Cache for experience calculations
   final Map<int, int> _expCache = {};
   // Tracks which card indices have already played their entrance animation
@@ -49,8 +54,6 @@ class _LeaderboardState extends State<Leaderboard> {
     return exp;
   }
 
-  late final VoidCallback _colorListener;
-
   @override
   void initState() {
     super.initState();
@@ -60,15 +63,10 @@ class _LeaderboardState extends State<Leaderboard> {
     );
     _leaderboardFuture = leaderboardService.fetchLeaderboard();
     if (isGuest) Guest.blockOnOpen(context); // For guest users
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
   }
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     super.dispose();
   }
 
@@ -115,6 +113,8 @@ class _LeaderboardState extends State<Leaderboard> {
 
   // Single leaderboard entry card
   Widget _buildUserCard(LeaderboardEntry user, int index, bool isCurrentUser) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     // Only show the user's username if it exists and is not the default username (their UID)
     final username = (user.username == null || user.username == user.uid)
         ? "Unnamed"
@@ -136,7 +136,7 @@ class _LeaderboardState extends State<Leaderboard> {
         // Current user gets a tinted background
         decoration: BoxDecoration(
           color: isCurrentUser
-              ? lightenColor(appColorNotifier.value, 0.15)
+              ? lightenColor(appColor, 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
         ),
@@ -225,9 +225,7 @@ class _LeaderboardState extends State<Leaderboard> {
                 value: progressFraction,
                 minHeight: Responsive.height(context, 8),
                 backgroundColor: Colors.white.withAlpha(20),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  appColorNotifier.value,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(appColor),
               ),
             ),
           ],
@@ -243,6 +241,8 @@ class _LeaderboardState extends State<Leaderboard> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Get current user's UID to highlight their row
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -290,24 +290,15 @@ class _LeaderboardState extends State<Leaderboard> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -333,8 +324,8 @@ class _LeaderboardState extends State<Leaderboard> {
               enabled:
                   isLoading, // shows bone placeholders while loading, passes through normally when done
               effect: ShimmerEffect(
-                baseColor: lightenColor(appColorNotifier.value, 0.3),
-                highlightColor: lightenColor(appColorNotifier.value, 0.1),
+                baseColor: lightenColor(appColor, 0.3),
+                highlightColor: lightenColor(appColor, 0.1),
                 duration: const Duration(milliseconds: 1200),
               ),
               child: ListView.builder(
@@ -369,12 +360,12 @@ class _LeaderboardState extends State<Leaderboard> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.1,
                                 ).withAlpha(20),
                                 border: Border.all(
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(180),
                                   width: 1.5,
@@ -383,7 +374,7 @@ class _LeaderboardState extends State<Leaderboard> {
                               child: Icon(
                                 Icons.arrow_back_ios_new,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.3,
                                 ).withAlpha(180),
                                 size: Responsive.font(context, 13),
@@ -399,12 +390,12 @@ class _LeaderboardState extends State<Leaderboard> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.1,
                                 ).withAlpha(20),
                                 border: Border.all(
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(180),
                                   width: 1.5,
@@ -413,7 +404,7 @@ class _LeaderboardState extends State<Leaderboard> {
                               child: Icon(
                                 Icons.refresh,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.3,
                                 ).withAlpha(180),
                                 size: Responsive.font(context, 13),

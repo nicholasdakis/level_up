@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -12,7 +15,7 @@ import 'analytics_components.dart';
 
 // initialDate opens the screen on the same date the user was viewing in Food Logging
 // onDateChanged is optional so Food Logging can stay in sync when dates are changed here
-class FoodAnalyticsScreen extends StatefulWidget {
+class FoodAnalyticsScreen extends ConsumerStatefulWidget {
   final DateTime initialDate;
   final void Function(DateTime)? onDateChanged;
 
@@ -23,11 +26,14 @@ class FoodAnalyticsScreen extends StatefulWidget {
   });
 
   @override
-  State<FoodAnalyticsScreen> createState() => _FoodAnalyticsScreenState();
+  ConsumerState<FoodAnalyticsScreen> createState() =>
+      _FoodAnalyticsScreenState();
 }
 
-class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
+class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     with SingleTickerProviderStateMixin {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late TabController _tabController;
   late DateTime currentDate;
 
@@ -72,7 +78,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   // Reads directly from the flat foodLogs list
   void _loadForDate(DateTime date) {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
     setState(() {
       breakfastFoods = logs
           .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
@@ -140,7 +146,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   // Goes through all days and sums the calories and macros
   // daysWithData is returned to compute averages without using empty days
   _RangeAggregate _aggregateRange(DateTime start, DateTime end) {
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
     final inRange = logs.where((f) {
@@ -216,7 +222,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
 
   // Returns per-day calorie and macro data for the line charts
   List<_DayPoint> _dailyPoints(DateTime start, DateTime end) {
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
     final inRange = logs.where((f) {
@@ -272,8 +278,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   }
 
   Widget _calorieLineChart(BuildContext context, List<_DayPoint> points) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
 
     if (points.isEmpty) {
       return frostedGlassCard(
@@ -308,7 +314,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                 fitInsideHorizontally: true,
                 fitInsideVertically: true,
                 getTooltipColor: (_) =>
-                    darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                    darkenColor(appColor, 0.1).withAlpha(220),
                 getTooltipItems: (touched) => touched.map((s) {
                   final p = points[s.spotIndex];
                   return LineTooltipItem(
@@ -403,10 +409,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                     color: accent,
                     strokeWidth: 1.5,
                     // slightly darkened stroke separates overlapping dots visually
-                    strokeColor: darkenColor(
-                      appColorNotifier.value,
-                      0.05,
-                    ).withAlpha(180),
+                    strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
                   ),
                 ),
                 belowBarData: BarAreaData(
@@ -477,12 +480,12 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                 end: Alignment.bottomCenter,
                 colors: empty
                     ? [
-                        lightenColor(appColorNotifier.value, 0.2).withAlpha(50),
-                        lightenColor(appColorNotifier.value, 0.1).withAlpha(50),
+                        lightenColor(appColor, 0.2).withAlpha(50),
+                        lightenColor(appColor, 0.1).withAlpha(50),
                       ]
                     : [
-                        lightenColor(appColorNotifier.value, 0.45),
-                        lightenColor(appColorNotifier.value, 0.2),
+                        lightenColor(appColor, 0.45),
+                        lightenColor(appColor, 0.2),
                       ],
               ),
               width: Responsive.scale(context, 18),
@@ -525,8 +528,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                   final pct = total > 0 ? (v / total * 100).round() : 0;
                   final empty = v == 0;
                   final labelColor = empty
-                      ? lightenColor(appColorNotifier.value, 0.25)
-                      : lightenColor(appColorNotifier.value, 0.45);
+                      ? lightenColor(appColor, 0.25)
+                      : lightenColor(appColor, 0.45);
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: Responsive.height(context, 4),
@@ -613,8 +616,8 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  lightenColor(appColorNotifier.value, 0.45),
-                  lightenColor(appColorNotifier.value, 0.2),
+                  lightenColor(appColor, 0.45),
+                  lightenColor(appColor, 0.2),
                 ],
               ),
               width: Responsive.scale(context, 18),
@@ -668,7 +671,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 10),
                             fontWeight: FontWeight.w700,
-                            color: lightenColor(appColorNotifier.value, 0.45),
+                            color: lightenColor(appColor, 0.45),
                           ),
                         ),
                         Text(
@@ -676,7 +679,7 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 10),
                             fontWeight: FontWeight.w700,
-                            color: lightenColor(appColorNotifier.value, 0.45),
+                            color: lightenColor(appColor, 0.45),
                           ),
                         ),
                       ],
@@ -778,24 +781,15 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -892,12 +886,16 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
     );
   }
 
-  Widget _mostLoggedFoodsCard(BuildContext context, DateTime start, DateTime end) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+  Widget _mostLoggedFoodsCard(
+    BuildContext context,
+    DateTime start,
+    DateTime end,
+  ) {
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
 
     final counts = <String, int>{};
     final displayNames = <String, String>{};
@@ -980,7 +978,9 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
                           value: top[i].value / maxCount,
                           minHeight: Responsive.height(context, 4),
                           backgroundColor: accent.withAlpha(30),
-                          valueColor: AlwaysStoppedAnimation<Color>(accent.withAlpha(180)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            accent.withAlpha(180),
+                          ),
                         ),
                       ),
                     ],
@@ -1262,15 +1262,17 @@ class _FoodAnalyticsScreenState extends State<FoodAnalyticsScreen>
   }
 }
 
-class _MealLineChart extends StatefulWidget {
+class _MealLineChart extends ConsumerStatefulWidget {
   final List<_DayPoint> points;
   const _MealLineChart({required this.points});
 
   @override
-  State<_MealLineChart> createState() => _MealLineChartState();
+  ConsumerState<_MealLineChart> createState() => _MealLineChartState();
 }
 
-class _MealLineChartState extends State<_MealLineChart> {
+class _MealLineChartState extends ConsumerState<_MealLineChart> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // null = all meals shown
   int? _focus;
 
@@ -1278,8 +1280,8 @@ class _MealLineChartState extends State<_MealLineChart> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final points = widget.points;
 
     final allSpots = [
@@ -1324,7 +1326,7 @@ class _MealLineChartState extends State<_MealLineChart> {
           radius: Responsive.scale(context, 3),
           color: color,
           strokeWidth: 1,
-          strokeColor: darkenColor(appColorNotifier.value, 0.05).withAlpha(180),
+          strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
         ),
       ),
     );
@@ -1382,7 +1384,7 @@ class _MealLineChartState extends State<_MealLineChart> {
                     fitInsideHorizontally: true,
                     fitInsideVertically: true,
                     getTooltipColor: (_) =>
-                        darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                        darkenColor(appColor, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
                       // sort by barIndex so the date header always appears on the first line
                       final sorted = [...touched]
@@ -1492,15 +1494,17 @@ class _MealLineChartState extends State<_MealLineChart> {
   }
 }
 
-class _MacroLineChart extends StatefulWidget {
+class _MacroLineChart extends ConsumerStatefulWidget {
   final List<_DayPoint> points;
   const _MacroLineChart({required this.points});
 
   @override
-  State<_MacroLineChart> createState() => _MacroLineChartState();
+  ConsumerState<_MacroLineChart> createState() => _MacroLineChartState();
 }
 
-class _MacroLineChartState extends State<_MacroLineChart> {
+class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // null = all macros shown
   int? _focus;
 
@@ -1508,8 +1512,8 @@ class _MacroLineChartState extends State<_MacroLineChart> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final points = widget.points;
 
     final allSpots = [
@@ -1545,7 +1549,7 @@ class _MacroLineChartState extends State<_MacroLineChart> {
           radius: Responsive.scale(context, 3),
           color: color,
           strokeWidth: 1,
-          strokeColor: darkenColor(appColorNotifier.value, 0.05).withAlpha(180),
+          strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
         ),
       ),
     );
@@ -1605,7 +1609,7 @@ class _MacroLineChartState extends State<_MacroLineChart> {
                     fitInsideHorizontally: true,
                     fitInsideVertically: true,
                     getTooltipColor: (_) =>
-                        darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                        darkenColor(appColor, 0.1).withAlpha(220),
                     getTooltipItems: (touched) {
                       // sort by barIndex so the date header always appears on the first line
                       final sorted = [...touched]
@@ -1908,8 +1912,9 @@ Widget _statTilesRow({
   Map<String, double>? dinnerMacros,
   Map<String, double>? snacksMacros,
 }) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
   final meals = [
     ('Breakfast', breakfastCal),
     ('Lunch', lunchCal),
@@ -2047,8 +2052,9 @@ Widget _macroInline(
 }
 
 Widget _calorieSummaryCard(BuildContext context, _RangeAggregate agg) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
   final days = agg.daysWithData;
   final total = agg.totalCal;
   final meals = [
@@ -2164,7 +2170,7 @@ String _fmtCal(double v) {
 }
 
 Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
-  final base = appColorNotifier.value;
+  final base = currentUserData?.appColor ?? appColorNotifier.value;
   final accent = lightenColor(base, 0.45);
   final days = agg.daysWithData;
 

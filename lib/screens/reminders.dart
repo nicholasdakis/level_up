@@ -1,4 +1,6 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'dart:math';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
@@ -15,14 +17,16 @@ import '../services/fcm/notification_service.dart';
 import '../services/user_data_manager.dart';
 import '../services/voice_search_service.dart';
 
-class Reminders extends StatefulWidget {
+class Reminders extends ConsumerStatefulWidget {
   const Reminders({super.key});
 
   @override
-  State<Reminders> createState() => _RemindersState();
+  ConsumerState<Reminders> createState() => _RemindersState();
 }
 
-class _RemindersState extends State<Reminders> {
+class _RemindersState extends ConsumerState<Reminders> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // Prevent memory leaks
   @override
   void dispose() {
@@ -55,7 +59,7 @@ class _RemindersState extends State<Reminders> {
       screenClass: 'Reminders',
     );
     reminders = List.from(
-      currentUserData?.reminders ?? [],
+      ref.read(userDataProvider).value?.reminders ?? [],
     ); // show cached data instantly
     placeholderMessage = getReminderMessage();
     _loadRemindersFromServer(); // refresh from server in the background
@@ -68,7 +72,7 @@ class _RemindersState extends State<Reminders> {
       final granted = await requestNotificationPermissionIfNeeded(context);
       if (!mounted) return;
       setState(() => _notifBlocked = !granted);
-      if (currentUserData?.notificationsEnabled == false) {
+      if (ref.read(userDataProvider).value?.notificationsEnabled == false) {
         _showNotificationsDisabledDialog(); // in-app toggle is off, prompt to re-enable
       }
     });
@@ -289,6 +293,7 @@ class _RemindersState extends State<Reminders> {
         setState(() => reminders = updatedReminders);
         _showSnackbar("Reminder deleted successfully!");
       }
+      // TODO: migrate mutation to notifier
       currentUserData?.reminders = List.from(updatedReminders);
     } catch (e) {
       if (kDebugMode) debugPrint("Error deleting reminder: $e");
@@ -468,6 +473,8 @@ class _RemindersState extends State<Reminders> {
 
   // Makes a single reminder card with message, time, and delete button
   Widget _buildReminderCard(ReminderData reminder) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
       child: Row(
@@ -477,7 +484,7 @@ class _RemindersState extends State<Reminders> {
             width: Responsive.width(context, 4),
             height: Responsive.height(context, 70),
             decoration: BoxDecoration(
-              color: appColorNotifier.value,
+              color: appColor,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(Responsive.scale(context, 4)),
                 bottomLeft: Radius.circular(Responsive.scale(context, 4)),
@@ -498,24 +505,15 @@ class _RemindersState extends State<Reminders> {
                     padding: EdgeInsets.all(Responsive.scale(context, 8)),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.1,
-                      ).withAlpha(20),
+                      color: lightenColor(appColor, 0.1).withAlpha(20),
                       border: Border.all(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         width: 1.5,
                       ),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedNotification01,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
+                      color: lightenColor(appColor, 0.3).withAlpha(180),
                       size: Responsive.scale(context, 20),
                     ),
                   ),
@@ -528,7 +526,7 @@ class _RemindersState extends State<Reminders> {
                           reminder.message,
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 15),
-                            color: cardColors(appColorNotifier.value).onCard,
+                            color: cardColors(appColor).onCard,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -537,9 +535,7 @@ class _RemindersState extends State<Reminders> {
                           _formatDateTime(reminder.scheduledAt),
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: cardColors(
-                              appColorNotifier.value,
-                            ).onCard.withAlpha(150),
+                            color: cardColors(appColor).onCard.withAlpha(150),
                           ),
                         ),
                       ],
@@ -549,10 +545,7 @@ class _RemindersState extends State<Reminders> {
                     onTap: () => _deleteReminder(reminder),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedDelete02,
-                      color: lightenColor(
-                        appColorNotifier.value,
-                        0.3,
-                      ).withAlpha(180),
+                      color: lightenColor(appColor, 0.3).withAlpha(180),
                       size: Responsive.scale(context, 20),
                     ),
                   ),
@@ -567,6 +560,8 @@ class _RemindersState extends State<Reminders> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -601,12 +596,12 @@ class _RemindersState extends State<Reminders> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.1,
                                   ).withAlpha(20),
                                   border: Border.all(
                                     color: lightenColor(
-                                      appColorNotifier.value,
+                                      appColor,
                                       0.3,
                                     ).withAlpha(180),
                                     width: 1.5,
@@ -615,7 +610,7 @@ class _RemindersState extends State<Reminders> {
                                 child: Icon(
                                   Icons.arrow_back_ios_new,
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(180),
                                   size: Responsive.font(context, 13),
@@ -706,7 +701,7 @@ class _RemindersState extends State<Reminders> {
                                             "Dismiss",
                                             style: GoogleFonts.manrope(
                                               color: lightenColor(
-                                                appColorNotifier.value,
+                                                appColor,
                                                 0.45,
                                               ),
                                               fontWeight: FontWeight.w700,
@@ -723,12 +718,12 @@ class _RemindersState extends State<Reminders> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: lightenColor(
-                                      appColorNotifier.value,
+                                      appColor,
                                       0.1,
                                     ).withAlpha(20),
                                     border: Border.all(
                                       color: lightenColor(
-                                        appColorNotifier.value,
+                                        appColor,
                                         0.3,
                                       ).withAlpha(180),
                                       width: 1.5,
@@ -739,7 +734,7 @@ class _RemindersState extends State<Reminders> {
                                       "?",
                                       style: GoogleFonts.manrope(
                                         color: lightenColor(
-                                          appColorNotifier.value,
+                                          appColor,
                                           0.3,
                                         ).withAlpha(180),
                                         fontSize: Responsive.font(context, 15),
@@ -779,10 +774,7 @@ class _RemindersState extends State<Reminders> {
                                   ),
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedMessage01,
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.3,
-                                    ),
+                                    color: lightenColor(appColor, 0.3),
                                     size: Responsive.scale(context, 18),
                                   ),
                                 ),
@@ -802,12 +794,9 @@ class _RemindersState extends State<Reminders> {
                                                 ? HugeIcons.strokeRoundedMic01
                                                 : HugeIcons.strokeRoundedMic02,
                                             color: _voiceSearch.isListening
-                                                ? lightenColor(
-                                                    appColorNotifier.value,
-                                                    0.45,
-                                                  )
+                                                ? lightenColor(appColor, 0.45)
                                                 : lightenColor(
-                                                    appColorNotifier.value,
+                                                    appColor,
                                                     0.45,
                                                   ).withAlpha(140),
                                             size: Responsive.scale(context, 18),
@@ -902,10 +891,7 @@ class _RemindersState extends State<Reminders> {
                                   children: [
                                     HugeIcon(
                                       icon: HugeIcons.strokeRoundedClock01,
-                                      color: lightenColor(
-                                        appColorNotifier.value,
-                                        0.3,
-                                      ),
+                                      color: lightenColor(appColor, 0.3),
                                       size: Responsive.scale(context, 18),
                                     ),
                                     SizedBox(

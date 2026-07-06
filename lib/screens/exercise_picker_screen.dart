@@ -1,4 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,7 +50,7 @@ const _muscleOptions = [
   'Triceps',
 ];
 
-class ExercisePickerScreen extends StatefulWidget {
+class ExercisePickerScreen extends ConsumerStatefulWidget {
   final void Function(Map<String, dynamic> exercise) onExerciseSelected;
   final String? replacingExercisePrimaryMuscle;
 
@@ -59,11 +61,14 @@ class ExercisePickerScreen extends StatefulWidget {
   });
 
   @override
-  State<ExercisePickerScreen> createState() => _ExercisePickerScreenState();
+  ConsumerState<ExercisePickerScreen> createState() =>
+      _ExercisePickerScreenState();
 }
 
-class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
-  late final VoidCallback _colorListener;
+class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -80,10 +85,6 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   @override
   void initState() {
     super.initState();
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     if (!isGuest) {
       _fetchRecentExercises();
       final muscle = widget.replacingExercisePrimaryMuscle;
@@ -111,8 +112,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
     BuildContext context,
     Map<String, dynamic> ex,
   ) async {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     await showFrostedDialog(
       context: context,
       child: Column(
@@ -189,7 +190,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                     child: Text(
                       'Delete',
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -212,14 +213,14 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                 children: [
                   Icon(
                     Icons.delete_outline,
-                    color: lightenColor(appColorNotifier.value, 0.45),
+                    color: lightenColor(appColor, 0.45),
                     size: Responsive.scale(context, 18),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Delete',
                     style: GoogleFonts.manrope(
-                      color: lightenColor(appColorNotifier.value, 0.45),
+                      color: lightenColor(appColor, 0.45),
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -273,8 +274,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       dismissible: false,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = lightenColor(appColorNotifier.value, 0.45);
-          final dim = lightenColor(appColorNotifier.value, 0.35);
+          final accent = lightenColor(appColor, 0.45);
+          final dim = lightenColor(appColor, 0.35);
           // wrap in a closure so setDialogState is in scope for nested widgets
           return Builder(
             builder: (dialogContext) {
@@ -773,7 +774,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                     Text(
                       errorMsg!,
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontSize: Responsive.font(context, 12),
                       ),
                     ),
@@ -910,7 +911,6 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -985,8 +985,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       context: context,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = lightenColor(appColorNotifier.value, 0.45);
-          final dim = lightenColor(appColorNotifier.value, 0.35);
+          final accent = lightenColor(appColor, 0.45);
+          final dim = lightenColor(appColor, 0.35);
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1092,8 +1092,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
   }
 
   Widget _filterButton(String label, Set<String> selected, VoidCallback onTap) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final active = selected.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
@@ -1136,9 +1136,7 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                   : 'Multiple',
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                color: active
-                    ? accent
-                    : lightenColor(appColorNotifier.value, 0.45),
+                color: active ? accent : lightenColor(appColor, 0.45),
                 fontSize: Responsive.font(context, 12),
                 fontWeight: active ? FontWeight.w700 : FontWeight.w600,
               ),
@@ -1151,7 +1149,6 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor = appColorNotifier.value;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final c = cardColors(appColor);
@@ -1348,14 +1345,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                           enabled: true,
                           ignoreContainers: false,
                           effect: ShimmerEffect(
-                            baseColor: lightenColor(
-                              appColorNotifier.value,
-                              0.10,
-                            ),
-                            highlightColor: lightenColor(
-                              appColorNotifier.value,
-                              0.22,
-                            ),
+                            baseColor: lightenColor(appColor, 0.10),
+                            highlightColor: lightenColor(appColor, 0.22),
                             duration: const Duration(milliseconds: 1200),
                           ),
                           child: ListView(
@@ -1582,8 +1573,8 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
       enabled: true,
       ignoreContainers: false,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColorNotifier.value, 0.10),
-        highlightColor: lightenColor(appColorNotifier.value, 0.22),
+        baseColor: lightenColor(appColor, 0.10),
+        highlightColor: lightenColor(appColor, 0.22),
         duration: const Duration(milliseconds: 1200),
       ),
       child: Column(

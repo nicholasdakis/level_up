@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 
 // Calendar range picker card + hint text, shared across analytics screens
 // onRangeSelected fires when both dates are picked; rangeLabel appears in the hint text
 // collapses to show selected range info once a range is picked, same card throughout
-class RangePickerCard extends StatefulWidget {
+class RangePickerCard extends ConsumerStatefulWidget {
   final DateTime? rangeStart;
   final DateTime? rangeEnd;
   final bool rangeSelected;
@@ -32,10 +35,10 @@ class RangePickerCard extends StatefulWidget {
   });
 
   @override
-  State<RangePickerCard> createState() => _RangePickerCardState();
+  ConsumerState<RangePickerCard> createState() => _RangePickerCardState();
 }
 
-class _RangePickerCardState extends State<RangePickerCard> {
+class _RangePickerCardState extends ConsumerState<RangePickerCard> {
   late bool _collapsed = widget.rangeSelected;
 
   @override
@@ -56,7 +59,9 @@ class _RangePickerCardState extends State<RangePickerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
 
     return GestureDetector(
       onTap: _collapsed
@@ -147,11 +152,11 @@ class _RangePickerCardState extends State<RangePickerCard> {
                               outsideDaysVisible: false,
                               todayDecoration: const BoxDecoration(),
                               rangeStartDecoration: BoxDecoration(
-                                color: appColorNotifier.value,
+                                color: appColor,
                                 shape: BoxShape.circle,
                               ),
                               rangeEndDecoration: BoxDecoration(
-                                color: appColorNotifier.value,
+                                color: appColor,
                                 shape: BoxShape.circle,
                               ),
                               withinRangeDecoration: const BoxDecoration(
@@ -286,7 +291,8 @@ Widget buildRangeChips(
   int selectedIndex,
   void Function(int) onTap,
 ) {
-  final accent = lightenColor(appColorNotifier.value, 0.45);
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+  final accent = lightenColor(appColor, 0.45);
   Widget chip(int i) => GestureDetector(
     onTap: () => onTap(i),
     child: AnimatedContainer(
@@ -312,9 +318,7 @@ Widget buildRangeChips(
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 13),
           fontWeight: selectedIndex == i ? FontWeight.w700 : FontWeight.w500,
-          color: selectedIndex == i
-              ? accent
-              : lightenColor(appColorNotifier.value, 0.3),
+          color: selectedIndex == i ? accent : lightenColor(appColor, 0.3),
         ),
       ),
     ),

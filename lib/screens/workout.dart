@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -15,15 +18,17 @@ class _WorkoutAnimationState {
   static bool animated = false;
 }
 
-class Workout extends StatefulWidget {
+class Workout extends ConsumerStatefulWidget {
   const Workout({super.key});
 
   @override
-  State<Workout> createState() => _WorkoutState();
+  ConsumerState<Workout> createState() => _WorkoutState();
 }
 
-class _WorkoutState extends State<Workout> {
-  late final VoidCallback _colorListener;
+class _WorkoutState extends ConsumerState<Workout> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
   List<Map<String, dynamic>> _myRoutines = [];
@@ -51,23 +56,17 @@ class _WorkoutState extends State<Workout> {
       screenName: '/workout',
       screenClass: 'Workout',
     );
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-
     _sessionListener = () {
       if (mounted) setState(() {});
     };
     workoutSessionService.addListener(_sessionListener);
 
-    appColorNotifier.addListener(_colorListener);
-    userDataNotifier.addListener(_colorListener);
     workoutLogNotifier.addListener(_onWorkoutLogged);
     _updateResetCountdown();
     _resetTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _updateResetCountdown();
     });
-    if (!isGuest && currentUserData == null) {
+    if (!isGuest && ref.read(userDataProvider).value == null) {
       _loading = true;
       userManager.loadUserData().then((_) {
         if (mounted) setState(() => _loading = false);
@@ -105,8 +104,8 @@ class _WorkoutState extends State<Workout> {
     _dismissHeatmapTooltip();
     final box = cellContext.findRenderObject() as RenderBox;
     final offset = box.localToGlobal(Offset.zero);
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     _heatmapTooltip = OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -223,8 +222,6 @@ class _WorkoutState extends State<Workout> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
-    userDataNotifier.removeListener(_colorListener);
     workoutLogNotifier.removeListener(_onWorkoutLogged);
     workoutSessionService.removeListener(_sessionListener);
     _resetTimer?.cancel();
@@ -232,9 +229,12 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildGoalCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
-    final int weeklyGoal = currentUserData?.weeklyWorkoutsGoal ?? 5;
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+    final int weeklyGoal =
+        ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
     final int workoutsThisWeek = _weeklyWorkoutCount;
 
     final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
@@ -287,7 +287,7 @@ class _WorkoutState extends State<Workout> {
                 minHeight: Responsive.height(context, 6),
                 backgroundColor: Colors.white.withAlpha(20),
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  lightenColor(appColorNotifier.value, 0.4),
+                  lightenColor(appColor, 0.4),
                 ),
               ),
             ),
@@ -304,7 +304,7 @@ class _WorkoutState extends State<Workout> {
                 return 'Resets in ${minutes}m';
               }(),
               style: GoogleFonts.manrope(
-                color: lightenColor(appColorNotifier.value, 0.35),
+                color: lightenColor(appColor, 0.35),
                 fontSize: Responsive.font(context, 10),
               ),
             ),
@@ -315,15 +315,15 @@ class _WorkoutState extends State<Workout> {
   }
 
   Future<void> _onSetWeeklyGoal(BuildContext context) async {
-    final current = currentUserData?.weeklyWorkoutsGoal;
+    final current = ref.read(userDataProvider).value?.weeklyWorkoutsGoal;
     int selected = current ?? 3;
 
     final result = await showFrostedDialog<int>(
       context: context,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = lightenColor(appColorNotifier.value, 0.45);
-          final dim = lightenColor(appColorNotifier.value, 0.35);
+          final accent = lightenColor(appColor, 0.45);
+          final dim = lightenColor(appColor, 0.35);
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -430,8 +430,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildRecentWorkoutsCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final recentWorkouts = _recentWorkouts;
 
     return frostedGlassCard(
@@ -536,8 +538,8 @@ class _WorkoutState extends State<Workout> {
     BuildContext context,
     Map<String, dynamic> routine,
   ) async {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
       title: 'Delete Routine',
@@ -686,8 +688,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildStartWorkoutCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final bool inProgress = workoutSessionService.isActive;
 
     return GestureDetector(
@@ -759,8 +763,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildRoutineActionCards(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
 
     Widget card(
       IconData icon,
@@ -831,8 +837,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildMyRoutinesCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     final List<Map<String, dynamic>> routines = _myRoutines;
 
     return frostedGlassCard(
@@ -979,7 +987,9 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildLiftsCard(BuildContext context) {
-    final c = cardColors(appColorNotifier.value);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final subtle = c.onCard.withAlpha(120);
@@ -1173,7 +1183,9 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _buildHeatmapCard(BuildContext context) {
-    final c = cardColors(appColorNotifier.value);
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+    final c = cardColors(appColor);
     final accent = c.onCard;
     const int weeks = 12;
     const int daysPerWeek = 7;
@@ -1395,6 +1407,8 @@ class _WorkoutState extends State<Workout> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -1407,8 +1421,8 @@ class _WorkoutState extends State<Workout> {
               Skeletonizer(
                 enabled: _loading,
                 effect: ShimmerEffect(
-                  baseColor: lightenColor(appColorNotifier.value, 0.3),
-                  highlightColor: lightenColor(appColorNotifier.value, 0.1),
+                  baseColor: lightenColor(appColor, 0.3),
+                  highlightColor: lightenColor(appColor, 0.1),
                   duration: const Duration(milliseconds: 1200),
                 ),
                 child: ScrollConfiguration(
@@ -1469,8 +1483,10 @@ class _WorkoutState extends State<Workout> {
   }
 
   Widget _guestLock(BuildContext context, Widget child) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     if (!isGuest) return child;
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accent = lightenColor(appColor, 0.45);
     return GestureDetector(
       onTap: Guest.exit,
       child: Stack(

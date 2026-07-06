@@ -12,6 +12,9 @@ import 'package:latlong2/latlong.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../utility/responsive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import '../utility/confetti.dart';
 import '../models/poi.dart';
 import '../utility/poi/poi_icons.dart';
@@ -23,14 +26,17 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:map_launcher/map_launcher.dart';
 
-class Explore extends StatefulWidget {
+class Explore extends ConsumerStatefulWidget {
   const Explore({super.key});
 
   @override
-  State<Explore> createState() => _ExploreState();
+  ConsumerState<Explore> createState() => _ExploreState();
 }
 
-class _ExploreState extends State<Explore> {
+class _ExploreState extends ConsumerState<Explore> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   LatLng? userLocation;
   bool _locationRequested =
       false; // true once the user has tapped to grant location
@@ -63,7 +69,7 @@ class _ExploreState extends State<Explore> {
 
   // Restricted to the Google Play reviewer account so real users cannot fake check-ins
   static const _testUid = 'Inu2nmOe0lbwhj1zbjsk4oSf5R42';
-  bool get _isTestAccount => currentUserData?.uid == _testUid;
+  bool get _isTestAccount => ref.read(userDataProvider).value?.uid == _testUid;
 
   // Simulated NYC spawn point (Times Square). One POI is placed exactly here so it is immediately claimable
   // User spawns ~10m from Times Square so it looks natural but is still within the 30m check-in range
@@ -107,8 +113,6 @@ class _ExploreState extends State<Explore> {
     _refreshClosestCheckinPOI();
   }
 
-  late final VoidCallback _colorListener;
-
   @override
   void initState() {
     super.initState();
@@ -116,10 +120,6 @@ class _ExploreState extends State<Explore> {
       screenName: '/explore',
       screenClass: 'Explore',
     );
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     _poiService.cleanupOldVisits();
     if (isGuest) {
       // For guest users
@@ -131,7 +131,6 @@ class _ExploreState extends State<Explore> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     _mapController.dispose();
     _positionStream?.cancel();
     super.dispose();
@@ -408,14 +407,16 @@ class _ExploreState extends State<Explore> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        final levelBefore = currentUserData!.level;
+        final levelBefore = ref.read(userDataProvider).value!.level;
         if (result['new_level'] != null) {
+          // TODO: migrate mutation to notifier
           currentUserData!.level = result['new_level'];
           if (levelBefore < 3 && currentUserData!.level >= 3) {
             FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
           }
         }
         if (result['new_exp'] != null) {
+          // TODO: migrate mutation to notifier
           currentUserData!.expPoints = result['new_exp'];
           expNotifier.value = result['new_exp']; // trigger XP bar rebuild
         }
@@ -563,6 +564,8 @@ class _ExploreState extends State<Explore> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Offset pushes the back button down so the card doesn't cover it on mobile
     // Offset pushes buttons down so the card doesn't cover them on mobile
     // Error is just a line of text, skeleton is 4 rows, full POI list is tallest
@@ -644,7 +647,7 @@ class _ExploreState extends State<Explore> {
                       height: 35,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: appColorNotifier.value,
+                          color: appColor,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),

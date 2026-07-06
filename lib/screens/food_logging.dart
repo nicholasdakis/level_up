@@ -1,4 +1,6 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,14 +25,17 @@ List<Color> _mealColors(Color base) {
   ];
 }
 
-class FoodLogging extends StatefulWidget {
+class FoodLogging extends ConsumerStatefulWidget {
   const FoodLogging({super.key});
 
   @override
-  State<FoodLogging> createState() => _FoodLoggingState();
+  ConsumerState<FoodLogging> createState() => _FoodLoggingState();
 }
 
-class _FoodLoggingState extends State<FoodLogging> {
+class _FoodLoggingState extends ConsumerState<FoodLogging> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   DateTime currentDate = DateTime.now();
   late Future<void> _loadUserDataFuture;
 
@@ -70,15 +75,17 @@ class _FoodLoggingState extends State<FoodLogging> {
   }
 
   // getters that read from currentUserData so goals are always up to date
-  double get _goalCalories => (currentUserData?.caloriesGoal ?? 0).toDouble();
-  double get _goalProtein => (currentUserData?.proteinGoal ?? 0).toDouble();
-  double get _goalCarbs => (currentUserData?.carbsGoal ?? 0).toDouble();
-  double get _goalFat => (currentUserData?.fatGoal ?? 0).toDouble();
+  double get _goalCalories =>
+      (ref.read(userDataProvider).value?.caloriesGoal ?? 0).toDouble();
+  double get _goalProtein =>
+      (ref.read(userDataProvider).value?.proteinGoal ?? 0).toDouble();
+  double get _goalCarbs =>
+      (ref.read(userDataProvider).value?.carbsGoal ?? 0).toDouble();
+  double get _goalFat =>
+      (ref.read(userDataProvider).value?.fatGoal ?? 0).toDouble();
   bool get _goalsSet =>
-      currentUserData?.caloriesGoal !=
+      ref.read(userDataProvider).value?.caloriesGoal !=
       null; // true only if the user has set at least a calorie goal
-
-  late final VoidCallback _colorListener;
 
   @override
   void initState() {
@@ -87,10 +94,6 @@ class _FoodLoggingState extends State<FoodLogging> {
       screenName: '/food-logging',
       screenClass: 'FoodLogging',
     );
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     foodLogNotifier.addListener(_onFoodChanged);
     _loadCollapsedState();
     _loadUserDataFuture = _loadUserDataAndInit();
@@ -100,7 +103,6 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     foodLogNotifier.removeListener(_onFoodChanged);
     super.dispose();
   }
@@ -111,8 +113,9 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   Future<void> _loadUserDataAndInit() async {
     if (isGuest ||
-        (currentUserData != null &&
-            currentUserData!.uid == FirebaseAuth.instance.currentUser?.uid)) {
+        (ref.read(userDataProvider).value != null &&
+            ref.read(userDataProvider).value!.uid ==
+                FirebaseAuth.instance.currentUser?.uid)) {
       await _refreshAndLoadFood();
       return;
     }
@@ -127,7 +130,7 @@ class _FoodLoggingState extends State<FoodLogging> {
 
   void loadFoodForDate(DateTime date) {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
     setState(() {
       breakfastFoods = logs
           .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
@@ -211,6 +214,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     final removed = foods[idx];
     setState(() {
       foods.removeAt(idx);
+      // TODO: migrate mutation to notifier
       currentUserData?.foodLogs.removeWhere(
         (f) =>
             f['date'] == dateKey &&
@@ -292,9 +296,12 @@ class _FoodLoggingState extends State<FoodLogging> {
       food['fat'] = scaled['fat'];
       food['serving_size'] = '$newAmt $unit';
       // Update the same item in foodLogs by id
-      final idx = currentUserData?.foodLogs.indexWhere(
-        (f) => f['id'] == food['id'],
-      );
+      final idx = ref
+          .read(userDataProvider)
+          .value
+          ?.foodLogs
+          .indexWhere((f) => f['id'] == food['id']);
+      // TODO: migrate mutation to notifier
       if (idx != null && idx >= 0) currentUserData?.foodLogs[idx] = food;
     });
     await _saveFoodData("edit"); // store the changes
@@ -302,9 +309,12 @@ class _FoodLoggingState extends State<FoodLogging> {
   }
 
   Future<void> _saveFoodData(String addOrDelete) async {
-    if (currentUserData == null) return;
+    if (ref.read(userDataProvider).value == null) return;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final logs = currentUserData!.foodLogs
+    final logs = ref
+        .read(userDataProvider)
+        .value!
+        .foodLogs
         .where((f) => f['date'] == dateKey)
         .toList();
     final currentDateData = {
@@ -335,7 +345,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     }
   }
 
-  Widget _buildMacroText(Map<String, dynamic> food) {
+  Widget _buildMacroText(Map<String, dynamic> food, Color appColor) {
     final macros = FoodLoggingHelper.extractMacrosFromFood(food);
     final serving = FoodLoggingHelper.parseServing(
       food['food_description'] as String? ?? '',
@@ -345,7 +355,7 @@ class _FoodLoggingState extends State<FoodLogging> {
         ? servingAmt.toInt().toString()
         : servingAmt.toString();
     final cal = num.tryParse(food['calories'].toString()) ?? 0;
-    final base = appColorNotifier.value;
+    final base = appColor;
     final dim = lightenColor(base, 0.35);
 
     Widget chip(String label, double value) {
@@ -403,10 +413,10 @@ class _FoodLoggingState extends State<FoodLogging> {
       return;
     }
     final current = switch (type) {
-      'calories' => currentUserData?.caloriesGoal,
-      'protein' => currentUserData?.proteinGoal,
-      'carbs' => currentUserData?.carbsGoal,
-      'fat' => currentUserData?.fatGoal,
+      'calories' => ref.read(userDataProvider).value?.caloriesGoal,
+      'protein' => ref.read(userDataProvider).value?.proteinGoal,
+      'carbs' => ref.read(userDataProvider).value?.carbsGoal,
+      'fat' => ref.read(userDataProvider).value?.fatGoal,
       _ => null,
     };
     final label = switch (type) {
@@ -427,7 +437,7 @@ class _FoodLoggingState extends State<FoodLogging> {
           Text(
             label,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -439,23 +449,21 @@ class _FoodLoggingState extends State<FoodLogging> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 24),
               fontWeight: FontWeight.w700,
             ),
             decoration: InputDecoration(
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(
-                color: lightenColor(appColorNotifier.value, 0.35),
+                color: lightenColor(appColor, 0.35),
                 fontSize: Responsive.font(context, 14),
               ),
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white24),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: lightenColor(appColorNotifier.value, 0.45),
-                ),
+                borderSide: BorderSide(color: lightenColor(appColor, 0.45)),
               ),
             ),
           ),
@@ -559,7 +567,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 36),
                   fontWeight: FontWeight.w800,
-                  color: lightenColor(appColorNotifier.value, 0.45),
+                  color: lightenColor(appColor, 0.45),
                   height: 1,
                 ),
               ),
@@ -571,7 +579,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                       " / ${_goalCalories.round()} kcal",
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 13),
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                       ),
                     ),
                     SizedBox(width: Responsive.width(context, 4)),
@@ -598,16 +606,14 @@ class _FoodLoggingState extends State<FoodLogging> {
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
                       fontWeight: FontWeight.w600,
-                      color: isOver
-                          ? lightenColor(appColorNotifier.value, 0.45)
-                          : barColor,
+                      color: isOver ? lightenColor(appColor, 0.45) : barColor,
                     ),
                   ),
                   Text(
                     "daily goal",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: lightenColor(appColorNotifier.value, 0.45),
+                      color: lightenColor(appColor, 0.45),
                     ),
                   ),
                 ],
@@ -642,9 +648,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     child: Container(
                       height: Responsive.height(context, 8),
                       decoration: BoxDecoration(
-                        color: isOver
-                            ? lightenColor(appColorNotifier.value, 0.45)
-                            : barColor,
+                        color: isOver ? lightenColor(appColor, 0.45) : barColor,
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 6),
                         ),
@@ -768,14 +772,14 @@ class _FoodLoggingState extends State<FoodLogging> {
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
             fontWeight: FontWeight.w700,
-            color: lightenColor(appColorNotifier.value, 0.45),
+            color: lightenColor(appColor, 0.45),
           ),
         ),
         Text(
           label,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: lightenColor(appColorNotifier.value, 0.45),
+            color: lightenColor(appColor, 0.45),
           ),
         ),
         Row(
@@ -785,7 +789,7 @@ class _FoodLoggingState extends State<FoodLogging> {
               "/ ${goal.toStringAsFixed(0)}g",
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 10),
-                color: lightenColor(appColorNotifier.value, 0.45),
+                color: lightenColor(appColor, 0.45),
               ),
             ),
             SizedBox(width: Responsive.width(context, 3)),
@@ -881,6 +885,7 @@ class _FoodLoggingState extends State<FoodLogging> {
     String mealKey,
     String title,
     List<Map<String, dynamic>> foods,
+    Color appColor,
     Color accentColor,
   ) {
     final isCollapsed = _collapsed[mealKey] ?? false;
@@ -925,7 +930,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   "${title.toUpperCase()} (${foods.length})",
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 14),
-                    color: lightenColor(appColorNotifier.value, 0.45),
+                    color: lightenColor(appColor, 0.45),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
                   ),
@@ -952,10 +957,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               text: " cal",
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 11),
-                                color: lightenColor(
-                                  appColorNotifier.value,
-                                  0.45,
-                                ),
+                                color: lightenColor(appColor, 0.45),
                               ),
                             ),
                           ],
@@ -965,7 +967,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                         'P ${mealProtein.round()}g · C ${mealCarbs.round()}g · F ${mealFat.round()}g',
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 10),
-                          color: lightenColor(appColorNotifier.value, 0.35),
+                          color: lightenColor(appColor, 0.35),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -978,7 +980,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                   duration: const Duration(milliseconds: 200),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowDown01,
-                    color: lightenColor(appColorNotifier.value, 0.45),
+                    color: lightenColor(appColor, 0.45),
                     size: Responsive.scale(context, 20),
                   ),
                 ),
@@ -1006,7 +1008,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                     "No foods logged",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: lightenColor(appColorNotifier.value, 0.45),
+                      color: lightenColor(appColor, 0.45),
                     ),
                   ),
                 )
@@ -1045,10 +1047,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                                             context,
                                             14,
                                           ),
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.45,
-                                          ),
+                                          color: lightenColor(appColor, 0.45),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1067,16 +1066,13 @@ class _FoodLoggingState extends State<FoodLogging> {
                                             context,
                                             13,
                                           ),
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.35,
-                                          ),
+                                          color: lightenColor(appColor, 0.35),
                                         ),
                                       ),
                                   ],
                                 ),
                                 SizedBox(height: Responsive.height(context, 6)),
-                                _buildMacroText(food),
+                                _buildMacroText(food, appColor),
                               ],
                             ),
                           ),
@@ -1084,7 +1080,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                             onTap: () => _editServingSize(mealKey, foods, food),
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedEdit03,
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               size: Responsive.scale(context, 26),
                             ),
                           ),
@@ -1093,7 +1089,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                             onTap: () => _deleteFood(mealKey, idx, foods),
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedDelete02,
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               size: Responsive.scale(context, 26),
                             ),
                           ),
@@ -1166,7 +1162,6 @@ class _FoodLoggingState extends State<FoodLogging> {
       future: _loadUserDataFuture,
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState != ConnectionState.done;
-        final appColor = appColorNotifier.value;
         final colors = _mealColors(appColor);
 
         return Container(
@@ -1214,12 +1209,12 @@ class _FoodLoggingState extends State<FoodLogging> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.1,
                                 ).withAlpha(20),
                                 border: Border.all(
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(180),
                                   width: 1.5,
@@ -1228,7 +1223,7 @@ class _FoodLoggingState extends State<FoodLogging> {
                               child: Icon(
                                 Icons.refresh,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.3,
                                 ).withAlpha(180),
                                 size: Responsive.font(context, 13),
@@ -1251,24 +1246,28 @@ class _FoodLoggingState extends State<FoodLogging> {
                         "Breakfast",
                         breakfastFoods,
                         colors[0],
+                        appColor,
                       ),
                       _buildMealSection(
                         "lunch",
                         "Lunch",
                         lunchFoods,
                         colors[1],
+                        appColor,
                       ),
                       _buildMealSection(
                         "dinner",
                         "Dinner",
                         dinnerFoods,
                         colors[2],
+                        appColor,
                       ),
                       _buildMealSection(
                         "snacks",
                         "Snacks",
                         snacksFoods,
                         colors[3],
+                        appColor,
                       ),
 
                       SizedBox(height: Responsive.height(context, 24)),

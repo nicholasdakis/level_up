@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,14 +11,16 @@ import '/utility/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/services/user_data_manager.dart' show trackTrivialAchievement;
 
-class AboutTheDeveloper extends StatefulWidget {
+class AboutTheDeveloper extends ConsumerStatefulWidget {
   const AboutTheDeveloper({super.key});
 
   @override
-  State<AboutTheDeveloper> createState() => _AboutTheDeveloperState();
+  ConsumerState<AboutTheDeveloper> createState() => _AboutTheDeveloperState();
 }
 
-class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
+class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +32,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -57,24 +64,15 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -93,7 +91,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             "I'm Nicholas Dakis, a Computer Science student.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               height: 1.6,
                             ),
                           ),
@@ -102,7 +100,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             "I built Level Up! as a solo project to put my skills into practice. It covers the full stack: Flutter, Python, Supabase, cloud deployment, and everything in between.",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               height: 1.6,
                             ),
                           ),
@@ -159,7 +157,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             "Have a suggestion or found a bug? I read every message!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               height: 1.5,
                             ),
                           ),
@@ -197,13 +195,13 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             "If you've been enjoying the app and want to support development, any contribution is appreciated!",
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 14),
-                              color: lightenColor(appColorNotifier.value, 0.45),
+                              color: lightenColor(appColor, 0.45),
                               height: 1.5,
                             ),
                           ),
                           SizedBox(height: Responsive.height(context, 14)),
                           InkWell(
-                            splashColor: appColorNotifier.value.withAlpha(60),
+                            splashColor: appColor.withAlpha(60),
                             borderRadius: BorderRadius.circular(
                               Responsive.scale(context, 12),
                             ),
@@ -216,13 +214,8 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                             child: frostedGlassCard(
                               context,
                               baseRadius: 12,
-                              backgroundColor:
-                                  appColorNotifier.value.computeLuminance() <
-                                      0.2
-                                  ? darkenColor(
-                                      appColorNotifier.value,
-                                      0.08,
-                                    ).withAlpha(60)
+                              backgroundColor: appColor.computeLuminance() < 0.2
+                                  ? darkenColor(appColor, 0.08).withAlpha(60)
                                   : Colors.white.withAlpha(40),
                               padding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 14),
@@ -232,10 +225,7 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                                 children: [
                                   HugeIcon(
                                     icon: HugeIcons.strokeRoundedFavourite,
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
-                                    ),
+                                    color: lightenColor(appColor, 0.45),
                                     size: Responsive.scale(context, 20),
                                   ),
                                   SizedBox(
@@ -246,20 +236,14 @@ class _AboutTheDeveloperState extends State<AboutTheDeveloper> {
                                       "Donate via PayPal",
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 14),
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.45,
-                                        ),
+                                        color: lightenColor(appColor, 0.45),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
                                   HugeIcon(
                                     icon: HugeIcons.strokeRoundedArrowRight01,
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
-                                    ),
+                                    color: lightenColor(appColor, 0.45),
                                     size: Responsive.scale(context, 20),
                                   ),
                                 ],

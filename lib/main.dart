@@ -21,7 +21,9 @@ import 'utility/remove_splash_stub.dart'
     if (dart.library.js_interop) 'utility/remove_splash_web.dart';
 import 'utility/viewport_height_stub.dart'
     if (dart.library.js_interop) 'utility/viewport_height_web.dart';
-import 'services/user_data_manager.dart' show backendBaseUrl;
+import 'services/user_data_manager.dart' show backendBaseUrl, defaultAppColor;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers/user_data_provider.dart';
 import 'screens/level_up_overlay.dart';
 
 Future<void> main() async {
@@ -51,7 +53,7 @@ Future<void> main() async {
   confettiControllerinit();
   appLaunchUri = Uri.base;
   listenToViewportHeight((h) => viewportHeightNotifier.value = h);
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 
   if (!kIsWeb) {
     adService.initialize();
@@ -65,14 +67,14 @@ Future<void> main() async {
   });
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   // start as true so the first connectivity event always triggers _onReconnect if online
   bool _wasOffline = true;
@@ -177,83 +179,78 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final color =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
       builder: (context, child) {
-        return ValueListenableBuilder<Color>(
-          valueListenable: appColorNotifier,
-          builder: (context, color, _) {
-            return MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              // go_router handles all navigation
-              routerConfig: appRouter,
-              theme: ThemeData(
-                useMaterial3: true,
-                colorScheme: ColorScheme.dark(
-                  primary: Colors.white, // text and buttons
-                  surface: color.withAlpha(200),
-                ),
-                scaffoldBackgroundColor: color.withAlpha(200),
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          // go_router handles all navigation
+          routerConfig: appRouter,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.dark(
+              primary: Colors.white, // text and buttons
+              surface: color.withAlpha(200),
+            ),
+            scaffoldBackgroundColor: color.withAlpha(200),
 
-                dialogTheme: DialogThemeData(
-                  backgroundColor: color.withAlpha(
-                    170,
-                  ), // main dialog theme transparency
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    side: BorderSide(
-                      color: Colors.white.withAlpha(100),
-                      width: 1.5,
-                    ),
-                  ),
-                  titleTextStyle: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  contentTextStyle: GoogleFonts.manrope(
-                    color: Colors.white70,
-                    fontSize: 15,
-                  ),
-                ),
-
-                appBarTheme: AppBarTheme(
-                  backgroundColor: color.withAlpha(200),
-                  iconTheme: IconThemeData(color: Colors.white),
-                  titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
-                ),
-                textButtonTheme: TextButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStateProperty.all(Colors.white),
-                  ),
-                ),
-                snackBarTheme: SnackBarThemeData(
-                  backgroundColor: darkenColor(color, 0.025),
-                  contentTextStyle: TextStyle(color: Colors.white),
-                ),
-                elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(
-                      color.withAlpha(200),
-                    ),
-                    foregroundColor: WidgetStateProperty.all(Colors.white),
-                  ),
-                ),
-                inputDecorationTheme: InputDecorationTheme(
-                  hintStyle: const TextStyle(color: Colors.white70),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                  ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: color.withAlpha(
+                170,
+              ), // main dialog theme transparency
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+                side: BorderSide(
+                  color: Colors.white.withAlpha(100),
+                  width: 1.5,
                 ),
               ),
-            );
-          },
+              titleTextStyle: GoogleFonts.manrope(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+              contentTextStyle: GoogleFonts.manrope(
+                color: Colors.white70,
+                fontSize: 15,
+              ),
+            ),
+
+            appBarTheme: AppBarTheme(
+              backgroundColor: color.withAlpha(200),
+              iconTheme: IconThemeData(color: Colors.white),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                foregroundColor: WidgetStateProperty.all(Colors.white),
+              ),
+            ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: darkenColor(color, 0.025),
+              contentTextStyle: TextStyle(color: Colors.white),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(color.withAlpha(200)),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
+              ),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              hintStyle: const TextStyle(color: Colors.white70),
+              labelStyle: const TextStyle(color: Colors.white),
+              enabledBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+            ),
+          ),
         );
       },
     );

@@ -1,24 +1,28 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'floating_nav_bar.dart' show FloatingNavBar, kTabExplore;
 import 'workout_mini_bar.dart';
 import '../utility/responsive.dart';
 import '../globals.dart';
 import '../services/workout_session_service.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppShell({super.key, required this.navigationShell});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late final VoidCallback _sessionListener;
-  late final VoidCallback _colorListener;
   late final Timer _timer;
   bool _miniCollapsed = false;
 
@@ -28,11 +32,7 @@ class _AppShellState extends State<AppShell> {
     _sessionListener = () {
       if (mounted) setState(() {});
     };
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
     workoutSessionService.addListener(_sessionListener);
-    appColorNotifier.addListener(_colorListener);
     // tick every second so the elapsed time in the mini bar updates
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && workoutSessionService.isActive) setState(() {});
@@ -42,7 +42,6 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     workoutSessionService.removeListener(_sessionListener);
-    appColorNotifier.removeListener(_colorListener);
     _timer.cancel();
     super.dispose();
   }
@@ -58,8 +57,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final selectedIndex = widget.navigationShell.currentIndex;
-    final appColor = appColorNotifier.value;
     final session = workoutSessionService.session;
     final showMiniBar = session != null;
 

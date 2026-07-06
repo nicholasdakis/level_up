@@ -1,8 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
+import '../providers/user_data_provider.dart';
+import '../services/user_data_manager.dart' show defaultAppColor;
 
 // Tab index constants
 const kTabHome = 0;
@@ -33,7 +36,7 @@ const _navIcons = [
 const _navLabels = ['Home', 'Workout', 'Food', 'Progress', 'Explore'];
 
 // Floating frosted glass bottom navigation bar with 5 persistent tabs
-class FloatingNavBar extends StatelessWidget {
+class FloatingNavBar extends ConsumerWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
 
@@ -53,12 +56,9 @@ class FloatingNavBar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Rebuild when the app color changes so active icons stay in sync with the theme
-    return ValueListenableBuilder<Color>(
-      valueListenable: appColorNotifier,
-      builder: (context, appColor, _) {
-        return SafeArea(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appColor = ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    return SafeArea(
           // SafeArea prevents the bar from overlapping the home indicator on iOS
           child: Center(
             child: ConstrainedBox(
@@ -111,8 +111,6 @@ class FloatingNavBar extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 }
 

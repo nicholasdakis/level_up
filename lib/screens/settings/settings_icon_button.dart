@@ -1,19 +1,24 @@
 import 'dart:ui';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:level_up/utility/responsive.dart';
 import 'package:level_up/globals.dart';
 
-class SettingsIconButton extends StatefulWidget {
+class SettingsIconButton extends ConsumerStatefulWidget {
   final VoidCallback onTap;
 
   const SettingsIconButton({super.key, required this.onTap});
 
   @override
-  State<SettingsIconButton> createState() => _SettingsIconButtonState();
+  ConsumerState<SettingsIconButton> createState() => _SettingsIconButtonState();
 }
 
-class _SettingsIconButtonState extends State<SettingsIconButton>
+class _SettingsIconButtonState extends ConsumerState<SettingsIconButton>
     with SingleTickerProviderStateMixin {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late AnimationController _controller;
   late Animation<double> _glowAnimation;
   bool _isPressed = false;
@@ -49,7 +54,9 @@ class _SettingsIconButtonState extends State<SettingsIconButton>
 
   @override
   Widget build(BuildContext context) {
-    final color = appColorNotifier.value; // matches HomeScreen color source
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final color = appColor; // matches HomeScreen color source
 
     return AnimatedBuilder(
       animation: _glowAnimation,

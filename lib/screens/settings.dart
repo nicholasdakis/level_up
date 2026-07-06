@@ -18,6 +18,7 @@ Widget buildSettingsDrawer(
   GlobalKey<ScaffoldState>?
   scaffoldKey, // for opening the settings drawer outside its build method
 }) {
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   final openedAsPwa = kIsWeb
       ? isPwa()
       : false; // fallback to prevent error if called before JS is loaded
@@ -35,7 +36,7 @@ Widget buildSettingsDrawer(
       : currentUserData!.username!;
 
   // Consistent tile for items that show a dialog or external action instead of navigating
-  final accentColor = lightenColor(appColorNotifier.value, 0.45);
+  final accentColor = lightenColor(appColor, 0.45);
 
   Widget buildActionTile({
     required IconData icon,
@@ -129,7 +130,7 @@ Widget buildSettingsDrawer(
                             shape: BoxShape.circle,
                             color: Colors.black,
                             border: Border.all(
-                              color: darkenColor(appColorNotifier.value, 0.06),
+                              color: darkenColor(appColor, 0.06),
                               width: Responsive.scale(context, 2),
                             ),
                           ),
@@ -328,12 +329,12 @@ Widget buildSettingsDrawer(
                       vertical: Responsive.height(context, 4),
                     ),
                     decoration: BoxDecoration(
-                      color: cardColors(appColorNotifier.value).iconBox,
+                      color: cardColors(appColor).iconBox,
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 20),
                       ),
                       border: Border.all(
-                        color: cardColors(appColorNotifier.value).border,
+                        color: cardColors(appColor).border,
                         width: 1,
                       ),
                     ),
@@ -344,7 +345,7 @@ Widget buildSettingsDrawer(
                           "Release 1.2.0",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 11),
-                            color: cardColors(appColorNotifier.value).onCard,
+                            color: cardColors(appColor).onCard,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
                           ),
@@ -352,7 +353,7 @@ Widget buildSettingsDrawer(
                         SizedBox(width: Responsive.width(context, 4)),
                         Icon(
                           Icons.chevron_right,
-                          color: cardColors(appColorNotifier.value).onCard,
+                          color: cardColors(appColor).onCard,
                           size: Responsive.font(context, 13),
                         ),
                       ],

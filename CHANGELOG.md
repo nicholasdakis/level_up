@@ -2423,10 +2423,19 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-04
 - Fixed the mini workout bar border clipping
 - Removed the open chevron from the mini workout bar, instead making the whole card tappable but also making the collapse icon have a much bigger hitbox so it won't be missed
-CUTOFF POINT FOR VERSION 1.2.0
 - Made current and best workout streaks load into UserData to wire up a Streaks card for Workout Streaks on the home dashboard
 - Replaced the "Resets on Monday" text for weekly workout with a timer to the actual reset time
 - Added a replacingExercisePrimaryMuscle variable so that when a user presses "replace" on an exercise it passes it to the search exercises route and also searches for recommended exercises that match that primary muscle
 - Added a fetchRecommended method that uses the search_exercises route by filtering for that primary muscle and returning the first 5
 - Reduced the activity heatmap from 16 weeks to 12 weeks so cells are a more comfortable size
 - Added Firebase Analytics events for workout_started, workout_completed, workout_discarded, routine_created, routine_started, daily_reward_claimed, ad_watched, onboarding_completed, onboarding_skipped, food_logged, and streak_milestone
+
+## 2026-07-05
+- Began Riverpod migration
+- Created userDataProvider (AsyncNotifierProvider) as the future single source of truth for all user state, with setUserData() for full loads and patch() for small updates
+- Added copyWith() to the UserData model to support immutable field updates
+- Converted all widget screens from StatefulWidget/StatelessWidget to ConsumerStatefulWidget/ConsumerWidget
+- Replaced all appColorNotifier.value reads with an appColor getter on each state class that reads from userDataProvider
+- Replaced currentUserData reads in async methods with ref.read(userDataProvider).value
+- AppInitScreen now calls setUserData() after init so the provider is populated on startup
+- The provider and the existing global currently hold the same UserData object - full decoupling requires migrating mutations to go through patch() which is the next step

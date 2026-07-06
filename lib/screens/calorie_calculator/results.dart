@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +10,7 @@ import '/globals.dart';
 import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
-class Results extends StatefulWidget {
+class Results extends ConsumerStatefulWidget {
   // same-named variables from Calorie Calculator that are assigned when the page is switched from that tab to this one
   final String? units;
   final String? goal;
@@ -35,10 +38,12 @@ class Results extends StatefulWidget {
   });
 
   @override
-  State<Results> createState() => _ResultsState();
+  ConsumerState<Results> createState() => _ResultsState();
 }
 
-class _ResultsState extends State<Results> {
+class _ResultsState extends ConsumerState<Results> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   @override
   void initState() {
     super.initState();
@@ -248,6 +253,8 @@ class _ResultsState extends State<Results> {
   }
 
   Widget _setGoalButton(int calories) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isSet = _goalSetCalories == calories;
     return GestureDetector(
       onTap: isSet
@@ -282,16 +289,10 @@ class _ResultsState extends State<Results> {
           vertical: Responsive.height(context, 6),
         ),
         decoration: BoxDecoration(
-          color: lightenColor(
-            appColorNotifier.value,
-            0.1,
-          ).withAlpha(isSet ? 60 : 30),
+          color: lightenColor(appColor, 0.1).withAlpha(isSet ? 60 : 30),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: lightenColor(
-              appColorNotifier.value,
-              0.35,
-            ).withAlpha(isSet ? 200 : 120),
+            color: lightenColor(appColor, 0.35).withAlpha(isSet ? 200 : 120),
             width: 1,
           ),
         ),
@@ -300,7 +301,7 @@ class _ResultsState extends State<Results> {
           children: [
             Icon(
               isSet ? Icons.check : Icons.flag_outlined,
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               size: Responsive.scale(context, 13),
             ),
             SizedBox(width: Responsive.width(context, 4)),
@@ -309,7 +310,7 @@ class _ResultsState extends State<Results> {
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 12),
                 fontWeight: FontWeight.w600,
-                color: lightenColor(appColorNotifier.value, 0.45),
+                color: lightenColor(appColor, 0.45),
               ),
             ),
           ],
@@ -583,6 +584,8 @@ class _ResultsState extends State<Results> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Wraps the scaffold so the TabBar and TabBarView share the same controller
     return DefaultTabController(
       length: 3,
@@ -607,24 +610,15 @@ class _ResultsState extends State<Results> {
                         padding: EdgeInsets.all(Responsive.scale(context, 12)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.1,
-                          ).withAlpha(20),
+                          color: lightenColor(appColor, 0.1).withAlpha(20),
                           border: Border.all(
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.arrow_back_ios_new,
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           size: Responsive.font(context, 13),
                         ),
                       ),
@@ -752,14 +746,14 @@ class _ResultsState extends State<Results> {
                         _formulaCard(
                           _bmrFormulaText("Male"),
                           "Male",
-                          lightenColor(appColorNotifier.value, 0.3),
+                          lightenColor(appColor, 0.3),
                           HugeIcons.strokeRoundedMaleSymbol,
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
                         _formulaCard(
                           _bmrFormulaText("Female"),
                           "Female",
-                          lightenColor(appColorNotifier.value, 0.3),
+                          lightenColor(appColor, 0.3),
                           HugeIcons.strokeRoundedFemaleSymbol,
                         ),
                         SizedBox(height: Responsive.height(context, 20)),

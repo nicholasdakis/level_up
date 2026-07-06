@@ -1,4 +1,6 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import "package:flutter/material.dart";
 import 'dart:ui';
 import 'package:hugeicons/hugeicons.dart';
@@ -111,16 +113,18 @@ const Map<String, IconData> _achievementIcons = {
   "total_achievements": HugeIcons.strokeRoundedMedal02,
 };
 
-class Badges extends StatefulWidget {
+class Badges extends ConsumerStatefulWidget {
   const Badges({super.key});
 
   @override
-  State<Badges> createState() {
+  ConsumerState<Badges> createState() {
     return _BadgesState();
   }
 }
 
-class _BadgesState extends State<Badges> with TickerProviderStateMixin {
+class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   bool _isLoading = true; // for the skeletonizer
   // Populated from the backend on init
   List<AchievementDef> _achievementDefs = [];
@@ -134,7 +138,6 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
   bool _entranceAnimationPlayed = false;
 
   late final TabController _tabController;
-  late final VoidCallback _colorListener;
   // Shared controllers so all even-index chips pulse together and all odd-index chips pulse together
   late final AnimationController _evenPulse;
   late final AnimationController _oddPulse;
@@ -151,10 +154,6 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
 
     _evenPulse = AnimationController(
       vsync: this,
@@ -181,7 +180,6 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     _tabController.dispose();
     _evenPulse.dispose();
     _oddPulse.dispose();
@@ -295,6 +293,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   // Builds a single tier chip showing the milestone, its status, and a claim button if ready
   Widget _buildTierChip(AchievementDef def, int tier, {int index = 0}) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final currentProgress =
         progress[def.id] ??
         0; // reads the progress in the achievement_progress table
@@ -315,14 +315,14 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     final IconData statusIcon;
 
     if (claimed) {
-      bgColor = appColorNotifier.value.withAlpha(60);
+      bgColor = appColor.withAlpha(60);
       labelColor = Colors.white38;
-      borderColor = lightenColor(appColorNotifier.value, 0.25).withAlpha(60);
+      borderColor = lightenColor(appColor, 0.25).withAlpha(60);
       statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
-      bgColor = appColorNotifier.value.withAlpha(180);
+      bgColor = appColor.withAlpha(180);
       labelColor = Colors.white;
-      borderColor = lightenColor(appColorNotifier.value, 0.4).withAlpha(220);
+      borderColor = lightenColor(appColor, 0.4).withAlpha(220);
       statusIcon = HugeIcons.strokeRoundedGift;
     } else {
       bgColor = Colors.white.withAlpha(22);
@@ -386,7 +386,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
           )
           .tint(
             color: lightenColor(
-              appColorNotifier.value,
+              appColor,
               0.3,
             ), // lightened app color for contrast against the chip
             begin: 0.0,
@@ -400,6 +400,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   // Builds a single achievement card with icon, name, progress bar, and tier chips
   Widget _buildAchievementCard(AchievementDef def) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final currentProgress = progress[def.id] ?? 0;
 
     // Find the next tier the user hasn't reached yet
@@ -434,8 +436,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     final progressFraction = allClaimed
         ? 1.0
         : (currentProgress / nextTier).clamp(0.0, 1.0);
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final barColor = lightenColor(appColorNotifier.value, 0.3);
+    final accent = lightenColor(appColor, 0.45);
+    final barColor = lightenColor(appColor, 0.3);
 
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
@@ -446,19 +448,14 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
             child: Container(
               decoration: BoxDecoration(
-                color: cardColors(
-                  appColorNotifier.value,
-                ).gradient.first.withAlpha(180),
+                color: cardColors(appColor).gradient.first.withAlpha(180),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 18),
                 ),
                 border: Border.all(
                   color: allClaimed
-                      ? lightenColor(
-                          appColorNotifier.value,
-                          0.45,
-                        ).withAlpha(120)
-                      : cardColors(appColorNotifier.value).border,
+                      ? lightenColor(appColor, 0.45).withAlpha(120)
+                      : cardColors(appColor).border,
                   width: allClaimed
                       ? Responsive.width(context, 1.5)
                       : Responsive.width(context, 1),
@@ -489,7 +486,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                                 Responsive.scale(context, 9),
                               ),
                               decoration: BoxDecoration(
-                                color: appColorNotifier.value.withAlpha(50),
+                                color: appColor.withAlpha(50),
                                 borderRadius: BorderRadius.circular(
                                   Responsive.scale(context, 10),
                                 ),
@@ -523,10 +520,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                                 def.description,
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 11),
-                                  color: lightenColor(
-                                    appColorNotifier.value,
-                                    0.35,
-                                  ),
+                                  color: lightenColor(appColor, 0.35),
                                 ),
                               ),
                             ],
@@ -547,7 +541,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                                 ),
                                 decoration: BoxDecoration(
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(60),
                                   borderRadius: BorderRadius.circular(
@@ -555,7 +549,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                                   ),
                                   border: Border.all(
                                     color: lightenColor(
-                                      appColorNotifier.value,
+                                      appColor,
                                       0.4,
                                     ).withAlpha(160),
                                     width: Responsive.width(context, 1),
@@ -565,10 +559,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                                   "$unclaimedCount to claim",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 10),
-                                    color: lightenColor(
-                                      appColorNotifier.value,
-                                      0.45,
-                                    ),
+                                    color: lightenColor(appColor, 0.45),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -580,7 +571,7 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                           SizedBox(width: Responsive.width(context, 8)),
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                            color: lightenColor(appColorNotifier.value, 0.4),
+                            color: lightenColor(appColor, 0.4),
                             size: Responsive.scale(context, 18),
                           ),
                         ],
@@ -840,6 +831,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     if (isGuest && !_isLoading) {
       // For guest users
       return Container(
@@ -862,24 +855,15 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -902,8 +886,8 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
     return Skeletonizer(
       enabled: _isLoading,
       effect: ShimmerEffect(
-        baseColor: darkenColor(appColorNotifier.value, 0.1),
-        highlightColor: lightenColor(appColorNotifier.value, 0.2),
+        baseColor: darkenColor(appColor, 0.1),
+        highlightColor: lightenColor(appColor, 0.2),
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
@@ -934,24 +918,15 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -964,24 +939,15 @@ class _BadgesState extends State<Badges> with TickerProviderStateMixin {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.refresh,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -1099,17 +1065,17 @@ class _ProgressBar extends StatelessWidget {
 }
 
 // Horizontally swipeable carousel of tier chips, styled like the frosted nav bar
-class _TierCarousel extends StatefulWidget {
+class _TierCarousel extends ConsumerStatefulWidget {
   final AchievementDef def;
   final Widget Function(AchievementDef, int, {int index}) tierChipBuilder;
 
   const _TierCarousel({required this.def, required this.tierChipBuilder});
 
   @override
-  State<_TierCarousel> createState() => _TierCarouselState();
+  ConsumerState<_TierCarousel> createState() => _TierCarouselState();
 }
 
-class _TierCarouselState extends State<_TierCarousel> {
+class _TierCarouselState extends ConsumerState<_TierCarousel> {
   @override
   void initState() {
     super.initState();

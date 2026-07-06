@@ -1,18 +1,24 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ChangelogScreen extends StatefulWidget {
+class ChangelogScreen extends ConsumerStatefulWidget {
   const ChangelogScreen({super.key});
 
   @override
-  State<ChangelogScreen> createState() => _ChangelogScreenState();
+  ConsumerState<ChangelogScreen> createState() => _ChangelogScreenState();
 }
 
-class _ChangelogScreenState extends State<ChangelogScreen> {
+class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   @override
   void initState() {
     super.initState();
@@ -49,24 +55,15 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -75,6 +72,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'July 4, 2026',
                 version: '1.2.0',
                 changes: [
@@ -90,6 +88,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 27, 2026',
                 version: '1.1.52',
                 changes: [
@@ -102,6 +101,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 25, 2026',
                 version: '1.1.51',
                 changes: [
@@ -114,6 +114,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 24, 2026',
                 version: '1.1.5',
                 changes: [
@@ -128,6 +129,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 21, 2026',
                 version: '1.1.4',
                 changes: [
@@ -144,6 +146,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 16, 2026',
                 version: '1.1.3',
                 changes: [
@@ -160,6 +163,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 11, 2026',
                 version: '1.1.2',
                 changes: [
@@ -173,6 +177,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 9, 2026',
                 version: '1.1.1',
                 changes: [
@@ -181,6 +186,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'June 8, 2026',
                 version: '1.1.0',
                 changes: [
@@ -195,6 +201,7 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
               ),
               _buildChangelogCard(
                 context,
+                appColor,
                 date: 'May 31, 2026',
                 version: '1.0.0',
                 changes: ['Initial release'],
@@ -208,12 +215,13 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
 }
 
 Widget _buildChangelogCard(
-  BuildContext context, {
+  BuildContext context,
+  Color appColor, {
   required String date,
   required String version,
   required List<String> changes,
 }) {
-  final c = cardColors(appColorNotifier.value);
+  final c = cardColors(appColor);
   final accent = c.onCard;
   final dim = c.onCard.withAlpha(180);
 

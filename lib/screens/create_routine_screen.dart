@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -9,15 +12,17 @@ import '/globals.dart';
 import '/utility/responsive.dart';
 import 'exercise_picker_screen.dart';
 
-class CreateRoutineScreen extends StatefulWidget {
+class CreateRoutineScreen extends ConsumerStatefulWidget {
   const CreateRoutineScreen({super.key});
 
   @override
-  State<CreateRoutineScreen> createState() => _CreateRoutineScreenState();
+  ConsumerState<CreateRoutineScreen> createState() =>
+      _CreateRoutineScreenState();
 }
 
-class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
-  late final VoidCallback _colorListener;
+class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final List<Map<String, dynamic>> _exercises = [];
@@ -27,15 +32,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   @override
   void initState() {
     super.initState();
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
   }
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     _nameController.dispose();
     _durationController.dispose();
     super.dispose();
@@ -238,8 +238,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
 
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
@@ -301,12 +303,12 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                       padding: EdgeInsets.symmetric(
                         vertical: Responsive.height(context, 12),
                       ),
-                      color: appColorNotifier.value.withAlpha(60),
+                      color: appColor.withAlpha(60),
                       child: Text(
                         'Done Reordering',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
+                          color: lightenColor(appColor, 0.45),
                           fontSize: Responsive.font(context, 14),
                           fontWeight: FontWeight.w700,
                         ),
@@ -323,8 +325,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Color accent, Color dim) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
-    final dimmer = lightenColor(appColorNotifier.value, 0.30);
+    final dimmer = lightenColor(appColor, 0.30);
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: hPad,
@@ -421,12 +425,9 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                 vertical: Responsive.height(context, 10),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(70),
+                color: appColor.withAlpha(70),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: appColorNotifier.value.withAlpha(150),
-                  width: 1.5,
-                ),
+                border: Border.all(color: appColor.withAlpha(150), width: 1.5),
               ),
               child: _saving
                   ? SizedBox(
@@ -685,6 +686,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: dim.withAlpha(40), width: 1)),
@@ -706,13 +709,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                 vertical: Responsive.height(context, 15),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
+                color: lightenColor(appColor, 0.1).withAlpha(40),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.35,
-                  ).withAlpha(120),
+                  color: lightenColor(appColor, 0.35).withAlpha(120),
                   width: 1.5,
                 ),
               ),

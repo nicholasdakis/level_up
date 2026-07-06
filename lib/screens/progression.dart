@@ -1,4 +1,6 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -9,15 +11,17 @@ import '/utility/responsive.dart';
 import '/services/user_data_manager.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class Progression extends StatefulWidget {
+class Progression extends ConsumerStatefulWidget {
   const Progression({super.key});
 
   @override
-  State<Progression> createState() => _ProgressionState();
+  ConsumerState<Progression> createState() => _ProgressionState();
 }
 
-class _ProgressionState extends State<Progression> {
-  late final VoidCallback _colorListener;
+class _ProgressionState extends ConsumerState<Progression> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   int? _rank;
   int? _total;
   bool _standingLoading = true;
@@ -29,10 +33,6 @@ class _ProgressionState extends State<Progression> {
       screenName: '/progression',
       screenClass: 'Progression',
     );
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     if (!isGuest) _fetchStanding();
   }
 
@@ -53,13 +53,12 @@ class _ProgressionState extends State<Progression> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     super.dispose();
   }
 
   Widget _buildStandingCard(BuildContext context) {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
 
     final rankLabel = isGuest
         ? "#--"
@@ -130,8 +129,8 @@ class _ProgressionState extends State<Progression> {
     final cards = Skeletonizer(
       enabled: !isGuest && _standingLoading,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColorNotifier.value, 0.3),
-        highlightColor: lightenColor(appColorNotifier.value, 0.1),
+        baseColor: lightenColor(appColor, 0.3),
+        highlightColor: lightenColor(appColor, 0.1),
         duration: const Duration(milliseconds: 1200),
       ),
       child: IntrinsicHeight(
@@ -199,7 +198,7 @@ class _ProgressionState extends State<Progression> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final base = appColorNotifier.value;
+    final base = appColor;
     final c = cardColors(base);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);

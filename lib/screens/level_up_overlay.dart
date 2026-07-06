@@ -124,8 +124,14 @@ Future<void> handleLevelUpOverlay(BuildContext context, int levelBefore) async {
 Future<void> showLevelUpOverlay(BuildContext context, int newLevel) async {
   if (isGuest) return;
   final controller = ConfettiController(duration: const Duration(seconds: 4));
-  final accent = lightenColor(appColorNotifier.value, 0.45);
-  final dim = lightenColor(appColorNotifier.value, 0.35);
+  final accent = lightenColor(
+    currentUserData?.appColor ?? appColorNotifier.value,
+    0.45,
+  );
+  final dim = lightenColor(
+    currentUserData?.appColor ?? appColorNotifier.value,
+    0.35,
+  );
   final xpNeeded = userManager.experienceNeeded ?? 0;
   final currentXp = currentUserData?.expPoints ?? 0;
   // xpProgress is how far into the new level the user already is, used to fill the bar

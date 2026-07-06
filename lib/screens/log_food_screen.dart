@@ -1,4 +1,6 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +22,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
-class LogFoodScreen extends StatefulWidget {
+class LogFoodScreen extends ConsumerStatefulWidget {
   final String meal;
   final DateTime currentDate;
   final VoidCallback
@@ -37,7 +39,7 @@ class LogFoodScreen extends StatefulWidget {
   });
 
   @override
-  State<LogFoodScreen> createState() => _LogFoodScreenState();
+  ConsumerState<LogFoodScreen> createState() => _LogFoodScreenState();
 
   // Allows up to 5 digits with an optional decimal up to decimalPlaces places
   static TextInputFormatter decimalFormatter({int decimalPlaces = 2}) {
@@ -52,8 +54,11 @@ class LogFoodScreen extends StatefulWidget {
   }
 }
 
-class _LogFoodScreenState extends State<LogFoodScreen>
+class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     with TickerProviderStateMixin {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   bool snackbarActive = false;
   bool isLogging = false;
   String latestQuery = "";
@@ -228,7 +233,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   Future<void> _loadRecentFoods() async {
     final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
     final max = stored ?? 30;
-    final logs = currentUserData?.foodLogs ?? [];
+    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
     final seen = <String>{};
     final recents = <Map<String, dynamic>>[];
     final sorted = [...logs]
@@ -394,6 +399,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
     // Add food to local flat list immediately
+    // TODO: migrate mutation to notifier
     currentUserData?.foodLogs.add({
       ...foodObject,
       'date': dateKey,
@@ -404,7 +410,10 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     // Build meal map for the current date to send to backend
     try {
-      final logs = currentUserData!.foodLogs
+      final logs = ref
+          .read(userDataProvider)
+          .value!
+          .foodLogs
           .where((f) => f['date'] == dateKey)
           .toList();
       final currentDateData = {
@@ -431,7 +440,12 @@ class _LogFoodScreenState extends State<LogFoodScreen>
 
     // Award the full course meal badge if all four meals now have at least one food
     final logs =
-        currentUserData?.foodLogs.where((f) => f['date'] == dateKey).toList() ??
+        ref
+            .read(userDataProvider)
+            .value
+            ?.foodLogs
+            .where((f) => f['date'] == dateKey)
+            .toList() ??
         [];
     final allMealsFilled = [
       'breakfast',
@@ -717,7 +731,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                             "Cancel",
                                             style: GoogleFonts.manrope(
                                               color: lightenColor(
-                                                appColorNotifier.value,
+                                                appColor,
                                                 0.45,
                                               ),
                                               fontWeight: FontWeight.w600,
@@ -744,7 +758,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                                             "OK",
                                             style: GoogleFonts.manrope(
                                               color: lightenColor(
-                                                appColorNotifier.value,
+                                                appColor,
                                                 0.45,
                                               ),
                                               fontWeight: FontWeight.w700,
@@ -941,7 +955,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     child: Text(
                       "Log",
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -1006,11 +1020,9 @@ class _LogFoodScreenState extends State<LogFoodScreen>
         text,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 11),
-          color: cardColors(appColorNotifier.value).onCard.withAlpha(120),
+          color: cardColors(appColor).onCard.withAlpha(120),
           decoration: TextDecoration.underline,
-          decorationColor: cardColors(
-            appColorNotifier.value,
-          ).onCard.withAlpha(120),
+          decorationColor: cardColors(appColor).onCard.withAlpha(120),
         ),
       ),
     );
@@ -1029,7 +1041,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           "  ·  ",
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
-            color: cardColors(appColorNotifier.value).onCard.withAlpha(120),
+            color: cardColors(appColor).onCard.withAlpha(120),
           ),
         ),
         _buildAttributionLink(
@@ -1178,24 +1190,15 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),
@@ -1244,7 +1247,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     Map<String, dynamic> food, {
     required VoidCallback onTap,
   }) {
-    final c = cardColors(appColorNotifier.value);
+    final c = cardColors(appColor);
     final description = food['food_description'] as String? ?? '';
     // calories may be a top-level key (manual/recent) or only in food_description (API results)
     final cal = food['calories'] != null
@@ -1281,7 +1284,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
-                      color: lightenColor(appColorNotifier.value, 0.45),
+                      color: lightenColor(appColor, 0.45),
                     ),
                   ),
                   Text(
@@ -1311,7 +1314,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
             // chevron makes it clear the row is tappable
             Icon(
               Icons.chevron_right,
-              color: lightenColor(appColorNotifier.value, 0.3).withAlpha(160),
+              color: lightenColor(appColor, 0.3).withAlpha(160),
               size: Responsive.scale(context, 20),
             ),
           ],
@@ -1328,7 +1331,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
           "End of results",
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 12),
-            color: cardColors(appColorNotifier.value).onCard.withAlpha(80),
+            color: cardColors(appColor).onCard.withAlpha(80),
           ),
         ),
       ),
@@ -1343,7 +1346,7 @@ class _LogFoodScreenState extends State<LogFoodScreen>
     required VoidCallback onTap,
     bool disabled = false,
   }) {
-    final base = appColorNotifier.value;
+    final base = appColor;
     final c = cardColors(base);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
     return Opacity(
@@ -1432,7 +1435,6 @@ class _LogFoodScreenState extends State<LogFoodScreen>
   Widget build(BuildContext context) {
     if (scannerActive) return _buildBarcodeScanner();
 
-    final appColor = appColorNotifier.value;
     final c = cardColors(appColor);
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);

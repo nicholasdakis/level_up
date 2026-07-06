@@ -22,6 +22,7 @@ Future<void> checkPendingReferralReward(
   final data = jsonDecode(res.body) as Map<String, dynamic>;
   if (data['pending'] != true) return;
 
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   final refereeUid = data['referee_uid'] as String;
   final refereeUsername = data['referee_username'] as String;
 
@@ -33,7 +34,7 @@ Future<void> checkPendingReferralReward(
       children: [
         HugeIcon(
           icon: HugeIcons.strokeRoundedUserAdd01,
-          color: lightenColor(appColorNotifier.value, 0.45),
+          color: lightenColor(appColor, 0.45),
           size: Responsive.scale(context, 40),
         ),
         SizedBox(height: Responsive.height(context, 12)),
@@ -111,7 +112,8 @@ Widget buildReferralsCard(BuildContext context) {
   // Square action tile matching the Watch an Ad card layout
   return Builder(
     builder: (context) {
-      final base = appColorNotifier.value;
+      final appColor = currentUserData?.appColor ?? appColorNotifier.value;
+      final base = appColor;
       final radius = BorderRadius.circular(Responsive.scale(context, 16));
       final referralCount = currentUserData?.referralCount ?? 0;
       final c = cardColors(base);
@@ -195,10 +197,10 @@ Widget buildReferralsCard(BuildContext context) {
                                 height: Responsive.scale(context, 22),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: appColorNotifier.value.withAlpha(80),
+                                  color: appColor.withAlpha(80),
                                   border: Border.all(
                                     color: lightenColor(
-                                      appColorNotifier.value,
+                                      appColor,
                                       0.3,
                                     ).withAlpha(160),
                                   ),
@@ -248,13 +250,13 @@ Widget buildReferralsCard(BuildContext context) {
                               vertical: Responsive.height(context, 10),
                             ),
                             decoration: BoxDecoration(
-                              color: appColorNotifier.value.withAlpha(60),
+                              color: appColor.withAlpha(60),
                               borderRadius: BorderRadius.circular(
                                 Responsive.scale(context, 12),
                               ),
                               border: Border.all(
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.3,
                                 ).withAlpha(160),
                               ),
@@ -341,7 +343,7 @@ Widget buildReferralsCard(BuildContext context) {
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowRight01,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.45,
                                 ),
                                 size: Responsive.scale(context, 20),

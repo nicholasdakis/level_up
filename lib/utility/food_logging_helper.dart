@@ -181,7 +181,12 @@ Widget calcSuffixIcon(
       padding: EdgeInsets.all(Responsive.scale(context, 8)),
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedCalculator,
-        color: color ?? lightenColor(appColorNotifier.value, 0.35),
+        color:
+            color ??
+            lightenColor(
+              currentUserData?.appColor ?? appColorNotifier.value,
+              0.35,
+            ),
         size: Responsive.scale(context, 18),
       ),
     ),
@@ -193,6 +198,7 @@ Future<String?> showCalcDialog(
   BuildContext context, {
   String initialValue = '',
 }) {
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   trackTrivialAchievement(
     'serving_calculator',
   ); // fire once each time the calc is opened
@@ -360,10 +366,7 @@ Future<String?> showCalcDialog(
                             ),
                             decoration: BoxDecoration(
                               color: ['+', '-', '×', '÷'].contains(btn)
-                                  ? lightenColor(
-                                      appColorNotifier.value,
-                                      0.1,
-                                    ).withAlpha(80)
+                                  ? lightenColor(appColor, 0.1).withAlpha(80)
                                   : Colors.white.withAlpha(20),
                               borderRadius: BorderRadius.circular(
                                 Responsive.scale(context, 8),
@@ -429,10 +432,7 @@ Future<String?> showCalcDialog(
                         horizontal: Responsive.width(context, 3),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(80),
+                        color: lightenColor(appColor, 0.1).withAlpha(80),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),
                         ),
@@ -466,10 +466,7 @@ Future<String?> showCalcDialog(
                         horizontal: Responsive.width(context, 3),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.2,
-                        ).withAlpha(120),
+                        color: lightenColor(appColor, 0.2).withAlpha(120),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),
                         ),
@@ -513,7 +510,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
   final baseAmt = serving['amount'] as double;
   final unit = serving['unit'] as String;
   final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
-  final appColor = appColorNotifier.value;
+  final appColor = currentUserData?.appColor ?? appColorNotifier.value;
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
 

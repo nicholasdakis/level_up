@@ -95,7 +95,7 @@ class DailyRewardDialog {
 
     if (!context.mounted) return;
 
-    final color = appColorNotifier.value;
+    final color = currentUserData?.appColor ?? appColorNotifier.value;
     final accent = lightenColor(color, 0.45);
     final dim = lightenColor(color, 0.35);
     final faint = lightenColor(color, 0.3);

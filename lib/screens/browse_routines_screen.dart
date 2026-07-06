@@ -1,4 +1,7 @@
-import 'package:flutter/gestures.dart';
+﻿import 'package:flutter/gestures.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -6,15 +9,18 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 
-class BrowseRoutinesScreen extends StatefulWidget {
+class BrowseRoutinesScreen extends ConsumerStatefulWidget {
   const BrowseRoutinesScreen({super.key});
 
   @override
-  State<BrowseRoutinesScreen> createState() => _BrowseRoutinesScreenState();
+  ConsumerState<BrowseRoutinesScreen> createState() =>
+      _BrowseRoutinesScreenState();
 }
 
-class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
-  late final VoidCallback _colorListener;
+class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late final ScrollController _featuredScroll;
   List<Map<String, dynamic>> _featured = [];
   List<Map<String, dynamic>> _community = [];
@@ -72,10 +78,6 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
   @override
   void initState() {
     super.initState();
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     _featuredScroll = ScrollController();
     _fetchData();
   }
@@ -203,14 +205,12 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     _featuredScroll.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final appColor = appColorNotifier.value;
     final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
@@ -255,8 +255,8 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 child: Skeletonizer(
                   enabled: _loading,
                   effect: ShimmerEffect(
-                    baseColor: lightenColor(appColorNotifier.value, 0.3),
-                    highlightColor: lightenColor(appColorNotifier.value, 0.1),
+                    baseColor: lightenColor(appColor, 0.3),
+                    highlightColor: lightenColor(appColor, 0.1),
                     duration: const Duration(milliseconds: 1200),
                   ),
                   child: ScrollConfiguration(
@@ -442,11 +442,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                     vertical: Responsive.height(context, 3),
                   ),
                   decoration: BoxDecoration(
-                    color: appColorNotifier.value.withAlpha(50),
+                    color: appColor.withAlpha(50),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: appColorNotifier.value.withAlpha(100),
-                    ),
+                    border: Border.all(color: appColor.withAlpha(100)),
                   ),
                   child: Row(
                     children: [
@@ -594,10 +592,10 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                   vertical: Responsive.height(context, 10),
                 ),
                 decoration: BoxDecoration(
-                  color: appColorNotifier.value.withAlpha(55),
+                  color: appColor.withAlpha(55),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: appColorNotifier.value.withAlpha(130),
+                    color: appColor.withAlpha(130),
                     width: 1.5,
                   ),
                 ),
@@ -856,12 +854,9 @@ class _BrowseRoutinesScreenState extends State<BrowseRoutinesScreen> {
                 vertical: Responsive.height(context, 11),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(55),
+                color: appColor.withAlpha(55),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: appColorNotifier.value.withAlpha(130),
-                  width: 1.5,
-                ),
+                border: Border.all(color: appColor.withAlpha(130), width: 1.5),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -11,14 +14,17 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import 'analytics_components.dart';
 
-class WeightAnalyticsScreen extends StatefulWidget {
+class WeightAnalyticsScreen extends ConsumerStatefulWidget {
   const WeightAnalyticsScreen({super.key});
 
   @override
-  State<WeightAnalyticsScreen> createState() => _WeightAnalyticsScreenState();
+  ConsumerState<WeightAnalyticsScreen> createState() =>
+      _WeightAnalyticsScreenState();
 }
 
-class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
+class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
 
@@ -90,7 +96,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
 
   // Returns all weight entries sorted chronologically oldest-first
   List<MapEntry<String, double>> _sortedEntries() {
-    final byDate = currentUserData?.weightByDate ?? {};
+    final byDate = ref.read(userDataProvider).value?.weightByDate ?? {};
     final entries = byDate.entries.toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
@@ -150,10 +156,12 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dimAccent = lightenColor(appColorNotifier.value, 0.3);
-    final goalKg = currentUserData?.weightKgGoal;
+    final accent = lightenColor(appColor, 0.45);
+    final dimAccent = lightenColor(appColor, 0.3);
+    final goalKg = ref.read(userDataProvider).value?.weightKgGoal;
 
     if (entries.isEmpty) {
       return frostedGlassCard(
@@ -239,7 +247,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                 fitInsideHorizontally: true,
                 fitInsideVertically: true,
                 getTooltipColor: (_) =>
-                    darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                    darkenColor(appColor, 0.1).withAlpha(220),
                 getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
                   final entry = entries[s.spotIndex];
                   return LineTooltipItem(
@@ -332,10 +340,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                     radius: Responsive.scale(context, 4),
                     color: accent,
                     strokeWidth: 2,
-                    strokeColor: darkenColor(
-                      appColorNotifier.value,
-                      0.05,
-                    ).withAlpha(180),
+                    strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
                   ),
                 ),
                 belowBarData: BarAreaData(
@@ -358,9 +363,11 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accent = lightenColor(appColor, 0.45);
 
     String fmt(double kg) => isImperial
         ? '${UnitConverter.displayWeight(kg, imperial: true)} $unit'
@@ -399,8 +406,7 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 13),
                   fontWeight: FontWeight.w800,
-                  color:
-                      valueColor ?? lightenColor(appColorNotifier.value, 0.45),
+                  color: valueColor ?? lightenColor(appColor, 0.45),
                   height: 1.1,
                 ),
               ),
@@ -460,10 +466,12 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dimAccent = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dimAccent = lightenColor(appColor, 0.35);
     final all = _sortedEntries().reversed.toList();
 
     return frostedGlassCard(
@@ -641,18 +649,12 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                                               12,
                                             ),
                                             fontWeight: FontWeight.w700,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.3,
-                                            ),
+                                            color: lightenColor(appColor, 0.3),
                                           ),
                                         )
                                       : HugeIcon(
                                           icon: HugeIcons.strokeRoundedDelete02,
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.3,
-                                          ),
+                                          color: lightenColor(appColor, 0.3),
                                           size: Responsive.font(context, 18),
                                         ),
                                 ),
@@ -674,6 +676,8 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final entries = _entriesInRange();
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
 
@@ -698,24 +702,15 @@ class _WeightAnalyticsScreenState extends State<WeightAnalyticsScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),

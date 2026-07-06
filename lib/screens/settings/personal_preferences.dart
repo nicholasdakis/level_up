@@ -1,4 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../utility/unit_converter.dart';
@@ -89,21 +91,25 @@ Future<void> showUsernameDialogBox(
   });
 }
 
-class PersonalPreferences extends StatefulWidget {
+class PersonalPreferences extends ConsumerStatefulWidget {
   final VoidCallback?
   onProfileImageUpdated; // callback to notify HomeScreen when the profile picture is updated
 
   const PersonalPreferences({super.key, this.onProfileImageUpdated});
 
   @override
-  State<PersonalPreferences> createState() => _PersonalPreferencesState();
+  ConsumerState<PersonalPreferences> createState() =>
+      _PersonalPreferencesState();
 }
 
-class _PersonalPreferencesState extends State<PersonalPreferences>
+class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     with SingleTickerProviderStateMixin {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   TextEditingController usernameController = TextEditingController();
   late AnimationController _colorAnimController;
-  Color _animFromColor = appColorNotifier.value;
+  late Color _animFromColor;
 
   @override
   void dispose() {
@@ -127,6 +133,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
   @override
   void initState() {
     super.initState();
+    _animFromColor = appColor;
     FirebaseAnalytics.instance.logScreenView(
       screenName: '/settings/preferences',
       screenClass: 'PersonalPreferences',
@@ -141,7 +148,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
             // cards already have final color so they don't pop
             final c = Color.lerp(
               _animFromColor,
-              appColorNotifier.value,
+              appColor,
               _colorAnimController.value,
             );
             if (c != null) setState(() {});
@@ -242,12 +249,11 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
         );
       }
     }
+    // TODO: migrate mutation to notifier
     currentUserData!.appColor = color;
     unawaited(userManager.updateAppColor(color, context));
 
-    _animFromColor = appColorNotifier.value; // snapshot start color
-    appColorNotifier.value =
-        color; // set final color immediately so cards compute correctly
+    _animFromColor = appColor; // snapshot start color
     _colorAnimController.forward(from: 0); // animate setState for background
     baseColor = color;
     setState(() {});
@@ -368,16 +374,16 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
     }
     // pre-fill with existing values if they exist
     final calCtrl = TextEditingController(
-      text: currentUserData?.caloriesGoal?.toString() ?? '',
+      text: ref.read(userDataProvider).value?.caloriesGoal?.toString() ?? '',
     );
     final proCtrl = TextEditingController(
-      text: currentUserData?.proteinGoal?.toString() ?? '',
+      text: ref.read(userDataProvider).value?.proteinGoal?.toString() ?? '',
     );
     final carbCtrl = TextEditingController(
-      text: currentUserData?.carbsGoal?.toString() ?? '',
+      text: ref.read(userDataProvider).value?.carbsGoal?.toString() ?? '',
     );
     final fatCtrl = TextEditingController(
-      text: currentUserData?.fatGoal?.toString() ?? '',
+      text: ref.read(userDataProvider).value?.fatGoal?.toString() ?? '',
     );
 
     await showFrostedAlertDialog(
@@ -423,9 +429,9 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       Guest.block(context);
       return;
     }
-    String? weightGoalType = currentUserData?.weightGoalType;
+    String? weightGoalType = ref.read(userDataProvider).value?.weightGoalType;
     final bool isMetric = (_units == 'metric');
-    final double? currentKg = currentUserData?.weightKgGoal;
+    final double? currentKg = ref.read(userDataProvider).value?.weightKgGoal;
     String initialWeight = '';
     // convert stored kg to the user's preferred unit for display
     if (currentKg != null) {
@@ -548,15 +554,15 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       Guest.block(context);
       return;
     }
-    int selected = currentUserData?.weeklyWorkoutsGoal ?? 3;
+    int selected = ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 3;
 
     await showFrostedAlertDialog(
       context: context,
       title: "Weekly Workout Goal",
       content: StatefulBuilder(
         builder: (sbContext, setDialogState) {
-          final accent = lightenColor(appColorNotifier.value, 0.45);
-          final dim = lightenColor(appColorNotifier.value, 0.35);
+          final accent = lightenColor(appColor, 0.45);
+          final dim = lightenColor(appColor, 0.35);
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -640,7 +646,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       return;
     }
     final bool isMetric = (_units == 'metric');
-    final int? currentMl = currentUserData?.waterMlGoal;
+    final int? currentMl = ref.read(userDataProvider).value?.waterMlGoal;
     String initialWater = '';
     // convert stored ml to oz for imperial users
     if (currentMl != null) {
@@ -760,8 +766,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-        splashColor: appColorNotifier.value.withAlpha(100),
-        highlightColor: appColorNotifier.value.withAlpha(15),
+        splashColor: appColor.withAlpha(100),
+        highlightColor: appColor.withAlpha(15),
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 20),
@@ -773,26 +779,20 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
               Container(
                 padding: EdgeInsets.all(Responsive.scale(context, 8)),
                 decoration: BoxDecoration(
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.05,
-                  ).withAlpha(80),
+                  color: lightenColor(appColor, 0.05).withAlpha(80),
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 10),
                   ),
                   border: Border.all(
-                    color: lightenColor(
-                      appColorNotifier.value,
-                      0.25,
-                    ).withAlpha(60),
+                    color: lightenColor(appColor, 0.25).withAlpha(60),
                     width: Responsive.width(context, 2),
                   ),
                 ),
                 child: HugeIcon(
                   icon: icon,
-                  color: appColorNotifier.value == defaultAppColor
+                  color: appColor == defaultAppColor
                       ? Colors.white70
-                      : lightenColor(appColorNotifier.value, 0.2),
+                      : lightenColor(appColor, 0.2),
                   size: Responsive.scale(context, 22),
                 ),
               ),
@@ -806,7 +806,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                       label,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 15),
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -816,7 +816,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                         subtitle,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 12),
-                          color: lightenColor(appColorNotifier.value, 0.45),
+                          color: lightenColor(appColor, 0.45),
                         ),
                       ),
                     ],
@@ -831,7 +831,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
               else if (onTap != null)
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: lightenColor(appColorNotifier.value, 0.45),
+                  color: lightenColor(appColor, 0.45),
                   size: Responsive.scale(context, 20),
                 ),
             ],
@@ -855,6 +855,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
 
   @override
   Widget build(BuildContext context) {
+    final userData = ref.watch(userDataProvider).value;
     // Color swatch preview for the theme color row
     final colorPreview = Container(
       width: Responsive.scale(context, 32),
@@ -901,12 +902,12 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.1,
                                 ).withAlpha(20),
                                 border: Border.all(
                                   color: lightenColor(
-                                    appColorNotifier.value,
+                                    appColor,
                                     0.3,
                                   ).withAlpha(180),
                                   width: 1.5,
@@ -915,7 +916,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               child: Icon(
                                 Icons.arrow_back_ios_new,
                                 color: lightenColor(
-                                  appColorNotifier.value,
+                                  appColor,
                                   0.3,
                                 ).withAlpha(180),
                                 size: Responsive.font(context, 13),
@@ -973,10 +974,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                             buildPreferenceRow(
                               icon: HugeIcons.strokeRoundedUserCircle,
                               label: "Username",
-                              subtitle:
-                                  currentUserData?.username !=
-                                      currentUserData?.uid
-                                  ? "Current username: ${currentUserData?.username}"
+                              subtitle: userData?.username != userData?.uid
+                                  ? "Current username: ${userData?.username}"
                                   : "Set a display name",
                               onTap: () {
                                 if (isGuest) {
@@ -1109,10 +1108,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               icon: HugeIcons.strokeRoundedApple01,
                               label: "Nutrition Goals",
                               subtitle: () {
-                                final cal = currentUserData?.caloriesGoal;
-                                final pro = currentUserData?.proteinGoal;
-                                final carb = currentUserData?.carbsGoal;
-                                final fat = currentUserData?.fatGoal;
+                                final cal = userData?.caloriesGoal;
+                                final pro = userData?.proteinGoal;
+                                final carb = userData?.carbsGoal;
+                                final fat = userData?.fatGoal;
                                 if (cal == null &&
                                     pro == null &&
                                     carb == null &&
@@ -1143,8 +1142,8 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               icon: HugeIcons.strokeRoundedWeightScale,
                               label: "Weight Goal",
                               subtitle: () {
-                                final type = currentUserData?.weightGoalType;
-                                final kg = currentUserData?.weightKgGoal;
+                                final type = userData?.weightGoalType;
+                                final kg = userData?.weightKgGoal;
                                 final typePart = type != null
                                     ? type[0].toUpperCase() + type.substring(1)
                                     : null;
@@ -1168,7 +1167,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               icon: HugeIcons.strokeRoundedDumbbell01,
                               label: "Weekly Workout Goal",
                               subtitle: () {
-                                final n = currentUserData?.weeklyWorkoutsGoal;
+                                final n = userData?.weeklyWorkoutsGoal;
                                 return n == null
                                     ? "Current: None"
                                     : "Current: $n workouts/week";
@@ -1189,7 +1188,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               icon: HugeIcons.strokeRoundedDroplet,
                               label: "Water Goal",
                               subtitle: () {
-                                final ml = currentUserData?.waterMlGoal;
+                                final ml = userData?.waterMlGoal;
                                 if (ml == null) return "Current: None";
                                 return _units == 'metric'
                                     ? "Current: $ml ml"
@@ -1367,12 +1366,10 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                               // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
                               trailing: Switch.adaptive(
                                 value: notificationsEnabled,
-                                activeThumbColor:
-                                    appColorNotifier.value == defaultAppColor
+                                activeThumbColor: appColor == defaultAppColor
                                     ? Colors.white70
-                                    : lightenColor(appColorNotifier.value, 0.2),
-                                activeTrackColor: appColorNotifier.value
-                                    .withAlpha(100),
+                                    : lightenColor(appColor, 0.2),
+                                activeTrackColor: appColor.withAlpha(100),
                                 inactiveThumbColor: Colors.white38,
                                 inactiveTrackColor: Colors.white.withAlpha(20),
                                 onChanged: (value) async {
@@ -1388,6 +1385,7 @@ class _PersonalPreferencesState extends State<PersonalPreferences>
                                     value,
                                     context,
                                   );
+                                  // TODO: migrate mutation to notifier
                                   currentUserData!.notificationsEnabled = value;
 
                                   // If enabling on web, also request browser permission and get FCM token

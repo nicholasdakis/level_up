@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../globals.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utility/responsive.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 
-class Footer extends StatefulWidget {
+class Footer extends ConsumerStatefulWidget {
   final Widget profilePicture;
   final VoidCallback onProfileImageUpdated;
 
@@ -15,12 +18,16 @@ class Footer extends StatefulWidget {
   });
 
   @override
-  State<Footer> createState() => _FooterState();
+  ConsumerState<Footer> createState() => _FooterState();
 }
 
-class _FooterState extends State<Footer> {
+class _FooterState extends ConsumerState<Footer> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     double screenWidth = MediaQuery.sizeOf(
       context,
     ).width; // Make widgets the size of the user's personal screen size
@@ -32,7 +39,7 @@ class _FooterState extends State<Footer> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            splashColor: appColorNotifier.value.withAlpha(100),
+            splashColor: appColor.withAlpha(100),
             onTap: () {
               context.push(
                 '/settings/preferences',
@@ -81,7 +88,7 @@ class _FooterState extends State<Footer> {
 
     Widget buildFooterLevelText() {
       return Text(
-        'Level ${currentUserData?.level ?? 1}',
+        'Level ${ref.read(userDataProvider).value?.level ?? 1}',
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 12),
           color: Colors.white,
@@ -162,7 +169,7 @@ class _FooterState extends State<Footer> {
       width: double.infinity, // full width footer
       height: Responsive.height(context, 120) + bottomInset,
       decoration: BoxDecoration(
-        color: darkenColor(appColorNotifier.value, 0.025),
+        color: darkenColor(appColor, 0.025),
         border: Border(
           top: BorderSide(
             color: Colors.white.withAlpha(25),

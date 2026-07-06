@@ -4,7 +4,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'providers/user_data_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:level_up/utility/confetti.dart';
@@ -22,7 +24,8 @@ import 'utility/responsive.dart';
 import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
-import 'services/user_data_manager.dart' show trackTrivialAchievement;
+import 'services/user_data_manager.dart'
+    show trackTrivialAchievement, defaultAppColor;
 import 'services/ad_service.dart';
 import 'services/fcm/notification_service.dart';
 import 'services/fcm/web_fcm_token_stub.dart'
@@ -33,17 +36,19 @@ class _HomeAnimationState {
   static bool dashboardAnimated = false;
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late VoidCallback _appColorListener;
 
   bool _adWatching = false;
   bool _shimmerPaused = false;
@@ -67,10 +72,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
     _greeting = _buildGreeting();
 
-    _appColorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_appColorListener);
     foodLogNotifier.addListener(_onFoodChanged);
     WidgetsBinding.instance.addObserver(this);
 
@@ -138,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _updateCountdown() {
-    final last = currentUserData?.lastDailyClaim;
+    final last = ref.read(userDataProvider).value?.lastDailyClaim;
     if (last == null) return;
     final next = last.add(dailyRewardCooldown);
     final remaining = next.difference(DateTime.now().toUtc());
@@ -154,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
-    appColorNotifier.removeListener(_appColorListener);
     foodLogNotifier.removeListener(_onFoodChanged);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
@@ -164,11 +164,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool get isNewUser =>
       appReadyNotifier.value &&
-      currentUserData?.username != null &&
-      currentUserData?.username == currentUserData?.uid;
+      ref.read(userDataProvider).value?.username != null &&
+      ref.read(userDataProvider).value?.username ==
+          ref.read(userDataProvider).value?.uid;
 
   bool canClaimDailyReward() {
-    final last = currentUserData?.lastDailyClaim;
+    final last = ref.read(userDataProvider).value?.lastDailyClaim;
     if (last == null) return true;
     final secondsSince = DateTime.now()
         .toUtc()
@@ -191,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> initializeUser() async {
-    if (currentUserData == null) return;
+    if (ref.read(userDataProvider).value == null) return;
 
     if (userManager.lastLoadFailed) {
       if (!mounted) return;
@@ -200,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     if (mounted) {
-      final pfp = currentUserData?.pfpBase64;
+      final pfp = ref.read(userDataProvider).value?.pfpBase64;
       final bytes = pfp != null
           ? (Uri.parse(pfp).data?.contentAsBytes() ?? base64Decode(pfp))
           : null;
@@ -218,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           !kDebugMode &&
           !isNewUser &&
           web_fcm.getNotificationPermission() != 'granted' &&
-          currentUserData!.notificationsEnabled) {
+          ref.read(userDataProvider).value!.notificationsEnabled) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) showBrowserBlockedDialog(context);
         });
@@ -276,9 +277,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       });
       await userManager.loadUserData();
       if (!mounted) return;
-      if (!userManager.lastLoadFailed && currentUserData != null) {
-        appColorNotifier.value = currentUserData!.appColor;
-        expNotifier.value = currentUserData!.expPoints;
+      if (!userManager.lastLoadFailed &&
+          ref.read(userDataProvider).value != null) {
+        appColorNotifier.value = ref.read(userDataProvider).value!.appColor;
+        expNotifier.value = ref.read(userDataProvider).value!.expPoints;
         // notifyListeners won't fire if value was already true, so call initializeUser directly
         appReadyNotifier.value = true;
         initializeUser();
@@ -310,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Builds a greeting based on time of day plus a random variant from that pool
 
-  int _foodLogStreak() => currentUserData?.foodLogStreak ?? 0;
+  int _foodLogStreak() => ref.read(userDataProvider).value?.foodLogStreak ?? 0;
 
   // Picks a fresh greeting and updates the question flag together
   String _buildGreeting() {
@@ -322,7 +324,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String _timeOfDayLabel() => _greeting;
 
   // Reads the daily claim streak from the backend-populated UserData field
-  int _dailyClaimStreak() => currentUserData?.dailyClaimStreak ?? 0;
+  int _dailyClaimStreak() =>
+      ref.read(userDataProvider).value?.dailyClaimStreak ?? 0;
 
   Widget _buildStreakRow({
     required IconData icon,
@@ -333,6 +336,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     required bool isLast,
     String? overrideSubtitle,
   }) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Column(
       children: [
         Padding(
@@ -354,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Text(
                       label,
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontSize: Responsive.font(context, 14),
                         fontWeight: FontWeight.w600,
                       ),
@@ -365,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ? "Best: $best ${best == 1 ? 'day' : 'days'}"
                               : "No best yet"),
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColorNotifier.value, 0.45),
+                        color: lightenColor(appColor, 0.45),
                         fontSize: Responsive.font(context, 11),
                       ),
                     ),
@@ -404,16 +409,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Streak card showing food log streak and daily claim streak
   Widget _buildStreakCard() {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final foodStreak = isGuest ? 0 : _foodLogStreak();
     final claimStreak = isGuest ? 0 : _dailyClaimStreak();
-    final workoutStreak = isGuest ? 0 : (currentUserData?.workoutStreak ?? 0);
-    final accentColor = lightenColor(appColorNotifier.value, 0.45);
+    final workoutStreak = isGuest
+        ? 0
+        : (ref.read(userDataProvider).value?.workoutStreak ?? 0);
+    final accentColor = lightenColor(appColor, 0.45);
     final foodStreakBest = isGuest
         ? 0
-        : (currentUserData?.foodLogStreakBest ?? 0);
+        : (ref.read(userDataProvider).value?.foodLogStreakBest ?? 0);
     final workoutStreakBest = isGuest
         ? 0
-        : (currentUserData?.workoutStreakBest ?? 0);
+        : (ref.read(userDataProvider).value?.workoutStreakBest ?? 0);
     final guestSubtitle = "Create an account to track your streaks";
     return frostedGlassCard(
       context,
@@ -427,7 +436,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: HugeIcons.strokeRoundedChartIncrease,
             label: "Daily reward streak",
             count: claimStreak,
-            best: isGuest ? -1 : (currentUserData?.dailyClaimStreakBest ?? 0),
+            best: isGuest
+                ? -1
+                : (ref.read(userDataProvider).value?.dailyClaimStreakBest ?? 0),
             accentColor: accentColor,
             isLast: false,
             overrideSubtitle: isGuest ? guestSubtitle : null,
@@ -457,6 +468,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Guest banner card
   Widget _buildGuestBanner() {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return frostedGlassCard(
       context,
       padding: EdgeInsets.symmetric(
@@ -473,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Text(
                   "You're in guest mode",
                   style: GoogleFonts.manrope(
-                    color: lightenColor(appColorNotifier.value, 0.45),
+                    color: lightenColor(appColor, 0.45),
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
                   ),
@@ -503,11 +516,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // XP bar card: hero layout with level badge on the left and XP count on the right
   Widget _buildXpCard() {
-    final base = appColorNotifier.value;
+    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final c = cardColors(base);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
-    final level = isGuest ? 0 : (currentUserData?.level ?? 1);
+    final level = isGuest ? 0 : (ref.read(userDataProvider).value?.level ?? 1);
 
     return ValueListenableBuilder<int>(
       valueListenable: expNotifier,
@@ -757,7 +770,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Daily reward card: same gradient tile style as the earn XP cards
   Widget _buildDailyRewardCard() {
-    final base = appColorNotifier.value;
+    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final canClaim = canClaimDailyReward();
     final c = cardColors(base);
     final accent = c.onCard;
@@ -863,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Earn XP card: square action tile with icon on top and label below
   // Wrapped in a blur overlay while ads are unavailable
   Widget _buildEarnXpCard() {
-    final base = appColorNotifier.value;
+    final base = ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final c = cardColors(base);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
@@ -1007,7 +1020,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   }
                   await userManager.loadUserData();
                   if (mounted) {
-                    expNotifier.value = currentUserData?.expPoints ?? 0;
+                    expNotifier.value =
+                        ref.read(userDataProvider).value?.expPoints ?? 0;
                     userDataNotifier.notifyListeners();
                   }
                 },
@@ -1028,23 +1042,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(userDataProvider); // drives rebuilds when user data changes
     return Stack(
       children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],
     );
   }
 
   Widget _buildBody() {
+    final userData = ref.read(userDataProvider).value;
     final username =
-        (currentUserData?.username == null ||
-            currentUserData?.username == currentUserData?.uid)
+        (userData?.username == null || userData?.username == userData?.uid)
         ? null
-        : currentUserData!.username!;
+        : userData!.username!;
 
     return Skeletonizer(
       enabled: isLoading,
       effect: ShimmerEffect(
-        baseColor: lightenColor(appColorNotifier.value, 0.10),
-        highlightColor: lightenColor(appColorNotifier.value, 0.22),
+        baseColor: lightenColor(appColor, 0.10),
+        highlightColor: lightenColor(appColor, 0.22),
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
@@ -1098,10 +1113,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ? _timeOfDayLabel()
                                           : "WELCOME TO LEVEL UP!",
                                       style: GoogleFonts.manrope(
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.45,
-                                        ),
+                                        color: lightenColor(appColor, 0.45),
                                         fontSize: Responsive.font(context, 14),
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: Responsive.scale(
@@ -1118,10 +1130,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ? "$username${_greetingIsQuestion ? "?" : "!"}"
                                           : "",
                                       style: GoogleFonts.manrope(
-                                        color: lightenColor(
-                                          appColorNotifier.value,
-                                          0.45,
-                                        ),
+                                        color: lightenColor(appColor, 0.45),
                                         fontSize: Responsive.font(context, 26),
                                         fontWeight: FontWeight.w800,
                                         height: 1.1,
@@ -1244,7 +1253,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 icon: HugeIcons
                                                     .strokeRoundedAlarmClock,
                                                 color: lightenColor(
-                                                  appColorNotifier.value,
+                                                  appColor,
                                                   0.35,
                                                 ),
                                                 size: Responsive.scale(
@@ -1262,7 +1271,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 "Reminders",
                                                 style: GoogleFonts.manrope(
                                                   color: lightenColor(
-                                                    appColorNotifier.value,
+                                                    appColor,
                                                     0.45,
                                                   ),
                                                   fontSize: Responsive.font(
@@ -1276,10 +1285,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ),
                                           Icon(
                                             Icons.chevron_right,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.3,
-                                            ),
+                                            color: lightenColor(appColor, 0.3),
                                             size: Responsive.scale(context, 18),
                                           ),
                                         ],
@@ -1320,7 +1326,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                   icon: HugeIcons
                                                       .strokeRoundedCalculate,
                                                   color: lightenColor(
-                                                    appColorNotifier.value,
+                                                    appColor,
                                                     0.35,
                                                   ),
                                                   size: Responsive.scale(
@@ -1339,7 +1345,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     "Calorie Calculator",
                                                     style: GoogleFonts.manrope(
                                                       color: lightenColor(
-                                                        appColorNotifier.value,
+                                                        appColor,
                                                         0.45,
                                                       ),
                                                       fontSize: Responsive.font(
@@ -1356,10 +1362,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           ),
                                           Icon(
                                             Icons.chevron_right,
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.3,
-                                            ),
+                                            color: lightenColor(appColor, 0.3),
                                             size: Responsive.scale(context, 18),
                                           ),
                                         ],

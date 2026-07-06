@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers/user_data_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'screens/update_required.dart';
 import 'package:flutter/foundation.dart';
@@ -435,31 +437,18 @@ final GoRouter appRouter = GoRouter(
 
 // Runs app init once and redirects to / when done.
 // Uses NoTransitionPage so there is no animation into or out of the loading screen.
-class AppInitScreen extends StatefulWidget {
+class AppInitScreen extends ConsumerStatefulWidget {
   const AppInitScreen({super.key});
 
   @override
-  State<AppInitScreen> createState() => _AppInitScreenState();
+  ConsumerState<AppInitScreen> createState() => _AppInitScreenState();
 }
 
-class _AppInitScreenState extends State<AppInitScreen> {
-  late final VoidCallback _colorListener;
-
+class _AppInitScreenState extends ConsumerState<AppInitScreen> {
   @override
   void initState() {
     super.initState();
-    // rebuild spinner when theme color changes while loading
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
-    appColorNotifier.addListener(_colorListener);
     _initApp();
-  }
-
-  @override
-  void dispose() {
-    appColorNotifier.removeListener(_colorListener);
-    super.dispose();
   }
 
   // returns true if the installed version is below the minimum required
@@ -492,6 +481,9 @@ class _AppInitScreenState extends State<AppInitScreen> {
   }
 
   Future<void> _initApp() async {
+    // capture ref before any async gaps since the widget may unmount while awaiting
+    final notifier = ref.read(userDataProvider.notifier);
+
     if (await _isOutdated()) {
       isAppOutdated = true;
       appInitialized = true;
@@ -508,6 +500,8 @@ class _AppInitScreenState extends State<AppInitScreen> {
 
     userManager.updateUtcOffset();
     expNotifier.value = currentUserData?.expPoints ?? 0;
+
+    notifier.setUserData(currentUserData);
 
     if (currentUserData != null) {
       appColorNotifier.value = currentUserData!.appColor;

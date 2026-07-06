@@ -1,4 +1,7 @@
-import 'package:confetti/confetti.dart';
+﻿import 'package:confetti/confetti.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:go_router/go_router.dart';
@@ -8,7 +11,7 @@ import '/globals.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 
-class FinishWorkoutScreen extends StatefulWidget {
+class FinishWorkoutScreen extends ConsumerStatefulWidget {
   final String workoutId;
   final int durationSeconds;
   final double totalVolumeKg;
@@ -30,24 +33,23 @@ class FinishWorkoutScreen extends StatefulWidget {
   });
 
   @override
-  State<FinishWorkoutScreen> createState() => _FinishWorkoutScreenState();
+  ConsumerState<FinishWorkoutScreen> createState() =>
+      _FinishWorkoutScreenState();
 }
 
-class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
-  late final VoidCallback _colorListener;
+class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late final VoidCallback _expListener;
   late final ConfettiController _confetti;
 
   @override
   void initState() {
     super.initState();
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
     _expListener = () {
       if (mounted) setState(() {});
     };
-    appColorNotifier.addListener(_colorListener);
     expNotifier.addListener(_expListener);
     _confetti = ConfettiController(duration: const Duration(milliseconds: 600));
     if (widget.xpGained > 0) {
@@ -57,7 +59,6 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     expNotifier.removeListener(_expListener);
     _confetti.dispose();
     super.dispose();
@@ -74,7 +75,6 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor = appColorNotifier.value;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final dimmer = lightenColor(appColor, 0.30);
@@ -648,7 +648,7 @@ class _FinishWorkoutScreenState extends State<FinishWorkoutScreen> {
                         vertical: Responsive.height(context, 3),
                       ),
                       decoration: BoxDecoration(
-                        color: appColorNotifier.value.withAlpha(60),
+                        color: appColor.withAlpha(60),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: accent.withAlpha(120),

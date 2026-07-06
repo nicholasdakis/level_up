@@ -1,4 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
 import 'dart:convert';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -16,18 +18,21 @@ import '/services/workout_session_service.dart';
 import 'exercise_picker_screen.dart';
 import 'level_up_overlay.dart';
 
-class ActiveWorkoutScreen extends StatefulWidget {
+class ActiveWorkoutScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>?
   routine; // null = empty session, non-null = from routine
 
   const ActiveWorkoutScreen({super.key, this.routine});
 
   @override
-  State<ActiveWorkoutScreen> createState() => _ActiveWorkoutScreenState();
+  ConsumerState<ActiveWorkoutScreen> createState() =>
+      _ActiveWorkoutScreenState();
 }
 
-class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
-  late final VoidCallback _colorListener;
+class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   late final VoidCallback _sessionListener;
   late final Timer _timer;
 
@@ -112,13 +117,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    _colorListener = () {
-      if (mounted) setState(() {});
-    };
     _sessionListener = () {
       if (mounted) setState(() {});
     };
-    appColorNotifier.addListener(_colorListener);
     workoutSessionService.addListener(_sessionListener);
 
     // if no session is active, start one now (new workout or from routine)
@@ -199,7 +200,6 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   @override
   void dispose() {
-    appColorNotifier.removeListener(_colorListener);
     workoutSessionService.removeListener(_sessionListener);
     _timer.cancel();
     _restTimer?.cancel();
@@ -328,7 +328,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           Text(
             'Name this workout',
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -339,7 +339,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             autofocus: true,
             maxLength: 40,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 15),
             ),
             decoration: InputDecoration(
@@ -353,12 +353,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 borderSide: BorderSide(color: Colors.white24),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: appColorNotifier.value.withAlpha(200),
-                ),
+                borderSide: BorderSide(color: appColor.withAlpha(200)),
               ),
             ),
-            cursorColor: lightenColor(appColorNotifier.value, 0.45),
+            cursorColor: lightenColor(appColor, 0.45),
           ),
           SizedBox(height: Responsive.height(context, 8)),
           Row(
@@ -644,8 +642,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   void _openWorkoutSettings() {
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     showFrostedDialog<void>(
       context: context,
       child: Column(
@@ -727,13 +725,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 vertical: Responsive.height(context, 12),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
+                color: lightenColor(appColor, 0.1).withAlpha(40),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.35,
-                  ).withAlpha(120),
+                  color: lightenColor(appColor, 0.35).withAlpha(120),
                   width: 1.5,
                 ),
               ),
@@ -878,7 +873,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   // borderless bare input, no fill, no border, just the number
   InputDecoration _fieldDec(String hint) {
-    final onCard = cardColors(appColorNotifier.value).onCard;
+    final onCard = cardColors(appColor).onCard;
     return InputDecoration(
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
@@ -905,8 +900,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         : vol.toStringAsFixed(0);
     final String volUnit = isImperial ? 'lbs' : 'kg';
 
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dim = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -1006,12 +1001,12 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                       padding: EdgeInsets.symmetric(
                         vertical: Responsive.height(context, 12),
                       ),
-                      color: appColorNotifier.value.withAlpha(60),
+                      color: appColor.withAlpha(60),
                       child: Text(
                         'Done Reordering',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
+                          color: lightenColor(appColor, 0.45),
                           fontSize: Responsive.font(context, 14),
                           fontWeight: FontWeight.w700,
                         ),
@@ -1038,7 +1033,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           Text(
             'Name this workout',
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -1049,7 +1044,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             autofocus: true,
             maxLength: 40,
             style: GoogleFonts.manrope(
-              color: lightenColor(appColorNotifier.value, 0.45),
+              color: lightenColor(appColor, 0.45),
               fontSize: Responsive.font(context, 15),
             ),
             decoration: InputDecoration(
@@ -1063,12 +1058,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 borderSide: BorderSide(color: Colors.white24),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: appColorNotifier.value.withAlpha(200),
-                ),
+                borderSide: BorderSide(color: appColor.withAlpha(200)),
               ),
             ),
-            cursorColor: lightenColor(appColorNotifier.value, 0.45),
+            cursorColor: lightenColor(appColor, 0.45),
           ),
           SizedBox(height: Responsive.height(context, 8)),
           Row(
@@ -1121,7 +1114,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               padding: EdgeInsets.only(right: Responsive.width(context, 12)),
               child: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: lightenColor(appColorNotifier.value, 0.35),
+                color: lightenColor(appColor, 0.35),
                 size: Responsive.scale(context, 28),
               ),
             ),
@@ -1156,7 +1149,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                             color:
                                 _workoutName != null || _s.routineName != null
                                 ? dim
-                                : lightenColor(appColorNotifier.value, 0.35),
+                                : lightenColor(appColor, 0.35),
                             fontSize: Responsive.font(context, 13),
                             fontWeight: FontWeight.w600,
                           ),
@@ -1169,7 +1162,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         ),
                         child: Icon(
                           Icons.edit_rounded,
-                          color: lightenColor(appColorNotifier.value, 0.35),
+                          color: lightenColor(appColor, 0.35),
                           size: Responsive.scale(context, 12),
                         ),
                       ),
@@ -1228,12 +1221,9 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 vertical: Responsive.height(context, 10),
               ),
               decoration: BoxDecoration(
-                color: appColorNotifier.value.withAlpha(70),
+                color: appColor.withAlpha(70),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: appColorNotifier.value.withAlpha(150),
-                  width: 1.5,
-                ),
+                border: Border.all(color: appColor.withAlpha(150), width: 1.5),
               ),
               child: Text(
                 'Finish',
@@ -1315,7 +1305,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         context,
         padding: EdgeInsets.zero,
         border: Border.all(
-          color: lightenColor(appColorNotifier.value, 0.3).withAlpha(80),
+          color: lightenColor(appColor, 0.3).withAlpha(80),
           width: 1.5,
         ),
         child: Column(
@@ -1367,7 +1357,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           vertical: Responsive.height(context, 3),
                         ),
                         decoration: BoxDecoration(
-                          color: appColorNotifier.value.withAlpha(60),
+                          color: appColor.withAlpha(60),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: accent.withAlpha(120),
@@ -1391,9 +1381,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                           ? Icon(
                               Icons.drag_handle_rounded,
                               key: const ValueKey('drag'),
-                              color: cardColors(
-                                appColorNotifier.value,
-                              ).onCard.withAlpha(120),
+                              color: cardColors(appColor).onCard.withAlpha(120),
                               size: Responsive.scale(context, 20),
                             )
                           : Builder(
@@ -1412,7 +1400,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                   child: Icon(
                                     Icons.more_vert_rounded,
                                     color: cardColors(
-                                      appColorNotifier.value,
+                                      appColor,
                                     ).onCard.withAlpha(120),
                                     size: Responsive.scale(context, 18),
                                   ),
@@ -1554,7 +1542,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     String label, {
     required double width,
   }) {
-    final subtle = cardColors(appColorNotifier.value).onCard.withAlpha(120);
+    final subtle = cardColors(appColor).onCard.withAlpha(120);
     return SizedBox(
       width: width,
       child: Text(
@@ -1571,7 +1559,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   }
 
   Widget _headerExpanded(BuildContext context, String label) {
-    final subtle = cardColors(appColorNotifier.value).onCard.withAlpha(120);
+    final subtle = cardColors(appColor).onCard.withAlpha(120);
     return Expanded(
       child: Text(
         label,
@@ -1596,11 +1584,11 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   ) {
     final set = (_exercises[exIndex]['sets'] as List)[setIndex] as Map;
     final checked = _isChecked(exIndex, setIndex);
-    final c = cardColors(appColorNotifier.value);
+    final c = cardColors(appColor);
     final onCard = c.onCard;
 
     final rowBg = checked
-        ? appColorNotifier.value.withAlpha(28)
+        ? appColor.withAlpha(28)
         : setIndex.isOdd
         ? onCard.withAlpha(8)
         : Colors.transparent;
@@ -1800,7 +1788,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
               child: Icon(
                 Icons.check_rounded,
                 size: Responsive.scale(context, 16),
-                color: checked ? appColorNotifier.value : onCard.withAlpha(80),
+                color: checked ? appColor : onCard.withAlpha(80),
               ),
             ),
           ),
@@ -1833,13 +1821,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                 vertical: Responsive.height(context, 15),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColorNotifier.value, 0.1).withAlpha(40),
+                color: lightenColor(appColor, 0.1).withAlpha(40),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: lightenColor(
-                    appColorNotifier.value,
-                    0.35,
-                  ).withAlpha(120),
+                  color: lightenColor(appColor, 0.35).withAlpha(120),
                   width: 1.5,
                 ),
               ),
@@ -1890,16 +1875,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(40),
+                        color: lightenColor(appColor, 0.1).withAlpha(40),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.35,
-                          ).withAlpha(120),
+                          color: lightenColor(appColor, 0.35).withAlpha(120),
                           width: 1.5,
                         ),
                       ),
@@ -1907,7 +1886,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         'Discard',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
+                          color: lightenColor(appColor, 0.45),
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w600,
                         ),
@@ -1925,16 +1904,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(40),
+                        color: lightenColor(appColor, 0.1).withAlpha(40),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.35,
-                          ).withAlpha(120),
+                          color: lightenColor(appColor, 0.35).withAlpha(120),
                           width: 1.5,
                         ),
                       ),
@@ -1942,7 +1915,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                         'Settings',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColorNotifier.value, 0.45),
+                          color: lightenColor(appColor, 0.45),
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w600,
                         ),

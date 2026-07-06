@@ -16,6 +16,8 @@ import '/utility/tdee_calculator.dart';
 // Unified onboarding wizard: steps 1-3 in a single dialog with dots + back nav
 Future<String?> showOnboardingWizard(BuildContext context) async {
   // Step 1 state is a static list
+  // appColor is captured once here so nested builders share the same value
+  Color appColor = currentUserData?.appColor ?? appColorNotifier.value;
 
   // Step 2 state
   final weightGoals = [
@@ -77,8 +79,8 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
     maxWidth: 460,
     child: StatefulBuilder(
       builder: (ctx, setState) {
-        final accent = lightenColor(appColorNotifier.value, 0.45);
-        final dim = lightenColor(appColorNotifier.value, 0.35);
+        final accent = lightenColor(appColor, 0.45);
+        final dim = lightenColor(appColor, 0.35);
 
         // Step 2 derived
         final isMetricGoal = selectedUnits == 'metric';
@@ -303,7 +305,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
               child: ElevatedButton(
                 onPressed: () => setState(() => currentStep = 1),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: appColorNotifier.value,
+                  backgroundColor: appColor,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shadowColor: Colors.transparent,
@@ -543,7 +545,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                                 onPressed: () =>
                                     setState(() => currentStep = 2),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: appColorNotifier.value,
+                                  backgroundColor: appColor,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: EdgeInsets.symmetric(
@@ -1334,7 +1336,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                             (tdee != null &&
                                 (goalType == 'maintain' ||
                                     rateController.text.isNotEmpty))
-                            ? appColorNotifier.value
+                            ? appColor
                             : Colors.white.withAlpha(20),
                         foregroundColor: Colors.white,
                         elevation: 0,
@@ -1575,7 +1577,7 @@ Future<String?> showOnboardingWizard(BuildContext context) async {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: appColorNotifier.value,
+                    backgroundColor: appColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: EdgeInsets.symmetric(

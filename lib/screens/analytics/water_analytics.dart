@@ -1,4 +1,7 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -11,14 +14,17 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import 'analytics_components.dart';
 
-class WaterAnalyticsScreen extends StatefulWidget {
+class WaterAnalyticsScreen extends ConsumerStatefulWidget {
   const WaterAnalyticsScreen({super.key});
 
   @override
-  State<WaterAnalyticsScreen> createState() => _WaterAnalyticsScreenState();
+  ConsumerState<WaterAnalyticsScreen> createState() =>
+      _WaterAnalyticsScreenState();
 }
 
-class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
+class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
+  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
 
@@ -73,7 +79,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
     final ml = isImperial ? UnitConverter.ozToMl(raw).round() : raw.round();
     final key = _dateKeyFor(_addDate);
     final existing = List<int>.from(
-      currentUserData?.waterEntriesByDate[key] ?? [],
+      ref.read(userDataProvider).value?.waterEntriesByDate[key] ?? [],
     );
     setState(() => _isAdding = true);
     await userManager.updateWaterLog(key, [...existing, ml]);
@@ -126,7 +132,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
 
   // Returns all water entries as (date, totalMl) sorted chronologically oldest-first
   List<MapEntry<String, int>> _sortedEntries() {
-    final byDate = currentUserData?.waterEntriesByDate ?? {};
+    final byDate = ref.read(userDataProvider).value?.waterEntriesByDate ?? {};
     final entries = byDate.entries.map((e) {
       final total = e.value.fold(0, (s, v) => s + v);
       return MapEntry(e.key, total);
@@ -151,10 +157,12 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dimAccent = lightenColor(appColorNotifier.value, 0.3);
-    final goalMl = currentUserData?.waterMlGoal ?? 0;
+    final accent = lightenColor(appColor, 0.45);
+    final dimAccent = lightenColor(appColor, 0.3);
+    final goalMl = ref.read(userDataProvider).value?.waterMlGoal ?? 0;
 
     if (entries.isEmpty) {
       return frostedGlassCard(
@@ -241,7 +249,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                 fitInsideHorizontally: true,
                 fitInsideVertically: true,
                 getTooltipColor: (_) =>
-                    darkenColor(appColorNotifier.value, 0.1).withAlpha(220),
+                    darkenColor(appColor, 0.1).withAlpha(220),
                 getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
                   final entry = entries[s.spotIndex];
                   return LineTooltipItem(
@@ -333,10 +341,7 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                     radius: Responsive.scale(context, 4),
                     color: accent,
                     strokeWidth: 2,
-                    strokeColor: darkenColor(
-                      appColorNotifier.value,
-                      0.05,
-                    ).withAlpha(180),
+                    strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
                   ),
                 ),
                 belowBarData: BarAreaData(
@@ -359,9 +364,11 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
-    final accent = lightenColor(appColorNotifier.value, 0.45);
+    final accent = lightenColor(appColor, 0.45);
 
     String fmt(int ml) => isImperial
         ? '${UnitConverter.displayWater(ml, imperial: true)} $unit'
@@ -445,10 +452,12 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
-    final accent = lightenColor(appColorNotifier.value, 0.45);
-    final dimAccent = lightenColor(appColorNotifier.value, 0.35);
+    final accent = lightenColor(appColor, 0.45);
+    final dimAccent = lightenColor(appColor, 0.35);
     // all entries newest-first, each entry is the daily total
     final all = _sortedEntries().reversed.toList();
 
@@ -625,19 +634,13 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                                               context,
                                               13,
                                             ),
-                                            color: lightenColor(
-                                              appColorNotifier.value,
-                                              0.35,
-                                            ),
+                                            color: lightenColor(appColor, 0.35),
                                             fontWeight: FontWeight.w700,
                                           ),
                                         )
                                       : HugeIcon(
                                           icon: HugeIcons.strokeRoundedDelete02,
-                                          color: lightenColor(
-                                            appColorNotifier.value,
-                                            0.3,
-                                          ),
+                                          color: lightenColor(appColor, 0.3),
                                           size: Responsive.font(context, 18),
                                         ),
                                 ),
@@ -659,6 +662,8 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appColor =
+        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final entries = _entriesInRange();
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
 
@@ -683,24 +688,15 @@ class _WaterAnalyticsScreenState extends State<WaterAnalyticsScreen> {
                       padding: EdgeInsets.all(Responsive.scale(context, 12)),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.1,
-                        ).withAlpha(20),
+                        color: lightenColor(appColor, 0.1).withAlpha(20),
                         border: Border.all(
-                          color: lightenColor(
-                            appColorNotifier.value,
-                            0.3,
-                          ).withAlpha(180),
+                          color: lightenColor(appColor, 0.3).withAlpha(180),
                           width: 1.5,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new,
-                        color: lightenColor(
-                          appColorNotifier.value,
-                          0.3,
-                        ).withAlpha(180),
+                        color: lightenColor(appColor, 0.3).withAlpha(180),
                         size: Responsive.font(context, 13),
                       ),
                     ),

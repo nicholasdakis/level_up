@@ -1,4 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,14 +9,17 @@ import '/globals.dart';
 import '/utility/responsive.dart';
 
 // Tutorial screen for installing the app as a PWA on browsers that don't support
-class InstallGuide extends StatefulWidget {
+class InstallGuide extends ConsumerStatefulWidget {
   const InstallGuide({super.key});
 
   @override
-  State<InstallGuide> createState() => _InstallGuideState();
+  ConsumerState<InstallGuide> createState() => _InstallGuideState();
 }
 
-class _InstallGuideState extends State<InstallGuide> {
+class _InstallGuideState extends ConsumerState<InstallGuide> {
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +40,7 @@ class _InstallGuideState extends State<InstallGuide> {
             height: Responsive.scale(context, 24),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: appColorNotifier.value.withAlpha(80),
+              color: appColor.withAlpha(80),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -86,7 +92,7 @@ class _InstallGuideState extends State<InstallGuide> {
               children: [
                 Icon(
                   icon,
-                  color: appColorNotifier.value,
+                  color: appColor,
                   size: Responsive.scale(context, 22),
                 ),
                 SizedBox(width: Responsive.width(context, 10)),
@@ -158,24 +164,15 @@ class _InstallGuideState extends State<InstallGuide> {
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.1,
-                            ).withAlpha(20),
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(
-                                appColorNotifier.value,
-                                0.3,
-                              ).withAlpha(180),
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(
-                              appColorNotifier.value,
-                              0.3,
-                            ).withAlpha(180),
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
                             size: Responsive.font(context, 13),
                           ),
                         ),
