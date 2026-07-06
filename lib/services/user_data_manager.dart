@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../guest.dart';
 import '../models/user_data.dart';
-import '../models/reminder_data.dart';
 import '../utility/image_crop_handler.dart';
 import 'profile_image_service.dart';
 import 'dart:async';
@@ -144,7 +143,6 @@ class UserDataManager {
           notificationsEnabled: true,
           lastDailyClaim: null,
           username: uid, // default username is uid
-          reminders: [],
           appColor: defaultAppColor,
           foodLogs: [],
           fcmTokens: [],
@@ -210,13 +208,6 @@ class UserDataManager {
       if (data['food_logs_v2'] != null) {
         currentUserData?.foodLogs = (data['food_logs_v2'] as List<dynamic>)
             .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-      }
-
-      // Map reminders from the backend response into ReminderData objects
-      if (data['reminders'] != null) {
-        currentUserData?.reminders = (data['reminders'] as List<dynamic>)
-            .map((r) => ReminderData.fromJson(r))
             .toList();
       }
 
@@ -439,7 +430,6 @@ class UserDataManager {
         notificationsEnabled: currentUserData!.notificationsEnabled,
         lastDailyClaim: currentUserData!.lastDailyClaim,
         username: currentUserData!.username,
-        reminders: currentUserData!.reminders,
         appColor: currentUserData!.appColor,
         foodLogs: currentUserData!.foodLogs,
         fcmTokens: currentUserData!.fcmTokens,

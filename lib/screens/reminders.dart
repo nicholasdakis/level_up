@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../globals.dart';
 import '../guest.dart';
 import '../models/reminder_data.dart';
+import '../providers/reminders_provider.dart';
 import '../utility/responsive.dart';
 import '../services/fcm/notification_service.dart';
 import '../services/user_data_manager.dart';
@@ -25,7 +25,8 @@ class Reminders extends ConsumerStatefulWidget {
 }
 
 class _RemindersState extends ConsumerState<Reminders> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
 
   // Prevent memory leaks
   @override
@@ -48,9 +49,6 @@ class _RemindersState extends ConsumerState<Reminders> {
   DateTime dateTime =
       DateTime.now(); // Stores the selected date and time for reminder
 
-  List<ReminderData> reminders =
-      []; // Local list to store reminders for UI display
-
   @override
   void initState() {
     super.initState();
@@ -58,11 +56,7 @@ class _RemindersState extends ConsumerState<Reminders> {
       screenName: '/reminders',
       screenClass: 'Reminders',
     );
-    reminders = List.from(
-      ref.read(userDataProvider).value?.reminders ?? [],
-    ); // show cached data instantly
     placeholderMessage = getReminderMessage();
-    _loadRemindersFromServer(); // refresh from server in the background
     _voiceSearch.init(() {
       if (mounted) setState(() {});
     });
@@ -127,33 +121,6 @@ class _RemindersState extends ConsumerState<Reminders> {
       setState(() => reminder = combined);
     });
     if (mounted) setState(() {}); // update mic icon state after listening stops
-  }
-
-  Future<void> _loadRemindersFromServer() async {
-    try {
-      final result = await _loadReminders();
-
-      if (!mounted) return;
-
-      setState(() {
-        reminders = result;
-      });
-    } catch (e) {
-      if (kDebugMode) debugPrint("Failed to load reminders: $e");
-    }
-  }
-
-  // Loads reminders from the Supabase Postgres db and removes past ones
-  Future<List<ReminderData>> _loadReminders() async {
-    final response = await authenticatedGet('reminders');
-
-    if (response.statusCode != 200) {
-      throw Exception('getReminders failed: ${response.body}');
-    }
-
-    final List data = jsonDecode(response.body)['reminders'];
-
-    return data.map((r) => ReminderData.fromJson(r)).toList();
   }
 
   // Method to generate a few random reminder messages for the placeholder text using grammar rules to make them more natural and less repetitive
@@ -275,26 +242,16 @@ class _RemindersState extends ConsumerState<Reminders> {
     if (confirmed != true) return;
 
     try {
-      final response = await authenticatedPost(
-        'delete_reminder',
-        body: {'reminder_id': reminder.id},
-      );
-
-      if (response.statusCode != 200) {
-        _showSnackbar("Failed to delete reminder", isError: true);
-        return;
-      }
-
-      final updatedReminders = reminders
-          .where((r) => r.id != reminder.id)
-          .toList();
-
+      final success = await ref
+          .read(remindersProvider.notifier)
+          .deleteReminder(reminder);
       if (mounted) {
-        setState(() => reminders = updatedReminders);
-        _showSnackbar("Reminder deleted successfully!");
+        if (success) {
+          _showSnackbar("Reminder deleted successfully!");
+        } else {
+          _showSnackbar("Failed to delete reminder", isError: true);
+        }
       }
-      // TODO: migrate mutation to notifier
-      currentUserData?.reminders = List.from(updatedReminders);
     } catch (e) {
       if (kDebugMode) debugPrint("Error deleting reminder: $e");
       _showSnackbar("Failed to delete reminder", isError: true);
@@ -407,34 +364,31 @@ class _RemindersState extends ConsumerState<Reminders> {
 
     try {
       final id = DateTime.now().millisecondsSinceEpoch;
+      final message = remindersController.text;
 
-      final response = await authenticatedPost(
-        'set_reminder',
-        body: {
-          'message': remindersController.text,
-          'scheduled_at': pickedTime.toUtc().toIso8601String(),
-          'notification_id': id,
-        },
-      );
+      final success = await ref
+          .read(remindersProvider.notifier)
+          .addReminder(
+            message: message,
+            scheduledAt: pickedTime,
+            notificationId: id,
+          );
 
-      if (response.statusCode != 200) {
-        _showSnackbar(
-          "Failed to set reminder: Status code ${response.statusCode}",
-          isError: true,
-        );
+      if (!success) {
+        _showSnackbar("Failed to set reminder.", isError: true);
         return;
       }
 
       _showSnackbar("Reminder set successfully!");
       remindersController.clear();
       setState(() => _dateTimePicked = false);
-      await _loadRemindersFromServer();
 
       // Track future_reminder if the reminder is 1+ month out
       if (pickedTime.isAfter(DateTime.now().add(const Duration(days: 30)))) {
         trackTrivialAchievement("future_reminder");
       }
       // Track active_reminders if the user now has 5+ active reminders
+      final reminders = ref.read(remindersProvider).value ?? [];
       if (reminders.length >= 5) {
         trackTrivialAchievement("active_reminders");
       }
@@ -946,57 +900,72 @@ class _RemindersState extends ConsumerState<Reminders> {
                       sectionHeader("UPCOMING REMINDERS", context),
 
                       // Reminder list or empty state
-                      reminders.isEmpty
-                          ? Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: Responsive.height(context, 32),
-                              ),
-                              child: frostedGlassCard(
-                                context,
-                                padding: EdgeInsets.symmetric(
-                                  vertical: Responsive.height(context, 32),
-                                  horizontal: Responsive.width(context, 20),
-                                ),
-                                child: Column(
-                                  children: [
-                                    HugeIcon(
-                                      icon:
-                                          HugeIcons.strokeRoundedNotification02,
-                                      color: Colors.white24,
-                                      size: Responsive.scale(context, 48),
+                      Builder(
+                        builder: (context) {
+                          final reminders =
+                              ref.watch(remindersProvider).value ?? [];
+                          return reminders.isEmpty
+                              ? Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: Responsive.height(context, 32),
+                                  ),
+                                  child: frostedGlassCard(
+                                    context,
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: Responsive.height(context, 32),
+                                      horizontal: Responsive.width(context, 20),
                                     ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 12),
+                                    child: Column(
+                                      children: [
+                                        HugeIcon(
+                                          icon: HugeIcons
+                                              .strokeRoundedNotification02,
+                                          color: Colors.white24,
+                                          size: Responsive.scale(context, 48),
+                                        ),
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        Text(
+                                          "No upcoming reminders",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              15,
+                                            ),
+                                            color: Colors.white38,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: Responsive.height(context, 6),
+                                        ),
+                                        Text(
+                                          "Type a message above and tap the time row to set one.",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              13,
+                                            ),
+                                            color: Colors.white24,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      "No upcoming reminders",
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 15),
-                                        color: Colors.white38,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 6),
-                                    ),
-                                    Text(
-                                      "Type a message above and tap the time row to set one.",
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 13),
-                                        color: Colors.white24,
-                                        height: 1.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: reminders
-                                  .map(_buildReminderCard)
-                                  .toList(),
-                            ),
+                                  ),
+                                )
+                              : Column(
+                                  children: reminders
+                                      .map(_buildReminderCard)
+                                      .toList(),
+                                );
+                        },
+                      ),
 
                       SizedBox(height: Responsive.height(context, 40)),
                     ],

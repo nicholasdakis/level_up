@@ -13,12 +13,13 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     state = AsyncData(data);
   }
 
-  // applies a copyWith patch from a domain controller, e.g. AppColorController
+  // updates one or more fields locally, used when the caller already has the new value and just needs to sync it into state
   void patch(UserData Function(UserData current) updater) {
     final current = state.value;
     if (current != null) state = AsyncData(updater(current));
   }
 
+  // optimistically flips the flag locally, rolls back if the backend call fails
   Future<void> setNotificationsEnabled(bool value, BuildContext context) async {
     final previous = state.value;
     if (previous == null) return;
@@ -31,7 +32,7 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     }
   }
 
-  // optimistic color update with rollback on backend failure
+  // optimistically applies the color locally, rolls back if the backend call fails
   Future<void> setAppColor(Color color, BuildContext context) async {
     final previous = state.value;
     if (previous == null) return;

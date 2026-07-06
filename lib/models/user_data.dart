@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'reminder_data.dart';
 import '../services/user_data_manager.dart' show defaultAppColor;
 
 class UserData {
@@ -17,7 +16,6 @@ class UserData {
   String? foodLogStreakLastDate;
   int workoutStreak;
   int workoutStreakBest;
-  List<ReminderData> reminders;
   String? username;
   Color appColor;
   List<Map<String, dynamic>> foodLogs;
@@ -56,7 +54,6 @@ class UserData {
     this.appColor = defaultAppColor,
     List<Map<String, dynamic>>? foodLogs,
     String? username,
-    List<ReminderData>? reminders,
     List<String>? fcmTokens,
     this.caloriesGoal,
     this.proteinGoal,
@@ -76,7 +73,6 @@ class UserData {
   }) : foodLogs = foodLogs ?? [],
        waterEntriesByDate = waterEntriesByDate ?? {},
        weightByDate = weightByDate ?? {},
-       reminders = reminders ?? [],
        fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 

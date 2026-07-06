@@ -16,7 +16,6 @@ class Guest {
     notificationsEnabled: false,
     lastDailyClaim: null,
     username: 'Guest',
-    reminders: [],
     appColor: defaultAppColor,
     foodLogs: [],
     fcmTokens: [],
