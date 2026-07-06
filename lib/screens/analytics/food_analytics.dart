@@ -1923,7 +1923,6 @@ Widget _statTilesRow({
   Map<String, double>? dinnerMacros,
   Map<String, double>? snacksMacros,
 }) {
-  final appColor = currentUserData?.appColor ?? defaultAppColor;
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
   final meals = [
@@ -2063,7 +2062,6 @@ Widget _macroInline(
 }
 
 Widget _calorieSummaryCard(BuildContext context, _RangeAggregate agg) {
-  final appColor = currentUserData?.appColor ?? defaultAppColor;
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
   final days = agg.daysWithData;
@@ -2181,8 +2179,7 @@ String _fmtCal(double v) {
 }
 
 Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
-  final base = currentUserData?.appColor ?? defaultAppColor;
-  final accent = lightenColor(base, 0.45);
+  final accent = lightenColor(appColor, 0.45);
   final days = agg.daysWithData;
 
   Widget macroChip(String label, double total, IconData icon) {
