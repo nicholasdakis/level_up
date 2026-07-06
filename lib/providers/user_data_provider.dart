@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
 import '../globals.dart' show userManager;
+import '../services/user_data_manager.dart'
+    show authenticatedPost, authenticatedGet;
 
 class UserDataNotifier extends AsyncNotifier<UserData?> {
   @override
@@ -50,19 +53,23 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
   }) async {
     patch((u) {
       var updated = u;
-      if (weightGoalType != null)
+      if (weightGoalType != null) {
         updated = updated.copyWith(weightGoalType: weightGoalType);
-      if (selectedUnits != null && selectedUnits != currentUnits)
+      }
+      if (selectedUnits != null && selectedUnits != currentUnits) {
         updated = updated.copyWith(units: selectedUnits);
+      }
       if (currentWeightKg != null && dateKey != null) {
         final wb = Map<String, double>.from(updated.weightByDate)
           ..[dateKey] = currentWeightKg;
         updated = updated.copyWith(weightByDate: wb);
       }
-      if (weightKgGoal != null)
+      if (weightKgGoal != null) {
         updated = updated.copyWith(weightKgGoal: weightKgGoal);
-      if (caloriesGoal != null && caloriesGoal > 0)
+      }
+      if (caloriesGoal != null && caloriesGoal > 0) {
         updated = updated.copyWith(caloriesGoal: caloriesGoal);
+      }
       if (proteinGoal != null && carbsGoal != null && fatGoal != null) {
         updated = updated.copyWith(
           proteinGoal: proteinGoal,
@@ -74,16 +81,21 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       return updated;
     });
 
-    if (weightGoalType != null)
+    if (weightGoalType != null) {
       userManager.updateWeightGoal(weightGoalType: weightGoalType);
-    if (selectedUnits != null && selectedUnits != currentUnits)
+    }
+    if (selectedUnits != null && selectedUnits != currentUnits) {
       userManager.updateUnits(selectedUnits, context, showFeedback: false);
-    if (currentWeightKg != null && dateKey != null)
+    }
+    if (currentWeightKg != null && dateKey != null) {
       userManager.updateWeightLog(dateKey, currentWeightKg);
-    if (weightKgGoal != null)
+    }
+    if (weightKgGoal != null) {
       userManager.updateWeightGoal(weightKgGoal: weightKgGoal);
-    if (caloriesGoal != null && caloriesGoal > 0)
+    }
+    if (caloriesGoal != null && caloriesGoal > 0) {
       userManager.updateGoals(caloriesGoal: caloriesGoal);
+    }
     if (proteinGoal != null && carbsGoal != null && fatGoal != null) {
       userManager.updateGoals(
         proteinGoal: proteinGoal,
@@ -91,8 +103,73 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
         fatGoal: fatGoal,
       );
     }
-    if (username != null)
+    if (username != null) {
       userManager.updateUsername(username, context, showFeedback: false);
+    }
+  }
+
+  // claims a referral reward for the referrer; patches state only on backend success
+  Future<Map<String, dynamic>?> claimReferralReward(String refereeUid) async {
+    final res = await authenticatedPost(
+      'claim_referral_reward',
+      body: {'referee_uid': refereeUid},
+    );
+    if (res.statusCode != 200) return null;
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    patch(
+      (u) => u.copyWith(
+        level: data['new_level'],
+        expPoints: data['new_exp'],
+        referralCount: u.referralCount + 1,
+      ),
+    );
+    return data;
+  }
+
+  // redeems a referral code for the referee; patches state only on backend success
+  Future<Map<String, dynamic>?> useReferralCode(String code) async {
+    final res = await authenticatedPost(
+      'use_referral',
+      body: {'referral_code': code},
+    );
+    if (res.statusCode != 200) return null;
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    patch(
+      (u) => u.copyWith(
+        level: data['new_level'],
+        expPoints: data['new_exp'],
+        referralUsed: true,
+      ),
+    );
+    return data;
+  }
+
+  // fetches or generates a referral code and caches it locally
+  Future<String?> fetchReferralCode() async {
+    final cached = state.value?.referralCode;
+    if (cached != null) return cached;
+    try {
+      final getRes = await authenticatedGet('referral_code');
+      if (getRes.statusCode == 200) {
+        final code =
+            (jsonDecode(getRes.body) as Map<String, dynamic>)['referral_code']
+                as String;
+        patch((u) => u.copyWith(referralCode: code));
+        return code;
+      }
+      if (getRes.statusCode == 404) {
+        final postRes = await authenticatedPost('referral_code');
+        if (postRes.statusCode == 201) {
+          final code =
+              (jsonDecode(postRes.body)
+                      as Map<String, dynamic>)['referral_code']
+                  as String;
+          patch((u) => u.copyWith(referralCode: code));
+          return code;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   // optimistically applies the color locally, rolls back if the backend call fails

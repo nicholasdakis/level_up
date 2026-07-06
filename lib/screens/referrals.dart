@@ -6,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
+import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart'
-    show authenticatedGet, authenticatedPost, defaultAppColor;
+    show authenticatedGet, defaultAppColor;
 import 'level_up_overlay.dart';
 
 // Checks for a pending referral reward and shows the claim dialog if one exists
@@ -25,7 +26,8 @@ Future<void> checkPendingReferralReward(
   final data = jsonDecode(res.body) as Map<String, dynamic>;
   if (data['pending'] != true) return;
 
-  final appColor = currentUserData?.appColor ?? defaultAppColor;
+  final appColor =
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
   final refereeUid = data['referee_uid'] as String;
   final refereeUsername = data['referee_username'] as String;
 
@@ -68,26 +70,18 @@ Future<void> checkPendingReferralReward(
             builder: (ctx) => TextButton(
               onPressed: () async {
                 Navigator.of(ctx, rootNavigator: true).pop();
-                final claimRes = await authenticatedPost(
-                  'claim_referral_reward',
-                  body: {'referee_uid': refereeUid},
-                );
+                final prevLevel = ref.read(userDataProvider).value?.level ?? 0;
+                final claimData = await ref
+                    .read(userDataProvider.notifier)
+                    .claimReferralReward(refereeUid);
                 if (!context.mounted) return;
-                if (claimRes.statusCode == 200) {
-                  final claimData =
-                      jsonDecode(claimRes.body) as Map<String, dynamic>;
-                  final prevLevel = currentUserData?.level ?? 0;
-                  currentUserData?.level = claimData['new_level'];
-                  currentUserData?.expPoints = claimData['new_exp'];
+                if (claimData != null) {
                   expNotifier.value = claimData['new_exp'];
-                  if (prevLevel < 3 && (currentUserData?.level ?? 0) >= 3) {
+                  if (prevLevel < 3 &&
+                      (ref.read(userDataProvider).value?.level ?? 0) >= 3) {
                     FirebaseAnalytics.instance.logEvent(
                       name: 'reached_level_3',
                     );
-                  }
-                  if (currentUserData != null) {
-                    currentUserData!.referralCount =
-                        currentUserData!.referralCount + 1;
                   }
                   if (context.mounted) {
                     await handleLevelUpOverlay(
@@ -122,7 +116,8 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
     builder: (context) {
       final base = appColor;
       final radius = BorderRadius.circular(Responsive.scale(context, 16));
-      final referralCount = currentUserData?.referralCount ?? 0;
+      final referralCount =
+          ref.read(userDataProvider).value?.referralCount ?? 0;
       final c = cardColors(base);
       final accent = c.onCard;
       final accentDim = c.onCard.withAlpha(180);
@@ -147,27 +142,9 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
               onTap: () async {
                 final codeInputController = TextEditingController();
                 // Use cached code or fetch/generate one
-                String? code = currentUserData?.referralCode;
-                if (code == null) {
-                  try {
-                    final getRes = await authenticatedGet('referral_code');
-                    if (getRes.statusCode == 200) {
-                      code =
-                          (jsonDecode(getRes.body)
-                                  as Map<String, dynamic>)['referral_code']
-                              as String;
-                    } else if (getRes.statusCode == 404) {
-                      final postRes = await authenticatedPost('referral_code');
-                      if (postRes.statusCode == 201) {
-                        code =
-                            (jsonDecode(postRes.body)
-                                    as Map<String, dynamic>)['referral_code']
-                                as String;
-                      }
-                    }
-                    if (code != null) currentUserData?.referralCode = code;
-                  } catch (_) {}
-                }
+                final code = await ref
+                    .read(userDataProvider.notifier)
+                    .fetchReferralCode();
                 if (!context.mounted) return;
                 if (code == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -241,15 +218,13 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                       Center(
                         child: GestureDetector(
                           onTap: () {
-                            if (code != null) {
-                              Clipboard.setData(ClipboardData(text: code));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Referral code copied!"),
-                                  duration: snackBarDuration,
-                                ),
-                              );
-                            }
+                            Clipboard.setData(ClipboardData(text: code));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Referral code copied!"),
+                                duration: snackBarDuration,
+                              ),
+                            );
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
@@ -294,7 +269,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                       SizedBox(height: Responsive.height(context, 12)),
                       Center(
                         child: Text(
-                          "${currentUserData?.referralCount ?? 0} friend${(currentUserData?.referralCount ?? 0) == 1 ? '' : 's'} referred",
+                          "${ref.read(userDataProvider).value?.referralCount ?? 0} friend${(ref.read(userDataProvider).value?.referralCount ?? 0) == 1 ? '' : 's'} referred",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
                             color: accentDim,
@@ -305,7 +280,8 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         color: Colors.white12,
                         height: Responsive.height(context, 32),
                       ),
-                      if (currentUserData?.referralUsed == true) ...[
+                      if (ref.read(userDataProvider).value?.referralUsed ==
+                          true) ...[
                         Center(
                           child: Text(
                             "Each account can only enter a referral code once, but you can refer as many friends as you'd like.",
@@ -357,22 +333,21 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                     .trim()
                                     .toUpperCase();
                                 if (entered.isEmpty) return;
-                                final res = await authenticatedPost(
-                                  'use_referral',
-                                  body: {'referral_code': entered},
-                                );
+                                final prevLevel2 =
+                                    ref.read(userDataProvider).value?.level ??
+                                    0;
+                                final data = await ref
+                                    .read(userDataProvider.notifier)
+                                    .useReferralCode(entered);
                                 if (!context.mounted) return;
-                                if (res.statusCode == 200) {
-                                  final data =
-                                      jsonDecode(res.body)
-                                          as Map<String, dynamic>;
-                                  final prevLevel2 =
-                                      currentUserData?.level ?? 0;
-                                  currentUserData?.level = data['new_level'];
-                                  currentUserData?.expPoints = data['new_exp'];
-                                  currentUserData?.referralUsed = true;
+                                if (data != null) {
                                   if (prevLevel2 < 3 &&
-                                      (currentUserData?.level ?? 0) >= 3) {
+                                      (ref
+                                                  .read(userDataProvider)
+                                                  .value
+                                                  ?.level ??
+                                              0) >=
+                                          3) {
                                     FirebaseAnalytics.instance.logEvent(
                                       name: 'reached_level_3',
                                     );
@@ -399,16 +374,9 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                     ),
                                   );
                                 } else {
-                                  String error = 'Something went wrong';
-                                  try {
-                                    error =
-                                        (jsonDecode(res.body)
-                                            as Map<String, dynamic>)['error'] ??
-                                        error;
-                                  } catch (_) {}
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(error),
+                                      content: Text('Something went wrong'),
                                       duration: snackBarDuration,
                                     ),
                                   );

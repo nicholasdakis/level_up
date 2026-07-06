@@ -12,7 +12,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/globals.dart';
 import '/providers/user_data_provider.dart';
-import '/services/user_data_manager.dart' show defaultAppColor;
 import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
