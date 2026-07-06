@@ -383,7 +383,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   Widget _buildGuestLoggingCard(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     return GestureDetector(
-      onTap: () async => authService.value.signOut(),
+      onTap: () async =>
+          authService.value.signOut(ref.read(userDataProvider.notifier)),
       child: Stack(
         children: [
           IgnorePointer(

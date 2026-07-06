@@ -1390,10 +1390,13 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                     final token =
                                         await requestNotificationAndToken();
                                     if (token != null) {
-                                      await userManager.addFcmToken(token);
+                                      await ref
+                                          .read(userDataProvider.notifier)
+                                          .addFcmToken(token);
                                     } else if (mounted) {
                                       showBrowserBlockedDialog(
                                         context,
+                                        ref.read(userDataProvider.notifier),
                                       ); // browser is blocking notifications
                                     }
                                   }

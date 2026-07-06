@@ -219,7 +219,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           web_fcm.getNotificationPermission() != 'granted' &&
           ref.read(userDataProvider).value!.notificationsEnabled) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) showBrowserBlockedDialog(context);
+          if (mounted) {
+            showBrowserBlockedDialog(
+              context,
+              ref.read(userDataProvider.notifier),
+            );
+          }
         });
       }
       if (isNewUser) {
@@ -255,7 +260,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             context.go('/workout');
           } else {
             onboardingHintNotifier.value = 'reward';
-            if (mounted) await requestNotificationPermissionIfNeeded(context);
+            if (mounted) {
+              await requestNotificationPermissionIfNeeded(
+                context,
+                ref.read(userDataProvider.notifier),
+              );
+            }
           }
         });
         return;
@@ -497,7 +507,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             "Sign Up",
             context,
             onPressed: () async {
-              await authService.value.signOut();
+              await authService.value.signOut(
+                ref.read(userDataProvider.notifier),
+              );
             },
           ),
         ],
@@ -983,7 +995,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           TextButton(
                             onPressed: () async {
                               Navigator.of(context, rootNavigator: true).pop();
-                              await authService.value.signOut();
+                              await authService.value.signOut(
+                                ref.read(userDataProvider.notifier),
+                              );
                             },
                             child: Text(
                               "Sign up",

@@ -5,7 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import '../globals.dart';
+import '../globals.dart' hide UserDataNotifier;
+import '../providers/user_data_provider.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
@@ -22,7 +23,7 @@ class AuthService {
   Stream<User?> get authStateChanges =>
       firebaseAuth.authStateChanges(); // to see if user is connected
 
-  Future<void> signOut() async {
+  Future<void> signOut(UserDataNotifier notifier) async {
     if (isGuest) {
       Guest.exit();
       return;
@@ -33,7 +34,7 @@ class AuthService {
           ? await web_fcm.getWebFcmToken(fcmVapidKey)
           : await FirebaseMessaging.instance.getToken();
       if (deviceToken != null) {
-        await userManager.removeFcmToken(deviceToken);
+        await notifier.removeFcmToken(deviceToken);
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error removing FCM token during signOut: $e');
@@ -43,8 +44,7 @@ class AuthService {
     await firebaseAuth.signOut();
     appInitialized = false;
     appReadyNotifier.value = false;
-    userDataNotifier.value = null;
-
+    notifier.setUserData(null);
   }
 
   // CONTINUE WITH GOOGLE BUTTON

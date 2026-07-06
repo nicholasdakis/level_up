@@ -281,7 +281,9 @@ Widget buildSettingsDrawer(
                     onTap: () async {
                       if (isGuest) {
                         Navigator.pop(context);
-                        await authService.value.signOut();
+                        await authService.value.signOut(
+                          ref.read(userDataProvider.notifier),
+                        );
                         return;
                       }
                       // Dialog box for confirming logout
@@ -310,7 +312,9 @@ Widget buildSettingsDrawer(
                       );
                       if (confirmed == true) {
                         Navigator.pop(context); // close drawer on confirm
-                        await authService.value.signOut();
+                        await authService.value.signOut(
+                          ref.read(userDataProvider.notifier),
+                        );
                       }
                     },
                   ),

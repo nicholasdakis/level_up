@@ -241,6 +241,51 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     }
   }
 
+  // adds FCM token locally and syncs to backend; no-op if already present
+  Future<void> initializeFcmToken(String deviceToken) async {
+    if (isGuest) return;
+    try {
+      // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
+      final tokens = state.value?.fcmTokens;
+      if (tokens != null && !tokens.contains(deviceToken)) {
+        patch((u) => u.copyWith(fcmTokens: [...u.fcmTokens, deviceToken]));
+      }
+      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error initializing FCM token: $e");
+    }
+  }
+
+  // removes stale token then adds new one (called on token refresh)
+  Future<void> addFcmToken(String deviceToken, {String? oldToken}) async {
+    if (isGuest) return;
+    try {
+      if (oldToken != null) await removeFcmToken(oldToken);
+      final tokens = state.value?.fcmTokens;
+      if (tokens != null && !tokens.contains(deviceToken)) {
+        patch((u) => u.copyWith(fcmTokens: [...u.fcmTokens, deviceToken]));
+      }
+      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error adding FCM token: $e");
+    }
+  }
+
+  // removes FCM token locally and from backend (called on logout)
+  Future<void> removeFcmToken(String deviceToken) async {
+    if (isGuest) return;
+    try {
+      patch(
+        (u) => u.copyWith(
+          fcmTokens: u.fcmTokens.where((t) => t != deviceToken).toList(),
+        ),
+      );
+      await authenticatedPost('remove_fcm_token', body: {'token': deviceToken});
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error removing FCM token: $e");
+    }
+  }
+
   // claims the daily reward from the backend and patches state on success
   Future<(int, int, int, double, int)?> claimDailyReward() async {
     if (isGuest) return null;

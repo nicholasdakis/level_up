@@ -455,57 +455,6 @@ class UserDataManager {
     }
   }
 
-  // Method to initialize FCM token on app startup and add it to Postgres if not already present, ensuring no duplicates
-  Future<void> initializeFcmToken(String deviceToken) async {
-    if (isGuest) return;
-    try {
-      // Add token locally if not already present (guard against race condition where currentUserData may not be set yet)
-      if (currentUserData != null &&
-          !currentUserData!.fcmTokens.contains(deviceToken)) {
-        currentUserData!.fcmTokens.add(deviceToken);
-        userDataNotifier.notifyListeners();
-      }
-
-      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
-    } catch (e) {
-      if (kDebugMode) debugPrint("Error initializing FCM token: $e");
-    }
-  }
-
-  // Adds this device's FCM token to Postgres (called on token refresh)
-  Future<void> addFcmToken(String deviceToken, {String? oldToken}) async {
-    if (isGuest) return;
-    try {
-      // clear the stale token
-      if (oldToken != null) await removeFcmToken(oldToken);
-
-      // Update local list if not already present
-      if (currentUserData != null &&
-          !currentUserData!.fcmTokens.contains(deviceToken)) {
-        currentUserData!.fcmTokens.add(deviceToken);
-        userDataNotifier.notifyListeners();
-      }
-
-      await authenticatedPost('add_fcm_token', body: {'token': deviceToken});
-    } catch (e) {
-      if (kDebugMode) debugPrint("Error adding FCM token: $e");
-    }
-  }
-
-  // Removes this device's FCM token from Postgres (called on logout)
-  Future<void> removeFcmToken(String deviceToken) async {
-    if (isGuest) return;
-    try {
-      // Remove token from local list
-      currentUserData!.fcmTokens.remove(deviceToken);
-      userDataNotifier.notifyListeners();
-
-      await authenticatedPost('remove_fcm_token', body: {'token': deviceToken});
-    } catch (e) {
-      if (kDebugMode) debugPrint("Error removing FCM token: $e");
-    }
-  }
-
   // Method for updating the user's notification preference and storing it
   Future<void> updateNotificationsEnabled(
     bool enabled,

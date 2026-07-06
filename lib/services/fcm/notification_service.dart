@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import '../../globals.dart';
+import '../../globals.dart' hide UserDataNotifier;
+import '../../providers/user_data_provider.dart';
 import '../../utility/responsive.dart';
 import 'notification_service_stub.dart'
     if (dart.library.js_interop) 'notification_service_web.dart'
@@ -17,7 +18,10 @@ Future<String?> getWebFcmTokenSafe(String vapidKey) =>
 
 // Requests OS notification permission if not yet determined, or shows a dialog if denied
 // Returns true if notifications are granted, false if denied.
-Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
+Future<bool> requestNotificationPermissionIfNeeded(
+  BuildContext context,
+  UserDataNotifier notifier,
+) async {
   if (kIsWeb) {
     return true; // web uses showBrowserBlockedDialog directly via a user gesture
   }
@@ -34,7 +38,7 @@ Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
     if (result.authorizationStatus == AuthorizationStatus.authorized) {
       // Permission just granted, grab the token now since we skipped it at startup
       final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) await userManager.initializeFcmToken(token);
+      if (token != null) await notifier.initializeFcmToken(token);
       return true;
     }
     return false;
@@ -66,7 +70,7 @@ Future<bool> requestNotificationPermissionIfNeeded(BuildContext context) async {
 }
 
 // Show a dialog telling the user their browser is blocking notifications
-void showBrowserBlockedDialog(BuildContext context) {
+void showBrowserBlockedDialog(BuildContext context, UserDataNotifier notifier) {
   showFrostedDialog(
     context: context,
     child: Builder(
@@ -112,7 +116,7 @@ void showBrowserBlockedDialog(BuildContext context) {
 
                     if (token != null) {
                       // Store/initialize token in backend so push notifications can work
-                      await userManager.initializeFcmToken(token);
+                      await notifier.initializeFcmToken(token);
                     } else if (context.mounted) {
                       // If permission was denied or browser blocked it, inform the user
                       ScaffoldMessenger.of(context).showSnackBar(

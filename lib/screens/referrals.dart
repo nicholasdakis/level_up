@@ -455,7 +455,8 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
 
       // Guest overlay: same pattern as the logging cards, faded real card + lock overlay
       return GestureDetector(
-        onTap: () => authService.value.signOut(),
+        onTap: () =>
+            authService.value.signOut(ref.read(userDataProvider.notifier)),
         child: Stack(
           fit: StackFit.expand,
           children: [

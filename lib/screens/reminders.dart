@@ -64,7 +64,10 @@ class _RemindersState extends ConsumerState<Reminders> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Request OS permission if not yet asked, or show blocked dialog if denied
       // Result drives _notifBlocked which disables the form if notifications can't fire
-      final granted = await requestNotificationPermissionIfNeeded(context);
+      final granted = await requestNotificationPermissionIfNeeded(
+        context,
+        ref.read(userDataProvider.notifier),
+      );
       if (!mounted) return;
       setState(() => _notifBlocked = !granted);
       if (ref.read(userDataProvider).value?.notificationsEnabled == false) {
@@ -94,9 +97,12 @@ class _RemindersState extends ConsumerState<Reminders> {
             if (kIsWeb) {
               final token = await requestNotificationAndToken();
               if (token != null) {
-                await userManager.addFcmToken(token);
+                await ref.read(userDataProvider.notifier).addFcmToken(token);
               } else if (mounted) {
-                showBrowserBlockedDialog(context); // fallback dialog
+                showBrowserBlockedDialog(
+                  context,
+                  ref.read(userDataProvider.notifier),
+                ); // fallback dialog
               }
             }
           },
