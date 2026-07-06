@@ -19,6 +19,18 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     if (current != null) state = AsyncData(updater(current));
   }
 
+  Future<void> setNotificationsEnabled(bool value, BuildContext context) async {
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(previous.copyWith(notificationsEnabled: value));
+    try {
+      await userManager.updateNotificationsEnabled(value, context);
+    } catch (e) {
+      state = AsyncData(previous);
+      rethrow;
+    }
+  }
+
   // optimistic color update with rollback on backend failure
   Future<void> setAppColor(Color color, BuildContext context) async {
     final previous = state.value;

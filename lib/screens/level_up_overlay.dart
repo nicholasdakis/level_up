@@ -122,8 +122,9 @@ Future<void> handleLevelUpOverlay(
   Color appColor,
 ) async {
   final newLevel = currentUserData?.level ?? 0;
-  if (newLevel > levelBefore)
+  if (newLevel > levelBefore) {
     await showLevelUpOverlay(context, newLevel, appColor);
+  }
 }
 
 Future<void> showLevelUpOverlay(
