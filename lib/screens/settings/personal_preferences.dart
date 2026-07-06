@@ -1385,8 +1385,13 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                     value,
                                     context,
                                   );
-                                  // TODO: migrate mutation to notifier
-                                  currentUserData!.notificationsEnabled = value;
+                                  ref
+                                      .read(userDataProvider.notifier)
+                                      .patch(
+                                        (u) => u.copyWith(
+                                          notificationsEnabled: value,
+                                        ),
+                                      );
 
                                   // If enabling on web, also request browser permission and get FCM token
                                   if (value && kIsWeb) {
