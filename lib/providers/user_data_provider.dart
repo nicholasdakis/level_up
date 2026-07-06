@@ -4,9 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
-import '../globals.dart' show userManager, isGuest;
+import '../globals.dart' show userManager, isGuest, snackBarDuration;
+import '../guest.dart' show Guest;
 import '../services/user_data_manager.dart'
-    show authenticatedPost, authenticatedGet;
+    show authenticatedPost, authenticatedGet, isConnected;
 
 class UserDataNotifier extends AsyncNotifier<UserData?> {
   @override
@@ -106,7 +107,7 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       );
     }
     if (username != null) {
-      userManager.updateUsername(username, context, showFeedback: false);
+      updateUsername(username, context, showFeedback: false);
     }
   }
 
@@ -172,6 +173,72 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       }
     } catch (_) {}
     return null;
+  }
+
+  // verifies uniqueness with the backend and patches username on success; returns false to keep dialog open on failure
+  Future<bool> updateUsername(
+    String updatedUsername,
+    BuildContext context, {
+    bool showFeedback = true,
+  }) async {
+    if (isGuest) {
+      Guest.block(context);
+      return false;
+    }
+    try {
+      final response = await authenticatedPost(
+        'update_username',
+        body: {'username': updatedUsername},
+      );
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 409) {
+        final error = result['error'] as String? ?? 'Error updating username.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $error"), duration: snackBarDuration),
+        );
+        return false; // false to keep the dialog box open
+      } else if (response.statusCode == 200) {
+        patch((u) => u.copyWith(username: updatedUsername));
+        if (showFeedback) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Success! Username updated."),
+              duration: snackBarDuration,
+            ),
+          );
+        }
+        return true;
+      } else {
+        // Backend rejected the update (username taken)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? "Error updating username."),
+            duration: snackBarDuration,
+          ),
+        );
+        return false;
+      }
+    } catch (e) {
+      // No connection, so show the local confirmation snackbar
+      if (!isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Error updating username. Check your connection and try again.",
+            ),
+            duration: snackBarDuration,
+          ),
+        );
+        return true; // to close the dialog
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating username: $e"),
+          duration: snackBarDuration,
+        ),
+      );
+      return false;
+    }
   }
 
   // claims the daily reward from the backend and patches state on success

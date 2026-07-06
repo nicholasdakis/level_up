@@ -1548,11 +1548,9 @@ Future<String?> showOnboardingWizard(
                       );
                       return;
                     }
-                    final ok = await userManager.updateUsername(
-                      name,
-                      ctx,
-                      showFeedback: false,
-                    );
+                    final ok = await ref
+                        .read(userDataProvider.notifier)
+                        .updateUsername(name, ctx, showFeedback: false);
                     if (ok) {
                       ref
                           .read(userDataProvider.notifier)
@@ -1935,8 +1933,6 @@ void finishOnboarding(BuildContext context, WidgetRef ref) {
     final name = generateRandomUsername();
     ref
         .read(userDataProvider.notifier)
-        .patch((u) => u.copyWith(username: name));
-    userManager
         .updateUsername(name, context, showFeedback: false)
         .catchError((_) => false);
   }

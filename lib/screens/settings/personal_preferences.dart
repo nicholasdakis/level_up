@@ -77,10 +77,9 @@ Future<void> showUsernameDialogBox(
             return;
           }
           // Only pop if successful
-          if (await UserDataManager().updateUsername(
-            updatedUsername,
-            context,
-          )) {
+          if (await ref
+              .read(userDataProvider.notifier)
+              .updateUsername(updatedUsername, context)) {
             Navigator.of(context, rootNavigator: true).pop();
           }
         },
