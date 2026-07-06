@@ -272,6 +272,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   }
 
   Widget _buildMacrosCard(BuildContext context) {
+    final userData = ref.watch(userDataProvider).value;
     final accentColor = lightenColor(appColor, 0.45);
     final dimColor = lightenColor(appColor, 0.35);
     final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
@@ -358,21 +359,21 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             "P",
             HugeIcons.strokeRoundedBodyPartMuscle,
             macros.protein,
-            currentUserData?.proteinGoal,
+            userData?.proteinGoal,
           ),
           SizedBox(height: Responsive.height(context, 2)),
           macroRow(
             "C",
             HugeIcons.strokeRoundedFire,
             macros.carbs,
-            currentUserData?.carbsGoal,
+            userData?.carbsGoal,
           ),
           SizedBox(height: Responsive.height(context, 2)),
           macroRow(
             "F",
             HugeIcons.strokeRoundedDroplet,
             macros.fat,
-            currentUserData?.fatGoal,
+            userData?.fatGoal,
           ),
         ],
       ),
@@ -417,18 +418,16 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   }
 
   Widget _buildLoggingCards(BuildContext context) {
+    final userData = ref.watch(userDataProvider).value;
     final isImperial = UnitConverter.isImperial;
     final calories = _todayCalories();
-    final goal = currentUserData?.caloriesGoal ?? 0;
+    final goal = userData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
 
     // water progress
-    final totalWaterMl =
-        (currentUserData?.waterEntriesByDate[_todayDateKey()] ?? []).fold(
-          0,
-          (s, e) => s + e,
-        );
-    final waterGoalMl = currentUserData?.waterMlGoal ?? 0;
+    final totalWaterMl = (userData?.waterEntriesByDate[_todayDateKey()] ?? [])
+        .fold(0, (total, entryMl) => total + entryMl);
+    final waterGoalMl = userData?.waterMlGoal ?? 0;
     final waterProgress = waterGoalMl > 0
         ? (totalWaterMl / waterGoalMl).clamp(0.0, 1.0)
         : 0.0;
@@ -556,7 +555,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     label: "Weight",
                     value: () {
                       // use today's entry, or fall back to the most recent logged weight
-                      final byDate = currentUserData?.weightByDate ?? {};
+                      final byDate = userData?.weightByDate ?? {};
                       final kg =
                           byDate[_todayDateKey()] ??
                           (byDate.entries.toList()
@@ -572,7 +571,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                           : kg.toStringAsFixed(1);
                     }(),
                     subtext: () {
-                      final byDate = currentUserData?.weightByDate ?? {};
+                      final byDate = userData?.weightByDate ?? {};
                       // same fallback logic as the value above
                       final currentKg =
                           byDate[_todayDateKey()] ??
@@ -580,8 +579,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                                 ..sort((a, b) => b.key.compareTo(a.key)))
                               .firstOrNull
                               ?.value;
-                      final goalKg = currentUserData?.weightKgGoal;
-                      final type = currentUserData?.weightGoalType;
+                      final goalKg = userData?.weightKgGoal;
+                      final type = userData?.weightGoalType;
                       // no goal at all
                       if (goalKg == null && type == null) {
                         return "No weight goal set";

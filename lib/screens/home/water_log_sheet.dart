@@ -385,8 +385,8 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
                           if (entries.isNotEmpty)
                             Text(
                               isImperial
-                                  ? "${UnitConverter.displayWater(entries.fold(0, (s, e) => s + e), imperial: isImperial)} oz total"
-                                  : "${entries.fold(0, (s, e) => s + e)} ml total",
+                                  ? "${UnitConverter.displayWater(entries.fold(0, (total, entryMl) => total + entryMl), imperial: isImperial)} oz total"
+                                  : "${entries.fold(0, (total, entryMl) => total + entryMl)} ml total",
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 12),
                                 color: onCard,

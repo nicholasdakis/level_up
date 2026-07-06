@@ -23,7 +23,8 @@ class WaterAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
 
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
@@ -376,7 +377,9 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
     // entries are sorted oldest-first
     final avg = entries.isNotEmpty
-        ? (entries.fold(0, (s, e) => s + e.value) / entries.length).round()
+        ? (entries.fold(0, (total, entry) => total + entry.value) /
+                  entries.length)
+              .round()
         : 0;
     final best = entries.isNotEmpty
         ? entries.reduce((a, b) => a.value > b.value ? a : b).value
