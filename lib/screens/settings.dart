@@ -10,8 +10,7 @@ import '../globals.dart';
 import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
-import '../services/user_data_manager.dart'
-    show defaultAppColor, trackTrivialAchievement;
+import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
 

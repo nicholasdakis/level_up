@@ -25,6 +25,7 @@ Future<void> showUsernameDialogBox(
   BuildContext context,
   String title,
   TextEditingController usernameController,
+  WidgetRef ref,
 ) async {
   await showFrostedAlertDialog(
     context: context,
@@ -34,9 +35,10 @@ Future<void> showUsernameDialogBox(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Only show text if the user has set a username before
-        if (currentUserData?.username != currentUserData?.uid)
+        if (ref.read(userDataProvider).value?.username !=
+            ref.read(userDataProvider).value?.uid)
           Text(
-            "Current username: \n ${currentUserData?.username}",
+            "Current username: \n ${ref.read(userDataProvider).value?.username}",
             style: GoogleFonts.manrope(color: Colors.white70),
           ),
         SizedBox(height: 10),
@@ -118,12 +120,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     super.dispose();
   }
 
-  Color baseColor =
-      currentUserData!.appColor; // tracks the current theme color for the UI
-  bool notificationsEnabled =
-      currentUserData?.notificationsEnabled ??
-      true; // tracks the notification toggle state
-  String _units = currentUserData?.units ?? 'metric';
+  late Color baseColor; // tracks the current theme color for the UI
+  late bool notificationsEnabled; // tracks the notification toggle state
+  late String _units; // tracks the selected unit system (metric or imperial)
   bool _cropLoading = false;
   int _recentFoodsMax =
       30; // current max, RecentFoodsService.unlimited (0) = unlimited
@@ -133,6 +132,10 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
   @override
   void initState() {
     super.initState();
+    final userData = ref.read(userDataProvider).value;
+    baseColor = userData?.appColor ?? defaultAppColor;
+    notificationsEnabled = userData?.notificationsEnabled ?? true;
+    _units = userData?.units ?? 'metric';
     _animFromColor = appColor;
     FirebaseAnalytics.instance.logScreenView(
       screenName: '/settings/preferences',
@@ -984,6 +987,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   context,
                                   "Update your username",
                                   usernameController,
+                                  ref,
                                 );
                               },
                             ),
