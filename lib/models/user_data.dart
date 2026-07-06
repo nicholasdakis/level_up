@@ -18,7 +18,6 @@ class UserData {
   int workoutStreakBest;
   String? username;
   Color appColor;
-  List<Map<String, dynamic>> foodLogs;
   List<String> fcmTokens;
   int? caloriesGoal;
   int? proteinGoal;
@@ -52,7 +51,6 @@ class UserData {
     this.workoutStreak = 0,
     this.workoutStreakBest = 0,
     this.appColor = defaultAppColor,
-    List<Map<String, dynamic>>? foodLogs,
     String? username,
     List<String>? fcmTokens,
     this.caloriesGoal,
@@ -70,8 +68,7 @@ class UserData {
     Map<String, List<int>>? waterEntriesByDate,
     Map<String, double>? weightByDate,
     this.createdAt,
-  }) : foodLogs = foodLogs ?? [],
-       waterEntriesByDate = waterEntriesByDate ?? {},
+  }) : waterEntriesByDate = waterEntriesByDate ?? {},
        weightByDate = weightByDate ?? {},
        fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
@@ -92,7 +89,6 @@ class UserData {
     int? workoutStreakBest,
     String? username,
     Color? appColor,
-    List<Map<String, dynamic>>? foodLogs,
     List<String>? fcmTokens,
     int? caloriesGoal,
     int? proteinGoal,
@@ -126,7 +122,6 @@ class UserData {
       workoutStreakBest: workoutStreakBest ?? this.workoutStreakBest,
       username: username ?? this.username,
       appColor: appColor ?? this.appColor,
-      foodLogs: foodLogs ?? this.foodLogs,
       fcmTokens: fcmTokens ?? this.fcmTokens,
       caloriesGoal: caloriesGoal ?? this.caloriesGoal,
       proteinGoal: proteinGoal ?? this.proteinGoal,

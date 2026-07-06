@@ -144,7 +144,6 @@ class UserDataManager {
           lastDailyClaim: null,
           username: uid, // default username is uid
           appColor: defaultAppColor,
-          foodLogs: [],
           fcmTokens: [],
         );
       }
@@ -202,13 +201,6 @@ class UserDataManager {
             secondsSince >= dailyRewardCooldown.inSeconds;
       } else {
         currentUserData!.canClaimDailyReward = true;
-      }
-
-      // Load flat food log list from food_logs_v2
-      if (data['food_logs_v2'] != null) {
-        currentUserData?.foodLogs = (data['food_logs_v2'] as List<dynamic>)
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
       }
 
       // Map goals from the backend response if they exist
@@ -431,7 +423,6 @@ class UserDataManager {
         lastDailyClaim: currentUserData!.lastDailyClaim,
         username: currentUserData!.username,
         appColor: currentUserData!.appColor,
-        foodLogs: currentUserData!.foodLogs,
         fcmTokens: currentUserData!.fcmTokens,
       );
       // Confirmation snackBar
@@ -902,22 +893,6 @@ class UserDataManager {
       return;
     }
     try {
-      // Update foodLogs locally by replacing items for affected dates
-      for (final entry in newFoodData.entries) {
-        final dateKey = entry.key;
-        currentUserData?.foodLogs.removeWhere((f) => f['date'] == dateKey);
-        for (final meal in ['breakfast', 'lunch', 'dinner', 'snacks']) {
-          for (final food in (entry.value[meal] ?? [])) {
-            currentUserData?.foodLogs.add({
-              ...food,
-              'date': dateKey,
-              'meal': meal,
-            });
-          }
-        }
-      }
-      userDataNotifier.notifyListeners();
-
       for (final entry in newFoodData.entries) {
         final dateKey = entry.key;
         final meals = entry.value;
@@ -939,30 +914,6 @@ class UserDataManager {
           throw Exception(
             'upsert_food_log_v2 failed: ${response.statusCode} ${response.body}',
           );
-        }
-
-        // Patch the real id and logged_at from the backend onto newly inserted local entries
-        // Only entries without an id need patching — existing ones already have theirs
-        final responseData = jsonDecode(response.body);
-        final returnedItems = (responseData['items'] as List<dynamic>? ?? []);
-        for (final returned in returnedItems) {
-          final id = returned['id'];
-          final name = returned['food_name'];
-          final meal = returned['meal'];
-          final loggedAt = returned['logged_at'];
-          if (id == null) continue;
-          // Match by food_name + meal + date + no id (new entries only)
-          final idx = currentUserData?.foodLogs.indexWhere(
-            (f) =>
-                f['id'] == null &&
-                f['food_name'] == name &&
-                f['meal'] == meal &&
-                f['date'] == dateKey,
-          );
-          if (idx != null && idx >= 0) {
-            currentUserData!.foodLogs[idx]['id'] = id;
-            currentUserData!.foodLogs[idx]['logged_at'] = loggedAt;
-          }
         }
       }
 

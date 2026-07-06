@@ -1,6 +1,8 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '../providers/food_logs_provider.dart';
+import '../models/food_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -233,20 +235,16 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   Future<void> _loadRecentFoods() async {
     final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
     final max = stored ?? 30;
-    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
+    final logs = ref.read(foodLogsProvider).value ?? [];
     final seen = <String>{};
     final recents = <Map<String, dynamic>>[];
     final sorted = [...logs]
-      ..sort((a, b) {
-        final at = a['logged_at'] as String? ?? '';
-        final bt = b['logged_at'] as String? ?? '';
-        return bt.compareTo(at);
-      });
+      ..sort((a, b) => (b.loggedAt ?? '').compareTo(a.loggedAt ?? ''));
     for (final food in sorted) {
-      final name = food['food_name'] as String? ?? '';
+      final name = food.foodName;
       if (name.isEmpty || seen.contains(name)) continue;
       seen.add(name);
-      recents.add(food);
+      recents.add(food.toJson());
       if (max != 0 && recents.length >= max) break;
     }
     if (mounted) setState(() => _recentFoods = recents);
@@ -398,40 +396,29 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
-    // Add food to local flat list immediately
-    // TODO: migrate mutation to notifier
-    currentUserData?.foodLogs.add({
+    // Build meal map for the current date including the new food
+    final existingLogs = ref.read(foodLogsProvider).value ?? [];
+    final existing = existingLogs.where((f) => f.date == dateKey).toList();
+    final newFood = FoodLog.fromJson({
       ...foodObject,
       'date': dateKey,
       'meal': widget.meal,
-      'logged_at': DateTime.now().toUtc().toIso8601String(),
     });
-    _loadRecentFoods();
+    final mealMap = {
+      'breakfast': existing.where((f) => f.meal == 'breakfast').toList(),
+      'lunch': existing.where((f) => f.meal == 'lunch').toList(),
+      'dinner': existing.where((f) => f.meal == 'dinner').toList(),
+      'snacks': existing.where((f) => f.meal == 'snacks').toList(),
+    };
+    mealMap[widget.meal]!.add(newFood);
 
-    // Build meal map for the current date to send to backend
     try {
-      final logs = ref
-          .read(userDataProvider)
-          .value!
-          .foodLogs
-          .where((f) => f['date'] == dateKey)
-          .toList();
-      final currentDateData = {
-        dateKey: {
-          'breakfast': logs.where((f) => f['meal'] == 'breakfast').toList(),
-          'lunch': logs.where((f) => f['meal'] == 'lunch').toList(),
-          'dinner': logs.where((f) => f['meal'] == 'dinner').toList(),
-          'snacks': logs.where((f) => f['meal'] == 'snacks').toList(),
-        },
-      };
-      await userManager.updateFoodDataByDateV2(
-        currentDateData,
-        context: context,
-        isBeingDeleted: false,
-      );
+      await ref.read(foodLogsProvider.notifier).upsertForDate(dateKey, mealMap);
     } catch (e) {
       if (kDebugMode) debugPrint("Error saving food data: $e");
     }
+
+    _loadRecentFoods();
 
     // Track which input method the user used to log this food
     if (widget.achievementId != null) {
@@ -439,20 +426,14 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     }
 
     // Award the full course meal badge if all four meals now have at least one food
-    final logs =
-        ref
-            .read(userDataProvider)
-            .value
-            ?.foodLogs
-            .where((f) => f['date'] == dateKey)
-            .toList() ??
-        [];
+    final updatedLogs = ref.read(foodLogsProvider).value ?? [];
+    final todayLogs = updatedLogs.where((f) => f.date == dateKey).toList();
     final allMealsFilled = [
       'breakfast',
       'lunch',
       'dinner',
       'snacks',
-    ].every((m) => logs.any((f) => f['meal'] == m));
+    ].every((m) => todayLogs.any((f) => f.meal == m));
     if (allMealsFilled) trackTrivialAchievement("food_full_day");
 
     // time-based achievements based on the hour the food was logged
@@ -460,7 +441,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (hour >= 23) trackTrivialAchievement("night_owl"); // after 11pm
     if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
 
-    foodLogNotifier.value++;
     widget.onFoodLogged();
     if (mounted) context.pop();
   }

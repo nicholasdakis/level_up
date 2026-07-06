@@ -10,35 +10,11 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import '../../utility/food_logging_helper.dart' show FoodLoggingHelper;
+import '../../providers/food_logs_provider.dart';
 
 String _todayDateKey() {
   final now = DateTime.now();
   return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-}
-
-// Calculates total calories logged today
-int _todayCalories() {
-  final key = _todayDateKey();
-  final logs = currentUserData?.foodLogs.where((f) => f['date'] == key) ?? [];
-  int total = 0;
-  for (final food in logs) {
-    total += (num.tryParse(food['calories'].toString()) ?? 0).toInt();
-  }
-  return total;
-}
-
-// Returns today's total protein/carbs/fat in grams
-({int protein, int carbs, int fat}) _todayMacros() {
-  final key = _todayDateKey();
-  final logs = currentUserData?.foodLogs.where((f) => f['date'] == key) ?? [];
-  int protein = 0, carbs = 0, fat = 0;
-  for (final food in logs) {
-    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
-    protein += (macros['protein'] ?? 0.0).toInt();
-    carbs += (macros['carbs'] ?? 0.0).toInt();
-    fat += (macros['fat'] ?? 0.0).toInt();
-  }
-  return (protein: protein, carbs: carbs, fat: fat);
 }
 
 class HomeLoggingCards extends ConsumerStatefulWidget {
@@ -59,6 +35,31 @@ class HomeLoggingCards extends ConsumerStatefulWidget {
 class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   Color get appColor =>
       ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+
+  // Calculates total calories logged today
+  int _todayCalories() {
+    final key = _todayDateKey();
+    final logs = ref.read(foodLogsProvider).value ?? [];
+    int total = 0;
+    for (final food in logs.where((f) => f.date == key)) {
+      total += food.calories ?? 0;
+    }
+    return total;
+  }
+
+  // Returns today's total protein/carbs/fat in grams
+  ({int protein, int carbs, int fat}) _todayMacros() {
+    final key = _todayDateKey();
+    final logs = ref.read(foodLogsProvider).value ?? [];
+    int protein = 0, carbs = 0, fat = 0;
+    for (final food in logs.where((f) => f.date == key)) {
+      final macros = FoodLoggingHelper.extractMacrosFromFood(food.toJson());
+      protein += (macros['protein'] ?? 0.0).toInt();
+      carbs += (macros['carbs'] ?? 0.0).toInt();
+      fat += (macros['fat'] ?? 0.0).toInt();
+    }
+    return (protein: protein, carbs: carbs, fat: fat);
+  }
 
   VoidCallback get onShowWaterSheet => widget.onShowWaterSheet;
   VoidCallback get onShowWeightSheet => widget.onShowWeightSheet;

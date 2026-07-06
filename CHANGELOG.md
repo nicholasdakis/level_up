@@ -2444,3 +2444,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Continued Riverpod migration
 - Created a reminders provider to become the pure source of truth of all reminder data. This also required removing the reminders list from being loaded into UserData so that there are not conflicting sources of truth
 - Added a skeletonizer to the Reminders screen
+- Made a model class for FoodData to remove raw Map<String, dynamic> usage in the food logging screens
+- Added a GET food_logs_v2 route so food logs can be fetched on their own instead of being returned as a part of the user data GET

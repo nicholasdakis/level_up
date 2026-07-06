@@ -45,7 +45,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor =>
+      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -72,7 +73,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
     _greeting = _buildGreeting();
 
-    foodLogNotifier.addListener(_onFoodChanged);
     WidgetsBinding.instance.addObserver(this);
 
     confettiControllerinit();
@@ -97,10 +97,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return n.toString();
-  }
-
-  void _onFoodChanged() {
-    if (mounted) setState(() {});
   }
 
   // Called every time this tab becomes active again, not just on first build
@@ -155,7 +151,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
-    foodLogNotifier.removeListener(_onFoodChanged);
     appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();

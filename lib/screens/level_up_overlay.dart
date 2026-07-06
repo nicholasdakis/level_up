@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
+import '../providers/food_logs_provider.dart';
 import '../utility/responsive.dart';
 
 // Animates the XP bar fill from 0 to progress on mount, with a short entry delay
@@ -170,7 +172,9 @@ Future<void> showLevelUpOverlay(
         value: '${data.dailyClaimStreakBest}d',
       ));
     }
-    final daysLogged = data.foodLogs.map((f) => f['date']).toSet().length;
+    final foodLogs =
+        ProviderScope.containerOf(context).read(foodLogsProvider).value ?? [];
+    final daysLogged = foodLogs.map((f) => f.date).toSet().length;
     if (daysLogged > 0) {
       stats.add((
         icon: HugeIcons.strokeRoundedNote,

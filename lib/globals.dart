@@ -48,9 +48,6 @@ ValueNotifier<bool> guestNotifier = ValueNotifier<bool>(false);
 // for updating HomeScreen when app color is updated
 ValueNotifier<Color> appColorNotifier = ValueNotifier<Color>(defaultAppColor);
 
-// incremented each time a food is logged so home screen can refresh
-ValueNotifier<int> foodLogNotifier = ValueNotifier<int>(0);
-
 // incremented each time a workout is saved so the workout tab can refresh recent sessions
 ValueNotifier<int> workoutLogNotifier = ValueNotifier<int>(0);
 

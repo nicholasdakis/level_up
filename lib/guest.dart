@@ -17,7 +17,6 @@ class Guest {
     lastDailyClaim: null,
     username: 'Guest',
     appColor: defaultAppColor,
-    foodLogs: [],
     fcmTokens: [],
   );
 

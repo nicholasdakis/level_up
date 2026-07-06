@@ -1,6 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '../providers/food_logs_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +12,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'dart:math' as math;
 import '../globals.dart';
 import '../guest.dart';
+import '../models/food_log.dart';
 import '../utility/responsive.dart';
 import '../utility/food_logging_helper.dart';
 import '../services/user_data_manager.dart';
@@ -74,7 +76,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
   }
 
-  // getters that read from currentUserData so goals are always up to date
+  // getters for nutrition goals
   double get _goalCalories =>
       (ref.read(userDataProvider).value?.caloriesGoal ?? 0).toDouble();
   double get _goalProtein =>
@@ -94,21 +96,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       screenName: '/food-logging',
       screenClass: 'FoodLogging',
     );
-    foodLogNotifier.addListener(_onFoodChanged);
     _loadCollapsedState();
     _loadUserDataFuture = _loadUserDataAndInit();
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
-  }
-
-  @override
-  void dispose() {
-    foodLogNotifier.removeListener(_onFoodChanged);
-    super.dispose();
-  }
-
-  void _onFoodChanged() {
-    if (mounted) loadFoodForDate(currentDate);
   }
 
   Future<void> _loadUserDataAndInit() async {
@@ -124,25 +115,29 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   }
 
   Future<void> _refreshAndLoadFood() async {
-    await userManager.refreshUserData();
+    await ref.read(foodLogsProvider.notifier).refresh();
     loadFoodForDate(currentDate);
   }
 
   void loadFoodForDate(DateTime date) {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = ref.read(userDataProvider).value?.foodLogs ?? [];
+    final logs = ref.read(foodLogsProvider).value ?? [];
     setState(() {
       breakfastFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
+          .where((f) => f.date == dateKey && f.meal == 'breakfast')
+          .map((f) => f.toJson())
           .toList();
       lunchFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'lunch')
+          .where((f) => f.date == dateKey && f.meal == 'lunch')
+          .map((f) => f.toJson())
           .toList();
       dinnerFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'dinner')
+          .where((f) => f.date == dateKey && f.meal == 'dinner')
+          .map((f) => f.toJson())
           .toList();
       snacksFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'snacks')
+          .where((f) => f.date == dateKey && f.meal == 'snacks')
+          .map((f) => f.toJson())
           .toList();
     });
   }
@@ -210,20 +205,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
     if (confirmed != true) return;
 
-    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final removed = foods[idx];
-    setState(() {
-      foods.removeAt(idx);
-      // TODO: migrate mutation to notifier
-      currentUserData?.foodLogs.removeWhere(
-        (f) =>
-            f['date'] == dateKey &&
-            f['meal'] == mealKey &&
-            f['id'] == removed['id'],
-      );
-    });
+    setState(() => foods.removeAt(idx));
     await _saveFoodData("delete");
-    foodLogNotifier.value++;
   }
 
   // Opens a dialog letting the user change the serving amount for a logged food
@@ -295,42 +278,19 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       food['carbs'] = scaled['carbs'];
       food['fat'] = scaled['fat'];
       food['serving_size'] = '$newAmt $unit';
-      // Update the same item in foodLogs by id
-      final idx = ref
-          .read(userDataProvider)
-          .value
-          ?.foodLogs
-          .indexWhere((f) => f['id'] == food['id']);
-      // TODO: migrate mutation to notifier
-      if (idx != null && idx >= 0) currentUserData?.foodLogs[idx] = food;
     });
     await _saveFoodData("edit"); // store the changes
-    foodLogNotifier.value++;
   }
 
   Future<void> _saveFoodData(String addOrDelete) async {
-    if (ref.read(userDataProvider).value == null) return;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final logs = ref
-        .read(userDataProvider)
-        .value!
-        .foodLogs
-        .where((f) => f['date'] == dateKey)
-        .toList();
-    final currentDateData = {
-      dateKey: {
-        'breakfast': logs.where((f) => f['meal'] == 'breakfast').toList(),
-        'lunch': logs.where((f) => f['meal'] == 'lunch').toList(),
-        'dinner': logs.where((f) => f['meal'] == 'dinner').toList(),
-        'snacks': logs.where((f) => f['meal'] == 'snacks').toList(),
-      },
+    final mealMap = {
+      'breakfast': breakfastFoods.map(FoodLog.fromJson).toList(),
+      'lunch': lunchFoods.map(FoodLog.fromJson).toList(),
+      'dinner': dinnerFoods.map(FoodLog.fromJson).toList(),
+      'snacks': snacksFoods.map(FoodLog.fromJson).toList(),
     };
-    await userManager.updateFoodDataByDateV2(
-      currentDateData,
-      context: context,
-      isBeingDeleted: addOrDelete == "delete",
-      isBeingEdited: addOrDelete == "edit",
-    );
+    await ref.read(foodLogsProvider.notifier).upsertForDate(dateKey, mealMap);
   }
 
   String _formatLoggedAt(String loggedAt) {
@@ -885,9 +845,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     String mealKey,
     String title,
     List<Map<String, dynamic>> foods,
-    Color appColor,
     Color accentColor,
   ) {
+    final appColor =
+        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isCollapsed = _collapsed[mealKey] ?? false;
     final mealCal = _mealCalories(foods).round();
     double mealProtein = 0, mealCarbs = 0, mealFat = 0;
@@ -1246,28 +1207,24 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         "Breakfast",
                         breakfastFoods,
                         colors[0],
-                        appColor,
                       ),
                       _buildMealSection(
                         "lunch",
                         "Lunch",
                         lunchFoods,
                         colors[1],
-                        appColor,
                       ),
                       _buildMealSection(
                         "dinner",
                         "Dinner",
                         dinnerFoods,
                         colors[2],
-                        appColor,
                       ),
                       _buildMealSection(
                         "snacks",
                         "Snacks",
                         snacksFoods,
                         colors[3],
-                        appColor,
                       ),
 
                       SizedBox(height: Responsive.height(context, 24)),
