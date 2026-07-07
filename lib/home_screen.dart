@@ -284,7 +284,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         loadFailed = false;
         isLoading = true;
       });
-      await userManager.loadUserData();
+      await ref.read(userDataProvider.notifier).loadUserData();
       if (!mounted) return;
       if (!userManager.lastLoadFailed &&
           ref.read(userDataProvider).value != null) {
@@ -1010,10 +1010,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     }
                     return;
                   }
-                  await userManager.loadUserData();
-                  if (mounted) {
-                    userDataNotifier.notifyListeners();
-                  }
+                  await ref.read(userDataProvider.notifier).loadUserData();
+
                 },
               );
               if (mounted) setState(() => _adWatching = false);

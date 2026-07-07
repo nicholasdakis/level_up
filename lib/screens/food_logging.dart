@@ -111,7 +111,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       await _refreshAndLoadFood();
       return;
     }
-    await userManager.loadUserData();
+    await ref.read(userDataProvider.notifier).loadUserData();
     await _refreshAndLoadFood();
   }
 

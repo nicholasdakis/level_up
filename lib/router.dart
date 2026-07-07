@@ -495,11 +495,10 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     appInitialized = true;
     Future.microtask(appRouter.refresh);
 
-    await userManager.loadUserData();
+    await notifier.loadUserData();
     await workoutSessionService.checkAndRestoreWorkoutSession();
 
     userManager.updateUtcOffset();
-    notifier.setUserData(currentUserData);
 
     if (currentUserData != null) {
       try {

@@ -27,7 +27,8 @@ class Workout extends ConsumerStatefulWidget {
 
 class _WorkoutState extends ConsumerState<Workout> {
   Color get appColor => ref.watch(
-      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor));
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
@@ -68,7 +69,7 @@ class _WorkoutState extends ConsumerState<Workout> {
     });
     if (!isGuest && ref.read(userDataProvider).value == null) {
       _loading = true;
-      userManager.loadUserData().then((_) {
+      ref.read(userDataProvider.notifier).loadUserData().then((_) {
         if (mounted) setState(() => _loading = false);
       });
     }

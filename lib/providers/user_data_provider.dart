@@ -4,10 +4,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
-import '../globals.dart' show userManager, isGuest, snackBarDuration;
+import 'package:firebase_auth/firebase_auth.dart';
+import '../globals.dart'
+    show userManager, isGuest, snackBarDuration, dailyRewardCooldown;
 import '../guest.dart' show Guest;
 import '../services/user_data_manager.dart'
-    show authenticatedPost, authenticatedGet, isConnected;
+    show
+        authenticatedPost,
+        authenticatedGet,
+        isConnected,
+        UserDataManager,
+        defaultAppColor,
+        initConnectivity;
 
 class UserDataNotifier extends AsyncNotifier<UserData?> {
   @override
@@ -17,6 +25,167 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
   // replaces the entire UserData object, called after a full backend load
   void setUserData(UserData? data) {
     state = AsyncData(data);
+  }
+
+  // loads all user data from the backend; builds a complete UserData and sets it once
+  Future<void> loadUserData() async {
+    initConnectivity();
+
+    if (isGuest) {
+      setUserData(Guest.defaultUserData);
+      return;
+    }
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    // initialize a blank placeholder if there's no data yet or the UID changed
+    if (state.value == null || state.value!.uid != uid) {
+      setUserData(UserData(uid: uid));
+    }
+
+    await _fetchAndSetUserData();
+  }
+
+  Future<void> _fetchAndSetUserData() async {
+    final current = state.value;
+    if (current == null) return;
+    try {
+      final response = await authenticatedGet('user_data');
+      if (response.statusCode != 200) {
+        throw Exception(
+          'get_user_data failed: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      // parse water logs
+      final Map<String, List<int>> waterData = {};
+      if (data['water_logs'] != null) {
+        for (final row in (data['water_logs'] as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          final dateKey = map['date'] as String;
+          final entries = (map['entries_ml'] as List<dynamic>?) ?? [];
+          waterData[dateKey] = entries
+              .map(
+                (e) => (e as Map<String, dynamic>)['amount_ml'] as int,
+              ) // unwrap {amount_ml: x} to just x
+              .toList();
+        }
+      }
+
+      // parse weight logs
+      final Map<String, double> weightData = {};
+      if (data['weight_logs'] != null) {
+        for (final row in (data['weight_logs'] as List<dynamic>)) {
+          final map = row as Map<String, dynamic>;
+          weightData[map['date'] as String] = (map['weight_kg'] as num)
+              .toDouble(); // always kg, converted to lbs at display time
+        }
+      }
+
+      // compute canClaimDailyReward from last_daily_claim
+      DateTime? lastDailyClaim;
+      bool canClaim = true;
+      if (data['last_daily_claim'] != null) {
+        lastDailyClaim = DateTime.parse(data['last_daily_claim']);
+        final secondsSince = DateTime.now()
+            .toUtc()
+            .difference(lastDailyClaim.toUtc())
+            .inSeconds;
+        canClaim = secondsSince >= dailyRewardCooldown.inSeconds;
+      }
+
+      // fetch streaks (best-effort, non-fatal)
+      int foodStreak = 0,
+          foodStreakBest = 0,
+          workoutStreak = 0,
+          workoutStreakBest = 0,
+          claimStreakBest = 0;
+      String? foodStreakLastDate;
+      try {
+        final streaks = await UserDataManager.fetchStreaks();
+        final foodRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'food_streak',
+          orElse: () => {},
+        );
+        final claimRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'daily_consecutive_streak',
+          orElse: () => {},
+        );
+        final workoutRow = streaks.firstWhere(
+          (s) => s['streak_type'] == 'workout_streak',
+          orElse: () => {},
+        );
+        foodStreak = (foodRow['streak'] as int?) ?? 0;
+        foodStreakBest = (foodRow['highest_streak'] as int?) ?? 0;
+        foodStreakLastDate = foodRow['last_date'] as String?;
+        claimStreakBest = (claimRow['highest_streak'] as int?) ?? 0;
+        workoutStreak = (workoutRow['streak'] as int?) ?? 0;
+        workoutStreakBest = (workoutRow['highest_streak'] as int?) ?? 0;
+      } catch (_) {}
+
+      final goals = data['goals'] as Map<String, dynamic>?;
+
+      setUserData(
+        current.copyWith(
+          level: data['level'] ?? current.level,
+          expPoints: data['exp_points'] ?? current.expPoints,
+          pfpBase64: data['pfp_base64'],
+          username: data['username'] ?? current.uid,
+          notificationsEnabled: data['notifications_enabled'] ?? true,
+          fcmTokens:
+              (data['fcm_tokens'] as List<dynamic>?)
+                  ?.map((t) => t.toString())
+                  .toList() ??
+              [],
+          appColor: data['app_color'] != null
+              ? Color(data['app_color'] as int)
+              : current.appColor,
+          dailyClaimStreak: data['daily_streak'] ?? 0,
+          lastDailyClaim: lastDailyClaim ?? current.lastDailyClaim,
+          canClaimDailyReward: canClaim,
+          caloriesGoal: goals?['calories_goal'] ?? current.caloriesGoal,
+          proteinGoal: goals?['protein_goal'] ?? current.proteinGoal,
+          carbsGoal: goals?['carbs_goal'] ?? current.carbsGoal,
+          fatGoal: goals?['fat_goal'] ?? current.fatGoal,
+          weightGoalType: goals?['weight_goal_type'] ?? current.weightGoalType,
+          weeklyWorkoutsGoal:
+              goals?['weekly_workouts_goal'] ?? current.weeklyWorkoutsGoal,
+          waterMlGoal: goals?['water_ml_goal'] ?? current.waterMlGoal,
+          weightKgGoal: goals?['weight_kg_goal'] != null
+              ? (goals!['weight_kg_goal'] as num).toDouble()
+              : current.weightKgGoal,
+          referralCode: data['referral_code'] ?? current.referralCode,
+          referralCount: data['referral_count'] ?? 0,
+          referralUsed: data['referral_used'] ?? false,
+          units: data['units'] ?? 'metric',
+          createdAt: data['created_at'] != null
+              ? DateTime.tryParse(data['created_at'])?.toLocal()
+              : current.createdAt,
+          waterEntriesByDate: waterData.isNotEmpty
+              ? waterData
+              : current.waterEntriesByDate,
+          weightByDate: weightData.isNotEmpty
+              ? weightData
+              : current.weightByDate,
+          foodLogStreak: foodStreak,
+          foodLogStreakBest: foodStreakBest,
+          foodLogStreakLastDate: foodStreakLastDate,
+          dailyClaimStreakBest: claimStreakBest,
+          workoutStreak: workoutStreak,
+          workoutStreakBest: workoutStreakBest,
+        ),
+      );
+
+      userManager.lastLoadFailed = false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Error loading user data: $e');
+      // signals fetch failed so username dialog is not shown and backend decides on claim
+      patch((u) => u.copyWith(canClaimDailyReward: true));
+      userManager.lastLoadFailed = true;
+    }
   }
 
   // updates one or more fields locally, used when the caller already has the new value and just needs to sync it into state
@@ -238,6 +407,34 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
         ),
       );
       return false;
+    }
+  }
+
+  // refreshes all user data from the backend, called on tab switch to keep data fresh across devices
+  Future<void> refreshUserData() async {
+    if (isGuest) return;
+    await _fetchAndSetUserData();
+  }
+
+  // awards XP for watching a rewarded ad then refreshes user data
+  Future<void> claimAdXp(BuildContext context) async {
+    try {
+      final response = await authenticatedPost('claim_ad_xp');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final xpGained = data['xp_gained'] ?? 0;
+        await _fetchAndSetUserData();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("+$xpGained XP earned!"),
+              duration: snackBarDuration,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('claimAdXp failed: $e');
     }
   }
 
