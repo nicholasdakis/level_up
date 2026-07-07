@@ -34,6 +34,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   late final VoidCallback _sessionListener;
   late final Timer _timer;
 
@@ -259,7 +262,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       for (final set in ex['sets'] as List) {
         final rawWeight = set['weight_kg'] as double? ?? 0.0;
         // weight_kg field holds lbs when in imperial mode until converted at save time
-        final weightKg = UnitConverter.isImperial
+        final weightKg = isImperial
             ? UnitConverter.lbsToKg(rawWeight)
             : rawWeight;
         vol += (set['reps'] as int? ?? 0) * weightKg;
@@ -410,7 +413,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           continue;
         }
         // convert to kg before storing if user is in imperial mode
-        final weightKg = (weight != null && UnitConverter.isImperial)
+        final weightKg = (weight != null && isImperial)
             ? UnitConverter.lbsToKg(weight)
             : weight;
         checkedSets.add({
@@ -797,7 +800,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     int setIndex,
   ) {
     final stats = _exerciseStats[exerciseName];
-    final isImperial = UnitConverter.isImperial;
+
     final wRaw = double.tryParse(_ctrl(exIndex, setIndex, 'weight').text);
     // controller value is in display units; convert to kg for comparison against stored pr_weight_kg
     final w = wRaw == null
@@ -837,7 +840,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
   // shows a snackbar describing what kind of PR was hit and by how much
   void _showPRSnackbar(String exerciseName, Map<String, dynamic> pr) {
-    final isImperial = UnitConverter.isImperial;
     final parts = <String>[];
     if (pr['weightPR'] as bool) {
       final oldW = pr['oldWeight'] as double?;
@@ -900,7 +902,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     // session is cleared just before pushReplacement to finish screen;
     // guard here so the brief rebuild during the transition doesn't crash
     if (!workoutSessionService.isActive) return const SizedBox.shrink();
-    final bool isImperial = UnitConverter.isImperial;
+
     final double vol = _totalVolumeKg;
     final String volDisplay = isImperial
         ? UnitConverter.displayWeight(vol, imperial: true)

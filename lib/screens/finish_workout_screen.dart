@@ -42,6 +42,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   late final ConfettiController _confetti;
 
   @override
@@ -73,7 +76,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final dimmer = lightenColor(appColor, 0.30);
-    final bool isImperial = UnitConverter.isImperial;
+
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
     final prCount = widget.prDetails.length;
 

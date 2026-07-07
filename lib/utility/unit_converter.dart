@@ -1,9 +1,4 @@
-import '../globals.dart';
-
 class UnitConverter {
-  // single source of truth for the user's unit preference
-  static bool get isImperial => currentUserData?.units == 'imperial';
-
   // raw weight conversions used when storing or computing deltas
   static double kgToLbs(double kg) => kg * 2.20462;
   static double lbsToKg(double lbs) => lbs / 2.20462;

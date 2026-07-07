@@ -27,6 +27,9 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
 
@@ -74,7 +77,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
   }
 
   Future<void> _addEntry() async {
-    final isImperial = UnitConverter.isImperial;
     final raw = double.tryParse(_addController.text.trim());
     if (raw == null) return;
     // convert oz to ml if imperial, otherwise use as-is
@@ -159,7 +161,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
-    final isImperial = UnitConverter.isImperial;
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.3);
     final goalMl = ref.watch(userDataProvider).value?.waterMlGoal ?? 0;
@@ -364,7 +365,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, int>> entries,
   ) {
-    final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColor, 0.45);
 
@@ -452,7 +452,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
-    final isImperial = UnitConverter.isImperial;
     final unit = isImperial ? 'oz' : 'ml';
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.35);

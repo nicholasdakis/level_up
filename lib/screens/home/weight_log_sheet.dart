@@ -30,7 +30,8 @@ class _WeightLogSheet extends ConsumerStatefulWidget {
 }
 
 class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
-  final isImperial = UnitConverter.isImperial;
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
   DateTime selectedDate = DateTime.now();
   final controller = TextEditingController();
   String? feedback;
@@ -151,7 +152,9 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor = ref.watch(userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor));
+    final appColor = ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+    );
     final dateKey = dateKeyFor(selectedDate);
     final existingKg = ref.watch(userDataProvider).value?.weightByDate[dateKey];
     final c = cardColors(appColor);

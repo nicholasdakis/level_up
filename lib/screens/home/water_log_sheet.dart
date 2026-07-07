@@ -29,7 +29,8 @@ class _WaterLogSheet extends ConsumerStatefulWidget {
 }
 
 class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
-  final isImperial = UnitConverter.isImperial;
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
   DateTime selectedDate = DateTime.now();
   final customController = TextEditingController();
   String? feedback;

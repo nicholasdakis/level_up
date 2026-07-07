@@ -37,6 +37,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   // Calculates total calories logged today
   int _todayCalories() {
     final key = _todayDateKey();
@@ -421,7 +424,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   Widget _buildLoggingCards(BuildContext context) {
     final userData = ref.watch(userDataProvider).value;
-    final isImperial = UnitConverter.isImperial;
+
     final calories = _todayCalories();
     final goal = userData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;

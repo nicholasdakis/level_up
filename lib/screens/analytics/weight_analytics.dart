@@ -27,6 +27,9 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
 
@@ -133,7 +136,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
   }
 
   Future<void> _addEntry() async {
-    final isImperial = UnitConverter.isImperial;
     final raw = double.tryParse(_addController.text.trim());
     if (raw == null) return;
     final kg = isImperial ? UnitConverter.lbsToKg(raw) : raw;
@@ -158,7 +160,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
-    final isImperial = UnitConverter.isImperial;
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.3);
     final goalKg = ref.watch(userDataProvider).value?.weightKgGoal;
@@ -363,7 +364,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     BuildContext context,
     List<MapEntry<String, double>> entries,
   ) {
-    final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
     final accent = lightenColor(appColor, 0.45);
 
@@ -464,7 +464,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
   }
 
   Widget _buildLogEntries(BuildContext context) {
-    final isImperial = UnitConverter.isImperial;
     final unit = UnitConverter.weightUnit(imperial: isImperial);
     final accent = lightenColor(appColor, 0.45);
     final dimAccent = lightenColor(appColor, 0.35);

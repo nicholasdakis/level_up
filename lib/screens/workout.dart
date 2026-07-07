@@ -30,6 +30,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
+  bool get isImperial => ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
   List<Map<String, dynamic>> _myRoutines = [];
@@ -982,7 +984,7 @@ class _WorkoutState extends ConsumerState<Workout> {
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final subtle = c.onCard.withAlpha(120);
-    final bool isImperial = UnitConverter.isImperial;
+
     final double volumeKg = (_todayOverview['volume_kg'] as num).toDouble();
     final int exercises = _todayOverview['exercises'] as int? ?? 0;
     final int sets = _todayOverview['sets'] as int? ?? 0;
