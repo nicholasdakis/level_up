@@ -237,6 +237,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       food: food,
       controller: controller,
       confirmLabel: 'Save',
+      appColor: appColor,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     // the user cancelled or typed something invalid

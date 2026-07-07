@@ -1065,6 +1065,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
       food: food,
       controller: _recentServingController,
       confirmLabel: 'Log',
+      appColor: appColor,
     );
 
     if (result == null || result.amt.isEmpty) return;

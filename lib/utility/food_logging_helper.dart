@@ -162,6 +162,7 @@ Widget calcSuffixIcon(
       final result = await showCalcDialog(
         context,
         initialValue: controller.text.trim(),
+        appColor: color,
       );
       if (result != null) {
         // clamp to 99999 to match the 5-digit cap on the text field formatter
@@ -182,9 +183,7 @@ Widget calcSuffixIcon(
       padding: EdgeInsets.all(Responsive.scale(context, 8)),
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedCalculator,
-        color:
-            color ??
-            lightenColor(currentUserData?.appColor ?? defaultAppColor, 0.35),
+        color: color ?? lightenColor(defaultAppColor, 0.35),
         size: Responsive.scale(context, 18),
       ),
     ),
@@ -195,8 +194,8 @@ Widget calcSuffixIcon(
 Future<String?> showCalcDialog(
   BuildContext context, {
   String initialValue = '',
+  Color? appColor,
 }) {
-  final appColor = currentUserData?.appColor ?? defaultAppColor;
   trackTrivialAchievement(
     'serving_calculator',
   ); // fire once each time the calc is opened
@@ -364,7 +363,10 @@ Future<String?> showCalcDialog(
                             ),
                             decoration: BoxDecoration(
                               color: ['+', '-', '×', '÷'].contains(btn)
-                                  ? lightenColor(appColor, 0.1).withAlpha(80)
+                                  ? lightenColor(
+                                      appColor ?? defaultAppColor,
+                                      0.1,
+                                    ).withAlpha(80)
                                   : Colors.white.withAlpha(20),
                               borderRadius: BorderRadius.circular(
                                 Responsive.scale(context, 8),
@@ -430,7 +432,10 @@ Future<String?> showCalcDialog(
                         horizontal: Responsive.width(context, 3),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(appColor, 0.1).withAlpha(80),
+                        color: lightenColor(
+                          appColor ?? defaultAppColor,
+                          0.1,
+                        ).withAlpha(80),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),
                         ),
@@ -464,7 +469,10 @@ Future<String?> showCalcDialog(
                         horizontal: Responsive.width(context, 3),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(appColor, 0.2).withAlpha(120),
+                        color: lightenColor(
+                          appColor ?? defaultAppColor,
+                          0.2,
+                        ).withAlpha(120),
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 8),
                         ),
@@ -502,15 +510,15 @@ Future<ServingDialogResult?> showServingAmountDialog({
   required Map<String, dynamic> food,
   required TextEditingController controller,
   required String confirmLabel,
+  Color? appColor,
 }) {
   final description = food['food_description'] as String? ?? '';
   final serving = FoodLoggingHelper.parseServing(description);
   final baseAmt = serving['amount'] as double;
   final unit = serving['unit'] as String;
   final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
-  final appColor = currentUserData?.appColor ?? defaultAppColor;
-  final accent = lightenColor(appColor, 0.45);
-  final dim = lightenColor(appColor, 0.35);
+  final accent = lightenColor(appColor ?? defaultAppColor, 0.45);
+  final dim = lightenColor(appColor ?? defaultAppColor, 0.35);
 
   // Which macro is currently being edited (null = none)
   String? activeKey;
