@@ -454,6 +454,7 @@ class _RemindersState extends ConsumerState<Reminders> {
           Expanded(
             child: frostedGlassCard(
               context,
+              color: appColor,
               baseRadius: 16,
               padding: EdgeInsets.symmetric(
                 horizontal: Responsive.width(context, 16),
@@ -708,6 +709,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                       sectionHeader("REMINDER DETAILS", context),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         padding: EdgeInsets.all(Responsive.scale(context, 20)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -940,6 +942,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                   ),
                                   child: frostedGlassCard(
                                     context,
+                                    color: appColor,
                                     padding: EdgeInsets.symmetric(
                                       vertical: Responsive.height(context, 32),
                                       horizontal: Responsive.width(context, 20),

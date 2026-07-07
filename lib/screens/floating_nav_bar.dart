@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -72,6 +72,7 @@ class FloatingNavBar extends ConsumerWidget {
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: frostedGlassCard(
                 context,
+                color: appColor,
                 baseRadius: 30,
                 // Navbar fill and border adapt to background lightness so it always pops
                 backgroundColor: appColor.computeLuminance() < 0.18

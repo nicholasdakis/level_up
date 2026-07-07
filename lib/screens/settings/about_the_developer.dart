@@ -82,6 +82,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     sectionHeader("OVERVIEW", context),
                     frostedGlassCard(
                       context,
+                      color: appColor,
                       baseRadius: 16,
                       padding: EdgeInsets.all(Responsive.scale(context, 18)),
                       child: Column(
@@ -114,6 +115,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     sectionHeader("CONNECT", context),
                     frostedGlassCard(
                       context,
+                      color: appColor,
                       baseRadius: 16,
                       padding: EdgeInsets.all(Responsive.scale(context, 18)),
                       child: Column(
@@ -148,6 +150,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     sectionHeader("FEEDBACK", context),
                     frostedGlassCard(
                       context,
+                      color: appColor,
                       baseRadius: 16,
                       padding: EdgeInsets.all(Responsive.scale(context, 18)),
                       child: Column(
@@ -186,6 +189,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     sectionHeader("DONATE", context),
                     frostedGlassCard(
                       context,
+                      color: appColor,
                       baseRadius: 16,
                       padding: EdgeInsets.all(Responsive.scale(context, 18)),
                       child: Column(
@@ -213,6 +217,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             ),
                             child: frostedGlassCard(
                               context,
+                              color: appColor,
                               baseRadius: 12,
                               backgroundColor: appColor.computeLuminance() < 0.2
                                   ? darkenColor(appColor, 0.08).withAlpha(60)

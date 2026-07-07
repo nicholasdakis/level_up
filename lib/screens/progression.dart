@@ -88,6 +88,7 @@ class _ProgressionState extends ConsumerState<Progression> {
       return Expanded(
         child: frostedGlassCard(
           context,
+          color: appColor,
           padding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 16),
             vertical: Responsive.height(context, 14),

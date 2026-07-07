@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
@@ -30,7 +30,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
-  bool get isImperial => ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
@@ -125,6 +126,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                 color: Colors.transparent,
                 child: frostedGlassCard(
                   context,
+                  color: appColor,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
@@ -243,6 +245,7 @@ class _WorkoutState extends ConsumerState<Workout> {
       onTap: () => _onSetWeeklyGoal(context),
       child: frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 20),
           vertical: Responsive.height(context, 16),
@@ -437,6 +440,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 16),
@@ -695,6 +699,7 @@ class _WorkoutState extends ConsumerState<Workout> {
       onTap: _onStartWorkout,
       child: frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 20),
           vertical: Responsive.height(context, 22),
@@ -774,6 +779,7 @@ class _WorkoutState extends ConsumerState<Workout> {
           onTap: onTap,
           child: frostedGlassCard(
             context,
+            color: appColor,
             padding: EdgeInsets.symmetric(
               vertical: Responsive.height(context, 20),
               horizontal: Responsive.width(context, 8),
@@ -838,6 +844,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 16),
@@ -1037,6 +1044,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 16),
@@ -1210,6 +1218,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 16),

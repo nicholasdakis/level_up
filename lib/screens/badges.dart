@@ -634,6 +634,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
       child: frostedGlassCard(
         context,
+        color: appColor,
         baseRadius: 18,
         padding: EdgeInsets.all(Responsive.scale(context, 16)),
         child: Column(

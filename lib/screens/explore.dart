@@ -1173,6 +1173,8 @@ class _ExploreState extends ConsumerState<Explore> {
                                                                         },
                                                                         child: frostedGlassCard(
                                                                           context,
+                                                                          color:
+                                                                              appColor,
                                                                           baseRadius:
                                                                               12,
                                                                           padding: EdgeInsets.symmetric(
@@ -1246,6 +1248,8 @@ class _ExploreState extends ConsumerState<Explore> {
                                                                         _generateFakePOIs,
                                                                     child: frostedGlassCard(
                                                                       context,
+                                                                      color:
+                                                                          appColor,
                                                                       baseRadius:
                                                                           12,
                                                                       padding: EdgeInsets.symmetric(

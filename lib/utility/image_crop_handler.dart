@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../utility/responsive.dart';
@@ -177,6 +177,7 @@ class _CropperDialogState extends State<_CropperDialog> {
             filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: frostedGlassCard(
               context,
+              color: appColor,
               padding: EdgeInsets.all(Responsive.scale(context, 16)),
               backgroundColor: Colors.white.withAlpha(10),
               border: Border.all(color: Colors.white.withAlpha(22), width: 1),

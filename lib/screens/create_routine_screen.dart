@@ -503,6 +503,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
               ),
               child: frostedGlassCard(
                 context,
+                color: appColor,
                 padding: EdgeInsets.zero,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

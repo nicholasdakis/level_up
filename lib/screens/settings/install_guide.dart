@@ -81,6 +81,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
       padding: EdgeInsets.only(bottom: Responsive.height(context, 20)),
       child: frostedGlassCard(
         context,
+        color: appColor,
         baseRadius: 16,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 20),

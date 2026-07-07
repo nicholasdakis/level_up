@@ -73,6 +73,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
           : null,
       child: frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -937,6 +937,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -963,6 +964,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1008,6 +1010,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1104,6 +1107,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1138,6 +1142,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1184,6 +1189,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1215,6 +1221,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(
@@ -1355,6 +1362,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       ),
                       frostedGlassCard(
                         context,
+                        color: appColor,
                         child: Column(
                           children: [
                             buildPreferenceRow(

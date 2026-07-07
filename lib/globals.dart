@@ -1112,11 +1112,12 @@ Widget frostedGlassCard(
   Color? backgroundColor, // optional override for the card fill color
   BoxBorder? border, // optional override for the card border
   bool shadow = false, // only action tiles need the drop shadow
+  Color? color, // theme color, falls back to global appColor if null
 }) {
   final cardRadius = BorderRadius.circular(
     Responsive.scale(context, baseRadius),
   );
-  final c = cardColors(appColor);
+  final c = cardColors(color ?? appColor);
   return DecoratedBox(
     decoration: BoxDecoration(
       borderRadius: cardRadius,

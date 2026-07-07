@@ -126,6 +126,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     // The frosted glass card for this leaderboard entry
     final Widget card = frostedGlassCard(
       context,
+      color: appColor,
       baseRadius: 16,
       padding: EdgeInsets.zero,
       child: Container(

@@ -1312,6 +1312,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       ),
       child: frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.zero,
         border: Border.all(
           color: lightenColor(appColor, 0.3).withAlpha(80),

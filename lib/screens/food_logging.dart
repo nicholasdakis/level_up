@@ -484,6 +484,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     if (!_goalsSet) {
       return frostedGlassCard(
         context,
+        color: appColor,
         baseRadius: 20,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 20),
@@ -527,6 +528,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       baseRadius: 20,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 20),
@@ -831,6 +833,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Widget _buildMacroPlaceholder(String label, Color appColor) {
     return frostedGlassCard(
       context,
+      color: appColor,
       baseRadius: 16,
       child: TextButton.icon(
         onPressed: () async {
@@ -998,6 +1001,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                     ),
                     child: frostedGlassCard(
                       context,
+                      color: appColor,
                       baseRadius: 16,
                       padding: EdgeInsets.symmetric(
                         horizontal: Responsive.width(context, 16),

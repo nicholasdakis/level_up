@@ -292,6 +292,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     if (points.isEmpty) {
       return frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
         child: _emptyState(context, "No calories logged in this range"),
       );
@@ -305,6 +306,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: SizedBox(
         height: Responsive.isDesktop(context)
@@ -440,6 +442,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     if (points.isEmpty) {
       return frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
         child: _emptyState(context, "No meal data in this range"),
       );
@@ -451,6 +454,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     if (points.isEmpty) {
       return frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
         child: _emptyState(context, "No macro data in this range"),
       );
@@ -864,6 +868,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                     // Daily tab
                     _DailyTab(
                       context: context,
+                      appColor: appColor,
                       totalCal: totalCal,
                       breakfastCal: breakfastCal,
                       lunchCal: lunchCal,
@@ -922,6 +927,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     if (counts.isEmpty) {
       return frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
         child: _emptyState(context, "No foods logged in this range"),
       );
@@ -934,6 +940,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1182,7 +1189,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),
-                      _calorieSummaryCard(context, agg)
+                      _calorieSummaryCard(context, agg, appColor)
                           .animate(
                             key: ValueKey((
                               'range_cal_sum',
@@ -1214,7 +1221,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                             duration: 300.ms,
                             curve: Curves.easeOut,
                           ),
-                      _macroSummaryCard(context, agg)
+                      _macroSummaryCard(context, agg, appColor)
                           .animate(
                             key: ValueKey((
                               'range_mac_sum',
@@ -1378,6 +1385,7 @@ class _MealLineChartState extends ConsumerState<_MealLineChart> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         children: [
@@ -1603,6 +1611,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(
         children: [
@@ -1738,6 +1747,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
 // while the parent retains chart logic tied to its state
 class _DailyTab extends StatelessWidget {
   final BuildContext context;
+  final Color appColor;
   final double totalCal;
   final double breakfastCal;
   final double lunchCal;
@@ -1771,6 +1781,7 @@ class _DailyTab extends StatelessWidget {
 
   const _DailyTab({
     required this.context,
+    required this.appColor,
     required this.totalCal,
     required this.breakfastCal,
     required this.lunchCal,
@@ -1829,6 +1840,7 @@ class _DailyTab extends StatelessWidget {
 
             _statTilesRow(
                   context: ctx,
+                  appColor: appColor,
                   totalCal: totalCal,
                   macros: macros,
                   breakfastCal: breakfastCal,
@@ -1853,6 +1865,7 @@ class _DailyTab extends StatelessWidget {
                 .slideY(begin: 0.08, duration: 300.ms, curve: Curves.easeOut),
             frostedGlassCard(
                   ctx,
+                  color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalCal == 0
                       ? emptyState(ctx, "No calories logged for this day")
@@ -1887,6 +1900,7 @@ class _DailyTab extends StatelessWidget {
                 ),
             frostedGlassCard(
                   ctx,
+                  color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalMacroCal == 0
                       ? emptyState(ctx, "No macro data for this day")
@@ -1915,6 +1929,7 @@ class _DailyTab extends StatelessWidget {
 // Daily summary card: total calories + stacked meal bar + macro row
 Widget _statTilesRow({
   required BuildContext context,
+  required Color appColor,
   required double totalCal,
   required Map<String, double> macros,
   double breakfastCal = 0,
@@ -1941,6 +1956,7 @@ Widget _statTilesRow({
 
   return frostedGlassCard(
     context,
+    color: appColor,
     padding: EdgeInsets.all(Responsive.scale(context, 20)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2064,7 +2080,11 @@ Widget _macroInline(
   );
 }
 
-Widget _calorieSummaryCard(BuildContext context, _RangeAggregate agg) {
+Widget _calorieSummaryCard(
+  BuildContext context,
+  _RangeAggregate agg,
+  Color appColor,
+) {
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
   final days = agg.daysWithData;
@@ -2077,6 +2097,7 @@ Widget _calorieSummaryCard(BuildContext context, _RangeAggregate agg) {
   ];
   return frostedGlassCard(
     context,
+    color: appColor,
     padding: EdgeInsets.all(Responsive.scale(context, 20)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2181,7 +2202,11 @@ String _fmtCal(double v) {
   return '$n';
 }
 
-Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
+Widget _macroSummaryCard(
+  BuildContext context,
+  _RangeAggregate agg,
+  Color appColor,
+) {
   final accent = lightenColor(appColor, 0.45);
   final days = agg.daysWithData;
 
@@ -2190,6 +2215,7 @@ Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
     return Expanded(
       child: _rangeTile(
         context: context,
+        appColor: appColor,
         icon: icon,
         iconColor: accent,
         label: label,
@@ -2218,6 +2244,7 @@ Widget _macroSummaryCard(BuildContext context, _RangeAggregate agg) {
 // avg is pre-formatted by the caller so this widget doesn't need to know about daysWithData
 Widget _rangeTile({
   required BuildContext context,
+  required Color appColor,
   required IconData icon,
   required Color iconColor,
   required String label,
@@ -2227,6 +2254,7 @@ Widget _rangeTile({
 }) {
   return frostedGlassCard(
     context,
+    color: appColor,
     padding: EdgeInsets.symmetric(
       horizontal: Responsive.width(context, 10),
       vertical: Responsive.height(context, 14),

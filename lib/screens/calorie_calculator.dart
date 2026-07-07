@@ -537,6 +537,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   sectionHeader("BASIC INFO", context),
                   frostedGlassCard(
                     context,
+                    color: appColor,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -670,6 +671,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   sectionHeader("MEASUREMENTS", context),
                   frostedGlassCard(
                     context,
+                    color: appColor,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -855,6 +857,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   sectionHeader("GOAL", context),
                   frostedGlassCard(
                     context,
+                    color: appColor,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
                     child: buildSegmentedToggle<String>(
                       label: "",
@@ -886,6 +889,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   sectionHeader("ACTIVITY LEVEL", context),
                   frostedGlassCard(
                     context,
+                    color: appColor,
                     padding: EdgeInsets.all(Responsive.scale(context, 20)),
                     child: Column(
                       children: [
@@ -929,6 +933,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   sectionHeader("ACTIVITY INFO", context),
                   frostedGlassCard(
                     context,
+                    color: appColor,
                     padding: EdgeInsets.all(Responsive.scale(context, 16)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

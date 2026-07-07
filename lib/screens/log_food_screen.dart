@@ -1513,6 +1513,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
               // Search bar, mic on the right, no leading icon
               frostedGlassCard(
                 context,
+                color: appColor,
                 baseRadius: 14,
                 padding: EdgeInsets.symmetric(
                   horizontal: Responsive.width(context, 14),
@@ -1981,6 +1982,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         if (showSections)
           frostedGlassCard(
             context,
+            color: appColor,
             padding: EdgeInsets.symmetric(
               horizontal: Responsive.width(context, 16),
               vertical: Responsive.height(context, 14),

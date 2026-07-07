@@ -500,12 +500,11 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
 
     userManager.updateUtcOffset();
 
-    // keep the legacy global in sync so buildThemeGradient() and other globals still work
-    // use notifier directly to avoid ref.read after potential unmount
-    userDataNotifier.value = notifier.state.value;
-
     if (!mounted) return;
-    final userData = notifier.state.value;
+
+    // keep the legacy global in sync so buildThemeGradient() and other globals still work
+    final userData = ref.read(userDataProvider).value;
+    userDataNotifier.value = userData;
 
     if (userData != null) {
       try {

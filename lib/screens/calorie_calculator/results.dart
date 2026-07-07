@@ -196,6 +196,7 @@ class _ResultsState extends ConsumerState<Results> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,6 +402,7 @@ class _ResultsState extends ConsumerState<Results> {
   }) {
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,6 +443,7 @@ class _ResultsState extends ConsumerState<Results> {
   }) {
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,6 +507,7 @@ class _ResultsState extends ConsumerState<Results> {
   ) {
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,6 +774,7 @@ class _ResultsState extends ConsumerState<Results> {
                         ),
                         frostedGlassCard(
                           context,
+                          color: appColor,
                           padding: EdgeInsets.all(
                             Responsive.scale(context, 18),
                           ),

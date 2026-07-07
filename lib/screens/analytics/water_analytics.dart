@@ -172,6 +172,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     if (entries.isEmpty) {
       return frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
         child: Center(
           child: Padding(
@@ -238,6 +239,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: SizedBox(
         height: Responsive.height(context, 220),
@@ -389,6 +391,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     Widget tile(IconData icon, String label, String value) => Expanded(
       child: frostedGlassCard(
         context,
+        color: appColor,
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 10),
           vertical: Responsive.height(context, 14),
@@ -464,6 +467,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 8),

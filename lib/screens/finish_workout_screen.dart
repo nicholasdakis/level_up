@@ -221,6 +221,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             SizedBox(height: Responsive.height(context, 10)),
                             frostedGlassCard(
                                   context,
+                                  color: appColor,
                                   padding: EdgeInsets.symmetric(
                                     horizontal: Responsive.width(context, 20),
                                     vertical: Responsive.height(context, 18),
@@ -503,6 +504,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     final unit = isImperial ? 'lbs' : 'kg';
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 14),
@@ -610,6 +612,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     final pr = widget.prDetails[exerciseName];
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 14),

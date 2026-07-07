@@ -1225,6 +1225,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 // search bar
                 frostedGlassCard(
                   context,
+                  color: appColor,
                   baseRadius: 14,
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 14),

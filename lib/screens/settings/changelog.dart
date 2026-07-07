@@ -230,6 +230,7 @@ Widget _buildChangelogCard(
     padding: EdgeInsets.only(bottom: Responsive.height(context, 16)),
     child: frostedGlassCard(
       context,
+      color: appColor,
       baseRadius: 16,
       padding: EdgeInsets.all(Responsive.scale(context, 16)),
       child: Column(

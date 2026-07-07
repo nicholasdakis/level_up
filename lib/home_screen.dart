@@ -429,6 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final guestSubtitle = "Create an account to track your streaks";
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 20),
         vertical: Responsive.height(context, 4),
@@ -474,6 +475,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildGuestBanner() {
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 14),
@@ -1213,6 +1215,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     },
                                     child: frostedGlassCard(
                                       context,
+                                      color: appColor,
                                       baseRadius: 14,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: Responsive.width(
@@ -1285,6 +1288,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     },
                                     child: frostedGlassCard(
                                       context,
+                                      color: appColor,
                                       baseRadius: 14,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: Responsive.width(

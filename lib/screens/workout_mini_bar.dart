@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
@@ -74,6 +74,7 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: frostedGlassCard(
             context,
+            color: appColor,
             baseRadius: 20,
             // lighter surface on light themes so the bar pops against the page
             backgroundColor: isLight
@@ -142,7 +143,7 @@ class _MiniWorkoutBarState extends State<MiniWorkoutBar>
                   ),
                 ),
                 SizedBox(width: Responsive.width(context, 8)),
-                // collapse button — tap target is large, visually separated from the rest
+                // collapse button â€” tap target is large, visually separated from the rest
                 GestureDetector(
                   onTap: widget.onCollapse,
                   behavior: HitTestBehavior.opaque,
@@ -230,6 +231,7 @@ class _CollapsedWorkoutDotState extends State<CollapsedWorkoutDot>
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: frostedGlassCard(
               context,
+              color: appColor,
               baseRadius: size,
               backgroundColor: isLight
                   ? Colors.white.withAlpha(65)

@@ -201,6 +201,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 14),
@@ -334,6 +335,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
     return frostedGlassCard(
       context,
+      color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 10),
