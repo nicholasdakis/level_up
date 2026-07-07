@@ -1011,7 +1011,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     return;
                   }
                   await ref.read(userDataProvider.notifier).loadUserData();
-
                 },
               );
               if (mounted) setState(() => _adWatching = false);
@@ -1155,14 +1154,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     width: Responsive.width(context, 12),
                                   ),
                                   Expanded(
-                                    child: ListenableBuilder(
-                                      listenable: userDataNotifier,
-                                      builder: (context, _) =>
-                                          buildReferralsCard(
-                                            context,
-                                            appColor,
-                                            ref,
-                                          ),
+                                    child: buildReferralsCard(
+                                      context,
+                                      appColor,
+                                      ref,
                                     ),
                                   ),
                                 ],
@@ -1189,18 +1184,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 600),
-                              child: isGuest
-                                  ? HomeLoggingCards(
-                                      onShowWaterSheet: _showWaterLogSheet,
-                                      onShowWeightSheet: _showWeightLogSheet,
-                                    )
-                                  : ListenableBuilder(
-                                      listenable: userDataNotifier,
-                                      builder: (context, _) => HomeLoggingCards(
-                                        onShowWaterSheet: _showWaterLogSheet,
-                                        onShowWeightSheet: _showWeightLogSheet,
-                                      ),
-                                    ),
+                              child: HomeLoggingCards(
+                                onShowWaterSheet: _showWaterLogSheet,
+                                onShowWeightSheet: _showWeightLogSheet,
+                              ),
                             ),
                           ),
                           160.ms,
