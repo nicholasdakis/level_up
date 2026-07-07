@@ -19,7 +19,9 @@ class AboutTheDeveloper extends ConsumerStatefulWidget {
 }
 
 class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   @override
   void initState() {
@@ -32,8 +34,6 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(

@@ -45,8 +45,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

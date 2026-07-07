@@ -26,8 +26,8 @@ class Workout extends ConsumerStatefulWidget {
 }
 
 class _WorkoutState extends ConsumerState<Workout> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor));
 
   bool _loading = false;
   List<Map<String, dynamic>> _recentWorkouts = [];
@@ -229,8 +229,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildGoalCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final int weeklyGoal =
@@ -430,8 +428,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildRecentWorkoutsCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final recentWorkouts = _recentWorkouts;
@@ -688,8 +684,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildStartWorkoutCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final bool inProgress = workoutSessionService.isActive;
@@ -763,8 +757,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildRoutineActionCards(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
 
@@ -837,8 +829,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildMyRoutinesCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final List<Map<String, dynamic>> routines = _myRoutines;
@@ -987,8 +977,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildLiftsCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
@@ -1183,8 +1171,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildHeatmapCard(BuildContext context) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final c = cardColors(appColor);
     final accent = c.onCard;
     const int weeks = 12;
@@ -1407,8 +1393,6 @@ class _WorkoutState extends ConsumerState<Workout> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(
@@ -1483,8 +1467,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _guestLock(BuildContext context, Widget child) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     if (!isGuest) return child;
     final accent = lightenColor(appColor, 0.45);
     return GestureDetector(

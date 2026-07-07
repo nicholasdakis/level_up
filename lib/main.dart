@@ -124,7 +124,11 @@ class _MyAppState extends ConsumerState<MyApp> {
               await showLevelUpOverlay(
                 c,
                 newLevel,
-                ref.read(userDataProvider).value?.appColor ?? defaultAppColor,
+                ref.watch(
+                  userDataProvider.select(
+                    (s) => s.value?.appColor ?? defaultAppColor,
+                  ),
+                ),
                 ref,
               );
             }
@@ -184,8 +188,9 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final color = ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+    );
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,

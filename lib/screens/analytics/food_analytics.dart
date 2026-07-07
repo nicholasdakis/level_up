@@ -33,8 +33,9 @@ class FoodAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     with SingleTickerProviderStateMixin {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   late TabController _tabController;
   late DateTime currentDate;
@@ -1280,8 +1281,9 @@ class _MealLineChart extends ConsumerStatefulWidget {
 }
 
 class _MealLineChartState extends ConsumerState<_MealLineChart> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // null = all meals shown
   int? _focus;
@@ -1513,8 +1515,9 @@ class _MacroLineChart extends ConsumerStatefulWidget {
 }
 
 class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // null = all macros shown
   int? _focus;

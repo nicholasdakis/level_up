@@ -26,8 +26,9 @@ class Reminders extends ConsumerStatefulWidget {
 }
 
 class _RemindersState extends ConsumerState<Reminders> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // Prevent memory leaks
   @override
@@ -434,8 +435,6 @@ class _RemindersState extends ConsumerState<Reminders> {
 
   // Makes a single reminder card with message, time, and delete button
   Widget _buildReminderCard(ReminderData reminder) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
       child: Row(
@@ -521,8 +520,6 @@ class _RemindersState extends ConsumerState<Reminders> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient()),
       child: Scaffold(

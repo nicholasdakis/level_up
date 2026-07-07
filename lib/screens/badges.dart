@@ -123,8 +123,9 @@ class Badges extends ConsumerStatefulWidget {
 }
 
 class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   bool _isLoading = true; // for the skeletonizer
   // Populated from the backend on init
@@ -828,8 +829,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     if (isGuest && !_isLoading) {
       // For guest users
       return Container(

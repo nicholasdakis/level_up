@@ -22,7 +22,9 @@ class Leaderboard extends ConsumerStatefulWidget {
 }
 
 class _LeaderboardState extends ConsumerState<Leaderboard> {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // Cache for experience calculations
   final Map<int, int> _expCache = {};
@@ -113,8 +115,6 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
 
   // Single leaderboard entry card
   Widget _buildUserCard(LeaderboardEntry user, int index, bool isCurrentUser) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     // Only show the user's username if it exists and is not the default username (their UID)
     final username = (user.username == null || user.username == user.uid)
         ? "Unnamed"
@@ -241,8 +241,6 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Get current user's UID to highlight their row
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 

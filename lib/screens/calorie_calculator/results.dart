@@ -42,8 +42,9 @@ class Results extends ConsumerStatefulWidget {
 }
 
 class _ResultsState extends ConsumerState<Results> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   @override
   void initState() {
@@ -583,8 +584,6 @@ class _ResultsState extends ConsumerState<Results> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Wraps the scaffold so the TabBar and TabBarView share the same controller
     return DefaultTabController(
       length: 3,

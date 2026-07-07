@@ -23,8 +23,9 @@ class WeightAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
@@ -671,8 +672,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final entries = _entriesInRange();
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
 

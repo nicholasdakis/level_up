@@ -26,8 +26,9 @@ Future<void> checkPendingReferralReward(
   final data = jsonDecode(res.body) as Map<String, dynamic>;
   if (data['pending'] != true) return;
 
-  final appColor =
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  final appColor = ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
   final refereeUid = data['referee_uid'] as String;
   final refereeUsername = data['referee_username'] as String;
 

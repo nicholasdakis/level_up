@@ -105,8 +105,9 @@ class PersonalPreferences extends ConsumerStatefulWidget {
 
 class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     with SingleTickerProviderStateMixin {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   TextEditingController usernameController = TextEditingController();
   late AnimationController _colorAnimController;

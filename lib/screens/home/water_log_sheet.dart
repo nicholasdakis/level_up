@@ -130,8 +130,9 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final appColor = ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+    );
     final dateKey = dateKeyFor(selectedDate);
     final entries = List<int>.from(
       ref.watch(userDataProvider).value?.waterEntriesByDate[dateKey] ?? [],

@@ -59,8 +59,9 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final appColor = ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+    );
     final accent = lightenColor(appColor, 0.45);
 
     return GestureDetector(

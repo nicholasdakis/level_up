@@ -57,60 +57,58 @@ class FloatingNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appColor = ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final appColor = ref.watch(
+      userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+    );
     return SafeArea(
-          // SafeArea prevents the bar from overlapping the home indicator on iOS
-          child: Center(
-            child: ConstrainedBox(
-              // Cap the width so the bar doesn't stretch too wide on tablets/desktop
-              constraints: BoxConstraints(
-                maxWidth: Responsive.scale(context, 360),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 30),
+      // SafeArea prevents the bar from overlapping the home indicator on iOS
+      child: Center(
+        child: ConstrainedBox(
+          // Cap the width so the bar doesn't stretch too wide on tablets/desktop
+          constraints: BoxConstraints(maxWidth: Responsive.scale(context, 360)),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 30)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: frostedGlassCard(
+                context,
+                baseRadius: 30,
+                // Navbar fill and border adapt to background lightness so it always pops
+                backgroundColor: appColor.computeLuminance() < 0.18
+                    ? Colors.white.withAlpha(18)
+                    : Colors.white.withAlpha(50),
+                border: appColor.computeLuminance() < 0.18
+                    ? Border.all(
+                        color: Colors.white.withAlpha(35),
+                        width: Responsive.width(context, 1.5),
+                      )
+                    : Border.all(
+                        color: Colors.white.withAlpha(90),
+                        width: Responsive.width(context, 1.5),
+                      ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.padding(context, 8),
+                  vertical: Responsive.padding(context, 10),
                 ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: frostedGlassCard(
-                    context,
-                    baseRadius: 30,
-                    // Navbar fill and border adapt to background lightness so it always pops
-                    backgroundColor: appColor.computeLuminance() < 0.18
-                        ? Colors.white.withAlpha(18)
-                        : Colors.white.withAlpha(50),
-                    border: appColor.computeLuminance() < 0.18
-                        ? Border.all(
-                            color: Colors.white.withAlpha(35),
-                            width: Responsive.width(context, 1.5),
-                          )
-                        : Border.all(
-                            color: Colors.white.withAlpha(90),
-                            width: Responsive.width(context, 1.5),
-                          ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.padding(context, 8),
-                      vertical: Responsive.padding(context, 10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        for (int i = 0; i < _navIcons.length; i++)
-                          _NavItem(
-                            icon: _navIcons[i],
-                            label: _navLabels[i],
-                            isActive: selectedIndex == i,
-                            appColor: appColor,
-                            onTap: () => onTap(i),
-                          ),
-                      ],
-                    ),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (int i = 0; i < _navIcons.length; i++)
+                      _NavItem(
+                        icon: _navIcons[i],
+                        label: _navLabels[i],
+                        isActive: selectedIndex == i,
+                        appColor: appColor,
+                        onTap: () => onTap(i),
+                      ),
+                  ],
                 ),
               ),
             ),
           ),
-        );
+        ),
+      ),
+    );
   }
 }
 

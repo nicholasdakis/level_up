@@ -17,8 +17,9 @@ class InstallGuide extends ConsumerStatefulWidget {
 }
 
 class _InstallGuideState extends ConsumerState<InstallGuide> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   @override
   void initState() {

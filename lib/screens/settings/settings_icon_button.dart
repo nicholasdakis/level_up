@@ -17,7 +17,9 @@ class SettingsIconButton extends ConsumerStatefulWidget {
 
 class _SettingsIconButtonState extends ConsumerState<SettingsIconButton>
     with SingleTickerProviderStateMixin {
-  Color get appColor => ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   late AnimationController _controller;
   late Animation<double> _glowAnimation;
@@ -54,8 +56,6 @@ class _SettingsIconButtonState extends ConsumerState<SettingsIconButton>
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final color = appColor; // matches HomeScreen color source
 
     return AnimatedBuilder(

@@ -21,8 +21,9 @@ class CalorieCalculator extends ConsumerStatefulWidget {
 }
 
 class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // Prevent memory leaks
   @override

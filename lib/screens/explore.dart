@@ -34,8 +34,9 @@ class Explore extends ConsumerStatefulWidget {
 }
 
 class _ExploreState extends ConsumerState<Explore> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   LatLng? userLocation;
   bool _locationRequested =
@@ -565,8 +566,6 @@ class _ExploreState extends ConsumerState<Explore> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     // Offset pushes the back button down so the card doesn't cover it on mobile
     // Offset pushes buttons down so the card doesn't cover them on mobile
     // Error is just a line of text, skeleton is 4 rows, full POI list is tallest

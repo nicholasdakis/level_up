@@ -33,8 +33,9 @@ class HomeLoggingCards extends ConsumerStatefulWidget {
 }
 
 class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   // Calculates total calories logged today
   int _todayCalories() {

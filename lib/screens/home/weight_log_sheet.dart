@@ -151,8 +151,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+    final appColor = ref.watch(userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor));
     final dateKey = dateKeyFor(selectedDate);
     final existingKg = ref.watch(userDataProvider).value?.weightByDate[dateKey];
     final c = cardColors(appColor);

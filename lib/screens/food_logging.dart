@@ -35,8 +35,9 @@ class FoodLogging extends ConsumerStatefulWidget {
 }
 
 class _FoodLoggingState extends ConsumerState<FoodLogging> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   DateTime currentDate = DateTime.now();
   late Future<void> _loadUserDataFuture;
@@ -862,8 +863,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     List<Map<String, dynamic>> foods,
     Color accentColor,
   ) {
-    final appColor =
-        ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
     final isCollapsed = _collapsed[mealKey] ?? false;
     final mealCal = _mealCalories(foods).round();
     double mealProtein = 0, mealCarbs = 0, mealFat = 0;

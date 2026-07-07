@@ -38,8 +38,9 @@ class FinishWorkoutScreen extends ConsumerStatefulWidget {
 }
 
 class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   late final ConfettiController _confetti;
 

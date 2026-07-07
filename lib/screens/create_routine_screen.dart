@@ -21,8 +21,9 @@ class CreateRoutineScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
-  Color get appColor =>
-      ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
@@ -239,8 +240,6 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appColor =
-        ref.watch(userDataProvider).value?.appColor ?? defaultAppColor;
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
 

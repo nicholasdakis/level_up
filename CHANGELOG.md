@@ -2454,3 +2454,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed appColorNotifier, replaced with a top-level appColor getter backed by currentUserData
 - Removed expNotifier, XP bar now reacts to userDataProvider via ref.watch with select, removing the last ValueNotifier-based rebuild trigger
 - Fixed classes using .read instead of .watch for user data related changes
+- Added the select keyword to all appColor getters because they were currently updating the app color no matter what changed in UserData

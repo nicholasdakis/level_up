@@ -19,8 +19,9 @@ class Progression extends ConsumerStatefulWidget {
 }
 
 class _ProgressionState extends ConsumerState<Progression> {
-  Color get appColor =>
-      ref.read(userDataProvider).value?.appColor ?? defaultAppColor;
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
 
   int? _rank;
   int? _total;
