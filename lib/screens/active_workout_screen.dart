@@ -473,7 +473,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           },
         );
         const streakMilestones = [3, 7, 14, 30, 60, 100];
-        final workoutStreak = currentUserData?.workoutStreak ?? 0;
+        final workoutStreak =
+            ref.read(userDataProvider).value?.workoutStreak ?? 0;
         if (streakMilestones.contains(workoutStreak)) {
           FirebaseAnalytics.instance.logEvent(
             name: 'streak_milestone',
@@ -481,12 +482,16 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           );
         }
         // update XP and level from the response so the XP bar reflects the reward immediately
-        final levelBefore = currentUserData?.level ?? 1;
-        if (data['new_level'] != null) {
-          currentUserData?.level = data['new_level'] as int;
-        }
-        if (data['new_exp'] != null) {
-          currentUserData?.expPoints = data['new_exp'] as int;
+        final levelBefore = ref.read(userDataProvider).value?.level ?? 1;
+        if (data['new_level'] != null || data['new_exp'] != null) {
+          ref
+              .read(userDataProvider.notifier)
+              .patch(
+                (u) => u.copyWith(
+                  level: data['new_level'] as int? ?? u.level,
+                  expPoints: data['new_exp'] as int? ?? u.expPoints,
+                ),
+              );
         }
         // compute volume from the clean exercises list since the in-memory set maps
         // may not have been updated if onChanged never fired before the user tapped check
