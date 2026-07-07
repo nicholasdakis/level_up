@@ -410,15 +410,22 @@ class _ExploreState extends ConsumerState<Explore> {
       if (result['success'] == true) {
         final levelBefore = ref.read(userDataProvider).value!.level;
         if (result['new_level'] != null) {
-          // TODO: migrate mutation to notifier
-          currentUserData!.level = result['new_level'];
-          if (levelBefore < 3 && currentUserData!.level >= 3) {
+          final newLevel = result['new_level'] as int;
+          if (levelBefore < 3 && newLevel >= 3) {
             FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
           }
-        }
-        if (result['new_exp'] != null) {
-          // TODO: migrate mutation to notifier
-          currentUserData!.expPoints = result['new_exp'];
+          ref
+              .read(userDataProvider.notifier)
+              .patch(
+                (u) => u.copyWith(
+                  level: newLevel,
+                  expPoints: result['new_exp'] ?? u.expPoints,
+                ),
+              );
+        } else if (result['new_exp'] != null) {
+          ref
+              .read(userDataProvider.notifier)
+              .patch((u) => u.copyWith(expPoints: result['new_exp'] as int));
         }
         if (mounted) {
           await handleLevelUpOverlay(context, levelBefore, appColor, ref);

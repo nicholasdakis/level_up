@@ -14,7 +14,6 @@ import '../services/user_data_manager.dart'
         authenticatedGet,
         isConnected,
         UserDataManager,
-        defaultAppColor,
         initConnectivity;
 
 class UserDataNotifier extends AsyncNotifier<UserData?> {
