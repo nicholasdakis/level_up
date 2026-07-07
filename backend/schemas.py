@@ -280,8 +280,11 @@ class GetUserDataResponse(BaseModel):
     last_daily_claim: str | None = None  # ISO string
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
     daily_streak: int = 1
-    food_logs: list = Field(default_factory=list)  # kept for older app versions
-    food_logs_v2: list = Field(default_factory=list)  # kept for older app versions
+    food_logs: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
+    food_logs_v2: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
+    reminders: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
+    water_logs: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
+    weight_logs: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
     goals: GoalsResponse | None = None
     referral_code: str | None = None
     referral_count: int = 0

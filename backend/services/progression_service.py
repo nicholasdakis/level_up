@@ -298,8 +298,11 @@ class ProgressionService: # Service class to handle all progression-related busi
             except Exception:
                 pass
 
-        food_logs = self._repo.get_food_logs(uid)  # kept for older app versions
-        food_logs_v2 = self._repo.get_food_logs_v2(uid)  # kept for older app versions
+        food_logs = self._repo.get_food_logs(uid)  # kept for older app versions, remove after forced update
+        food_logs_v2 = self._repo.get_food_logs_v2(uid)  # kept for older app versions, remove after forced update
+        reminders = self._reminder_repo.get_reminders(uid)  # kept for older app versions, remove after forced update
+        water_logs = self._repo.get_water_logs(uid)  # kept for older app versions, remove after forced update
+        weight_logs = self._repo.get_weight_logs(uid)  # kept for older app versions, remove after forced update
         goals = self._repo.get_goals(uid)
 
         streaks = self._repo.get_streaks(uid)
@@ -321,6 +324,9 @@ class ProgressionService: # Service class to handle all progression-related busi
             "daily_streak": daily_streak,
             "food_logs": food_logs,
             "food_logs_v2": food_logs_v2,
+            "reminders": reminders,
+            "water_logs": water_logs,
+            "weight_logs": weight_logs,
             "goals": goals,
             "referral_code": user.get("referral_code"),
             "referral_count": self._repo.get_referral_count(uid),
