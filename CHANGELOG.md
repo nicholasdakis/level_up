@@ -2459,3 +2459,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Created waterLogsProvider and weightLogsProvider as independent AsyncNotifier providers with optimistic update and rollback for all mutations
 - Removed waterEntriesByDate and weightByDate from UserData and from GET /user_data response, water and weight logs are now fully owned by their own providers
 - Updated all screens reading water and weight data to use the new providers instead of userDataProvider
+
+## 2026-07-07
+- Fixed home screen getting stuck on the loading skeleton due to AppInitScreen unmounting before _initApp completed, which caused the mounted check to bail before setting appReadyNotifier to true
