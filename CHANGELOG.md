@@ -2455,3 +2455,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed expNotifier, XP bar now reacts to userDataProvider via ref.watch with select, removing the last ValueNotifier-based rebuild trigger
 - Fixed classes using .read instead of .watch for user data related changes
 - Added the select keyword to all appColor getters because they were currently updating the app color no matter what changed in UserData
+- Added GET /water_logs and GET /weight_logs backend routes so water and weight data can be fetched independently instead of bundled in GET /user_data
+- Created waterLogsProvider and weightLogsProvider as independent AsyncNotifier providers with optimistic update and rollback for all mutations
+- Removed waterEntriesByDate and weightByDate from UserData and from GET /user_data response, water and weight logs are now fully owned by their own providers
+- Updated all screens reading water and weight data to use the new providers instead of userDataProvider

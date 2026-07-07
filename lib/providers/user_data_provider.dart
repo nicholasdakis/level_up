@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../globals.dart'
     show userManager, isGuest, snackBarDuration, dailyRewardCooldown;
 import '../guest.dart' show Guest;
+import 'weight_logs_provider.dart';
 import '../services/user_data_manager.dart'
     show
         authenticatedPost,
@@ -58,31 +59,6 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-      // parse water logs
-      final Map<String, List<int>> waterData = {};
-      if (data['water_logs'] != null) {
-        for (final row in (data['water_logs'] as List<dynamic>)) {
-          final map = row as Map<String, dynamic>;
-          final dateKey = map['date'] as String;
-          final entries = (map['entries_ml'] as List<dynamic>?) ?? [];
-          waterData[dateKey] = entries
-              .map(
-                (e) => (e as Map<String, dynamic>)['amount_ml'] as int,
-              ) // unwrap {amount_ml: x} to just x
-              .toList();
-        }
-      }
-
-      // parse weight logs
-      final Map<String, double> weightData = {};
-      if (data['weight_logs'] != null) {
-        for (final row in (data['weight_logs'] as List<dynamic>)) {
-          final map = row as Map<String, dynamic>;
-          weightData[map['date'] as String] = (map['weight_kg'] as num)
-              .toDouble(); // always kg, converted to lbs at display time
-        }
-      }
 
       // compute canClaimDailyReward from last_daily_claim
       DateTime? lastDailyClaim;
@@ -163,12 +139,6 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
           createdAt: data['created_at'] != null
               ? DateTime.tryParse(data['created_at'])?.toLocal()
               : current.createdAt,
-          waterEntriesByDate: waterData.isNotEmpty
-              ? waterData
-              : current.waterEntriesByDate,
-          weightByDate: weightData.isNotEmpty
-              ? weightData
-              : current.weightByDate,
           foodLogStreak: foodStreak,
           foodLogStreakBest: foodStreakBest,
           foodLogStreakLastDate: foodStreakLastDate,
@@ -231,9 +201,7 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
         updated = updated.copyWith(units: selectedUnits);
       }
       if (currentWeightKg != null && dateKey != null) {
-        final wb = Map<String, double>.from(updated.weightByDate)
-          ..[dateKey] = currentWeightKg;
-        updated = updated.copyWith(weightByDate: wb);
+        // weight log is now stored in weightLogsProvider, not on UserData
       }
       if (weightKgGoal != null) {
         updated = updated.copyWith(weightKgGoal: weightKgGoal);
@@ -259,7 +227,9 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
       userManager.updateUnits(selectedUnits, context, showFeedback: false);
     }
     if (currentWeightKg != null && dateKey != null) {
-      userManager.updateWeightLog(dateKey, currentWeightKg);
+      ref
+          .read(weightLogsProvider.notifier)
+          .updateWeightLog(dateKey, currentWeightKg);
     }
     if (weightKgGoal != null) {
       userManager.updateWeightGoal(weightKgGoal: weightKgGoal);

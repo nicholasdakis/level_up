@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../globals.dart';
 import '../../providers/user_data_provider.dart';
+import '../../providers/weight_logs_provider.dart';
 import '../../services/user_data_manager.dart' show defaultAppColor;
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
@@ -79,19 +80,19 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
   }
 
   List<MapEntry<String, double>> recentEntries() {
-    final entries =
-        ref.read(userDataProvider).value?.weightByDate.entries.toList() ?? [];
+    final entries = ref.read(weightLogsProvider).value?.entries.toList() ?? [];
     entries.sort((a, b) => b.key.compareTo(a.key));
     return entries.take(7).toList();
   }
 
   String get weightHint {
-    final entries =
-        ref.read(userDataProvider).value?.weightByDate.entries.toList() ?? [];
+    final entries = ref.read(weightLogsProvider).value?.entries.toList() ?? [];
     entries.sort((a, b) => b.key.compareTo(a.key));
-    final latest = entries.isNotEmpty
-        ? ref.read(userDataProvider).value?.weightByDate[entries.first.key]
-        : null;
+    final byDate = ref.read(weightLogsProvider).value;
+    double? latest;
+    if (entries.isNotEmpty && byDate != null) {
+      latest = byDate[entries.first.key];
+    }
     if (latest != null) {
       final hintKg = latest + (Random().nextDouble() * 4 - 2);
       return isImperial
@@ -105,7 +106,9 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
     final input = double.tryParse(controller.text.trim());
     if (input == null || input <= 0) return;
     final kg = isImperial ? UnitConverter.lbsToKg(input) : input;
-    final ok = await userManager.updateWeightLog(dateKey, kg);
+    final ok = await ref
+        .read(weightLogsProvider.notifier)
+        .updateWeightLog(dateKey, kg);
     if (!mounted) return;
     setState(() {
       feedback = ok ? (existingKg != null ? 'updated' : 'ok') : 'error';
@@ -117,7 +120,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
 
   Future<void> _delete(String entryKey) async {
     final entryDisplay = displayFor(
-      ref.read(userDataProvider).value?.weightByDate[entryKey] ?? 0,
+      ref.read(weightLogsProvider).value?[entryKey] ?? 0,
     );
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
@@ -140,7 +143,9 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
       ],
     );
     if (confirmed != true || !mounted) return;
-    final ok = await userManager.deleteWeightLog(entryKey);
+    final ok = await ref
+        .read(weightLogsProvider.notifier)
+        .deleteWeightLog(entryKey);
     if (!mounted) return;
     setState(() {
       feedback = ok ? 'deleted' : 'error';
@@ -156,7 +161,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
       userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
     );
     final dateKey = dateKeyFor(selectedDate);
-    final existingKg = ref.watch(userDataProvider).value?.weightByDate[dateKey];
+    final existingKg = ref.watch(weightLogsProvider).value?[dateKey];
     final c = cardColors(appColor);
     final onCard = c.onCard;
     final onCardDim = c.onCard.withAlpha(140);
@@ -213,9 +218,8 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                                 const Duration(days: 1),
                               );
                               final kg = ref
-                                  .read(userDataProvider)
-                                  .value
-                                  ?.weightByDate[dateKeyFor(d)];
+                                  .read(weightLogsProvider)
+                                  .value?[dateKeyFor(d)];
                               setState(() {
                                 selectedDate = d;
                                 controller.text = kg != null
@@ -239,9 +243,8 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                               );
                               if (picked != null) {
                                 final kg = ref
-                                    .read(userDataProvider)
-                                    .value
-                                    ?.weightByDate[dateKeyFor(picked)];
+                                    .read(weightLogsProvider)
+                                    .value?[dateKeyFor(picked)];
                                 setState(() {
                                   selectedDate = picked;
                                   controller.text = kg != null
@@ -271,9 +274,8 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                                       const Duration(days: 1),
                                     );
                                     final kg = ref
-                                        .read(userDataProvider)
-                                        .value
-                                        ?.weightByDate[dateKeyFor(d)];
+                                        .read(weightLogsProvider)
+                                        .value?[dateKeyFor(d)];
                                     setState(() {
                                       selectedDate = d;
                                       controller.text = kg != null

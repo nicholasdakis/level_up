@@ -12,6 +12,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/globals.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/weight_logs_provider.dart';
 import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
@@ -108,10 +109,7 @@ Future<String?> showOnboardingWizard(
         final today = DateTime.now();
         final dateKey =
             '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-        currentWeightKg = ref
-            .read(userDataProvider)
-            .value
-            ?.weightByDate[dateKey];
+        currentWeightKg = ref.read(weightLogsProvider).value?[dateKey];
         // also read from what was just typed on step 2
         if (currentWeightKg == null) {
           final raw = double.tryParse(currentWeightController.text.trim());

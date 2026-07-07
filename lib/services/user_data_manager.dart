@@ -288,8 +288,6 @@ class UserDataManager {
       Guest.block(context);
       return;
     }
-    currentUserData!.notificationsEnabled = enabled;
-    userDataNotifier.notifyListeners();
     try {
       final response = await authenticatedPost(
         'update_notifications',
@@ -332,68 +330,6 @@ class UserDataManager {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), duration: snackBarDuration),
       );
-    }
-  }
-
-  Future<bool> updateWaterLog(String dateKey, List<int> entriesMl) async {
-    final previous = List<int>.from(
-      currentUserData?.waterEntriesByDate[dateKey] ?? [],
-    );
-    currentUserData?.waterEntriesByDate[dateKey] = entriesMl;
-    userDataNotifier.notifyListeners();
-    try {
-      await authenticatedPost(
-        'upsert_water_log',
-        body: {
-          'date': dateKey,
-          'entries_ml': entriesMl.map((ml) => {'amount_ml': ml}).toList(),
-        },
-      );
-      return true;
-    } catch (e) {
-      // Roll back on failure so the UI reflects the actual saved state
-      currentUserData?.waterEntriesByDate[dateKey] = previous;
-      userDataNotifier.notifyListeners();
-      debugPrint('[water] Failed to upsert water log: $e');
-      return false;
-    }
-  }
-
-  Future<bool> updateWeightLog(String dateKey, double weightKg) async {
-    final previous = currentUserData?.weightByDate[dateKey];
-    currentUserData?.weightByDate[dateKey] = weightKg;
-    userDataNotifier.notifyListeners();
-    try {
-      await authenticatedPost(
-        'upsert_weight_log',
-        body: {'date': dateKey, 'weight_kg': weightKg},
-      );
-      return true;
-    } catch (e) {
-      // Roll back on failure
-      if (previous == null) {
-        currentUserData?.weightByDate.remove(dateKey);
-      } else {
-        currentUserData?.weightByDate[dateKey] = previous;
-      }
-      userDataNotifier.notifyListeners();
-      debugPrint('[weight] Failed to upsert weight log: $e');
-      return false;
-    }
-  }
-
-  Future<bool> deleteWeightLog(String dateKey) async {
-    final previous = currentUserData?.weightByDate[dateKey];
-    currentUserData?.weightByDate.remove(dateKey);
-    userDataNotifier.notifyListeners();
-    try {
-      await authenticatedPost('delete_weight_log', body: {'date': dateKey});
-      return true;
-    } catch (e) {
-      if (previous != null) currentUserData?.weightByDate[dateKey] = previous;
-      userDataNotifier.notifyListeners();
-      debugPrint('[weight] Failed to delete weight log: $e');
-      return false;
     }
   }
 
@@ -469,8 +405,6 @@ class UserDataManager {
       Guest.block(context);
       return;
     }
-    currentUserData!.appColor = newColor;
-    userDataNotifier.notifyListeners();
     try {
       // Convert color to int
       final int argbInt = newColor.toARGB32();

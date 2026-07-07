@@ -11,6 +11,8 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import '../../utility/food_logging_helper.dart' show FoodLoggingHelper;
 import '../../providers/food_logs_provider.dart';
+import '../../providers/water_logs_provider.dart';
+import '../../providers/weight_logs_provider.dart';
 
 String _todayDateKey() {
   final now = DateTime.now();
@@ -430,8 +432,11 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
 
     // water progress
-    final totalWaterMl = (userData?.waterEntriesByDate[_todayDateKey()] ?? [])
-        .fold(0, (total, entryMl) => total + entryMl);
+    final totalWaterMl =
+        (ref.watch(waterLogsProvider).value?[_todayDateKey()] ?? []).fold(
+          0,
+          (total, entryMl) => total + entryMl,
+        );
     final waterGoalMl = userData?.waterMlGoal ?? 0;
     final waterProgress = waterGoalMl > 0
         ? (totalWaterMl / waterGoalMl).clamp(0.0, 1.0)
@@ -560,7 +565,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     label: "Weight",
                     value: () {
                       // use today's entry, or fall back to the most recent logged weight
-                      final byDate = userData?.weightByDate ?? {};
+                      final byDate = ref.watch(weightLogsProvider).value ?? {};
                       final kg =
                           byDate[_todayDateKey()] ??
                           (byDate.entries.toList()
@@ -576,7 +581,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                           : kg.toStringAsFixed(1);
                     }(),
                     subtext: () {
-                      final byDate = userData?.weightByDate ?? {};
+                      final byDate = ref.watch(weightLogsProvider).value ?? {};
                       // same fallback logic as the value above
                       final currentKg =
                           byDate[_todayDateKey()] ??

@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../providers/food_logs_provider.dart';
 import '../providers/user_data_provider.dart';
+import '../providers/water_logs_provider.dart';
+import '../providers/weight_logs_provider.dart';
 import '../utility/responsive.dart';
 
 // Animates the XP bar fill from 0 to progress on mount, with a short entry delay
@@ -184,10 +186,8 @@ Future<void> showLevelUpOverlay(
         value: _fmt(daysLogged),
       ));
     }
-    final totalWaterLogs = data.waterEntriesByDate.values.fold(
-      0,
-      (sum, list) => sum + list.length,
-    );
+    final waterLogs = ref.read(waterLogsProvider).value ?? {};
+    final totalWaterLogs = waterLogs.values.fold(0, (sum, list) => sum + list.length);
     if (totalWaterLogs > 0) {
       stats.add((
         icon: HugeIcons.strokeRoundedDroplet,
@@ -195,11 +195,12 @@ Future<void> showLevelUpOverlay(
         value: _fmt(totalWaterLogs),
       ));
     }
-    if (data.weightByDate.isNotEmpty) {
+    final weightLogs = ref.read(weightLogsProvider).value ?? {};
+    if (weightLogs.isNotEmpty) {
       stats.add((
         icon: HugeIcons.strokeRoundedWeightScale,
         label: 'Weigh-ins',
-        value: _fmt(data.weightByDate.length),
+        value: _fmt(weightLogs.length),
       ));
     }
     if (data.referralCount > 0) {

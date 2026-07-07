@@ -158,6 +158,20 @@ class FoodLogItem(BaseModel):
 class GetFoodLogsV2Response(BaseModel):
     food_logs_v2: list[FoodLogItem] = []
 
+class WaterLogItem(BaseModel):
+    date: str
+    entries_ml: list[dict]
+
+class GetWaterLogsResponse(BaseModel):
+    water_logs: list[WaterLogItem] = []
+
+class WeightLogItem(BaseModel):
+    date: str
+    weight_kg: float
+
+class GetWeightLogsResponse(BaseModel):
+    weight_logs: list[WeightLogItem] = []
+
 class AchievementProgressEntry(BaseModel):
     # A single achievement's progress for the user
     achievement_id: str
@@ -266,16 +280,13 @@ class GetUserDataResponse(BaseModel):
     last_daily_claim: str | None = None  # ISO string
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
     daily_streak: int = 1
-    food_logs: list = Field(default_factory=list)
-    food_logs_v2: list = Field(default_factory=list)
-    reminders: list[ReminderItem] = Field(default_factory=list)
+    food_logs: list = Field(default_factory=list)  # kept for older app versions
+    food_logs_v2: list = Field(default_factory=list)  # kept for older app versions
     goals: GoalsResponse | None = None
     referral_code: str | None = None
     referral_count: int = 0
     referral_used: bool = False
     units: str = 'metric'
-    water_logs: list = Field(default_factory=list)
-    weight_logs: list = Field(default_factory=list)
     created_at: str | None = None
 
 class SimpleSuccessResponse(BaseModel):

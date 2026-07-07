@@ -31,8 +31,6 @@ class UserData {
   int referralCount = 0;
   bool referralUsed = false;
   String units;
-  Map<String, List<int>> waterEntriesByDate;
-  Map<String, double> weightByDate;
   DateTime? createdAt;
 
   // constructor
@@ -65,12 +63,8 @@ class UserData {
     this.referralCount = 0,
     this.referralUsed = false,
     this.units = 'metric',
-    Map<String, List<int>>? waterEntriesByDate,
-    Map<String, double>? weightByDate,
     this.createdAt,
-  }) : waterEntriesByDate = waterEntriesByDate ?? {},
-       weightByDate = weightByDate ?? {},
-       fcmTokens = fcmTokens ?? [],
+  }) : fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 
   UserData copyWith({
@@ -102,8 +96,6 @@ class UserData {
     int? referralCount,
     bool? referralUsed,
     String? units,
-    Map<String, List<int>>? waterEntriesByDate,
-    Map<String, double>? weightByDate,
     DateTime? createdAt,
   }) {
     return UserData(
@@ -135,8 +127,6 @@ class UserData {
       referralCount: referralCount ?? this.referralCount,
       referralUsed: referralUsed ?? this.referralUsed,
       units: units ?? this.units,
-      waterEntriesByDate: waterEntriesByDate ?? this.waterEntriesByDate,
-      weightByDate: weightByDate ?? this.weightByDate,
       createdAt: createdAt ?? this.createdAt,
     );
   }

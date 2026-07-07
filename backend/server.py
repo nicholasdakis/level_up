@@ -49,6 +49,10 @@ from backend.schemas import (
     GetRemindersResponse,
     FoodLogItem,
     GetFoodLogsV2Response,
+    WaterLogItem,
+    GetWaterLogsResponse,
+    WeightLogItem,
+    GetWeightLogsResponse,
     DeleteReminderRequest,
     GetAchievementsResponse,
     AchievementProgressEntry,
@@ -820,6 +824,24 @@ def get_food_logs_v2():
 
     logs = progression_service.get_food_logs_v2(uid=uid)
     response = GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs])
+    return jsonify(response.model_dump()), 200
+
+@app.route("/water_logs", methods=["GET"])
+def get_water_logs():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    logs = progression_service.get_water_logs(uid=uid)
+    response = GetWaterLogsResponse(water_logs=[WaterLogItem(**l) for l in logs])
+    return jsonify(response.model_dump()), 200
+
+@app.route("/weight_logs", methods=["GET"])
+def get_weight_logs():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    logs = progression_service.get_weight_logs(uid=uid)
+    response = GetWeightLogsResponse(weight_logs=[WeightLogItem(**l) for l in logs])
     return jsonify(response.model_dump()), 200
 
 @app.route("/delete_reminder", methods=["POST"])

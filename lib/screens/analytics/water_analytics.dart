@@ -1,6 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/water_logs_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,7 +65,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Future<void> _deleteEntry(String dateKey) async {
-    await userManager.updateWaterLog(dateKey, []);
+    await ref.read(waterLogsProvider.notifier).updateWaterLog(dateKey, []);
     if (mounted) {
       setState(() => _deletingKey = null);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,10 +84,13 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     final ml = isImperial ? UnitConverter.ozToMl(raw).round() : raw.round();
     final key = _dateKeyFor(_addDate);
     final existing = List<int>.from(
-      ref.read(userDataProvider).value?.waterEntriesByDate[key] ?? [],
+      ref.read(waterLogsProvider).value?[key] ?? [],
     );
     setState(() => _isAdding = true);
-    await userManager.updateWaterLog(key, [...existing, ml]);
+    await ref.read(waterLogsProvider.notifier).updateWaterLog(key, [
+      ...existing,
+      ml,
+    ]);
     if (mounted) {
       setState(() {
         _isAdding = false;
@@ -136,7 +140,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
   // Returns all water entries as (date, totalMl) sorted chronologically oldest-first
   List<MapEntry<String, int>> _sortedEntries() {
-    final byDate = ref.watch(userDataProvider).value?.waterEntriesByDate ?? {};
+    final byDate = ref.watch(waterLogsProvider).value ?? {};
     final entries = byDate.entries.map((e) {
       final total = e.value.fold(0, (s, v) => s + v);
       return MapEntry(e.key, total);

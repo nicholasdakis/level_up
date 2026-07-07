@@ -1,6 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/weight_logs_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +102,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   // Returns all weight entries sorted chronologically oldest-first
   List<MapEntry<String, double>> _sortedEntries() {
-    final byDate = ref.watch(userDataProvider).value?.weightByDate ?? {};
+    final byDate = ref.watch(weightLogsProvider).value ?? {};
     final entries = byDate.entries.toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
@@ -123,7 +124,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Future<void> _deleteEntry(String dateKey) async {
-    await userManager.deleteWeightLog(dateKey);
+    await ref.read(weightLogsProvider.notifier).deleteWeightLog(dateKey);
     if (mounted) {
       setState(() => _deletingKey = null);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,7 +142,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     final kg = isImperial ? UnitConverter.lbsToKg(raw) : raw;
     final key = _dateKeyFor(_addDate);
     setState(() => _isAdding = true);
-    await userManager.updateWeightLog(key, kg);
+    await ref.read(weightLogsProvider.notifier).updateWeightLog(key, kg);
     if (mounted) {
       setState(() {
         _isAdding = false;

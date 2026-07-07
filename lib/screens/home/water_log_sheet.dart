@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../globals.dart';
 import '../../providers/user_data_provider.dart';
+import '../../providers/water_logs_provider.dart';
 import '../../services/user_data_manager.dart' show defaultAppColor;
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
@@ -77,10 +78,10 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
   Future<void> _log(int ml) async {
     final dateKey = dateKeyFor(selectedDate);
     final entries = List<int>.from(
-      ref.read(userDataProvider).value?.waterEntriesByDate[dateKey] ?? [],
+      ref.read(waterLogsProvider).value?[dateKey] ?? [],
     );
     entries.add(ml);
-    await userManager.updateWaterLog(dateKey, entries);
+    await ref.read(waterLogsProvider.notifier).updateWaterLog(dateKey, entries);
     if (!mounted) return;
     setState(() {
       feedback = 'ok';
@@ -93,7 +94,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
   Future<void> _remove(int index) async {
     final dateKey = dateKeyFor(selectedDate);
     final entries = List<int>.from(
-      ref.read(userDataProvider).value?.waterEntriesByDate[dateKey] ?? [],
+      ref.read(waterLogsProvider).value?[dateKey] ?? [],
     );
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
@@ -119,7 +120,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
     );
     if (confirmed != true || !mounted) return;
     entries.removeAt(index);
-    await userManager.updateWaterLog(dateKey, entries);
+    await ref.read(waterLogsProvider.notifier).updateWaterLog(dateKey, entries);
     if (!mounted) return;
     setState(() {
       feedback = 'deleted';
@@ -136,7 +137,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
     );
     final dateKey = dateKeyFor(selectedDate);
     final entries = List<int>.from(
-      ref.watch(userDataProvider).value?.waterEntriesByDate[dateKey] ?? [],
+      ref.watch(waterLogsProvider).value?[dateKey] ?? [],
     );
     final c = cardColors(appColor);
     final onCard = c.onCard;
