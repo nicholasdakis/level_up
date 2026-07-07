@@ -79,7 +79,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   // start as true so the first connectivity event always triggers _onReconnect if online
   bool _wasOffline = true;
   int _lastKnownLevel = -1;
-  late VoidCallback _levelUpListener;
 
   @override
   void initState() {
@@ -93,52 +92,6 @@ class _MyAppState extends ConsumerState<MyApp> {
       }
       _wasOffline = !online;
     });
-
-    // Listens on userDataNotifier so level-ups are caught regardless of which
-    // screen awards XP. _lastKnownLevel starts at -1 and is set to the real
-    // level on the first notification where data is present, so login never
-    // triggers the overlay. After that, any increase fires showLevelUpOverlay.
-    _levelUpListener = () {
-      final newLevel = currentUserData?.level ?? 0;
-      // guests have no real level progression
-      if (isGuest) return;
-      // wait until backend data is fully loaded before tracking anything
-      if (!appReadyNotifier.value) {
-        // reset baseline on logout so the next login captures a fresh one
-        _lastKnownLevel = -1;
-        return;
-      }
-      if (_lastKnownLevel == -1) {
-        // capture the baseline on the first notification after real data is ready
-        _lastKnownLevel = newLevel;
-        return;
-      }
-      if (newLevel > _lastKnownLevel) {
-        _lastKnownLevel = newLevel;
-        final ctx = appRouter.routerDelegate.navigatorKey.currentContext;
-        if (ctx != null && ctx.mounted) {
-          // postFrameCallback avoids showing the overlay mid-build
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            final c = appRouter.routerDelegate.navigatorKey.currentContext;
-            if (c != null && c.mounted) {
-              await showLevelUpOverlay(
-                c,
-                newLevel,
-                ref.watch(
-                  userDataProvider.select(
-                    (s) => s.value?.appColor ?? defaultAppColor,
-                  ),
-                ),
-                ref,
-              );
-            }
-          });
-        }
-      } else {
-        _lastKnownLevel = newLevel;
-      }
-    };
-    userDataNotifier.addListener(_levelUpListener);
   }
 
   Future<void> _onReconnect() async {
@@ -181,7 +134,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     _connectivitySub?.cancel();
-    userDataNotifier.removeListener(_levelUpListener);
     super.dispose();
   }
 
@@ -190,6 +142,46 @@ class _MyAppState extends ConsumerState<MyApp> {
     final color = ref.watch(
       userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
     );
+
+    // level-up listener: fires whenever level changes, shows overlay on increase
+    ref.listen(userDataProvider.select((s) => s.value?.level), (
+      previous,
+      next,
+    ) {
+      if (isGuest) return;
+      if (!appReadyNotifier.value) {
+        _lastKnownLevel = -1;
+        return;
+      }
+      final newLevel = next ?? 0;
+      if (_lastKnownLevel == -1) {
+        _lastKnownLevel = newLevel;
+        return;
+      }
+      if (newLevel > _lastKnownLevel) {
+        _lastKnownLevel = newLevel;
+        final ctx = appRouter.routerDelegate.navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final c = appRouter.routerDelegate.navigatorKey.currentContext;
+            if (c != null && c.mounted) {
+              await showLevelUpOverlay(
+                c,
+                newLevel,
+                ref.read(
+                  userDataProvider.select(
+                    (s) => s.value?.appColor ?? defaultAppColor,
+                  ),
+                ),
+                ref,
+              );
+            }
+          });
+        }
+      } else {
+        _lastKnownLevel = newLevel;
+      }
+    });
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,

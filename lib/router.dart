@@ -500,7 +500,11 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
 
     userManager.updateUtcOffset();
 
-    if (currentUserData != null) {
+    // keep the legacy global in sync so buildThemeGradient() and other globals still work
+    final userData = ref.read(userDataProvider).value;
+    userDataNotifier.value = userData;
+
+    if (userData != null) {
       try {
         // Update the body background so the notch / loading screen matches the app color
         String toHex(Color c) {
@@ -511,7 +515,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
               '${(a & 0xFF).toRadixString(16).padLeft(2, '0')}';
         }
 
-        final base = currentUserData!.appColor;
+        final base = userData.appColor;
         final dark = darkenColor(base, 0.015);
         final mid = lightenColor(base, 0.015);
         final notch = darkenColor(base, 0.07);
