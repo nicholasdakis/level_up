@@ -1165,7 +1165,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   // Full screen barcode scanner that dismisses on a successful scan or back tap
   Widget _buildBarcodeScanner() {
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
@@ -1442,7 +1442,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         foodList.isEmpty && !_isSearching && _recentMatches.isEmpty;
 
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(

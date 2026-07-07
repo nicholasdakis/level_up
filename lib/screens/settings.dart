@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -103,7 +103,7 @@ Widget buildSettingsDrawer(
       padding: EdgeInsets.only(bottom: navBarHeight),
       child: Container(
         decoration: BoxDecoration(
-          gradient: buildThemeGradient(),
+          gradient: buildThemeGradient(appColor),
           borderRadius: BorderRadius.only(
             topRight: Radius.circular(28),
             bottomRight: Radius.circular(28),

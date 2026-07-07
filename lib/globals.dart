@@ -1225,6 +1225,7 @@ class DateNavigationRow extends StatelessWidget {
 }
 
 // Returns a flat solid background using the chosen theme color
-Gradient buildThemeGradient() {
-  return LinearGradient(colors: [appColor, appColor]);
+Gradient buildThemeGradient([Color? color]) {
+  final c = color ?? appColor;
+  return LinearGradient(colors: [c, c]);
 }

@@ -108,7 +108,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     return Stack(
       children: [
         Container(
-          decoration: BoxDecoration(gradient: buildThemeGradient()),
+          decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(

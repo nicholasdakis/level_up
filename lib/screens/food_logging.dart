@@ -1145,7 +1145,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         final colors = _mealColors(appColor);
 
         return Container(
-          decoration: BoxDecoration(gradient: buildThemeGradient()),
+          decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: Stack(

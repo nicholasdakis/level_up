@@ -218,7 +218,7 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
     final subtle = c.onCard.withAlpha(120);
 
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(

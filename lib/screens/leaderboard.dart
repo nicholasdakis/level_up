@@ -246,7 +246,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: FutureBuilder<List<LeaderboardEntry>>(

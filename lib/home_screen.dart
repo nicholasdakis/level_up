@@ -1032,6 +1032,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     ref.watch(userDataProvider); // drives rebuilds when user data changes
+    // if initializeUser returned early because the provider hadn't loaded yet, retry on each rebuild until it succeeds
+    if (isLoading && ref.read(userDataProvider).value != null && appReadyNotifier.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) initializeUser();
+      });
+    }
     return Stack(
       children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],
     );
@@ -1052,7 +1058,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
         child: Scaffold(
           key: _scaffoldKey,
           drawer: buildSettingsDrawer(

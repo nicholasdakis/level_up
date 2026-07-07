@@ -671,7 +671,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
 
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(

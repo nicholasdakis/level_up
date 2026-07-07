@@ -293,7 +293,7 @@ class _ProgressionState extends ConsumerState<Progression> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: ScrollConfiguration(

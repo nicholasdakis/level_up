@@ -244,7 +244,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     final dim = lightenColor(appColor, 0.35);
 
     return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient()),
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Material(

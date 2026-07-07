@@ -592,7 +592,7 @@ class _ResultsState extends ConsumerState<Results> {
     return DefaultTabController(
       length: 3,
       child: Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
         child: Scaffold(
           backgroundColor: Colors.transparent, // Body color
           body: SafeArea(

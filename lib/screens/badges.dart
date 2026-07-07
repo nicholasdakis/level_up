@@ -833,7 +833,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     if (isGuest && !_isLoading) {
       // For guest users
       return Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: Column(
@@ -888,7 +888,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 1200),
       ),
       child: Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient()),
+        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: ScrollConfiguration(
