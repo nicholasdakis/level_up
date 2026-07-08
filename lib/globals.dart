@@ -595,21 +595,22 @@ Widget frostedButton(
   String text,
   BuildContext context, {
   required Function() onPressed,
-  required Color color,
+  Color? color,
   bool small = false,
 }) {
-  final bg = cardColors(color).gradient.first.withAlpha(180);
-  final border = Border.all(
-    color: lightenColor(color, 0.2).withAlpha(160),
-    width: 1,
-  );
+  final bg = color != null
+      ? cardColors(color).gradient.first.withAlpha(180)
+      : Colors.white.withAlpha(18);
+  final border = color != null
+      ? Border.all(color: lightenColor(color, 0.2).withAlpha(160), width: 1)
+      : Border.all(color: Colors.white.withAlpha(40), width: 1);
   return MouseRegion(
     cursor: SystemMouseCursors.click,
     child: GestureDetector(
       onTap: () => onPressed(),
       child: frostedGlassCard(
         context,
-        color: color,
+        color: color ?? Colors.white,
         baseRadius: 14,
         backgroundColor: bg,
         border: border,

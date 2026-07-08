@@ -703,7 +703,6 @@ class _ExploreState extends ConsumerState<Explore> {
                       frostedButton(
                         "Find nearby spots",
                         context,
-                        color: appColor,
                         onPressed: () {
                           if (isGuest) {
                             Guest.block(context);
@@ -718,7 +717,6 @@ class _ExploreState extends ConsumerState<Explore> {
                         frostedButton(
                           "Simulate Location (NYC)",
                           context,
-                          color: appColor,
                           onPressed: _simulateLocation,
                         ),
                       ],
@@ -996,7 +994,6 @@ class _ExploreState extends ConsumerState<Explore> {
                                                   child: frostedButton(
                                                     "Generate nearby spots",
                                                     context,
-                                                    color: appColor,
                                                     onPressed:
                                                         _generateFakePOIs,
                                                     small: true,
