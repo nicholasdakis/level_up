@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'floating_nav_bar.dart' show FloatingNavBar, kTabExplore;
 import 'workout_mini_bar.dart';
 import '../utility/responsive.dart';
 import '../globals.dart';
-import '../services/workout_session_service.dart';
+import '../models/workout_session.dart';
 import '/providers/user_data_provider.dart';
 import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;

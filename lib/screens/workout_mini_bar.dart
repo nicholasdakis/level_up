@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
 import '../utility/responsive.dart';
-import '../services/workout_session_service.dart';
+import '../models/workout_session.dart';
 
 // Expanded mini bar shown above the nav bar while a workout is in progress
 class MiniWorkoutBar extends StatefulWidget {

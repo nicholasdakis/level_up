@@ -14,7 +14,7 @@ import '/guest.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 import '/services/user_data_manager.dart';
-import '/services/workout_session_service.dart';
+import '/models/workout_session.dart';
 import '/providers/workout_provider.dart';
 import 'exercise_picker_screen.dart';
 import 'level_up_overlay.dart';

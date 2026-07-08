@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/workout_session_service.dart';
+import '../models/workout_session.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart' show isGuest;
 import '../services/user_data_manager.dart' show authenticatedGet;
