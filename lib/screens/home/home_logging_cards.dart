@@ -14,6 +14,7 @@ import '../../utility/food_logging_helper.dart' show FoodLoggingHelper;
 import '../../providers/food_logs_provider.dart';
 import '../../providers/water_logs_provider.dart';
 import '../../providers/weight_logs_provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 String _todayDateKey() {
   final now = DateTime.now();
@@ -528,31 +529,38 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                 ),
                 SizedBox(height: Responsive.height(context, 12)),
                 Expanded(
-                  child: _buildLoggingCard(
-                    context,
-                    icon: HugeIcons.strokeRoundedDroplet,
-                    label: "Water",
-                    value: isGuest
-                        ? "--"
-                        : isImperial
-                        ? UnitConverter.displayWater(
-                            totalWaterMl,
-                            imperial: isImperial,
-                          )
-                        : "$totalWaterMl",
-                    subtext: () {
-                      if (waterGoalMl <= 0) {
-                        return isImperial ? "oz today" : "ml today";
-                      }
-                      final goalDisplay = isImperial
-                          ? "${UnitConverter.displayWater(waterGoalMl, imperial: isImperial, decimals: 0)} oz"
-                          : "$waterGoalMl ml";
-                      return "/ $goalDisplay goal";
-                    }(),
-                    progressBar: waterProgressBar,
-                    showButtons: !isGuest,
-                    onAdd: onShowWaterSheet,
-                    onChart: () => context.push('/water/analytics'),
+                  child: Skeletonizer(
+                    enabled: ref.watch(waterLogsProvider).isLoading,
+                    effect: ShimmerEffect(
+                      baseColor: lightenColor(appColor, 0.10),
+                      highlightColor: lightenColor(appColor, 0.22),
+                    ),
+                    child: _buildLoggingCard(
+                      context,
+                      icon: HugeIcons.strokeRoundedDroplet,
+                      label: "Water",
+                      value: isGuest
+                          ? "--"
+                          : isImperial
+                          ? UnitConverter.displayWater(
+                              totalWaterMl,
+                              imperial: isImperial,
+                            )
+                          : "$totalWaterMl",
+                      subtext: () {
+                        if (waterGoalMl <= 0) {
+                          return isImperial ? "oz today" : "ml today";
+                        }
+                        final goalDisplay = isImperial
+                            ? "${UnitConverter.displayWater(waterGoalMl, imperial: isImperial, decimals: 0)} oz"
+                            : "$waterGoalMl ml";
+                        return "/ $goalDisplay goal";
+                      }(),
+                      progressBar: waterProgressBar,
+                      showButtons: !isGuest,
+                      onAdd: onShowWaterSheet,
+                      onChart: () => context.push('/water/analytics'),
+                    ),
                   ),
                 ),
               ],

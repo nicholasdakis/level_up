@@ -5,13 +5,10 @@ import '../services/user_data_manager.dart'
 
 class WaterLogsNotifier extends AsyncNotifier<Map<String, List<int>>> {
   @override
-  Future<Map<String, List<int>>> build() async => {};
-
-  // loads all water logs from the backend
-  Future<void> load() async {
+  Future<Map<String, List<int>>> build() async {
     final response = await authenticatedGet('water_logs');
-    if (response.statusCode != 200) return;
-    state = AsyncData(_parse(response.body));
+    if (response.statusCode != 200) return {};
+    return _parse(response.body);
   }
 
   // optimistically updates local state, rolls back on backend failure

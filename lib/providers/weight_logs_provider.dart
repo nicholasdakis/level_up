@@ -5,13 +5,10 @@ import '../services/user_data_manager.dart'
 
 class WeightLogsNotifier extends AsyncNotifier<Map<String, double>> {
   @override
-  Future<Map<String, double>> build() async => {};
-
-  // loads all weight logs from the backend
-  Future<void> load() async {
+  Future<Map<String, double>> build() async {
     final response = await authenticatedGet('weight_logs');
-    if (response.statusCode != 200) return;
-    state = AsyncData(_parse(response.body));
+    if (response.statusCode != 200) return {};
+    return _parse(response.body);
   }
 
   // optimistically updates local state, rolls back on backend failure
