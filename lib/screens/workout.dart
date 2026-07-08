@@ -56,7 +56,11 @@ class _WorkoutState extends ConsumerState<Workout> {
         if (mounted) setState(() => _loading = false);
       });
     }
-    if (!isGuest) ref.read(workoutProvider.notifier).loadWorkoutData();
+    if (!isGuest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(workoutProvider.notifier).loadWorkoutData();
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
@@ -1452,7 +1456,13 @@ class _WorkoutState extends ConsumerState<Workout> {
               _buildWorkoutContent(context)
             else ...[
               Skeletonizer(
-                enabled: _loading,
+                enabled:
+                    _loading ||
+                    ref.watch(
+                      workoutProvider.select(
+                        (s) => s.value?.isLoading ?? false,
+                      ),
+                    ),
                 effect: ShimmerEffect(
                   baseColor: lightenColor(appColor, 0.3),
                   highlightColor: lightenColor(appColor, 0.1),

@@ -252,98 +252,6 @@ class UserDataManager {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> fetchRecentExercises() async {
-    try {
-      final response = await authenticatedGet(
-        'recent_exercises',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (data['exercises'] as List)
-            .map((exercise) => Map<String, dynamic>.from(exercise as Map))
-            .toList();
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchRecentExercises failed: $e');
-    }
-    return [];
-  }
-
-  Future<Map<String, int>> fetchWorkoutHeatmap() async {
-    try {
-      final response = await authenticatedGet(
-        'workout_heatmap',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final days = data['days'] as List;
-        return {for (final d in days) d['date'] as String: d['count'] as int};
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchWorkoutHeatmap failed: $e');
-    }
-    return {};
-  }
-
-  Future<Map<String, dynamic>> fetchTodayOverview() async {
-    try {
-      final response = await authenticatedGet(
-        'today_overview',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchTodayOverview failed: $e');
-    }
-    return {
-      'volume_kg': 0.0,
-      'exercises': 0,
-      'sets': 0,
-      'reps': 0,
-      'duration_seconds': 0,
-      'primary_muscles': [],
-      'secondary_muscles': [],
-    };
-  }
-
-  Future<int> fetchWeeklyWorkoutCount() async {
-    try {
-      final response = await authenticatedGet(
-        'weekly_workout_count',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data['count'] as int? ?? 0;
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchWeeklyWorkoutCount failed: $e');
-    }
-    return 0;
-  }
-
-  Future<List<Map<String, dynamic>>> fetchRecentWorkouts() async {
-    try {
-      final response = await authenticatedGet(
-        'recent_workouts',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (data['workouts'] as List)
-            .map((workout) => Map<String, dynamic>.from(workout as Map))
-            .toList();
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchRecentWorkouts failed: $e');
-    }
-    return [];
-  }
-
   Future<Map<String, dynamic>?> createCustomExercise({
     required String name,
     String? primaryMuscle,
@@ -397,39 +305,6 @@ class UserDataManager {
       if (kDebugMode) debugPrint('editCustomExercise failed: $e');
     }
     return false;
-  }
-
-  Future<Map<String, dynamic>> fetchBrowseRoutines() async {
-    try {
-      final response = await authenticatedGet(
-        'browse_routines',
-        timeout: const Duration(seconds: 10),
-      );
-      if (response.statusCode == 200) {
-        return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchBrowseRoutines failed: $e');
-    }
-    return {'featured': [], 'community': []};
-  }
-
-  Future<List<Map<String, dynamic>>> fetchMyRoutines() async {
-    try {
-      final response = await authenticatedGet(
-        'my_routines',
-        timeout: const Duration(seconds: 8),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return (data['routines'] as List)
-            .map((routine) => Map<String, dynamic>.from(routine as Map))
-            .toList();
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('fetchMyRoutines failed: $e');
-    }
-    return [];
   }
 
   // returns previous sets keyed by exercise_name -> set_number -> {weight_kg, reps}

@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/workout_provider.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -906,10 +907,11 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   }
 
   Future<void> _fetchRecentExercises() async {
-    final exercises = await userManager.fetchRecentExercises();
+    await ref.read(workoutProvider.notifier).loadRecentExercises();
     if (mounted) {
       setState(() {
-        _recentExercises = exercises;
+        _recentExercises =
+            ref.read(workoutProvider).value?.recentExercises ?? [];
         _loadingRecents = false;
       });
     }

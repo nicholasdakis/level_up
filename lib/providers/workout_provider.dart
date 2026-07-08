@@ -13,6 +13,8 @@ import '../utility/shared_preferences/shared_prefs_async.dart';
 class WorkoutState {
   // null means no workout is currently in progress
   final WorkoutSession? activeSession;
+  // true while loadWorkoutData is in flight, drives the skeletonizer
+  final bool isLoading;
   // fetched from the backend, displayed on the workout tab
   final List<Map<String, dynamic>> recentWorkouts;
   final List<Map<String, dynamic>> myRoutines;
@@ -21,33 +23,46 @@ class WorkoutState {
   final Map<String, int> heatmap;
   // summary of today's completed workout (volume, muscles, etc.)
   final Map<String, dynamic> todayOverview;
+  // featured + community routines for the browse screen
+  final Map<String, dynamic> browseRoutines;
+  // recent exercises for the exercise picker
+  final List<Map<String, dynamic>> recentExercises;
 
   const WorkoutState({
     this.activeSession,
+    this.isLoading = false,
     this.recentWorkouts = const [],
     this.myRoutines = const [],
     this.weeklyWorkoutCount = 0,
     this.heatmap = const {},
     this.todayOverview = const {},
+    this.browseRoutines = const {'featured': [], 'community': []},
+    this.recentExercises = const [],
   });
 
   // clearSession: true sets activeSession to null even if no new value is passed
   WorkoutState copyWith({
     WorkoutSession? activeSession,
     bool clearSession = false,
+    bool? isLoading,
     List<Map<String, dynamic>>? recentWorkouts,
     List<Map<String, dynamic>>? myRoutines,
     int? weeklyWorkoutCount,
     Map<String, int>? heatmap,
     Map<String, dynamic>? todayOverview,
+    Map<String, dynamic>? browseRoutines,
+    List<Map<String, dynamic>>? recentExercises,
   }) {
     return WorkoutState(
       activeSession: clearSession ? null : activeSession ?? this.activeSession,
+      isLoading: isLoading ?? this.isLoading,
       recentWorkouts: recentWorkouts ?? this.recentWorkouts,
       myRoutines: myRoutines ?? this.myRoutines,
       weeklyWorkoutCount: weeklyWorkoutCount ?? this.weeklyWorkoutCount,
       heatmap: heatmap ?? this.heatmap,
       todayOverview: todayOverview ?? this.todayOverview,
+      browseRoutines: browseRoutines ?? this.browseRoutines,
+      recentExercises: recentExercises ?? this.recentExercises,
     );
   }
 }
@@ -150,6 +165,9 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
   // fetches all workout tab data in parallel and patches state once done
   Future<void> loadWorkoutData() async {
     if (isGuest) return;
+    state = AsyncData(
+      (state.value ?? const WorkoutState()).copyWith(isLoading: true),
+    );
     try {
       final results = await Future.wait([
         authenticatedGet(
@@ -197,6 +215,7 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
 
       state = AsyncData(
         (state.value ?? const WorkoutState()).copyWith(
+          isLoading: false,
           recentWorkouts: recentWorkouts,
           myRoutines: myRoutines,
           weeklyWorkoutCount: weeklyWorkoutCount,
@@ -206,6 +225,54 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('loadWorkoutData failed: $e');
+      state = AsyncData(
+        (state.value ?? const WorkoutState()).copyWith(isLoading: false),
+      );
+    }
+  }
+
+  // loads browse routines for the browse screen
+  Future<void> loadBrowseRoutines() async {
+    if (isGuest) return;
+    try {
+      final response = await authenticatedGet(
+        'browse_routines',
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode == 200) {
+        state = AsyncData(
+          (state.value ?? const WorkoutState()).copyWith(
+            browseRoutines: Map<String, dynamic>.from(
+              jsonDecode(response.body) as Map,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('loadBrowseRoutines failed: $e');
+    }
+  }
+
+  // loads recent exercises for the exercise picker
+  Future<void> loadRecentExercises() async {
+    if (isGuest) return;
+    try {
+      final response = await authenticatedGet(
+        'recent_exercises',
+        timeout: const Duration(seconds: 8),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        state = AsyncData(
+          (state.value ?? const WorkoutState()).copyWith(
+            recentExercises: (data['exercises'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('loadRecentExercises failed: $e');
     }
   }
 

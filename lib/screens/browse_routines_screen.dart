@@ -85,12 +85,11 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
   }
 
   Future<void> _fetchData() async {
-    final results = await Future.wait([
-      userManager.fetchBrowseRoutines(),
-      userManager.fetchMyRoutines(),
-    ]);
-    final data = results[0] as Map<String, dynamic>;
-    final myRoutines = results[1] as List<Map<String, dynamic>>;
+    await ref.read(workoutProvider.notifier).loadBrowseRoutines();
+    final workoutState =
+        ref.read(workoutProvider).value ?? const WorkoutState();
+    final data = workoutState.browseRoutines;
+    final myRoutines = workoutState.myRoutines;
     if (mounted) {
       setState(() {
         _featured = (data['featured'] as List)
