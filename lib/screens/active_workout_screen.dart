@@ -15,6 +15,7 @@ import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 import '/services/user_data_manager.dart';
 import '/services/workout_session_service.dart';
+import '/providers/workout_provider.dart';
 import 'exercise_picker_screen.dart';
 import 'level_up_overlay.dart';
 
@@ -37,9 +38,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   bool get isImperial =>
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
-  late final VoidCallback _sessionListener;
-  late final Timer _timer;
-
   // controllers keyed by "exIndex_setIndex_field" so they survive rebuilds
   final Map<String, TextEditingController> _controllers = {};
 
@@ -60,7 +58,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Timer? _restTimer;
 
   // convenience getters into the global session
-  WorkoutSession get _s => workoutSessionService.session!;
+  WorkoutSession get _s => ref.read(workoutProvider).value!.activeSession!;
   List<Map<String, dynamic>> get _exercises => _s.exercises;
   Map<String, bool> get _checked => _s.checked;
   String? get _workoutName => _s.workoutName;
@@ -121,13 +119,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    _sessionListener = () {
-      if (mounted) setState(() {});
-    };
-    workoutSessionService.addListener(_sessionListener);
-
     // if no session is active, start one now (new workout or from routine)
-    if (!workoutSessionService.isActive) {
+    if (ref.read(workoutProvider).value?.activeSession == null) {
       final exercises = <Map<String, dynamic>>[];
       if (widget.routine != null) {
         final templateExercises =
@@ -149,14 +142,16 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           });
         }
       }
-      workoutSessionService.startSession(
-        WorkoutSession(
-          exercises: exercises,
-          startedAtMs: DateTime.now().millisecondsSinceEpoch,
-          routineName: widget.routine?['name'] as String?,
-          routineId: widget.routine?['id']?.toString(),
-        ),
-      );
+      ref
+          .read(workoutProvider.notifier)
+          .startSession(
+            WorkoutSession(
+              exercises: exercises,
+              startedAtMs: DateTime.now().millisecondsSinceEpoch,
+              routineName: widget.routine?['name'] as String?,
+              routineId: widget.routine?['id']?.toString(),
+            ),
+          );
       FirebaseAnalytics.instance.logEvent(
         name: 'workout_started',
         parameters: {
@@ -168,7 +163,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
 
     // pre-populate controllers from restored session values
-    final session = workoutSessionService.session!;
+    final session = ref.read(workoutProvider).value!.activeSession!;
     for (final entry in session.weights.entries) {
       _controllers[entry.key] = TextEditingController(text: entry.value);
     }
@@ -197,15 +192,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         _prevSetsLoading = false;
       }
     }
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   void dispose() {
-    workoutSessionService.removeListener(_sessionListener);
-    _timer.cancel();
     _restTimer?.cancel();
     for (final c in _controllers.values) {
       c.dispose();
@@ -228,7 +218,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       _checked.remove(k);
     }
     setState(() => _exercises.removeAt(exIndex));
-    workoutSessionService.persist();
+    ref.read(workoutProvider.notifier).persist();
   }
 
   String get _durationLabel {
@@ -389,7 +379,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
     if (confirmedName == null) return; // user tapped Cancel
     _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
-    workoutSessionService.persist();
+    ref.read(workoutProvider.notifier).persist();
 
     final durationSeconds = _s.elapsed.inSeconds;
     final date = DateTime.now();
@@ -469,7 +459,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        workoutLogNotifier.value++;
+        ref.read(workoutProvider.notifier).refreshAfterWorkout();
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         FirebaseAnalytics.instance.logEvent(
           name: 'workout_completed',
@@ -515,10 +505,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           await handleLevelUpOverlay(context, levelBefore, appColor, ref);
         }
         if (!mounted) return;
-        // detach session listener before clearing so the transition animation
-        // doesn't trigger a rebuild with a null session and disposed controllers
-        workoutSessionService.removeListener(_sessionListener);
-        workoutSessionService.clearSession();
+        ref.read(workoutProvider.notifier).clearSession();
         context.pushReplacement(
           '/workout/finish',
           extra: <String, dynamic>{
@@ -692,7 +679,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     if (_restDuration > 15) {
                       setDialogState(() {
                         _s.restDuration -= 15;
-                        workoutSessionService.persist();
+                        ref.read(workoutProvider.notifier).persist();
                       });
                       setState(() {});
                     }
@@ -718,7 +705,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     if (_restDuration < 300) {
                       setDialogState(() {
                         _s.restDuration += 15;
-                        workoutSessionService.persist();
+                        ref.read(workoutProvider.notifier).persist();
                       });
                       setState(() {});
                     }
@@ -779,7 +766,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     ],
                   });
                 });
-                workoutSessionService.persist();
+                ref.read(workoutProvider.notifier).persist();
               },
             ),
         transitionsBuilder: (_, animation, secondaryAnimation, child) =>
@@ -907,7 +894,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Widget build(BuildContext context) {
     // session is cleared just before pushReplacement to finish screen;
     // guard here so the brief rebuild during the transition doesn't crash
-    if (!workoutSessionService.isActive) return const SizedBox.shrink();
+    if (ref.read(workoutProvider).value?.activeSession == null) {
+      return const SizedBox.shrink();
+    }
 
     final double vol = _totalVolumeKg;
     final String volDisplay = isImperial
@@ -988,7 +977,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                                     ..clear()
                                     ..addAll(newChecked);
                                 });
-                                workoutSessionService.persist();
+                                ref.read(workoutProvider.notifier).persist();
                               }
                             : (oldI, newI) {},
                         children: [
@@ -1104,7 +1093,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     if (result != null && mounted) {
       setState(() {
         _s.workoutName = result.isEmpty ? null : result;
-        workoutSessionService.persist();
+        ref.read(workoutProvider.notifier).persist();
       });
     }
   }
@@ -1496,7 +1485,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                             'weight_kg': null,
                           }),
                         );
-                        workoutSessionService.persist();
+                        ref.read(workoutProvider.notifier).persist();
                       },
                       child: Container(
                         width: double.infinity,
@@ -1690,7 +1679,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               onChanged: (v) {
                 set['weight_kg'] = double.tryParse(v);
                 _s.weights['${exIndex}_${setIndex}_weight'] = v;
-                workoutSessionService.persist();
+                ref.read(workoutProvider.notifier).persist();
                 // re-evaluate PR silently if this set is already checked
                 if (checked) {
                   final name = _cleanName(
@@ -1726,7 +1715,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               onChanged: (v) {
                 set['reps'] = int.tryParse(v);
                 _s.reps['${exIndex}_${setIndex}_reps'] = v;
-                workoutSessionService.persist();
+                ref.read(workoutProvider.notifier).persist();
                 // re-evaluate PR silently if this set is already checked
                 if (checked) {
                   final name = _cleanName(
@@ -1788,7 +1777,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 });
               }
               setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
-              workoutSessionService.persist();
+              ref.read(workoutProvider.notifier).persist();
               if (nowChecked) _startRestTimer();
             },
             child: AnimatedContainer(
@@ -1882,7 +1871,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                             'exercise_count': _exercises.length,
                           },
                         );
-                        workoutSessionService.clearSession();
+                        ref.read(workoutProvider.notifier).clearSession();
                         if (context.mounted) Navigator.of(context).pop();
                       }
                     },
