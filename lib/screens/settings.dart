@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../providers/user_data_provider.dart';
+import '../providers/workout_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart' show trackTrivialAchievement;
@@ -295,6 +296,7 @@ Widget buildSettingsDrawer(
                         Navigator.pop(context);
                         await authService.value.signOut(
                           ref.read(userDataProvider.notifier),
+                          ref.read(workoutProvider.notifier),
                         );
                         return;
                       }
@@ -327,6 +329,7 @@ Widget buildSettingsDrawer(
                         Navigator.pop(context); // close drawer on confirm
                         await authService.value.signOut(
                           ref.read(userDataProvider.notifier),
+                          ref.read(workoutProvider.notifier),
                         );
                       }
                     },

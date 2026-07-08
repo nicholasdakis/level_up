@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -34,22 +35,7 @@ class _WorkoutState extends ConsumerState<Workout> {
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
   bool _loading = false;
-  List<Map<String, dynamic>> _recentWorkouts = [];
-  List<Map<String, dynamic>> _myRoutines = [];
-  int _weeklyWorkoutCount = 0;
-  Map<String, int> _heatmap = {};
   OverlayEntry? _heatmapTooltip;
-  Map<String, dynamic> _todayOverview = {
-    'volume_kg': 0.0,
-    'exercises': 0,
-    'sets': 0,
-    'reps': 0,
-    'duration_seconds': 0,
-    'primary_muscles': [],
-    'secondary_muscles': [],
-  };
-
-  late final VoidCallback _sessionListener;
   Timer? _resetTimer;
   Duration _timeUntilReset = Duration.zero;
 
@@ -60,12 +46,6 @@ class _WorkoutState extends ConsumerState<Workout> {
       screenName: '/workout',
       screenClass: 'Workout',
     );
-    _sessionListener = () {
-      if (mounted) setState(() {});
-    };
-    workoutSessionService.addListener(_sessionListener);
-
-    workoutLogNotifier.addListener(_onWorkoutLogged);
     _updateResetCountdown();
     _resetTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _updateResetCountdown();
@@ -76,7 +56,7 @@ class _WorkoutState extends ConsumerState<Workout> {
         if (mounted) setState(() => _loading = false);
       });
     }
-    if (!isGuest) _fetchData();
+    if (!isGuest) ref.read(workoutProvider.notifier).loadWorkoutData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
@@ -194,29 +174,6 @@ class _WorkoutState extends ConsumerState<Workout> {
     _showCellTooltip(cellContext, dateLabel, subtitle: countLabel);
   }
 
-  void _onWorkoutLogged() {
-    if (!isGuest) _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    final results = await Future.wait([
-      userManager.fetchRecentWorkouts(),
-      userManager.fetchWeeklyWorkoutCount(),
-      userManager.fetchTodayOverview(),
-      userManager.fetchWorkoutHeatmap(),
-      userManager.fetchMyRoutines(),
-    ]);
-    if (mounted) {
-      setState(() {
-        _recentWorkouts = results[0] as List<Map<String, dynamic>>;
-        _weeklyWorkoutCount = results[1] as int;
-        _todayOverview = results[2] as Map<String, dynamic>;
-        _heatmap = results[3] as Map<String, int>;
-        _myRoutines = results[4] as List<Map<String, dynamic>>;
-      });
-    }
-  }
-
   Widget _animate(Widget child, Duration delay) {
     if (_WorkoutAnimationState.animated) return child;
     return child
@@ -227,8 +184,6 @@ class _WorkoutState extends ConsumerState<Workout> {
 
   @override
   void dispose() {
-    workoutLogNotifier.removeListener(_onWorkoutLogged);
-    workoutSessionService.removeListener(_sessionListener);
     _resetTimer?.cancel();
     super.dispose();
   }
@@ -238,7 +193,9 @@ class _WorkoutState extends ConsumerState<Workout> {
     final dim = lightenColor(appColor, 0.35);
     final int weeklyGoal =
         ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
-    final int workoutsThisWeek = _weeklyWorkoutCount;
+    final int workoutsThisWeek = ref.watch(
+      workoutProvider.select((s) => s.value?.weeklyWorkoutCount ?? 0),
+    );
 
     final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
     return GestureDetector(
@@ -436,7 +393,9 @@ class _WorkoutState extends ConsumerState<Workout> {
   Widget _buildRecentWorkoutsCard(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
-    final recentWorkouts = _recentWorkouts;
+    final recentWorkouts = ref.watch(
+      workoutProvider.select((s) => s.value?.recentWorkouts ?? const []),
+    );
 
     return frostedGlassCard(
       context,
@@ -580,9 +539,11 @@ class _WorkoutState extends ConsumerState<Workout> {
     if (!mounted) return;
     if (ok) {
       setState(
-        () => _myRoutines.removeWhere(
-          (r) => r['template_id'] == routine['template_id'],
-        ),
+        () => ref
+            .watch(
+              workoutProvider.select((s) => s.value?.myRoutines ?? const []),
+            )
+            .removeWhere((r) => r['template_id'] == routine['template_id']),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -695,7 +656,9 @@ class _WorkoutState extends ConsumerState<Workout> {
   Widget _buildStartWorkoutCard(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
-    final bool inProgress = workoutSessionService.isActive;
+    final bool inProgress =
+        ref.watch(workoutProvider.select((s) => s.value?.activeSession)) !=
+        null;
 
     return GestureDetector(
       onTap: _onStartWorkout,
@@ -743,8 +706,20 @@ class _WorkoutState extends ConsumerState<Workout> {
                   ),
                   Text(
                     inProgress
-                        ? (workoutSessionService.session!.workoutName ??
-                              workoutSessionService.session!.routineName ??
+                        ? (ref
+                                  .watch(
+                                    workoutProvider.select(
+                                      (s) => s.value?.activeSession,
+                                    ),
+                                  )!
+                                  .workoutName ??
+                              ref
+                                  .watch(
+                                    workoutProvider.select(
+                                      (s) => s.value?.activeSession,
+                                    ),
+                                  )!
+                                  .routineName ??
                               "Resume your session")
                         : "Begin an empty session",
                     style: GoogleFonts.manrope(
@@ -842,7 +817,9 @@ class _WorkoutState extends ConsumerState<Workout> {
   Widget _buildMyRoutinesCard(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
-    final List<Map<String, dynamic>> routines = _myRoutines;
+    final List<Map<String, dynamic>> routines = ref.watch(
+      workoutProvider.select((s) => s.value?.myRoutines ?? const []),
+    );
 
     return frostedGlassCard(
       context,
@@ -936,7 +913,12 @@ class _WorkoutState extends ConsumerState<Workout> {
                         // Start icon in My Routines
                         GestureDetector(
                           onTap: () {
-                            if (workoutSessionService.isActive) {
+                            if (ref.watch(
+                                  workoutProvider.select(
+                                    (s) => s.value?.activeSession,
+                                  ),
+                                ) !=
+                                null) {
                               showFrostedAlertDialog<void>(
                                 context: context,
                                 appColor: appColor,
@@ -974,7 +956,13 @@ class _WorkoutState extends ConsumerState<Workout> {
                           },
                           child: Icon(
                             Icons.play_circle_outline_rounded,
-                            color: workoutSessionService.isActive
+                            color:
+                                ref.watch(
+                                      workoutProvider.select(
+                                        (s) => s.value?.activeSession,
+                                      ),
+                                    ) !=
+                                    null
                                 ? dim.withAlpha(100)
                                 : accent,
                             size: Responsive.scale(context, 22),
@@ -995,16 +983,56 @@ class _WorkoutState extends ConsumerState<Workout> {
     final dim = c.onCard.withAlpha(180);
     final subtle = c.onCard.withAlpha(120);
 
-    final double volumeKg = (_todayOverview['volume_kg'] as num).toDouble();
-    final int exercises = _todayOverview['exercises'] as int? ?? 0;
-    final int sets = _todayOverview['sets'] as int? ?? 0;
-    final int reps = _todayOverview['reps'] as int? ?? 0;
-    final int durationSec = _todayOverview['duration_seconds'] as int? ?? 0;
+    final double volumeKg =
+        (ref.watch(
+                  workoutProvider.select(
+                    (s) => s.value?.todayOverview ?? const {},
+                  ),
+                )['volume_kg']
+                as num?)
+            ?.toDouble() ??
+        0.0;
+    final int exercises =
+        ref.watch(
+              workoutProvider.select((s) => s.value?.todayOverview ?? const {}),
+            )['exercises']
+            as int? ??
+        0;
+    final int sets =
+        ref.watch(
+              workoutProvider.select((s) => s.value?.todayOverview ?? const {}),
+            )['sets']
+            as int? ??
+        0;
+    final int reps =
+        ref.watch(
+              workoutProvider.select((s) => s.value?.todayOverview ?? const {}),
+            )['reps']
+            as int? ??
+        0;
+    final int durationSec =
+        ref.watch(
+              workoutProvider.select((s) => s.value?.todayOverview ?? const {}),
+            )['duration_seconds']
+            as int? ??
+        0;
     final List<String> primaryMuscles = List<String>.from(
-      _todayOverview['primary_muscles'] as List? ?? [],
+      ref.watch(
+                workoutProvider.select(
+                  (s) => s.value?.todayOverview ?? const {},
+                ),
+              )['primary_muscles']
+              as List? ??
+          [],
     );
     final List<String> secondaryMuscles = List<String>.from(
-      _todayOverview['secondary_muscles'] as List? ?? [],
+      ref.watch(
+                workoutProvider.select(
+                  (s) => s.value?.todayOverview ?? const {},
+                ),
+              )['secondary_muscles']
+              as List? ??
+          [],
     );
     final String volumeUnit = isImperial ? 'lbs' : 'kg';
     String formatVolume(double kg) {
@@ -1329,7 +1357,13 @@ class _WorkoutState extends ConsumerState<Workout> {
                                 );
                                 final dateStr =
                                     '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-                                final count = _heatmap[dateStr] ?? 0;
+                                final count =
+                                    ref.watch(
+                                      workoutProvider.select(
+                                        (s) => s.value?.heatmap ?? const {},
+                                      ),
+                                    )[dateStr] ??
+                                    0;
                                 final isFuture = date.isAfter(today);
                                 return Padding(
                                   padding: EdgeInsets.only(

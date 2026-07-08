@@ -483,6 +483,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
   Future<void> _initApp() async {
     // capture ref before any async gaps since the widget may unmount while awaiting
     final notifier = ref.read(userDataProvider.notifier);
+    final workoutNotifier = ref.read(workoutProvider.notifier);
 
     if (await _isOutdated()) {
       isAppOutdated = true;
@@ -496,7 +497,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     Future.microtask(appRouter.refresh);
 
     await notifier.loadUserData();
-    await ref.read(workoutProvider.notifier).checkAndRestoreWorkoutSession();
+    await workoutNotifier.checkAndRestoreWorkoutSession();
 
     userManager.updateUtcOffset();
 

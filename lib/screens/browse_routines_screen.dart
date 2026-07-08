@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '../providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -157,7 +158,7 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
         _savingId = null;
         _savedSourceIds.add(templateId);
       });
-      workoutLogNotifier.value++;
+      ref.read(workoutProvider.notifier).refreshAfterWorkout();
     } else {
       setState(() {
         _savingId = null;
@@ -273,7 +274,7 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                             'FEATURED',
                             context,
                             appColor: appColor,
-                        padding: EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               left: Responsive.centeredHorizontalPadding(
                                 context,
                                 20,
@@ -314,7 +315,7 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                             'COMMUNITY',
                             context,
                             appColor: appColor,
-                        padding: EdgeInsets.only(
+                            padding: EdgeInsets.only(
                               left: Responsive.centeredHorizontalPadding(
                                 context,
                                 20,

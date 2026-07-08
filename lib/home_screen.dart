@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/user_data_provider.dart';
+import 'providers/workout_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:level_up/utility/confetti.dart';
@@ -516,6 +517,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             onPressed: () async {
               await authService.value.signOut(
                 ref.read(userDataProvider.notifier),
+                ref.read(workoutProvider.notifier),
               );
             },
           ),
@@ -1008,6 +1010,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               Navigator.of(context, rootNavigator: true).pop();
                               await authService.value.signOut(
                                 ref.read(userDataProvider.notifier),
+                                ref.read(workoutProvider.notifier),
                               );
                             },
                             child: Text(

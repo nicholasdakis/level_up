@@ -1,6 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '../providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -218,7 +219,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           parameters: {'exercise_count': exercises.length},
         );
         // bump notifier so the workout dashboard refreshes its routines list
-        workoutLogNotifier.value++;
+        ref.read(workoutProvider.notifier).refreshAfterWorkout();
         context.pop();
       } else {
         setState(() => _saving = false);

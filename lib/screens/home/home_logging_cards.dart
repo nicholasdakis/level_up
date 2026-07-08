@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -392,8 +393,10 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   Widget _buildGuestLoggingCard(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     return GestureDetector(
-      onTap: () async =>
-          authService.value.signOut(ref.read(userDataProvider.notifier)),
+      onTap: () async => authService.value.signOut(
+        ref.read(userDataProvider.notifier),
+        ref.read(workoutProvider.notifier),
+      ),
       child: Stack(
         children: [
           IgnorePointer(

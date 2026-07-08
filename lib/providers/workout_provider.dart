@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -93,7 +93,9 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
     _persistSession(stamped);
     // delay so the mini bar does not flash during the active workout screen slide-up transition
     Future.delayed(const Duration(milliseconds: 500), () {
-      state = AsyncData(state.requireValue.copyWith(activeSession: stamped));
+      state = AsyncData(
+        (state.value ?? const WorkoutState()).copyWith(activeSession: stamped),
+      );
       _startTicker();
     });
   }
@@ -104,14 +106,16 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
     if (session == null) return;
     _persistSession(session);
     // reassign state so watchers know something changed without replacing the session object
-    state = AsyncData(state.requireValue);
+    state = AsyncData(state.value ?? const WorkoutState());
   }
 
   // called when the user finishes or discards a workout
   void clearSession() {
     _ticker?.cancel();
     SharedPreferencesAsync().remove(SharedPreferencesKey.activeWorkoutSession);
-    state = AsyncData(state.requireValue.copyWith(clearSession: true));
+    state = AsyncData(
+      (state.value ?? const WorkoutState()).copyWith(clearSession: true),
+    );
   }
 
   // called on app launch to restore a session that survived a kill or navigation away
@@ -132,10 +136,11 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
         );
         return;
       }
-      state = AsyncData(state.requireValue.copyWith(activeSession: restored));
+      final current = state.value ?? const WorkoutState();
+      state = AsyncData(current.copyWith(activeSession: restored));
       _startTicker();
-    } catch (_) {
-      // corrupted data, wipe it
+    } catch (e) {
+      debugPrint('checkAndRestoreWorkoutSession error: $e');
       await SharedPreferencesAsync().remove(
         SharedPreferencesKey.activeWorkoutSession,
       );
@@ -167,31 +172,31 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           ? (jsonDecode(results[0].body)['workouts'] as List)
                 .map((w) => Map<String, dynamic>.from(w as Map))
                 .toList()
-          : state.requireValue.recentWorkouts;
+          : (state.value ?? const WorkoutState()).recentWorkouts;
 
       final myRoutines = results[1].statusCode == 200
           ? (jsonDecode(results[1].body)['routines'] as List)
                 .map((r) => Map<String, dynamic>.from(r as Map))
                 .toList()
-          : state.requireValue.myRoutines;
+          : (state.value ?? const WorkoutState()).myRoutines;
 
       final weeklyWorkoutCount = results[2].statusCode == 200
           ? (jsonDecode(results[2].body)['count'] as int? ?? 0)
-          : state.requireValue.weeklyWorkoutCount;
+          : (state.value ?? const WorkoutState()).weeklyWorkoutCount;
 
       final heatmap = results[3].statusCode == 200
           ? {
               for (final d in jsonDecode(results[3].body)['days'] as List)
                 d['date'] as String: d['count'] as int,
             }
-          : state.requireValue.heatmap;
+          : (state.value ?? const WorkoutState()).heatmap;
 
       final todayOverview = results[4].statusCode == 200
           ? Map<String, dynamic>.from(jsonDecode(results[4].body) as Map)
-          : state.requireValue.todayOverview;
+          : (state.value ?? const WorkoutState()).todayOverview;
 
       state = AsyncData(
-        state.requireValue.copyWith(
+        (state.value ?? const WorkoutState()).copyWith(
           recentWorkouts: recentWorkouts,
           myRoutines: myRoutines,
           weeklyWorkoutCount: weeklyWorkoutCount,
@@ -224,18 +229,18 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           ? (jsonDecode(results[0].body)['workouts'] as List)
                 .map((w) => Map<String, dynamic>.from(w as Map))
                 .toList()
-          : state.requireValue.recentWorkouts;
+          : (state.value ?? const WorkoutState()).recentWorkouts;
 
       final weeklyWorkoutCount = results[1].statusCode == 200
           ? (jsonDecode(results[1].body)['count'] as int? ?? 0)
-          : state.requireValue.weeklyWorkoutCount;
+          : (state.value ?? const WorkoutState()).weeklyWorkoutCount;
 
       final todayOverview = results[2].statusCode == 200
           ? Map<String, dynamic>.from(jsonDecode(results[2].body) as Map)
-          : state.requireValue.todayOverview;
+          : (state.value ?? const WorkoutState()).todayOverview;
 
       state = AsyncData(
-        state.requireValue.copyWith(
+        (state.value ?? const WorkoutState()).copyWith(
           recentWorkouts: recentWorkouts,
           weeklyWorkoutCount: weeklyWorkoutCount,
           todayOverview: todayOverview,

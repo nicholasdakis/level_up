@@ -9,6 +9,7 @@ import '../globals.dart';
 import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
+import '/providers/workout_provider.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, defaultAppColor;
 import 'level_up_overlay.dart';
@@ -458,8 +459,10 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
 
       // Guest overlay: same pattern as the logging cards, faded real card + lock overlay
       return GestureDetector(
-        onTap: () =>
-            authService.value.signOut(ref.read(userDataProvider.notifier)),
+        onTap: () => authService.value.signOut(
+          ref.read(userDataProvider.notifier),
+          ref.read(workoutProvider.notifier),
+        ),
         child: Stack(
           fit: StackFit.expand,
           children: [

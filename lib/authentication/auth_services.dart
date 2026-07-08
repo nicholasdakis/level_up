@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
 import '../providers/user_data_provider.dart';
+import '../providers/workout_provider.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
@@ -23,7 +24,10 @@ class AuthService {
   Stream<User?> get authStateChanges =>
       firebaseAuth.authStateChanges(); // to see if user is connected
 
-  Future<void> signOut(UserDataNotifierNew notifier) async {
+  Future<void> signOut(
+    UserDataNotifierNew notifier,
+    WorkoutNotifier workoutNotifier,
+  ) async {
     if (isGuest) {
       Guest.exit();
       return;
@@ -40,7 +44,7 @@ class AuthService {
       if (kDebugMode) debugPrint('Error removing FCM token during signOut: $e');
     }
 
-    workoutSessionService.clearSession();
+    workoutNotifier.clearSession();
     await firebaseAuth.signOut();
     appInitialized = false;
     appReadyNotifier.value = false;
