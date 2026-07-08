@@ -84,9 +84,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && ref.read(appReadyProvider) && !_appReadyHandled) {
         _appReadyHandled = true;
-        if (!ref.read(userDataProvider.notifier).lastLoadFailed && !isNewUser) {
-          setState(() => isLoading = false);
-        }
         _onAppReady();
       }
     });
@@ -206,7 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ? (Uri.parse(pfp).data?.contentAsBytes() ?? base64Decode(pfp))
           : null;
       setState(() {
-        isLoading = false;
+        _initialized = true;
         _greeting = _buildGreeting();
         _pfpBytes = bytes;
       });
@@ -283,10 +280,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Future<void> _retry() async {
     while (mounted) {
-      setState(() {
-        loadFailed = false;
-        isLoading = true;
-      });
+      setState(() => _initialized = false);
       await ref.read(userDataProvider.notifier).loadUserData();
       if (!mounted) return;
       if (!ref.read(userDataProvider.notifier).lastLoadFailed &&
@@ -297,7 +291,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return;
       }
       // still failed, show the dialog again and wait for another retry tap
-      setState(() => loadFailed = true);
       await showFrostedAlertDialog(
         context: context,
         appColor: appColor,
@@ -318,8 +311,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  bool isLoading = true;
-  bool loadFailed = false;
+  bool _initialized = false;
 
   // Builds a greeting based on time of day plus a random variant from that pool
 
@@ -538,11 +530,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(
-        isLoading,
+        _initialized,
       ), // forces tween to restart from 0 once loading finishes
       tween: Tween(
         begin: _lastRenderedExp,
-        end: isLoading ? 0.0 : exp.toDouble(),
+        end: _initialized ? exp.toDouble() : 0.0,
       ),
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOut,
@@ -1050,7 +1042,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
     });
     return Stack(
-      children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],
+      children: [
+        IgnorePointer(
+          ignoring: ref.watch(userDataProvider.notifier).lastLoadFailed,
+          child: _buildBody(),
+        ),
+      ],
     );
   }
 
@@ -1062,7 +1059,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         : userData!.username!;
 
     return Skeletonizer(
-      enabled: isLoading,
+      enabled: !_initialized,
       effect: ShimmerEffect(
         baseColor: lightenColor(appColor, 0.10),
         highlightColor: lightenColor(appColor, 0.22),

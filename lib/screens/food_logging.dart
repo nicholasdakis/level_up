@@ -41,10 +41,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   DateTime currentDate = DateTime.now();
 
-  List<Map<String, dynamic>> breakfastFoods = [];
-  List<Map<String, dynamic>> lunchFoods = [];
-  List<Map<String, dynamic>> dinnerFoods = [];
-  List<Map<String, dynamic>> snacksFoods = [];
+  List<Map<String, dynamic>> breakfastFoods = const [];
+  List<Map<String, dynamic>> lunchFoods = const [];
+  List<Map<String, dynamic>> dinnerFoods = const [];
+  List<Map<String, dynamic>> snacksFoods = const [];
 
   final Map<String, bool> _collapsed = {
     'breakfast': false,
