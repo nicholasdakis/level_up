@@ -2467,3 +2467,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Deleted the legacy UserDataNotifier ValueNotifier and global appColor/currentUserData getters
 - Moved all user data mutations (updateGoals, updateNutritionGoals, updateWeightGoal, updateWaterGoal, updateWeeklyWorkoutsGoal, updateUnits, updateAppColor, updateNotificationsEnabled, updateProfilePicture) from UserDataManager into UserDataNotifierNew with optimistic update and rollback on failure
 - All UI utility functions (frostedGlassCard, frostedButton, sectionHeader, showFrostedDialog, showFrostedAlertDialog, showThemedDatePicker, socialLink, buildThemeGradient, DateNavigationRow, OnboardingHint, createTitle) now receive appColor as an explicit parameter instead of reading a global
+- Created workoutProvider (WorkoutNotifier) as the single source of truth for all workout state, replacing the WorkoutSessionService ChangeNotifier and workoutLogNotifier globals
+- Workout tab data (recent workouts, routines, heatmap, weekly count, today overview) now loads in parallel via Future.wait instead of sequentially, cutting worst-case load time from 40s to 8s

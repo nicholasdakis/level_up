@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
+import 'providers/workout_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'screens/update_required.dart';
 import 'package:flutter/foundation.dart';
@@ -495,7 +496,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     Future.microtask(appRouter.refresh);
 
     await notifier.loadUserData();
-    await workoutSessionService.checkAndRestoreWorkoutSession();
+    await ref.read(workoutProvider.notifier).checkAndRestoreWorkoutSession();
 
     userManager.updateUtcOffset();
 
