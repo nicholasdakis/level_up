@@ -457,7 +457,7 @@ class MyRoutineExerciseItem(BaseModel):
 
 class MyRoutineItem(BaseModel):
     template_id: str
-    name: str
+    name: str | None = None
     exercise_count: int
     exercises: list[MyRoutineExerciseItem]
     created_at: str
