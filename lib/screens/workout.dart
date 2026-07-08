@@ -875,7 +875,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                routines[i]['name'] as String,
+                                (routines[i]['name'] as String?) ?? '',
                                 style: GoogleFonts.manrope(
                                   color: accent,
                                   fontSize: Responsive.font(context, 13),

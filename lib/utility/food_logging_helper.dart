@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
+import '../models/food_log.dart';
 import '../services/user_data_manager.dart'
     show trackTrivialAchievement, defaultAppColor;
 import 'responsive.dart';
@@ -23,7 +24,17 @@ class FoodLoggingHelper {
     return int.tryParse(match?.group(1) ?? '') ?? 0;
   }
 
+  // Converts a raw API result map to FoodLog, injecting date and meal since the API doesn't return them
+  static FoodLog foodLogFromApiMap(
+    Map<String, dynamic> map, {
+    required String date,
+    required String meal,
+  }) => FoodLog.fromJson({...map, 'date': date, 'meal': meal});
+
   // Takes the "Per ..." from food_description and parses it into {amount, unit}
+  static Map<String, dynamic> parseServingFromLog(FoodLog food) =>
+      parseServing(food.foodDescription ?? '');
+
   static Map<String, dynamic> parseServing(String description) {
     // Regular expression to find the amount and units
     final perMatch = RegExp(
@@ -61,29 +72,23 @@ class FoodLoggingHelper {
     return double.tryParse(value) ?? 1.0; // fallback
   }
 
-  // Extracts macros from a food map, reading direct keys first and falling back to parsing food_description
-  static Map<String, double> extractMacrosFromFood(Map<String, dynamic> food) {
-    double fromKey(String key) {
-      final v = food[key];
-      if (v != null) return (v as num).toDouble();
-      return 0;
-    }
-
+  // Extracts macros from a FoodLog, reading typed fields first and falling back to parsing food_description
+  static Map<String, double> extractMacrosFromFood(FoodLog food) {
     final hasDirectKeys =
-        food['protein'] != null || food['carbs'] != null || food['fat'] != null;
+        food.protein != null || food.carbs != null || food.fat != null;
     if (hasDirectKeys) {
       return {
-        'calories': fromKey('calories'),
-        'fat': fromKey('fat'),
-        'carbs': fromKey('carbs'),
-        'protein': fromKey('protein'),
-        'fiber': fromKey('fiber'),
-        'sugar': fromKey('sugar'),
-        'sodium': fromKey('sodium'),
+        'calories': (food.calories ?? 0).toDouble(),
+        'fat': food.fat ?? 0,
+        'carbs': food.carbs ?? 0,
+        'protein': food.protein ?? 0,
+        'fiber': food.fiber ?? 0,
+        'sugar': food.sugar ?? 0,
+        'sodium': food.sodium ?? 0,
       };
     }
     // Fall back to parsing food_description string for legacy food items without direct keys
-    final desc = food['food_description'] as String? ?? '';
+    final desc = food.foodDescription ?? '';
     double extract(String label) {
       final match = RegExp(
         '$label:\\s*([\\d.]+)',
@@ -508,13 +513,12 @@ typedef ServingDialogResult = ({
 // Shared serving-size dialog used by both the log-food and edit-serving flows.
 Future<ServingDialogResult?> showServingAmountDialog({
   required BuildContext context,
-  required Map<String, dynamic> food,
+  required FoodLog food,
   required TextEditingController controller,
   required String confirmLabel,
   Color? appColor,
 }) {
-  final description = food['food_description'] as String? ?? '';
-  final serving = FoodLoggingHelper.parseServing(description);
+  final serving = FoodLoggingHelper.parseServingFromLog(food);
   final baseAmt = serving['amount'] as double;
   final unit = serving['unit'] as String;
   final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
@@ -659,7 +663,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              food['food_name'] as String? ?? '',
+              food.foodName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -669,9 +673,9 @@ Future<ServingDialogResult?> showServingAmountDialog({
                 color: accent,
               ),
             ),
-            if (food['brand_name'] != null)
+            if (food.brandName != null)
               Text(
-                food['brand_name'] as String,
+                food.brandName!,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(ctx, 12),

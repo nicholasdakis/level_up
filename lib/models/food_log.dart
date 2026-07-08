@@ -1,4 +1,3 @@
-// TODO: migrate screens to use FoodLog directly instead of Map<String, dynamic> and update FoodLoggingHelper accordingly
 class FoodLog {
   final String? id;
   final String date;

@@ -2477,3 +2477,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 -Meal lists are now derived reactively in build from foodLogsProvider so food always reflects the latest state without manual reloads
 - Food logging goals (calories, protein, carbs, fat) now use ref.watch with .select instead of ref.read so they update immediately when user data loads
 - Migrated appReadyNotifier to its own provider class and migrated the files that depend on it
+- Migrated all food logging screens (food_logging, log_food_screen, food_analytics, home_logging_cards) to use FoodLog directly

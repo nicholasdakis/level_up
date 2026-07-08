@@ -78,7 +78,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   final _prefs = SharedPrefsService();
 
   // Recent food matches shown when a search query matches something in recent foods
-  List<Map<String, dynamic>> _recentMatches = [];
+  List<FoodLog> _recentMatches = [];
   bool _showingRecentMatches = true;
   bool _isSearching = false;
   bool _showSearchHint = false;
@@ -111,7 +111,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   final VoiceSearchService _voiceSearch = VoiceSearchService();
 
   // Recent foods
-  List<Map<String, dynamic>> _recentFoods = [];
+  List<FoodLog> _recentFoods = [];
 
   @override
   void initState() {
@@ -148,8 +148,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     }
 
     final matches = _recentFoods.where((f) {
-      final name = (f['food_name'] as String? ?? '').toLowerCase();
-      final brand = (f['brand_name'] as String? ?? '').toLowerCase();
+      final name = f.foodName.toLowerCase();
+      final brand = (f.brandName ?? '').toLowerCase();
       return name.contains(query) || brand.contains(query);
     }).toList();
 
@@ -238,14 +238,14 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     final max = stored ?? 30;
     final logs = ref.read(foodLogsProvider).value ?? [];
     final seen = <String>{};
-    final recents = <Map<String, dynamic>>[];
+    final recents = <FoodLog>[];
     final sorted = [...logs]
       ..sort((a, b) => (b.loggedAt ?? '').compareTo(a.loggedAt ?? ''));
     for (final food in sorted) {
       final name = food.foodName;
       if (name.isEmpty || seen.contains(name)) continue;
       seen.add(name);
-      recents.add(food.toJson());
+      recents.add(food);
       if (max != 0 && recents.length >= max) break;
     }
     if (mounted) setState(() => _recentFoods = recents);
@@ -344,11 +344,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
             barcodeLoading = false;
             scannerActive = false;
           });
-          final food = {
-            'food_name': data['product']['product_name'] ?? 'Unknown Product',
-            'brand_name': data['product']['brands'],
-            'food_description': description,
-          };
+          final food = FoodLog(
+            date: FoodLoggingHelper.formatDateKey(widget.currentDate),
+            meal: widget.meal,
+            foodName: data['product']['product_name'] ?? 'Unknown Product',
+            brandName: data['product']['brands'] as String?,
+            foodDescription: description,
+          );
           await _showServingDialog(food, achievementId: 'food_barcode');
         } else {
           setState(() {
@@ -377,21 +379,11 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   }
 
   // Logs the food to the correct meal then notifies the parent and pops back
-  Future<void> logFood(Map<String, dynamic> foodObject) async {
+  Future<void> logFood(FoodLog foodObject) async {
     if (isLogging) {
       _showSnackbar("Please wait before logging again.");
       return;
     }
-
-    if (!foodObject.containsKey('calories')) {
-      foodObject['calories'] = FoodLoggingHelper.extractCalories(
-        foodObject['food_description'] ?? '',
-      );
-    }
-
-    // Strip id and logged_at so re-logged foods get a fresh row and timestamp
-    foodObject.remove('id');
-    foodObject.remove('logged_at');
 
     setState(() => isLogging = true);
 
@@ -400,11 +392,24 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     // Build meal map for the current date including the new food
     final existingLogs = ref.read(foodLogsProvider).value ?? [];
     final existing = existingLogs.where((f) => f.date == dateKey).toList();
-    final newFood = FoodLog.fromJson({
-      ...foodObject,
-      'date': dateKey,
-      'meal': widget.meal,
-    });
+    // Strip id and logged_at so re-logged foods get a fresh row and timestamp
+    final newFood = FoodLog(
+      date: dateKey,
+      meal: widget.meal,
+      foodName: foodObject.foodName,
+      brandName: foodObject.brandName,
+      foodDescription: foodObject.foodDescription,
+      calories:
+          foodObject.calories ??
+          FoodLoggingHelper.extractCalories(foodObject.foodDescription ?? ''),
+      protein: foodObject.protein,
+      carbs: foodObject.carbs,
+      fat: foodObject.fat,
+      fiber: foodObject.fiber,
+      sugar: foodObject.sugar,
+      sodium: foodObject.sodium,
+      servingSize: foodObject.servingSize,
+    );
     final mealMap = {
       'breakfast': existing.where((f) => f.meal == 'breakfast').toList(),
       'lunch': existing.where((f) => f.meal == 'lunch').toList(),
@@ -985,15 +990,19 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
 
     trackTrivialAchievement('food_manual');
-    await logFood({
-      'food_name': name,
-      'food_description': 'Per $servingLabel - ${parts.join(' | ')}',
-      'calories': calories,
-      'protein': double.tryParse(protein),
-      'carbs': double.tryParse(carbs),
-      'fat': double.tryParse(fat),
-      'serving_size': servingLabel,
-    });
+    await logFood(
+      FoodLog(
+        date: FoodLoggingHelper.formatDateKey(widget.currentDate),
+        meal: widget.meal,
+        foodName: name,
+        foodDescription: 'Per $servingLabel - ${parts.join(' | ')}',
+        calories: calories,
+        protein: double.tryParse(protein),
+        carbs: double.tryParse(carbs),
+        fat: double.tryParse(fat),
+        servingSize: servingLabel,
+      ),
+    );
   }
 
   // Clears the selected food and resets back to the empty search state
@@ -1052,12 +1061,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
   // Thin horizontal rule used to visually separate sections
   // Shows a unified serving + nutrition dialog for any food (search results, recent, barcode)
-  Future<void> _showServingDialog(
-    Map<String, dynamic> food, {
-    String? achievementId,
-  }) async {
-    final description = food['food_description'] as String? ?? '';
-    final serving = FoodLoggingHelper.parseServing(description);
+  Future<void> _showServingDialog(FoodLog food, {String? achievementId}) async {
+    final serving = FoodLoggingHelper.parseServingFromLog(food);
     final baseAmt = serving['amount'] as double;
 
     _recentServingController.text = baseAmt % 1 == 0
@@ -1077,7 +1082,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (newAmt == null || newAmt <= 0) return;
 
     final baseMacros = FoodLoggingHelper.extractMacrosFromFood(food);
-    final baseAmt2 = baseAmt;
     final unit = serving['unit'] as String;
     final scaled = result.macroOverrides != null
         ? {
@@ -1085,7 +1089,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 (result.macroOverrides!['calories'] ??
                         FoodLoggingHelper.scaleFood(
                           baseMacros,
-                          baseAmt2,
+                          baseAmt,
                           newAmt,
                         )['calories']!)
                     .toDouble(),
@@ -1093,36 +1097,41 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 result.macroOverrides!['protein'] ??
                 FoodLoggingHelper.scaleFood(
                   baseMacros,
-                  baseAmt2,
+                  baseAmt,
                   newAmt,
                 )['protein']!,
             'carbs':
                 result.macroOverrides!['carbs'] ??
                 FoodLoggingHelper.scaleFood(
                   baseMacros,
-                  baseAmt2,
+                  baseAmt,
                   newAmt,
                 )['carbs']!,
             'fat':
                 result.macroOverrides!['fat'] ??
                 FoodLoggingHelper.scaleFood(
                   baseMacros,
-                  baseAmt2,
+                  baseAmt,
                   newAmt,
                 )['fat']!,
           }
-        : FoodLoggingHelper.scaleFood(baseMacros, baseAmt2, newAmt);
-    final loggedFood = Map<String, dynamic>.from(food);
-    loggedFood['food_description'] = FoodLoggingHelper.buildDescription(
-      scaled,
-      newAmt,
-      unit,
+        : FoodLoggingHelper.scaleFood(baseMacros, baseAmt, newAmt);
+
+    final loggedFood = FoodLog(
+      foodName: food.foodName,
+      brandName: food.brandName,
+      foodDescription: FoodLoggingHelper.buildDescription(scaled, newAmt, unit),
+      calories: scaled['calories']!.round(),
+      protein: scaled['protein'],
+      carbs: scaled['carbs'],
+      fat: scaled['fat'],
+      fiber: food.fiber,
+      sugar: food.sugar,
+      sodium: food.sodium,
+      servingSize: '$newAmt $unit',
+      date: food.date,
+      meal: food.meal,
     );
-    loggedFood['calories'] = scaled['calories']!.round();
-    loggedFood['protein'] = scaled['protein'];
-    loggedFood['carbs'] = scaled['carbs'];
-    loggedFood['fat'] = scaled['fat'];
-    loggedFood['serving_size'] = '$newAmt $unit';
 
     if (achievementId != null) trackTrivialAchievement(achievementId);
     await logFood(loggedFood);
@@ -1242,17 +1251,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   }
 
   // A single search result or recent-match row, name bold, description dim, + button on right
-  Widget _buildFoodRow(
-    Map<String, dynamic> food, {
-    required VoidCallback onTap,
-  }) {
+  Widget _buildFoodRow(FoodLog food, {required VoidCallback onTap}) {
     final c = cardColors(appColor);
-    final description = food['food_description'] as String? ?? '';
-    // calories may be a top-level key (manual/recent) or only in food_description (API results)
-    final cal = food['calories'] != null
-        ? (num.tryParse(food['calories'].toString()) ?? 0).toInt()
-        : FoodLoggingHelper.extractCalories(description);
-    final serving = FoodLoggingHelper.parseServing(description);
+    final cal =
+        food.calories ??
+        FoodLoggingHelper.extractCalories(food.foodDescription ?? '');
+    final serving = FoodLoggingHelper.parseServingFromLog(food);
     final servingAmt = serving['amount'] as double;
     final servingStr = servingAmt % 1 == 0
         ? servingAmt.toInt().toString()
@@ -1277,7 +1281,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    food['food_name'] ?? '',
+                    food.foodName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
@@ -1287,8 +1291,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                     ),
                   ),
                   Text(
-                    food['brand_name'] != null
-                        ? '${food['brand_name']} · $subtitle'
+                    food.brandName != null
+                        ? '${food.brandName} · $subtitle'
                         : subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1942,11 +1946,23 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 if (!_showingRecentMatches && foodList.isNotEmpty) ...[
                   for (int i = 0; i < foodList.length; i++) ...[
                     _buildFoodRow(
-                      foodList[i] as Map<String, dynamic>,
+                      FoodLoggingHelper.foodLogFromApiMap(
+                        foodList[i] as Map<String, dynamic>,
+                        date: FoodLoggingHelper.formatDateKey(
+                          widget.currentDate,
+                        ),
+                        meal: widget.meal,
+                      ),
                       onTap: () {
                         FocusScope.of(context).unfocus();
                         _showServingDialog(
-                          foodList[i] as Map<String, dynamic>,
+                          FoodLoggingHelper.foodLogFromApiMap(
+                            foodList[i] as Map<String, dynamic>,
+                            date: FoodLoggingHelper.formatDateKey(
+                              widget.currentDate,
+                            ),
+                            meal: widget.meal,
+                          ),
                           achievementId: 'food_search',
                         );
                       },
@@ -1966,11 +1982,19 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         if (foodList.isNotEmpty && _recentMatches.isEmpty && !_isSearching) ...[
           for (int i = 0; i < foodList.length; i++) ...[
             _buildFoodRow(
-              foodList[i] as Map<String, dynamic>,
+              FoodLoggingHelper.foodLogFromApiMap(
+                foodList[i] as Map<String, dynamic>,
+                date: FoodLoggingHelper.formatDateKey(widget.currentDate),
+                meal: widget.meal,
+              ),
               onTap: () {
                 FocusScope.of(context).unfocus();
                 _showServingDialog(
-                  foodList[i] as Map<String, dynamic>,
+                  FoodLoggingHelper.foodLogFromApiMap(
+                    foodList[i] as Map<String, dynamic>,
+                    date: FoodLoggingHelper.formatDateKey(widget.currentDate),
+                    meal: widget.meal,
+                  ),
                   achievementId: 'food_search',
                 );
               },

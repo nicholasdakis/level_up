@@ -41,10 +41,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   DateTime currentDate = DateTime.now();
 
-  List<Map<String, dynamic>> breakfastFoods = const [];
-  List<Map<String, dynamic>> lunchFoods = const [];
-  List<Map<String, dynamic>> dinnerFoods = const [];
-  List<Map<String, dynamic>> snacksFoods = const [];
+  List<FoodLog> breakfastFoods = const [];
+  List<FoodLog> lunchFoods = const [];
+  List<FoodLog> dinnerFoods = const [];
+  List<FoodLog> snacksFoods = const [];
 
   final Map<String, bool> _collapsed = {
     'breakfast': false,
@@ -114,10 +114,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   }
 
   // Helper method for getting calories per meal type
-  double _mealCalories(List<Map<String, dynamic>> foods) {
+  double _mealCalories(List<FoodLog> foods) {
     double total = 0;
     for (var food in foods) {
-      total += (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+      total += (food.calories ?? 0).toDouble();
     }
     return total;
   }
@@ -130,7 +130,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   }
 
   double _totalMacro(String macroKey) {
-    // flatten all the foods into one list
     final allFoods = [
       ...breakfastFoods,
       ...lunchFoods,
@@ -146,11 +145,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     return total;
   }
 
-  Future<void> _deleteFood(
-    String mealKey,
-    int idx,
-    List<Map<String, dynamic>> foods,
-  ) async {
+  Future<void> _deleteFood(String mealKey, int idx, List<FoodLog> foods) async {
     if (isGuest) {
       Guest.block(context);
       return;
@@ -160,7 +155,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       appColor: appColor,
       title: "Delete food?",
       content: Text(
-        "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
+        "Are you sure you want to remove ${foods[idx].foodName.isNotEmpty ? foods[idx].foodName : 'this food'}?",
         style: GoogleFonts.manrope(color: Colors.white70),
       ),
       actions: [
@@ -185,16 +180,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   // Scales all macros proportionally and saves the updated entry
   Future<void> _editServingSize(
     String mealKey,
-    List<Map<String, dynamic>> foods,
-    Map<String, dynamic> food,
+    List<FoodLog> foods,
+    FoodLog food,
   ) async {
     if (isGuest) {
       Guest.block(context);
       return;
     }
-    final serving = FoodLoggingHelper.parseServing(
-      food['food_description'] as String? ?? '',
-    );
+    final serving = FoodLoggingHelper.parseServingFromLog(food);
     final currentAmt = serving['amount'] as double;
     final unit = serving['unit'] as String;
     final controller = TextEditingController(
@@ -243,14 +236,26 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       unit,
     );
 
-    // Update the food map in place
+    final updated = FoodLog(
+      id: food.id,
+      date: food.date,
+      meal: food.meal,
+      foodName: food.foodName,
+      brandName: food.brandName,
+      foodDescription: newDescription,
+      calories: scaled['calories']!.round(),
+      protein: scaled['protein'],
+      carbs: scaled['carbs'],
+      fat: scaled['fat'],
+      fiber: food.fiber,
+      sugar: food.sugar,
+      sodium: food.sodium,
+      servingSize: '$newAmt $unit',
+      loggedAt: food.loggedAt,
+    );
     setState(() {
-      food['food_description'] = newDescription;
-      food['calories'] = scaled['calories']!.round();
-      food['protein'] = scaled['protein'];
-      food['carbs'] = scaled['carbs'];
-      food['fat'] = scaled['fat'];
-      food['serving_size'] = '$newAmt $unit';
+      final idx = foods.indexOf(food);
+      if (idx != -1) foods[idx] = updated;
     });
     await _saveFoodData("edit"); // store the changes
   }
@@ -258,10 +263,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Future<void> _saveFoodData(String addOrDelete) async {
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final mealMap = {
-      'breakfast': breakfastFoods.map(FoodLog.fromJson).toList(),
-      'lunch': lunchFoods.map(FoodLog.fromJson).toList(),
-      'dinner': dinnerFoods.map(FoodLog.fromJson).toList(),
-      'snacks': snacksFoods.map(FoodLog.fromJson).toList(),
+      'breakfast': breakfastFoods,
+      'lunch': lunchFoods,
+      'dinner': dinnerFoods,
+      'snacks': snacksFoods,
     };
     final success = await ref
         .read(foodLogsProvider.notifier)
@@ -293,16 +298,14 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     }
   }
 
-  Widget _buildMacroText(Map<String, dynamic> food, Color appColor) {
+  Widget _buildMacroText(FoodLog food, Color appColor) {
     final macros = FoodLoggingHelper.extractMacrosFromFood(food);
-    final serving = FoodLoggingHelper.parseServing(
-      food['food_description'] as String? ?? '',
-    );
+    final serving = FoodLoggingHelper.parseServingFromLog(food);
     final servingAmt = serving['amount'] as double;
     final servingStr = servingAmt % 1 == 0
         ? servingAmt.toInt().toString()
         : servingAmt.toString();
-    final cal = num.tryParse(food['calories'].toString()) ?? 0;
+    final cal = food.calories ?? 0;
     final base = appColor;
     final dim = lightenColor(base, 0.35);
 
@@ -838,7 +841,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Widget _buildMealSection(
     String mealKey,
     String title,
-    List<Map<String, dynamic>> foods,
+    List<FoodLog> foods,
     Color accentColor,
   ) {
     final isCollapsed = _collapsed[mealKey] ?? false;
@@ -991,9 +994,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        food['brand_name'] != null
-                                            ? '${food['brand_name']} - ${food['food_name'] ?? ''}'
-                                            : (food['food_name'] ?? ''),
+                                        food.brandName != null
+                                            ? '${food.brandName} - ${food.foodName}'
+                                            : food.foodName,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: GoogleFonts.manrope(
@@ -1007,14 +1010,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                       ),
                                     ),
                                     // hide logged_at for entries before June 25 2026, logged_at didn't exist yet so it won't be accurate
-                                    if (food['logged_at'] != null &&
+                                    if (food.loggedAt != null &&
                                         !DateTime.parse(
-                                          food['logged_at'] as String,
+                                          food.loggedAt!,
                                         ).isBefore(DateTime(2026, 6, 25)))
                                       Text(
-                                        _formatLoggedAt(
-                                          food['logged_at'] as String,
-                                        ),
+                                        _formatLoggedAt(food.loggedAt!),
                                         style: GoogleFonts.manrope(
                                           fontSize: Responsive.font(
                                             context,
@@ -1117,19 +1118,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final logs = ref.watch(foodLogsProvider).value ?? [];
     breakfastFoods = logs
         .where((f) => f.date == dateKey && f.meal == 'breakfast')
-        .map((f) => f.toJson())
         .toList();
     lunchFoods = logs
         .where((f) => f.date == dateKey && f.meal == 'lunch')
-        .map((f) => f.toJson())
         .toList();
     dinnerFoods = logs
         .where((f) => f.date == dateKey && f.meal == 'dinner')
-        .map((f) => f.toJson())
         .toList();
     snacksFoods = logs
         .where((f) => f.date == dateKey && f.meal == 'snacks')
-        .map((f) => f.toJson())
         .toList();
     final colors = _mealColors(appColor);
 

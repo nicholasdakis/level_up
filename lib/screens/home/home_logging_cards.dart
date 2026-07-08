@@ -61,7 +61,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final logs = ref.read(foodLogsProvider).value ?? [];
     int protein = 0, carbs = 0, fat = 0;
     for (final food in logs.where((f) => f.date == key)) {
-      final macros = FoodLoggingHelper.extractMacrosFromFood(food.toJson());
+      final macros = FoodLoggingHelper.extractMacrosFromFood(food);
       protein += (macros['protein'] ?? 0.0).toInt();
       carbs += (macros['carbs'] ?? 0.0).toInt();
       fat += (macros['fat'] ?? 0.0).toInt();

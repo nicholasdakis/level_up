@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
+import '../../models/food_log.dart';
 import '../../utility/food_logging_helper.dart';
 import 'analytics_components.dart';
 
@@ -41,10 +42,10 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   late DateTime currentDate;
 
   // Daily tab state
-  List<Map<String, dynamic>> breakfastFoods = [];
-  List<Map<String, dynamic>> lunchFoods = [];
-  List<Map<String, dynamic>> dinnerFoods = [];
-  List<Map<String, dynamic>> snacksFoods = [];
+  List<FoodLog> breakfastFoods = [];
+  List<FoodLog> lunchFoods = [];
+  List<FoodLog> dinnerFoods = [];
+  List<FoodLog> snacksFoods = [];
 
   // incrementing this re-triggers all .animate(key: ValueKey(...)) animations on date change
   // flutter_animate only replays when the key changes, not on every rebuild
@@ -80,21 +81,19 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   void _loadForDate(DateTime date) {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = (ref.read(foodLogsProvider).value ?? [])
-        .map((f) => f.toJson())
-        .toList();
+    final logs = ref.read(foodLogsProvider).value ?? [];
     setState(() {
       breakfastFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'breakfast')
+          .where((f) => f.date == dateKey && f.meal == 'breakfast')
           .toList();
       lunchFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'lunch')
+          .where((f) => f.date == dateKey && f.meal == 'lunch')
           .toList();
       dinnerFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'dinner')
+          .where((f) => f.date == dateKey && f.meal == 'dinner')
           .toList();
       snacksFoods = logs
-          .where((f) => f['date'] == dateKey && f['meal'] == 'snacks')
+          .where((f) => f.date == dateKey && f.meal == 'snacks')
           .toList();
       _animationKey++;
     });
@@ -107,12 +106,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     widget.onDateChanged?.call(date);
   }
 
-  // Sums the calories stored directly on each food map for a given meal list
-  double _mealCalories(List<Map<String, dynamic>> foods) {
+  // Sums the calories for a given meal list
+  double _mealCalories(List<FoodLog> foods) {
     double total = 0;
     for (var food in foods) {
-      // toString() before parsing handles cases where calories were stored as int or double
-      total += (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+      total += (food.calories ?? 0).toDouble();
     }
     return total;
   }
@@ -136,7 +134,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   }
 
   // Same as _totalMacros but scoped to a single meal list
-  Map<String, double> _mealMacros(List<Map<String, dynamic>> foods) {
+  Map<String, double> _mealMacros(List<FoodLog> foods) {
     double protein = 0, carbs = 0, fat = 0;
     for (var food in foods) {
       final m = FoodLoggingHelper.extractMacrosFromFood(food);
@@ -150,15 +148,15 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   // Goes through all days and sums the calories and macros
   // daysWithData is returned to compute averages without using empty days
   _RangeAggregate _aggregateRange(DateTime start, DateTime end) {
-    final logs = (ref.read(foodLogsProvider).value ?? [])
-        .map((f) => f.toJson())
-        .toList();
+    final logs = ref.read(foodLogsProvider).value ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
-    final inRange = logs.where((f) {
-      final d = f['date'] as String? ?? '';
-      return d.compareTo(startKey) >= 0 && d.compareTo(endKey) <= 0;
-    }).toList();
+    final inRange = logs
+        .where(
+          (f) =>
+              f.date.compareTo(startKey) >= 0 && f.date.compareTo(endKey) <= 0,
+        )
+        .toList();
 
     double totalCal = 0;
     double protein = 0, carbs = 0, fat = 0;
@@ -168,16 +166,16 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     double dP = 0, dC = 0, dF = 0;
     double sP = 0, sC = 0, sF = 0;
 
-    final daysWithData = inRange.map((f) => f['date']).toSet().length;
+    final daysWithData = inRange.map((f) => f.date).toSet().length;
 
     for (final food in inRange) {
-      final cal = (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+      final cal = (food.calories ?? 0).toDouble();
       final m = FoodLoggingHelper.extractMacrosFromFood(food);
       totalCal += cal;
       protein += m['protein'] ?? 0;
       carbs += m['carbs'] ?? 0;
       fat += m['fat'] ?? 0;
-      switch (food['meal']) {
+      switch (food.meal) {
         case 'breakfast':
           breakfastCal += cal;
           bP += m['protein'] ?? 0;
@@ -228,20 +226,19 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   // Returns per-day calorie and macro data for the line charts
   List<_DayPoint> _dailyPoints(DateTime start, DateTime end) {
-    final logs = (ref.read(foodLogsProvider).value ?? [])
-        .map((f) => f.toJson())
-        .toList();
+    final logs = ref.read(foodLogsProvider).value ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
-    final inRange = logs.where((f) {
-      final d = f['date'] as String? ?? '';
-      return d.compareTo(startKey) >= 0 && d.compareTo(endKey) <= 0;
-    }).toList();
+    final inRange = logs
+        .where(
+          (f) =>
+              f.date.compareTo(startKey) >= 0 && f.date.compareTo(endKey) <= 0,
+        )
+        .toList();
 
-    final byDate = <String, List<Map<String, dynamic>>>{};
+    final byDate = <String, List<FoodLog>>{};
     for (final f in inRange) {
-      final d = f['date'] as String;
-      byDate.putIfAbsent(d, () => []).add(f);
+      byDate.putIfAbsent(f.date, () => []).add(f);
     }
 
     final points = <_DayPoint>[];
@@ -250,13 +247,13 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
       double cal = 0, protein = 0, carbs = 0, fat = 0;
       double bCal = 0, lCal = 0, dCal = 0, sCal = 0;
       for (final food in dayFoods) {
-        final c = (num.tryParse(food['calories'].toString()) ?? 0).toDouble();
+        final c = (food.calories ?? 0).toDouble();
         final m = FoodLoggingHelper.extractMacrosFromFood(food);
         cal += c;
         protein += m['protein'] ?? 0;
         carbs += m['carbs'] ?? 0;
         fat += m['fat'] ?? 0;
-        switch (food['meal']) {
+        switch (food.meal) {
           case 'breakfast':
             bCal += c;
           case 'lunch':
@@ -908,16 +905,15 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     final dim = lightenColor(appColor, 0.35);
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
-    final logs = (ref.read(foodLogsProvider).value ?? [])
-        .map((f) => f.toJson())
-        .toList();
+    final logs = ref.read(foodLogsProvider).value ?? [];
 
     final counts = <String, int>{};
     final displayNames = <String, String>{};
     for (final f in logs) {
-      final d = f['date'] as String? ?? '';
-      if (d.compareTo(startKey) < 0 || d.compareTo(endKey) > 0) continue;
-      final name = (f['food_name'] as String? ?? '').trim();
+      if (f.date.compareTo(startKey) < 0 || f.date.compareTo(endKey) > 0) {
+        continue;
+      }
+      final name = f.foodName.trim();
       if (name.isEmpty) continue;
       final key = name.toLowerCase();
       counts[key] = (counts[key] ?? 0) + 1;
