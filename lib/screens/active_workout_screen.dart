@@ -172,7 +172,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
 
     if (!isGuest) {
-      userManager.fetchExerciseStats().then((stats) {
+      ref.read(workoutProvider.notifier).fetchExerciseStats().then((stats) {
         if (mounted) setState(() => _exerciseStats = stats);
       });
       final exerciseNames = _exercises
@@ -180,14 +180,17 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           .where((name) => name.isNotEmpty)
           .toList();
       if (exerciseNames.isNotEmpty) {
-        userManager.fetchEveryPrevSet(exerciseNames).then((prevSets) {
-          if (mounted) {
-            setState(() {
-              _prevSets = prevSets;
-              _prevSetsLoading = false;
+        ref
+            .read(workoutProvider.notifier)
+            .fetchEveryPrevSet(exerciseNames)
+            .then((prevSets) {
+              if (mounted) {
+                setState(() {
+                  _prevSets = prevSets;
+                  _prevSetsLoading = false;
+                });
+              }
             });
-          }
-        });
       } else {
         _prevSetsLoading = false;
       }

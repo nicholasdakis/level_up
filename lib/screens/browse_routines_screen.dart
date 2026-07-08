@@ -150,14 +150,13 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
       _savingId = templateId;
       _downloadState[templateId] = (_downloadState[templateId] ?? 0) + 1;
     });
-    final ok = await userManager.copyRoutine(templateId: templateId);
+    final ok = await ref.read(workoutProvider.notifier).copyRoutine(templateId);
     if (!mounted) return;
     if (ok) {
       setState(() {
         _savingId = null;
         _savedSourceIds.add(templateId);
       });
-      ref.read(workoutProvider.notifier).refreshAfterWorkout();
     } else {
       setState(() {
         _savingId = null;
@@ -186,8 +185,8 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
       };
     });
     final ok = wasLiked
-        ? await userManager.unlikeRoutine(templateId: templateId)
-        : await userManager.likeRoutine(templateId: templateId);
+        ? await ref.read(workoutProvider.notifier).unlikeRoutine(templateId)
+        : await ref.read(workoutProvider.notifier).likeRoutine(templateId);
     if (!mounted) return;
     if (!ok) {
       // revert on failure

@@ -207,11 +207,13 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           .toList();
       final estimatedMinutes = int.tryParse(_durationController.text.trim());
 
-      final ok = await userManager.createRoutine(
-        name: name,
-        exercises: exercises,
-        estimatedDurationMinutes: estimatedMinutes,
-      );
+      final ok = await ref
+          .read(workoutProvider.notifier)
+          .createRoutine(
+            name: name,
+            exercises: exercises,
+            estimatedDurationMinutes: estimatedMinutes,
+          );
       if (!mounted) return;
       if (ok) {
         FirebaseAnalytics.instance.logEvent(

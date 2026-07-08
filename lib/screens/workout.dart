@@ -537,19 +537,11 @@ class _WorkoutState extends ConsumerState<Workout> {
       ],
     );
     if (confirmed != true) return;
-    final ok = await userManager.deleteRoutine(
-      templateId: routine['template_id'] as String,
-    );
+    final ok = await ref
+        .read(workoutProvider.notifier)
+        .deleteRoutine(routine['template_id'] as String);
     if (!mounted) return;
-    if (ok) {
-      setState(
-        () => ref
-            .watch(
-              workoutProvider.select((s) => s.value?.myRoutines ?? const []),
-            )
-            .removeWhere((r) => r['template_id'] == routine['template_id']),
-      );
-    } else {
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/workout_session.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart' show isGuest;
-import '../services/user_data_manager.dart' show authenticatedGet;
+import '../services/user_data_manager.dart'
+    show authenticatedGet, authenticatedPost;
 import 'user_data_provider.dart' show userDataProvider;
 import '../utility/shared_preferences/shared_prefs_async.dart';
 
@@ -228,6 +229,214 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
       state = AsyncData(
         (state.value ?? const WorkoutState()).copyWith(isLoading: false),
       );
+    }
+  }
+
+  Future<bool> createRoutine({
+    required String name,
+    required List<Map<String, dynamic>> exercises,
+    int? estimatedDurationMinutes,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'create_routine',
+        body: {
+          'name': name,
+          'exercises': exercises,
+          'estimated_duration_minutes': ?estimatedDurationMinutes,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('createRoutine failed: $e');
+    }
+    return false;
+  }
+
+  // copies a public browse routine into the user's own routines and appends it to myRoutines
+  Future<bool> copyRoutine(String templateId) async {
+    try {
+      final response = await authenticatedPost(
+        'copy_routine',
+        body: {'template_id': templateId},
+      );
+      if (response.statusCode == 200) {
+        final previous = state.value ?? const WorkoutState();
+        final newRoutine = <String, dynamic>{
+          'template_id': templateId,
+          'source_template_id': templateId,
+        };
+        state = AsyncData(
+          previous.copyWith(myRoutines: [...previous.myRoutines, newRoutine]),
+        );
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('copyRoutine failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> likeRoutine(String templateId) async {
+    try {
+      final response = await authenticatedPost(
+        'like_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('likeRoutine failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> unlikeRoutine(String templateId) async {
+    try {
+      final response = await authenticatedPost(
+        'unlike_routine',
+        body: {'template_id': templateId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('unlikeRoutine failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> deleteCustomExercise(int exerciseId) async {
+    try {
+      final response = await authenticatedPost(
+        'delete_custom_exercise',
+        body: {'exercise_id': exerciseId},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteCustomExercise failed: $e');
+    }
+    return false;
+  }
+
+  Future<Map<String, dynamic>?> createCustomExercise({
+    required String name,
+    String? primaryMuscle,
+    List<String> secondaryMuscles = const [],
+    String? equipment,
+    String? level,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'create_custom_exercise',
+        body: {
+          'name': name,
+          'primary_muscle': primaryMuscle,
+          'secondary_muscles': secondaryMuscles,
+          'equipment': equipment,
+          'level': level,
+        },
+      );
+      final data = Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+      if (response.statusCode == 200) return data;
+      return {'error': data['error'] ?? 'Failed to create exercise'};
+    } catch (e) {
+      if (kDebugMode) debugPrint('createCustomExercise failed: $e');
+    }
+    return null;
+  }
+
+  Future<bool> editCustomExercise({
+    required int exerciseId,
+    required String name,
+    String? primaryMuscle,
+    List<String> secondaryMuscles = const [],
+    String? equipment,
+    String? level,
+  }) async {
+    try {
+      final response = await authenticatedPost(
+        'edit_custom_exercise',
+        body: {
+          'exercise_id': exerciseId,
+          'name': name,
+          'primary_muscle': primaryMuscle,
+          'secondary_muscles': secondaryMuscles,
+          'equipment': equipment,
+          'level': level,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('editCustomExercise failed: $e');
+    }
+    return false;
+  }
+
+  // returns previous sets keyed by exercise_name -> set_number -> {weight_kg, reps}
+  Future<Map<String, Map<int, Map<String, dynamic>>>> fetchEveryPrevSet(
+    List<String> exerciseNames,
+  ) async {
+    try {
+      final response = await authenticatedPost(
+        'every_prev_set',
+        body: {'exercise_names': exerciseNames},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final result = <String, Map<int, Map<String, dynamic>>>{};
+        for (final prevSet in data['sets'] as List) {
+          final setMap = Map<String, dynamic>.from(prevSet as Map);
+          final exerciseName = setMap['exercise_name'] as String;
+          final setNumber = setMap['set_number'] as int;
+          result.putIfAbsent(exerciseName, () => {});
+          result[exerciseName]![setNumber] = setMap;
+        }
+        return result;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchEveryPrevSet failed: $e');
+    }
+    return {};
+  }
+
+  Future<Map<String, Map<String, dynamic>>> fetchExerciseStats() async {
+    try {
+      final response = await authenticatedGet('exercise_stats');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final stats = (data['stats'] as List)
+            .map((stat) => Map<String, dynamic>.from(stat as Map))
+            .toList();
+        return {
+          for (final stat in stats) stat['exercise_name'] as String: stat,
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('fetchExerciseStats failed: $e');
+    }
+    return {};
+  }
+
+  // optimistically removes a routine, rolls back on failure
+  Future<bool> deleteRoutine(String templateId) async {
+    final previous = state.value ?? const WorkoutState();
+    state = AsyncData(
+      previous.copyWith(
+        myRoutines: previous.myRoutines
+            .where((r) => r['template_id'] != templateId)
+            .toList(),
+      ),
+    );
+    try {
+      final response = await authenticatedPost(
+        'delete_routine',
+        body: {'template_id': templateId},
+      );
+      if (response.statusCode == 200) return true;
+      state = AsyncData(previous);
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteRoutine failed: $e');
+      state = AsyncData(previous);
+      return false;
     }
   }
 

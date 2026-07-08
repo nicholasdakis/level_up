@@ -204,7 +204,9 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               if (confirmed == true) {
                 final id = ex['id'] as int?;
                 if (id != null) {
-                  await userManager.deleteCustomExercise(id);
+                  await ref
+                      .read(workoutProvider.notifier)
+                      .deleteCustomExercise(id);
                   if (mounted) _search();
                 }
               }
@@ -812,7 +814,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                   errorMsg = null;
                                 });
                                 if (isEditing) {
-                                  final ok = await userManager
+                                  final ok = await ref
+                                      .read(workoutProvider.notifier)
                                       .editCustomExercise(
                                         exerciseId: existing['id'] as int,
                                         name: name,
@@ -834,7 +837,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                   Navigator.of(dialogContext).pop();
                                   _search();
                                 } else {
-                                  final result = await userManager
+                                  final result = await ref
+                                      .read(workoutProvider.notifier)
                                       .createCustomExercise(
                                         name: name,
                                         primaryMuscle: selectedMuscle,
