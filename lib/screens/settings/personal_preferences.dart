@@ -192,18 +192,22 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       if (mounted) {
         if (kIsWeb) {
           // Pass null for file, only use bytes
-          await ref.read(userDataProvider.notifier).updateProfilePicture(
-            null,
-            context: context,
-            onProfileUpdated: widget.onProfileImageUpdated,
-            imageInBytes: imageBytes,
-          );
+          await ref
+              .read(userDataProvider.notifier)
+              .updateProfilePicture(
+                null,
+                context: context,
+                onProfileUpdated: widget.onProfileImageUpdated,
+                imageInBytes: imageBytes,
+              );
         } else {
-          await ref.read(userDataProvider.notifier).updateProfilePicture(
-            file,
-            context: context,
-            onProfileUpdated: widget.onProfileImageUpdated,
-          );
+          await ref
+              .read(userDataProvider.notifier)
+              .updateProfilePicture(
+                file,
+                context: context,
+                onProfileUpdated: widget.onProfileImageUpdated,
+              );
         }
       }
     } catch (e) {
@@ -412,13 +416,15 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         TextButton(
           child: Text("Save", style: dialogButtonStyle(confirm: true)),
           onPressed: () async {
-            await ref.read(userDataProvider.notifier).updateNutritionGoals(
-              caloriesGoal: int.tryParse(calCtrl.text.trim()),
-              proteinGoal: int.tryParse(proCtrl.text.trim()),
-              carbsGoal: int.tryParse(carbCtrl.text.trim()),
-              fatGoal: int.tryParse(fatCtrl.text.trim()),
-              context: context,
-            );
+            await ref
+                .read(userDataProvider.notifier)
+                .updateNutritionGoals(
+                  caloriesGoal: int.tryParse(calCtrl.text.trim()),
+                  proteinGoal: int.tryParse(proCtrl.text.trim()),
+                  carbsGoal: int.tryParse(carbCtrl.text.trim()),
+                  fatGoal: int.tryParse(fatCtrl.text.trim()),
+                  context: context,
+                );
             if (mounted) setState(() {}); // refresh subtitle with new values
             Navigator.pop(context);
           },
@@ -541,11 +547,13 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             if (parsed != null) {
               weightKg = isMetric ? parsed : UnitConverter.lbsToKg(parsed);
             }
-            await ref.read(userDataProvider.notifier).updateWeightGoal(
-              weightGoalType: weightGoalType,
-              weightKgGoal: weightKg,
-              context: context,
-            );
+            await ref
+                .read(userDataProvider.notifier)
+                .updateWeightGoal(
+                  weightGoalType: weightGoalType,
+                  weightKgGoal: weightKg,
+                  context: context,
+                );
             if (mounted) setState(() {}); // refresh subtitle with new values
             Navigator.pop(context);
           },
@@ -633,10 +641,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         TextButton(
           onPressed: () async {
             Navigator.of(context, rootNavigator: true).pop();
-            await ref.read(userDataProvider.notifier).updateGoals(
-              weeklyWorkoutsGoal: selected,
-              context: context,
-            );
+            await ref
+                .read(userDataProvider.notifier)
+                .updateGoals(weeklyWorkoutsGoal: selected, context: context);
             if (mounted) setState(() {});
           },
           child: Text('Save', style: dialogButtonStyle(confirm: true)),
@@ -687,10 +694,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                   ? parsed
                   : UnitConverter.ozToMl(parsed.toDouble()).round();
             }
-            await ref.read(userDataProvider.notifier).updateWaterGoal(
-              waterMlGoal: waterMl,
-              context: context,
-            );
+            await ref
+                .read(userDataProvider.notifier)
+                .updateWaterGoal(waterMlGoal: waterMl, context: context);
             if (mounted) setState(() {}); // refresh subtitle with new values
             Navigator.pop(context);
           },
@@ -1041,10 +1047,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                         }
                                         if (_units == option) return;
                                         setState(() => _units = option);
-                                        await ref.read(userDataProvider.notifier).updateUnits(
-                                          option,
-                                          context,
-                                        );
+                                        await ref
+                                            .read(userDataProvider.notifier)
+                                            .updateUnits(option, context);
                                       },
                                       child: AnimatedContainer(
                                         duration: const Duration(
@@ -1267,7 +1272,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 ];
                                 await showFrostedAlertDialog<void>(
                                   context: context,
-      appColor: appColor,
+                                  appColor: appColor,
                                   title: "Recent Foods Limit",
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -1406,7 +1411,10 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   });
                                   await ref
                                       .read(userDataProvider.notifier)
-                                      .updateNotificationsEnabled(value, context);
+                                      .updateNotificationsEnabled(
+                                        value,
+                                        context,
+                                      );
 
                                   // If enabling on web, also request browser permission and get FCM token
                                   if (value && kIsWeb) {
@@ -1420,6 +1428,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                       showBrowserBlockedDialog(
                                         context,
                                         ref.read(userDataProvider.notifier),
+                                        appColor: appColor,
                                       ); // browser is blocking notifications
                                     }
                                   }
@@ -1436,8 +1445,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                 ),
               ),
               OnboardingHint(
-              appColor: appColor,
-              hintKey: 'settings',
+                appColor: appColor,
+                hintKey: 'settings',
                 title: 'Set up your profile',
                 description:
                     'Set a username, choose your units, adjust your goals, and more',

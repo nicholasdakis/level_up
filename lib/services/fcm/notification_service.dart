@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../globals.dart';
 import '../../providers/user_data_provider.dart';
-import '../user_data_manager.dart' show defaultAppColor;
 import '../../utility/responsive.dart';
 import 'notification_service_stub.dart'
     if (dart.library.js_interop) 'notification_service_web.dart'
@@ -21,8 +20,9 @@ Future<String?> getWebFcmTokenSafe(String vapidKey) =>
 // Returns true if notifications are granted, false if denied.
 Future<bool> requestNotificationPermissionIfNeeded(
   BuildContext context,
-  UserDataNotifierNew notifier,
-) async {
+  UserDataNotifierNew notifier, {
+  required Color appColor,
+}) async {
   if (kIsWeb) {
     return true; // web uses showBrowserBlockedDialog directly via a user gesture
   }
@@ -48,7 +48,7 @@ Future<bool> requestNotificationPermissionIfNeeded(
     if (context.mounted) {
       showFrostedAlertDialog(
         context: context,
-        appColor: defaultAppColor,
+        appColor: appColor,
         title: "Notifications Blocked",
         content: Text(
           "Enable notifications for Level Up! in your device settings to receive reminders.",
@@ -74,11 +74,12 @@ Future<bool> requestNotificationPermissionIfNeeded(
 // Show a dialog telling the user their browser is blocking notifications
 void showBrowserBlockedDialog(
   BuildContext context,
-  UserDataNotifierNew notifier,
-) {
+  UserDataNotifierNew notifier, {
+  required Color appColor,
+}) {
   showFrostedDialog(
     context: context,
-    appColor: defaultAppColor,
+    appColor: appColor,
     child: Builder(
       builder: (ctx) => Column(
         mainAxisSize: MainAxisSize.min,

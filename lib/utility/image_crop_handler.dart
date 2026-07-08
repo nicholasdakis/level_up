@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../utility/responsive.dart';
 import '../globals.dart';
-import '../services/user_data_manager.dart' show defaultAppColor;
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'image_crop_stub_helper.dart'
@@ -51,6 +50,7 @@ class ImageCropHelper {
     Uint8List? webBytes,
     File? mobileFile,
     required BuildContext context,
+    required Color appColor,
   }) async {
     if (kIsWeb) {
       if (webBytes == null) return null;
@@ -96,6 +96,7 @@ class ImageCropHelper {
                   cropper: cropper,
                   initCropper: initCropper,
                   crop: crop,
+                  appColor: appColor,
                 );
               },
             ),
@@ -146,11 +147,13 @@ class _CropperDialog extends StatefulWidget {
   final Widget cropper;
   final VoidCallback initCropper;
   final Future<String?> Function() crop;
+  final Color appColor;
 
   const _CropperDialog({
     required this.cropper,
     required this.initCropper,
     required this.crop,
+    required this.appColor,
   });
 
   @override
@@ -178,7 +181,7 @@ class _CropperDialogState extends State<_CropperDialog> {
             filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: frostedGlassCard(
               context,
-              color: defaultAppColor,
+              color: widget.appColor,
               padding: EdgeInsets.all(Responsive.scale(context, 16)),
               backgroundColor: Colors.white.withAlpha(10),
               border: Border.all(color: Colors.white.withAlpha(22), width: 1),

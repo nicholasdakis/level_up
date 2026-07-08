@@ -908,6 +908,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       final cropped = await ImageCropHelper.cropPicture(
         webBytes: imageInBytes,
         context: context,
+        appColor: state.value?.appColor ?? defaultAppColor,
       );
       if (cropped == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -923,6 +924,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       final cropped = await ImageCropHelper.cropPicture(
         mobileFile: file,
         context: context,
+        appColor: state.value?.appColor ?? defaultAppColor,
       );
       if (cropped == null) {
         ScaffoldMessenger.of(context).showSnackBar(

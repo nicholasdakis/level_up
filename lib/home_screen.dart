@@ -224,6 +224,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             showBrowserBlockedDialog(
               context,
               ref.read(userDataProvider.notifier),
+              appColor: appColor,
             );
           }
         });
@@ -265,6 +266,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               await requestNotificationPermissionIfNeeded(
                 context,
                 ref.read(userDataProvider.notifier),
+                appColor: appColor,
               );
             }
           }

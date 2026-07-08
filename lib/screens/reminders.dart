@@ -68,6 +68,7 @@ class _RemindersState extends ConsumerState<Reminders> {
       final granted = await requestNotificationPermissionIfNeeded(
         context,
         ref.read(userDataProvider.notifier),
+        appColor: appColor,
       );
       if (!mounted) return;
       setState(() => _notifBlocked = !granted);
@@ -106,6 +107,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                 showBrowserBlockedDialog(
                   context,
                   ref.read(userDataProvider.notifier),
+                  appColor: appColor,
                 ); // fallback dialog
               }
             }
