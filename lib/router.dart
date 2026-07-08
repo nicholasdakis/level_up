@@ -7,7 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'screens/update_required.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'services/user_data_manager.dart' show backendBaseUrl;
+import 'services/user_data_manager.dart' show backendBaseUrl, updateUtcOffset;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
@@ -499,7 +499,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     await notifier.loadUserData();
     await workoutNotifier.checkAndRestoreWorkoutSession();
 
-    userManager.updateUtcOffset();
+    updateUtcOffset();
 
     final userData = notifier.currentUserData;
 

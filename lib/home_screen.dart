@@ -79,7 +79,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     confettiControllerinit();
 
-    if (appReadyNotifier.value && !userManager.lastLoadFailed && !isNewUser) {
+    if (appReadyNotifier.value &&
+        !ref.read(userDataProvider.notifier).lastLoadFailed &&
+        !isNewUser) {
       isLoading = false;
     }
 
@@ -194,7 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Future<void> initializeUser() async {
     if (ref.read(userDataProvider).value == null) return;
 
-    if (userManager.lastLoadFailed) {
+    if (ref.read(userDataProvider.notifier).lastLoadFailed) {
       if (!mounted) return;
       await _retry();
       return;
@@ -289,7 +291,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       });
       await ref.read(userDataProvider.notifier).loadUserData();
       if (!mounted) return;
-      if (!userManager.lastLoadFailed &&
+      if (!ref.read(userDataProvider.notifier).lastLoadFailed &&
           ref.read(userDataProvider).value != null) {
         // notifyListeners won't fire if value was already true, so call initializeUser directly
         appReadyNotifier.value = true;

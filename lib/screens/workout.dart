@@ -34,7 +34,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   bool get isImperial =>
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
-  bool _loading = false;
   OverlayEntry? _heatmapTooltip;
   Timer? _resetTimer;
   Duration _timeUntilReset = Duration.zero;
@@ -50,15 +49,12 @@ class _WorkoutState extends ConsumerState<Workout> {
     _resetTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _updateResetCountdown();
     });
-    if (!isGuest && ref.read(userDataProvider).value == null) {
-      _loading = true;
-      ref.read(userDataProvider.notifier).loadUserData().then((_) {
-        if (mounted) setState(() => _loading = false);
-      });
-    }
     if (!isGuest) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(workoutProvider.notifier).loadWorkoutData();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (ref.read(userDataProvider).value == null) {
+          await ref.read(userDataProvider.notifier).loadUserData();
+        }
+        if (mounted) ref.read(workoutProvider.notifier).loadWorkoutData();
       });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1449,7 +1445,7 @@ class _WorkoutState extends ConsumerState<Workout> {
             else ...[
               Skeletonizer(
                 enabled:
-                    _loading ||
+                    !ref.watch(userDataLoadedProvider) ||
                     ref.watch(
                       workoutProvider.select(
                         (s) => s.value?.isLoading ?? false,

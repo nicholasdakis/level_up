@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'dart:math' as math;
 import '../globals.dart';
@@ -40,7 +39,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   );
 
   DateTime currentDate = DateTime.now();
-  late Future<void> _loadUserDataFuture;
 
   List<Map<String, dynamic>> breakfastFoods = [];
   List<Map<String, dynamic>> lunchFoods = [];
@@ -79,16 +77,19 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   // getters for nutrition goals
   double get _goalCalories =>
-      (ref.read(userDataProvider).value?.caloriesGoal ?? 0).toDouble();
+      (ref.watch(userDataProvider.select((s) => s.value?.caloriesGoal)) ?? 0)
+          .toDouble();
   double get _goalProtein =>
-      (ref.read(userDataProvider).value?.proteinGoal ?? 0).toDouble();
+      (ref.watch(userDataProvider.select((s) => s.value?.proteinGoal)) ?? 0)
+          .toDouble();
   double get _goalCarbs =>
-      (ref.read(userDataProvider).value?.carbsGoal ?? 0).toDouble();
+      (ref.watch(userDataProvider.select((s) => s.value?.carbsGoal)) ?? 0)
+          .toDouble();
   double get _goalFat =>
-      (ref.read(userDataProvider).value?.fatGoal ?? 0).toDouble();
+      (ref.watch(userDataProvider.select((s) => s.value?.fatGoal)) ?? 0)
+          .toDouble();
   bool get _goalsSet =>
-      ref.read(userDataProvider).value?.caloriesGoal !=
-      null; // true only if the user has set at least a calorie goal
+      ref.watch(userDataProvider.select((s) => s.value?.caloriesGoal)) != null;
 
   @override
   void initState() {
@@ -98,21 +99,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       screenClass: 'FoodLogging',
     );
     _loadCollapsedState();
-    _loadUserDataFuture = _loadUserDataAndInit();
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
-  }
-
-  Future<void> _loadUserDataAndInit() async {
-    if (isGuest ||
-        (ref.read(userDataProvider).value != null &&
-            ref.read(userDataProvider).value!.uid ==
-                FirebaseAuth.instance.currentUser?.uid)) {
-      await _refreshAndLoadFood();
-      return;
-    }
-    await ref.read(userDataProvider.notifier).loadUserData();
-    await _refreshAndLoadFood();
   }
 
   Future<void> _refreshAndLoadFood() async {
@@ -121,26 +109,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   }
 
   void loadFoodForDate(DateTime date) {
-    final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = ref.read(foodLogsProvider).value ?? [];
-    setState(() {
-      breakfastFoods = logs
-          .where((f) => f.date == dateKey && f.meal == 'breakfast')
-          .map((f) => f.toJson())
-          .toList();
-      lunchFoods = logs
-          .where((f) => f.date == dateKey && f.meal == 'lunch')
-          .map((f) => f.toJson())
-          .toList();
-      dinnerFoods = logs
-          .where((f) => f.date == dateKey && f.meal == 'dinner')
-          .map((f) => f.toJson())
-          .toList();
-      snacksFoods = logs
-          .where((f) => f.date == dateKey && f.meal == 'snacks')
-          .map((f) => f.toJson())
-          .toList();
-    });
+    setState(() => currentDate = date);
   }
 
   // Helper method for getting calories per meal type
@@ -1142,179 +1111,168 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _loadUserDataFuture,
-      builder: (context, snapshot) {
-        final isLoading = snapshot.connectionState != ConnectionState.done;
-        final colors = _mealColors(appColor);
+    final isLoading = !ref.watch(userDataLoadedProvider);
+    final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final logs = ref.watch(foodLogsProvider).value ?? [];
+    breakfastFoods = logs
+        .where((f) => f.date == dateKey && f.meal == 'breakfast')
+        .map((f) => f.toJson())
+        .toList();
+    lunchFoods = logs
+        .where((f) => f.date == dateKey && f.meal == 'lunch')
+        .map((f) => f.toJson())
+        .toList();
+    dinnerFoods = logs
+        .where((f) => f.date == dateKey && f.meal == 'dinner')
+        .map((f) => f.toJson())
+        .toList();
+    snacksFoods = logs
+        .where((f) => f.date == dateKey && f.meal == 'snacks')
+        .map((f) => f.toJson())
+        .toList();
+    final colors = _mealColors(appColor);
 
-        return Container(
-          decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Stack(
-              children: [
-                Skeletonizer(
-                  enabled: isLoading,
-                  effect: ShimmerEffect(
-                    baseColor: lightenColor(appColor, 0.3),
-                    highlightColor: lightenColor(appColor, 0.1),
-                    duration: const Duration(milliseconds: 1200),
-                  ),
-                  child: ListView(
-                    padding: EdgeInsets.only(
-                      left: Responsive.centeredHorizontalPadding(context, 20),
-                      right: Responsive.centeredHorizontalPadding(context, 20),
-                      top:
-                          MediaQuery.paddingOf(context).top +
-                          Responsive.height(context, 16),
-                      bottom: Responsive.height(context, 12),
-                    ),
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            Skeletonizer(
+              enabled: isLoading || !ref.watch(userDataLoadedProvider),
+              effect: ShimmerEffect(
+                baseColor: lightenColor(appColor, 0.3),
+                highlightColor: lightenColor(appColor, 0.1),
+                duration: const Duration(milliseconds: 1200),
+              ),
+              child: ListView(
+                padding: EdgeInsets.only(
+                  left: Responsive.centeredHorizontalPadding(context, 20),
+                  right: Responsive.centeredHorizontalPadding(context, 20),
+                  top:
+                      MediaQuery.paddingOf(context).top +
+                      Responsive.height(context, 16),
+                  bottom: Responsive.height(context, 12),
+                ),
+                children: [
+                  Row(
                     children: [
-                      Row(
+                      Expanded(
+                        child: DateNavigationRow(
+                          appColor: appColor,
+                          currentDate: currentDate,
+                          onDateChanged: (date) {
+                            setState(() => currentDate = date);
+                            loadFoodForDate(date);
+                          },
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _refreshAndLoadFood();
+                        }),
+                        child: Container(
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 12),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lightenColor(appColor, 0.1).withAlpha(20),
+                            border: Border.all(
+                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.refresh,
+                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            size: Responsive.font(context, 13),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: Responsive.height(context, 16)),
+                  _buildCaloriesBar(appColor),
+
+                  SizedBox(height: Responsive.height(context, 20)),
+                  _buildMacroGauges(appColor),
+
+                  SizedBox(height: Responsive.height(context, 8)),
+
+                  _buildMealSection(
+                    "breakfast",
+                    "Breakfast",
+                    breakfastFoods,
+                    colors[0],
+                  ),
+                  _buildMealSection("lunch", "Lunch", lunchFoods, colors[1]),
+                  _buildMealSection("dinner", "Dinner", dinnerFoods, colors[2]),
+                  _buildMealSection("snacks", "Snacks", snacksFoods, colors[3]),
+
+                  SizedBox(height: Responsive.height(context, 24)),
+
+                  // FatSecret terms require attribution to be visible without login
+                  if (isGuest)
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: DateNavigationRow(
-                              appColor: appColor,
-                              currentDate: currentDate,
-                              onDateChanged: (date) {
-                                setState(() => currentDate = date);
-                                loadFoodForDate(date);
-                              },
+                          GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse("https://platform.fatsecret.com"),
+                            ),
+                            child: Text(
+                              "Powered by FatSecret",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white24,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            "  ·  ",
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 11),
+                              color: Colors.white24,
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => setState(() {
-                              _loadUserDataFuture = _refreshAndLoadFood();
-                            }),
-                            child: Container(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 12),
-                              ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(
-                                  appColor,
-                                  0.1,
-                                ).withAlpha(20),
-                                border: Border.all(
-                                  color: lightenColor(
-                                    appColor,
-                                    0.3,
-                                  ).withAlpha(180),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.refresh,
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(180),
-                                size: Responsive.font(context, 13),
+                            onTap: () => launchUrl(
+                              Uri.parse("https://openfoodfacts.org"),
+                            ),
+                            child: Text(
+                              "Open Food Facts (ODbL)",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white24,
                               ),
                             ),
                           ),
                         ],
                       ),
+                    ),
 
-                      SizedBox(height: Responsive.height(context, 16)),
-                      _buildCaloriesBar(appColor),
-
-                      SizedBox(height: Responsive.height(context, 20)),
-                      _buildMacroGauges(appColor),
-
-                      SizedBox(height: Responsive.height(context, 8)),
-
-                      _buildMealSection(
-                        "breakfast",
-                        "Breakfast",
-                        breakfastFoods,
-                        colors[0],
-                      ),
-                      _buildMealSection(
-                        "lunch",
-                        "Lunch",
-                        lunchFoods,
-                        colors[1],
-                      ),
-                      _buildMealSection(
-                        "dinner",
-                        "Dinner",
-                        dinnerFoods,
-                        colors[2],
-                      ),
-                      _buildMealSection(
-                        "snacks",
-                        "Snacks",
-                        snacksFoods,
-                        colors[3],
-                      ),
-
-                      SizedBox(height: Responsive.height(context, 24)),
-
-                      // FatSecret terms require attribution to be visible without login
-                      if (isGuest)
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () => launchUrl(
-                                  Uri.parse("https://platform.fatsecret.com"),
-                                ),
-                                child: Text(
-                                  "Powered by FatSecret",
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 11),
-                                    color: Colors.white24,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: Colors.white24,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                "  ·  ",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 11),
-                                  color: Colors.white24,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () => launchUrl(
-                                  Uri.parse("https://openfoodfacts.org"),
-                                ),
-                                child: Text(
-                                  "Open Food Facts (ODbL)",
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 11),
-                                    color: Colors.white24,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: Colors.white24,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      // Extra space so content clears the floating nav bar
-                      SizedBox(height: Responsive.height(context, 100)),
-                    ],
-                  ),
-                ),
-                OnboardingHint(
-                  appColor: appColor,
-                  hintKey: 'food',
-                  title: 'Search for a food to get started',
-                  description:
-                      'Tap the + button to search, scan a barcode, or enter manually',
-                ),
-              ],
+                  // Extra space so content clears the floating nav bar
+                  SizedBox(height: Responsive.height(context, 100)),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            OnboardingHint(
+              appColor: appColor,
+              hintKey: 'food',
+              title: 'Search for a food to get started',
+              description:
+                  'Tap the + button to search, scan a barcode, or enter manually',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

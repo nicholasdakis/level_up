@@ -8,8 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../globals.dart'
-    show userManager, isGuest, snackBarDuration, dailyRewardCooldown;
+import '../globals.dart' show isGuest, snackBarDuration, dailyRewardCooldown;
 import '../guest.dart' show Guest;
 import 'weight_logs_provider.dart';
 import '../services/user_data_manager.dart'
@@ -24,6 +23,8 @@ import '../utility/image_crop_handler.dart';
 import '../services/profile_image_service.dart';
 
 class UserDataNotifierNew extends AsyncNotifier<UserData?> {
+  bool lastLoadFailed = false;
+
   @override
   // starts as null, AppInitScreen calls setUserData() once loading is done
   Future<UserData?> build() async => null;
@@ -176,12 +177,13 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         ),
       );
 
-      userManager.lastLoadFailed = false;
+      lastLoadFailed = false;
+      ref.read(userDataLoadedProvider.notifier).setLoaded();
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading user data: $e');
       // signals fetch failed so username dialog is not shown and backend decides on claim
       patch((u) => u.copyWith(canClaimDailyReward: true));
-      userManager.lastLoadFailed = true;
+      lastLoadFailed = true;
     }
   }
 
@@ -1005,4 +1007,16 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
 
 final userDataProvider = AsyncNotifierProvider<UserDataNotifierNew, UserData?>(
   UserDataNotifierNew.new,
+);
+
+// flips to true once loadUserData completes successfully for the first time
+class UserDataLoadedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setLoaded() => state = true;
+}
+
+final userDataLoadedProvider = NotifierProvider<UserDataLoadedNotifier, bool>(
+  UserDataLoadedNotifier.new,
 );

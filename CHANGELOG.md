@@ -2471,3 +2471,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Workout tab data (recent workouts, routines, heatmap, weekly count, today overview) now loads in parallel via Future.wait instead of sequentially, cutting worst-case load time from 40s to 8s
 - Converted AppShell from ConsumerStatefulWidget to ConsumerWidget, eliminating the 1-second setState timer that was rebuilding the entire shell every second; elapsed time now updates only in an isolated _MiniBarWrapper widget via workoutProvider.select
 - Made water and weight providers fetch on first watch so the home screen water and weight cards populate correctly on load with a skeletonizer
+- Added userDataLoadedProvider that flips to true once loadUserData completes
+-All tab screens gate their skeletonizers on this so they never render with wrong colors or stale goals etc
+- Removed FutureBuilder, _loadUserDataFuture, and _loadUserDataAndInit from food logging
+-Meal lists are now derived reactively in build from foodLogsProvider so food always reflects the latest state without manual reloads
+- Food logging goals (calories, protein, carbs, fat) now use ref.watch with .select instead of ref.read so they update immediately when user data loads

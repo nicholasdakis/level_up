@@ -123,9 +123,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     } catch (_) {}
 
     // version is fine, retry loading user data if it failed while offline
-    if (appInitialized && userManager.lastLoadFailed) {
+    if (appInitialized && ref.read(userDataProvider.notifier).lastLoadFailed) {
       await ref.read(userDataProvider.notifier).loadUserData();
-      if (!userManager.lastLoadFailed) {
+      if (!ref.read(userDataProvider.notifier).lastLoadFailed) {
         appReadyNotifier.value = true;
       }
     }

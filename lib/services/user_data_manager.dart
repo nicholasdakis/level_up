@@ -87,35 +87,33 @@ void initConnectivity() {
   });
 }
 
-class UserDataManager {
-  bool lastLoadFailed = false;
+// Calls the backend /progress endpoint to get the user's level, XP, and reward status
+// Separated into its own function so it can be called on pull-to-refresh and the leaderboard
+Future<Map<String, dynamic>> fetchProgress() async {
+  final response = await authenticatedGet('progress');
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+  throw Exception(
+    'getProgress failed: ${response.statusCode} ${response.body}',
+  );
+}
 
-  // Calls the backend /progress endpoint to get the user's level, XP, and reward status
-  // Separated into its own method so it can be called on pull-to-refresh and the leaderboard
-  static Future<Map<String, dynamic>> fetchProgress() async {
-    final response = await authenticatedGet('progress');
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    throw Exception(
-      'getProgress failed: ${response.statusCode} ${response.body}',
+// silently stores the user's timezone based on UTC offset
+Future<void> updateUtcOffset() async {
+  if (isGuest) return;
+  try {
+    final offset = DateTime.now().timeZoneOffset.inMinutes;
+    await authenticatedPost(
+      'update_utc_offset_minutes',
+      body: {'utc_offset': offset},
     );
+  } catch (e) {
+    if (kDebugMode) debugPrint('Error updating utc offset: $e');
   }
+}
 
-  // Method that silently stores the user's timezone based on UTC offset
-  Future<void> updateUtcOffset() async {
-    if (isGuest) return;
-    try {
-      final offset = DateTime.now().timeZoneOffset.inMinutes;
-      await authenticatedPost(
-        'update_utc_offset_minutes',
-        body: {'utc_offset': offset},
-      );
-    } catch (e) {
-      if (kDebugMode) debugPrint('Error updating utc offset: $e');
-    }
-  }
-
+class UserDataManager {
   Future<void> updateFoodDataByDateV2(
     Map<String, Map<String, List<Map<String, dynamic>>>> newFoodData, {
     BuildContext? context,

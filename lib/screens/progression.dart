@@ -129,7 +129,8 @@ class _ProgressionState extends ConsumerState<Progression> {
     }
 
     final cards = Skeletonizer(
-      enabled: !isGuest && _standingLoading,
+      enabled:
+          !isGuest && (_standingLoading || !ref.watch(userDataLoadedProvider)),
       effect: ShimmerEffect(
         baseColor: lightenColor(appColor, 0.3),
         highlightColor: lightenColor(appColor, 0.1),
