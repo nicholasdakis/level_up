@@ -54,6 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool _appReadyHandled = false;
   bool _adWatching = false;
   bool _shimmerPaused = false;
   bool _onboardingInProgress = false;
@@ -80,17 +81,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     confettiControllerinit();
 
-    if (ref.read(appReadyProvider) &&
-        !ref.read(userDataProvider.notifier).lastLoadFailed &&
-        !isNewUser) {
-      isLoading = false;
-    }
-
-    if (ref.read(appReadyProvider)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _onAppReady();
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && ref.read(appReadyProvider) && !_appReadyHandled) {
+        _appReadyHandled = true;
+        if (!ref.read(userDataProvider.notifier).lastLoadFailed && !isNewUser) {
+          setState(() => isLoading = false);
+        }
+        _onAppReady();
+      }
+    });
   }
 
   Future<void> _showWaterLogSheet() => showWaterLogSheet(context, appColor);
@@ -1045,7 +1044,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     ref.watch(userDataProvider); // drives rebuilds when user data changes
     ref.listen(appReadyProvider, (previous, next) {
-      if (next && !(previous ?? false)) _onAppReady();
+      if (next && !_appReadyHandled) {
+        _appReadyHandled = true;
+        _onAppReady();
+      }
     });
     return Stack(
       children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],

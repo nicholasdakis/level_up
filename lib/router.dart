@@ -528,7 +528,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
 
     if (mounted && !isGuest) FcmService.initialize(context, notifier);
 
-    ref.read(appReadyProvider.notifier).setReady();
+    appReadyNotifier.setReady();
   }
 
   @override
