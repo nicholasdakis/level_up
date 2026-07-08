@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'dart:ui';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
@@ -143,7 +143,7 @@ Future<void> showLevelUpOverlay(
   final controller = ConfettiController(duration: const Duration(seconds: 4));
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
-  final xpNeeded = userManager.experienceNeeded ?? 0;
+  final xpNeeded = ref.read(userDataProvider.notifier).experienceNeeded ?? 0;
   final currentXp = ref.read(userDataProvider).value?.expPoints ?? 0;
   // xpProgress is how far into the new level the user already is, used to fill the bar
   final xpProgress = xpNeeded > 0
@@ -155,7 +155,7 @@ Future<void> showLevelUpOverlay(
   // all values are peak/best/total, not current state, since this is an accomplishments summary
   final stats = <({IconData icon, String label, String value})>[];
   if (data != null) {
-    final totalXp = userManager.totalXpEarned;
+    final totalXp = ref.read(userDataProvider.notifier).totalXpEarned;
     if (totalXp != null && totalXp > 0) {
       stats.add((
         icon: HugeIcons.strokeRoundedStar,
@@ -187,7 +187,10 @@ Future<void> showLevelUpOverlay(
       ));
     }
     final waterLogs = ref.read(waterLogsProvider).value ?? {};
-    final totalWaterLogs = waterLogs.values.fold(0, (sum, list) => sum + list.length);
+    final totalWaterLogs = waterLogs.values.fold(
+      0,
+      (sum, list) => sum + list.length,
+    );
     if (totalWaterLogs > 0) {
       stats.add((
         icon: HugeIcons.strokeRoundedDroplet,

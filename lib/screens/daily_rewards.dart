@@ -116,6 +116,7 @@ class DailyRewardDialog {
 
     await showFrostedDialog(
       context: context,
+      appColor: appColor,
       dismissible: false,
       child: Column(
         mainAxisSize: MainAxisSize.min,

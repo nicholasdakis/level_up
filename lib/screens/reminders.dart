@@ -80,6 +80,7 @@ class _RemindersState extends ConsumerState<Reminders> {
   void _showNotificationsDisabledDialog() {
     showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "In-App Notifications Are Disabled",
       content: Text("Enable notifications to receive reminders."),
       actions: [
@@ -93,7 +94,9 @@ class _RemindersState extends ConsumerState<Reminders> {
               context,
               rootNavigator: true,
             ).pop(); // close dialog first
-            await userManager.updateNotificationsEnabled(true, context);
+            await ref
+                .read(userDataProvider.notifier)
+                .updateNotificationsEnabled(true, context);
 
             if (kIsWeb) {
               final token = await requestNotificationAndToken();
@@ -216,6 +219,7 @@ class _RemindersState extends ConsumerState<Reminders> {
     } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: appColor,
       title: "Delete reminder?",
       content: RichText(
         text: TextSpan(
@@ -273,6 +277,7 @@ class _RemindersState extends ConsumerState<Reminders> {
   ) async {
     await showFrostedDialog(
       context: context,
+      appColor: appColor,
       child: SizedBox(
         height: Responsive.height(context, 300),
         width: Responsive.width(context, 400),
@@ -580,6 +585,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                               GestureDetector(
                                 onTap: () => showFrostedAlertDialog(
                                   context: context,
+                                  appColor: appColor,
                                   title: "Notifications not working?",
                                   content: Column(
                                     crossAxisAlignment:
@@ -706,7 +712,11 @@ class _RemindersState extends ConsumerState<Reminders> {
                           ],
                         ),
                       ),
-                      sectionHeader("REMINDER DETAILS", context),
+                      sectionHeader(
+                        "REMINDER DETAILS",
+                        context,
+                        appColor: appColor,
+                      ),
                       frostedGlassCard(
                         context,
                         color: appColor,
@@ -903,7 +913,11 @@ class _RemindersState extends ConsumerState<Reminders> {
                       SizedBox(height: Responsive.height(context, 28)),
 
                       // --- Section header ---
-                      sectionHeader("UPCOMING REMINDERS", context),
+                      sectionHeader(
+                        "UPCOMING REMINDERS",
+                        context,
+                        appColor: appColor,
+                      ),
 
                       // Reminder list or empty state
                       Builder(

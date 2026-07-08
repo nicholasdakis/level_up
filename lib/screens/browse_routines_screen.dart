@@ -272,7 +272,8 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                           sectionHeader(
                             'FEATURED',
                             context,
-                            padding: EdgeInsets.only(
+                            appColor: appColor,
+                        padding: EdgeInsets.only(
                               left: Responsive.centeredHorizontalPadding(
                                 context,
                                 20,
@@ -312,7 +313,8 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
                           sectionHeader(
                             'COMMUNITY',
                             context,
-                            padding: EdgeInsets.only(
+                            appColor: appColor,
+                        padding: EdgeInsets.only(
                               left: Responsive.centeredHorizontalPadding(
                                 context,
                                 20,

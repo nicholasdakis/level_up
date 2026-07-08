@@ -86,6 +86,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
     showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: 'Choose Meal Type',
       content: Column(
         mainAxisSize: MainAxisSize.min,

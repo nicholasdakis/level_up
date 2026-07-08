@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../globals.dart';
+import '../services/user_data_manager.dart' show defaultAppColor;
 import '../guest.dart';
 import '../router.dart';
 import 'auth_services.dart';
@@ -379,6 +380,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
       if (e.code == 'new-user-no-tos') {
         await showFrostedAlertDialog(
           context: context,
+          appColor: defaultAppColor,
           title: "One more step",
           content: Text(
             "Please agree to the Privacy Policy and Terms of Service before creating an account.",

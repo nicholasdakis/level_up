@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../firebase_options.dart';
-import '../../globals.dart' hide UserDataNotifier;
 import '../../providers/user_data_provider.dart';
 import '../user_data_manager.dart' show fcmVapidKey;
 
@@ -27,7 +26,7 @@ class FcmService {
   // Initializes FCM, saves the device token, and sets up message listeners
   static Future<void> initialize(
     BuildContext context,
-    UserDataNotifier notifier,
+    UserDataNotifierNew notifier,
   ) async {
     // Background message handler must be registered before any other FCM events
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -101,7 +100,7 @@ class FcmService {
 
   // Re-fetches the FCM token and updates Firestore if it changed
   // Called when the web tab regains visibility after being suspended
-  static Future<void> refreshToken(UserDataNotifier notifier) async {
+  static Future<void> refreshToken(UserDataNotifierNew notifier) async {
     String? deviceToken;
     try {
       deviceToken = await web_fcm
@@ -112,8 +111,7 @@ class FcmService {
     }
 
     if (deviceToken != null &&
-        (currentUserData == null ||
-            !currentUserData!.fcmTokens.contains(deviceToken))) {
+        !notifier.currentFcmTokens.contains(deviceToken)) {
       await notifier.addFcmToken(deviceToken);
     }
   }
@@ -121,7 +119,7 @@ class FcmService {
 
 // Watches for app resume events on web and re-fetches the FCM token
 class _FcmLifecycleObserver extends WidgetsBindingObserver {
-  final UserDataNotifier notifier;
+  final UserDataNotifierNew notifier;
   _FcmLifecycleObserver(this.notifier);
 
   @override

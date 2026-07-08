@@ -1,11 +1,11 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import '../globals.dart' hide UserDataNotifier;
+import '../globals.dart';
 import '../providers/user_data_provider.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
@@ -23,7 +23,7 @@ class AuthService {
   Stream<User?> get authStateChanges =>
       firebaseAuth.authStateChanges(); // to see if user is connected
 
-  Future<void> signOut(UserDataNotifier notifier) async {
+  Future<void> signOut(UserDataNotifierNew notifier) async {
     if (isGuest) {
       Guest.exit();
       return;

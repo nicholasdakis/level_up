@@ -88,6 +88,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     final name = _cleanName(_exercises[exIndex]['name'] as String? ?? '');
     final result = await showFrostedDialog<String>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,6 +158,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     if (name.isEmpty) {
       showFrostedAlertDialog<void>(
         context: context,
+        appColor: appColor,
         title: 'Name required',
         content: Text(
           'Give your routine a name before saving.',
@@ -174,6 +176,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     if (_exercises.isEmpty) {
       showFrostedAlertDialog<void>(
         context: context,
+        appColor: appColor,
         title: 'No exercises',
         content: Text(
           'Add at least one exercise before saving.',

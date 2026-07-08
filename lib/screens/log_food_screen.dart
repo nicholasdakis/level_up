@@ -511,6 +511,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
     await showFrostedDialog(
       context: context,
+      appColor: appColor,
       child: StatefulBuilder(
         builder: (ctx, setDialogState) {
           return Column(
@@ -577,6 +578,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                   // Pick unit via a second dialog stacked on top
                                   final picked = await showFrostedDialog<String>(
                                     context: ctx,
+                                    appColor: appColor,
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
@@ -688,6 +690,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                     if (!mounted) return;
                                     await showFrostedAlertDialog(
                                       context: context,
+                                      appColor: appColor,
                                       title: "Custom Unit",
                                       content: TextField(
                                         controller: _customUnitController,
@@ -895,6 +898,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                       if (fat.isEmpty && carbs.isEmpty && protein.isEmpty) {
                         showFrostedAlertDialog(
                           context: context,
+                          appColor: appColor,
                           title: "No macronutrients entered!",
                           content: Text(
                             "You haven't entered any fat, carbs, or protein. Log anyway?",

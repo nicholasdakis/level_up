@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -138,7 +139,18 @@ Widget buildSettingsDrawer(
                             ),
                           ),
                           child: ClipOval(
-                            child: userManager.insertProfilePicture(),
+                            child: userData?.pfpBase64 != null
+                                ? Image.memory(
+                                    base64Decode(userData!.pfpBase64!),
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
                           ),
                         ),
                         SizedBox(width: Responsive.width(context, 14)),
@@ -289,6 +301,7 @@ Widget buildSettingsDrawer(
                       // Dialog box for confirming logout
                       final confirmed = await showFrostedAlertDialog<bool>(
                         context: context,
+                        appColor: appColor,
                         title: "Confirm Logout",
                         actions: [
                           TextButton(

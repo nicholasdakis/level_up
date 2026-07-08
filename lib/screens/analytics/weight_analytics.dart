@@ -527,6 +527,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                 GestureDetector(
                   onTap: () async {
                     final picked = await showThemedDatePicker(
+                      appColor: appColor,
                       context: context,
                       initialDate: _addDate,
                       firstDate: DateTime(2020),
@@ -764,13 +765,14 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                               ['1W', '2W', '1M', '3M', 'All'],
                               _chipIndex,
                               _applyChip,
+                              appColor: appColor,
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))
                             .fadeIn(duration: 250.ms),
 
                         SizedBox(height: Responsive.height(context, 24)),
 
-                        sectionHeader("GRAPH", context),
+                        sectionHeader("GRAPH", context, appColor: appColor),
 
                         _buildChart(context, entries)
                             .animate(key: ValueKey(('chart', _animationKey)))
@@ -783,7 +785,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
                         if (entries.isNotEmpty) ...[
                           SizedBox(height: Responsive.height(context, 24)),
-                          sectionHeader("INFO", context),
+                          sectionHeader("INFO", context, appColor: appColor),
                           _buildStatTiles(context, entries)
                               .animate(key: ValueKey(('tiles', _animationKey)))
                               .fadeIn(delay: 50.ms, duration: 300.ms)
@@ -797,7 +799,11 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
                         SizedBox(height: Responsive.height(context, 24)),
 
-                        sectionHeader("ALL ENTRIES", context),
+                        sectionHeader(
+                          "ALL ENTRIES",
+                          context,
+                          appColor: appColor,
+                        ),
 
                         _buildLogEntries(context),
 

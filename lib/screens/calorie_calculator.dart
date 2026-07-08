@@ -534,7 +534,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                     ),
                   ),
                   // SECTION: BASIC INFO
-                  sectionHeader("BASIC INFO", context),
+                  sectionHeader("BASIC INFO", context, appColor: appColor),
                   frostedGlassCard(
                     context,
                     color: appColor,
@@ -668,7 +668,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 24)),
 
                   // SECTION: MEASUREMENTS
-                  sectionHeader("MEASUREMENTS", context),
+                  sectionHeader("MEASUREMENTS", context, appColor: appColor),
                   frostedGlassCard(
                     context,
                     color: appColor,
@@ -854,7 +854,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 24)),
 
                   // SECTION: GOAL
-                  sectionHeader("GOAL", context),
+                  sectionHeader("GOAL", context, appColor: appColor),
                   frostedGlassCard(
                     context,
                     color: appColor,
@@ -886,7 +886,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 24)),
 
                   // SECTION: ACTIVITY LEVEL
-                  sectionHeader("ACTIVITY LEVEL", context),
+                  sectionHeader("ACTIVITY LEVEL", context, appColor: appColor),
                   frostedGlassCard(
                     context,
                     color: appColor,
@@ -930,7 +930,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 16)),
 
                   // Activity level descriptions so the user knows what each option means
-                  sectionHeader("ACTIVITY INFO", context),
+                  sectionHeader("ACTIVITY INFO", context, appColor: appColor),
                   frostedGlassCard(
                     context,
                     color: appColor,

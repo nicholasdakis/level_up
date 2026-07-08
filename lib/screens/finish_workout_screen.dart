@@ -86,7 +86,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
 
     final exp =
         ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0;
-    final expNeeded = userManager.experienceNeeded ?? 1;
+    final expNeeded = ref.read(userDataProvider.notifier).experienceNeeded ?? 1;
     final barFraction = (exp / expNeeded).clamp(0.0, 1.0);
 
     // collect unique primary and secondary muscles across all exercises

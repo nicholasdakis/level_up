@@ -291,8 +291,9 @@ Widget buildRangeChips(
   BuildContext context,
   List<String> labels,
   int selectedIndex,
-  void Function(int) onTap,
-) {
+  void Function(int) onTap, {
+  required Color appColor,
+}) {
   final accent = lightenColor(appColor, 0.45);
   Widget chip(int i) => GestureDetector(
     onTap: () => onTap(i),

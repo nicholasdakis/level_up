@@ -324,6 +324,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     final result = await showFrostedDialog<int>(
       context: context,
+      appColor: appColor,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
           final accent = lightenColor(appColor, 0.45);
@@ -418,10 +419,9 @@ class _WorkoutState extends ConsumerState<Workout> {
     );
 
     if (result != null) {
-      await userManager.updateGoals(
-        weeklyWorkoutsGoal: result,
-        context: context,
-      );
+      await ref
+          .read(userDataProvider.notifier)
+          .updateGoals(weeklyWorkoutsGoal: result, context: context);
       if (mounted) setState(() {});
     }
   }
@@ -545,6 +545,7 @@ class _WorkoutState extends ConsumerState<Workout> {
     final dim = lightenColor(appColor, 0.35);
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: appColor,
       title: 'Delete Routine',
       content: Text(
         'Remove "${routine['name']}" from your routines?',
@@ -599,6 +600,7 @@ class _WorkoutState extends ConsumerState<Workout> {
   void _showNoRoutinesDialog(BuildContext context, Color accent, Color dim) {
     showFrostedDialog(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -937,6 +939,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                             if (workoutSessionService.isActive) {
                               showFrostedAlertDialog<void>(
                                 context: context,
+                                appColor: appColor,
                                 title: 'Workout in progress',
                                 content: Text(
                                   'Finish or discard your current workout before starting a new one.',
@@ -1439,24 +1442,40 @@ class _WorkoutState extends ConsumerState<Workout> {
                                 MediaQuery.paddingOf(context).top +
                                 Responsive.height(context, 24),
                           ),
-                          sectionHeader("WORKOUT", context),
+                          sectionHeader("WORKOUT", context, appColor: appColor),
                           _animate(_buildGoalCard(context), 0.ms),
                           SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("START", context),
+                          sectionHeader("START", context, appColor: appColor),
                           _animate(_buildStartWorkoutCard(context), 60.ms),
                           SizedBox(height: Responsive.height(context, 12)),
                           _animate(_buildRoutineActionCards(context), 120.ms),
                           SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("MY ROUTINES", context),
+                          sectionHeader(
+                            "MY ROUTINES",
+                            context,
+                            appColor: appColor,
+                          ),
                           _animate(_buildMyRoutinesCard(context), 180.ms),
                           SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("TODAY'S OVERVIEW", context),
+                          sectionHeader(
+                            "TODAY'S OVERVIEW",
+                            context,
+                            appColor: appColor,
+                          ),
                           _animate(_buildLiftsCard(context), 240.ms),
                           SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("ACTIVITY HEATMAP", context),
+                          sectionHeader(
+                            "ACTIVITY HEATMAP",
+                            context,
+                            appColor: appColor,
+                          ),
                           _animate(_buildHeatmapCard(context), 300.ms),
                           SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("RECENT WORKOUTS", context),
+                          sectionHeader(
+                            "RECENT WORKOUTS",
+                            context,
+                            appColor: appColor,
+                          ),
                           _animate(_buildRecentWorkoutsCard(context), 360.ms),
                           SizedBox(height: Responsive.height(context, 120)),
                         ],
@@ -1466,6 +1485,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                 ),
               ),
               OnboardingHint(
+                appColor: appColor,
                 hintKey: 'workout',
                 title: 'Start your first workout',
                 description:
@@ -1530,10 +1550,10 @@ class _WorkoutState extends ConsumerState<Workout> {
                     MediaQuery.paddingOf(context).top +
                     Responsive.height(context, 24),
               ),
-              sectionHeader("WORKOUT", context),
+              sectionHeader("WORKOUT", context, appColor: appColor),
               _guestLock(context, _buildGoalCard(context)),
               SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("START", context),
+              sectionHeader("START", context, appColor: appColor),
               _guestLock(
                 context,
                 Column(
@@ -1545,16 +1565,16 @@ class _WorkoutState extends ConsumerState<Workout> {
                 ),
               ),
               SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("MY ROUTINES", context),
+              sectionHeader("MY ROUTINES", context, appColor: appColor),
               _guestLock(context, _buildMyRoutinesCard(context)),
               SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("TODAY'S OVERVIEW", context),
+              sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
               _guestLock(context, _buildLiftsCard(context)),
               SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("ACTIVITY HEATMAP", context),
+              sectionHeader("ACTIVITY HEATMAP", context, appColor: appColor),
               _guestLock(context, _buildHeatmapCard(context)),
               SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("RECENT WORKOUTS", context),
+              sectionHeader("RECENT WORKOUTS", context, appColor: appColor),
               _guestLock(context, _buildRecentWorkoutsCard(context)),
               SizedBox(height: Responsive.height(context, 120)),
             ],

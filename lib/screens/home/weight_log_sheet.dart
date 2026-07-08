@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,6 +124,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
     );
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: widget.appColor,
       title: "Delete Entry",
       content: Text(
         "Delete $entryDisplay ${UnitConverter.weightUnit(imperial: isImperial)} from ${labelFor(DateTime.parse(entryKey))}?",
@@ -236,6 +237,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                           GestureDetector(
                             onTap: () async {
                               final picked = await showThemedDatePicker(
+                                appColor: appColor,
                                 context: context,
                                 initialDate: selectedDate,
                                 firstDate: DateTime(2020),

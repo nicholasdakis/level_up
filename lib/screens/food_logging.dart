@@ -187,6 +187,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: appColor,
       title: "Delete food?",
       content: Text(
         "Are you sure you want to remove ${foods[idx]['food_name'] ?? 'this food'}?",
@@ -408,6 +409,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
     final result = await showFrostedDialog<int>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -467,13 +469,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
 
     if (result != null) {
-      await userManager.updateNutritionGoals(
-        caloriesGoal: type == 'calories' ? result : null,
-        proteinGoal: type == 'protein' ? result : null,
-        carbsGoal: type == 'carbs' ? result : null,
-        fatGoal: type == 'fat' ? result : null,
-        context: context,
-      );
+      await ref
+          .read(userDataProvider.notifier)
+          .updateNutritionGoals(
+            caloriesGoal: type == 'calories' ? result : null,
+            proteinGoal: type == 'protein' ? result : null,
+            carbsGoal: type == 'carbs' ? result : null,
+            fatGoal: type == 'fat' ? result : null,
+            context: context,
+          );
       if (mounted) setState(() {});
     }
   }
@@ -1171,6 +1175,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         children: [
                           Expanded(
                             child: DateNavigationRow(
+                              appColor: appColor,
                               currentDate: currentDate,
                               onDateChanged: (date) {
                                 setState(() => currentDate = date);
@@ -1299,6 +1304,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   ),
                 ),
                 OnboardingHint(
+                  appColor: appColor,
                   hintKey: 'food',
                   title: 'Search for a food to get started',
                   description:

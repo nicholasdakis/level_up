@@ -2462,3 +2462,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-07
 - Fixed home screen getting stuck on the loading skeleton due to AppInitScreen unmounting before _initApp completed, which caused the mounted check to bail before setting appReadyNotifier to true
+
+## 2026-07-08
+- Deleted the legacy UserDataNotifier ValueNotifier and global appColor/currentUserData getters
+- Moved all user data mutations (updateGoals, updateNutritionGoals, updateWeightGoal, updateWaterGoal, updateWeeklyWorkoutsGoal, updateUnits, updateAppColor, updateNotificationsEnabled, updateProfilePicture) from UserDataManager into UserDataNotifierNew with optimistic update and rollback on failure
+- All UI utility functions (frostedGlassCard, frostedButton, sectionHeader, showFrostedDialog, showFrostedAlertDialog, showThemedDatePicker, socialLink, buildThemeGradient, DateNavigationRow, OnboardingHint, createTitle) now receive appColor as an explicit parameter instead of reading a global

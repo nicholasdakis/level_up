@@ -193,6 +193,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                   sectionHeader(
                     "CHROMIUM-BASED BROWSERS (RECOMMENDED)",
                     context,
+                    appColor: appColor,
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +245,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                   ),
 
                   // iPhone section
-                  sectionHeader("IPHONE (SAFARI)", context),
+                  sectionHeader("IPHONE (SAFARI)", context, appColor: appColor),
                   Text(
                     "Must use Safari - other browsers on iOS don't support PWA install. The \"Install as PWA\" button in the Settings drawer does not work on iPhone.",
                     style: GoogleFonts.manrope(
@@ -279,7 +280,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                   ),
 
                   // Non-Chromium section
-                  sectionHeader("OTHER BROWSERS", context),
+                  sectionHeader("OTHER BROWSERS", context, appColor: appColor),
                   Text(
                     "e.g. Firefox, Samsung Internet - PWA install is not natively supported. Consider switching to a Chromium-based browser or installing an extension.",
                     style: GoogleFonts.manrope(
@@ -327,6 +328,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                         url:
                             "https://addons.mozilla.org/en-US/firefox/addon/pwas-for-firefox/",
                         context: context,
+                        appColor: appColor,
                       ),
                     ],
                   ),

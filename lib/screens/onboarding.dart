@@ -78,6 +78,7 @@ Future<String?> showOnboardingWizard(
 
   wizardChoice = await showFrostedDialog<String>(
     context: context,
+    appColor: appColor,
     dismissible: false,
     maxWidth: 460,
     child: StatefulBuilder(

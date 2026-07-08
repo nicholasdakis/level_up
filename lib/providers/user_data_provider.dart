@@ -1,4 +1,7 @@
+﻿import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'dart:io';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +18,12 @@ import '../services/user_data_manager.dart'
         authenticatedGet,
         isConnected,
         UserDataManager,
+        defaultAppColor,
         initConnectivity;
+import '../utility/image_crop_handler.dart';
+import '../services/profile_image_service.dart';
 
-class UserDataNotifier extends AsyncNotifier<UserData?> {
+class UserDataNotifierNew extends AsyncNotifier<UserData?> {
   @override
   // starts as null, AppInitScreen calls setUserData() once loading is done
   Future<UserData?> build() async => null;
@@ -25,6 +31,28 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
   // replaces the entire UserData object, called after a full backend load
   void setUserData(UserData? data) {
     state = AsyncData(data);
+  }
+
+  // safe to call from non-widget code that holds a notifier reference
+  List<String> get currentFcmTokens => state.value?.fcmTokens ?? [];
+  UserData? get currentUserData => state.value;
+
+  int? get experienceNeeded {
+    final level = state.value?.level;
+    if (level == null) return null;
+    final exp = (100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)).round();
+    return (exp / 10).round() * 10;
+  }
+
+  int? get totalXpEarned {
+    final u = state.value;
+    if (u == null) return null;
+    int total = 0;
+    for (int level = 1; level < u.level; level++) {
+      final exp = (100 * pow(1.25, level - 0.5) * 1.05 + (level * 10)).round();
+      total += (exp / 10).round() * 10;
+    }
+    return total + u.expPoints;
   }
 
   // loads all user data from the backend; builds a complete UserData and sets it once
@@ -163,19 +191,6 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     if (current != null) state = AsyncData(updater(current));
   }
 
-  // optimistically flips the flag locally, rolls back if the backend call fails
-  Future<void> setNotificationsEnabled(bool value, BuildContext context) async {
-    final previous = state.value;
-    if (previous == null) return;
-    state = AsyncData(previous.copyWith(notificationsEnabled: value));
-    try {
-      await userManager.updateNotificationsEnabled(value, context);
-    } catch (e) {
-      state = AsyncData(previous);
-      rethrow;
-    }
-  }
-
   // applies all onboarding selections to local state and syncs each to the backend
   // TODO: move backend calls out of userManager and into this notifier
   Future<void> commitOnboarding({
@@ -221,10 +236,10 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     });
 
     if (weightGoalType != null) {
-      userManager.updateWeightGoal(weightGoalType: weightGoalType);
+      await updateWeightGoal(weightGoalType: weightGoalType);
     }
     if (selectedUnits != null && selectedUnits != currentUnits) {
-      userManager.updateUnits(selectedUnits, context, showFeedback: false);
+      await updateUnits(selectedUnits, context, showFeedback: false);
     }
     if (currentWeightKg != null && dateKey != null) {
       ref
@@ -232,13 +247,13 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
           .updateWeightLog(dateKey, currentWeightKg);
     }
     if (weightKgGoal != null) {
-      userManager.updateWeightGoal(weightKgGoal: weightKgGoal);
+      await updateWeightGoal(weightKgGoal: weightKgGoal);
     }
     if (caloriesGoal != null && caloriesGoal > 0) {
-      userManager.updateGoals(caloriesGoal: caloriesGoal);
+      await updateGoals(caloriesGoal: caloriesGoal);
     }
     if (proteinGoal != null && carbsGoal != null && fatGoal != null) {
-      userManager.updateGoals(
+      await updateGoals(
         proteinGoal: proteinGoal,
         carbsGoal: carbsGoal,
         fatGoal: fatGoal,
@@ -502,14 +517,490 @@ class UserDataNotifier extends AsyncNotifier<UserData?> {
     if (previous == null) return;
     state = AsyncData(previous.copyWith(appColor: color));
     try {
-      await userManager.updateAppColor(color, context);
+      final int argbInt = color.toARGB32();
+      final bool isDefaultColor = argbInt == defaultAppColor.toARGB32();
+      final response = await authenticatedPost(
+        'update_app_color',
+        body: {'app_color': argbInt},
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_app_color failed: ${response.statusCode}');
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isDefaultColor ? "Theme color reset!" : "Theme color updated!",
+            ),
+            duration: snackBarDuration,
+          ),
+        );
+      }
     } catch (e) {
       state = AsyncData(previous);
-      rethrow;
+      if (context.mounted) {
+        final message = e is TimeoutException
+            ? "Connection is slow. Please try again."
+            : isConnected
+            ? "Error updating theme color."
+            : "No connection. Please try again when online.";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), duration: snackBarDuration),
+        );
+      }
     }
+  }
+
+  Future<void> updateNotificationsEnabled(
+    bool enabled,
+    BuildContext context,
+  ) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(previous.copyWith(notificationsEnabled: enabled));
+    try {
+      final response = await authenticatedPost(
+        'update_notifications',
+        body: {'enabled': enabled},
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_notifications failed: ${response.statusCode}');
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Notification preferences updated successfully."),
+            duration: Duration(milliseconds: 500),
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context.mounted) {
+        final message = !isConnected
+            ? "No connection. Please try again when online."
+            : e is TimeoutException
+            ? "Connection is slow. Please try again."
+            : "Error updating notification preferences.";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), duration: snackBarDuration),
+        );
+      }
+    }
+  }
+
+  Future<void> updateUnits(
+    String units,
+    BuildContext context, {
+    bool showFeedback = true,
+  }) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(previous.copyWith(units: units));
+    try {
+      final response = await authenticatedPost(
+        'update_units',
+        body: {'units': units},
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_units failed: ${response.statusCode}');
+      }
+      if (showFeedback && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Units updated successfully."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !isConnected
+                  ? "No connection. Please try again when online."
+                  : "Error updating unit preference.",
+            ),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateGoals({
+    int? caloriesGoal,
+    int? proteinGoal,
+    int? carbsGoal,
+    int? fatGoal,
+    String? weightGoalType,
+    int? weeklyWorkoutsGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(
+      previous.copyWith(
+        caloriesGoal: caloriesGoal ?? previous.caloriesGoal,
+        proteinGoal: proteinGoal ?? previous.proteinGoal,
+        carbsGoal: carbsGoal ?? previous.carbsGoal,
+        fatGoal: fatGoal ?? previous.fatGoal,
+        weightGoalType: weightGoalType ?? previous.weightGoalType,
+        weeklyWorkoutsGoal: weeklyWorkoutsGoal ?? previous.weeklyWorkoutsGoal,
+      ),
+    );
+    try {
+      final response = await authenticatedPost(
+        'update_goals',
+        body: {
+          'calories_goal': caloriesGoal,
+          'protein_goal': proteinGoal,
+          'carbs_goal': carbsGoal,
+          'fat_goal': fatGoal,
+          'weight_goal_type': weightGoalType,
+          'weekly_workouts_goal': weeklyWorkoutsGoal,
+        },
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_goals failed: ${response.statusCode}');
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Goals updated successfully."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating goals: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateNutritionGoals({
+    int? caloriesGoal,
+    int? proteinGoal,
+    int? carbsGoal,
+    int? fatGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(
+      previous.copyWith(
+        caloriesGoal: caloriesGoal ?? previous.caloriesGoal,
+        proteinGoal: proteinGoal ?? previous.proteinGoal,
+        carbsGoal: carbsGoal ?? previous.carbsGoal,
+        fatGoal: fatGoal ?? previous.fatGoal,
+      ),
+    );
+    try {
+      final response = await authenticatedPost(
+        'update_nutrition_goals',
+        body: {
+          'calories_goal': caloriesGoal,
+          'protein_goal': proteinGoal,
+          'carbs_goal': carbsGoal,
+          'fat_goal': fatGoal,
+        },
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_nutrition_goals failed: ${response.statusCode}',
+        );
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Nutrition goals updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating nutrition goals: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWeightGoal({
+    String? weightGoalType,
+    double? weightKgGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null) return;
+    state = AsyncData(
+      previous.copyWith(
+        weightGoalType: weightGoalType ?? previous.weightGoalType,
+        weightKgGoal: weightKgGoal ?? previous.weightKgGoal,
+      ),
+    );
+    try {
+      final response = await authenticatedPost(
+        'update_weight_goal',
+        body: {
+          'weight_goal_type': weightGoalType,
+          'weight_kg_goal': weightKgGoal,
+        },
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_weight_goal failed: ${response.statusCode}');
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Weight goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating weight goal: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWaterGoal({
+    int? waterMlGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null || waterMlGoal == null) return;
+    state = AsyncData(previous.copyWith(waterMlGoal: waterMlGoal));
+    try {
+      final response = await authenticatedPost(
+        'update_water_goal',
+        body: {'water_ml_goal': waterMlGoal},
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_water_goal failed: ${response.statusCode}');
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Water goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating water goal: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateWeeklyWorkoutsGoal({
+    int? weeklyWorkoutsGoal,
+    BuildContext? context,
+  }) async {
+    if (isGuest) {
+      if (context != null) Guest.block(context);
+      return;
+    }
+    final previous = state.value;
+    if (previous == null || weeklyWorkoutsGoal == null) return;
+    state = AsyncData(
+      previous.copyWith(weeklyWorkoutsGoal: weeklyWorkoutsGoal),
+    );
+    try {
+      final response = await authenticatedPost(
+        'update_weekly_workouts_goal',
+        body: {'weekly_workouts_goal': weeklyWorkoutsGoal},
+        timeout: const Duration(seconds: 2),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'update_weekly_workouts_goal failed: ${response.statusCode}',
+        );
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Workout goal updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncData(previous);
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating workout goal: $e"),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateProfilePicture(
+    File? file, {
+    VoidCallback? onProfileUpdated,
+    required BuildContext context,
+    Uint8List? imageInBytes,
+  }) async {
+    if (isGuest) {
+      Guest.block(context);
+      return;
+    }
+    if (kIsWeb) {
+      final cropped = await ImageCropHelper.cropPicture(
+        webBytes: imageInBytes,
+        context: context,
+      );
+      if (cropped == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture update cancelled."),
+            duration: snackBarDuration,
+          ),
+        );
+        return;
+      }
+      imageInBytes = await ImageCropHelper.getBytes(cropped);
+    } else {
+      final cropped = await ImageCropHelper.cropPicture(
+        mobileFile: file,
+        context: context,
+      );
+      if (cropped == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture update cancelled."),
+            duration: snackBarDuration,
+          ),
+        );
+        return;
+      }
+      file = File(cropped.path);
+    }
+    if (!await ProfileImageService.checkSize(
+      file,
+      context,
+      isWeb: kIsWeb,
+      webBytes: imageInBytes,
+    )) {
+      return;
+    }
+    try {
+      final base64String = kIsWeb
+          ? base64Encode(await ProfileImageService.compressWeb(imageInBytes!))
+          : base64Encode(await ProfileImageService.compressMobile(file!));
+      final response = await authenticatedPost(
+        'update_pfp',
+        body: {'pfp_base64': base64String},
+        timeout: Duration(seconds: 5),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('update_pfp failed: ${response.statusCode}');
+      }
+      patch((u) => u.copyWith(pfpBase64: base64String));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Profile picture successfully updated."),
+            duration: snackBarDuration,
+          ),
+        );
+      }
+      onProfileUpdated?.call();
+    } catch (e) {
+      if (context.mounted) {
+        final message = !isConnected
+            ? "No connection. Please try again when online."
+            : e is TimeoutException
+            ? "Connection is slow. Please try again."
+            : "Profile picture update unsuccessful: $e";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), duration: snackBarDuration),
+        );
+      }
+    }
+  }
+
+  Future<void> updateFoodLogStreak() async {
+    final today = DateTime.now();
+    final todayKey =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    if (state.value?.foodLogStreakLastDate == todayKey) return;
+    try {
+      final streaks = await UserDataManager.fetchStreaks();
+      final foodRow = streaks.firstWhere(
+        (s) => s['streak_type'] == 'food_streak',
+        orElse: () => {},
+      );
+      patch(
+        (u) => u.copyWith(
+          foodLogStreak: (foodRow['streak'] as int?) ?? 0,
+          foodLogStreakBest: (foodRow['highest_streak'] as int?) ?? 0,
+          foodLogStreakLastDate: foodRow['last_date'] as String?,
+        ),
+      );
+    } catch (_) {}
   }
 }
 
-final userDataProvider = AsyncNotifierProvider<UserDataNotifier, UserData?>(
-  UserDataNotifier.new,
+final userDataProvider = AsyncNotifierProvider<UserDataNotifierNew, UserData?>(
+  UserDataNotifierNew.new,
 );

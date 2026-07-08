@@ -274,6 +274,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Future<bool> _confirmDiscard() async {
     final result = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: appColor,
       title: 'Discard workout?',
       content: Text(
         'All progress will be lost.',
@@ -299,6 +300,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     if (_completedSets == 0) {
       showFrostedAlertDialog<void>(
         context: context,
+        appColor: appColor,
         title: 'No sets logged',
         content: Text(
           'Check off at least one set before finishing.',
@@ -325,6 +327,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     );
     final confirmedName = await showFrostedDialog<String>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,6 +438,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     if (exercises.isEmpty) {
       showFrostedAlertDialog<void>(
         context: context,
+        appColor: appColor,
         title: 'No valid sets',
         content: Text(
           'Enter reps or weight for at least one checked set.',
@@ -612,6 +616,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
     final result = await showFrostedDialog<String>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -656,6 +661,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     final dim = lightenColor(appColor, 0.35);
     showFrostedDialog<void>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1035,6 +1041,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     final ctrl = TextEditingController(text: _workoutName);
     final result = await showFrostedDialog<String>(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

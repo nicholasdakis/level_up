@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
@@ -110,7 +110,6 @@ final GoRouter appRouter = GoRouter(
     // if a real Firebase user signed in while in guest mode, clear guest state so init runs fresh
     if (isGuest && FirebaseAuth.instance.currentUser != null) {
       isGuest = false;
-      userDataNotifier.value = null;
       appInitialized = false;
       appReadyNotifier.value = false;
       guestNotifier.value = false;
@@ -500,10 +499,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
 
     userManager.updateUtcOffset();
 
-    // keep the legacy global in sync so buildThemeGradient() and other globals still work
-    // userDataNotifier is kept in sync by loadUserData, safe to read without ref
-    final userData = userDataNotifier.value;
-    userDataNotifier.value = userData;
+    final userData = notifier.currentUserData;
 
     if (userData != null) {
       try {

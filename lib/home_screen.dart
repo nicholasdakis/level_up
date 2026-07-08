@@ -297,6 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       setState(() => loadFailed = true);
       await showFrostedAlertDialog(
         context: context,
+        appColor: appColor,
         dismissible: false,
         title: "Failed to load",
         content: Text(
@@ -509,6 +510,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           frostedButton(
             "Sign Up",
             context,
+            color: appColor,
             onPressed: () async {
               await authService.value.signOut(
                 ref.read(userDataProvider.notifier),
@@ -542,7 +544,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       curve: Curves.easeOut,
       onEnd: () => _lastRenderedExp = exp.toDouble(),
       builder: (context, animatedExp, _) {
-        final needed = (userManager.experienceNeeded ?? 1).toDouble();
+        final needed =
+            (ref.read(userDataProvider.notifier).experienceNeeded ?? 1)
+                .toDouble();
         final progress = (animatedExp / needed).clamp(0.0, 1.0);
         final remaining = ((needed - animatedExp).ceil()).clamp(
           0,
@@ -677,7 +681,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ),
                               if (!isGuest)
                                 Text(
-                                  "${animatedExp.round()} / ${userManager.experienceNeeded ?? 0} XP",
+                                  "${animatedExp.round()} / ${ref.read(userDataProvider.notifier).experienceNeeded ?? 0} XP",
                                   style: GoogleFonts.manrope(
                                     color: dim,
                                     fontSize: Responsive.font(context, 12),
@@ -745,7 +749,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                       ),
                       Text(
-                        "Total: ${_formatNumber(userManager.totalXpEarned ?? 0)} XP",
+                        "Total: ${_formatNumber(ref.read(userDataProvider.notifier).totalXpEarned ?? 0)} XP",
                         style: GoogleFonts.manrope(
                           color: dim,
                           fontSize: Responsive.font(context, 11),
@@ -938,6 +942,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               if (!adService.isReady) {
                 await showFrostedAlertDialog(
                   context: context,
+                  appColor: appColor,
                   title: "Not available right now",
                   content: Text(
                     "Rewarded ads are currently under review and will be available soon.",
@@ -975,6 +980,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     if (mounted) {
                       await showFrostedAlertDialog(
                         context: context,
+                        appColor: appColor,
                         title: "Create a free account",
                         content: Text(
                           "Sign up to earn XP for every ad you watch and start leveling up.",
@@ -1140,12 +1146,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         SizedBox(height: Responsive.height(context, 16)),
 
-                        sectionHeader("PROGRESS", context),
+                        sectionHeader("PROGRESS", context, appColor: appColor),
                         _maybeAnimate(_buildXpCard(), 60.ms),
                         SizedBox(height: Responsive.height(context, 20)),
 
                         ...[
-                          sectionHeader("EARN XP", context),
+                          sectionHeader("EARN XP", context, appColor: appColor),
                           _maybeAnimate(
                             IntrinsicHeight(
                               child: Row(
@@ -1178,7 +1184,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             constraints: const BoxConstraints(maxWidth: 600),
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: sectionHeader("LOGGING", context),
+                              child: sectionHeader(
+                                "LOGGING",
+                                context,
+                                appColor: appColor,
+                              ),
                             ),
                           ),
                         ),
@@ -1196,11 +1206,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
 
-                        sectionHeader("STREAKS", context),
+                        sectionHeader("STREAKS", context, appColor: appColor),
                         _maybeAnimate(_buildStreakCard(), 180.ms),
                         SizedBox(height: Responsive.height(context, 20)),
 
-                        sectionHeader("TOOLS", context),
+                        sectionHeader("TOOLS", context, appColor: appColor),
                         // Tool tiles row
                         _maybeAnimate(
                           IntrinsicHeight(
@@ -1375,6 +1385,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               // Onboarding hint for users who chose "claim daily reward"
               OnboardingHint(
+                appColor: appColor,
                 hintKey: 'reward',
                 title: 'Welcome to your dashboard',
                 description:

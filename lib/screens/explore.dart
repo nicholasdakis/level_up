@@ -335,6 +335,7 @@ class _ExploreState extends ConsumerState<Explore> {
   void _showOverpassFallbackDialog() {
     showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "Couldn't Find Spots",
       content: Text(
         "Real location data is unavailable right now. Would you like to generate nearby spots instead? They work the same way.",
@@ -702,6 +703,7 @@ class _ExploreState extends ConsumerState<Explore> {
                       frostedButton(
                         "Find nearby spots",
                         context,
+                        color: appColor,
                         onPressed: () {
                           if (isGuest) {
                             Guest.block(context);
@@ -716,6 +718,7 @@ class _ExploreState extends ConsumerState<Explore> {
                         frostedButton(
                           "Simulate Location (NYC)",
                           context,
+                          color: appColor,
                           onPressed: _simulateLocation,
                         ),
                       ],
@@ -993,6 +996,7 @@ class _ExploreState extends ConsumerState<Explore> {
                                                   child: frostedButton(
                                                     "Generate nearby spots",
                                                     context,
+                                                    color: appColor,
                                                     onPressed:
                                                         _generateFakePOIs,
                                                     small: true,
@@ -1593,6 +1597,7 @@ class _ExploreState extends ConsumerState<Explore> {
                                                   // show a picker with all installed maps
                                                   showFrostedAlertDialog(
                                                     context: context,
+                                                    appColor: appColor,
                                                     title: 'Open in Maps',
                                                     actions: [
                                                       for (final map in maps)

@@ -127,11 +127,13 @@ class _ResultsState extends ConsumerState<Results> {
         : widget.goal == "Gain Weight"
         ? "gain"
         : "maintain";
-    await userManager.updateGoals(
-      caloriesGoal: calories,
-      weightGoalType: goalType,
-      context: context,
-    );
+    await ref
+        .read(userDataProvider.notifier)
+        .updateGoals(
+          caloriesGoal: calories,
+          weightGoalType: goalType,
+          context: context,
+        );
     if (!mounted) return;
     setState(() => _goalSetCalories = calories);
   }
@@ -227,7 +229,7 @@ class _ResultsState extends ConsumerState<Results> {
                       ),
                       ShaderMask(
                         shaderCallback: (bounds) =>
-                            subtleTextGradient().createShader(
+                            subtleTextGradient(appColor).createShader(
                               Rect.fromLTWH(0, 0, bounds.width, bounds.height),
                             ),
                         child: Text(
@@ -263,6 +265,7 @@ class _ResultsState extends ConsumerState<Results> {
           : () async {
               final confirmed = await showFrostedAlertDialog<bool>(
                 context: context,
+                appColor: appColor,
                 title: "Set calorie goal?",
                 content: Text(
                   "This will set your daily calorie goal to $calories kcal.",
@@ -450,9 +453,9 @@ class _ResultsState extends ConsumerState<Results> {
         children: [
           // Big gradient number using the same shader as the app title
           ShaderMask(
-            shaderCallback: (bounds) => subtleTextGradient().createShader(
-              Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-            ),
+            shaderCallback: (bounds) => subtleTextGradient(
+              appColor,
+            ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
             child: Text(
               number,
               style: GoogleFonts.dangrek(
@@ -783,7 +786,7 @@ class _ResultsState extends ConsumerState<Results> {
                             children: [
                               ShaderMask(
                                 shaderCallback: (bounds) =>
-                                    subtleTextGradient().createShader(
+                                    subtleTextGradient(appColor).createShader(
                                       Rect.fromLTWH(
                                         0,
                                         0,

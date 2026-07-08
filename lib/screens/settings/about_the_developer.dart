@@ -79,7 +79,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                       ),
                     ),
                     // OVERVIEW
-                    sectionHeader("OVERVIEW", context),
+                    sectionHeader("OVERVIEW", context, appColor: appColor),
                     frostedGlassCard(
                       context,
                       color: appColor,
@@ -112,7 +112,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     SizedBox(height: Responsive.height(context, 24)),
 
                     // CONNECT
-                    sectionHeader("CONNECT", context),
+                    sectionHeader("CONNECT", context, appColor: appColor),
                     frostedGlassCard(
                       context,
                       color: appColor,
@@ -125,6 +125,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             label: 'nicholasdakis.com',
                             url: 'https://nicholasdakis.com',
                             context: context,
+                            appColor: appColor,
                           ),
                           SizedBox(height: Responsive.height(context, 12)),
                           socialLink(
@@ -132,6 +133,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             label: 'LinkedIn',
                             url: 'https://www.linkedin.com/in/nicholasdakis',
                             context: context,
+                            appColor: appColor,
                           ),
                           SizedBox(height: Responsive.height(context, 12)),
                           socialLink(
@@ -139,6 +141,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             label: 'GitHub',
                             url: 'https://github.com/nicholasdakis',
                             context: context,
+                            appColor: appColor,
                           ),
                         ],
                       ),
@@ -147,7 +150,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     SizedBox(height: Responsive.height(context, 24)),
 
                     // FEEDBACK
-                    sectionHeader("FEEDBACK", context),
+                    sectionHeader("FEEDBACK", context, appColor: appColor),
                     frostedGlassCard(
                       context,
                       color: appColor,
@@ -170,6 +173,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                             label: 'Send feedback',
                             url: '',
                             context: context,
+                            appColor: appColor,
                             onTap: () {
                               trackTrivialAchievement("send_feedback");
                               sendEmail(
@@ -186,7 +190,7 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                     SizedBox(height: Responsive.height(context, 24)),
 
                     // DONATE
-                    sectionHeader("DONATE", context),
+                    sectionHeader("DONATE", context, appColor: appColor),
                     frostedGlassCard(
                       context,
                       color: appColor,

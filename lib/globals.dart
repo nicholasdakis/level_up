@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'models/user_data.dart';
 import 'services/user_data_manager.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
@@ -52,19 +51,6 @@ ValueNotifier<double> viewportHeightNotifier = ValueNotifier<double>(0);
 // set after onboarding to show a contextual hint on the destination screen
 ValueNotifier<String?> onboardingHintNotifier = ValueNotifier<String?>(null);
 
-// Subclass exposes notifyListeners() publicly so callers can ping it after
-// mutating fields on the existing UserData object without replacing the reference
-class UserDataNotifier extends ValueNotifier<UserData?> {
-  UserDataNotifier(super.value);
-
-  @override
-  void notifyListeners() => super.notifyListeners();
-}
-
-// Notifier so any widget can rebuild automatically when user data changes
-final UserDataNotifier userDataNotifier = UserDataNotifier(null);
-Color get appColor => userDataNotifier.value?.appColor ?? defaultAppColor;
-
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
 
@@ -96,6 +82,7 @@ Widget socialLink({
   required String label,
   required String url,
   required BuildContext context,
+  required Color appColor,
   VoidCallback? onTap,
 }) {
   return InkWell(
@@ -109,6 +96,7 @@ Widget socialLink({
         ),
     child: frostedGlassCard(
       context,
+      color: appColor,
       baseRadius: 14,
       backgroundColor: appColor.computeLuminance() < 0.2
           ? darkenColor(appColor, 0.08).withAlpha(60)
@@ -168,9 +156,10 @@ Widget socialLink({
 }
 
 // Shows the force-update dialog, non-dismissable, opens Play Store on confirm
-Future<void> showForceUpdateDialog(BuildContext context) async {
+Future<void> showForceUpdateDialog(BuildContext context, Color appColor) async {
   await showFrostedAlertDialog(
     context: context,
+    appColor: appColor,
     dismissible: false,
     title: "Update Required",
     content: Text(
@@ -251,6 +240,7 @@ Future<DateTime?> showThemedDatePicker({
   required DateTime initialDate,
   required DateTime firstDate,
   required DateTime lastDate,
+  required Color appColor,
   DatePickerEntryMode initialEntryMode = DatePickerEntryMode.calendar,
 }) {
   final accent = lightenColor(appColor, 0.45);
@@ -259,6 +249,7 @@ Future<DateTime?> showThemedDatePicker({
 
   return showFrostedDialog<DateTime>(
     context: context,
+    appColor: appColor,
     padding: EdgeInsets.zero,
     child: Theme(
       data: Theme.of(context).copyWith(
@@ -326,6 +317,7 @@ Future<DateTime?> showThemedDatePicker({
 Future<T?> showFrostedDialog<T>({
   required BuildContext context,
   required Widget child,
+  required Color appColor,
   bool dismissible = true,
   EdgeInsetsGeometry? padding,
   double baseRadius = 20,
@@ -340,6 +332,7 @@ Future<T?> showFrostedDialog<T>({
     builder: (ctx) => PopScope(
       canPop: dismissible,
       child: _FrostedDialogShell(
+        appColor: appColor,
         baseRadius: baseRadius,
         padding: padding,
         maxWidth: maxWidth,
@@ -352,12 +345,14 @@ Future<T?> showFrostedDialog<T>({
 // Stateful shell so it rebuilds when the keyboard inset changes
 class _FrostedDialogShell extends StatefulWidget {
   final Widget child;
+  final Color appColor;
   final double baseRadius;
   final EdgeInsetsGeometry? padding;
   final double maxWidth;
 
   const _FrostedDialogShell({
     required this.child,
+    required this.appColor,
     required this.baseRadius,
     this.padding,
     this.maxWidth = 500,
@@ -413,6 +408,7 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: frostedGlassCard(
                   context,
+                  color: widget.appColor,
                   baseRadius: widget.baseRadius,
                   backgroundColor: Colors.white.withAlpha(10),
                   border: Border.all(
@@ -440,12 +436,14 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
 Future<T?> showFrostedAlertDialog<T>({
   required BuildContext context,
   required String title,
+  required Color appColor,
   Widget? content,
   required List<Widget> actions,
   bool dismissible = true,
 }) {
   return showFrostedDialog<T>(
     context: context,
+    appColor: appColor,
     dismissible: dismissible,
     child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -597,21 +595,21 @@ Widget frostedButton(
   String text,
   BuildContext context, {
   required Function() onPressed,
-  Color? color,
+  required Color color,
   bool small = false,
 }) {
-  final bg = color != null
-      ? cardColors(color).gradient.first.withAlpha(180)
-      : Colors.white.withAlpha(18);
-  final border = color != null
-      ? Border.all(color: lightenColor(color, 0.2).withAlpha(160), width: 1)
-      : Border.all(color: Colors.white.withAlpha(40), width: 1);
+  final bg = cardColors(color).gradient.first.withAlpha(180);
+  final border = Border.all(
+    color: lightenColor(color, 0.2).withAlpha(160),
+    width: 1,
+  );
   return MouseRegion(
     cursor: SystemMouseCursors.click,
     child: GestureDetector(
       onTap: () => onPressed(),
       child: frostedGlassCard(
         context,
+        color: color,
         baseRadius: 14,
         backgroundColor: bg,
         border: border,
@@ -634,7 +632,7 @@ Widget frostedButton(
 }
 
 // Reusable gradient for title and button text
-LinearGradient subtleTextGradient() {
+LinearGradient subtleTextGradient(Color appColor) {
   return LinearGradient(
     colors: [
       lightenColor(appColor, 0.45),
@@ -645,9 +643,9 @@ LinearGradient subtleTextGradient() {
 }
 
 // CREATE THE TITLE TEXT OF EACH NEW SCREEN
-Widget createTitle(String text, BuildContext context) {
+Widget createTitle(String text, BuildContext context, Color appColor) {
   return ShaderMask(
-    shaderCallback: (bounds) => subtleTextGradient().createShader(
+    shaderCallback: (bounds) => subtleTextGradient(appColor).createShader(
       Rect.fromLTWH(
         0,
         0,
@@ -678,12 +676,14 @@ class OnboardingHint extends StatefulWidget {
   final String hintKey;
   final String title;
   final String description;
+  final Color appColor;
 
   const OnboardingHint({
     super.key,
     required this.hintKey,
     required this.title,
     required this.description,
+    required this.appColor,
   });
 
   @override
@@ -752,7 +752,7 @@ class _OnboardingHintState extends State<OnboardingHint>
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
 
-    final color = appColor;
+    final color = widget.appColor;
     final accentColor = lightenColor(color, 0.45);
     final radius = BorderRadius.circular(Responsive.scale(context, 20));
 
@@ -762,6 +762,7 @@ class _OnboardingHintState extends State<OnboardingHint>
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: frostedGlassCard(
           context,
+          color: widget.appColor,
           backgroundColor: Colors.white.withAlpha(10),
           border: Border.all(color: Colors.white.withAlpha(22), width: 1),
           padding: EdgeInsets.symmetric(
@@ -854,6 +855,7 @@ class _OnboardingHintState extends State<OnboardingHint>
 Widget sectionHeader(
   String text,
   BuildContext context, {
+  required Color appColor,
   double baseFontSize = 15,
   EdgeInsetsGeometry? padding,
 }) {
@@ -897,12 +899,12 @@ Widget frostedGlassCard(
   Color? backgroundColor, // optional override for the card fill color
   BoxBorder? border, // optional override for the card border
   bool shadow = false, // only action tiles need the drop shadow
-  Color? color, // theme color, falls back to global appColor if null
+  required Color color,
 }) {
   final cardRadius = BorderRadius.circular(
     Responsive.scale(context, baseRadius),
   );
-  final c = cardColors(color ?? appColor);
+  final c = cardColors(color);
   return DecoratedBox(
     decoration: BoxDecoration(
       borderRadius: cardRadius,
@@ -935,11 +937,13 @@ Widget frostedGlassCard(
 class DateNavigationRow extends StatelessWidget {
   final DateTime currentDate;
   final void Function(DateTime) onDateChanged;
+  final Color appColor;
 
   const DateNavigationRow({
     super.key,
     required this.currentDate,
     required this.onDateChanged,
+    required this.appColor,
   });
 
   Future<void> _pickDate(BuildContext context) async {
@@ -948,6 +952,7 @@ class DateNavigationRow extends StatelessWidget {
       initialDate: currentDate,
       firstDate: DateTime(2026),
       lastDate: DateTime(2100),
+      appColor: appColor,
       initialEntryMode: DatePickerEntryMode.calendarOnly,
     );
     if (picked != null) onDateChanged(picked);
@@ -969,7 +974,7 @@ class DateNavigationRow extends StatelessWidget {
       'November',
       'December',
     ];
-    final accent = lightenColor(appColor, 0.45);
+    final accent = lightenColor(appColor, 0.45); // appColor is the widget field
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1010,7 +1015,6 @@ class DateNavigationRow extends StatelessWidget {
 }
 
 // Returns a flat solid background using the chosen theme color
-Gradient buildThemeGradient([Color? color]) {
-  final c = color ?? appColor;
-  return LinearGradient(colors: [c, c]);
+Gradient buildThemeGradient(Color color) {
+  return LinearGradient(colors: [color, color]);
 }

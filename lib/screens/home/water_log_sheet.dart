@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,6 +98,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
     );
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
+      appColor: widget.appColor,
       title: "Remove Entry",
       content: Text(
         isImperial
@@ -204,6 +205,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
                           GestureDetector(
                             onTap: () async {
                               final picked = await showThemedDatePicker(
+                                appColor: appColor,
                                 context: context,
                                 initialDate: selectedDate,
                                 firstDate: DateTime(2020),

@@ -1080,7 +1080,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // CALORIE GRAPH
-                      sectionHeader("CALORIE GRAPH", context)
+                      sectionHeader(
+                            "CALORIE GRAPH",
+                            context,
+                            appColor: appColor,
+                          )
                           .animate(
                             key: ValueKey((
                               'range_cal_graph_title',
@@ -1111,7 +1115,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // MEAL BREAKDOWN GRAPH
-                      sectionHeader("MEAL BREAKDOWN GRAPH", context)
+                      sectionHeader(
+                            "MEAL BREAKDOWN GRAPH",
+                            context,
+                            appColor: appColor,
+                          )
                           .animate(
                             key: ValueKey((
                               'range_meal_graph_title',
@@ -1143,7 +1151,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // MACRO GRAPH
-                      sectionHeader("MACRO GRAPH", context)
+                      sectionHeader("MACRO GRAPH", context, appColor: appColor)
                           .animate(
                             key: ValueKey((
                               'range_mac_graph_title',
@@ -1175,7 +1183,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // CALORIE SUMMARY
-                      sectionHeader("CALORIE SUMMARY", context)
+                      sectionHeader(
+                            "CALORIE SUMMARY",
+                            context,
+                            appColor: appColor,
+                          )
                           .animate(
                             key: ValueKey((
                               'range_cal_sum_title',
@@ -1207,7 +1219,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // MACRO SUMMARY
-                      sectionHeader("MACRO SUMMARY", context)
+                      sectionHeader(
+                            "MACRO SUMMARY",
+                            context,
+                            appColor: appColor,
+                          )
                           .animate(
                             key: ValueKey((
                               'range_mac_sum_title',
@@ -1239,7 +1255,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       SizedBox(height: Responsive.height(context, 24)),
 
                       // MOST LOGGED FOODS
-                      sectionHeader("MOST LOGGED FOODS", context)
+                      sectionHeader(
+                            "MOST LOGGED FOODS",
+                            context,
+                            appColor: appColor,
+                          )
                           .animate(
                             key: ValueKey((
                               'range_top_foods_title',
@@ -1814,29 +1834,34 @@ class _DailyTab extends StatelessWidget {
           children: [
             // Date navigation shared with Food Logging via DateNavigationRow in globals.dart
             DateNavigationRow(
+              appColor: appColor,
               currentDate: currentDate,
               onDateChanged: onDateChanged,
             ),
 
             SizedBox(height: Responsive.height(ctx, 16)),
 
-            sectionHeader(() {
-              const months = [
-                'January',
-                'February',
-                'March',
-                'April',
-                'May',
-                'June',
-                'July',
-                'August',
-                'September',
-                'October',
-                'November',
-                'December',
-              ];
-              return 'SUMMARY · ${months[currentDate.month - 1].toUpperCase()} ${currentDate.day}, ${currentDate.year}';
-            }(), ctx),
+            sectionHeader(
+              () {
+                const months = [
+                  'January',
+                  'February',
+                  'March',
+                  'April',
+                  'May',
+                  'June',
+                  'July',
+                  'August',
+                  'September',
+                  'October',
+                  'November',
+                  'December',
+                ];
+                return 'SUMMARY · ${months[currentDate.month - 1].toUpperCase()} ${currentDate.day}, ${currentDate.year}';
+              }(),
+              ctx,
+              appColor: appColor,
+            ),
 
             _statTilesRow(
                   context: ctx,
@@ -1859,7 +1884,7 @@ class _DailyTab extends StatelessWidget {
             SizedBox(height: Responsive.height(ctx, 24)),
 
             // Calorie breakdown section
-            sectionHeader("CALORIE BREAKDOWN", ctx)
+            sectionHeader("CALORIE BREAKDOWN", ctx, appColor: appColor)
                 .animate(key: ValueKey(('calories_title', animationKey)))
                 .fadeIn(duration: 300.ms)
                 .slideY(begin: 0.08, duration: 300.ms, curve: Curves.easeOut),
@@ -1889,7 +1914,7 @@ class _DailyTab extends StatelessWidget {
             SizedBox(height: Responsive.height(ctx, 24)),
 
             // Macro breakdown: bars sized by gram weight
-            sectionHeader("MACRO BREAKDOWN", ctx)
+            sectionHeader("MACRO BREAKDOWN", ctx, appColor: appColor)
                 .animate(key: ValueKey(('macros_title', animationKey)))
                 .fadeIn(delay: 150.ms, duration: 300.ms)
                 .slideY(

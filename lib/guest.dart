@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'globals.dart';
 import 'models/user_data.dart';
@@ -24,7 +24,6 @@ class Guest {
   static void enter() {
     isGuest = true;
     // set guest data and mark init done before notifying the router so it never needs to hit /loading
-    userDataNotifier.value = defaultUserData;
     appInitialized = true;
     appReadyNotifier.value = true;
     guestNotifier.value = true;
@@ -33,7 +32,6 @@ class Guest {
   // Called on sign out or when the guest taps "Sign Up" in the block dialog,clears all guest state and sends the router back to login
   static void exit() {
     isGuest = false;
-    userDataNotifier.value = null;
     appInitialized = false;
     appReadyNotifier.value = false;
     guestNotifier.value = false;
@@ -51,6 +49,7 @@ class Guest {
   static void block(BuildContext context) {
     showFrostedAlertDialog(
       context: context,
+      appColor: defaultAppColor,
       title: "Sign up to do this",
       content: Text(
         "You're browsing as a guest. Create a free account to use this feature.",
@@ -68,6 +67,7 @@ class Guest {
         frostedButton(
           "Sign Up",
           context,
+          color: defaultAppColor,
           small: true,
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();

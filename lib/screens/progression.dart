@@ -311,7 +311,7 @@ class _ProgressionState extends ConsumerState<Progression> {
                         MediaQuery.paddingOf(context).top +
                         Responsive.height(context, 24),
                   ),
-                  sectionHeader("BADGES", context),
+                  sectionHeader("BADGES", context, appColor: appColor),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedCrown,
                     title: "Badges",
@@ -321,7 +321,7 @@ class _ProgressionState extends ConsumerState<Progression> {
                         : () => context.push('/badges'),
                   ),
                   SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("LEADERBOARD", context),
+                  sectionHeader("LEADERBOARD", context, appColor: appColor),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedMedal01,
                     title: "Leaderboard",

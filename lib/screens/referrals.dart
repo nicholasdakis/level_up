@@ -34,6 +34,7 @@ Future<void> checkPendingReferralReward(
 
   await showFrostedAlertDialog(
     context: context,
+    appColor: appColor,
     title: "Referral Reward!",
     content: Column(
       mainAxisSize: MainAxisSize.min,
@@ -159,6 +160,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                 }
                 showFrostedAlertDialog(
                   context: context,
+                  appColor: appColor,
                   title: "Refer a Friend",
                   content: Column(
                     mainAxisSize: MainAxisSize.min,

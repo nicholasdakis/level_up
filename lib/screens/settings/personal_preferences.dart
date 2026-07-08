@@ -26,9 +26,11 @@ Future<void> showUsernameDialogBox(
   String title,
   TextEditingController usernameController,
   WidgetRef ref,
+  Color appColor,
 ) async {
   await showFrostedAlertDialog(
     context: context,
+    appColor: appColor,
     title: title,
     content: Column(
       mainAxisSize: MainAxisSize.min,
@@ -190,14 +192,14 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       if (mounted) {
         if (kIsWeb) {
           // Pass null for file, only use bytes
-          await userManager.updateProfilePicture(
+          await ref.read(userDataProvider.notifier).updateProfilePicture(
             null,
             context: context,
             onProfileUpdated: widget.onProfileImageUpdated,
             imageInBytes: imageBytes,
           );
         } else {
-          await userManager.updateProfilePicture(
+          await ref.read(userDataProvider.notifier).updateProfilePicture(
             file,
             context: context,
             onProfileUpdated: widget.onProfileImageUpdated,
@@ -389,6 +391,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
     await showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "Nutrition Goals",
       content: SingleChildScrollView(
         child: Column(
@@ -409,7 +412,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         TextButton(
           child: Text("Save", style: dialogButtonStyle(confirm: true)),
           onPressed: () async {
-            await userManager.updateNutritionGoals(
+            await ref.read(userDataProvider.notifier).updateNutritionGoals(
               caloriesGoal: int.tryParse(calCtrl.text.trim()),
               proteinGoal: int.tryParse(proCtrl.text.trim()),
               carbsGoal: int.tryParse(carbCtrl.text.trim()),
@@ -444,6 +447,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
     await showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "Weight Goal",
       content: StatefulBuilder(
         // StatefulBuilder so the goal type selector can update without rebuilding the whole dialog
@@ -537,7 +541,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             if (parsed != null) {
               weightKg = isMetric ? parsed : UnitConverter.lbsToKg(parsed);
             }
-            await userManager.updateWeightGoal(
+            await ref.read(userDataProvider.notifier).updateWeightGoal(
               weightGoalType: weightGoalType,
               weightKgGoal: weightKg,
               context: context,
@@ -559,6 +563,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
     await showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "Weekly Workout Goal",
       content: StatefulBuilder(
         builder: (sbContext, setDialogState) {
@@ -628,7 +633,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         TextButton(
           onPressed: () async {
             Navigator.of(context, rootNavigator: true).pop();
-            await userManager.updateGoals(
+            await ref.read(userDataProvider.notifier).updateGoals(
               weeklyWorkoutsGoal: selected,
               context: context,
             );
@@ -659,6 +664,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
 
     await showFrostedAlertDialog(
       context: context,
+      appColor: appColor,
       title: "Water Goal",
       content: _goalField(
         waterCtrl,
@@ -681,7 +687,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                   ? parsed
                   : UnitConverter.ozToMl(parsed.toDouble()).round();
             }
-            await userManager.updateWaterGoal(
+            await ref.read(userDataProvider.notifier).updateWaterGoal(
               waterMlGoal: waterMl,
               context: context,
             );
@@ -930,6 +936,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "APPEARANCE",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -957,6 +964,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "PROFILE",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -990,6 +998,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   "Update your username",
                                   usernameController,
                                   ref,
+                                  appColor,
                                 );
                               },
                             ),
@@ -1003,6 +1012,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "UNITS",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -1031,7 +1041,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                         }
                                         if (_units == option) return;
                                         setState(() => _units = option);
-                                        await userManager.updateUnits(
+                                        await ref.read(userDataProvider.notifier).updateUnits(
                                           option,
                                           context,
                                         );
@@ -1100,6 +1110,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "GOALS",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -1214,6 +1225,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "FOOD LOGGING",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -1255,6 +1267,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 ];
                                 await showFrostedAlertDialog<void>(
                                   context: context,
+      appColor: appColor,
                                   title: "Recent Foods Limit",
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -1355,6 +1368,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       sectionHeader(
                         "NOTIFICATIONS",
                         context,
+                        appColor: appColor,
                         padding: EdgeInsets.only(
                           bottom: Responsive.height(context, 4),
                           left: Responsive.width(context, 4),
@@ -1392,7 +1406,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   });
                                   await ref
                                       .read(userDataProvider.notifier)
-                                      .setNotificationsEnabled(value, context);
+                                      .updateNotificationsEnabled(value, context);
 
                                   // If enabling on web, also request browser permission and get FCM token
                                   if (value && kIsWeb) {
@@ -1422,7 +1436,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                 ),
               ),
               OnboardingHint(
-                hintKey: 'settings',
+              appColor: appColor,
+              hintKey: 'settings',
                 title: 'Set up your profile',
                 description:
                     'Set a username, choose your units, adjust your goals, and more',

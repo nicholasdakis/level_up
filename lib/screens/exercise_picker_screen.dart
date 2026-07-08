@@ -117,6 +117,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     final dim = lightenColor(appColor, 0.35);
     await showFrostedDialog(
       context: context,
+      appColor: appColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,6 +168,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               Navigator.of(context, rootNavigator: true).pop();
               final confirmed = await showFrostedAlertDialog<bool>(
                 context: this.context,
+                appColor: appColor,
                 title: 'Delete Exercise',
                 content: Text(
                   'This will remove the exercise from your library. Past workouts won\'t be affected.',
@@ -272,6 +274,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
 
     await showFrostedDialog<void>(
       context: context,
+      appColor: appColor,
       dismissible: false,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
@@ -295,6 +298,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     onTap: () async {
                       await showFrostedDialog(
                         context: context,
+                        appColor: appColor,
                         barrierColor: Colors.transparent,
                         child: StatefulBuilder(
                           builder: (ctx, _) => Column(
@@ -555,6 +559,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         Set<String> temp = Set.from(selectedSecondary);
                         await showFrostedDialog(
                           context: context,
+                          appColor: appColor,
                           barrierColor: Colors.transparent,
                           child: StatefulBuilder(
                             builder: (ctx, setInner) => Column(
@@ -984,6 +989,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     Set<String> selected = Set.from(current);
     await showFrostedDialog(
       context: context,
+      appColor: appColor,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
           final accent = lightenColor(appColor, 0.45);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../globals.dart';
+import '../services/user_data_manager.dart' show defaultAppColor;
 import '../home_screen.dart';
 
 class UpdateRequiredScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _UpdateRequiredScreenState extends State<UpdateRequiredScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) await showForceUpdateDialog(context);
+      if (mounted) await showForceUpdateDialog(context, defaultAppColor);
     });
   }
 

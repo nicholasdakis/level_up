@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -214,6 +214,7 @@ Future<String?> showCalcDialog(
 
   return showFrostedDialog<String>(
     context: context,
+    appColor: appColor ?? defaultAppColor,
     child: StatefulBuilder(
       builder: (context, setState) {
         void press(String val) {
@@ -638,6 +639,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
 
   return showFrostedDialog<ServingDialogResult>(
     context: context,
+    appColor: appColor ?? defaultAppColor,
     child: StatefulBuilder(
       builder: (ctx, setDialogState) {
         final typedAmt = double.tryParse(controller.text) ?? baseAmt;
