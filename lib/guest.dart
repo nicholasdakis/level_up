@@ -20,20 +20,19 @@ class Guest {
     fcmTokens: [],
   );
 
-  // Called when the user taps "Continue as Guest",sets the flag and triggers the router to navigate past the login screen
+  // Called when the user taps "Continue as Guest", sets the flag and triggers the router to navigate past the login screen
   static void enter() {
     isGuest = true;
-    // set guest data and mark init done before notifying the router so it never needs to hit /loading
     appInitialized = true;
-    appReadyNotifier.value = true;
+    appReadyNotifier.setReady();
     guestNotifier.value = true;
   }
 
-  // Called on sign out or when the guest taps "Sign Up" in the block dialog,clears all guest state and sends the router back to login
+  // Called on sign out or when the guest taps "Sign Up" in the block dialog, clears all guest state and sends the router back to login
   static void exit() {
     isGuest = false;
     appInitialized = false;
-    appReadyNotifier.value = false;
+    appReadyNotifier.reset();
     guestNotifier.value = false;
   }
 

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/user_data_provider.dart';
 import 'providers/workout_provider.dart';
+import 'providers/app_ready_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:level_up/utility/confetti.dart';
@@ -79,14 +80,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     confettiControllerinit();
 
-    if (appReadyNotifier.value &&
+    if (ref.read(appReadyProvider) &&
         !ref.read(userDataProvider.notifier).lastLoadFailed &&
         !isNewUser) {
       isLoading = false;
     }
 
-    appReadyNotifier.addListener(_onAppReady);
-    if (appReadyNotifier.value) {
+    if (ref.read(appReadyProvider)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _onAppReady();
       });
@@ -107,7 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void activate() {
     super.activate();
-    if (appReadyNotifier.value) {
+    if (ref.read(appReadyProvider)) {
       _updateCountdown();
       if (mounted) setState(() {});
     }
@@ -116,7 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // Called when the app resumes from background
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && appReadyNotifier.value) {
+    if (state == AppLifecycleState.resumed && ref.read(appReadyProvider)) {
       _updateCountdown();
       if (mounted) setState(() {});
     }
@@ -155,7 +155,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
-    appReadyNotifier.removeListener(_onAppReady);
     dailyRewardConfettiController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -163,7 +162,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   bool get isNewUser {
     final u = ref.read(userDataProvider).value;
-    return appReadyNotifier.value &&
+    return ref.read(appReadyProvider) &&
         u?.username != null &&
         u?.username == u?.uid;
   }
@@ -294,7 +293,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (!ref.read(userDataProvider.notifier).lastLoadFailed &&
           ref.read(userDataProvider).value != null) {
         // notifyListeners won't fire if value was already true, so call initializeUser directly
-        appReadyNotifier.value = true;
+        ref.read(appReadyProvider.notifier).setReady();
         initializeUser();
         return;
       }
@@ -1045,6 +1044,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     ref.watch(userDataProvider); // drives rebuilds when user data changes
+    ref.listen(appReadyProvider, (previous, next) {
+      if (next && !(previous ?? false)) _onAppReady();
+    });
     return Stack(
       children: [IgnorePointer(ignoring: loadFailed, child: _buildBody())],
     );

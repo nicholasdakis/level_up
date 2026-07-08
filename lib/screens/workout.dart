@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/user_data_loaded_provider.dart';
 import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:firebase_analytics/firebase_analytics.dart';

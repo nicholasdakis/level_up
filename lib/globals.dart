@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'services/user_data_manager.dart';
+import 'providers/app_ready_provider.dart';
 import 'dart:ui';
 import 'utility/responsive.dart';
 import 'services/leaderboard_service.dart';
@@ -17,8 +18,8 @@ const Duration dailyRewardCooldown = Duration(hours: 23);
 const Duration snackBarDuration = Duration(milliseconds: 1500);
 const Duration snackBarDurationImportant = Duration(seconds: 3);
 
-// Flips to true when AppInitScreen finishes loading user data
-ValueNotifier<bool> appReadyNotifier = ValueNotifier<bool>(false);
+// set by AppInitScreen after ProviderScope is available, used by non-widget code
+late AppReadyNotifier appReadyNotifier;
 
 // set to true by AppInitScreen once init completes, reset to false on logout
 bool appInitialized = false;

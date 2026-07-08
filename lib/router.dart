@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
 import 'providers/workout_provider.dart';
+import 'providers/app_ready_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'screens/update_required.dart';
 import 'package:flutter/foundation.dart';
@@ -112,7 +113,7 @@ final GoRouter appRouter = GoRouter(
     if (isGuest && FirebaseAuth.instance.currentUser != null) {
       isGuest = false;
       appInitialized = false;
-      appReadyNotifier.value = false;
+      appReadyNotifier.reset();
       guestNotifier.value = false;
     }
     final isLoggedIn = FirebaseAuth.instance.currentUser != null || isGuest;
@@ -484,6 +485,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
     // capture ref before any async gaps since the widget may unmount while awaiting
     final notifier = ref.read(userDataProvider.notifier);
     final workoutNotifier = ref.read(workoutProvider.notifier);
+    appReadyNotifier = ref.read(appReadyProvider.notifier);
 
     if (await _isOutdated()) {
       isAppOutdated = true;
@@ -526,7 +528,7 @@ class _AppInitScreenState extends ConsumerState<AppInitScreen> {
 
     if (mounted && !isGuest) FcmService.initialize(context, notifier);
 
-    appReadyNotifier.value = true;
+    ref.read(appReadyProvider.notifier).setReady();
   }
 
   @override

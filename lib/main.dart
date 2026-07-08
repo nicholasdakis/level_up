@@ -24,6 +24,7 @@ import 'utility/viewport_height_stub.dart'
 import 'services/user_data_manager.dart' show backendBaseUrl, defaultAppColor;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
+import 'providers/app_ready_provider.dart';
 import 'screens/level_up_overlay.dart';
 
 Future<void> main() async {
@@ -126,7 +127,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     if (appInitialized && ref.read(userDataProvider.notifier).lastLoadFailed) {
       await ref.read(userDataProvider.notifier).loadUserData();
       if (!ref.read(userDataProvider.notifier).lastLoadFailed) {
-        appReadyNotifier.value = true;
+        ref.read(appReadyProvider.notifier).setReady();
       }
     }
   }
@@ -149,7 +150,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       next,
     ) {
       if (isGuest) return;
-      if (!appReadyNotifier.value) {
+      if (!ref.read(appReadyProvider)) {
         _lastKnownLevel = -1;
         return;
       }

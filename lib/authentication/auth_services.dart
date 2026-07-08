@@ -47,7 +47,7 @@ class AuthService {
     workoutNotifier.clearSession();
     await firebaseAuth.signOut();
     appInitialized = false;
-    appReadyNotifier.value = false;
+    appReadyNotifier.reset();
     notifier.setUserData(null);
   }
 

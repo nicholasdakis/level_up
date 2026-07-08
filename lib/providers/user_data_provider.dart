@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../globals.dart' show isGuest, snackBarDuration, dailyRewardCooldown;
 import '../guest.dart' show Guest;
 import 'weight_logs_provider.dart';
+import 'user_data_loaded_provider.dart';
 import '../services/user_data_manager.dart'
     show
         authenticatedPost,
@@ -1007,16 +1008,4 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
 
 final userDataProvider = AsyncNotifierProvider<UserDataNotifierNew, UserData?>(
   UserDataNotifierNew.new,
-);
-
-// flips to true once loadUserData completes successfully for the first time
-class UserDataLoadedNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-
-  void setLoaded() => state = true;
-}
-
-final userDataLoadedProvider = NotifierProvider<UserDataLoadedNotifier, bool>(
-  UserDataLoadedNotifier.new,
 );
