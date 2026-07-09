@@ -856,7 +856,10 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
           SizedBox(height: Responsive.height(context, 8)),
           GestureDetector(
             onTap: _savingId == null
-                ? () => _copyRoutine(routine['template_id'] as String)
+                ? () => _copyRoutine(
+                    routine['template_id'] as String,
+                    routineData: routine,
+                  )
                 : null,
             child: Container(
               width: double.infinity,
