@@ -1059,7 +1059,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         : userData!.username!;
 
     return Skeletonizer(
-      enabled: !_initialized,
+      enabled: !isGuest && !_initialized,
       effect: ShimmerEffect(
         baseColor: lightenColor(appColor, 0.10),
         highlightColor: lightenColor(appColor, 0.22),

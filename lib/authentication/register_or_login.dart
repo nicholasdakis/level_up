@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:flutter/gestures.dart';
@@ -13,14 +14,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class RegisterOrLogin extends StatefulWidget {
+class RegisterOrLogin extends ConsumerStatefulWidget {
   const RegisterOrLogin({super.key});
 
   @override
-  State<RegisterOrLogin> createState() => _RegisterOrLoginState();
+  ConsumerState<RegisterOrLogin> createState() => _RegisterOrLoginState();
 }
 
-class _RegisterOrLoginState extends State<RegisterOrLogin> {
+class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
   // Keep track of entered email and password fields
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -825,7 +826,7 @@ class _RegisterOrLoginState extends State<RegisterOrLogin> {
         buildOutlinedButton(
           label: "Browse as a guest",
           icon: HugeIcons.strokeRoundedAnonymous,
-          onTap: Guest.enter,
+          onTap: () => Guest.enter(ref),
         ),
         if (notifyingMessage != null) ...[
           SizedBox(height: Responsive.padding(context, 12)),

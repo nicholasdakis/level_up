@@ -54,7 +54,9 @@ Future<void> main() async {
   confettiControllerinit();
   appLaunchUri = Uri.base;
   listenToViewportHeight((h) => viewportHeightNotifier.value = h);
-  runApp(const ProviderScope(child: MyApp()));
+  final container = ProviderContainer();
+  appReadyNotifier = container.read(appReadyProvider.notifier);
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 
   if (!kIsWeb) {
     adService.initialize();

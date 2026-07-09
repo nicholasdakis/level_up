@@ -1137,7 +1137,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         body: Stack(
           children: [
             Skeletonizer(
-              enabled: isLoading || !ref.watch(userDataLoadedProvider),
+              enabled:
+                  !isGuest && (isLoading || !ref.watch(userDataLoadedProvider)),
               effect: ShimmerEffect(
                 baseColor: lightenColor(appColor, 0.3),
                 highlightColor: lightenColor(appColor, 0.1),

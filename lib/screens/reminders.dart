@@ -751,7 +751,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                   ),
                                 ),
                                 prefixIconConstraints: const BoxConstraints(),
-                                suffixIcon: _voiceSearch.isAvailable
+                                suffixIcon: !isGuest && _voiceSearch.isAvailable
                                     ? GestureDetector(
                                         onTap: _toggleListening,
                                         child: Padding(
@@ -928,7 +928,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                           final isLoading = remindersAsync.isLoading;
                           final reminders = remindersAsync.value ?? [];
 
-                          if (isLoading) {
+                          if (!isGuest && isLoading) {
                             return Skeletonizer(
                               effect: ShimmerEffect(
                                 baseColor: darkenColor(appColor, 0.1),

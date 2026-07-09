@@ -530,7 +530,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                 SizedBox(height: Responsive.height(context, 12)),
                 Expanded(
                   child: Skeletonizer(
-                    enabled: ref.watch(waterLogsProvider).isLoading,
+                    enabled: !isGuest && ref.watch(waterLogsProvider).isLoading,
                     effect: ShimmerEffect(
                       baseColor: lightenColor(appColor, 0.10),
                       highlightColor: lightenColor(appColor, 0.22),

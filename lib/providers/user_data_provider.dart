@@ -195,7 +195,6 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
   }
 
   // applies all onboarding selections to local state and syncs each to the backend
-  // TODO: move backend calls out of userManager and into this notifier
   Future<void> commitOnboarding({
     required BuildContext context,
     required String currentUnits,

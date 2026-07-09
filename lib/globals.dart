@@ -18,8 +18,8 @@ const Duration dailyRewardCooldown = Duration(hours: 23);
 const Duration snackBarDuration = Duration(milliseconds: 1500);
 const Duration snackBarDurationImportant = Duration(seconds: 3);
 
-// set by AppInitScreen after ProviderScope is available, used by non-widget code
-late AppReadyNotifier appReadyNotifier;
+// assigned in main() once ProviderScope is available; stub prevents LateInitializationError on hot restart
+AppReadyNotifier appReadyNotifier = AppReadyNotifier();
 
 // set to true by AppInitScreen once init completes, reset to false on logout
 bool appInitialized = false;

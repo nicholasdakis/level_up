@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'globals.dart';
 import 'models/user_data.dart';
+import 'providers/user_data_provider.dart';
 import 'services/user_data_manager.dart' show defaultAppColor;
 import 'utility/responsive.dart';
 
@@ -21,11 +23,12 @@ class Guest {
   );
 
   // Called when the user taps "Continue as Guest", sets the flag and triggers the router to navigate past the login screen
-  static void enter() {
+  static void enter(WidgetRef ref) {
     isGuest = true;
     appInitialized = true;
-    appReadyNotifier.setReady();
+    ref.read(userDataProvider.notifier).setUserData(Guest.defaultUserData);
     guestNotifier.value = true;
+    appReadyNotifier.setReady();
   }
 
   // Called on sign out or when the guest taps "Sign Up" in the block dialog, clears all guest state and sends the router back to login
