@@ -16,6 +16,7 @@ class UserData {
   String? foodLogStreakLastDate;
   int workoutStreak;
   int workoutStreakBest;
+  String? workoutStreakLastDate;
   String? username;
   Color appColor;
   List<String> fcmTokens;
@@ -48,6 +49,7 @@ class UserData {
     this.foodLogStreakBest = 0,
     this.workoutStreak = 0,
     this.workoutStreakBest = 0,
+    this.workoutStreakLastDate,
     this.appColor = defaultAppColor,
     String? username,
     List<String>? fcmTokens,
@@ -81,6 +83,7 @@ class UserData {
     String? foodLogStreakLastDate,
     int? workoutStreak,
     int? workoutStreakBest,
+    String? workoutStreakLastDate,
     String? username,
     Color? appColor,
     List<String>? fcmTokens,
@@ -112,6 +115,8 @@ class UserData {
       foodLogStreakBest: foodLogStreakBest ?? this.foodLogStreakBest,
       workoutStreak: workoutStreak ?? this.workoutStreak,
       workoutStreakBest: workoutStreakBest ?? this.workoutStreakBest,
+      workoutStreakLastDate:
+          workoutStreakLastDate ?? this.workoutStreakLastDate,
       username: username ?? this.username,
       appColor: appColor ?? this.appColor,
       fcmTokens: fcmTokens ?? this.fcmTokens,

@@ -412,7 +412,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final claimStreak = isGuest ? 0 : _dailyClaimStreak();
     final workoutStreak = isGuest
         ? 0
-        : (ref.watch(userDataProvider).value?.workoutStreak ?? 0);
+        : () {
+            final ud = ref.watch(userDataProvider).value;
+            final streak = ud?.workoutStreak ?? 0;
+            final lastDate = ud?.workoutStreakLastDate;
+            if (streak == 0 || lastDate == null) return streak;
+            final last = DateTime.tryParse(lastDate);
+            if (last == null) return streak;
+            final daysSince = DateTime.now().difference(last).inDays;
+            return daysSince > 1 ? 0 : streak;
+          }();
     final accentColor = lightenColor(appColor, 0.45);
     final foodStreakBest = isGuest
         ? 0

@@ -863,12 +863,13 @@ BEGIN
     END IF;
 
     RETURN jsonb_build_object(
-        'workout_id',  v_workout_id,
-        'xp_gained',   v_xp_gained,
-        'new_level',   v_new_level,
-        'new_exp',     v_new_exp,
-        'new_streak',  v_new_streak,
-        'best_streak', (SELECT highest_streak FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak')
+        'workout_id',   v_workout_id,
+        'xp_gained',    v_xp_gained,
+        'new_level',    v_new_level,
+        'new_exp',      v_new_exp,
+        'new_streak',   v_new_streak,
+        'best_streak',  (SELECT highest_streak FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak'),
+        'streak_last_date', v_today::TEXT
     );
 END;
 $$ LANGUAGE plpgsql;

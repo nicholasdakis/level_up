@@ -109,6 +109,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           workoutStreakBest = 0,
           claimStreakBest = 0;
       String? foodStreakLastDate;
+      String? workoutStreakLastDate;
       try {
         final streaks = await UserDataManager.fetchStreaks();
         final foodRow = streaks.firstWhere(
@@ -129,6 +130,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         claimStreakBest = (claimRow['highest_streak'] as int?) ?? 0;
         workoutStreak = (workoutRow['streak'] as int?) ?? 0;
         workoutStreakBest = (workoutRow['highest_streak'] as int?) ?? 0;
+        workoutStreakLastDate = workoutRow['last_date'] as String?;
       } catch (_) {}
 
       final goals = data['goals'] as Map<String, dynamic>?;
@@ -175,6 +177,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           dailyClaimStreakBest: claimStreakBest,
           workoutStreak: workoutStreak,
           workoutStreakBest: workoutStreakBest,
+          workoutStreakLastDate: workoutStreakLastDate,
         ),
       );
 

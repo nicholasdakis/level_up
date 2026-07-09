@@ -508,6 +508,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                   level: data['new_level'] as int? ?? u.level,
                   expPoints: data['new_exp'] as int? ?? u.expPoints,
                   workoutStreak: data['new_streak'] as int? ?? u.workoutStreak,
+                  workoutStreakLastDate:
+                      data['streak_last_date'] as String? ??
+                      u.workoutStreakLastDate,
                   workoutStreakBest: data['best_streak'] != null
                       ? ((data['best_streak'] as int) > u.workoutStreakBest
                             ? data['best_streak'] as int
