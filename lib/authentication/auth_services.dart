@@ -6,8 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../globals.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_data_provider.dart';
 import '../providers/workout_provider.dart';
+import '../providers/food_logs_provider.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
@@ -26,8 +28,9 @@ class AuthService {
 
   Future<void> signOut(
     UserDataNotifierNew notifier,
-    WorkoutNotifier workoutNotifier,
-  ) async {
+    WorkoutNotifier workoutNotifier, {
+    WidgetRef? ref,
+  }) async {
     if (isGuest) {
       Guest.exit();
       return;
@@ -45,6 +48,7 @@ class AuthService {
     }
 
     workoutNotifier.clearSession();
+    ref?.invalidate(foodLogsProvider);
     await firebaseAuth.signOut();
     appInitialized = false;
     appReadyNotifier.reset();

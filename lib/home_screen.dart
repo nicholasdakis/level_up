@@ -517,6 +517,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               await authService.value.signOut(
                 ref.read(userDataProvider.notifier),
                 ref.read(workoutProvider.notifier),
+                ref: ref,
               );
             },
           ),
@@ -1016,6 +1017,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               await authService.value.signOut(
                                 ref.read(userDataProvider.notifier),
                                 ref.read(workoutProvider.notifier),
+                                ref: ref,
                               );
                             },
                             child: Text(

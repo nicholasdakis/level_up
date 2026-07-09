@@ -327,6 +327,7 @@ Widget buildSettingsDrawer(
                         await authService.value.signOut(
                           ref.read(userDataProvider.notifier),
                           ref.read(workoutProvider.notifier),
+                          ref: ref,
                         );
                         return;
                       }
@@ -360,6 +361,7 @@ Widget buildSettingsDrawer(
                         await authService.value.signOut(
                           ref.read(userDataProvider.notifier),
                           ref.read(workoutProvider.notifier),
+                          ref: ref,
                         );
                       }
                     },

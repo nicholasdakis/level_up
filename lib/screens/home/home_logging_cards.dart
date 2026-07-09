@@ -399,6 +399,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
       onTap: () async => authService.value.signOut(
         ref.read(userDataProvider.notifier),
         ref.read(workoutProvider.notifier),
+        ref: ref,
       ),
       child: Stack(
         children: [
@@ -614,12 +615,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                       }
                       // goal type set but missing either a logged weight or a target weight
                       if (currentKg == null || goalKg == null) {
-                        final label = UnitConverter.weightUnit(
-                          imperial: isImperial,
-                        );
                         return type != null
-                            ? "${type[0].toUpperCase()}${type.substring(1)} · $label"
-                            : label;
+                            ? "${type[0].toUpperCase()}${type.substring(1)}"
+                            : "";
                       }
                       // how far the current weight is from the target, always positive
                       final delta = (currentKg - goalKg).abs();

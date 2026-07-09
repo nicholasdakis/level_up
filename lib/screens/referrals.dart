@@ -474,6 +474,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
         onTap: () => authService.value.signOut(
           ref.read(userDataProvider.notifier),
           ref.read(workoutProvider.notifier),
+          ref: ref,
         ),
         child: Stack(
           fit: StackFit.expand,

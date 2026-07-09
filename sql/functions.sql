@@ -883,7 +883,7 @@ BEGIN
     SELECT COUNT(DISTINCT mg.name) INTO v_distinct_muscles
     FROM workout_exercises we
     JOIN exercise_muscles em ON em.exercise_id = we.exercise_id::INTEGER
-    JOIN muscle_groups mg ON mg.id = em.muscle_group_id
+    JOIN muscle_groups mg ON mg.id = em.muscle_id
     WHERE we.workout_id = v_workout_id
       AND em.muscle_type = 'primary'
       AND we.exercise_id IS NOT NULL;
