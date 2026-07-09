@@ -288,7 +288,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
           ..sort(
             (a, b) => b.value.compareTo(a.value),
           ); // order: higher score first
-    ref.read(userDataProvider.notifier).updateFoodLogStreak();
     if (mounted) {
       setState(() {
         _suggestedFoods = sorted.map((e) => byName[e.key]!).toList();

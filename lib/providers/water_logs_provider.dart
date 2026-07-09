@@ -16,14 +16,16 @@ class WaterLogsNotifier extends AsyncNotifier<Map<String, List<int>>> {
     final previous = Map<String, List<int>>.from(state.value ?? {});
     state = AsyncData({...previous, dateKey: entriesMl});
     try {
-      await authenticatedPost(
+      final response = await authenticatedPost(
         'upsert_water_log',
         body: {
           'date': dateKey,
           'entries_ml': entriesMl.map((ml) => {'amount_ml': ml}).toList(),
         },
       );
-      return true;
+      if (response.statusCode == 200) return true;
+      state = AsyncData(previous);
+      return false;
     } catch (e) {
       state = AsyncData(previous);
       return false;

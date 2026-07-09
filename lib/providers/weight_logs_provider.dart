@@ -16,11 +16,13 @@ class WeightLogsNotifier extends AsyncNotifier<Map<String, double>> {
     final previous = Map<String, double>.from(state.value ?? {});
     state = AsyncData({...previous, dateKey: weightKg});
     try {
-      await authenticatedPost(
+      final response = await authenticatedPost(
         'upsert_weight_log',
         body: {'date': dateKey, 'weight_kg': weightKg},
       );
-      return true;
+      if (response.statusCode == 200) return true;
+      state = AsyncData(previous);
+      return false;
     } catch (e) {
       state = AsyncData(previous);
       return false;
@@ -33,8 +35,13 @@ class WeightLogsNotifier extends AsyncNotifier<Map<String, double>> {
     final updated = Map<String, double>.from(previous)..remove(dateKey);
     state = AsyncData(updated);
     try {
-      await authenticatedPost('delete_weight_log', body: {'date': dateKey});
-      return true;
+      final response = await authenticatedPost(
+        'delete_weight_log',
+        body: {'date': dateKey},
+      );
+      if (response.statusCode == 200) return true;
+      state = AsyncData(previous);
+      return false;
     } catch (e) {
       state = AsyncData(previous);
       return false;

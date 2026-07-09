@@ -2501,5 +2501,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed workout streak and heatmap not updating on the home and workout screens after finishing a workout
 - Fixed workout streak showing a stale value on the home screen when days have been missed — now correctly shows 0 until the next workout is logged
 - Fixed workout streak and heatmap not updating in real time after finishing a workout
+- Fixed heatmap never updating after a workout due to a wrong response key in the refresh call
+- Fixed water and weight log optimistic updates not rolling back when the backend returns a non-200 response
+- Fixed food streak backend call firing repeatedly on every food log provider update instead of only after a successful log
+- Fixed double-saving a browse routine being possible immediately after saving due to source_template_id not being set on the optimistic update
 - Fixed My Routines card not updating after creating a new routine until app restart
 - Fixed username update timing out on new accounts due to Firebase token fetch being too slow on first sign-in

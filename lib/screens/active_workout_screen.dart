@@ -420,7 +420,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             (sets[s] as Map)['reps'] as int?;
         final weight =
             double.tryParse(_ctrl(i, s, 'weight').text) ??
-            (sets[s] as Map)['weight_kg'] as double?;
+            ((sets[s] as Map)['weight_kg'] as num?)?.toDouble();
         // skip sets with no meaningful data
         if ((reps == null || reps == 0) && (weight == null || weight == 0)) {
           continue;
