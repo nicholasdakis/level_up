@@ -44,6 +44,10 @@ ACHIEVEMENT_DEFINITIONS = [
     # Workout
     {"id": "workouts_logged",  "name": "Gym Rat",          "description": "Complete the specified number of workouts",                         "tiers": [1, 5, 10, 25, 50, 100, 200, 365],            "unit": "workouts",                  "section": "WORKOUT",     "server_tracked": True},
     {"id": "workout_streak",   "name": "No Days Off",      "description": "Work out on the specified number of consecutive days",              "tiers": [3, 7, 14, 30, 60, 100],                      "unit": "consecutive days",          "section": "WORKOUT",     "server_tracked": True},
+    {"id": "double_session",   "name": "Double Down",      "description": "Complete 2 workouts in the same day",                              "tiers": [1, 5, 10, 25],                               "unit": "double-session days",       "section": "WORKOUT",     "server_tracked": True},
+    {"id": "muscle_variety",   "name": "Full Body",        "description": "Hit the specified number of different primary muscles in one workout", "tiers": [3, 4, 5, 6],                              "unit": "muscle groups in one session", "section": "WORKOUT",  "server_tracked": True},
+    {"id": "early_workout",    "name": "Early Bird",       "description": "Complete a workout before 8 AM",                                   "tiers": [1, 5, 10, 25],                               "unit": "early workouts",            "section": "WORKOUT",     "server_tracked": False},
+    {"id": "late_workout",     "name": "Night Owl",        "description": "Complete a workout after 10 PM",                                   "tiers": [1, 5, 10, 25],                               "unit": "late workouts",             "section": "WORKOUT",     "server_tracked": False},
     # Social
     {"id": "referrals",          "name": "Recruiter",        "description": "Refer the specified number of friends",                            "tiers": [1, 2, 3],                                     "unit": "friends referred",          "section": "SOCIAL",      "server_tracked": True},
     # Meta

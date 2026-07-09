@@ -2512,3 +2512,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Claimable tier count shown next to each section header so users can see at a glance what is ready to claim
 - Dot indicators added below each section row, matching the browse routines pattern
 - Tier chips shrunk from 72px to 40px so more fit in the carousel without scrolling
+- Added 4 new workout achievements: Double Down (2 workouts in one day), Full Body (hit N distinct primary muscles in one session), Early Bird (workout before 8 AM), Night Owl (workout after 10 PM)
+- Double Down and Full Body are server-tracked and awarded automatically on log_workout; Early Bird and Night Owl are client-triggered trivial achievements
+- Added get_today_workout_count and get_workout_primary_muscles repository methods to support the new server-side checks

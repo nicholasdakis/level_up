@@ -86,6 +86,10 @@ const Map<String, IconData> _achievementIcons = {
   "change_username": HugeIcons.strokeRoundedUserCircle,
   "workouts_logged": HugeIcons.strokeRoundedDumbbell01,
   "workout_streak": HugeIcons.strokeRoundedFire,
+  "double_session": HugeIcons.strokeRoundedDumbbell02,
+  "muscle_variety": HugeIcons.strokeRoundedActivity01,
+  "early_workout": HugeIcons.strokeRoundedSun03,
+  "late_workout": HugeIcons.strokeRoundedMoon02,
   "referrals": HugeIcons.strokeRoundedUserAdd01,
   "total_achievements": HugeIcons.strokeRoundedMedal02,
 };
@@ -159,7 +163,9 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
   void dispose() {
     _evenPulse.dispose();
     _oddPulse.dispose();
-    for (final sc in _sectionScrolls.values) sc.dispose();
+    for (final sc in _sectionScrolls.values) {
+      sc.dispose();
+    }
     super.dispose();
   }
 
@@ -807,8 +813,9 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
               ? (highestStreaks[d.id] ?? 0)
               : (progress[d.id] ?? 0);
           for (final t in d.tiers) {
-            if (cur >= t && !(claimedTiers[d.id]?.contains(t) ?? false))
+            if (cur >= t && !(claimedTiers[d.id]?.contains(t) ?? false)) {
               sectionClaimable++;
+            }
           }
         }
 

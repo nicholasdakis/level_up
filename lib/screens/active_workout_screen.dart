@@ -528,6 +528,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             totalSets++;
           }
         }
+        // Time-based workout achievements, client knows local time
+        final hour = DateTime.now().hour;
+        if (hour < 8) trackTrivialAchievement('early_workout');
+        if (hour >= 22) trackTrivialAchievement('late_workout');
+
         if (mounted) {
           await handleLevelUpOverlay(context, levelBefore, appColor, ref);
         }

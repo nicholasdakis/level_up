@@ -700,6 +700,9 @@ DECLARE
     v_new_streak               INTEGER;
     v_today                    DATE := CURRENT_DATE;
     v_xp_already_awarded_today BOOLEAN;
+    -- double session / muscle variety
+    v_today_workout_count      INTEGER;
+    v_distinct_muscles         INTEGER;
 BEGIN
     -- check if the user already completed a workout today (XP is once per day)
     SELECT EXISTS (
@@ -862,6 +865,34 @@ BEGIN
         FROM users WHERE uid = p_uid;
         SELECT streak INTO v_new_streak
         FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak';
+    END IF;
+
+    -- double_session: increment if this is the 2nd+ completed workout today
+    SELECT COUNT(*) INTO v_today_workout_count
+    FROM workouts
+    WHERE uid = p_uid AND completed = true AND date = v_today;
+
+    IF v_today_workout_count >= 2 THEN
+        INSERT INTO achievement_progress (uid, achievement_id, progress)
+        VALUES (p_uid, 'double_session', 1)
+        ON CONFLICT (uid, achievement_id) DO UPDATE
+        SET progress = achievement_progress.progress + 1;
+    END IF;
+
+    -- muscle_variety: count distinct primary muscles from built-in exercises in this workout
+    SELECT COUNT(DISTINCT mg.name) INTO v_distinct_muscles
+    FROM workout_exercises we
+    JOIN exercise_muscles em ON em.exercise_id = we.exercise_id::INTEGER
+    JOIN muscle_groups mg ON mg.id = em.muscle_group_id
+    WHERE we.workout_id = v_workout_id
+      AND em.muscle_type = 'primary'
+      AND we.exercise_id IS NOT NULL;
+
+    IF v_distinct_muscles >= 3 THEN
+        INSERT INTO achievement_progress (uid, achievement_id, progress)
+        VALUES (p_uid, 'muscle_variety', v_distinct_muscles)
+        ON CONFLICT (uid, achievement_id) DO UPDATE
+        SET progress = GREATEST(achievement_progress.progress, v_distinct_muscles);
     END IF;
 
     RETURN jsonb_build_object(
