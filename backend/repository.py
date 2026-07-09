@@ -956,7 +956,7 @@ class ReminderRepository:
 
     def get_reminders(self, uid: str):
         # Fetches all reminders for a user
-        result = self._supabase.table("reminders").select("*").eq("uid", uid).execute()
+        result = self._supabase.table("reminders").select("*").eq("uid", uid).order("scheduled_at", desc=False).execute()
         return result.data
 
     def get_due_reminders(self, now_iso: str):
