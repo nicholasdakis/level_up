@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -826,7 +827,10 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
         buildOutlinedButton(
           label: "Browse as a guest",
           icon: HugeIcons.strokeRoundedAnonymous,
-          onTap: () => Guest.enter(ref),
+          onTap: () {
+            FirebaseAnalytics.instance.logEvent(name: 'browse_as_guest');
+            Guest.enter(ref);
+          },
         ),
         if (notifyingMessage != null) ...[
           SizedBox(height: Responsive.padding(context, 12)),

@@ -929,7 +929,22 @@ class _WorkoutState extends ConsumerState<Workout> {
                                       rootNavigator: true,
                                     ).pop(),
                                     child: Text(
-                                      'OK',
+                                      'Cancel',
+                                      style: dialogButtonStyle(),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop();
+                                      ref
+                                          .read(workoutProvider.notifier)
+                                          .clearSession();
+                                    },
+                                    child: Text(
+                                      'Discard Current',
                                       style: dialogButtonStyle(confirm: true),
                                     ),
                                   ),

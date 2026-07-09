@@ -289,6 +289,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           child: Text('Cancel', style: dialogButtonStyle()),
         ),
         TextButton(
+          onPressed: () {
+            logAnalyticsEvent('workout_minimized');
+            Navigator.of(context, rootNavigator: true).pop(false);
+            Navigator.of(context).pop();
+          },
+          child: Text('Minimize', style: dialogButtonStyle()),
+        ),
+        TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
           child: Text('Discard', style: dialogButtonStyle(confirm: true)),
         ),
@@ -1141,7 +1149,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () {
+              logAnalyticsEvent('workout_minimized');
+              Navigator.of(context).pop();
+            },
             child: Padding(
               padding: EdgeInsets.only(right: Responsive.width(context, 12)),
               child: Icon(
