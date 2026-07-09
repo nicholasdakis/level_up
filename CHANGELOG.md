@@ -2491,3 +2491,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed get_leaderboard getting all users and filtering the top 100 client-side which caused huge sizes for leaderboard loads
 - Added a better error screen for the leaderboard tab with a retry and back button
 - Replaced the workout and food leaderboard gets with RPCs
+- Leaderboard results are cached in memory per type/period for the session so switching tabs is instant

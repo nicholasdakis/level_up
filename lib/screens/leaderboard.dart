@@ -111,6 +111,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       _leaderboardFuture = leaderboardService.fetchLeaderboard(
         type: _lbType,
         period: _lbPeriod,
+        forceRefresh: true,
       );
     });
   }
