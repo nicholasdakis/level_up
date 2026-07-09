@@ -67,7 +67,40 @@ class FoodLog {
     );
   }
 
-  // converts back to the map shape the rest of the app currently expects during migration
+  FoodLog copyWith({
+    String? id,
+    String? date,
+    String? meal,
+    String? foodName,
+    String? brandName,
+    String? foodDescription,
+    int? calories,
+    double? protein,
+    double? carbs,
+    double? fat,
+    double? fiber,
+    double? sugar,
+    double? sodium,
+    String? servingSize,
+    String? loggedAt,
+  }) => FoodLog(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    meal: meal ?? this.meal,
+    foodName: foodName ?? this.foodName,
+    brandName: brandName ?? this.brandName,
+    foodDescription: foodDescription ?? this.foodDescription,
+    calories: calories ?? this.calories,
+    protein: protein ?? this.protein,
+    carbs: carbs ?? this.carbs,
+    fat: fat ?? this.fat,
+    fiber: fiber ?? this.fiber,
+    sugar: sugar ?? this.sugar,
+    sodium: sodium ?? this.sodium,
+    servingSize: servingSize ?? this.servingSize,
+    loggedAt: loggedAt ?? this.loggedAt,
+  );
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

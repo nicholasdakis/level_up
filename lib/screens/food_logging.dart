@@ -176,6 +176,141 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     await _saveFoodData("delete");
   }
 
+  Future<void> _moveFood(String fromMeal, FoodLog food) async {
+    const meals = ['breakfast', 'lunch', 'dinner', 'snacks'];
+    const labels = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+
+    final toMeal = await showFrostedDialog<String>(
+      context: context,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Move to',
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 15),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          for (int i = 0; i < meals.length; i++)
+            if (meals[i] != fromMeal)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () =>
+                    Navigator.of(context, rootNavigator: true).pop(meals[i]),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  child: Text(
+                    labels[i],
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+    if (toMeal == null || !mounted) return;
+
+    final mealList = _mealList(fromMeal);
+    final toList = _mealList(toMeal);
+    setState(() {
+      mealList.remove(food);
+      toList.add(food.copyWith(meal: toMeal));
+    });
+    await _saveFoodData('move');
+  }
+
+  List<FoodLog> _mealList(String meal) {
+    switch (meal) {
+      case 'breakfast':
+        return breakfastFoods;
+      case 'lunch':
+        return lunchFoods;
+      case 'dinner':
+        return dinnerFoods;
+      default:
+        return snacksFoods;
+    }
+  }
+
+  void _showFoodMenu(
+    BuildContext btnContext,
+    String mealKey,
+    List<FoodLog> foods,
+    FoodLog food,
+    int idx,
+  ) async {
+    final accent = lightenColor(appColor, 0.45);
+
+    Widget menuItem(IconData icon, String label, String value) =>
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(btnContext, rootNavigator: true).pop(value),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 14),
+            ),
+            child: Row(
+              children: [
+                HugeIcon(
+                  icon: icon,
+                  color: accent,
+                  size: Responsive.scale(context, 20),
+                ),
+                SizedBox(width: Responsive.width(context, 14)),
+                Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 14),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+    final result = await showFrostedDialog<String>(
+      context: btnContext,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            food.foodName,
+            style: GoogleFonts.manrope(
+              color: accent,
+              fontSize: Responsive.font(context, 15),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 4)),
+          Divider(color: Colors.white12),
+          menuItem(HugeIcons.strokeRoundedEdit03, 'Edit Serving', 'edit'),
+          menuItem(HugeIcons.strokeRoundedArrowRight01, 'Move to Meal', 'move'),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == 'edit') await _editServingSize(mealKey, foods, food);
+    if (result == 'move') await _moveFood(mealKey, food);
+  }
+
   // Opens a dialog letting the user change the serving amount for a logged food
   // Scales all macros proportionally and saves the updated entry
   Future<void> _editServingSize(
@@ -260,7 +395,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     await _saveFoodData("edit"); // store the changes
   }
 
-  Future<void> _saveFoodData(String addOrDelete) async {
+  Future<void> _saveFoodData(String action) async {
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final mealMap = {
       'breakfast': breakfastFoods,
@@ -273,9 +408,11 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         .upsertForDate(dateKey, mealMap);
     if (!mounted) return;
     final msg = success
-        ? (addOrDelete == "delete"
+        ? (action == "delete"
               ? "Food deleted successfully."
-              : addOrDelete == "edit"
+              : action == "move"
+              ? "Food moved successfully."
+              : action == "edit"
               ? "Food edited successfully."
               : "Food logged successfully.")
         : (isConnected
@@ -1032,20 +1169,28 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => _editServingSize(mealKey, foods, food),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedEdit03,
-                              color: lightenColor(appColor, 0.45),
-                              size: Responsive.scale(context, 26),
-                            ),
-                          ),
-                          SizedBox(width: Responsive.width(context, 10)),
-                          GestureDetector(
                             onTap: () => _deleteFood(mealKey, idx, foods),
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedDelete02,
                               color: lightenColor(appColor, 0.45),
-                              size: Responsive.scale(context, 26),
+                              size: Responsive.scale(context, 24),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 10)),
+                          Builder(
+                            builder: (btnContext) => GestureDetector(
+                              onTap: () => _showFoodMenu(
+                                btnContext,
+                                mealKey,
+                                foods,
+                                food,
+                                idx,
+                              ),
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedMoreVertical,
+                                color: lightenColor(appColor, 0.45),
+                                size: Responsive.scale(context, 24),
+                              ),
                             ),
                           ),
                         ],
@@ -1116,18 +1261,19 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final isLoading = !ref.watch(userDataLoadedProvider);
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final logs = ref.watch(foodLogsProvider).value ?? [];
-    breakfastFoods = logs
-        .where((f) => f.date == dateKey && f.meal == 'breakfast')
-        .toList();
-    lunchFoods = logs
-        .where((f) => f.date == dateKey && f.meal == 'lunch')
-        .toList();
-    dinnerFoods = logs
-        .where((f) => f.date == dateKey && f.meal == 'dinner')
-        .toList();
-    snacksFoods = logs
-        .where((f) => f.date == dateKey && f.meal == 'snacks')
-        .toList();
+    // sort by logged_at so moved foods stay in chronological order within the meal
+    breakfastFoods =
+        logs.where((f) => f.date == dateKey && f.meal == 'breakfast').toList()
+          ..sort((a, b) => (a.loggedAt ?? '').compareTo(b.loggedAt ?? ''));
+    lunchFoods =
+        logs.where((f) => f.date == dateKey && f.meal == 'lunch').toList()
+          ..sort((a, b) => (a.loggedAt ?? '').compareTo(b.loggedAt ?? ''));
+    dinnerFoods =
+        logs.where((f) => f.date == dateKey && f.meal == 'dinner').toList()
+          ..sort((a, b) => (a.loggedAt ?? '').compareTo(b.loggedAt ?? ''));
+    snacksFoods =
+        logs.where((f) => f.date == dateKey && f.meal == 'snacks').toList()
+          ..sort((a, b) => (a.loggedAt ?? '').compareTo(b.loggedAt ?? ''));
     final colors = _mealColors(appColor);
 
     return Container(
