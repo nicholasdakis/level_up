@@ -2,11 +2,20 @@ import logging
 import random
 import string
 from math import radians, sin, cos, sqrt, atan2
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from backend.utils import to_utc_datetime
 from backend.repository import UserRepository, ReminderRepository, AchievementRepository
 from backend.valid_achievements import SERVER_ACHIEVEMENT_IDS, VALID_ACHIEVEMENT_IDS, ACHIEVEMENT_VALID_TIERS
 from better_profanity import profanity
+
+def _period_to_since_date(period: str) -> str | None:
+    # Returns the earliest date string for the given period, or None for all time
+    now = datetime.now(timezone.utc)
+    if period == "weekly":
+        return (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    if period == "monthly":
+        return (now - timedelta(days=30)).strftime("%Y-%m-%d")
+    return None
 
 logger = logging.getLogger(__name__)
 
@@ -430,8 +439,13 @@ class ProgressionService: # Service class to handle all progression-related busi
             self._track_achievement(uid, "delete_reminder")
         return deleted
 
-    def get_leaderboard(self):
-        # Returns all users sorted by level and XP for the leaderboard
+    def get_leaderboard(self, type: str = "xp", period: str = "all_time"):
+        # Returns the leaderboard sorted by the requested type and filtered by period
+        since = _period_to_since_date(period)
+        if type == "foods":
+            return self._repo.get_leaderboard_by_foods(since)
+        if type == "workouts":
+            return self._repo.get_leaderboard_by_workouts(since)
         return self._repo.get_leaderboard()
 
     def get_leaderboard_standing(self, uid: str):

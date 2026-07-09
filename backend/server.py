@@ -769,7 +769,10 @@ def get_leaderboard():
     if err:
         return err
 
-    result = progression_service.get_leaderboard()
+    type_ = request.args.get("type", "xp")
+    period = request.args.get("period", "all_time")
+
+    result = progression_service.get_leaderboard(type=type_, period=period)
     response = GetLeaderboardResponse(
         users=[LeaderboardUserEntry(**entry) for entry in result]
     )
