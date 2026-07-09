@@ -27,6 +27,13 @@ class _ProgressionState extends ConsumerState<Progression> {
   int? _rank;
   int? _total;
   bool _standingLoading = true;
+  String _standingType = 'xp';
+
+  static const _standingTypes = [
+    ('xp', 'XP'),
+    ('foods', 'Foods'),
+    ('workouts', 'Workouts'),
+  ];
 
   @override
   void initState() {
@@ -39,8 +46,11 @@ class _ProgressionState extends ConsumerState<Progression> {
   }
 
   Future<void> _fetchStanding() async {
+    setState(() => _standingLoading = true);
     try {
-      final data = await UserDataManager.fetchLeaderboardStanding();
+      final data = await UserDataManager.fetchLeaderboardStanding(
+        type: _standingType,
+      );
       if (mounted) {
         setState(() {
           _rank = data['rank'] as int?;
@@ -81,55 +91,7 @@ class _ProgressionState extends ConsumerState<Progression> {
         ? "$topPercent%"
         : "?";
 
-    Widget statCard({
-      required String label,
-      required String value,
-      required String sub,
-    }) {
-      return Expanded(
-        child: frostedGlassCard(
-          context,
-          color: appColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 16),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 10),
-                  color: dim,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 4)),
-              Text(
-                value,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 28),
-                  color: accent,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-              ),
-              Text(
-                sub,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 11),
-                  color: dim,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final cards = Skeletonizer(
+    final combined = Skeletonizer(
       enabled:
           !isGuest && (_standingLoading || !ref.watch(userDataLoadedProvider)),
       effect: ShimmerEffect(
@@ -137,37 +99,170 @@ class _ProgressionState extends ConsumerState<Progression> {
         highlightColor: lightenColor(appColor, 0.1),
         duration: const Duration(milliseconds: 1200),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: frostedGlassCard(
+        context,
+        color: appColor,
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 16),
+          vertical: Responsive.height(context, 14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            statCard(
-              label: "YOUR RANK",
-              value: rankLabel,
-              sub: isGuest
-                  ? "out of --"
-                  : _total != null
-                  ? "out of $_total"
-                  : "loading",
+            // Type toggle — IntrinsicWidth makes all chips match the widest one
+            Center(
+              child: IntrinsicWidth(
+                child: Row(
+                  children: [
+                    for (final (type, label) in _standingTypes) ...[
+                      if (type != _standingTypes.first.$1)
+                        SizedBox(width: Responsive.width(context, 8)),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (_standingType != type) {
+                              setState(() => _standingType = type);
+                              _fetchStanding();
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 12),
+                              vertical: Responsive.height(context, 7),
+                            ),
+                            decoration: BoxDecoration(
+                              color: _standingType == type
+                                  ? appColor.withAlpha(60)
+                                  : Colors.white.withAlpha(10),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 20),
+                              ),
+                              border: Border.all(
+                                color: _standingType == type
+                                    ? accent.withAlpha(180)
+                                    : dim.withAlpha(60),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                label,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 12),
+                                  fontWeight: _standingType == type
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: _standingType == type ? accent : dim,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            SizedBox(width: Responsive.width(context, 12)),
-            statCard(
-              label: "YOU'RE IN THE TOP",
-              value: topLabel,
-              sub: "of all players",
+            SizedBox(height: Responsive.height(context, 14)),
+            // Stat row
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "YOUR RANK",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            color: dim,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: Responsive.height(context, 4)),
+                        Text(
+                          rankLabel,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 28),
+                            color: accent,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                          ),
+                        ),
+                        Text(
+                          isGuest
+                              ? "out of --"
+                              : _total != null
+                              ? "out of $_total"
+                              : "loading",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: dim,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    margin: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                    ),
+                    color: dim.withAlpha(40),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "TOP",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 10),
+                            color: dim,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: Responsive.height(context, 4)),
+                        Text(
+                          topLabel,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 28),
+                            color: accent,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                          ),
+                        ),
+                        Text(
+                          "of all players",
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 11),
+                            color: dim,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
 
-    if (!isGuest) return cards;
+    if (!isGuest) return combined;
 
     return GestureDetector(
       onTap: () => Guest.exit(),
       child: Stack(
         children: [
-          IgnorePointer(child: Opacity(opacity: 0.35, child: cards)),
+          IgnorePointer(child: Opacity(opacity: 0.35, child: combined)),
           Positioned.fill(
             child: Center(
               child: Column(

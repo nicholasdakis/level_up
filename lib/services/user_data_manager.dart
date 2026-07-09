@@ -238,9 +238,11 @@ class UserDataManager {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  // Returns the user's leaderboard rank and total player count
-  static Future<Map<String, dynamic>> fetchLeaderboardStanding() async {
-    final response = await authenticatedGet('leaderboard_standing');
+  // Returns the user's leaderboard rank and total player count for the given type
+  static Future<Map<String, dynamic>> fetchLeaderboardStanding({
+    String type = 'xp',
+  }) async {
+    final response = await authenticatedGet('leaderboard_standing?type=$type');
     if (response.statusCode != 200) {
       throw Exception(
         'leaderboard_standing failed: ${response.statusCode} ${response.body}',

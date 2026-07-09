@@ -74,13 +74,16 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
-                date: 'Coming Soon',
+                date: 'July 9, 2026',
                 version: '1.2.1',
                 changes: [
                   'Major under-the-hood rewrite to improve app performance, responsiveness, and stability across all screens',
-                  'Added a Suggested tab to the Log Food screen, showing your most frequently logged foods for each meal',
+                  'New leaderboard types added: Foods logged and workouts logged',
+                  'Leaderboard filters added: All time, monthly, weekly',
+                  'Added a Suggested tab to the Log Food screen, showing your currently most frequently logged foods per meal',
                   'Logged foods can now be moved to different meal types',
                   'Inviting friends is now easier, with a native share button now in the referrals dialog and settings drawer',
+                  'Your rank card on the Progression screen now shows your standing across XP, foods logged, and workouts',
                 ],
               ),
               _buildChangelogCard(

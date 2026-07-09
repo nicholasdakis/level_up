@@ -2494,3 +2494,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Leaderboard results are cached in memory per type/period for the session so switching tabs is instant
 - Profile pictures are now always compressed to 256x256 JPEG at 75% quality on upload, capping size at roughly 20-30KB instead of up to 750KB
 - Ran a one-time migration to recompress all 79 existing user profile pictures using the same settings, reducing total pfp storage from 10.81MB to 0.77MB (93% reduction)
+- Redesigned the rank card on the Progression screen into a single unified card with XP, Foods, and Workouts standing tabs
+- Added get_xp_standing, get_foods_standing, and get_workouts_standing Postgres RPCs so each standing type is computed server-side in one query without fetching any rows to Python
