@@ -408,16 +408,6 @@ class _ProgressionState extends ConsumerState<Progression> {
                         MediaQuery.paddingOf(context).top +
                         Responsive.height(context, 24),
                   ),
-                  sectionHeader("BADGES", context, appColor: appColor),
-                  _buildCard(
-                    icon: HugeIcons.strokeRoundedCrown,
-                    title: "Badges",
-                    subtitle: "Track achievements and claim tier rewards",
-                    onTap: isGuest
-                        ? () => Guest.block(context)
-                        : () => context.push('/badges'),
-                  ),
-                  SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("LEADERBOARD", context, appColor: appColor),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedMedal01,
@@ -430,6 +420,16 @@ class _ProgressionState extends ConsumerState<Progression> {
                   SizedBox(height: Responsive.height(context, 12)),
                   // Standing stat cards showing rank and total players
                   _buildStandingCard(context),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  sectionHeader("BADGES", context, appColor: appColor),
+                  _buildCard(
+                    icon: HugeIcons.strokeRoundedCrown,
+                    title: "Badges",
+                    subtitle: "Track achievements and claim tier rewards",
+                    onTap: isGuest
+                        ? () => Guest.block(context)
+                        : () => context.push('/badges'),
+                  ),
                   SizedBox(height: Responsive.height(context, 120)),
                 ],
               ),
