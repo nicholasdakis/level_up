@@ -2478,11 +2478,16 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Food logging goals (calories, protein, carbs, fat) now use ref.watch with .select instead of ref.read so they update immediately when user data loads
 - Migrated appReadyNotifier to its own provider class and migrated the files that depend on it
 - Migrated all food logging screens (food_logging, log_food_screen, food_analytics, home_logging_cards) to use FoodLog directly
-
-## 2026-07-09
 - Added an Invite a Friend button to the referrals dialog and the settings drawer that opens the native share sheet with a prefilled message and your referral code
 - Fixed crash when starting a workout from a routine caused by the workout provider state not being available during widget mount
 - Added analytics event tracking for key user actions: daily reward tap, watch ad tap, reminders shortcut, calorie calculator shortcut, referral card open, invite a friend, explore check-in, calorie goal set from calculator, water logged, weight logged, food logged, workout started/completed/discarded, routine started/created, daily reward claimed, streak milestone reached, onboarding completed/skipped, and reached level 3
 - Added Minimize to the discard workout dialog and Discard Current Workout to the workout in progress dialog
 - Food items now have a three-dot menu with Edit Serving and Move to Meal options
 - Added a Suggested foods tab next to Recent, showing your most frequently logged foods for the current meal based on the past two weeks, weighted toward more recent logs
+
+## 2026-07-09
+- Added more leaderboard types (workouts logged and foods logged)
+- Added leaderboard time filters (all time, monthly, weekly)
+- Fixed get_leaderboard getting all users and filtering the top 100 client-side which caused huge sizes for leaderboard loads
+- Added a better error screen for the leaderboard tab with a retry and back button
+- Replaced the workout and food leaderboard gets with RPCs

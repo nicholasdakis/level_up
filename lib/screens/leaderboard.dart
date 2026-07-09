@@ -13,6 +13,11 @@ import '../models/leaderboard_entry.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import 'package:hugeicons/hugeicons.dart';
+
+enum _LeaderboardType { xp, foods, workouts }
+
+enum _LeaderboardPeriod { allTime, monthly, weekly }
 
 class Leaderboard extends ConsumerStatefulWidget {
   const Leaderboard({super.key});
@@ -31,6 +36,9 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
   // Tracks which card indices have already played their entrance animation
   final Set<int> _animatedIndices = {};
   late Future<List<LeaderboardEntry>> _leaderboardFuture;
+
+  _LeaderboardType _selectedType = _LeaderboardType.xp;
+  _LeaderboardPeriod _selectedPeriod = _LeaderboardPeriod.allTime;
 
   // Fake entries for the skeleton loading placeholder
   static final List<LeaderboardEntry> _skeletonEntries = List.generate(
@@ -63,7 +71,10 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       screenName: '/leaderboard',
       screenClass: 'Leaderboard',
     );
-    _leaderboardFuture = leaderboardService.fetchLeaderboard();
+    _leaderboardFuture = leaderboardService.fetchLeaderboard(
+      type: _lbType,
+      period: _lbPeriod,
+    );
     if (isGuest) Guest.blockOnOpen(context); // For guest users
   }
 
@@ -72,9 +83,35 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     super.dispose();
   }
 
+  String get _lbType {
+    switch (_selectedType) {
+      case _LeaderboardType.xp:
+        return 'xp';
+      case _LeaderboardType.foods:
+        return 'foods';
+      case _LeaderboardType.workouts:
+        return 'workouts';
+    }
+  }
+
+  String get _lbPeriod {
+    switch (_selectedPeriod) {
+      case _LeaderboardPeriod.allTime:
+        return 'all_time';
+      case _LeaderboardPeriod.monthly:
+        return 'monthly';
+      case _LeaderboardPeriod.weekly:
+        return 'weekly';
+    }
+  }
+
   void _refreshLeaderboard() {
+    _animatedIndices.clear();
     setState(() {
-      _leaderboardFuture = leaderboardService.fetchLeaderboard();
+      _leaderboardFuture = leaderboardService.fetchLeaderboard(
+        type: _lbType,
+        period: _lbPeriod,
+      );
     });
   }
 
@@ -119,9 +156,24 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     final username = (user.username == null || user.username == user.uid)
         ? "Unnamed"
         : user.username!;
+    final isXp = _selectedType == _LeaderboardType.xp;
     final expNeeded = experienceNeededForLevel(user.level);
     // XP progress toward next level (0.0 to 1.0)
     final progressFraction = (user.expPoints / expNeeded).clamp(0.0, 1.0);
+
+    String subtext() {
+      if (!isXp) {
+        final n = user.count ?? 0;
+        if (_selectedType == _LeaderboardType.foods) return "$n foods logged";
+        if (_selectedType == _LeaderboardType.workouts) return "$n workouts";
+      }
+      return "Level ${user.level}";
+    }
+
+    String trailingText() {
+      if (!isXp) return "${user.count ?? 0}";
+      return "${user.expPoints} / $expNeeded";
+    }
 
     // The frosted glass card for this leaderboard entry
     final Widget card = frostedGlassCard(
@@ -184,7 +236,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                   _profilePicture(user),
                 ],
                 SizedBox(width: Responsive.width(context, 12)),
-                // Username and level
+                // Username and subtext
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +251,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       ),
                       SizedBox(height: Responsive.height(context, 2)),
                       Text(
-                        "Level ${user.level}",
+                        subtext(),
                         style: GoogleFonts.manrope(
                           color: Colors.white60,
                           fontSize: Responsive.font(context, 12),
@@ -208,9 +260,8 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                     ],
                   ),
                 ),
-                // XP display
                 Text(
-                  "${user.expPoints} / $expNeeded",
+                  trailingText(),
                   style: GoogleFonts.manrope(
                     color: Colors.white38,
                     fontSize: Responsive.font(context, 12),
@@ -218,17 +269,21 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                 ),
               ],
             ),
-            SizedBox(height: Responsive.height(context, 10)),
-            // XP progress bar toward next level
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-              child: LinearProgressIndicator(
-                value: progressFraction,
-                minHeight: Responsive.height(context, 8),
-                backgroundColor: Colors.white.withAlpha(20),
-                valueColor: AlwaysStoppedAnimation<Color>(appColor),
+            if (isXp) ...[
+              SizedBox(height: Responsive.height(context, 10)),
+              // XP progress bar toward next level
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 6),
+                ),
+                child: LinearProgressIndicator(
+                  value: progressFraction,
+                  minHeight: Responsive.height(context, 8),
+                  backgroundColor: Colors.white.withAlpha(20),
+                  valueColor: AlwaysStoppedAnimation<Color>(appColor),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -237,6 +292,136 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
     return Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 10)),
       child: card,
+    );
+  }
+
+  Widget _buildTypeChips() {
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.30);
+
+    final types = [
+      (_LeaderboardType.xp, HugeIcons.strokeRoundedStar, "XP"),
+      (_LeaderboardType.foods, HugeIcons.strokeRoundedRestaurant03, "Foods"),
+      (
+        _LeaderboardType.workouts,
+        HugeIcons.strokeRoundedDumbbell01,
+        "Workouts",
+      ),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (int i = 0; i < types.length; i++) ...[
+            if (i > 0) SizedBox(width: Responsive.width(context, 8)),
+            GestureDetector(
+              onTap: () {
+                if (_selectedType != types[i].$1) {
+                  setState(() => _selectedType = types[i].$1);
+                  _refreshLeaderboard();
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 12),
+                  vertical: Responsive.height(context, 7),
+                ),
+                decoration: BoxDecoration(
+                  color: _selectedType == types[i].$1
+                      ? appColor.withAlpha(60)
+                      : Colors.white.withAlpha(10),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 20),
+                  ),
+                  border: Border.all(
+                    color: _selectedType == types[i].$1
+                        ? accent.withAlpha(180)
+                        : dim.withAlpha(60),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(
+                      icon: types[i].$2,
+                      color: _selectedType == types[i].$1 ? accent : dim,
+                      size: Responsive.scale(context, 13),
+                    ),
+                    SizedBox(width: Responsive.width(context, 5)),
+                    Text(
+                      types[i].$3,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
+                        color: _selectedType == types[i].$1 ? accent : dim,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodToggle() {
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.30);
+
+    final periods = [
+      (_LeaderboardPeriod.allTime, "All time"),
+      (_LeaderboardPeriod.monthly, "Monthly"),
+      (_LeaderboardPeriod.weekly, "Weekly"),
+    ];
+
+    return Row(
+      children: [
+        for (int i = 0; i < periods.length; i++) ...[
+          if (i > 0) SizedBox(width: Responsive.width(context, 8)),
+          GestureDetector(
+            onTap: () {
+              if (_selectedPeriod != periods[i].$1) {
+                setState(() => _selectedPeriod = periods[i].$1);
+                _refreshLeaderboard();
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 12),
+                vertical: Responsive.height(context, 7),
+              ),
+              decoration: BoxDecoration(
+                color: _selectedPeriod == periods[i].$1
+                    ? appColor.withAlpha(60)
+                    : Colors.white.withAlpha(10),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ),
+                border: Border.all(
+                  color: _selectedPeriod == periods[i].$1
+                      ? accent.withAlpha(180)
+                      : dim.withAlpha(60),
+                  width: 1.2,
+                ),
+              ),
+              child: Text(
+                periods[i].$2,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 12),
+                  fontWeight: FontWeight.w600,
+                  color: _selectedPeriod == periods[i].$1 ? accent : dim,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -252,14 +437,50 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
         body: FutureBuilder<List<LeaderboardEntry>>(
           future: _leaderboardFuture,
           builder: (context, snapshot) {
-            // Check if the stream encountered an error
             if (snapshot.hasError) {
-              return const Center(
-                child: Text(
-                  "Error loading leaderboard",
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                showFrostedAlertDialog(
+                  context: context,
+                  appColor: appColor,
+                  title: "Failed to load",
+                  content: Text(
+                    "Failed to load the leaderboard.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        context.pop();
+                      },
+                      child: Text(
+                        "Go back",
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.40),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _refreshLeaderboard();
+                      },
+                      child: Text(
+                        "Retry",
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.45),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              });
             }
 
             // Uses the skeleton entries while loading and real data once loaded
@@ -319,123 +540,141 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
               );
             }
 
+            final hPad = Responsive.centeredHorizontalPadding(context, 20);
+
             return Skeletonizer(
-              enabled:
-                  isLoading, // shows bone placeholders while loading, passes through normally when done
+              enabled: isLoading,
               effect: ShimmerEffect(
                 baseColor: lightenColor(appColor, 0.3),
                 highlightColor: lightenColor(appColor, 0.1),
                 duration: const Duration(milliseconds: 1200),
               ),
-              child: ListView.builder(
-                padding: EdgeInsets.only(
-                  left: Responsive.centeredHorizontalPadding(context, 20),
-                  right: Responsive.centeredHorizontalPadding(context, 20),
-                  top:
-                      MediaQuery.paddingOf(context).top +
-                      Responsive.height(context, 16),
-                  bottom: Responsive.height(context, 120),
-                ),
-                itemCount:
-                    (leaderboardUsers.length > 100
-                        ? 100
-                        : leaderboardUsers.length) +
-                    1,
-                itemBuilder: (context, i) {
-                  if (i == 0) {
-                    return Padding(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
                       padding: EdgeInsets.only(
+                        left: hPad,
+                        right: hPad,
+                        top:
+                            MediaQuery.paddingOf(context).top +
+                            Responsive.height(context, 16),
                         bottom: Responsive.height(context, 12),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GestureDetector(
-                            onTap: () => context.pop(),
-                            child: Container(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 12),
-                              ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(
-                                  appColor,
-                                  0.1,
-                                ).withAlpha(20),
-                                border: Border.all(
-                                  color: lightenColor(
-                                    appColor,
-                                    0.3,
-                                  ).withAlpha(180),
-                                  width: 1.5,
+                          // Back and refresh buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              GestureDetector(
+                                onTap: () => context.pop(),
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 12),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: lightenColor(
+                                      appColor,
+                                      0.1,
+                                    ).withAlpha(20),
+                                    border: Border.all(
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_back_ios_new,
+                                    color: lightenColor(
+                                      appColor,
+                                      0.3,
+                                    ).withAlpha(180),
+                                    size: Responsive.font(context, 13),
+                                  ),
                                 ),
                               ),
-                              child: Icon(
-                                Icons.arrow_back_ios_new,
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(180),
-                                size: Responsive.font(context, 13),
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: _refreshLeaderboard,
-                            child: Container(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 12),
-                              ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(
-                                  appColor,
-                                  0.1,
-                                ).withAlpha(20),
-                                border: Border.all(
-                                  color: lightenColor(
-                                    appColor,
-                                    0.3,
-                                  ).withAlpha(180),
-                                  width: 1.5,
+                              GestureDetector(
+                                onTap: _refreshLeaderboard,
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 12),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: lightenColor(
+                                      appColor,
+                                      0.1,
+                                    ).withAlpha(20),
+                                    border: Border.all(
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.refresh,
+                                    color: lightenColor(
+                                      appColor,
+                                      0.3,
+                                    ).withAlpha(180),
+                                    size: Responsive.font(context, 13),
+                                  ),
                                 ),
                               ),
-                              child: Icon(
-                                Icons.refresh,
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(180),
-                                size: Responsive.font(context, 13),
-                              ),
-                            ),
+                            ],
                           ),
+                          SizedBox(height: Responsive.height(context, 16)),
+                          _buildTypeChips(),
+                          SizedBox(height: Responsive.height(context, 14)),
+                          _buildPeriodToggle(),
+                          SizedBox(height: Responsive.height(context, 16)),
                         ],
                       ),
-                    );
-                  }
-                  final user = leaderboardUsers[i - 1];
-                  final isCurrentUser = user.uid == currentUserId;
-                  final card = _buildUserCard(user, i - 1, isCurrentUser);
-                  // Only the first 20 spots get the animation
-                  if (isLoading || i >= 20 || _animatedIndices.contains(i)) {
-                    return card;
-                  }
-                  _animatedIndices.add(
-                    i,
-                  ); // make sure to add a card that hasn't been animated so it is not reanimated
-                  return card // card animation for each card's first appearance
-                      .animate()
-                      .fadeIn(
-                        delay: (i * 50).clamp(0, 400).ms,
-                        duration: 300.ms,
-                      )
-                      .slideY(
-                        begin: 0.08,
-                        duration: 300.ms,
-                        curve: Curves.easeOut,
-                      );
-                },
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      left: hPad,
+                      right: hPad,
+                      bottom: Responsive.height(context, 120),
+                    ),
+                    sliver: SliverList.builder(
+                      itemCount: leaderboardUsers.length > 100
+                          ? 100
+                          : leaderboardUsers.length,
+                      itemBuilder: (context, i) {
+                        final user = leaderboardUsers[i];
+                        final isCurrentUser = user.uid == currentUserId;
+                        final card = _buildUserCard(user, i, isCurrentUser);
+                        // Only the first 20 spots get the animation
+                        if (isLoading ||
+                            i >= 20 ||
+                            _animatedIndices.contains(i)) {
+                          return card;
+                        }
+                        _animatedIndices.add(i);
+                        return card
+                            .animate()
+                            .fadeIn(
+                              delay: (i * 50).clamp(0, 400).ms,
+                              duration: 300.ms,
+                            )
+                            .slideY(
+                              begin: 0.08,
+                              duration: 300.ms,
+                              curve: Curves.easeOut,
+                            );
+                      },
+                    ),
+                  ),
+                ],
               ),
             );
           },

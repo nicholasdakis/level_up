@@ -904,6 +904,32 @@ AS $$
     ORDER BY we.exercise_name, ws.set_number;
 $$;
 
+-- leaderboard_by_foods: top 100 users by food log count, optionally filtered by date
+CREATE OR REPLACE FUNCTION leaderboard_by_foods(since_date DATE DEFAULT NULL)
+RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, count BIGINT)
+LANGUAGE SQL STABLE AS $$
+    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, COUNT(*) AS count
+    FROM food_logs_v2 f
+    JOIN users u ON u.uid = f.uid
+    WHERE (since_date IS NULL OR f.date >= since_date)
+    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64
+    ORDER BY count DESC
+    LIMIT 100;
+$$;
+
+-- leaderboard_by_workouts: top 100 users by workout count, optionally filtered by date
+CREATE OR REPLACE FUNCTION leaderboard_by_workouts(since_date DATE DEFAULT NULL)
+RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, count BIGINT)
+LANGUAGE SQL STABLE AS $$
+    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, COUNT(*) AS count
+    FROM workouts w
+    JOIN users u ON u.uid = w.uid
+    WHERE (since_date IS NULL OR w.date >= since_date)
+    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64
+    ORDER BY count DESC
+    LIMIT 100;
+$$;
+
 -- get_recent_exercises: most recently used unique exercises for a user, sorted by recency
 CREATE OR REPLACE FUNCTION get_recent_exercises(p_uid TEXT, p_limit INT DEFAULT 25)
 RETURNS TABLE(exercise_id INT, exercise_name TEXT)

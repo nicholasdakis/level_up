@@ -5,9 +5,14 @@ import '../globals.dart' show isGuest;
 
 class LeaderboardService {
   // Fetches the leaderboard data from the backend
-  Future<List<LeaderboardEntry>> fetchLeaderboard() async {
+  Future<List<LeaderboardEntry>> fetchLeaderboard({
+    String type = 'xp',
+    String period = 'all_time',
+  }) async {
     if (isGuest) return [];
-    final response = await authenticatedGet('leaderboard');
+    final response = await authenticatedGet(
+      'leaderboard?type=$type&period=$period',
+    );
 
     if (response.statusCode != 200) {
       throw Exception(
