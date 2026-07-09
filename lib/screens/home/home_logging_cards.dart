@@ -12,6 +12,7 @@ import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import '../../utility/food_logging_helper.dart' show FoodLoggingHelper;
 import '../../providers/food_logs_provider.dart';
+import '../../models/food_log.dart';
 import '../../providers/water_logs_provider.dart';
 import '../../providers/weight_logs_provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -45,9 +46,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
   // Calculates total calories logged today
-  int _todayCalories() {
+  int _todayCalories(List<FoodLog> logs) {
     final key = _todayDateKey();
-    final logs = ref.read(foodLogsProvider).value ?? [];
     int total = 0;
     for (final food in logs.where((f) => f.date == key)) {
       total += food.calories ?? 0;
@@ -56,9 +56,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   }
 
   // Returns today's total protein/carbs/fat in grams
-  ({int protein, int carbs, int fat}) _todayMacros() {
+  ({int protein, int carbs, int fat}) _todayMacros(List<FoodLog> logs) {
     final key = _todayDateKey();
-    final logs = ref.read(foodLogsProvider).value ?? [];
     int protein = 0, carbs = 0, fat = 0;
     for (final food in logs.where((f) => f.date == key)) {
       final macros = FoodLoggingHelper.extractMacrosFromFood(food);
@@ -283,9 +282,12 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   Widget _buildMacrosCard(BuildContext context) {
     final userData = ref.watch(userDataProvider).value;
+    final foodLogs = ref.watch(foodLogsProvider).value ?? [];
     final accentColor = lightenColor(appColor, 0.45);
     final dimColor = lightenColor(appColor, 0.35);
-    final macros = isGuest ? (protein: 0, carbs: 0, fat: 0) : _todayMacros();
+    final macros = isGuest
+        ? (protein: 0, carbs: 0, fat: 0)
+        : _todayMacros(foodLogs);
 
     Widget macroRow(String label, IconData icon, int value, int? goal) {
       return Row(
@@ -433,8 +435,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   Widget _buildLoggingCards(BuildContext context) {
     final userData = ref.watch(userDataProvider).value;
+    final foodLogs = ref.watch(foodLogsProvider).value ?? [];
 
-    final calories = _todayCalories();
+    final calories = _todayCalories(foodLogs);
     final goal = userData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
 

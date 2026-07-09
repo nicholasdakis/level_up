@@ -127,6 +127,10 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     );
     _loadRecentFoods();
     _loadSuggestedFoods();
+    // recompute if the provider resolves after this screen opens
+    ref.listenManual(foodLogsProvider, (_, next) {
+      if (next.hasValue) _loadSuggestedFoods();
+    });
     _loadRecentExpanded();
     _voiceSearch.init(() {
       if (mounted) setState(() {});

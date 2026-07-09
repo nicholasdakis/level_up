@@ -78,9 +78,9 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                 version: '1.2.1',
                 changes: [
                   'Major under-the-hood rewrite to improve app performance, responsiveness, and stability across all screens',
-                  'A Suggested column has been added to the Log Food screen',
-                  'Logged foods can now be moved to a different meal from the options menu',
-                  'Invite a Friend button added to the home screen',
+                  'Added a Suggested tab to the Log Food screen, showing your most frequently logged foods for each meal',
+                  'Logged foods can now be moved to different meal types',
+                  'Inviting friends is now easier, with a native share button now in the referrals dialog and settings drawer',
                 ],
               ),
               _buildChangelogCard(
