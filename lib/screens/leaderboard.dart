@@ -322,7 +322,12 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
               GestureDetector(
                 onTap: () {
                   if (_selectedType != types[i].$1) {
-                    setState(() => _selectedType = types[i].$1);
+                    setState(() {
+                      _selectedType = types[i].$1;
+                      if (types[i].$1 == _LeaderboardType.xp) {
+                        _selectedPeriod = _LeaderboardPeriod.allTime;
+                      }
+                    });
                     _refreshLeaderboard();
                   }
                 },
@@ -649,8 +654,20 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                           ),
                           SizedBox(height: Responsive.height(context, 16)),
                           _buildTypeChips(),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          _buildPeriodToggle(),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOut,
+                            child: _selectedType != _LeaderboardType.xp
+                                ? Column(
+                                    children: [
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
+                                      ),
+                                      _buildPeriodToggle(),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
                           SizedBox(height: Responsive.height(context, 16)),
                         ],
                       ),

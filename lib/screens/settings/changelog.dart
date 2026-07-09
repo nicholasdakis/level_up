@@ -78,8 +78,7 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                 version: '1.2.1',
                 changes: [
                   'Major under-the-hood rewrite to improve app performance, responsiveness, and stability across all screens',
-                  'New leaderboard types added: Foods logged and workouts logged',
-                  'Leaderboard filters added: All time, monthly, weekly',
+                  'New leaderboard types added with time-based filters: Foods logged and Workouts logged',
                   'Added a Suggested tab to the Log Food screen, showing your currently most frequently logged foods per meal',
                   'Logged foods can now be moved to different meal types',
                   'Inviting friends is now easier, with a native share button now in the referrals dialog and settings drawer',
