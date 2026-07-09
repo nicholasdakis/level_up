@@ -68,52 +68,14 @@ class UserRepository:
         return result.data
 
     def get_leaderboard_by_foods(self, since: str | None):
-        # Counts food log entries per user from food_logs_v2, optionally filtered by date
-        query = self._supabase.table("food_logs_v2").select("uid, users(username, level, exp_points, pfp_base64)")
-        if since:
-            query = query.gte("date", since)
-        rows = query.execute().data
-
-        counts: dict[str, dict] = {}
-        for row in rows:
-            uid = row["uid"]
-            if uid not in counts:
-                user = row.get("users") or {}
-                counts[uid] = {
-                    "uid": uid,
-                    "username": user.get("username"),
-                    "level": user.get("level", 1),
-                    "exp_points": user.get("exp_points", 0),
-                    "pfp_base64": user.get("pfp_base64"),
-                    "count": 0,
-                }
-            counts[uid]["count"] += 1
-
-        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)[:100]
+        # Delegates to a Supabase RPC that does the GROUP BY and LIMIT 100 in SQL
+        params = {"since_date": since} if since else {}
+        return self._supabase.rpc("leaderboard_by_foods", params).execute().data
 
     def get_leaderboard_by_workouts(self, since: str | None):
-        # Counts workouts per user from the workouts table, optionally filtered by date
-        query = self._supabase.table("workouts").select("uid, users(username, level, exp_points, pfp_base64)")
-        if since:
-            query = query.gte("date", since)
-        rows = query.execute().data
-
-        counts: dict[str, dict] = {}
-        for row in rows:
-            uid = row["uid"]
-            if uid not in counts:
-                user = row.get("users") or {}
-                counts[uid] = {
-                    "uid": uid,
-                    "username": user.get("username"),
-                    "level": user.get("level", 1),
-                    "exp_points": user.get("exp_points", 0),
-                    "pfp_base64": user.get("pfp_base64"),
-                    "count": 0,
-                }
-            counts[uid]["count"] += 1
-
-        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)[:100]
+        # Delegates to a Supabase RPC that does the GROUP BY and LIMIT 100 in SQL
+        params = {"since_date": since} if since else {}
+        return self._supabase.rpc("leaderboard_by_workouts", params).execute().data
 
     def get_users_by_offsets(self, offsets: list[int]):
         # Fetch the users whose utc_offset_minutes matches the targets
