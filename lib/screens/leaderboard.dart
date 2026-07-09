@@ -310,63 +310,69 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       ),
     ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (int i = 0; i < types.length; i++) ...[
-            if (i > 0) SizedBox(width: Responsive.width(context, 8)),
-            GestureDetector(
-              onTap: () {
-                if (_selectedType != types[i].$1) {
-                  setState(() => _selectedType = types[i].$1);
-                  _refreshLeaderboard();
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 12),
-                  vertical: Responsive.height(context, 7),
-                ),
-                decoration: BoxDecoration(
-                  color: _selectedType == types[i].$1
-                      ? appColor.withAlpha(60)
-                      : Colors.white.withAlpha(10),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gap = Responsive.width(context, 8);
+        final chipWidth =
+            (constraints.maxWidth - gap * (types.length - 1)) / types.length;
+        return Row(
+          children: [
+            for (int i = 0; i < types.length; i++) ...[
+              if (i > 0) SizedBox(width: gap),
+              GestureDetector(
+                onTap: () {
+                  if (_selectedType != types[i].$1) {
+                    setState(() => _selectedType = types[i].$1);
+                    _refreshLeaderboard();
+                  }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: chipWidth,
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 7),
                   ),
-                  border: Border.all(
+                  decoration: BoxDecoration(
                     color: _selectedType == types[i].$1
-                        ? accent.withAlpha(180)
-                        : dim.withAlpha(60),
-                    width: 1.2,
+                        ? appColor.withAlpha(60)
+                        : Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ),
+                    border: Border.all(
+                      color: _selectedType == types[i].$1
+                          ? accent.withAlpha(180)
+                          : dim.withAlpha(60),
+                      width: 1.2,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HugeIcon(
-                      icon: types[i].$2,
-                      color: _selectedType == types[i].$1 ? accent : dim,
-                      size: Responsive.scale(context, 13),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        HugeIcon(
+                          icon: types[i].$2,
+                          color: _selectedType == types[i].$1 ? accent : dim,
+                          size: Responsive.scale(context, 13),
+                        ),
+                        SizedBox(width: Responsive.width(context, 5)),
+                        Text(
+                          types[i].$3,
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            fontWeight: FontWeight.w600,
+                            color: _selectedType == types[i].$1 ? accent : dim,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: Responsive.width(context, 5)),
-                    Text(
-                      types[i].$3,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        fontWeight: FontWeight.w600,
-                        color: _selectedType == types[i].$1 ? accent : dim,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -380,49 +386,59 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       (_LeaderboardPeriod.weekly, "Weekly"),
     ];
 
-    return Row(
-      children: [
-        for (int i = 0; i < periods.length; i++) ...[
-          if (i > 0) SizedBox(width: Responsive.width(context, 8)),
-          GestureDetector(
-            onTap: () {
-              if (_selectedPeriod != periods[i].$1) {
-                setState(() => _selectedPeriod = periods[i].$1);
-                _refreshLeaderboard();
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 12),
-                vertical: Responsive.height(context, 7),
-              ),
-              decoration: BoxDecoration(
-                color: _selectedPeriod == periods[i].$1
-                    ? appColor.withAlpha(60)
-                    : Colors.white.withAlpha(10),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gap = Responsive.width(context, 8);
+        final chipWidth =
+            (constraints.maxWidth - gap * (periods.length - 1)) /
+            periods.length;
+        return Row(
+          children: [
+            for (int i = 0; i < periods.length; i++) ...[
+              if (i > 0) SizedBox(width: gap),
+              GestureDetector(
+                onTap: () {
+                  if (_selectedPeriod != periods[i].$1) {
+                    setState(() => _selectedPeriod = periods[i].$1);
+                    _refreshLeaderboard();
+                  }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: chipWidth,
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 7),
+                  ),
+                  decoration: BoxDecoration(
+                    color: _selectedPeriod == periods[i].$1
+                        ? appColor.withAlpha(60)
+                        : Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 20),
+                    ),
+                    border: Border.all(
+                      color: _selectedPeriod == periods[i].$1
+                          ? accent.withAlpha(180)
+                          : dim.withAlpha(60),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      periods[i].$2,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 12),
+                        fontWeight: FontWeight.w600,
+                        color: _selectedPeriod == periods[i].$1 ? accent : dim,
+                      ),
+                    ),
+                  ),
                 ),
-                border: Border.all(
-                  color: _selectedPeriod == periods[i].$1
-                      ? accent.withAlpha(180)
-                      : dim.withAlpha(60),
-                  width: 1.2,
-                ),
               ),
-              child: Text(
-                periods[i].$2,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 12),
-                  fontWeight: FontWeight.w600,
-                  color: _selectedPeriod == periods[i].$1 ? accent : dim,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -633,7 +649,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                           ),
                           SizedBox(height: Responsive.height(context, 16)),
                           _buildTypeChips(),
-                          SizedBox(height: Responsive.height(context, 14)),
+                          SizedBox(height: Responsive.height(context, 20)),
                           _buildPeriodToggle(),
                           SizedBox(height: Responsive.height(context, 16)),
                         ],
