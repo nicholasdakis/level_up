@@ -594,7 +594,7 @@ def claim_daily_reward():
         new_level=result["new_level"],
         new_exp=result["new_exp"],
         seconds_remaining=result["seconds_remaining"],
-        daily_streak=result.get("daily_streak", 1),
+        daily_streak=result.get("daily_streak", 0),
         streak_multiplier=result.get("streak_multiplier", 1.0),
     )
 

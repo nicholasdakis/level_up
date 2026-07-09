@@ -336,6 +336,9 @@ class LogWorkoutResponse(BaseModel):
     xp_gained: int = 0
     new_level: int = 1
     new_exp: int = 0
+    new_streak: int = 0
+    best_streak: int = 0
+    streak_last_date: str | None = None
 
 class RecentWorkoutItem(BaseModel):
     workout_id: str
