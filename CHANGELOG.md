@@ -2485,3 +2485,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added analytics event tracking for key user actions: daily reward tap, watch ad tap, reminders shortcut, calorie calculator shortcut, referral card open, invite a friend, explore check-in, calorie goal set from calculator, water logged, weight logged, food logged, workout started/completed/discarded, routine started/created, daily reward claimed, streak milestone reached, onboarding completed/skipped, and reached level 3
 - Added Minimize to the discard workout dialog and Discard Current Workout to the workout in progress dialog
 - Food items now have a three-dot menu with Edit Serving and Move to Meal options
+- Added a Suggested foods tab next to Recent, showing your most frequently logged foods for the current meal based on the past two weeks, weighted toward more recent logs

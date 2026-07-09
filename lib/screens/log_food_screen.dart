@@ -21,6 +21,7 @@ import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'dart:math';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
@@ -113,6 +114,10 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   // Recent foods
   List<FoodLog> _recentFoods = [];
 
+  // Suggested foods: top foods by log frequency in the past 7 days
+  List<FoodLog> _suggestedFoods = [];
+  bool _showingSuggested = false;
+
   @override
   void initState() {
     super.initState();
@@ -121,6 +126,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
       screenClass: 'LogFoodScreen',
     );
     _loadRecentFoods();
+    _loadSuggestedFoods();
     _loadRecentExpanded();
     _voiceSearch.init(() {
       if (mounted) setState(() {});
@@ -230,6 +236,57 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         )
         .closed
         .then((_) => snackbarActive = false);
+  }
+
+  // Derives suggested foods: meal-slot match, recency-weighted frequency, min 2 occurrences
+  void _loadSuggestedFoods() {
+    final currentMeal = widget.meal;
+    const lookbackDays = 14;
+    final cutoff = DateTime.now().subtract(const Duration(days: lookbackDays));
+    const minOccurrences = 2; // must appear at least twice to count
+    const decayFactor = 0.85; // recent logs weigh more than older ones
+    final logs = ref.read(foodLogsProvider).value ?? [];
+    final scores = <String, double>{};
+    final rawCounts = <String, int>{};
+    final byName = <String, FoodLog>{};
+
+    for (final food in logs) {
+      if (food.loggedAt == null) continue;
+      final loggedAt = DateTime.tryParse(food.loggedAt!);
+      if (loggedAt == null) continue;
+      if (loggedAt.isBefore(cutoff)) continue;
+
+      // only count logs from the same meal slot as the one being logged now
+      if (food.meal != currentMeal) continue;
+
+      final name = food.foodName;
+      if (name.isEmpty) continue;
+
+      final daysAgo = DateTime.now().difference(loggedAt).inDays;
+      final weight = pow(decayFactor, daysAgo).toDouble(); // decay by age
+
+      scores[name] = (scores[name] ?? 0) + weight;
+      rawCounts[name] = (rawCounts[name] ?? 0) + 1;
+      byName.putIfAbsent(name, () => food);
+    }
+
+    // filter by min occurrences, sort by weighted score
+    final sorted =
+        scores
+            .entries // score = recency-weighted value per food
+            .where(
+              (e) => (rawCounts[e.key] ?? 0) >= minOccurrences,
+            ) // gate: min 2 raw logs
+            .toList()
+          ..sort(
+            (a, b) => b.value.compareTo(a.value),
+          ); // order: higher score first
+
+    if (mounted) {
+      setState(() {
+        _suggestedFoods = sorted.map((e) => byName[e.key]!).toList();
+      });
+    }
   }
 
   // Derives recent foods from food_logs_v2, deduped by food_name, newest first, capped by user preference
@@ -2018,36 +2075,76 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    final next = !_recentExpanded;
-                    setState(() => _recentExpanded = next);
-                    _saveRecentExpanded(next);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedClock01,
-                            color: accent,
-                            size: Responsive.scale(context, 14),
-                          ),
-                          SizedBox(width: Responsive.width(context, 5)),
-                          Text(
-                            "RECENT",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: FontWeight.w700,
-                              color: accent,
-                              letterSpacing: 1.2,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize
+                              .min, // shrink to content so Center works
+                          children: [
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => _showingSuggested = false),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedClock01,
+                                    color: !_showingSuggested ? accent : dim,
+                                    size: Responsive.scale(context, 14),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 5)),
+                                  Text(
+                                    "RECENT",
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 13),
+                                      fontWeight: FontWeight.w700,
+                                      color: !_showingSuggested ? accent : dim,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            if (_suggestedFoods.isNotEmpty) ...[
+                              SizedBox(width: Responsive.width(context, 16)),
+                              GestureDetector(
+                                onTap: () =>
+                                    setState(() => _showingSuggested = true),
+                                child: Row(
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedSparkles,
+                                      color: _showingSuggested ? accent : dim,
+                                      size: Responsive.scale(context, 14),
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 5),
+                                    ),
+                                    Text(
+                                      "SUGGESTED",
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 13),
+                                        fontWeight: FontWeight.w700,
+                                        color: _showingSuggested ? accent : dim,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                      AnimatedRotation(
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        final next = !_recentExpanded;
+                        setState(() => _recentExpanded = next);
+                        _saveRecentExpanded(next);
+                      },
+                      child: AnimatedRotation(
                         turns: _recentExpanded ? 0 : -0.5,
                         duration: const Duration(milliseconds: 200),
                         child: HugeIcon(
@@ -2056,17 +2153,60 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                           size: Responsive.scale(context, 18),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: _recentExpanded
                       ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(height: Responsive.height(context, 10)),
-                            if (_recentFoods.isEmpty)
+                            if (_showingSuggested) ...[
+                              if (_suggestedFoods.isEmpty)
+                                Text(
+                                  "Nothing suggested, try logging more foods first.",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 13),
+                                    color: c.onCard.withAlpha(100),
+                                  ),
+                                )
+                              else
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxHeight:
+                                        MediaQuery.of(context).size.height *
+                                        0.30,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      children: List.generate(
+                                        _suggestedFoods.length,
+                                        (i) {
+                                          final food = _suggestedFoods[i];
+                                          return Column(
+                                            children: [
+                                              _buildFoodRow(
+                                                food,
+                                                onTap: () =>
+                                                    _showServingDialog(food),
+                                              ),
+                                              if (i <
+                                                  _suggestedFoods.length - 1)
+                                                Container(
+                                                  height: 1,
+                                                  color: c.onCard.withAlpha(40),
+                                                ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ] else if (_recentFoods.isEmpty)
                               Text(
                                 "Nothing logged recently",
                                 style: GoogleFonts.manrope(

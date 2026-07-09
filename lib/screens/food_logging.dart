@@ -301,7 +301,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           SizedBox(height: Responsive.height(context, 4)),
           Divider(color: Colors.white12),
           menuItem(HugeIcons.strokeRoundedEdit03, 'Edit Serving', 'edit'),
-          menuItem(HugeIcons.strokeRoundedArrowRight01, 'Move to Meal', 'move'),
+          menuItem(HugeIcons.strokeRoundedArrowRight01, 'Move Food', 'move'),
         ],
       ),
     );

@@ -74,6 +74,18 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'Coming Soon',
+                version: '1.2.1',
+                changes: [
+                  'Major under-the-hood rewrite to improve app performance, responsiveness, and stability across all screens',
+                  'A Suggested column has been added to the Log Food screen',
+                  'Logged foods can now be moved to a different meal from the options menu',
+                  'Invite a Friend button added to the home screen',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 4, 2026',
                 version: '1.2.0',
                 changes: [
