@@ -2507,3 +2507,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed double-saving a browse routine being possible immediately after saving due to source_template_id not being set on the optimistic update
 - Fixed My Routines card not updating after creating a new routine until app restart
 - Fixed username update timing out on new accounts due to Firebase token fetch being too slow on first sign-in
+- Replaced the tabbed badges layout with a vertically scrollable list of horizontal card rows grouped by section
+- Each section header now uses the shared sectionHeader widget for visual consistency with other tabs
+- Claimable tier count shown next to each section header so users can see at a glance what is ready to claim
+- Dot indicators added below each section row, matching the browse routines pattern
+- Tier chips shrunk from 72px to 40px so more fit in the carousel without scrolling

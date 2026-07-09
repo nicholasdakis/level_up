@@ -654,19 +654,29 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                           ),
                           SizedBox(height: Responsive.height(context, 16)),
                           _buildTypeChips(),
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut,
-                            child: _selectedType != _LeaderboardType.xp
-                                ? Column(
-                                    children: [
-                                      SizedBox(
-                                        height: Responsive.height(context, 20),
-                                      ),
-                                      _buildPeriodToggle(),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
+                          ClipRect(
+                            child: AnimatedAlign(
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOut,
+                              alignment: Alignment.topCenter,
+                              heightFactor: _selectedType != _LeaderboardType.xp
+                                  ? 1.0
+                                  : 0.0,
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 300),
+                                opacity: _selectedType != _LeaderboardType.xp
+                                    ? 1.0
+                                    : 0.0,
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: Responsive.height(context, 20),
+                                    ),
+                                    _buildPeriodToggle(),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                           SizedBox(height: Responsive.height(context, 16)),
                         ],

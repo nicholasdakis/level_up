@@ -36,16 +36,6 @@ class AchievementDef {
   });
 }
 
-// Tab index constants so tab references are readable
-const int tabProgression = 0;
-const int tabExplore = 1;
-const int tabTabs = 2;
-const int tabFood = 3;
-const int tabWorkout = 4;
-const int tabReminders = 5;
-const int tabPersonalization = 6;
-const int tabMeta = 7;
-
 // Tab definitions in display order
 const List<String> tabSections = [
   "PROGRESSION",
@@ -57,19 +47,6 @@ const List<String> tabSections = [
   "PERSONALIZATION",
   "SOCIAL",
   "META",
-];
-
-// Short labels for the tab bar
-const List<String> tabLabels = [
-  "Progress",
-  "Explore",
-  "Tabs",
-  "Food",
-  "Workout",
-  "Reminders",
-  "Personal",
-  "Social",
-  "Meta",
 ];
 
 // Icons stay client-side since IconData is Flutter-specific
@@ -139,7 +116,10 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
   // Whether the entrance animation has already played once
   bool _entranceAnimationPlayed = false;
 
-  late final TabController _tabController;
+  // Per-section scroll controllers and current dot index for the dot indicators
+  final Map<String, ScrollController> _sectionScrolls = {};
+  final Map<String, int> _sectionDotIndex = {};
+
   // Shared controllers so all even-index chips pulse together and all odd-index chips pulse together
   late final AnimationController _evenPulse;
   late final AnimationController _oddPulse;
@@ -151,11 +131,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
       screenName: '/badges',
       screenClass: 'Badges',
     );
-    _tabController = TabController(length: tabSections.length, vsync: this);
-    // Rebuild when tab changes so the fade hides when the last tab is selected
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
 
     _evenPulse = AnimationController(
       vsync: this,
@@ -171,8 +146,8 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
       if (mounted) _oddPulse.repeat(reverse: true);
     });
 
+    // For guest users
     if (isGuest) {
-      // For guest users
       Guest.blockOnOpen(context);
       setState(() => _isLoading = false);
       return;
@@ -182,9 +157,9 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _tabController.dispose();
     _evenPulse.dispose();
     _oddPulse.dispose();
+    for (final sc in _sectionScrolls.values) sc.dispose();
     super.dispose();
   }
 
@@ -236,7 +211,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
         // Populate highestStreaks map from the streaks list
         for (final streak in streaks) {
           final streakType = streak['streak_type'] as String;
-
           // Map DB streak_type names to achievement IDs
           final achievementId = streakType == 'daily_consecutive_streak'
               ? 'daily_claim_streak'
@@ -260,24 +234,19 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
   // Attempts to claim a tier with a cooldown guard to prevent spam
   Future<void> _claimTier(AchievementDef def, int tier) async {
     final key = _claimKey(def.id, tier);
-
     // Ignore if this tier is already being claimed
     if (_claimingInProgress.contains(key)) return;
-
     _claimingInProgress.add(key);
-
     try {
       final response = await authenticatedPost(
         'claim_achievement',
         body: {'achievement_id': def.id, 'tier': tier},
       );
-
       if (response.statusCode != 200) {
         throw Exception(
           'claim_achievement failed: ${response.statusCode} ${response.body}',
         );
       }
-
       // Only update UI if the backend confirmed the claim
       setState(() {
         claimedTiers[def.id] ??= {};
@@ -287,7 +256,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     } catch (e) {
       if (kDebugMode) debugPrint('Failed to claim tier: $e');
     }
-
     // Cooldown before allowing another claim attempt
     await Future.delayed(const Duration(seconds: 2));
     _claimingInProgress.remove(key);
@@ -331,7 +299,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
       statusIcon = HugeIcons.strokeRoundedLockKey;
     }
 
-    final size = Responsive.scale(context, 72);
+    final size = Responsive.scale(context, 40);
     final chip = GestureDetector(
       onTap: (reachable && !claimed) ? () => _claimTier(def, tier) : null,
       child: ClipOval(
@@ -354,13 +322,13 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                 HugeIcon(
                   icon: statusIcon,
                   color: labelColor,
-                  size: Responsive.scale(context, 14),
+                  size: Responsive.scale(context, 9),
                 ),
-                SizedBox(height: Responsive.height(context, 2)),
+                SizedBox(height: Responsive.height(context, 1)),
                 Text(
                   "$tier",
                   style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 12),
+                    fontSize: Responsive.font(context, 8),
                     color: labelColor,
                     fontWeight: FontWeight.w700,
                   ),
@@ -374,7 +342,6 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
     if (reachable && !claimed) {
       final controller = index.isOdd ? _oddPulse : _evenPulse;
-      // autoPlay: false because the shared controller is already running, letting it autoPlay would restart it
       // autoPlay: false because the shared controller is already running, letting it autoPlay would restart it
       return chip
           .animate(controller: controller, autoPlay: false)
@@ -399,7 +366,11 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
   }
 
   // Builds a single achievement card with icon, name, progress bar, and tier chips
-  Widget _buildAchievementCard(AchievementDef def) {
+  Widget _buildAchievementCard(
+    AchievementDef def, {
+    bool animate = false,
+    int cardIndex = 0,
+  }) {
     final currentProgress = progress[def.id] ?? 0;
 
     // Find the next tier the user hasn't reached yet
@@ -437,7 +408,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     final accent = lightenColor(appColor, 0.45);
     final barColor = lightenColor(appColor, 0.3);
 
-    return Padding(
+    final card = Padding(
       padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
       child: Skeleton.ignore(
         child: ClipRRect(
@@ -575,9 +546,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                         ],
                       ],
                     ),
-
                     SizedBox(height: Responsive.height(context, 12)),
-
                     // Progress label + bar — hidden when all tiers are claimed
                     if (!allClaimed) ...[
                       Row(
@@ -609,9 +578,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                         maxTier: def.tiers.last,
                       ),
                     ],
-
                     SizedBox(height: Responsive.height(context, 12)),
-
                     // Tier chips row: single tier renders inline, multiple tiers use swipeable carousel
                     if (def.tiers.length == 1)
                       Center(
@@ -627,6 +594,17 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
         ),
       ),
     );
+
+    if (animate) {
+      return card.animate().slideY(
+        begin: 0.25,
+        end: 0,
+        delay: (cardIndex * 60).ms,
+        duration: 350.ms,
+        curve: Curves.easeOutCubic,
+      );
+    }
+    return card;
   }
 
   Widget _buildSkeletonCard() {
@@ -705,133 +683,11 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCategoryTabBar(BuildContext context) {
-    final tabBar = TabBar(
-      controller: _tabController,
-      isScrollable: true,
-      physics: const BouncingScrollPhysics(),
-      dividerHeight: 0,
-      tabAlignment: Responsive.isDesktop(context)
-          ? TabAlignment.center
-          : TabAlignment.start,
-      labelPadding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 16),
-      ),
-      dividerColor: Colors.transparent,
-      indicator: BoxDecoration(
-        color: Colors.white.withAlpha(45),
-        borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-        border: Border.all(
-          color: Colors.white.withAlpha(60),
-          width: Responsive.width(context, 1),
-        ),
-      ),
-      indicatorSize: TabBarIndicatorSize.tab,
-      overlayColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.hovered) ||
-            states.contains(WidgetState.pressed)) {
-          return Colors.white.withAlpha(15);
-        }
-        return Colors.transparent;
-      }),
-      splashBorderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.white38,
-      labelStyle: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, 15),
-        fontWeight: FontWeight.w700,
-      ),
-      unselectedLabelStyle: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, 15),
-        fontWeight: FontWeight.w500,
-      ),
-      tabs: [for (final label in tabLabels) Tab(text: label)],
-    );
-    // On mobile fade the right edge only when there are tabs scrolled out of view to the right
-    final isAtEnd = _tabController.index >= tabSections.length - 2;
-    if (Responsive.isDesktop(context) || isAtEnd) return tabBar;
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [Colors.white, Colors.white, Colors.transparent],
-        stops: [0.0, 0.95, 1.0],
-      ).createShader(bounds),
-      blendMode: BlendMode.dstIn,
-      child: tabBar,
-    );
-  }
-
-  // Returns the list of achievement cards for a given section
-  List<Widget> _buildCardsForSection(String section) {
-    if (_isLoading) {
-      return [for (int i = 0; i < 4; i++) _buildSkeletonCard()];
-    }
-    final isActiveTab = tabSections[_tabController.index] == section;
-    final animate = !_entranceAnimationPlayed && isActiveTab;
-    if (animate) _entranceAnimationPlayed = true;
-    List<Widget> cards = [];
-    int cardIndex = 0;
-    for (final def in _achievementDefs) {
-      if (def.section == section) {
-        final delay = (cardIndex * 60).ms;
-        final card = _buildAchievementCard(def);
-        cards.add(
-          animate
-              ? card.animate().slideY(
-                  begin: 0.25,
-                  end: 0,
-                  delay: delay,
-                  duration: 350.ms,
-                  curve: Curves.easeOutCubic,
-                )
-              : card,
-        );
-        cardIndex++;
-      }
-    }
-    if (cards.isEmpty && !_isLoading) {
-      cards.add(
-        Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 48),
-          ),
-          child: Column(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCrown,
-                color: Colors.white24,
-                size: Responsive.scale(context, 40),
-              ),
-              SizedBox(height: Responsive.height(context, 12)),
-              Text(
-                "No achievements here yet",
-                style: GoogleFonts.manrope(
-                  color: Colors.white30,
-                  fontSize: Responsive.font(context, 14),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 4)),
-              Text(
-                "Keep using the app to unlock them",
-                style: GoogleFonts.manrope(
-                  color: Colors.white24,
-                  fontSize: Responsive.font(context, 12),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return cards;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final hPad = Responsive.centeredHorizontalPadding(context, 50);
+
     if (isGuest && !_isLoading) {
-      // For guest users
       return Container(
         decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
         child: Scaffold(
@@ -880,6 +736,275 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
         ),
       );
     }
+
+    // Build the scrollable list with sticky section headers
+    final animate = !_entranceAnimationPlayed;
+    if (!_isLoading) _entranceAnimationPlayed = true;
+
+    final slivers = <Widget>[];
+    if (_isLoading) {
+      // Show 3 skeleton rows, each with 3 cards horizontally
+      for (int row = 0; row < 3; row++) {
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: hPad,
+                top: Responsive.height(context, 12),
+                bottom: Responsive.height(context, 4),
+              ),
+              child: Container(
+                width: Responsive.scale(context, 80),
+                height: Responsive.height(context, 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(25),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        slivers.add(
+          SliverToBoxAdapter(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Row(
+                children: List.generate(
+                  3,
+                  (i) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (i > 0) SizedBox(width: Responsive.width(context, 10)),
+                      SizedBox(
+                        width: Responsive.scale(context, 260),
+                        child: _buildSkeletonCard(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    } else {
+      int globalCardIndex = 0;
+      for (final section in tabSections) {
+        final defs = _achievementDefs
+            .where((d) => d.section == section)
+            .toList();
+        if (defs.isEmpty) continue;
+
+        // Section header
+        // Count claimable tiers in this section for the badge next to the header
+        int sectionClaimable = 0;
+        for (final d in defs) {
+          final cur = highestStreaks.containsKey(d.id)
+              ? (highestStreaks[d.id] ?? 0)
+              : (progress[d.id] ?? 0);
+          for (final t in d.tiers) {
+            if (cur >= t && !(claimedTiers[d.id]?.contains(t) ?? false))
+              sectionClaimable++;
+          }
+        }
+
+        // Lazy-init a scroll controller per section
+        _sectionScrolls.putIfAbsent(section, () {
+          final sc = ScrollController();
+          sc.addListener(() {
+            if (!sc.hasClients || defs.length <= 1) return;
+            final max = sc.position.maxScrollExtent;
+            final idx = max == 0
+                ? 0
+                : ((sc.offset / max) * (defs.length - 1)).round().clamp(
+                    0,
+                    defs.length - 1,
+                  );
+            if (idx != (_sectionDotIndex[section] ?? 0)) {
+              setState(() => _sectionDotIndex[section] = idx);
+            }
+          });
+          return sc;
+        });
+        final sc = _sectionScrolls[section]!;
+        final dotIndex = _sectionDotIndex[section] ?? 0;
+
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: Responsive.height(context, 20)),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPad),
+                    child: Row(
+                      children: [
+                        sectionHeader(
+                          section,
+                          context,
+                          appColor: appColor,
+                          padding: EdgeInsets.zero,
+                        ),
+                        if (sectionClaimable > 0) ...[
+                          SizedBox(width: Responsive.width(context, 8)),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 8),
+                                  vertical: Responsive.height(context, 4),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: lightenColor(
+                                    appColor,
+                                    0.3,
+                                  ).withAlpha(60),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 20),
+                                  ),
+                                  border: Border.all(
+                                    color: lightenColor(
+                                      appColor,
+                                      0.4,
+                                    ).withAlpha(160),
+                                    width: Responsive.width(context, 1),
+                                  ),
+                                ),
+                                child: Text(
+                                  "$sectionClaimable to claim",
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 10),
+                                    color: lightenColor(appColor, 0.45),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Horizontal row of cards for this section
+        final cardWidth = Responsive.scale(context, 260);
+        final gap = Responsive.width(context, 10);
+        final rowCards = <Widget>[];
+        for (int i = 0; i < defs.length; i++) {
+          if (i > 0) rowCards.add(SizedBox(width: gap));
+          rowCards.add(
+            SizedBox(
+              width: cardWidth,
+              child: _buildAchievementCard(
+                defs[i],
+                animate: animate,
+                cardIndex: globalCardIndex,
+              ),
+            ),
+          );
+          globalCardIndex++;
+        }
+
+        slivers.add(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: Responsive.height(context, 8)),
+              child: Center(
+                child: ConstrainedBox(
+                  // Cap width on desktop so the row doesn't stretch wall-to-wall
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Column(
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [
+                            Colors.transparent,
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                          stops: [0.0, 0.05, 0.95, 1.0],
+                        ).createShader(bounds),
+                        blendMode: BlendMode.dstIn,
+                        child: ScrollConfiguration(
+                          behavior: ScrollConfiguration.of(context).copyWith(
+                            dragDevices: {
+                              PointerDeviceKind.touch,
+                              PointerDeviceKind.mouse,
+                            },
+                          ),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            controller: sc,
+                            padding: EdgeInsets.symmetric(horizontal: hPad),
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: rowCards,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (defs.length > 1) ...[
+                        SizedBox(height: Responsive.height(context, 8)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            defs.length,
+                            (i) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOutQuart,
+                              margin: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 3),
+                              ),
+                              width: Responsive.scale(
+                                context,
+                                i == dotIndex ? 18 : 6,
+                              ),
+                              height: Responsive.scale(context, 6),
+                              decoration: BoxDecoration(
+                                color: i == dotIndex
+                                    ? lightenColor(appColor, 0.45)
+                                    : lightenColor(
+                                        appColor,
+                                        0.45,
+                                      ).withAlpha(60),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      slivers.add(
+        SliverToBoxAdapter(
+          child: SizedBox(height: Responsive.height(context, 120)),
+        ),
+      );
+    }
+
     return Skeletonizer(
       enabled: _isLoading,
       effect: ShimmerEffect(
@@ -893,112 +1018,102 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
           backgroundColor: Colors.transparent,
           body: ScrollConfiguration(
             behavior: NoGlowScrollBehavior(),
-            child: Column(
+            child: Stack(
               children: [
-                SizedBox(height: MediaQuery.paddingOf(context).top),
-                // Back button + refresh button row
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: Responsive.height(context, 8),
-                    bottom: Responsive.height(context, 12),
-                    left: Responsive.centeredHorizontalPadding(context, 20),
-                    right: Responsive.centeredHorizontalPadding(context, 20),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
-                            border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
-                            size: Responsive.font(context, 13),
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _fetchBadgesData,
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
-                            border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.refresh,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
-                            size: Responsive.font(context, 13),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Category tab bar
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 12),
-                    vertical: Responsive.height(context, 8),
-                  ),
-                  child: _buildCategoryTabBar(context),
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      TabBarView(
-                        controller: _tabController,
+                CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
                         children: [
-                          for (final section in tabSections)
-                            SingleChildScrollView(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      Responsive.centeredHorizontalPadding(
-                                        context,
-                                        50,
-                                      ),
-                                  vertical: Responsive.height(context, 24),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    ..._buildCardsForSection(section),
-                                    SizedBox(
-                                      height: Responsive.height(context, 120),
-                                    ),
-                                  ],
-                                ),
+                          SizedBox(height: MediaQuery.paddingOf(context).top),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: Responsive.height(context, 8),
+                              bottom: Responsive.height(context, 8),
+                              left: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
+                              ),
+                              right: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
                               ),
                             ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => context.pop(),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_back_ios_new,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      size: Responsive.font(context, 13),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: _fetchBadgesData,
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.refresh,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      size: Responsive.font(context, 13),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: buildDailyRewardConfetti(
-                          badgesConfettiController,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    ...slivers,
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: buildDailyRewardConfetti(badgesConfettiController),
                 ),
               ],
             ),
@@ -1086,8 +1201,8 @@ class _TierCarouselState extends ConsumerState<_TierCarousel> {
       alignment: Responsive.isDesktop(context)
           ? Alignment.center
           : Alignment.centerLeft,
+      // cap width so chips don't spread across the full card on wide screens
       child: ConstrainedBox(
-        // cap width so chips don't spread across the full card on wide screens
         constraints: BoxConstraints(maxWidth: Responsive.scale(context, 600)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1099,7 +1214,7 @@ class _TierCarouselState extends ConsumerState<_TierCarousel> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: Container(
-                  height: Responsive.scale(context, 88),
+                  height: Responsive.scale(context, 56),
                   decoration: BoxDecoration(
                     color: Colors.white.withAlpha(16),
                     borderRadius: BorderRadius.circular(
@@ -1126,8 +1241,8 @@ class _TierCarouselState extends ConsumerState<_TierCarousel> {
                           for (int i = 0; i < tiers.length; i++) ...[
                             Padding(
                               padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 6),
-                                vertical: Responsive.height(context, 10),
+                                horizontal: Responsive.width(context, 5),
+                                vertical: Responsive.height(context, 8),
                               ),
                               child: widget.tierChipBuilder(
                                 widget.def,

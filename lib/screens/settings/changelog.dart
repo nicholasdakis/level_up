@@ -83,6 +83,7 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                   'Logged foods can now be moved to different meal types',
                   'Inviting friends is now easier, with a native share button now in the referrals dialog and settings drawer',
                   'Your rank card on the Progression screen now shows your standing across XP, foods logged, and workouts',
+                  'Badges screen redesigned with achievements grouped into scrollable sections so everything is visible at a glance',
                 ],
               ),
               _buildChangelogCard(
