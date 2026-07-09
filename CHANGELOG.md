@@ -2500,3 +2500,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed saving a browse routine not appearing in My Routines until app restart due to an incomplete optimistic update
 - Fixed workout streak and heatmap not updating on the home and workout screens after finishing a workout
 - Fixed workout streak showing a stale value on the home screen when days have been missed — now correctly shows 0 until the next workout is logged
+- Fixed workout streak and heatmap not updating in real time after finishing a workout
+- Fixed My Routines card not updating after creating a new routine until app restart
+- Fixed username update timing out on new accounts due to Firebase token fetch being too slow on first sign-in

@@ -498,27 +498,25 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             parameters: {'streak_type': 'workout', 'streak': workoutStreak},
           );
         }
-        // update XP and level from the response so the XP bar reflects the reward immediately
+        // update XP, level, and streak from the response immediately
         final levelBefore = ref.read(userDataProvider).value?.level ?? 1;
-        if (data['new_level'] != null || data['new_exp'] != null) {
-          ref
-              .read(userDataProvider.notifier)
-              .patch(
-                (u) => u.copyWith(
-                  level: data['new_level'] as int? ?? u.level,
-                  expPoints: data['new_exp'] as int? ?? u.expPoints,
-                  workoutStreak: data['new_streak'] as int? ?? u.workoutStreak,
-                  workoutStreakLastDate:
-                      data['streak_last_date'] as String? ??
-                      u.workoutStreakLastDate,
-                  workoutStreakBest: data['best_streak'] != null
-                      ? ((data['best_streak'] as int) > u.workoutStreakBest
-                            ? data['best_streak'] as int
-                            : u.workoutStreakBest)
-                      : u.workoutStreakBest,
-                ),
-              );
-        }
+        ref
+            .read(userDataProvider.notifier)
+            .patch(
+              (u) => u.copyWith(
+                level: data['new_level'] as int? ?? u.level,
+                expPoints: data['new_exp'] as int? ?? u.expPoints,
+                workoutStreak: data['new_streak'] as int? ?? u.workoutStreak,
+                workoutStreakLastDate:
+                    data['streak_last_date'] as String? ??
+                    u.workoutStreakLastDate,
+                workoutStreakBest: data['best_streak'] != null
+                    ? ((data['best_streak'] as int) > u.workoutStreakBest
+                          ? data['best_streak'] as int
+                          : u.workoutStreakBest)
+                    : u.workoutStreakBest,
+              ),
+            );
         // compute volume from the clean exercises list since the in-memory set maps
         // may not have been updated if onChanged never fired before the user tapped check
         double totalVolumeKg = 0;

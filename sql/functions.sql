@@ -860,6 +860,8 @@ BEGIN
         -- already awarded XP today, just read current values for the return
         SELECT level, exp_points INTO v_new_level, v_new_exp
         FROM users WHERE uid = p_uid;
+        SELECT streak INTO v_new_streak
+        FROM streaks WHERE uid = p_uid AND streak_type = 'workout_streak';
     END IF;
 
     RETURN jsonb_build_object(

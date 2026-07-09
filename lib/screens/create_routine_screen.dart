@@ -206,7 +206,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           .toList();
       final estimatedMinutes = int.tryParse(_durationController.text.trim());
 
-      final ok = await ref
+      final templateId = await ref
           .read(workoutProvider.notifier)
           .createRoutine(
             name: name,
@@ -214,13 +214,11 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
             estimatedDurationMinutes: estimatedMinutes,
           );
       if (!mounted) return;
-      if (ok) {
+      if (templateId != null) {
         logAnalyticsEvent(
           'routine_created',
           parameters: {'exercise_count': exercises.length},
         );
-        // bump notifier so the workout dashboard refreshes its routines list
-        ref.read(workoutProvider.notifier).refreshAfterWorkout();
         context.pop();
       } else {
         setState(() => _saving = false);

@@ -22,7 +22,7 @@ const String fcmVapidKey =
 // Firebase caches this automatically so it only re-fetches when close to expiry (1hr)
 Future<String> getIdToken() async {
   final token = await FirebaseAuth.instance.currentUser?.getIdToken().timeout(
-    Duration(seconds: 2),
+    Duration(seconds: 10),
   );
   if (token == null) throw Exception('User not logged in');
   return token;

@@ -347,6 +347,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       final response = await authenticatedPost(
         'update_username',
         body: {'username': updatedUsername},
+        timeout: const Duration(seconds: 20),
       );
       final result = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode == 409) {

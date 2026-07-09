@@ -232,7 +232,7 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
     }
   }
 
-  Future<bool> createRoutine({
+  Future<String?> createRoutine({
     required String name,
     required List<Map<String, dynamic>> exercises,
     int? estimatedDurationMinutes,
@@ -246,11 +246,27 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           'estimated_duration_minutes': ?estimatedDurationMinutes,
         },
       );
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        final templateId = jsonDecode(response.body)['template_id'] as String?;
+        if (templateId != null) {
+          final newRoutine = <String, dynamic>{
+            'template_id': templateId,
+            'name': name,
+            'exercises': exercises,
+            'exercise_count': exercises.length,
+            'estimated_duration_minutes': estimatedDurationMinutes,
+          };
+          final previous = state.value ?? const WorkoutState();
+          state = AsyncData(
+            previous.copyWith(myRoutines: [...previous.myRoutines, newRoutine]),
+          );
+        }
+        return templateId;
+      }
     } catch (e) {
       if (kDebugMode) debugPrint('createRoutine failed: $e');
     }
-    return false;
+    return null;
   }
 
   // copies a public browse routine into the user's own routines and appends it to myRoutines
@@ -266,9 +282,13 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
       if (response.statusCode == 200) {
         if (routineData != null) {
           final previous = state.value ?? const WorkoutState();
+          final entry = {
+            ...routineData,
+            'source_template_id': templateId,
+          };
           state = AsyncData(
             previous.copyWith(
-              myRoutines: [...previous.myRoutines, routineData],
+              myRoutines: [...previous.myRoutines, entry],
             ),
           );
         }
@@ -524,7 +544,7 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
 
       final heatmap = results[3].statusCode == 200
           ? Map<String, int>.from(
-              (jsonDecode(results[3].body)['heatmap'] as List).fold(
+              (jsonDecode(results[3].body)['days'] as List).fold(
                 <String, int>{},
                 (map, e) {
                   map[e['date'] as String] = e['count'] as int;
