@@ -63,8 +63,8 @@ class UserRepository:
         }
 
     def get_leaderboard(self):
-        # Fetches all users ordered by level and XP descending for the leaderboard
-        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).execute()
+        # Fetches top 100 users ordered by level and XP descending for the leaderboard
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).limit(100).execute()
         return result.data
 
     def get_leaderboard_by_foods(self, since: str | None):
@@ -89,7 +89,7 @@ class UserRepository:
                 }
             counts[uid]["count"] += 1
 
-        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)
+        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)[:100]
 
     def get_leaderboard_by_workouts(self, since: str | None):
         # Counts workouts per user from the workouts table, optionally filtered by date
@@ -113,7 +113,7 @@ class UserRepository:
                 }
             counts[uid]["count"] += 1
 
-        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)
+        return sorted(counts.values(), key=lambda x: x["count"], reverse=True)[:100]
 
     def get_users_by_offsets(self, offsets: list[int]):
         # Fetch the users whose utc_offset_minutes matches the targets
