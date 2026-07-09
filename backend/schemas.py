@@ -229,7 +229,7 @@ class DailyRewardResponse(BaseModel):
     new_level: int = 1
     new_exp: int = 0
     seconds_remaining: int = 0
-    daily_streak: int = 1
+    daily_streak: int = 0
     streak_multiplier: float = 1.0
 
 class ProgressResponse(BaseModel):

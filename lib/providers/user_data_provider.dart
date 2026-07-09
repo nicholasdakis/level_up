@@ -495,7 +495,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       }
       final xpGained = result['xp_gained'] as int;
       final baseXp = (result['base_xp'] ?? xpGained) as int;
-      final streak = (result['daily_streak'] ?? 1) as int;
+      final streak = (result['daily_streak'] ?? 0) as int;
       final multiplier = ((result['streak_multiplier'] ?? 1.0) as num)
           .toDouble();
       patch(
