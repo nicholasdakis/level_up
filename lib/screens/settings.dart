@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:pwa_install/pwa_install.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../globals.dart';
 import '../providers/user_data_provider.dart';
@@ -221,6 +223,33 @@ Widget buildSettingsDrawer(
                         "n1ch0lasd4k1s@gmail.com",
                         "Feedback for Level up!",
                       );
+                    },
+                  ),
+                  buildActionTile(
+                    icon: HugeIcons.strokeRoundedShare01,
+                    label: "Invite a Friend",
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final code = await ref
+                          .read(userDataProvider.notifier)
+                          .fetchReferralCode();
+                      if (!context.mounted) return;
+                      final message = code != null
+                          ? "I've been using Level Up to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code"
+                          : "I've been using Level Up to track my health and it's actually fun.\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup";
+                      if (kIsWeb) {
+                        await Clipboard.setData(ClipboardData(text: message));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Invite message copied!"),
+                              duration: snackBarDuration,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                      SharePlus.instance.share(ShareParams(text: message));
                     },
                   ),
                   buildActionTile(

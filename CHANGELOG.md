@@ -2478,3 +2478,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Food logging goals (calories, protein, carbs, fat) now use ref.watch with .select instead of ref.read so they update immediately when user data loads
 - Migrated appReadyNotifier to its own provider class and migrated the files that depend on it
 - Migrated all food logging screens (food_logging, log_food_screen, food_analytics, home_logging_cards) to use FoodLog directly
+
+## 2026-07-09
+- Added an Invite a Friend button to the referrals dialog and the settings drawer that opens the native share sheet with a prefilled message and your referral code

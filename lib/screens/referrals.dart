@@ -1,6 +1,7 @@
 ﻿import 'dart:convert';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +11,7 @@ import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '/providers/workout_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, defaultAppColor;
 import 'level_up_overlay.dart';
@@ -218,54 +220,50 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 8)),
-                      Center(
-                        child: GestureDetector(
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: code));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Referral code copied!"),
-                                duration: snackBarDuration,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.width(context, 20),
-                              vertical: Responsive.height(context, 10),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: code));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Referral code copied!"),
+                              duration: snackBarDuration,
                             ),
-                            decoration: BoxDecoration(
-                              color: appColor.withAlpha(60),
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 12),
-                              ),
-                              border: Border.all(
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(160),
-                              ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 20),
+                            vertical: Responsive.height(context, 10),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 12),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  code,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 18),
-                                    fontWeight: FontWeight.w700,
-                                    color: accent,
-                                    letterSpacing: 2,
-                                  ),
+                            border: Border.all(
+                              color: lightenColor(appColor, 0.3).withAlpha(160),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                code,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 18),
+                                  fontWeight: FontWeight.w700,
+                                  color: accent,
+                                  letterSpacing: 2,
                                 ),
-                                SizedBox(width: Responsive.width(context, 10)),
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCopy01,
-                                  color: accentDim,
-                                  size: Responsive.scale(context, 16),
-                                ),
-                              ],
-                            ),
+                              ),
+                              SizedBox(width: Responsive.width(context, 10)),
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCopy01,
+                                color: accentDim,
+                                size: Responsive.scale(context, 16),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -391,15 +389,32 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                     ],
                   ),
                   actions: [
-                    Expanded(
-                      child: Center(
-                        child: Builder(
-                          builder: (ctx) => TextButton(
-                            onPressed: () =>
-                                Navigator.of(ctx, rootNavigator: true).pop(),
-                            child: const Text("Close"),
-                          ),
-                        ),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(context, rootNavigator: true).pop(),
+                      child: Text("Close", style: dialogButtonStyle()),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final message =
+                            "I've been using Level Up to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code";
+                        if (kIsWeb) {
+                          await Clipboard.setData(ClipboardData(text: message));
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Invite message copied!"),
+                                duration: snackBarDuration,
+                              ),
+                            );
+                          }
+                          return;
+                        }
+                        SharePlus.instance.share(ShareParams(text: message));
+                      },
+                      child: Text(
+                        "Invite a Friend",
+                        style: dialogButtonStyle(confirm: true),
                       ),
                     ),
                   ],
