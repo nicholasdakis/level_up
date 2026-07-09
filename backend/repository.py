@@ -39,28 +39,31 @@ class UserRepository:
             return None
         return result.data[0].get("fcm_tokens") or []
     
-    def get_leaderboard_standing(self, uid: str):
-        # Returns the user's rank and total player count using a single SQL query
-        user = self._supabase.table("users").select("level, exp_points").eq("uid", uid).single().execute().data
-        if not user:
-            return None
+    def get_leaderboard_standing(self, uid: str, type: str = "xp"):
+        # Returns the user's rank and total player count for the given leaderboard type
+        if type == "foods":
+            rows = self._supabase.rpc("leaderboard_by_foods", {}).execute().data
+        elif type == "workouts":
+            rows = self._supabase.rpc("leaderboard_by_workouts", {}).execute().data
+        else:
+            user = self._supabase.table("users").select("level, exp_points").eq("uid", uid).single().execute().data
+            if not user:
+                return None
+            level = user["level"]
+            exp_points = user["exp_points"]
+            # Count users ranked strictly above using the same tiebreaker as the leaderboard (level DESC, exp_points DESC, uid ASC)
+            above = self._supabase.rpc("count_users_above_rank", {
+                "p_level": level,
+                "p_exp_points": exp_points,
+                "p_uid": uid,
+            }).execute().data
+            total = self._supabase.table("users").select("uid", count="exact").execute().count
+            return {"rank": (above or 0) + 1, "total": total}
 
-        level = user["level"]
-        exp_points = user["exp_points"]
-
-        # Count users ranked strictly above using the same tiebreaker as the leaderboard (level DESC, exp_points DESC, uid ASC)
-        above = self._supabase.rpc("count_users_above_rank", {
-            "p_level": level,
-            "p_exp_points": exp_points,
-            "p_uid": uid,
-        }).execute().data
-
-        total = self._supabase.table("users").select("uid", count="exact").execute().count
-
-        return {
-            "rank": (above or 0) + 1,
-            "total": total,
-        }
+        uids = [r["uid"] for r in rows]
+        if uid not in uids:
+            return {"rank": None, "total": len(uids)}
+        return {"rank": uids.index(uid) + 1, "total": len(uids)}
 
     def get_leaderboard(self):
         # Fetches top 100 users ordered by level and XP descending for the leaderboard

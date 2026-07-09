@@ -784,7 +784,8 @@ def get_leaderboard_standing():
     if err:
         return err
 
-    result = progression_service.get_leaderboard_standing(uid)
+    type_ = request.args.get("type", "xp")
+    result = progression_service.get_leaderboard_standing(uid, type=type_)
     if result is None:
         return jsonify({"error": "User not found"}), 404
 
