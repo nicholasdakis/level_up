@@ -36,6 +36,15 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
   bool showEmailForm = false;
 
   @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/register-or-login',
+      screenClass: 'RegisterOrLogin',
+    );
+  }
+
+  @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
