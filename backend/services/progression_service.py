@@ -206,7 +206,7 @@ class ProgressionService: # Service class to handle all progression-related busi
                 "seconds_remaining": result.get("seconds_remaining", 0),
             }
 
-        daily_streak = result.get("daily_streak", 1)
+        daily_streak = result.get("daily_streak", 0)
 
         # Successful return with the new progression state
         return {

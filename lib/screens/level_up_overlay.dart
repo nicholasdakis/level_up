@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
 import '../globals.dart';
 import '../providers/food_logs_provider.dart';
 import '../providers/user_data_provider.dart';
@@ -130,6 +131,10 @@ Future<void> handleLevelUpOverlay(
   final newLevel = ref.read(userDataProvider).value?.level ?? 0;
   if (newLevel > levelBefore) {
     await showLevelUpOverlay(context, newLevel, appColor, ref);
+    final review = InAppReview.instance;
+    if (await review.isAvailable()) {
+      review.requestReview();
+    }
   }
 }
 
