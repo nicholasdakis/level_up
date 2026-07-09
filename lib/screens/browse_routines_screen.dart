@@ -131,7 +131,10 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
     }
   }
 
-  Future<void> _copyRoutine(String templateId) async {
+  Future<void> _copyRoutine(
+    String templateId, {
+    Map<String, dynamic>? routineData,
+  }) async {
     if (_savingId != null) return;
     if (_savedSourceIds.contains(templateId)) {
       // already copied this template
@@ -150,7 +153,9 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
       _savingId = templateId;
       _downloadState[templateId] = (_downloadState[templateId] ?? 0) + 1;
     });
-    final ok = await ref.read(workoutProvider.notifier).copyRoutine(templateId);
+    final ok = await ref
+        .read(workoutProvider.notifier)
+        .copyRoutine(templateId, routineData: routineData);
     if (!mounted) return;
     if (ok) {
       setState(() {
@@ -586,7 +591,10 @@ class _BrowseRoutinesScreenState extends ConsumerState<BrowseRoutinesScreen> {
             SizedBox(height: Responsive.height(context, 8)),
             GestureDetector(
               onTap: _savingId == null
-                  ? () => _copyRoutine(routine['template_id'] as String)
+                  ? () => _copyRoutine(
+                      routine['template_id'] as String,
+                      routineData: routine,
+                    )
                   : null,
               child: Container(
                 width: double.infinity,

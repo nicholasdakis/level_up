@@ -254,21 +254,24 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
   }
 
   // copies a public browse routine into the user's own routines and appends it to myRoutines
-  Future<bool> copyRoutine(String templateId) async {
+  Future<bool> copyRoutine(
+    String templateId, {
+    Map<String, dynamic>? routineData,
+  }) async {
     try {
       final response = await authenticatedPost(
         'copy_routine',
         body: {'template_id': templateId},
       );
       if (response.statusCode == 200) {
-        final previous = state.value ?? const WorkoutState();
-        final newRoutine = <String, dynamic>{
-          'template_id': templateId,
-          'source_template_id': templateId,
-        };
-        state = AsyncData(
-          previous.copyWith(myRoutines: [...previous.myRoutines, newRoutine]),
-        );
+        if (routineData != null) {
+          final previous = state.value ?? const WorkoutState();
+          state = AsyncData(
+            previous.copyWith(
+              myRoutines: [...previous.myRoutines, routineData],
+            ),
+          );
+        }
         return true;
       }
     } catch (e) {
