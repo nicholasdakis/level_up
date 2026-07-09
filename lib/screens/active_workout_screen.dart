@@ -507,6 +507,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 (u) => u.copyWith(
                   level: data['new_level'] as int? ?? u.level,
                   expPoints: data['new_exp'] as int? ?? u.expPoints,
+                  workoutStreak: data['new_streak'] as int? ?? u.workoutStreak,
+                  workoutStreakBest: data['best_streak'] != null
+                      ? ((data['best_streak'] as int) > u.workoutStreakBest
+                            ? data['best_streak'] as int
+                            : u.workoutStreakBest)
+                      : u.workoutStreakBest,
                 ),
               );
         }

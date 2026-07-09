@@ -2498,3 +2498,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added get_xp_standing, get_foods_standing, and get_workouts_standing Postgres RPCs so each standing type is computed server-side in one query without fetching any rows to Python
 - Added server-side size limit on profile picture uploads (200KB base64) to prevent abuse
 - Fixed saving a browse routine not appearing in My Routines until app restart due to an incomplete optimistic update
+- Fixed workout streak and heatmap not updating on the home and workout screens after finishing a workout

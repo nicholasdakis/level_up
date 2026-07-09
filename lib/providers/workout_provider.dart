@@ -502,6 +502,10 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           timeout: const Duration(seconds: 8),
         ),
         authenticatedGet('today_overview', timeout: const Duration(seconds: 8)),
+        authenticatedGet(
+          'workout_heatmap',
+          timeout: const Duration(seconds: 8),
+        ),
       ]);
 
       final recentWorkouts = results[0].statusCode == 200
@@ -518,11 +522,24 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
           ? Map<String, dynamic>.from(jsonDecode(results[2].body) as Map)
           : (state.value ?? const WorkoutState()).todayOverview;
 
+      final heatmap = results[3].statusCode == 200
+          ? Map<String, int>.from(
+              (jsonDecode(results[3].body)['heatmap'] as List).fold(
+                <String, int>{},
+                (map, e) {
+                  map[e['date'] as String] = e['count'] as int;
+                  return map;
+                },
+              ),
+            )
+          : (state.value ?? const WorkoutState()).heatmap;
+
       state = AsyncData(
         (state.value ?? const WorkoutState()).copyWith(
           recentWorkouts: recentWorkouts,
           weeklyWorkoutCount: weeklyWorkoutCount,
           todayOverview: todayOverview,
+          heatmap: heatmap,
         ),
       );
     } catch (e) {
