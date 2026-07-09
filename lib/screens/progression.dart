@@ -81,7 +81,7 @@ class _ProgressionState extends ConsumerState<Progression> {
         : "#$_rank";
     final topPercent =
         (!isGuest && _rank != null && _total != null && _total! > 0)
-        ? ((_rank! / _total!) * 100).ceil()
+        ? (_rank == 1 ? 1 : ((_rank! / _total!) * 100).ceil().clamp(1, 100))
         : null;
     final topLabel = isGuest
         ? "--%"
