@@ -127,9 +127,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     );
     _loadRecentFoods();
     _loadSuggestedFoods();
-    // recompute if the provider resolves after this screen opens
+    // recompute both if the provider resolves after this screen opens
     ref.listenManual(foodLogsProvider, (_, next) {
-      if (next.hasValue) _loadSuggestedFoods();
+      if (next.hasValue) {
+        _loadRecentFoods();
+        _loadSuggestedFoods();
+      }
     });
     _loadRecentExpanded();
     _voiceSearch.init(() {
@@ -508,6 +511,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (hour < 8) trackTrivialAchievement("early_bird"); // before 8am
 
     widget.onFoodLogged();
+    ref.read(userDataProvider.notifier).updateFoodLogStreak();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
