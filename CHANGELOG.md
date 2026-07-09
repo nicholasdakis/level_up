@@ -2492,3 +2492,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a better error screen for the leaderboard tab with a retry and back button
 - Replaced the workout and food leaderboard gets with RPCs
 - Leaderboard results are cached in memory per type/period for the session so switching tabs is instant
+- Profile pictures are now always compressed to 256x256 JPEG at 75% quality on upload, capping size at roughly 20-30KB instead of up to 750KB
+- Ran a one-time migration to recompress all 79 existing user profile pictures using the same settings, reducing total pfp storage from 10.81MB to 0.77MB (93% reduction)

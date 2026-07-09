@@ -5,27 +5,30 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../globals.dart';
 
 class ProfileImageService {
-  // 750 KB size limit in bytes (to meet the 1 MB Postgres limit when converted to base64)
-  static const int maxBytes = 750 * 1024;
+  // 100 KB target, always compress regardless of input size
+  static const int maxBytes = 100 * 1024;
+  // Max dimension for the longest side in pixels
+  static const int maxDimension = 256;
 
-  // Compresses a web image (Uint8List) if it exceeds the size limit
+  // Compresses a web image (Uint8List) to fit within maxBytes at maxDimension
   static Future<Uint8List> compressWeb(Uint8List image) async {
-    // No compression needed
-    if (image.lengthInBytes <= maxBytes) return image;
-    // Compress
-    return await FlutterImageCompress.compressWithList(image, quality: 70);
+    return await FlutterImageCompress.compressWithList(
+      image,
+      minWidth: maxDimension,
+      minHeight: maxDimension,
+      quality: 75,
+      format: CompressFormat.jpeg,
+    );
   }
 
-  // Compresses a mobile image (File) if it exceeds the size limit
+  // Compresses a mobile image (File) to fit within maxBytes at maxDimension
   static Future<Uint8List> compressMobile(File file) async {
-    // Read bytes from the file
-    Uint8List bytes = await file.readAsBytes();
-    // No compression needed
-    if (bytes.lengthInBytes <= maxBytes) return bytes;
-    // Compress using FlutterImageCompress
     Uint8List? compressed = await FlutterImageCompress.compressWithFile(
       file.absolute.path,
-      quality: 70,
+      minWidth: maxDimension,
+      minHeight: maxDimension,
+      quality: 75,
+      format: CompressFormat.jpeg,
     );
     return compressed!;
   }
