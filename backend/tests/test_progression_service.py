@@ -459,7 +459,7 @@ def test_leaderboard_standing_first_place(mocker):
 
     assert result["rank"] == 1
     assert result["total"] == 50
-    fake_repo.get_leaderboard_standing.assert_called_once_with("user_123")
+    fake_repo.get_leaderboard_standing.assert_called_once_with("user_123", type="xp")
 
 # User with others above them should reflect correct rank
 def test_leaderboard_standing_mid_table(mocker):
@@ -486,7 +486,7 @@ def test_leaderboard_standing_tie_broken_by_uid(mocker):
     fake_repo = mocker.Mock()
 
     # "aaa_user" has a lower uid so should be ranked higher (rank 1 vs rank 2)
-    fake_repo.get_leaderboard_standing.side_effect = lambda uid: (
+    fake_repo.get_leaderboard_standing.side_effect = lambda uid, type="xp": (
         {"rank": 1, "total": 2} if uid == "aaa_user" else {"rank": 2, "total": 2}
     )
     service = ProgressionService(fake_repo, None, None)
