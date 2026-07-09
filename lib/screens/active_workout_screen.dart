@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import 'package:skeletonizer/skeletonizer.dart'
+    show Skeletonizer, ShimmerEffect;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -51,13 +53,16 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   final Map<String, Map<String, dynamic>> _prDetails = {};
 
   bool _reordering = false;
+  WorkoutSession?
+  _localSession; // holds the session before the provider updates
 
   // rest timer state (UI-only, not persisted)
   int? _restSeconds;
   Timer? _restTimer;
 
-  // convenience getters into the global session
-  WorkoutSession get _s => ref.read(workoutProvider).value!.activeSession!;
+  // convenience getters into the global session, falls back to local session during the 500ms provider delay
+  WorkoutSession get _s =>
+      ref.read(workoutProvider).value?.activeSession ?? _localSession!;
   List<Map<String, dynamic>> get _exercises => _s.exercises;
   Map<String, bool> get _checked => _s.checked;
   String? get _workoutName => _s.workoutName;
@@ -118,8 +123,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   @override
   void initState() {
     super.initState();
-    // if no session is active, start one now (new workout or from routine)
-    if (ref.read(workoutProvider).value?.activeSession == null) {
+    // use existing session if one is already active (restored), otherwise build one now
+    final existingSession = ref.read(workoutProvider).value?.activeSession;
+    WorkoutSession session;
+    if (existingSession != null) {
+      session = existingSession;
+      _localSession = session;
+    } else {
       final exercises = <Map<String, dynamic>>[];
       if (widget.routine != null) {
         final templateExercises =
@@ -141,16 +151,17 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           });
         }
       }
-      ref
-          .read(workoutProvider.notifier)
-          .startSession(
-            WorkoutSession(
-              exercises: exercises,
-              startedAtMs: DateTime.now().millisecondsSinceEpoch,
-              routineName: widget.routine?['name'] as String?,
-              routineId: widget.routine?['id']?.toString(),
-            ),
-          );
+      session = WorkoutSession(
+        exercises: exercises,
+        startedAtMs: DateTime.now().millisecondsSinceEpoch,
+        routineName: widget.routine?['name'] as String?,
+        routineId: widget.routine?['id']?.toString(),
+      );
+      _localSession = session;
+      // schedule after mount — Riverpod forbids state changes during widget build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(workoutProvider.notifier).startSession(session);
+      });
       logAnalyticsEvent(
         'workout_started',
         parameters: {
@@ -162,7 +173,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
 
     // pre-populate controllers from restored session values
-    final session = ref.read(workoutProvider).value!.activeSession!;
     for (final entry in session.weights.entries) {
       _controllers[entry.key] = TextEditingController(text: entry.value);
     }
@@ -174,7 +184,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       ref.read(workoutProvider.notifier).fetchExerciseStats().then((stats) {
         if (mounted) setState(() => _exerciseStats = stats);
       });
-      final exerciseNames = _exercises
+      final exerciseNames = session.exercises
           .map((exercise) => _cleanName(exercise['name'] as String? ?? ''))
           .where((name) => name.isNotEmpty)
           .toList();
@@ -896,9 +906,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Widget build(BuildContext context) {
     // session is cleared just before pushReplacement to finish screen;
     // guard here so the brief rebuild during the transition doesn't crash
-    if (ref.read(workoutProvider).value?.activeSession == null) {
-      return const SizedBox.shrink();
-    }
+    final sessionReady =
+        ref.watch(workoutProvider).value?.activeSession != null;
+    if (_localSession == null) return const SizedBox.shrink();
 
     final double vol = _totalVolumeKg;
     final String volDisplay = isImperial
@@ -908,119 +918,134 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
-    return Container(
-      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Material(
-          color: Colors.transparent,
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(context, accent, dim, volDisplay, volUnit),
-                Container(height: 1, color: Colors.white.withAlpha(15)),
-                if (_exercises.isEmpty && !_reordering)
-                  Expanded(
-                    child: Center(
-                      child: _buildEmptyState(context, accent, dim),
+    return Skeletonizer(
+      enabled: !sessionReady,
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColor, 0.10),
+        highlightColor: lightenColor(appColor, 0.22),
+        duration: const Duration(milliseconds: 1200),
+      ),
+      child: Container(
+        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Material(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(context, accent, dim, volDisplay, volUnit),
+                  Container(height: 1, color: Colors.white.withAlpha(15)),
+                  if (_exercises.isEmpty && !_reordering)
+                    Expanded(
+                      child: Center(
+                        child: _buildEmptyState(context, accent, dim),
+                      ),
                     ),
-                  ),
-                if (_exercises.isNotEmpty || _reordering)
-                  Expanded(
-                    child: ScrollConfiguration(
-                      behavior: NoGlowScrollBehavior(),
-                      child: ReorderableListView(
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 8),
-                        ),
-                        buildDefaultDragHandles: false,
-                        proxyDecorator: (child, index, animation) => child,
-                        onReorder: _reordering
-                            ? (oldIndex, newIndex) {
-                                setState(() {
-                                  if (newIndex > oldIndex) newIndex--;
-                                  final oldOrder = List.of(_exercises);
-                                  final ex = _exercises.removeAt(oldIndex);
-                                  _exercises.insert(newIndex, ex);
-                                  final newControllers =
-                                      <String, TextEditingController>{};
-                                  final newChecked = <String, bool>{};
-                                  for (
-                                    int newI = 0;
-                                    newI < _exercises.length;
-                                    newI++
-                                  ) {
-                                    final oldI = oldOrder.indexOf(
-                                      _exercises[newI],
-                                    );
-                                    final sets =
-                                        (_exercises[newI]['sets'] as List)
-                                            .length;
-                                    for (int s = 0; s < sets; s++) {
-                                      for (final field in ['reps', 'weight']) {
-                                        final oldKey = '${oldI}_${s}_$field';
-                                        final newKey = '${newI}_${s}_$field';
-                                        if (_controllers.containsKey(oldKey)) {
-                                          newControllers[newKey] =
-                                              _controllers[oldKey]!;
+                  if (_exercises.isNotEmpty || _reordering)
+                    Expanded(
+                      child: ScrollConfiguration(
+                        behavior: NoGlowScrollBehavior(),
+                        child: ReorderableListView(
+                          padding: EdgeInsets.only(
+                            bottom: Responsive.height(context, 8),
+                          ),
+                          buildDefaultDragHandles: false,
+                          proxyDecorator: (child, index, animation) => child,
+                          onReorder: _reordering
+                              ? (oldIndex, newIndex) {
+                                  setState(() {
+                                    if (newIndex > oldIndex) newIndex--;
+                                    final oldOrder = List.of(_exercises);
+                                    final ex = _exercises.removeAt(oldIndex);
+                                    _exercises.insert(newIndex, ex);
+                                    final newControllers =
+                                        <String, TextEditingController>{};
+                                    final newChecked = <String, bool>{};
+                                    for (
+                                      int newI = 0;
+                                      newI < _exercises.length;
+                                      newI++
+                                    ) {
+                                      final oldI = oldOrder.indexOf(
+                                        _exercises[newI],
+                                      );
+                                      final sets =
+                                          (_exercises[newI]['sets'] as List)
+                                              .length;
+                                      for (int s = 0; s < sets; s++) {
+                                        for (final field in [
+                                          'reps',
+                                          'weight',
+                                        ]) {
+                                          final oldKey = '${oldI}_${s}_$field';
+                                          final newKey = '${newI}_${s}_$field';
+                                          if (_controllers.containsKey(
+                                            oldKey,
+                                          )) {
+                                            newControllers[newKey] =
+                                                _controllers[oldKey]!;
+                                          }
+                                        }
+                                        final oldCheckedKey = '${oldI}_$s';
+                                        if (_checked.containsKey(
+                                          oldCheckedKey,
+                                        )) {
+                                          newChecked['${newI}_$s'] =
+                                              _checked[oldCheckedKey]!;
                                         }
                                       }
-                                      final oldCheckedKey = '${oldI}_$s';
-                                      if (_checked.containsKey(oldCheckedKey)) {
-                                        newChecked['${newI}_$s'] =
-                                            _checked[oldCheckedKey]!;
-                                      }
                                     }
-                                  }
-                                  _controllers
-                                    ..clear()
-                                    ..addAll(newControllers);
-                                  _checked
-                                    ..clear()
-                                    ..addAll(newChecked);
-                                });
-                                ref.read(workoutProvider.notifier).persist();
-                              }
-                            : (oldI, newI) {},
-                        children: [
-                          for (int i = 0; i < _exercises.length; i++)
-                            _buildExerciseSection(
-                              context,
-                              i,
-                              accent,
-                              dim,
-                              isImperial,
-                              key: ValueKey(i),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                if (_reordering)
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() => _reordering = false);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        vertical: Responsive.height(context, 12),
-                      ),
-                      color: appColor.withAlpha(60),
-                      child: Text(
-                        'Done Reordering',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
-                          fontSize: Responsive.font(context, 14),
-                          fontWeight: FontWeight.w700,
+                                    _controllers
+                                      ..clear()
+                                      ..addAll(newControllers);
+                                    _checked
+                                      ..clear()
+                                      ..addAll(newChecked);
+                                  });
+                                  ref.read(workoutProvider.notifier).persist();
+                                }
+                              : (oldI, newI) {},
+                          children: [
+                            for (int i = 0; i < _exercises.length; i++)
+                              _buildExerciseSection(
+                                context,
+                                i,
+                                accent,
+                                dim,
+                                isImperial,
+                                key: ValueKey(i),
+                              ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                _buildBottomBar(context, accent, dim),
-              ],
+                  if (_reordering)
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _reordering = false);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(context, 12),
+                        ),
+                        color: appColor.withAlpha(60),
+                        child: Text(
+                          'Done Reordering',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            color: lightenColor(appColor, 0.45),
+                            fontSize: Responsive.font(context, 14),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  _buildBottomBar(context, accent, dim),
+                ],
+              ),
             ),
           ),
         ),

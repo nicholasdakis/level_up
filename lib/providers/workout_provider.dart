@@ -105,9 +105,9 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
       routineName: session.routineName,
       uid: uid,
     );
-    // persist immediately so the session survives a kill before the delay fires
     _persistSession(stamped);
     // delay so the mini bar does not flash during the active workout screen slide-up transition
+    // and to avoid modifying provider state during widget mount (Riverpod forbids this)
     Future.delayed(const Duration(milliseconds: 500), () {
       state = AsyncData(
         (state.value ?? const WorkoutState()).copyWith(activeSession: stamped),
