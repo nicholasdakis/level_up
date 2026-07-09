@@ -42,28 +42,23 @@ class UserRepository:
     def get_leaderboard_standing(self, uid: str, type: str = "xp"):
         # Returns the user's rank and total player count for the given leaderboard type
         if type == "foods":
-            rows = self._supabase.rpc("leaderboard_by_foods", {}).execute().data
-        elif type == "workouts":
-            rows = self._supabase.rpc("leaderboard_by_workouts", {}).execute().data
-        else:
-            user = self._supabase.table("users").select("level, exp_points").eq("uid", uid).single().execute().data
-            if not user:
-                return None
-            level = user["level"]
-            exp_points = user["exp_points"]
-            # Count users ranked strictly above using the same tiebreaker as the leaderboard (level DESC, exp_points DESC, uid ASC)
-            above = self._supabase.rpc("count_users_above_rank", {
-                "p_level": level,
-                "p_exp_points": exp_points,
-                "p_uid": uid,
-            }).execute().data
-            total = self._supabase.table("users").select("uid", count="exact").execute().count
-            return {"rank": (above or 0) + 1, "total": total}
-
-        uids = [r["uid"] for r in rows]
-        if uid not in uids:
-            return {"rank": None, "total": len(uids)}
-        return {"rank": uids.index(uid) + 1, "total": len(uids)}
+            result = self._supabase.rpc("get_foods_standing", {"p_uid": uid}).execute().data
+            row = result[0] if result else {}
+            return {"rank": row.get("rank"), "total": row.get("total", 0)}
+        if type == "workouts":
+            result = self._supabase.rpc("get_workouts_standing", {"p_uid": uid}).execute().data
+            row = result[0] if result else {}
+            return {"rank": row.get("rank"), "total": row.get("total", 0)}
+        user = self._supabase.table("users").select("level, exp_points").eq("uid", uid).single().execute().data
+        if not user:
+            return None
+        result = self._supabase.rpc("get_xp_standing", {
+            "p_level": user["level"],
+            "p_exp_points": user["exp_points"],
+            "p_uid": uid,
+        }).execute().data
+        row = result[0] if result else {}
+        return {"rank": row.get("rank"), "total": row.get("total", 0)}
 
     def get_leaderboard(self):
         # Fetches top 100 users ordered by level and XP descending for the leaderboard
