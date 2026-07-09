@@ -2496,3 +2496,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Ran a one-time migration to recompress all 79 existing user profile pictures using the same settings, reducing total pfp storage from 10.81MB to 0.77MB (93% reduction)
 - Redesigned the rank card on the Progression screen into a single unified card with XP, Foods, and Workouts standing tabs
 - Added get_xp_standing, get_foods_standing, and get_workouts_standing Postgres RPCs so each standing type is computed server-side in one query without fetching any rows to Python
+- Added server-side size limit on profile picture uploads (200KB base64) to prevent abuse
+- Fixed saving a browse routine not appearing in My Routines until app restart due to an incomplete optimistic update

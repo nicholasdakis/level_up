@@ -655,6 +655,10 @@ def update_pfp():
     if err:
         return err
 
+    # 200 KB base64 limit (~150 KB raw image)
+    if len(body.pfp_base64) > 200 * 1024:
+        return jsonify({"error": "Image too large"}), 413
+
     progression_service.update_pfp(uid, body.pfp_base64)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
