@@ -106,6 +106,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
     final input = double.tryParse(controller.text.trim());
     if (input == null || input <= 0) return;
     final kg = isImperial ? UnitConverter.lbsToKg(input) : input;
+    logAnalyticsEvent('log_weight', parameters: {'kg': kg});
     final ok = await ref
         .read(weightLogsProvider.notifier)
         .updateWeightLog(dateKey, kg);

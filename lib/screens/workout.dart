@@ -4,7 +4,6 @@ import '/providers/user_data_provider.dart';
 import '/providers/user_data_loaded_provider.dart';
 import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:hugeicons/hugeicons.dart';
@@ -13,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/guest.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '/utility/responsive.dart';
 import '/utility/unit_converter.dart';
 
@@ -937,8 +937,8 @@ class _WorkoutState extends ConsumerState<Workout> {
                               );
                               return;
                             }
-                            FirebaseAnalytics.instance.logEvent(
-                              name: 'routine_started',
+                            logAnalyticsEvent(
+                              'routine_started',
                               parameters: {
                                 'source': 'my_routines',
                                 'routine_name':

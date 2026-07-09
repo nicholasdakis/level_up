@@ -76,6 +76,7 @@ class _WaterLogSheetState extends ConsumerState<_WaterLogSheet> {
   }
 
   Future<void> _log(int ml) async {
+    logAnalyticsEvent('log_water', parameters: {'ml': ml});
     final dateKey = dateKeyFor(selectedDate);
     final entries = List<int>.from(
       ref.read(waterLogsProvider).value?[dateKey] ?? [],

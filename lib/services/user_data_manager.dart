@@ -7,7 +7,6 @@ import '../globals.dart';
 import '../guest.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
@@ -150,7 +149,7 @@ class UserDataManager {
       }
 
       if (!isBeingDeleted) {
-        FirebaseAnalytics.instance.logEvent(name: 'food_logged');
+        logAnalyticsEvent('food_logged');
       }
 
       // Only show success snackbar if connected, otherwise the error snackbar is shown in the catch block

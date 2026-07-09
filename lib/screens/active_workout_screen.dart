@@ -2,7 +2,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import 'dart:convert';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -152,8 +151,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               routineId: widget.routine?['id']?.toString(),
             ),
           );
-      FirebaseAnalytics.instance.logEvent(
-        name: 'workout_started',
+      logAnalyticsEvent(
+        'workout_started',
         parameters: {
           'source': widget.routine != null ? 'routine' : 'blank',
           'routine_name': widget.routine?['name'] as String? ?? '',
@@ -464,8 +463,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       if (response.statusCode == 200) {
         ref.read(workoutProvider.notifier).refreshAfterWorkout();
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        FirebaseAnalytics.instance.logEvent(
-          name: 'workout_completed',
+        logAnalyticsEvent(
+          'workout_completed',
           parameters: {
             'duration_seconds': durationSeconds,
             'exercise_count': exercises.length,
@@ -476,8 +475,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         final workoutStreak =
             ref.read(userDataProvider).value?.workoutStreak ?? 0;
         if (streakMilestones.contains(workoutStreak)) {
-          FirebaseAnalytics.instance.logEvent(
-            name: 'streak_milestone',
+          logAnalyticsEvent(
+            'streak_milestone',
             parameters: {'streak_type': 'workout', 'streak': workoutStreak},
           );
         }
@@ -1867,8 +1866,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                   child: GestureDetector(
                     onTap: () async {
                       if (await _confirmDiscard()) {
-                        FirebaseAnalytics.instance.logEvent(
-                          name: 'workout_discarded',
+                        logAnalyticsEvent(
+                          'workout_discarded',
                           parameters: {
                             'duration_seconds': _s.elapsed.inSeconds,
                             'exercise_count': _exercises.length,

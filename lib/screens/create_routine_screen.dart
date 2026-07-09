@@ -1,5 +1,4 @@
-﻿import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import '../providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
@@ -216,8 +215,8 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           );
       if (!mounted) return;
       if (ok) {
-        FirebaseAnalytics.instance.logEvent(
-          name: 'routine_created',
+        logAnalyticsEvent(
+          'routine_created',
           parameters: {'exercise_count': exercises.length},
         );
         // bump notifier so the workout dashboard refreshes its routines list

@@ -10,6 +10,8 @@ import 'dart:ui';
 import 'utility/responsive.dart';
 import 'services/leaderboard_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -47,6 +49,15 @@ ValueNotifier<String?> onboardingHintNotifier = ValueNotifier<String?>(null);
 
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
+
+// Logs a named analytics event, skipped for guests and the developer account to avoid skewing data
+void logAnalyticsEvent(String name, {Map<String, Object>? parameters}) {
+  if (isGuest) return;
+  if (FirebaseAuth.instance.currentUser?.email == 'n1ch0lasd4k1s@gmail.com') {
+    return;
+  }
+  FirebaseAnalytics.instance.logEvent(name: name, parameters: parameters);
+}
 
 // Text drop shadow used across the app
 Shadow textDropShadow(BuildContext context) {

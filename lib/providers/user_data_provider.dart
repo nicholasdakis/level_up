@@ -2,13 +2,13 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../globals.dart' show isGuest, snackBarDuration, dailyRewardCooldown;
+import '../globals.dart'
+    show isGuest, snackBarDuration, dailyRewardCooldown, logAnalyticsEvent;
 import '../guest.dart' show Guest;
 import 'weight_logs_provider.dart';
 import 'user_data_loaded_provider.dart';
@@ -487,7 +487,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       final newLevel = result['new_level'] as int;
       final prevLevel = state.value?.level ?? 1;
       if (prevLevel < 3 && newLevel >= 3) {
-        FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+        logAnalyticsEvent('reached_level_3');
       }
       final xpGained = result['xp_gained'] as int;
       final baseXp = (result['base_xp'] ?? xpGained) as int;

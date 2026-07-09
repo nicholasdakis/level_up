@@ -236,10 +236,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final choice = await showOnboardingWizard(context, appColor, ref);
           if (!mounted) return;
 
-          FirebaseAnalytics.instance.logEvent(
-            name: choice != null
-                ? 'onboarding_completed'
-                : 'onboarding_skipped',
+          logAnalyticsEvent(
+            choice != null ? 'onboarding_completed' : 'onboarding_skipped',
             parameters: {'choice': choice ?? ''},
           );
 
@@ -785,7 +783,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: canClaim && !isGuest ? () => buildDailyRewardDialog() : null,
+            onTap: canClaim && !isGuest
+                ? () {
+                    logAnalyticsEvent('tap_daily_reward');
+                    buildDailyRewardDialog();
+                  }
+                : null,
             splashColor: c.splashColor,
             highlightColor: c.highlightColor,
             child: Padding(
@@ -935,6 +938,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       onTap: _adWatching
           ? null
           : () async {
+              logAnalyticsEvent('tap_watch_ad');
               if (!adService.isReady) {
                 await showFrostedAlertDialog(
                   context: context,
@@ -970,7 +974,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               setState(() => _adWatching = true);
               await adService.showRewardedAd(
                 onRewarded: () async {
-                  FirebaseAnalytics.instance.logEvent(name: 'ad_watched');
+                  logAnalyticsEvent('ad_watched');
                   if (isGuest) {
                     // show signup prompt after the ad reward fires (user finished watching)
                     if (mounted) {
@@ -1229,6 +1233,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   child: GestureDetector(
                                     onTap: () {
                                       trackTrivialAchievement("open_reminders");
+                                      logAnalyticsEvent('tap_reminders');
                                       context.push('/reminders');
                                     },
                                     child: frostedGlassCard(
@@ -1301,6 +1306,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     onTap: () {
                                       trackTrivialAchievement(
                                         "calorie_calculator",
+                                      );
+                                      logAnalyticsEvent(
+                                        'tap_calorie_calculator',
                                       );
                                       context.push('/calorie-calculator');
                                     },

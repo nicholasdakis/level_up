@@ -1,5 +1,5 @@
-﻿import 'package:flutter/foundation.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -396,6 +396,10 @@ class _ExploreState extends ConsumerState<Explore> {
   Future<void> _handleCheckIn() async {
     if (nearestPOI == null || userLocation == null || checkingIn) return;
 
+    logAnalyticsEvent(
+      'tap_check_in',
+      parameters: {'poi_name': nearestPOI!.name},
+    );
     setState(() => checkingIn = true); // show loading state on button
 
     try {
@@ -413,7 +417,7 @@ class _ExploreState extends ConsumerState<Explore> {
         if (result['new_level'] != null) {
           final newLevel = result['new_level'] as int;
           if (levelBefore < 3 && newLevel >= 3) {
-            FirebaseAnalytics.instance.logEvent(name: 'reached_level_3');
+            logAnalyticsEvent('reached_level_3');
           }
           ref
               .read(userDataProvider.notifier)

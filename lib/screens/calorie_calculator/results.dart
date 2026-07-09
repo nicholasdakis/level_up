@@ -284,7 +284,13 @@ class _ResultsState extends ConsumerState<Results> {
                   ),
                 ],
               );
-              if (confirmed == true) _setCalorieGoal(calories);
+              if (confirmed == true) {
+                logAnalyticsEvent(
+                  'set_calorie_goal',
+                  parameters: {'calories': calories},
+                );
+                _setCalorieGoal(calories);
+              }
             },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),

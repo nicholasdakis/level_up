@@ -2481,3 +2481,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-09
 - Added an Invite a Friend button to the referrals dialog and the settings drawer that opens the native share sheet with a prefilled message and your referral code
+- Added analytics event tracking for key user actions: daily reward tap, watch ad tap, reminders shortcut, calorie calculator shortcut, referral card open, invite a friend, explore check-in, calorie goal set from calculator, water logged, weight logged, food logged, workout started/completed/discarded, routine started/created, daily reward claimed, streak milestone reached, onboarding completed/skipped, and reached level 3

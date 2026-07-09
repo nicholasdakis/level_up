@@ -1,5 +1,4 @@
 ﻿import 'dart:convert';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -83,9 +82,7 @@ Future<void> checkPendingReferralReward(
                 if (claimData != null) {
                   if (prevLevel < 3 &&
                       (ref.read(userDataProvider).value?.level ?? 0) >= 3) {
-                    FirebaseAnalytics.instance.logEvent(
-                      name: 'reached_level_3',
-                    );
+                    logAnalyticsEvent('reached_level_3');
                   }
                   if (context.mounted) {
                     await handleLevelUpOverlay(
@@ -144,6 +141,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
               splashColor: c.splashColor,
               highlightColor: c.highlightColor,
               onTap: () async {
+                logAnalyticsEvent('tap_referral_card');
                 final codeInputController = TextEditingController();
                 // Use cached code or fetch/generate one
                 final code = await ref
@@ -349,9 +347,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                                   ?.level ??
                                               0) >=
                                           3) {
-                                    FirebaseAnalytics.instance.logEvent(
-                                      name: 'reached_level_3',
-                                    );
+                                    logAnalyticsEvent('reached_level_3');
                                   }
                                   if (context.mounted) {
                                     await handleLevelUpOverlay(
@@ -396,6 +392,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                     ),
                     TextButton(
                       onPressed: () async {
+                        logAnalyticsEvent('tap_invite_friend');
                         final message =
                             "I've been using Level Up to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code";
                         if (kIsWeb) {

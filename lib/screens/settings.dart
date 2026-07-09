@@ -229,6 +229,7 @@ Widget buildSettingsDrawer(
                     icon: HugeIcons.strokeRoundedShare01,
                     label: "Invite a Friend",
                     onTap: () async {
+                      logAnalyticsEvent('tap_invite_friend_settings');
                       Navigator.pop(context);
                       final code = await ref
                           .read(userDataProvider.notifier)
