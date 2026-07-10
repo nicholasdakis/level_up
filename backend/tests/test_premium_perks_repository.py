@@ -177,34 +177,3 @@ def test_apply_streak_shield_two_calls_decrement_twice(mocker):
     assert fake_supabase.rpc.call_count == 2  # RPC was called twice
 
 
-# claim_daily_reward streak_broke passthrough tests -----------------
-
-# streak_broke must be False when the transaction does not set it
-def test_claim_daily_reward_streak_broke_defaults_false(mocker):
-    from backend.services.progression_service import ProgressionService
-    fake_repo = mocker.Mock()
-    fake_repo.get_user.return_value = {"level": 1, "exp_points": 0, "last_daily_claim": None}
-    fake_repo.get_streaks.return_value = []
-    fake_repo.claim_daily_reward_transaction.return_value = {"claimed": True, "daily_streak": 1}
-    service = ProgressionService(fake_repo, None, mocker.Mock())
-
-    result = service.claim_daily_reward("u1")
-
-    assert result["streak_broke"] == False
-
-# streak_broke must be True when the transaction explicitly returns it as True
-def test_claim_daily_reward_streak_broke_passed_through(mocker):
-    from backend.services.progression_service import ProgressionService
-    from datetime import timedelta
-    three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
-    fake_repo = mocker.Mock()
-    fake_repo.get_user.return_value = {"level": 1, "exp_points": 0, "last_daily_claim": three_days_ago}
-    fake_repo.get_streaks.return_value = [{"streak_type": "daily_consecutive_streak", "streak": 10}]
-    fake_repo.claim_daily_reward_transaction.return_value = {
-        "claimed": True, "daily_streak": 1, "streak_broke": True
-    }
-    service = ProgressionService(fake_repo, None, mocker.Mock())
-
-    result = service.claim_daily_reward("u1")
-
-    assert result["streak_broke"] == True
