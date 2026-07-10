@@ -104,11 +104,15 @@ from backend.schemas import (
     MyRoutineExerciseItem,
     BrowseRoutineItem,
     GetBrowseRoutinesResponse,
+    VerifyPurchaseRequest,
+    PremiumStatusResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
 from backend.utils import utc_minute_of_day, find_utc_midnight_offset_mins
 from backend.redis_cache import FOOD_CACHE_TTL, redis
+from google.oauth2 import service_account
+from googleapiclient.discovery import build as google_build
 
 logger = logging.getLogger(__name__)
 
@@ -1330,6 +1334,64 @@ def get_recent_workouts():
         return err
     workouts = workout_service.get_recent_workouts(uid)
     return jsonify(GetRecentWorkoutsResponse(workouts=[RecentWorkoutItem(**w) for w in workouts]).model_dump()), 200
+
+
+@app.route("/premium_status", methods=["GET"])
+def get_premium_status():
+    # Returns the user's current premium status and expiry, checking if it has lapsed
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    row = user_repo.get_premium_status(uid)
+    is_premium = row.get("is_premium", False)
+    expires_at = row.get("premium_expires_at")
+    # Revoke premium if the expiry has passed
+    if is_premium and expires_at:
+        expiry_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) > expiry_dt:
+            user_repo.set_premium(uid, False, None)
+            is_premium = False
+            expires_at = None
+    return jsonify(PremiumStatusResponse(is_premium=is_premium, premium_expires_at=expires_at).model_dump()), 200
+
+
+@app.route("/verify_purchase", methods=["POST"])
+def verify_purchase():
+    # Validates a Google Play subscription purchase token and grants premium if active
+    uid, body, err = _parse_and_auth(VerifyPurchaseRequest)
+    if err:
+        return err
+    try:
+        sa_json = json.loads(os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "{}"))
+        credentials = service_account.Credentials.from_service_account_info(
+            sa_json,
+            scopes=["https://www.googleapis.com/auth/androidpublisher"],
+        )
+        service = google_build("androidpublisher", "v3", credentials=credentials)
+        result = service.purchases().subscriptionsv2().get(
+            packageName="com.nicholasdakis.levelup",
+            token=body.purchase_token,
+        ).execute()
+
+        # lineItems contains the subscription info for each product in the purchase
+        line_items = result.get("lineItems", [])
+        if not line_items:
+            return jsonify({"error": "No subscription line items found"}), 400
+
+        # Check subscription state: ACTIVE or IN_GRACE_PERIOD means the user has access
+        subscription_state = result.get("subscriptionState", "")
+        active_states = {"SUBSCRIPTION_STATE_ACTIVE", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD"}
+        if subscription_state not in active_states:
+            return jsonify({"error": f"Subscription not active: {subscription_state}"}), 402
+
+        # Pull expiry from the first line item
+        expiry_time = line_items[0].get("expiryTime")
+        user_repo.set_premium(uid, True, expiry_time)
+        return jsonify(PremiumStatusResponse(is_premium=True, premium_expires_at=expiry_time).model_dump()), 200
+
+    except Exception as e:
+        logger.error(f"verify_purchase error for uid={uid}: {e}")
+        return jsonify({"error": "Failed to verify purchase"}), 500
 
 
 if __name__ == "__main__": # Only run when the application starts

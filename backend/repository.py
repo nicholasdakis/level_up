@@ -354,6 +354,21 @@ class UserRepository:
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()
 
+    def set_premium(self, uid: str, is_premium: bool, expires_at: str | None):
+        # Sets the user's premium status and expiry timestamp
+        self._supabase.table("users").update({
+            "is_premium": is_premium,
+            "premium_expires_at": expires_at,
+        }).eq("uid", uid).execute()
+
+    def get_premium_status(self, uid: str) -> dict:
+        # Returns is_premium and premium_expires_at for the user
+        result = self._supabase.table("users") \
+            .select("is_premium, premium_expires_at") \
+            .eq("uid", uid) \
+            .execute()
+        return result.data[0] if result.data else {"is_premium": False, "premium_expires_at": None}
+
     def update_user_xp(self, uid: str, new_level: int, new_exp: int):
         # Uses award_ad_xp RPC for row-level locking to prevent double-awarding from concurrent SSV callbacks
         self._supabase.rpc("award_ad_xp", {

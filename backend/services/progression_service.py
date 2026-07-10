@@ -342,6 +342,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_used": self._repo.has_used_referral(uid),
             "units": user.get("units", "metric"),
             "created_at": user.get("created_at"),
+            "is_premium": user.get("is_premium", False),
+            "premium_expires_at": user.get("premium_expires_at"),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):

@@ -292,6 +292,8 @@ class GetUserDataResponse(BaseModel):
     referral_used: bool = False
     units: str = 'metric'
     created_at: str | None = None
+    is_premium: bool = False
+    premium_expires_at: str | None = None
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
@@ -493,3 +495,13 @@ class LikeRoutineRequest(BaseModel):
 
 class UnlikeRoutineRequest(BaseModel):
     template_id: str
+
+class VerifyPurchaseRequest(BaseModel):
+    purchase_token: str = Field(..., min_length=1)
+    product_id: str = Field(..., min_length=1)      # e.g. "level_up_premium"
+    subscription_id: str = Field(..., min_length=1) # e.g. "level_up_premium"
+
+class PremiumStatusResponse(BaseModel):
+    is_premium: bool
+    premium_expires_at: str | None = None  # ISO 8601 string or null
+
