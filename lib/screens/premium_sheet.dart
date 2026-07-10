@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -98,12 +99,16 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   String get username =>
       ref.watch(userDataProvider.select((s) => s.value?.username ?? 'You'));
+  int get _foodStreak => ref.read(userDataProvider).value?.foodLogStreak ?? 0;
+  int get _level => ref.read(userDataProvider).value?.level ?? 1;
 
   List<ProductDetails> _products = [];
   bool _loading = true;
   bool _purchasing = false;
   String _selectedId = 'level_up_premium:yearly';
   Color? _originalColor;
+  late Timer _urgencyTimer;
+  String _urgencyLabel = '';
 
   late final AnimationController _shimmerController;
   late final AnimationController _pulseController;
@@ -126,6 +131,19 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       duration: const Duration(seconds: 20),
     )..repeat();
     _loadProducts();
+    _updateUrgencyLabel();
+    _urgencyTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (mounted) setState(() => _updateUrgencyLabel());
+    });
+  }
+
+  void _updateUrgencyLabel() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    final remaining = midnight.difference(now);
+    final h = remaining.inHours;
+    final m = remaining.inMinutes % 60;
+    _urgencyLabel = h > 0 ? '${h}h ${m}m' : '${m}m';
   }
 
   @override
@@ -143,6 +161,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     _shimmerController.dispose();
     _pulseController.dispose();
     _particleController.dispose();
+    _urgencyTimer.cancel();
     super.dispose();
   }
 
@@ -299,15 +318,15 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   }) {
     Color rankColor() {
       if (rank == 1) return Colors.yellow;
-      if (rank == 2) return Colors.grey;
+      if (rank == 2) return const Color(0xFFB0B8C1);
       if (rank == 3) return const Color(0xFFCD7F32);
-      return Colors.white70;
+      return cardColors(appColor).onCard.withAlpha(180);
     }
 
     Widget? rankMedal() {
       if (rank > 3) return null;
-      return Icon(
-        Icons.emoji_events,
+      return HugeIcon(
+        icon: HugeIcons.strokeRoundedMedal01,
         color: rankColor(),
         size: Responsive.scale(context, 16),
       );
@@ -327,9 +346,9 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
               end: Alignment(-0.5 + pos * 3.5, 0),
               colors: [
                 lightenColor(appColor, 0.3),
-                lightenColor(appColor, 0.55),
+                lightenColor(appColor, 0.45),
                 Colors.white,
-                lightenColor(appColor, 0.55),
+                lightenColor(appColor, 0.45),
                 lightenColor(appColor, 0.3),
               ],
               stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
@@ -352,18 +371,19 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                     vertical: Responsive.height(context, 1),
                   ),
                   decoration: BoxDecoration(
-                    color: appColor.withAlpha(160),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                    ),
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 4),
                     ),
-                    border: Border.all(color: accent.withAlpha(160), width: 1),
                   ),
                   child: Text(
                     'PRO',
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 8),
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      color: Colors.black.withAlpha(180),
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -391,12 +411,12 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       ),
       decoration: BoxDecoration(
         color: isCurrentUser
-            ? lightenColor(appColor, 0.12).withAlpha(200)
-            : cardColors(appColor).gradient.first.withAlpha(160),
+            ? lightenColor(appColor, 0.12).withAlpha(220)
+            : Colors.black.withAlpha(60),
         borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
         border: Border.all(
           color: isCurrentUser
-              ? accent.withAlpha(120)
+              ? const Color(0xFFFFD700).withAlpha(180)
               : cardColors(appColor).border,
           width: isCurrentUser ? 1.5 : 1,
         ),
@@ -443,8 +463,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   color: appColor.withAlpha(80),
                   border: Border.all(color: accent.withAlpha(60), width: 1),
                 ),
-                child: Icon(
-                  Icons.person,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUser02,
                   color: accent.withAlpha(160),
                   size: Responsive.scale(context, 18),
                 ),
@@ -507,6 +527,10 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   }
 
   void _previewThemeColor(Color color) {
+    if (color.computeLuminance() > 0.5) {
+      final excess = (color.computeLuminance() - 0.5) * 0.8;
+      color = darkenColor(color, math.max(excess, 0.15));
+    }
     setState(() => _previewColor = color);
     widget.previewedColor.value = color;
     ref
@@ -605,7 +629,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   // Theme color preview: patches the provider so the whole sheet re-renders in that color
   Widget _buildThemePreview(Color accent, Color dim) {
-    final isPreviewingAny = _originalColor != null;
+    final isPreviewingAny = _previewColor != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -696,9 +720,16 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                             color: isSelected
                                 ? Colors.white
                                 : Colors.white.withAlpha(40),
-                            width: isSelected ? 2 : 1,
+                            width: isSelected ? 2.5 : 1,
                           ),
                         ),
+                        child: isSelected
+                            ? Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: Responsive.scale(ctx, 16),
+                              )
+                            : null,
                       );
                     },
                   ),
@@ -722,8 +753,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                       width: 1,
                     ),
                   ),
-                  child: Icon(
-                    Icons.add,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
                     color: Colors.white70,
                     size: Responsive.scale(context, 16),
                   ),
@@ -755,14 +786,14 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.visibility_outlined,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowDown01,
                     color: cardColors(appColor).onCard,
                     size: Responsive.scale(context, 17),
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
-                    'Explore the app with this theme',
+                    'Love it? Scroll down to see your Pro plan.',
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
                       color: cardColors(appColor).onCard,
@@ -782,50 +813,44 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   Widget _buildComparison(Color accent, Color dim) {
     final onCard = cardColors(appColor).onCard;
 
-    // Tiered rows: features that exist in both but differ by limit
-    // (feature, freeValue, proValue)
-    final tieredRows = [
-      ('Analytics history', '14 days', 'Full history'),
-      ('Meal templates', 'Up to 5', 'Unlimited'),
-      ('Recent foods', 'Up to 20', 'Unlimited'),
-      ('Streak shields', 'None', 'Unlimited'),
-      ('XP multiplier', 'Standard', 'Boosted'),
-    ];
-
-    // Pro-only extras not present in free at all
-    const proExtras = ['Pro badge and shimmering name', 'Exclusive app themes'];
-
-    Widget checkRow(String text, {required bool isPro}) => Padding(
-      padding: EdgeInsets.only(bottom: Responsive.height(context, 5)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: Responsive.height(context, 2)),
-            child: Icon(
-              Icons.check,
-              size: Responsive.scale(context, 11),
-              color: isPro ? accent : onCard.withAlpha(100),
-            ),
-          ),
-          SizedBox(width: Responsive.width(context, 5)),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 11),
-                color: isPro ? onCard : onCard.withAlpha(150),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
+    // (title, outcome subtitle, freeLabel, proLabel)
+    // freeLabel null = pro exclusive
+    final upgradeRows = [
+      (
+        'Full Progress History',
+        'See your entire health journey',
+        '14 days',
+        'Unlimited',
       ),
-    );
+      (
+        'Unlimited Meal Templates',
+        'Save any meal, log it in seconds',
+        '5 saved',
+        'Unlimited',
+      ),
+      (
+        'Unlimited Quick Logging',
+        'Every food you\'ve tracked, always accessible',
+        '20 foods',
+        'Unlimited',
+      ),
+      (
+        'Unlimited Themes',
+        'Make the app truly yours',
+        '8 choices',
+        'Unlimited',
+      ),
+    ];
+    final proRows = [
+      ('XP Multiplier', 'Earn XP faster, level up quicker'),
+      ('Streak Shields', 'Protect your streak on off days'),
+      ('Shimmering Pro Badge', 'Stand out on the leaderboard'),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section header
         Row(
           children: [
             Container(
@@ -838,7 +863,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
             ),
             SizedBox(width: Responsive.width(context, 8)),
             Text(
-              'FREE vs PRO',
+              'WHAT YOU UNLOCK',
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 11),
                 color: accent,
@@ -850,250 +875,247 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         ),
         SizedBox(height: Responsive.height(context, 12)),
 
-        // Tiered rows card — same feature, two tiers side by side
-        frostedGlassCard(
-          context,
-          color: appColor,
-          baseRadius: 14,
+        // Upgrade rows: each shows free cap vs pro value
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(40),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
+            border: Border.all(color: accent.withAlpha(220), width: 2),
+          ),
           child: Column(
-            children: [
-              // Header row
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 14),
-                  vertical: Responsive.height(context, 10),
-                ),
-                decoration: BoxDecoration(
-                  color: cardColors(appColor).gradient.first.withAlpha(60),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(Responsive.scale(context, 14)),
+            children: upgradeRows.asMap().entries.map((e) {
+              final i = e.key;
+              final r = e.value;
+              return Column(
+                children: [
+                  if (i > 0)
+                    Divider(color: Colors.white.withAlpha(12), height: 1),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 16),
+                      vertical: Responsive.height(context, 14),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                r.$1,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 14),
+                                  color: onCard,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(height: Responsive.height(context, 3)),
+                              Text(
+                                r.$2,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: onCard.withAlpha(120),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: Responsive.width(context, 12)),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Free',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 9),
+                                    color: accent.withAlpha(160),
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                SizedBox(height: Responsive.height(context, 3)),
+                                Text(
+                                  r.$3,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 12),
+                                    color: accent.withAlpha(180),
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.lineThrough,
+                                    decorationColor: accent.withAlpha(120),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 8),
+                              ),
+                              child: Text(
+                                '→',
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 12),
+                                  color: accent.withAlpha(120),
+                                ),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Pro',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 9),
+                                    color: accent,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                SizedBox(height: Responsive.height(context, 3)),
+                                _shimmerText(
+                                  r.$4,
+                                  Responsive.font(context, 12),
+                                  weight: FontWeight.w800,
+                                  letterSpacing: 0,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+
+        // Pro exclusive card, visually elevated
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(40),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
+            border: Border.all(color: accent.withAlpha(220), width: 2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  Responsive.width(context, 14),
+                  Responsive.height(context, 10),
+                  Responsive.width(context, 14),
+                  Responsive.height(context, 8),
                 ),
                 child: Row(
                   children: [
-                    const Expanded(child: SizedBox()),
-                    SizedBox(
-                      width: Responsive.width(context, 72),
-                      child: Center(
-                        child: Text(
-                          'Free',
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 12),
-                            color: onCard.withAlpha(130),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedCrown,
+                      color: accent,
+                      size: Responsive.scale(context, 13),
                     ),
-                    SizedBox(
-                      width: Responsive.width(context, 72),
-                      child: Center(
-                        child: _shimmerText(
-                          'Pro',
-                          Responsive.font(context, 12),
-                          weight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                        ),
+                    SizedBox(width: Responsive.width(context, 6)),
+                    Text(
+                      'Pro exclusives',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 11),
+                        color: accent,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ),
               ),
-              for (int i = 0; i < tieredRows.length; i++) ...[
-                if (i > 0)
-                  Divider(
-                    color: cardColors(appColor).border.withAlpha(40),
-                    height: 1,
-                  ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 14),
-                    vertical: Responsive.height(context, 11),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          tieredRows[i].$1,
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 12),
-                            color: onCard,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+              Divider(color: accent.withAlpha(60), height: 1),
+              ...proRows.asMap().entries.map((e) {
+                final i = e.key;
+                final r = e.value;
+                return Column(
+                  children: [
+                    if (i > 0)
+                      Divider(color: Colors.white.withAlpha(12), height: 1),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 16),
+                        vertical: Responsive.height(context, 13),
                       ),
-                      SizedBox(
-                        width: Responsive.width(context, 72),
-                        child: Center(
-                          child: Text(
-                            tieredRows[i].$2,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 11),
-                              color: onCard.withAlpha(180),
+                      child: Row(
+                        children: [
+                          AnimatedBuilder(
+                            animation: _shimmerController,
+                            builder: (_, _) {
+                              final pos = _shimmerController.value;
+                              return ShaderMask(
+                                shaderCallback: (bounds) => LinearGradient(
+                                  begin: Alignment(-1.5 + pos * 3.5, 0),
+                                  end: Alignment(-0.5 + pos * 3.5, 0),
+                                  colors: [
+                                    lightenColor(appColor, 0.30),
+                                    lightenColor(appColor, 0.45),
+                                    lightenColor(appColor, 0.30),
+                                  ],
+                                  stops: const [0.0, 0.5, 1.0],
+                                ).createShader(bounds),
+                                blendMode: BlendMode.srcIn,
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCrown,
+                                  color: Colors.white,
+                                  size: Responsive.scale(context, 14),
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(width: Responsive.width(context, 10)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  r.$1,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 14),
+                                    color: onCard,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: Responsive.height(context, 2)),
+                                Text(
+                                  r.$2,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 11),
+                                    color: onCard.withAlpha(120),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(
-                        width: Responsive.width(context, 72),
-                        child: Center(
-                          child: Text(
-                            tieredRows[i].$3,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 11),
-                              color: accent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              }),
             ],
           ),
         ),
-
-        SizedBox(height: Responsive.height(context, 10)),
-
-        // Bottom row: Free summary + Pro extras side by side
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Free included features — brief, not the star
-            Expanded(
-              child: frostedGlassCard(
-                context,
-                color: appColor,
-                baseRadius: 14,
-                padding: EdgeInsets.all(Responsive.scale(context, 14)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Also included free',
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 11),
-                        color: onCard.withAlpha(130),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 8)),
-                    checkRow('Full food logging and macros', isPro: false),
-                    checkRow('Barcode and voice search', isPro: false),
-                    checkRow('Workout tracker', isPro: false),
-                    checkRow('XP, levels and leaderboard', isPro: false),
-                    checkRow('Explore tab check-ins', isPro: false),
-                    checkRow('Badges and achievements', isPro: false),
-                    checkRow('Daily rewards and streaks', isPro: false),
-                    checkRow('Calorie calculator', isPro: false),
-                    checkRow('Reminders', isPro: false),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 10)),
-            // Pro extras — visually dominant
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      appColor.withAlpha(120),
-                      lightenColor(appColor, 0.1).withAlpha(100),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 14),
-                  ),
-                  border: Border.all(color: accent.withAlpha(140), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withAlpha(40),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.all(Responsive.scale(context, 14)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _shimmerText(
-                      'Pro only',
-                      Responsive.font(context, 11),
-                      weight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                    ),
-                    SizedBox(height: Responsive.height(context, 8)),
-                    for (final item in proExtras) checkRow(item, isPro: true),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
-  }
-
-  Widget _buildBenefitRow(IconData icon, String text, int index) {
-    return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: Responsive.scale(context, 32),
-              height: Responsive.scale(context, 32),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: appColor.withAlpha(60),
-                border: Border.all(
-                  color: lightenColor(appColor, 0.4).withAlpha(100),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: icon,
-                  color: lightenColor(appColor, 0.45),
-                  size: Responsive.scale(context, 15),
-                ),
-              ),
-            ),
-            SizedBox(width: Responsive.width(context, 12)),
-            Expanded(
-              child: Text(
-                text,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  color: lightenColor(appColor, 0.4),
-                  height: 1.3,
-                ),
-              ),
-            ),
-          ],
-        )
-        .animate()
-        .slideX(
-          begin: -0.3,
-          end: 0,
-          delay: (index * 60).ms,
-          duration: 350.ms,
-          curve: Curves.easeOutCubic,
-        )
-        .fadeIn(delay: (index * 60).ms, duration: 350.ms);
   }
 
   Widget _trustSignal(IconData icon, String label, Color dim) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: dim, size: Responsive.scale(context, 12)),
+        HugeIcon(icon: icon, color: dim, size: Responsive.scale(context, 12)),
         SizedBox(width: Responsive.width(context, 4)),
         Text(
           label,
@@ -1273,7 +1295,10 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                       height: Responsive.height(context, 6),
                                     ),
                                     Text(
-                                      'The health app, but make it legendary',
+                                      _foodStreak > 0
+                                          ? 'Your $_foodStreak-day streak resets in $_urgencyLabel. Subscribe now and a shield will protect it.'
+                                          : 'Level $_level and climbing. Over 50% off vs monthly, today only.',
+                                      textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 13),
                                         color: dim,
@@ -1297,27 +1322,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                 curve: Curves.easeOutCubic,
                               )
                               .fadeIn(duration: 400.ms),
-
-                          SizedBox(height: Responsive.height(context, 24)),
-
-                          // Key benefits
-                          _buildBenefitRow(
-                            HugeIcons.strokeRoundedStar,
-                            'XP multiplier. Rank up faster than everyone else.',
-                            0,
-                          ),
-                          SizedBox(height: Responsive.height(context, 12)),
-                          _buildBenefitRow(
-                            HugeIcons.strokeRoundedFire,
-                            'Streak shields so a missed day never kills your streak.',
-                            1,
-                          ),
-                          SizedBox(height: Responsive.height(context, 12)),
-                          _buildBenefitRow(
-                            HugeIcons.strokeRoundedNote,
-                            'Unlimited meal templates. Log any meal in one tap.',
-                            2,
-                          ),
 
                           SizedBox(height: Responsive.height(context, 24)),
 
@@ -1350,93 +1354,18 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                           SizedBox(height: Responsive.height(context, 24)),
 
                           // Plan selector
-                          if (kIsWeb) ...[
-                            _PlanTile(
-                              label: 'Yearly',
-                              subtitle: 'Most popular, save over 50%',
-                              price: '\$29.99 / yr',
-                              badge: 'BEST VALUE',
-                              selected: _selectedId.contains('yearly'),
-                              large: true,
-                              appColor: appColor,
-                              onTap: () {
-                                setState(
-                                  () => _selectedId = 'level_up_premium:yearly',
-                                );
-                                showFrostedAlertDialog(
-                                  context: context,
-                                  appColor: appColor,
-                                  title: 'Subscribe on mobile',
-                                  content: Text(
-                                    'Download the Level Up! app on Android to subscribe and unlock Pro.',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white70,
-                                      fontSize: Responsive.font(context, 13),
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text(
-                                        'Got it',
-                                        style: dialogButtonStyle(confirm: true),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                            SizedBox(height: Responsive.height(context, 10)),
-                            _PlanTile(
-                              label: 'Monthly',
-                              subtitle: 'Billed every month',
-                              price: '\$4.99 / mo',
-                              badge: null,
-                              selected: _selectedId.contains('monthly'),
-                              large: false,
-                              appColor: appColor,
-                              onTap: () {
-                                setState(
-                                  () =>
-                                      _selectedId = 'level_up_premium:monthly',
-                                );
-                                showFrostedAlertDialog(
-                                  context: context,
-                                  appColor: appColor,
-                                  title: 'Subscribe on mobile',
-                                  content: Text(
-                                    'Download the Level Up! app on Android to subscribe and unlock Pro.',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      color: Colors.white70,
-                                      fontSize: Responsive.font(context, 13),
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text(
-                                        'Got it',
-                                        style: dialogButtonStyle(confirm: true),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ] else if (_loading) ...[
+                          if (_loading && !kIsWeb) ...[
                             _SkeletonTile(appColor: appColor, tall: true),
                             SizedBox(height: Responsive.height(context, 10)),
                             _SkeletonTile(appColor: appColor, tall: false),
                           ] else ...[
                             _PlanTile(
                               label: 'Yearly',
-                              subtitle: 'Most popular, save over 50%',
-                              price: yearly?.price ?? '\$29.99',
-                              badge: 'BEST VALUE',
+                              subtitle: '\$2.50/mo. Save over 50% vs monthly.',
+                              price: kIsWeb
+                                  ? '\$29.99 / yr'
+                                  : (yearly?.price ?? '\$29.99'),
+                              badge: '50% OFF',
                               selected: _selectedId.contains('yearly'),
                               large: true,
                               appColor: appColor,
@@ -1449,7 +1378,9 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                             _PlanTile(
                               label: 'Monthly',
                               subtitle: 'Billed every month',
-                              price: monthly?.price ?? '\$4.99',
+                              price: kIsWeb
+                                  ? '\$4.99 / mo'
+                                  : (monthly?.price ?? '\$4.99'),
                               badge: null,
                               selected: _selectedId.contains('monthly'),
                               large: false,
@@ -1461,7 +1392,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                             ),
                           ],
 
-                          SizedBox(height: Responsive.height(context, 28)),
+                          SizedBox(height: Responsive.height(context, 16)),
                         ],
                       ),
                     ),
@@ -1469,154 +1400,199 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                 ),
 
                 // CTA
-                if (!kIsWeb)
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      hPad,
-                      0,
-                      hPad,
-                      Responsive.height(context, 16) +
-                          MediaQuery.paddingOf(context).bottom,
-                    ),
-                    child: Column(
-                      children: [
-                        // Competitor callout
-                        if (!_loading && !_purchasing)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: Responsive.height(context, 10),
-                            ),
-                            child: Text(
-                              'Other fitness apps charge \$20+/mo. You pay ${_selectedId.contains('yearly') && yearly != null
-                                  ? '${yearly.price}/yr'
-                                  : monthly != null
-                                  ? '${monthly.price}/mo'
-                                  : ''}.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: dim,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
+                Divider(
+                  color: lightenColor(appColor, 0.2).withAlpha(60),
+                  height: 1,
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    hPad,
+                    Responsive.height(context, 14),
+                    hPad,
+                    Responsive.height(context, 16) +
+                        MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: Column(
+                    children: [
+                      // Competitor callout
+                      if (!_loading && !_purchasing)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: Responsive.height(context, 10),
                           ),
+                          child: Builder(
+                            builder: (context) {
+                              final isYearly = _selectedId.contains('yearly');
+                              final price = isYearly
+                                  ? yearly?.price
+                                  : monthly?.price;
+                              if (price == null) return const SizedBox.shrink();
+                              final suffix = isYearly
+                                  ? '$price/yr'
+                                  : '$price/mo';
+                              return Text(
+                                'Other fitness apps charge \$20+/mo. You pay $suffix, over 87% less.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: dim,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
 
-                        GestureDetector(
-                          onTap: _purchasing ? null : _subscribe,
-                          child: AnimatedBuilder(
-                            animation: _pulseController,
-                            builder: (_, _) => Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                vertical: Responsive.height(context, 17),
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    appColor.withAlpha(_purchasing ? 100 : 200),
-                                    lightenColor(
-                                      appColor,
-                                      0.15,
-                                    ).withAlpha(_purchasing ? 100 : 220),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 14),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: accent.withAlpha(
-                                      _purchasing
-                                          ? 0
-                                          : (40 + 30 * _pulseController.value)
-                                                .toInt(),
+                      GestureDetector(
+                        onTap: _purchasing
+                            ? null
+                            : () {
+                                if (kIsWeb) {
+                                  showFrostedAlertDialog(
+                                    context: context,
+                                    appColor: appColor,
+                                    title: 'Subscribe on mobile',
+                                    content: Text(
+                                      'Download the Level Up! app on Android to subscribe and unlock Pro.',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white70,
+                                        fontSize: Responsive.font(context, 13),
+                                      ),
                                     ),
-                                    blurRadius: 16,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: accent.withAlpha(100),
-                                  width: 1,
-                                ),
-                              ),
-                              child: _purchasing
-                                  ? Center(
-                                      child: SizedBox(
-                                        width: Responsive.scale(context, 20),
-                                        height: Responsive.scale(context, 20),
-                                        child: CircularProgressIndicator(
-                                          color: accent,
-                                          strokeWidth: 2,
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Text(
+                                          'Got it',
+                                          style: dialogButtonStyle(
+                                            confirm: true,
+                                          ),
                                         ),
                                       ),
-                                    )
-                                  : Column(
-                                      children: [
-                                        Text(
-                                          'Unlock Pro Status',
-                                          style: GoogleFonts.manrope(
-                                            fontSize: Responsive.font(
-                                              context,
-                                              16,
-                                            ),
-                                            color: accent,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        if (_selectedProduct != null) ...[
-                                          SizedBox(
-                                            height: Responsive.height(
-                                              context,
-                                              3,
-                                            ),
-                                          ),
-                                          Text(
-                                            _selectedId.contains('yearly')
-                                                ? '${_selectedProduct!.price} / year (less than \$2.50/mo)'
-                                                : '${_selectedProduct!.price} / month',
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                11,
-                                              ),
-                                              color: accent.withAlpha(180),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                            ),
+                                    ],
+                                  );
+                                } else {
+                                  _subscribe();
+                                }
+                              },
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.height(context, 17),
                           ),
+                          decoration: BoxDecoration(
+                            gradient: _purchasing
+                                ? LinearGradient(
+                                    colors: [
+                                      appColor.withAlpha(80),
+                                      appColor.withAlpha(80),
+                                    ],
+                                  )
+                                : LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      appColor.withAlpha(160),
+                                      lightenColor(
+                                        appColor,
+                                        0.08,
+                                      ).withAlpha(140),
+                                    ],
+                                  ),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 14),
+                            ),
+                            border: Border.all(
+                              color: accent.withAlpha(220),
+                              width: 2,
+                            ),
+                            boxShadow: _purchasing
+                                ? []
+                                : [
+                                    BoxShadow(
+                                      color: accent.withAlpha(80),
+                                      blurRadius: 20,
+                                      spreadRadius: 2,
+                                    ),
+                                    BoxShadow(
+                                      color: accent.withAlpha(30),
+                                      blurRadius: 40,
+                                      spreadRadius: 4,
+                                    ),
+                                  ],
+                          ),
+                          child: _purchasing
+                              ? Center(
+                                  child: SizedBox(
+                                    width: Responsive.scale(context, 20),
+                                    height: Responsive.scale(context, 20),
+                                    child: CircularProgressIndicator(
+                                      color: accent,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    Text(
+                                      'Unlock Pro Status',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 16),
+                                        color: accent,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
+                                    if (_selectedProduct != null) ...[
+                                      SizedBox(
+                                        height: Responsive.height(context, 3),
+                                      ),
+                                      Text(
+                                        _selectedId.contains('yearly')
+                                            ? '${_selectedProduct!.price} / year · less than \$2.50/mo'
+                                            : '${_selectedProduct!.price} / month',
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            11,
+                                          ),
+                                          color: accent.withAlpha(180),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                         ),
-                        SizedBox(height: Responsive.height(context, 10)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _trustSignal(
-                              Icons.cancel_outlined,
-                              'Cancel anytime',
-                              dim,
-                            ),
-                            SizedBox(width: Responsive.width(context, 16)),
-                            _trustSignal(
-                              Icons.lock_outline,
-                              'Secure billing',
-                              dim,
-                            ),
-                            SizedBox(width: Responsive.width(context, 16)),
-                            _trustSignal(
-                              Icons.restore,
-                              'Restore purchase',
-                              dim,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 10)),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: Responsive.width(context, 16),
+                        runSpacing: Responsive.height(context, 6),
+                        children: [
+                          _trustSignal(
+                            HugeIcons.strokeRoundedLock,
+                            'Secure billing',
+                            dim,
+                          ),
+                          _trustSignal(
+                            HugeIcons.strokeRoundedLaptop,
+                            'Cross-platform carryover',
+                            dim,
+                          ),
+                          _trustSignal(
+                            HugeIcons.strokeRoundedRefresh,
+                            'Restore purchase',
+                            dim,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
 
@@ -1716,7 +1692,6 @@ class _PlanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
 
     return GestureDetector(
       onTap: onTap,
@@ -1727,20 +1702,35 @@ class _PlanTile extends StatelessWidget {
           vertical: Responsive.height(context, large ? 18 : 14),
         ),
         decoration: BoxDecoration(
-          color: selected ? appColor.withAlpha(70) : Colors.white.withAlpha(10),
+          gradient: selected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    appColor.withAlpha(160),
+                    lightenColor(appColor, 0.08).withAlpha(140),
+                  ],
+                )
+              : null,
+          color: selected ? null : Colors.black.withAlpha(30),
           borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
           border: Border.all(
             color: selected
-                ? accent.withAlpha(200)
-                : Colors.white.withAlpha(30),
-            width: selected ? 1.5 : 1,
+                ? accent.withAlpha(220)
+                : Colors.black.withAlpha(40),
+            width: selected ? 2 : 1,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: accent.withAlpha(40),
-                    blurRadius: 12,
-                    spreadRadius: 1,
+                    color: accent.withAlpha(80),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                  BoxShadow(
+                    color: accent.withAlpha(30),
+                    blurRadius: 40,
+                    spreadRadius: 4,
                   ),
                 ]
               : [],
@@ -1757,7 +1747,9 @@ class _PlanTile extends StatelessWidget {
                         label,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, large ? 17 : 15),
-                          color: selected ? accent : dim,
+                          color: selected
+                              ? accent
+                              : lightenColor(appColor, 0.45),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1792,7 +1784,7 @@ class _PlanTile extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: dim.withAlpha(180),
+                      color: lightenColor(appColor, 0.45).withAlpha(180),
                     ),
                   ),
                 ],
@@ -1805,7 +1797,7 @@ class _PlanTile extends StatelessWidget {
                   price,
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, large ? 17 : 15),
-                    color: selected ? accent : dim,
+                    color: selected ? accent : lightenColor(appColor, 0.45),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -1818,7 +1810,7 @@ class _PlanTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: selected ? appColor : Colors.transparent,
                     border: Border.all(
-                      color: selected ? accent : Colors.white.withAlpha(60),
+                      color: selected ? accent : Colors.black.withAlpha(60),
                       width: 1.5,
                     ),
                   ),

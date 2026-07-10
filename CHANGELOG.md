@@ -2526,3 +2526,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Closing the sheet after previewing a color starts a 30-second countdown bubble above the nav bar showing the remaining time before the color resets, with a tap-to-return action
 - Added a Free vs Pro comparison as a tiered table showing the actual limit difference per feature (14-day vs full analytics, 5 vs unlimited meal templates, 20 vs unlimited recent foods, no shields vs unlimited) plus side-by-side cards for included-free features and Pro-only extras
 - Plan selector shows yearly and monthly base plans with localized prices from the Play Store, defaulting to yearly selected
+
+## 2026-07-10
+- Remade the Free vs Pro comparison section into two distinct cards: an upgrade card showing each feature in the free vs pro version side by side, and a Pro exclusive card
+- Comparison card fills switched to a fixed dark overlay so content stays readable on light and saturated themes
+- Color picker in the theme preview now applies the same too-light guard as the settings screen
+- Updated icons to HugeIcons package
