@@ -1042,6 +1042,11 @@ BEGIN
   WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak'
   RETURNING streak INTO v_restored_streak;
 
+  -- Mark today as claimed so the daily reward cannot be collected again after using a shield
+  UPDATE users
+  SET last_daily_claim = NOW()
+  WHERE uid = p_uid;
+
   out_shield_count := v_shield_count;
   out_restored_streak := v_restored_streak;
   RETURN NEXT;

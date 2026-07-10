@@ -2537,3 +2537,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added apply_streak_shield RPC that atomically spends one shield and restores the daily streak to streak_before_break in a single transaction
 - Added GET /premium_perks endpoint returning current shield count and reset date with lazy monthly reset
 - Added POST /use_streak_shield endpoint that verifies premium status, checks shield availability, and calls apply_streak_shield
+- Shield count and reset date loaded on app start for premium users and stored in UserData
+- Daily reward flow now checks locally if the streak broke before claiming: premium users with shields see a restore dialog, free users see an upsell dialog
+- Shield restore dialog pops true/false so the normal claim is skipped if a shield was used
+- Upsell dialog returns true (proceed to claim) or false (Learn More tapped, bail out); Dismiss and Don't show again both proceed to claim
+- apply_streak_shield RPC now also sets last_daily_claim to prevent re-claiming after using a shield
+- Shield indicator added to daily reward card on home screen: shows count for premium users, tappable info tooltip for free users
+- "Don't show again" preference stored in SharedPreferences so the upsell dialog respects prior dismissals

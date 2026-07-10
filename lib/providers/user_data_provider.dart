@@ -102,7 +102,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         canClaim = secondsSince >= dailyRewardCooldown.inSeconds;
       }
 
-      // fetch streaks (best-effort, non-fatal)
+      // fetch streaks, non-fatal if it fails
       int foodStreak = 0,
           foodStreakBest = 0,
           workoutStreak = 0,
@@ -110,6 +110,8 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           claimStreakBest = 0;
       String? foodStreakLastDate;
       String? workoutStreakLastDate;
+      int shieldCount = 0;
+      DateTime? shieldsResetAt;
       try {
         final streaks = await UserDataManager.fetchStreaks();
         final foodRow = streaks.firstWhere(
@@ -132,6 +134,22 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         workoutStreakBest = (workoutRow['highest_streak'] as int?) ?? 0;
         workoutStreakLastDate = workoutRow['last_date'] as String?;
       } catch (_) {}
+
+      // fetch premium perks only if premium, non-fatal if it fails
+      if (data['is_premium'] == true) {
+        try {
+          final perksResponse = await authenticatedGet('premium_perks');
+          if (perksResponse.statusCode == 200) {
+            final perks =
+                jsonDecode(perksResponse.body) as Map<String, dynamic>;
+            shieldCount = (perks['shield_count'] as int?) ?? 0;
+            final resetAtStr = perks['shields_reset_at'] as String?;
+            if (resetAtStr != null) {
+              shieldsResetAt = DateTime.tryParse(resetAtStr)?.toLocal();
+            }
+          }
+        } catch (_) {}
+      }
 
       final goals = data['goals'] as Map<String, dynamic>?;
 
@@ -175,6 +193,8 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           premiumExpiresAt: data['premium_expires_at'] != null
               ? DateTime.tryParse(data['premium_expires_at'])?.toLocal()
               : null,
+          shieldCount: shieldCount,
+          shieldsResetAt: shieldsResetAt,
           foodLogStreak: foodStreak,
           foodLogStreakBest: foodStreakBest,
           foodLogStreakLastDate: foodStreakLastDate,
@@ -478,6 +498,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
   }
 
   // claims the daily reward from the backend and patches state on success
+  // Returns (xpGained, baseXp, streak, multiplier, prevLevel)
   Future<(int, int, int, double, int)?> claimDailyReward() async {
     if (isGuest) return null;
     try {
@@ -518,6 +539,29 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     } catch (e) {
       if (kDebugMode) debugPrint('claimDailyReward backend error: $e');
       return (-1, -1, -1, -1.0, -1); // sentinel for network failure
+    }
+  }
+
+  Future<(int, int)?> useStreakShield() async {
+    if (isGuest) return null;
+    try {
+      final response = await authenticatedPost('use_streak_shield');
+      if (response.statusCode != 200) return null;
+      final result = jsonDecode(response.body) as Map<String, dynamic>;
+      final newShieldCount = result['shield_count'] as int;
+      final restoredStreak = result['restored_streak'] as int;
+      patch(
+        (u) => u.copyWith(
+          shieldCount: newShieldCount,
+          dailyClaimStreak: restoredStreak,
+          canClaimDailyReward: false,
+          lastDailyClaim: DateTime.now().toUtc(),
+        ),
+      );
+      return (newShieldCount, restoredStreak);
+    } catch (e) {
+      if (kDebugMode) debugPrint('useStreakShield error: $e');
+      return null;
     }
   }
 

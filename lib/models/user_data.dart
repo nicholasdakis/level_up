@@ -35,6 +35,8 @@ class UserData {
   DateTime? createdAt;
   bool isPremium;
   DateTime? premiumExpiresAt;
+  int shieldCount;
+  DateTime? shieldsResetAt;
 
   // constructor
   UserData({
@@ -70,6 +72,8 @@ class UserData {
     this.createdAt,
     this.isPremium = false,
     this.premiumExpiresAt,
+    this.shieldCount = 0,
+    this.shieldsResetAt,
   }) : fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 
@@ -106,6 +110,8 @@ class UserData {
     DateTime? createdAt,
     bool? isPremium,
     DateTime? premiumExpiresAt,
+    int? shieldCount,
+    DateTime? shieldsResetAt,
   }) {
     return UserData(
       uid: uid,
@@ -141,6 +147,8 @@ class UserData {
       createdAt: createdAt ?? this.createdAt,
       isPremium: isPremium ?? this.isPremium,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
+      shieldCount: shieldCount ?? this.shieldCount,
+      shieldsResetAt: shieldsResetAt ?? this.shieldsResetAt,
     );
   }
 }

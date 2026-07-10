@@ -18,6 +18,10 @@ class SharedPreferencesKey {
   // WorkoutSessionService keys
   static const String activeWorkoutSession = 'active_workout_session';
 
+  // Streak shield dialog keys
+  static const String streakShieldDialogDismissed =
+      'streak_shield_dialog_dismissed';
+
   // POIService keys
   static const String cachedPois = 'cached_pois';
   static const String cachedPoiLat = 'cached_poi_lat';

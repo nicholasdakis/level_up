@@ -19,6 +19,7 @@ import 'screens/home/weight_log_sheet.dart';
 import 'screens/home/home_logging_cards.dart';
 import 'screens/home/home_greeting.dart';
 import 'screens/daily_rewards.dart';
+import 'screens/premium_sheet.dart' show showPremiumSheet;
 import 'screens/referrals.dart';
 import 'authentication/auth_services.dart';
 import 'globals.dart';
@@ -777,6 +778,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
+    final isPremium = ref.watch(userDataProvider.select((s) => s.value?.isPremium ?? false));
+    final shieldCount = ref.watch(userDataProvider.select((s) => s.value?.shieldCount ?? 0));
 
     final card = DecoratedBox(
       decoration: BoxDecoration(
@@ -848,6 +851,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ],
                     ),
                   ),
+                  if (!isGuest) ...[
+                    SizedBox(width: Responsive.width(context, 10)),
+                    GestureDetector(
+                      onTap: () {
+                        if (isPremium) return;
+                        showFrostedAlertDialog(
+                          context: context,
+                          appColor: appColor,
+                          title: 'Streak Shields',
+                          content: Text(
+                            'Pro members get 3 shields a month. If your streak breaks, one tap restores it instantly.',
+                            style: GoogleFonts.manrope(
+                              color: Colors.white70,
+                              fontSize: Responsive.font(context, 13),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(),
+                              child: Text(
+                                'Dismiss',
+                                style: dialogButtonStyle(),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                                showPremiumSheet(context, ref);
+                              },
+                              child: Text(
+                                'Learn More',
+                                style: dialogButtonStyle(confirm: true),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedShield01,
+                            color: isPremium ? accent : dim,
+                            size: Responsive.scale(context, 16),
+                          ),
+                          SizedBox(width: Responsive.width(context, 3)),
+                          Text(
+                            '$shieldCount',
+                            style: GoogleFonts.manrope(
+                              color: isPremium ? accent : dim,
+                              fontSize: Responsive.font(context, 11),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 10)),
+                  ],
                   HugeIcon(
                     icon: canClaim && !isGuest
                         ? HugeIcons.strokeRoundedArrowRight01

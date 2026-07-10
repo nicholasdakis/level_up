@@ -1297,7 +1297,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                     Text(
                                       _foodStreak > 0
                                           ? 'Your $_foodStreak-day streak resets in $_urgencyLabel. Subscribe now and a shield will protect it.'
-                                          : 'Level $_level and climbing. Over 50% off vs monthly, today only.',
+                                          : 'Level $_level and climbing. Save over 50% with the yearly plan.',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(context, 13),
