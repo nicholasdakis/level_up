@@ -1403,6 +1403,8 @@ def get_premium_perks():
     uid, _, err = _parse_and_auth()
     if err:
         return err
+    if not user_repo.get_premium_status(uid).get("is_premium", False):
+        return jsonify(PremiumPerksResponse(shield_count=0, shields_reset_at="").model_dump()), 200
     row = premium_perks_repo.get_or_create_perks(uid)
     row = premium_perks_repo.reset_perks_if_month_elapsed(uid, row)
     return jsonify(PremiumPerksResponse(
