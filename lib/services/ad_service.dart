@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
@@ -17,17 +18,23 @@ class AdService {
 
   bool get isReady => _admobAd != null || _unityReady;
 
-  Future<void> initialize() async {
-    await MobileAds.instance.initialize();
-    await UnityAds.init(
-      gameId: _unityGameId,
-      testMode: kDebugMode,
-      onComplete: () => _loadUnityAd(),
-      onFailed: (error, message) {
-        if (kDebugMode) debugPrint('Unity Ads init failed: $message');
-      },
-    );
-    await _loadAdmobAd();
+  void initialize() {
+    // Delay 5 seconds so the GMS SDK callbacks don't flood the main looper during app startup
+    Future.delayed(const Duration(seconds: 5), () {
+      unawaited(
+        MobileAds.instance.initialize().then((_) {
+          unawaited(_loadAdmobAd());
+        }),
+      );
+      UnityAds.init(
+        gameId: _unityGameId,
+        testMode: kDebugMode,
+        onComplete: () => _loadUnityAd(),
+        onFailed: (error, message) {
+          if (kDebugMode) debugPrint('Unity Ads init failed: $message');
+        },
+      );
+    });
   }
 
   Future<void> _loadAdmobAd() async {
@@ -90,11 +97,8 @@ class AdService {
       return;
     }
 
-    // Neither ready — try reloading AdMob
-    await _loadAdmobAd();
-    if (_admobAd != null) {
-      await showRewardedAd(onRewarded: onRewarded);
-    }
+    // Neither ready, reload in background; user will need to tap again
+    unawaited(_loadAdmobAd());
   }
 
   void _showUnityAd({required VoidCallback onRewarded}) {

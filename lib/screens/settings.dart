@@ -15,6 +15,7 @@ import '../providers/workout_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
 import '../services/user_data_manager.dart' show trackTrivialAchievement;
+import 'premium_sheet.dart';
 import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
 
@@ -306,6 +307,16 @@ Widget buildSettingsDrawer(
                           await context.push('/settings/install');
                         },
                       ),
+                  // TODO: remove username gate before release
+                  if (username == 'Niko')
+                    buildActionTile(
+                      icon: HugeIcons.strokeRoundedCrown,
+                      label: "Go Premium",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showPremiumSheet(context, ref);
+                      },
+                    ),
                   // Divider to visually separate Log Out
                   Padding(
                     padding: EdgeInsets.symmetric(

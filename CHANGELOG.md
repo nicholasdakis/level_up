@@ -2520,3 +2520,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added is_premium and premium_expires_at columns to the users table in Supabase and schema.sql
 - Added /verify_purchase endpoint that validates a Play subscription token against the Google Play Developer API and sets is_premium and premium_expires_at on the user
 - Added /premium_status endpoint that returns current premium state and auto-revokes if the subscription has lapsed
+- Added full premium paywall sheet with animated shimmer header, pulsing logo, floating particles, and a frosted glass design that reflows to the user's chosen theme color
+- Leaderboard preview inside the sheet shows the user's actual username at rank 1 with a live shimmer name and Pro badge to demonstrate the effect before subscribing
+- Theme color preview lets users tap any preset swatch or open a full color picker to try any color across the entire app live before subscribing
+- Closing the sheet after previewing a color starts a 30-second countdown bubble above the nav bar showing the remaining time before the color resets, with a tap-to-return action
+- Added a Free vs Pro comparison as a tiered table showing the actual limit difference per feature (14-day vs full analytics, 5 vs unlimited meal templates, 20 vs unlimited recent foods, no shields vs unlimited) plus side-by-side cards for included-free features and Pro-only extras
+- Plan selector shows yearly and monthly base plans with localized prices from the Play Store, defaulting to yearly selected

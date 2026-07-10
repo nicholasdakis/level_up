@@ -13,6 +13,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'services/ad_service.dart';
+import 'services/premium_service.dart';
 import 'firebase_options.dart';
 import 'globals.dart';
 import 'router.dart';
@@ -65,6 +66,7 @@ Future<void> main() async {
   if (!kIsWeb) {
     adService.initialize();
   }
+  container.read(premiumServiceProvider); // starts the purchase stream listener
 
   // wait until the first frame is fully painted before fading out the splash
   WidgetsBinding.instance.addPostFrameCallback((_) {

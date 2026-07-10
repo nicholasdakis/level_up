@@ -47,6 +47,12 @@ ValueNotifier<double> viewportHeightNotifier = ValueNotifier<double>(0);
 // set after onboarding to show a contextual hint on the destination screen
 ValueNotifier<String?> onboardingHintNotifier = ValueNotifier<String?>(null);
 
+// active when the user previewed a theme color from the premium sheet without subscribing
+// holds the original color to restore when the timer expires
+typedef PremiumPreview = ({Color originalColor, DateTime expiresAt});
+ValueNotifier<PremiumPreview?> premiumPreviewNotifier =
+    ValueNotifier<PremiumPreview?>(null);
+
 final UserDataManager userManager =
     UserDataManager(); // global current user manager variable (not Firestore-dependent)
 
