@@ -1029,21 +1029,24 @@ $$;
 -- Returns the updated shield_count and the restored streak value.
 -- Bundled as one RPC so a failed streak restore cannot leave the user without a shield.
 CREATE OR REPLACE FUNCTION apply_streak_shield(p_uid TEXT)
-RETURNS TABLE(shield_count INTEGER, restored_streak INTEGER) AS $$
+RETURNS TABLE(out_shield_count INTEGER, out_restored_streak INTEGER) AS $$
+DECLARE
+  v_shield_count INTEGER;
+  v_restored_streak INTEGER;
 BEGIN
   UPDATE premium_perks
   SET shield_count = GREATEST(shield_count - 1, 0)
-  WHERE uid = p_uid;
+  WHERE uid = p_uid
+  RETURNING shield_count INTO v_shield_count;
 
   UPDATE streaks
   SET streak = (SELECT streak_before_break FROM premium_perks WHERE uid = p_uid),
       last_date = CURRENT_DATE
-  WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
+  WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak'
+  RETURNING streak INTO v_restored_streak;
 
-  RETURN QUERY
-  SELECT pp.shield_count, s.streak
-  FROM premium_perks pp
-  JOIN streaks s ON s.uid = pp.uid AND s.streak_type = 'daily_consecutive_streak'
-  WHERE pp.uid = p_uid;
+  out_shield_count := v_shield_count;
+  out_restored_streak := v_restored_streak;
+  RETURN NEXT;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

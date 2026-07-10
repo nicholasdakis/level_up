@@ -1045,4 +1045,4 @@ class PremiumPerksRepository:
         # Spends one shield and restores the daily streak atomically via RPC
         result = self._supabase.rpc("apply_streak_shield", {"p_uid": uid}).execute()
         row = result.data[0] if result.data else {}
-        return {"shield_count": row.get("shield_count", 0), "restored_streak": row.get("restored_streak", 0)}
+        return {"shield_count": row.get("out_shield_count", 0), "restored_streak": row.get("out_restored_streak", 0)}
