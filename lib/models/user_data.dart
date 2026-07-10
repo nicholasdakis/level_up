@@ -33,6 +33,8 @@ class UserData {
   bool referralUsed = false;
   String units;
   DateTime? createdAt;
+  bool isPremium;
+  DateTime? premiumExpiresAt;
 
   // constructor
   UserData({
@@ -66,6 +68,8 @@ class UserData {
     this.referralUsed = false,
     this.units = 'metric',
     this.createdAt,
+    this.isPremium = false,
+    this.premiumExpiresAt,
   }) : fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 
@@ -100,6 +104,8 @@ class UserData {
     bool? referralUsed,
     String? units,
     DateTime? createdAt,
+    bool? isPremium,
+    DateTime? premiumExpiresAt,
   }) {
     return UserData(
       uid: uid,
@@ -133,6 +139,8 @@ class UserData {
       referralUsed: referralUsed ?? this.referralUsed,
       units: units ?? this.units,
       createdAt: createdAt ?? this.createdAt,
+      isPremium: isPremium ?? this.isPremium,
+      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
     );
   }
 }

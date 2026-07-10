@@ -30,7 +30,7 @@ flutter_launcher_icons:
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.1+43
+version: 1.2.1+44
 
 environment:
   sdk: ^3.8.1
@@ -139,6 +139,9 @@ dependencies:
 
   # native in-app review prompt
   in_app_review: ^2.0.9
+
+  # in-app purchases and subscriptions
+  in_app_purchase: ^3.3.0
 
   # Google Mobile Ads (AdMob)
   google_mobile_ads: ^8.0.0

@@ -2517,3 +2517,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added get_today_workout_count and get_workout_primary_muscles repository methods to support the new server-side checks
 - Fixed food logs from the previous account showing on a newly signed-in account by invalidating foodLogsProvider on sign out
 - Fixed weight card in home logging showing a bare unit label when no goal weight is set
+- Added is_premium and premium_expires_at columns to the users table in Supabase and schema.sql
+- Added /verify_purchase endpoint that validates a Play subscription token against the Google Play Developer API and sets is_premium and premium_expires_at on the user
+- Added /premium_status endpoint that returns current premium state and auto-revokes if the subscription has lapsed

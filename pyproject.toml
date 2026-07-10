@@ -21,6 +21,8 @@ dependencies = [
     "websockets>=13.0",
     "cryptography>=42.0",
     "better-profanity>=0.7",
+    "google-api-python-client>=2.100",
+    "google-auth>=2.23",
 ]
 
 

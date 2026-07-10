@@ -171,6 +171,10 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           createdAt: data['created_at'] != null
               ? DateTime.tryParse(data['created_at'])?.toLocal()
               : current.createdAt,
+          isPremium: data['is_premium'] ?? false,
+          premiumExpiresAt: data['premium_expires_at'] != null
+              ? DateTime.tryParse(data['premium_expires_at'])?.toLocal()
+              : null,
           foodLogStreak: foodStreak,
           foodLogStreakBest: foodStreakBest,
           foodLogStreakLastDate: foodStreakLastDate,
