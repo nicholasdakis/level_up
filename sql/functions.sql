@@ -22,8 +22,7 @@ DECLARE
     v_seconds_since_claim FLOAT; -- How many seconds have passed since the last claim
     v_now TIMESTAMPTZ := NOW(); -- Capture the current time in UTC once so it's consistent throughout the function
     v_new_streak INTEGER; -- The updated consecutive-day streak after this claim
-    v_streak_broke BOOLEAN := false; -- Whether the streak reset to 1 on this claim
-    v_streak_before_break INTEGER := 0; -- The streak value just before it broke, for shield restoration
+    v_streak_before_break INTEGER := 0; -- The streak value just before it broke, written to premium_perks for shield restoration
 BEGIN
     -- Lock the row with FOR UPDATE so no other request can read or write this user's row until the function finishes
     SELECT last_daily_claim INTO v_last_claim
@@ -56,10 +55,9 @@ BEGIN
             v_new_streak := 1;
         END IF;
     ELSE
-        -- Streak broke: if the user is premium, save the old value to premium_perks so a shield can restore it
+        -- Streak broke: save the old value to premium_perks so a shield can restore it later (premium users only)
         SELECT streak INTO v_streak_before_break FROM streaks WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
         IF FOUND AND v_streak_before_break > 0 THEN
-            v_streak_broke := true;
             IF EXISTS (SELECT 1 FROM users WHERE uid = p_uid AND is_premium = true) THEN
                 INSERT INTO premium_perks (uid, shield_count, shields_reset_at, streak_before_break)
                 VALUES (p_uid, 3, date_trunc('month', v_now) + interval '1 month', v_streak_before_break)
@@ -105,8 +103,7 @@ BEGIN
         'new_level', p_new_level,
         'new_exp', p_new_exp,
         'claimed_at', v_now,
-        'daily_streak', v_new_streak,
-        'streak_broke', v_streak_broke
+        'daily_streak', v_new_streak
     );
 END;
 $$ LANGUAGE plpgsql;

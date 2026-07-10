@@ -207,7 +207,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             }
 
         daily_streak = result.get("daily_streak", 0)
-        streak_broke = result.get("streak_broke", False)
 
         # Successful return with the new progression state
         return {
@@ -220,7 +219,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "seconds_remaining": 0,
             "daily_streak": daily_streak,
             "streak_multiplier": multiplier,
-            "streak_broke": streak_broke,
         }
 
     # Method to handle POI check-ins by verifying proximity, checking cooldowns, and granting XP

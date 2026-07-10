@@ -603,7 +603,6 @@ def claim_daily_reward():
         seconds_remaining=result["seconds_remaining"],
         daily_streak=result.get("daily_streak", 0),
         streak_multiplier=result.get("streak_multiplier", 1.0),
-        streak_broke=result.get("streak_broke", False),
     )
 
     return jsonify(response.model_dump()), 200 # model_dump() converts the Pydantic model to a dict for jsonify, because jsonify only accepts plain dicts

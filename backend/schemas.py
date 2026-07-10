@@ -231,7 +231,6 @@ class DailyRewardResponse(BaseModel):
     seconds_remaining: int = 0
     daily_streak: int = 0
     streak_multiplier: float = 1.0
-    streak_broke: bool = False              # true if the daily streak reset to 1 on this claim; Flutter uses this to show the shield dialog
 
 class ProgressResponse(BaseModel):
     # What is returned when Flutter requests the user's current progress (level, XP, and reward status)
