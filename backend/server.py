@@ -14,7 +14,7 @@ from firebase_admin import credentials as firebase_credentials
 from supabase import create_client, Client
 from redis.exceptions import LockNotOwnedError, LockError
 from backend.token_manager import TokenManager
-from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository, WorkoutRepository
+from backend.repository import UserRepository, ReminderRepository, RateLimitRepository, AchievementRepository, WorkoutRepository, PremiumPerksRepository
 from backend.services import ProgressionService, FoodService, POIService, SnapshotService
 from backend.services.workout_service import WorkoutService
 from backend.schemas import (
@@ -106,6 +106,8 @@ from backend.schemas import (
     GetBrowseRoutinesResponse,
     VerifyPurchaseRequest,
     PremiumStatusResponse,
+    PremiumPerksResponse,
+    UseShieldResponse,
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
@@ -139,6 +141,7 @@ poi_service = POIService()
 snapshot_service = SnapshotService(user_repo)
 workout_repo = WorkoutRepository(supabase_client)
 workout_service = WorkoutService(workout_repo)
+premium_perks_repo = PremiumPerksRepository(supabase_client)
 
 # Initialize Firebase Admin SDK for FCM (for notifications)
 if not firebase_admin._apps:
@@ -269,7 +272,7 @@ def send_due_reminders():
     except Exception as e:
         logger.exception(f'Error sending reminders: {e}')
 
-MIN_APP_VERSION = "1.1.52"
+MIN_APP_VERSION = "1.2.0"
 
 @app.route("/app_config")
 def app_config():
@@ -1392,6 +1395,39 @@ def verify_purchase():
     except Exception as e:
         logger.error(f"verify_purchase error for uid={uid}: {e}")
         return jsonify({"error": "Failed to verify purchase"}), 500
+
+
+@app.route("/premium_perks", methods=["GET"])
+def get_premium_perks():
+    # Returns the user's current premium perk allowances, applying a monthly reset first if needed
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    row = premium_perks_repo.get_or_create_perks(uid)
+    row = premium_perks_repo.reset_perks_if_month_elapsed(uid, row)
+    return jsonify(PremiumPerksResponse(
+        shield_count=row["shield_count"],
+        shields_reset_at=row["shields_reset_at"],
+    ).model_dump()), 200
+
+
+@app.route("/use_streak_shield", methods=["POST"])
+def use_streak_shield():
+    # Spends one streak shield to restore the user's daily_consecutive_streak to their highest recorded streak
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    if not user_repo.get_premium_status(uid).get("is_premium", False):
+        return jsonify({"error": "Premium required"}), 403
+    row = premium_perks_repo.get_or_create_perks(uid)
+    row = premium_perks_repo.reset_perks_if_month_elapsed(uid, row)
+    if row["shield_count"] <= 0:
+        return jsonify({"error": "No streak shields remaining this month"}), 400
+    result = premium_perks_repo.apply_streak_shield(uid)
+    return jsonify(UseShieldResponse(
+        shield_count=result["shield_count"],
+        restored_streak=result["restored_streak"],
+    ).model_dump()), 200
 
 
 if __name__ == "__main__": # Only run when the application starts

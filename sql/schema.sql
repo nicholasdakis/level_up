@@ -145,6 +145,14 @@ CREATE TABLE achievement_claims (
     FOREIGN KEY (uid, achievement_id) REFERENCES achievement_progress(uid, achievement_id) ON DELETE CASCADE
 );
 
+-- Stores premium perk state per user (consumable monthly allowances)
+CREATE TABLE IF NOT EXISTS premium_perks (
+    uid TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
+    shield_count INTEGER NOT NULL DEFAULT 3,             -- remaining streak shields this month
+    shields_reset_at TIMESTAMPTZ NOT NULL,               -- when shield_count resets to 3 (1st of next month)
+    streak_before_break INTEGER NOT NULL DEFAULT 0       -- the daily streak value just before it last broke; what a shield restores to
+);
+
 -- Table to store streaks and highest_streaks for different stats per-user
 CREATE TABLE streaks (
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,

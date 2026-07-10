@@ -2532,3 +2532,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Comparison card fills switched to a fixed dark overlay so content stays readable on light and saturated themes
 - Color picker in the theme preview now applies the same too-light guard as the settings screen
 - Updated icons to HugeIcons package
+- Added premium_perks table to store monthly-resetting consumable allowances per premium user (shield_count, shields_reset_at, streak_before_break)
+- Updated claim_daily_reward RPC to save streak_before_break to premium_perks when a premium user's daily streak breaks, and return streak_broke to the client
+- Added apply_streak_shield RPC that atomically spends one shield and restores the daily streak to streak_before_break in a single transaction
+- Added GET /premium_perks endpoint returning current shield count and reset date with lazy monthly reset
+- Added POST /use_streak_shield endpoint that verifies premium status, checks shield availability, and calls apply_streak_shield

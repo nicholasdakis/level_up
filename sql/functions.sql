@@ -22,6 +22,8 @@ DECLARE
     v_seconds_since_claim FLOAT; -- How many seconds have passed since the last claim
     v_now TIMESTAMPTZ := NOW(); -- Capture the current time in UTC once so it's consistent throughout the function
     v_new_streak INTEGER; -- The updated consecutive-day streak after this claim
+    v_streak_broke BOOLEAN := false; -- Whether the streak reset to 1 on this claim
+    v_streak_before_break INTEGER := 0; -- The streak value just before it broke, for shield restoration
 BEGIN
     -- Lock the row with FOR UPDATE so no other request can read or write this user's row until the function finishes
     SELECT last_daily_claim INTO v_last_claim
@@ -54,6 +56,16 @@ BEGIN
             v_new_streak := 1;
         END IF;
     ELSE
+        -- Streak broke: if the user is premium, save the old value to premium_perks so a shield can restore it
+        SELECT streak INTO v_streak_before_break FROM streaks WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
+        IF FOUND AND v_streak_before_break > 0 THEN
+            v_streak_broke := true;
+            IF EXISTS (SELECT 1 FROM users WHERE uid = p_uid AND is_premium = true) THEN
+                INSERT INTO premium_perks (uid, shield_count, shields_reset_at, streak_before_break)
+                VALUES (p_uid, 3, date_trunc('month', v_now) + interval '1 month', v_streak_before_break)
+                ON CONFLICT (uid) DO UPDATE SET streak_before_break = v_streak_before_break;
+            END IF;
+        END IF;
         v_new_streak := 1;
     END IF;
 
@@ -93,7 +105,8 @@ BEGIN
         'new_level', p_new_level,
         'new_exp', p_new_exp,
         'claimed_at', v_now,
-        'daily_streak', v_new_streak
+        'daily_streak', v_new_streak,
+        'streak_broke', v_streak_broke
     );
 END;
 $$ LANGUAGE plpgsql;
@@ -1009,3 +1022,28 @@ AS $$
     ORDER BY sub.created_at DESC  -- re-sort after dedup since DISTINCT ON does not preserve recency order
     LIMIT p_limit;
 $$;
+
+
+-- Atomically spends one streak shield from premium_perks and restores the user's
+-- daily_consecutive_streak to streak_before_break (the value it held just before it broke).
+-- Returns the updated shield_count and the restored streak value.
+-- Bundled as one RPC so a failed streak restore cannot leave the user without a shield.
+CREATE OR REPLACE FUNCTION apply_streak_shield(p_uid TEXT)
+RETURNS TABLE(shield_count INTEGER, restored_streak INTEGER) AS $$
+BEGIN
+  UPDATE premium_perks
+  SET shield_count = GREATEST(shield_count - 1, 0)
+  WHERE uid = p_uid;
+
+  UPDATE streaks
+  SET streak = (SELECT streak_before_break FROM premium_perks WHERE uid = p_uid),
+      last_date = CURRENT_DATE
+  WHERE uid = p_uid AND streak_type = 'daily_consecutive_streak';
+
+  RETURN QUERY
+  SELECT pp.shield_count, s.streak
+  FROM premium_perks pp
+  JOIN streaks s ON s.uid = pp.uid AND s.streak_type = 'daily_consecutive_streak'
+  WHERE pp.uid = p_uid;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
