@@ -14,6 +14,7 @@ import '../../utility/responsive.dart';
 import '../../models/food_log.dart';
 import '../../utility/food_logging_helper.dart';
 import 'analytics_components.dart';
+import '../premium_sheet.dart' show showPremiumSheet;
 
 // initialDate opens the screen on the same date the user was viewing in Food Logging
 // onDateChanged is optional so Food Logging can stay in sync when dates are changed here
@@ -52,7 +53,8 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   int _animationKey = 0;
 
   // Range tab state
-  // default to the last 7 days so the range tab is immediately useful on first open
+  // default to 1W so the range tab is immediately useful on first open
+  int _chipIndex = 0;
   DateTime? _rangeStart = DateTime.now().subtract(const Duration(days: 6));
   DateTime? _rangeEnd = DateTime.now();
   bool _rangeSelected = true;
@@ -99,8 +101,54 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     });
   }
 
+  bool get _isPremium => ref.read(userDataProvider).value?.isPremium ?? false;
+
+  DateTime get _cutoff => DateTime.now().subtract(const Duration(days: 13));
+
+  void _applyChip(int index) {
+    if (!_isPremium && index >= 2) {
+      showPremiumSheet(context, ref);
+      return;
+    }
+    final now = DateTime.now();
+    final logs = ref.read(foodLogsProvider).value ?? [];
+    setState(() {
+      _chipIndex = index;
+      _rangeAnimationKey++;
+      switch (index) {
+        case 0:
+          _rangeStart = now.subtract(const Duration(days: 6));
+          _rangeEnd = now;
+          _rangeSelected = true;
+        case 1:
+          _rangeStart = now.subtract(const Duration(days: 13));
+          _rangeEnd = now;
+          _rangeSelected = true;
+        case 2:
+          _rangeStart = DateTime(now.year, now.month - 1, now.day);
+          _rangeEnd = now;
+          _rangeSelected = true;
+        case 3:
+          _rangeStart = DateTime(now.year, now.month - 3, now.day);
+          _rangeEnd = now;
+          _rangeSelected = true;
+        case 4:
+          final dates = logs.map((f) => f.date).toList()..sort();
+          _rangeStart = dates.isNotEmpty
+              ? DateTime.parse(dates.first)
+              : now.subtract(const Duration(days: 6));
+          _rangeEnd = now;
+          _rangeSelected = true;
+      }
+    });
+  }
+
   // Notifies Food Logging via callback so both screens stay on the same date
   void _changeDate(DateTime date) {
+    if (!_isPremium && date.isBefore(_cutoff)) {
+      showPremiumSheet(context, ref);
+      return;
+    }
     currentDate = date;
     _loadForDate(date);
     widget.onDateChanged?.call(date);
@@ -1017,12 +1065,91 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (!_isPremium) ...[
+              GestureDetector(
+                onTap: () => showPremiumSheet(context, ref),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 14),
+                    vertical: Responsive.height(context, 10),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    border: Border.all(color: Colors.white.withAlpha(20)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 5),
+                          vertical: Responsive.height(context, 2),
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 4),
+                          ),
+                        ),
+                        child: Text(
+                          'PRO',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 8),
+                            color: Colors.black.withAlpha(180),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: Responsive.width(context, 8)),
+                      Expanded(
+                        child: Text(
+                          'Free plan shows the last 14 days. Upgrade for full history.',
+                          style: GoogleFonts.manrope(
+                            fontSize: Responsive.font(context, 12),
+                            color: lightenColor(appColor, 0.35),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Upgrade',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 12),
+                          color: lightenColor(appColor, 0.45),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+            ],
+            buildRangeChips(
+              context,
+              ['1W', '2W', '1M', '3M', 'All'],
+              _chipIndex,
+              _applyChip,
+              appColor: appColor,
+              shimmerIndices: _isPremium ? [] : [2, 3, 4],
+              onLockedTap: _isPremium
+                  ? null
+                  : () => showPremiumSheet(context, ref),
+            ),
+            SizedBox(height: Responsive.height(context, 12)),
             RangePickerCard(
               rangeStart: _rangeStart,
               rangeEnd: _rangeEnd,
               rangeSelected: _rangeSelected,
               calendarFocused: _calendarFocused,
               rangeLabel: "nutrition trends",
+              firstDay: _isPremium ? null : _cutoff,
               onRangeSelected: (start, end, focused) {
                 setState(() {
                   _calendarFocused = focused;

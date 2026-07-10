@@ -307,16 +307,14 @@ Widget buildSettingsDrawer(
                           await context.push('/settings/install');
                         },
                       ),
-                  // TODO: remove username gate before release
-                  if (username == 'Niko')
-                    buildActionTile(
-                      icon: HugeIcons.strokeRoundedCrown,
-                      label: "Go Premium",
-                      onTap: () {
-                        Navigator.pop(context);
-                        showPremiumSheet(context, ref);
-                      },
-                    ),
+                  buildActionTile(
+                    icon: HugeIcons.strokeRoundedCrown,
+                    label: "Go Premium",
+                    onTap: () {
+                      Navigator.pop(context);
+                      showPremiumSheet(context, ref);
+                    },
+                  ),
                   // Divider to visually separate Log Out
                   Padding(
                     padding: EdgeInsets.symmetric(

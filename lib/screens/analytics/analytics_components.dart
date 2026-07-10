@@ -21,6 +21,7 @@ class RangePickerCard extends ConsumerStatefulWidget {
   onRangeSelected;
   final void Function(DateTime focused) onPageChanged;
   final VoidCallback onClearRange;
+  final DateTime? firstDay;
 
   const RangePickerCard({
     super.key,
@@ -32,6 +33,7 @@ class RangePickerCard extends ConsumerStatefulWidget {
     required this.onRangeSelected,
     required this.onPageChanged,
     required this.onClearRange,
+    this.firstDay,
   });
 
   @override
@@ -138,7 +140,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                         children: [
                           SizedBox(height: Responsive.height(context, 8)),
                           TableCalendar(
-                            firstDay: DateTime(2020),
+                            firstDay: widget.firstDay ?? DateTime(2020),
                             lastDay: DateTime.now(),
                             focusedDay: widget.calendarFocused,
                             rangeStartDay: widget.rangeStart,
@@ -293,9 +295,12 @@ Widget buildRangeChips(
   int selectedIndex,
   void Function(int) onTap, {
   required Color appColor,
+  List<int> shimmerIndices = const [],
+  VoidCallback? onLockedTap,
 }) {
   final accent = lightenColor(appColor, 0.45);
-  Widget chip(int i) => GestureDetector(
+
+  Widget normalChip(int i) => GestureDetector(
     onTap: () => onTap(i),
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -326,10 +331,15 @@ Widget buildRangeChips(
     ),
   );
 
+  Widget shimmerChip(int i) =>
+      _ShimmerChip(label: labels[i], appColor: appColor, onTap: onLockedTap);
+
   return Row(
     children: [
       for (int i = 0; i < labels.length; i++) ...[
-        Expanded(child: chip(i)),
+        Expanded(
+          child: shimmerIndices.contains(i) ? shimmerChip(i) : normalChip(i),
+        ),
         if (i < labels.length - 1)
           SizedBox(width: Responsive.width(context, 8)),
       ],
@@ -356,4 +366,79 @@ Widget legendDot(BuildContext context, String label, Color color, Color dim) {
       ),
     ],
   );
+}
+
+class _ShimmerChip extends StatefulWidget {
+  final String label;
+  final Color appColor;
+  final VoidCallback? onTap;
+  const _ShimmerChip({required this.label, required this.appColor, this.onTap});
+
+  @override
+  State<_ShimmerChip> createState() => _ShimmerChipState();
+}
+
+class _ShimmerChipState extends State<_ShimmerChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dim = lightenColor(widget.appColor, 0.3);
+    final mid = lightenColor(widget.appColor, 0.45);
+    final accent = lightenColor(widget.appColor, 0.45);
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (_, _) {
+          final pos = _ctrl.value;
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.width(context, 14),
+              vertical: Responsive.height(context, 7),
+            ),
+            decoration: BoxDecoration(
+              color: accent.withAlpha(10),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: accent.withAlpha(20), width: 1),
+            ),
+            child: ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment(-1.5 + pos * 3.5, 0),
+                end: Alignment(-0.5 + pos * 3.5, 0),
+                colors: [dim, mid, Colors.white.withAlpha(220), mid, dim],
+                stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+              ).createShader(bounds),
+              child: Text(
+                widget.label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

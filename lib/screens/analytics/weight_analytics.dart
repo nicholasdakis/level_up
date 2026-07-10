@@ -14,6 +14,7 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
 import 'analytics_components.dart';
+import '../premium_sheet.dart' show showPremiumSheet;
 
 class WeightAnalyticsScreen extends ConsumerStatefulWidget {
   const WeightAnalyticsScreen({super.key});
@@ -30,6 +31,9 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   bool get isImperial =>
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
+  bool get _isPremium => ref.read(userDataProvider).value?.isPremium ?? false;
+  DateTime get _cutoff => DateTime.now().subtract(const Duration(days: 13));
 
   // quick-select chip index: 0=1W, 1=2W, 2=1M, 3=3M, 4=All, 5=Custom
   int _chipIndex = 0;
@@ -63,6 +67,10 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   // Sets the chart range based on the selected quick-select chip
   void _applyChip(int index) {
+    if (!_isPremium && index >= 2) {
+      showPremiumSheet(context, ref);
+      return;
+    }
     final now = DateTime.now();
     setState(() {
       _chipIndex = index;
@@ -726,12 +734,84 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (!_isPremium) ...[
+                          GestureDetector(
+                            onTap: () => showPremiumSheet(context, ref),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 14),
+                                vertical: Responsive.height(context, 10),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(10),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 12),
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(20),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: Responsive.width(context, 5),
+                                      vertical: Responsive.height(context, 2),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFFFD700),
+                                          Color(0xFFFFA500),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(context, 4),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'PRO',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 8),
+                                        color: Colors.black.withAlpha(180),
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 8)),
+                                  Expanded(
+                                    child: Text(
+                                      'Free plan shows the last 14 days. Upgrade for full history.',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 12),
+                                        color: lightenColor(appColor, 0.35),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Upgrade',
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 12),
+                                      color: lightenColor(appColor, 0.45),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 12)),
+                        ],
                         RangePickerCard(
                           rangeStart: _rangeStart,
                           rangeEnd: _rangeEnd,
                           rangeSelected: _rangeSelected,
                           calendarFocused: _calendarFocused,
                           rangeLabel: "weight trend",
+                          firstDay: _isPremium ? null : _cutoff,
                           onRangeSelected: (start, end, focused) {
                             setState(() {
                               _calendarFocused = focused;
@@ -766,6 +846,10 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                               _chipIndex,
                               _applyChip,
                               appColor: appColor,
+                              shimmerIndices: _isPremium ? [] : [2, 3, 4],
+                              onLockedTap: _isPremium
+                                  ? null
+                                  : () => showPremiumSheet(context, ref),
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))
                             .fadeIn(duration: 250.ms),

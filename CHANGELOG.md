@@ -2544,3 +2544,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - apply_streak_shield RPC now also sets last_daily_claim to prevent re-claiming after using a shield
 - Shield indicator added to daily reward card on home screen: shows count for premium users, tappable info tooltip for free users
 - "Don't show again" preference stored in SharedPreferences so the upsell dialog respects prior dismissals
+- Added PRO banner to the analytics screen
+- Added the analytics range chips from water and weight logging to food logging as well
+- Analytics range chips (1M, 3M, All) are gated and show a shimmer effect for free users: tapping opens the premium sheet
