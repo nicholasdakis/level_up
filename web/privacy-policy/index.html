@@ -133,12 +133,11 @@
     <div class="container">
       <p class="page-subtitle">Level Up!</p>
       <h1 class="site-title">Privacy Policy</h1>
-      <p class="updated">Last updated: June 2, 2026</p>
+      <p class="updated">Last updated: July 11, 2026</p>
 
       <p class="intro">
-        Level Up! is a health and fitness gamification app made by Nicholas Dakis, a solo developer based in New York, USA — the data controller for the purposes of GDPR.
+        Level Up! is a health and fitness gamification app built by Nicholas Dakis, a solo developer based in New York, USA.
         This policy explains what data is collected, how it is used, and what rights you have over it.
-        No walls of legalese — just plain English.
       </p>
 
       <hr class="divider" />
@@ -148,55 +147,75 @@
         <ul>
           <li>
             <strong>Account info</strong>
-            Your email address and hashed password (never stored in plain text), or basic Google account info if you use Google Sign-In — so you can log in and your data stays yours. If you sign in with Google, your email is stored to verify you have already accepted the Terms of Service so you are not prompted again on future logins.
+            Your email address and hashed password (never stored in plain text), or basic Google account info if you use Google Sign-In. If you sign in with Google, your email is stored to verify you have already accepted the Terms of Service so you are not prompted again on future logins.
           </li>
           <li>
             <strong>Profile</strong>
-            Your chosen username and profile picture — so you have an identity on the leaderboard and in the app. Your username, level, XP, and profile picture are visible to other users on the leaderboard.
+            Your chosen username and profile picture, so you have an identity on the leaderboard and in the app. Your username, level, XP, profile picture, and Pro status are visible to other users on the leaderboard.
           </li>
           <li>
             <strong>Food logs</strong>
-            Food names, macros, calories, serving sizes, and the dates you logged them — so the app can track your nutrition and fuel the gamification system.
+            Food names, macros, calories, serving sizes, and the dates and times you logged them, so the app can track your nutrition and fuel the gamification system.
           </li>
           <li>
-            <strong>Nutrition goals</strong>
-            Your calorie, protein, carbs, fat, and weight goal preferences — so the app can show you progress toward your personal targets.
+            <strong>Water logs</strong>
+            Water intake amounts and the dates you logged them, so the app can track your daily hydration progress against your goal.
+          </li>
+          <li>
+            <strong>Weight logs</strong>
+            Body weight entries and the dates you logged them, so the app can display trends and track progress toward your weight goal.
+          </li>
+          <li>
+            <strong>Workout logs</strong>
+            Workout sessions including exercises, sets, reps, weights, duration, and the date logged, so the app can track your training history, calculate personal records, award XP, and display your workout streak.
+          </li>
+          <li>
+            <strong>Workout routines</strong>
+            Routines you create, including their name, exercises, and default sets. Routines may be selected by the developer to appear in the community library, where they become visible to all users and cannot be removed. See the Terms of Service for details.
+          </li>
+          <li>
+            <strong>Goals</strong>
+            Your calorie, macro, water, weight, workout, and other goal preferences, so the app can show progress toward your personal targets.
           </li>
           <li>
             <strong>Calorie Calculator inputs</strong>
-            Age, height, weight, sex, and activity level — used only for the in-app calculation and never stored on our servers.
+            Age, height, weight, sex, and activity level, used only for the in-app calculation and never stored on our servers.
           </li>
           <li>
             <strong>Game progress</strong>
-            Your XP, level, daily login streak, and achievement progress — to power the levelling system, leaderboard, and badges.
+            Your XP, level, daily login streak, food logging streak, workout streak, achievement progress, and referral history, to power the levelling system, leaderboard, and badges.
+          </li>
+          <li>
+            <strong>Subscription status</strong>
+            Whether you are a Pro subscriber, your subscription expiry date, and your purchase token, so premium features can be unlocked and your subscription status can be kept up to date in real time via Google Play.
           </li>
           <li>
             <strong>Location</strong>
-            GPS coordinates while the Explore tab is open — to find nearby points of interest and confirm you are physically close enough to check in. Never accessed in the background.
+            GPS coordinates while the Explore tab is open, to find nearby points of interest and confirm you are physically close enough to check in. Never accessed in the background. The coordinates of places you check in to (for example, a gym or park) are stored as part of your check-in history so the app can track visits and award XP, but your personal GPS position is not stored.
           </li>
           <li>
             <strong>Explore history</strong>
-            Which points of interest you have visited, their categories, how many times you have visited each one, and when — to track achievements like visiting new categories and returning to the same spots.
+            Which points of interest you have visited, their categories, how many times you have visited each one, and when, to track achievements and award XP for check-ins.
           </li>
           <li>
             <strong>Reminders</strong>
-            The messages and scheduled times you set — so the app can deliver your notifications at the right time.
+            The messages and scheduled times you set, so the app can deliver your notifications at the right time.
           </li>
           <li>
             <strong>Push notification tokens</strong>
-            A device token (FCM) per device — so reminders can actually reach your phone.
+            A device token (FCM) per device, so reminders and reward notifications can reach your devices.
           </li>
           <li>
             <strong>App preferences</strong>
-            Your chosen theme color and timezone offset — so your settings are restored when you reopen the app.
+            Your chosen theme color, unit system (metric or imperial), and recent foods limit, so your settings are restored when you reopen the app. Your device's timezone offset is also stored to ensure reminders and streaks are calculated correctly for your local time.
           </li>
           <li>
             <strong>Usage data</strong>
-            Page views and in-app events via Firebase Analytics and Google Analytics (GA4) — to understand how the app is used so it can be improved.
+            Page views and in-app events via Firebase Analytics and Google Analytics (GA4), to understand how the app is used so it can be improved.
           </li>
           <li>
             <strong>Advertising data</strong>
-            On Android, the app shows rewarded ads served by Google AdMob. AdMob may collect your device's advertising ID, IP address, and ad interaction data to serve and measure ads. You can opt out of personalized ads at any time in your device settings under <em>Google &gt; Ads</em>.
+            On Android, the app shows ads served by Google AdMob and Unity Ads. These services may collect your device's advertising ID, IP address, and ad interaction data to serve and measure ads. You can opt out of personalized ads at any time in your device settings under <em>Google &gt; Ads</em>.
           </li>
         </ul>
       </div>
@@ -208,11 +227,13 @@
           <li><strong>Supabase</strong> Database storage for your account and app data.</li>
           <li><strong>Render</strong> Hosts the backend server that processes your requests.</li>
           <li><strong>Upstash</strong> Redis cache used to speed up food search results.</li>
-          <li><strong>FatSecret API</strong> Food search queries are sent to FatSecret to return nutritional data.</li>
+          <li><strong>FatSecret API</strong> Food search queries are sent to FatSecret to return nutritional data. Attribution is displayed in the app as required by FatSecret's terms.</li>
           <li><strong>OpenFoodFacts API</strong> Barcode scans are sent to OpenFoodFacts to look up product information.</li>
-          <li><strong>Google AdMob</strong> Serves rewarded ads on Android. AdMob may collect device identifiers and ad interaction data to serve and measure ads. See <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for details.</li>
+          <li><strong>Google AdMob</strong> Serves ads on Android. AdMob may collect device identifiers and ad interaction data to serve and measure ads. See <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for details.</li>
+          <li><strong>Unity Ads</strong> Serves ads on Android as a fallback when AdMob is unavailable. Unity may collect device identifiers and ad interaction data. See <a href="https://unity.com/legal/privacy-policy" target="_blank">Unity's Privacy Policy</a> for details.</li>
+          <li><strong>Google Play Billing</strong> Handles subscription purchases for Level Up! Pro. Payment details are processed entirely by Google and are never seen or stored by this app.</li>
         </ul>
-        <p class="body-text">Your personal data is never sold to third parties — including for California residents under CCPA. Google AdMob may use your advertising ID for ad personalization, which you can disable in your device settings. Firebase Analytics and Google Analytics (GA4) are used within the app to understand usage patterns — see <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for how they handle that data independently.</p>
+        <p class="body-text">Your personal data is never sold to third parties, including for California residents under CCPA. Google AdMob and Unity Ads may use your advertising ID for ad personalization, which you can disable in your device settings. Firebase Analytics and Google Analytics (GA4) are used within the app to understand usage patterns. See <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for how they handle that data independently.</p>
       </div>
 
       <div class="card">
@@ -225,14 +246,14 @@
       <div class="card">
         <p class="section-label">Cookies and local storage</p>
         <p class="body-text" style="margin-top: 0;">
-          The web version of Level Up! may use cookies or browser local storage to maintain your login session, remember your theme preference, and store app state between sessions. These are strictly functional — no advertising or tracking cookies are set directly by this app. Google Analytics may set its own cookies; see <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for details.
+          The web version of Level Up! may use cookies or browser local storage to maintain your login session, remember your theme preference, and store app state between sessions. These are strictly functional. No advertising or tracking cookies are set directly by this app. Google Analytics may set its own cookies. See <a href="https://policies.google.com/privacy" target="_blank">Google's Privacy Policy</a> for details.
         </p>
       </div>
 
       <div class="card">
         <p class="section-label">Data retention</p>
         <p class="body-text" style="margin-top: 0;">
-          Your data is kept for as long as your account is active. If you delete your account, your data is removed from our servers within 30 days. Leaderboard data (username, level, XP, profile picture) is removed from other users' views when your account is deleted. Google Analytics event data is retained for 2 months and user data for 14 months by default, per Google's settings — see their policy for details.
+          Your data is kept for as long as your account is active. To request deletion, email <a href="mailto:n1ch0lasd4k1s@gmail.com">n1ch0lasd4k1s@gmail.com</a> and your data will be removed within 30 days. Leaderboard data (username, level, XP, profile picture) is removed from other users' views on deletion. Public workout routines you created remain visible to users who saved them, as they are part of the community library. Google Analytics event data is retained for 2 months and user data for 14 months by default, per Google's settings.
         </p>
       </div>
 
@@ -247,9 +268,9 @@
         <p class="section-label">Legal basis for processing (GDPR)</p>
         <p class="body-text" style="margin-top: 0;">If you are in the European Economic Area (EEA), we process your data under the following legal bases:</p>
         <ul style="margin-top: 12px;">
-          <li><strong>Contract performance</strong> Account info, food logs, game progress, reminders, and push notification tokens — necessary to provide the app's core features.</li>
-          <li><strong>Legitimate interest</strong> Usage analytics via Firebase and Google Analytics — to understand how the app is used and improve it. This does not outweigh your privacy rights.</li>
-          <li><strong>Consent</strong> Location data — only accessed while the Explore tab is open and only after you grant permission. You can revoke this at any time in your device settings. Personalized advertising via AdMob — you can opt out at any time in your device settings under <em>Google &gt; Ads</em>.</li>
+          <li><strong>Contract performance</strong> Account info, food logs, water logs, weight logs, workout logs, game progress, subscription status, reminders, and push notification tokens, necessary to provide the app's core features.</li>
+          <li><strong>Legitimate interest</strong> Usage analytics via Firebase and Google Analytics, to understand how the app is used and improve it. This does not outweigh your privacy rights.</li>
+          <li><strong>Consent</strong> Location data, only accessed while the Explore tab is open and only after you grant permission. You can revoke this at any time in your device settings. Personalized advertising via AdMob and Unity Ads, you can opt out at any time in your device settings under <em>Google &gt; Ads</em>.</li>
         </ul>
       </div>
 
@@ -264,8 +285,8 @@
         <p class="section-label">Your rights</p>
         <ul>
           <li><strong>Edit your profile</strong> Update your username, profile picture, and goals at any time from the app.</li>
-          <li><strong>Delete entries</strong> Remove individual food logs and reminders from within the app.</li>
-          <li><strong>Delete your account</strong> You can delete your account and all associated data from the <a href="/level_up/delete-account">account deletion page</a> or by emailing <a href="mailto:n1ch0lasd4k1s@gmail.com">n1ch0lasd4k1s@gmail.com</a>.</li>
+          <li><strong>Delete entries</strong> Remove individual food logs, water logs, weight logs, and reminders from within the app.</li>
+          <li><strong>Delete your account</strong> Email <a href="mailto:n1ch0lasd4k1s@gmail.com">n1ch0lasd4k1s@gmail.com</a> to request deletion. See the <a href="/level_up/delete-account">account deletion page</a> for details.</li>
           <li><strong>Access your data</strong> You can request a copy of the personal data we hold about you by emailing <a href="mailto:n1ch0lasd4k1s@gmail.com">n1ch0lasd4k1s@gmail.com</a>.</li>
           <li><strong>Data portability</strong> You can request your data in a structured, machine-readable format by emailing us.</li>
           <li><strong>Object to processing</strong> You can object to processing based on legitimate interest at any time. We will stop unless we have compelling grounds to continue.</li>
