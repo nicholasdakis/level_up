@@ -260,8 +260,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                                         .value
                                         ?.isPremium ??
                                     false,
-                                onLearnMore: () =>
-                                    showPremiumSheet(context, ref),
+                                onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                               ),
                             )
                           : Text(

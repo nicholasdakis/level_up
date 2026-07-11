@@ -110,7 +110,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
         context,
         feature: 'Full Progress History',
         appColor: appColor,
-        onLearnMore: () => showPremiumSheet(context, ref),
+        onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
       );
       return;
     }
@@ -824,8 +824,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                                       context,
                                       feature: 'Full Progress History',
                                       appColor: appColor,
-                                      onLearnMore: () =>
-                                          showPremiumSheet(context, ref),
+                                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                                     ),
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))

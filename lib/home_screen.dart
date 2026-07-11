@@ -901,7 +901,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           context,
                           feature: 'Streak Shields',
                           appColor: appColor,
-                          onLearnMore: () => showPremiumSheet(context, ref),
+                          onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                         );
                       },
                       child: Row(

@@ -144,7 +144,7 @@ dependencies:
   in_app_purchase: ^3.3.0
 
   # Google Mobile Ads (AdMob)
-  google_mobile_ads: ^8.0.0
+  google_mobile_ads: ^9.0.0
 
   # Unity Ads (fallback rewarded ad network)
   unity_ads_plugin: ^0.3.30

@@ -111,7 +111,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         context,
         feature: 'Full Progress History',
         appColor: appColor,
-        onLearnMore: () => showPremiumSheet(context, ref),
+        onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
       );
       return;
     }
@@ -1127,7 +1127,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       context,
                       feature: 'Full Progress History',
                       appColor: appColor,
-                      onLearnMore: () => showPremiumSheet(context, ref),
+                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                     ),
             ),
             SizedBox(height: Responsive.height(context, 12)),

@@ -400,7 +400,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                             context,
                             feature: 'Custom Theme Colors',
                             appColor: appColor,
-                            onLearnMore: () => showPremiumSheet(context, ref),
+                            onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                           );
                         },
                         child: Column(
@@ -1459,8 +1459,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                       context,
                                       feature: 'Unlimited Quick Logging',
                                       appColor: appColor,
-                                      onLearnMore: () =>
-                                          showPremiumSheet(context, ref),
+                                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
                                     );
                                     return;
                                   }
