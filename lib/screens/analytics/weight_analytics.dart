@@ -68,7 +68,12 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
   // Sets the chart range based on the selected quick-select chip
   void _applyChip(int index) {
     if (!_isPremium && index >= 2) {
-      showPremiumSheet(context, ref);
+      showProFeatureDialog(
+        context,
+        feature: 'Full Progress History',
+        appColor: appColor,
+        onLearnMore: () => showPremiumSheet(context, ref),
+      );
       return;
     }
     final now = DateTime.now();
@@ -849,7 +854,13 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                               shimmerIndices: _isPremium ? [] : [2, 3, 4],
                               onLockedTap: _isPremium
                                   ? null
-                                  : () => showPremiumSheet(context, ref),
+                                  : () => showProFeatureDialog(
+                                      context,
+                                      feature: 'Full Progress History',
+                                      appColor: appColor,
+                                      onLearnMore: () =>
+                                          showPremiumSheet(context, ref),
+                                    ),
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))
                             .fadeIn(duration: 250.ms),

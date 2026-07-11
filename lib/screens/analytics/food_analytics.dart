@@ -107,7 +107,12 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   void _applyChip(int index) {
     if (!_isPremium && index >= 2) {
-      showPremiumSheet(context, ref);
+      showProFeatureDialog(
+        context,
+        feature: 'Full Progress History',
+        appColor: appColor,
+        onLearnMore: () => showPremiumSheet(context, ref),
+      );
       return;
     }
     final now = DateTime.now();
@@ -1140,7 +1145,12 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
               shimmerIndices: _isPremium ? [] : [2, 3, 4],
               onLockedTap: _isPremium
                   ? null
-                  : () => showPremiumSheet(context, ref),
+                  : () => showProFeatureDialog(
+                      context,
+                      feature: 'Full Progress History',
+                      appColor: appColor,
+                      onLearnMore: () => showPremiumSheet(context, ref),
+                    ),
             ),
             SizedBox(height: Responsive.height(context, 12)),
             RangePickerCard(

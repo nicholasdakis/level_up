@@ -2544,6 +2544,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - apply_streak_shield RPC now also sets last_daily_claim to prevent re-claiming after using a shield
 - Shield indicator added to daily reward card on home screen: shows count for premium users, tappable info tooltip for free users
 - "Don't show again" preference stored in SharedPreferences so the upsell dialog respects prior dismissals
-- Added PRO banner to the analytics screen
-- Added the analytics range chips from water and weight logging to food logging as well
-- Analytics range chips (1M, 3M, All) are gated and show a shimmer effect for free users: tapping opens the premium sheet
+- Added PRO banner to water and weight analytics screens matching the existing food analytics banner
+- Analytics range chips (1M, 3M, All) are gated client-side for free users: locked chips display a sweeping ShaderMask shimmer and tapping opens a pro feature dialog
+- Added `showProFeatureDialog` helper in globals.dart: frosted dialog with PRO badge, feature name, Dismiss and Learn More buttons, used consistently across all premium gates
+- Theme color picker is now gated by premium: free users see a preset grid of 13 named colors plus a locked Custom swatch, premium users get the full color picker
+- Preset color grid includes dark options (Navy, Forest, Midnight, Crimson) and colors matching real user data (Slate, Violet)
+- TODO: enforce the 14-day analytics date range server-side after this update ships

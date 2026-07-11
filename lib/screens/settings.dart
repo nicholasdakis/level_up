@@ -125,15 +125,15 @@ Widget buildSettingsDrawer(
                   Container(
                     padding: EdgeInsets.fromLTRB(
                       Responsive.width(context, 20),
-                      Responsive.height(context, 60),
+                      Responsive.height(context, 28),
                       0,
-                      Responsive.height(context, 20),
+                      Responsive.height(context, 12),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          width: Responsive.scale(context, 60),
-                          height: Responsive.scale(context, 60),
+                          width: Responsive.scale(context, 48),
+                          height: Responsive.scale(context, 48),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.black,
@@ -237,8 +237,8 @@ Widget buildSettingsDrawer(
                           .fetchReferralCode();
                       if (!context.mounted) return;
                       final message = code != null
-                          ? "I've been using Level Up to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code"
-                          : "I've been using Level Up to track my health and it's actually fun.\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup";
+                          ? "I've been using Level Up! to track my health and it's actually fun. Join me and we both get XP bonuses!\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup\n\nUse my referral code: $code"
+                          : "I've been using Level Up! to track my health and it's actually fun.\n\nDownload it here: https://play.google.com/store/apps/details?id=com.nicholasdakis.levelup";
                       if (kIsWeb) {
                         await Clipboard.setData(ClipboardData(text: message));
                         if (context.mounted) {

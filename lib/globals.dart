@@ -444,6 +444,84 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
 }
 
 // Alert-style frosted dialog with title, optional content, and actions
+Future<void> showProFeatureDialog(
+  BuildContext context, {
+  required String feature,
+  required Color appColor,
+  required VoidCallback onLearnMore,
+}) {
+  return showFrostedDialog<void>(
+    context: context,
+    appColor: appColor,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 8),
+            vertical: Responsive.height(context, 3),
+          ),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+            ),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
+          ),
+          child: Text(
+            'PRO',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 10),
+              color: Colors.black.withAlpha(180),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 16)),
+        Text(
+          feature,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 17),
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 8)),
+        Text(
+          'Upgrade to Pro to unlock this feature.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white54,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 24)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: Text('Dismiss', style: dialogButtonStyle()),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+                onLearnMore();
+              },
+              child: Text(
+                'Learn More',
+                style: dialogButtonStyle(confirm: true),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 Future<T?> showFrostedAlertDialog<T>({
   required BuildContext context,
   required String title,

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -99,7 +98,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   String get username =>
       ref.watch(userDataProvider.select((s) => s.value?.username ?? 'You'));
-  int get _foodStreak => ref.read(userDataProvider).value?.foodLogStreak ?? 0;
+  int get _dailyStreak =>
+      ref.read(userDataProvider).value?.dailyClaimStreak ?? 0;
   int get _level => ref.read(userDataProvider).value?.level ?? 1;
 
   List<ProductDetails> _products = [];
@@ -107,8 +107,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   bool _purchasing = false;
   String _selectedId = 'level_up_premium:yearly';
   Color? _originalColor;
-  late Timer _urgencyTimer;
-  String _urgencyLabel = '';
 
   late final AnimationController _shimmerController;
   late final AnimationController _pulseController;
@@ -131,19 +129,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       duration: const Duration(seconds: 20),
     )..repeat();
     _loadProducts();
-    _updateUrgencyLabel();
-    _urgencyTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      if (mounted) setState(() => _updateUrgencyLabel());
-    });
-  }
-
-  void _updateUrgencyLabel() {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    final remaining = midnight.difference(now);
-    final h = remaining.inHours;
-    final m = remaining.inMinutes % 60;
-    _urgencyLabel = h > 0 ? '${h}h ${m}m' : '${m}m';
   }
 
   @override
@@ -161,7 +146,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     _shimmerController.dispose();
     _pulseController.dispose();
     _particleController.dispose();
-    _urgencyTimer.cancel();
     super.dispose();
   }
 
@@ -837,7 +821,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       (
         'Unlimited Themes',
         'Make the app truly yours',
-        '8 choices',
+        '13 presets',
         'Unlimited',
       ),
     ];
@@ -1295,8 +1279,8 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                       height: Responsive.height(context, 6),
                                     ),
                                     Text(
-                                      _foodStreak > 0
-                                          ? 'Your $_foodStreak-day streak resets in $_urgencyLabel. Subscribe now and a shield will protect it.'
+                                      _dailyStreak > 1
+                                          ? 'You have a $_dailyStreak-day daily streak. Go Pro and a shield will protect it if you miss a day.'
                                           : 'Level $_level and climbing. Save over 50% with the yearly plan.',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(

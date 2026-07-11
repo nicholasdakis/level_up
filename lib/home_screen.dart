@@ -856,43 +856,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     GestureDetector(
                       onTap: () {
                         if (isPremium) return;
-                        showFrostedAlertDialog(
-                          context: context,
+                        showProFeatureDialog(
+                          context,
+                          feature: 'Streak Shields',
                           appColor: appColor,
-                          title: 'Streak Shields',
-                          content: Text(
-                            'Pro members get 3 shields a month. If your streak breaks, one tap restores it instantly.',
-                            style: GoogleFonts.manrope(
-                              color: Colors.white70,
-                              fontSize: Responsive.font(context, 13),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(),
-                              child: Text(
-                                'Dismiss',
-                                style: dialogButtonStyle(),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).pop();
-                                showPremiumSheet(context, ref);
-                              },
-                              child: Text(
-                                'Learn More',
-                                style: dialogButtonStyle(confirm: true),
-                              ),
-                            ),
-                          ],
+                          onLearnMore: () => showPremiumSheet(context, ref),
                         );
                       },
                       child: Row(

@@ -19,6 +19,7 @@ import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
 import '/services/recent_foods_service.dart';
+import '../premium_sheet.dart' show showPremiumSheet;
 import 'dart:math';
 
 Future<void> showUsernameDialogBox(
@@ -270,10 +271,205 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
     if (isGuest) {
       Guest.block(context);
       return;
-    } // For guest users
-    Color pickerColor = baseColor.withAlpha(
-      255,
-    ); // .withAlpha(255) so the alpha circle is initially filled up
+    }
+    final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
+    // TODO: server-side: validate that free users only send preset colors on app_color update
+    if (!isPremium) {
+      _showPresetColorDialog();
+      return;
+    }
+    _showFullColorPickerDialog();
+  }
+
+  static const _presetColors = [
+    (Color(0xFF2D2D2D), 'Default'),
+    (Color(0xFF4F8EF7), 'Blue'),
+    (Color(0xFF7C5CBF), 'Purple'),
+    (Color(0xFFE05C8A), 'Pink'),
+    (Color(0xFF2EBF91), 'Teal'),
+    (Color(0xFFE8864B), 'Orange'),
+    (Color(0xFF5782AF), 'Steel'),
+    (Color(0xFF4F17A1), 'Violet'),
+    (Color(0xFFE84B4B), 'Red'),
+    (Color(0xFF1A2A4A), 'Navy'),
+    (Color(0xFF1A3A2A), 'Forest'),
+    (Color(0xFF2A1A3A), 'Midnight'),
+    (Color(0xFF3A1A1A), 'Crimson'),
+  ];
+
+  void _showPresetColorDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 24),
+          vertical: Responsive.height(context, 40),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(10),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 20),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 28),
+                vertical: Responsive.height(context, 32),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Theme Color',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 15),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  Text(
+                    'Choose a preset color',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: Colors.white54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 20)),
+                  GridView.count(
+                    crossAxisCount: 4,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: Responsive.width(context, 8),
+                    mainAxisSpacing: Responsive.height(context, 12),
+                    children: [
+                      for (final (color, label) in _presetColors)
+                        GestureDetector(
+                          onTap: () async {
+                            Navigator.of(ctx).pop();
+                            await applyAppColor(color);
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: Responsive.scale(context, 44),
+                                height: Responsive.scale(context, 44),
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: baseColor == color
+                                        ? Colors.white
+                                        : Colors.white.withAlpha(40),
+                                    width: baseColor == color ? 2.5 : 1.5,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: Responsive.height(context, 4)),
+                              Text(
+                                label,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 9),
+                                  color: Colors.white54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      // locked custom picker swatch
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          showProFeatureDialog(
+                            context,
+                            feature: 'Custom Theme Colors',
+                            appColor: appColor,
+                            onLearnMore: () => showPremiumSheet(context, ref),
+                          );
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: Responsive.scale(context, 44),
+                              height: Responsive.scale(context, 44),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const SweepGradient(
+                                  colors: [
+                                    Color(0xFFE84B4B),
+                                    Color(0xFFE8864B),
+                                    Color(0xFFE8C44B),
+                                    Color(0xFF2EBF91),
+                                    Color(0xFF4F8EF7),
+                                    Color(0xFF7C5CBF),
+                                    Color(0xFFE84B4B),
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(40),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(100),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.white70,
+                                  size: Responsive.scale(context, 18),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.height(context, 4)),
+                            Text(
+                              'Custom',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 9),
+                                color: Colors.white54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 16)),
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text('Cancel', style: dialogButtonStyle()),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullColorPickerDialog() {
+    Color pickerColor = baseColor.withAlpha(255);
     // IntrinsicWidth sizes the dialog to exactly the picker's colorPickerWidth
     showDialog(
       context: context,
@@ -333,20 +529,14 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       children: [
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(),
-                          child: Text(
-                            'Cancel',
-                            style: GoogleFonts.manrope(color: Colors.white54),
-                          ),
+                          child: Text('Cancel', style: dialogButtonStyle()),
                         ),
                         TextButton(
                           onPressed: () async {
                             await applyAppColor(defaultAppColor);
                             Navigator.of(ctx).pop();
                           },
-                          child: Text(
-                            'Default',
-                            style: GoogleFonts.manrope(color: Colors.white54),
-                          ),
+                          child: Text('Default', style: dialogButtonStyle()),
                         ),
                         TextButton(
                           onPressed: () async {
@@ -355,10 +545,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                           },
                           child: Text(
                             'Select',
-                            style: GoogleFonts.manrope(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: dialogButtonStyle(confirm: true),
                           ),
                         ),
                       ],
