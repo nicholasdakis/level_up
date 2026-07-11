@@ -1367,7 +1367,13 @@ def verify_purchase():
     if err:
         return err
     try:
-        sa_json = json.loads(os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "{}"))
+        raw_sa = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "")
+        logger.info(f"verify_purchase: env_var_length={len(raw_sa)}, first_10={raw_sa[:10]!r}")
+        try:
+            sa_json = json.loads(raw_sa)
+        except Exception as e:
+            logger.error(f"verify_purchase: failed to parse service account JSON: {e}")
+            return jsonify({"error": "Service account config error"}), 500
         logger.info(f"verify_purchase: service_account_email={sa_json.get('client_email', 'NOT FOUND')}")
         credentials = service_account.Credentials.from_service_account_info(
             sa_json,
