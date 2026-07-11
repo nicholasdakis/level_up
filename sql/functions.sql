@@ -973,27 +973,29 @@ AS $$
 $$;
 
 -- leaderboard_by_foods: top 100 users by food log count, optionally filtered by date
+DROP FUNCTION IF EXISTS leaderboard_by_foods(DATE);
 CREATE OR REPLACE FUNCTION leaderboard_by_foods(since_date DATE DEFAULT NULL)
-RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, count BIGINT)
+RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, is_premium BOOLEAN, count BIGINT)
 LANGUAGE SQL STABLE AS $$
-    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, COUNT(*) AS count
+    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, u.is_premium, COUNT(*) AS count
     FROM food_logs_v2 f
     JOIN users u ON u.uid = f.uid
     WHERE (since_date IS NULL OR f.date >= since_date)
-    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64
+    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64, u.is_premium
     ORDER BY count DESC
     LIMIT 100;
 $$;
 
 -- leaderboard_by_workouts: top 100 users by workout count, optionally filtered by date
+DROP FUNCTION IF EXISTS leaderboard_by_workouts(DATE);
 CREATE OR REPLACE FUNCTION leaderboard_by_workouts(since_date DATE DEFAULT NULL)
-RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, count BIGINT)
+RETURNS TABLE(uid TEXT, username TEXT, level INT, exp_points INT, pfp_base64 TEXT, is_premium BOOLEAN, count BIGINT)
 LANGUAGE SQL STABLE AS $$
-    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, COUNT(*) AS count
+    SELECT u.uid, u.username, u.level, u.exp_points, u.pfp_base64, u.is_premium, COUNT(*) AS count
     FROM workouts w
     JOIN users u ON u.uid = w.uid
     WHERE (since_date IS NULL OR w.date >= since_date)
-    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64
+    GROUP BY u.uid, u.username, u.level, u.exp_points, u.pfp_base64, u.is_premium
     ORDER BY count DESC
     LIMIT 100;
 $$;

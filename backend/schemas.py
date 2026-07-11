@@ -131,6 +131,7 @@ class LeaderboardUserEntry(BaseModel):
     level: int = 1
     exp_points: int = 0
     pfp_base64: str | None = None
+    is_premium: bool = False
     count: int | None = None # for count-based leaderboard requests
 
 class ReminderItem(BaseModel):
