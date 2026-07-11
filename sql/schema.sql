@@ -31,7 +31,8 @@ CREATE TABLE users (
     units TEXT NOT NULL DEFAULT 'metric', -- display units preference: 'metric' or 'imperial'
     created_at TIMESTAMPTZ,              -- when the user first signed up
     is_premium BOOLEAN NOT NULL DEFAULT FALSE,        -- whether the user currently has an active premium subscription
-    premium_expires_at TIMESTAMPTZ NULL               -- when the premium subscription expires; null means not premium
+    premium_expires_at TIMESTAMPTZ NULL,              -- when the premium subscription expires; null means not premium
+    purchase_token TEXT NULL                          -- latest Google Play purchase token, used by the RTDN webhook to resolve uid
 );
 
 -- Tracks referrals between users; referee_uid is the primary key so a user can only be referred once

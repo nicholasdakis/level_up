@@ -1448,7 +1448,7 @@ def play_webhook():
     # Look up which user owns this token
     uid = user_repo.get_uid_by_purchase_token(purchase_token)
     if not uid:
-        logger.error(f"play_webhook: no user found for token {purchase_token[:20]}")
+        logger.error(f"play_webhook: no user found for token (full) {purchase_token}")
         return jsonify({}), 200
 
     try:

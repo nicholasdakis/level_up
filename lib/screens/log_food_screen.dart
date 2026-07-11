@@ -18,6 +18,7 @@ import '../guest.dart';
 import '../utility/responsive.dart';
 import '../services/user_data_manager.dart';
 import '../services/voice_search_service.dart';
+import '../services/recent_foods_service.dart';
 import '../utility/food_logging_helper.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -298,7 +299,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   // Derives recent foods from food_logs_v2, deduped by food_name, newest first, capped by user preference
   Future<void> _loadRecentFoods() async {
     final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
-    final max = stored ?? 30;
+    final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
+    final max = (stored == RecentFoodsService.unlimited && !isPremium) ? 20 : (stored ?? 20);
     final logs = ref.read(foodLogsProvider).value ?? [];
     final seen = <String>{};
     final recents = <FoodLog>[];
