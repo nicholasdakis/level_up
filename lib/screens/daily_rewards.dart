@@ -129,6 +129,10 @@ class DailyRewardDialog {
     }
 
     final (xpGained, baseXp, streak, multiplier, levelBefore) = result;
+    final isPremium = userData?.isPremium ?? false;
+    final preProXp = isPremium ? (xpGained / 1.2).round() : xpGained;
+    final premiumBonus = xpGained - preProXp;
+    final streakBonus = preProXp - baseXp;
 
     logAnalyticsEvent(
       'daily_reward_claimed',
@@ -197,10 +201,14 @@ class DailyRewardDialog {
               height: 1.0,
             ),
           ),
-          if (multiplier > 1.0) ...[
+          if (multiplier > 1.0 || premiumBonus > 0) ...[
             SizedBox(height: Responsive.height(context, 6)),
             Text(
-              "$baseXp base + ${xpGained - baseXp} streak bonus",
+              [
+                '$baseXp base',
+                if (streakBonus > 0) '+ $streakBonus streak bonus',
+                if (premiumBonus > 0) '+ $premiumBonus premium bonus',
+              ].join(' '),
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 14),

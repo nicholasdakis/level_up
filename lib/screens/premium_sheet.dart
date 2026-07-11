@@ -785,12 +785,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         'Unlimited',
       ),
       (
-        'Unlimited Meal Templates',
-        'Save any meal, log it in seconds',
-        '5 saved',
-        'Unlimited',
-      ),
-      (
         'Unlimited Quick Logging',
         'Every food you\'ve tracked, always accessible',
         '20 foods',
