@@ -778,8 +778,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
     final radius = BorderRadius.circular(Responsive.scale(context, 16));
-    final isPremium = ref.watch(userDataProvider.select((s) => s.value?.isPremium ?? false));
-    final shieldCount = ref.watch(userDataProvider.select((s) => s.value?.shieldCount ?? 0));
+    final isPremium = ref.watch(
+      userDataProvider.select((s) => s.value?.isPremium ?? false),
+    );
+    final shieldCount = ref.watch(
+      userDataProvider.select((s) => s.value?.shieldCount ?? 0),
+    );
 
     final card = DecoratedBox(
       decoration: BoxDecoration(
@@ -855,7 +859,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     SizedBox(width: Responsive.width(context, 10)),
                     GestureDetector(
                       onTap: () {
-                        if (isPremium) return;
+                        if (isPremium) {
+                          if (shieldCount >= 3) return;
+                          final resetAt = ref
+                              .read(userDataProvider)
+                              .value
+                              ?.shieldsResetAt;
+                          const months = [
+                            'Jan',
+                            'Feb',
+                            'Mar',
+                            'Apr',
+                            'May',
+                            'Jun',
+                            'Jul',
+                            'Aug',
+                            'Sep',
+                            'Oct',
+                            'Nov',
+                            'Dec',
+                          ];
+                          final resetStr = resetAt != null
+                              ? 'Resets ${months[resetAt.toUtc().month - 1]} ${resetAt.toUtc().day}'
+                              : 'Resets next month';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '$shieldCount shield${shieldCount == 1 ? '' : 's'} remaining · $resetStr',
+                                style: GoogleFonts.manrope(),
+                              ),
+                              duration: snackBarDuration,
+                            ),
+                          );
+                          return;
+                        }
                         showProFeatureDialog(
                           context,
                           feature: 'Streak Shields',
