@@ -1368,6 +1368,7 @@ def verify_purchase():
         return err
     try:
         sa_json = json.loads(os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "{}"))
+        logger.info(f"verify_purchase: service_account_email={sa_json.get('client_email', 'NOT FOUND')}")
         credentials = service_account.Credentials.from_service_account_info(
             sa_json,
             scopes=["https://www.googleapis.com/auth/androidpublisher"],
