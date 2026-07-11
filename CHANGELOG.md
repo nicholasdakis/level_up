@@ -2546,7 +2546,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - "Don't show again" preference stored in SharedPreferences so the upsell dialog respects prior dismissals
 - Added PRO banner to water and weight analytics screens matching the existing food analytics banner
 - Analytics range chips (1M, 3M, All) are gated client-side for free users: locked chips display a sweeping ShaderMask shimmer and tapping opens a pro feature dialog
-- Added `showProFeatureDialog` helper in globals.dart: frosted dialog with PRO badge, feature name, Dismiss and Learn More buttons, used consistently across all premium gates
+- Added showProFeatureDialog helper in globals.dart: frosted dialog with PRO badge, feature name, Dismiss and Learn More buttons, used consistently across all premium gates
 - Theme color picker is now gated by premium: free users see a preset grid of 13 named colors plus a locked Custom swatch, premium users get the full color picker
 - Preset color grid includes dark options (Navy, Forest, Midnight, Crimson) and colors matching real user data (Slate, Violet)
-- TODO: enforce the 14-day analytics date range server-side after this update ships
+- Recent foods limit dialog replaced with two options: 20 foods (free) and Unlimited (Pro)

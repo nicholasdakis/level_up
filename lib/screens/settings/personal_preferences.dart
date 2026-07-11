@@ -1441,112 +1441,190 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   Guest.block(context);
                                   return;
                                 }
-                                final options = [
-                                  10,
-                                  20,
-                                  30,
-                                  50,
-                                  100,
-                                  RecentFoodsService.unlimited,
-                                ];
-                                final labels = [
-                                  "10",
-                                  "20",
-                                  "30",
-                                  "50",
-                                  "100",
-                                  "Unlimited",
-                                ];
-                                await showFrostedAlertDialog<void>(
-                                  context: context,
-                                  appColor: appColor,
-                                  title: "Recent Foods Limit",
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      for (int i = 0; i < options.length; i++)
-                                        GestureDetector(
-                                          onTap: () async {
-                                            await _recentFoodsService
-                                                .setRecentFoodsMax(options[i]);
-                                            if (mounted) {
-                                              setState(
-                                                () => _recentFoodsMax =
-                                                    options[i],
-                                              );
-                                            }
-                                            if (context.mounted) {
-                                              Navigator.pop(context);
-                                              final label =
-                                                  options[i] ==
-                                                      RecentFoodsService
-                                                          .unlimited
-                                                  ? "Unlimited"
-                                                  : "${options[i]} foods";
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "Recent foods limit set to $label",
-                                                  ),
-                                                  duration: snackBarDuration,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: Responsive.height(
-                                                context,
-                                                10,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  labels[i],
-                                                  style: GoogleFonts.manrope(
-                                                    fontSize: Responsive.font(
-                                                      context,
-                                                      15,
-                                                    ),
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                if (_recentFoodsMax ==
-                                                    options[i])
-                                                  Icon(
-                                                    Icons.check,
-                                                    color: Colors.white,
-                                                    size: Responsive.scale(
-                                                      context,
-                                                      18,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
+                                // TODO: server-side: enforce max 20 recent foods for free users on save
+                                final isPremium =
+                                    ref
+                                        .read(userDataProvider)
+                                        .value
+                                        ?.isPremium ??
+                                    false;
+                                final accent = lightenColor(appColor, 0.45);
+                                final dim = lightenColor(appColor, 0.35);
+
+                                Future<void> pick(int val) async {
+                                  // client-side gate: free users cannot select unlimited
+                                  if (!isPremium &&
+                                      val == RecentFoodsService.unlimited) {
+                                    showProFeatureDialog(
+                                      context,
+                                      feature: 'Unlimited Quick Logging',
+                                      appColor: appColor,
+                                      onLearnMore: () =>
+                                          showPremiumSheet(context, ref),
+                                    );
+                                    return;
+                                  }
+                                  await _recentFoodsService.setRecentFoodsMax(
+                                    val,
+                                  );
+                                  if (mounted) {
+                                    setState(() => _recentFoodsMax = val);
+                                  }
+                                  if (context.mounted) {
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          val == RecentFoodsService.unlimited
+                                              ? "Recent foods limit set to Unlimited"
+                                              : "Recent foods limit set to $val foods",
                                         ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    Expanded(
-                                      child: Center(
-                                        child: TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text(
-                                            "Cancel",
-                                            style: dialogButtonStyle(),
-                                          ),
+                                        duration: snackBarDuration,
+                                      ),
+                                    );
+                                  }
+                                }
+
+                                Widget option(
+                                  String label,
+                                  int val, {
+                                  bool locked = false,
+                                }) {
+                                  final selected = _recentFoodsMax == val;
+                                  return GestureDetector(
+                                    onTap: () => pick(val),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
+                                      width: double.infinity,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Responsive.width(
+                                          context,
+                                          16,
+                                        ),
+                                        vertical: Responsive.height(
+                                          context,
+                                          14,
                                         ),
                                       ),
+                                      decoration: BoxDecoration(
+                                        color: selected
+                                            ? accent.withAlpha(30)
+                                            : accent.withAlpha(10),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: selected
+                                              ? accent.withAlpha(160)
+                                              : accent.withAlpha(40),
+                                          width: selected ? 1.5 : 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            label,
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                context,
+                                                15,
+                                              ),
+                                              fontWeight: selected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: selected ? accent : dim,
+                                            ),
+                                          ),
+                                          if (locked)
+                                            Icon(
+                                              Icons.lock_rounded,
+                                              color: dim,
+                                              size: Responsive.scale(
+                                                context,
+                                                16,
+                                              ),
+                                            )
+                                          else if (selected)
+                                            Icon(
+                                              Icons.check_rounded,
+                                              color: accent,
+                                              size: Responsive.scale(
+                                                context,
+                                                18,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
+                                  );
+                                }
+
+                                await showFrostedDialog<void>(
+                                  context: context,
+                                  appColor: appColor,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Text(
+                                        'Recent Foods Limit',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            17,
+                                          ),
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 6),
+                                      ),
+                                      Text(
+                                        'How many recent foods to keep in your quick-log list',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(
+                                            context,
+                                            12,
+                                          ),
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
+                                      ),
+                                      option('20 foods', 20),
+                                      SizedBox(
+                                        height: Responsive.height(context, 10),
+                                      ),
+                                      option(
+                                        'Unlimited',
+                                        RecentFoodsService.unlimited,
+                                        locked: !isPremium,
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).pop(),
+                                        child: Text(
+                                          'Cancel',
+                                          style: dialogButtonStyle(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 );
                               },
                             ),
