@@ -113,7 +113,8 @@ from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
 from backend.utils import utc_minute_of_day, find_utc_midnight_offset_mins
 from backend.redis_cache import FOOD_CACHE_TTL, redis
-from google.oauth2 import service_account
+from google.oauth2 import service_account, id_token as google_id_token
+from google.auth.transport import requests as google_requests
 from googleapiclient.discovery import build as google_build
 
 logger = logging.getLogger(__name__)
@@ -1398,12 +1399,85 @@ def verify_purchase():
 
         # Pull expiry from the first line item
         expiry_time = line_items[0].get("expiryTime")
-        user_repo.set_premium(uid, True, expiry_time)
+        user_repo.set_premium(uid, True, expiry_time, purchase_token=body.purchase_token)
         return jsonify(PremiumStatusResponse(is_premium=True, premium_expires_at=expiry_time).model_dump()), 200
 
     except Exception as e:
         logger.error(f"verify_purchase error for uid={uid}: {e}")
         return jsonify({"error": "Failed to verify purchase"}), 500
+
+
+@app.route("/play_webhook", methods=["POST"])
+def play_webhook():
+    # Receives Google Play RTDN push notifications via Pub/Sub
+    # Verifies the Google-signed JWT in the Authorization header
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Missing auth"}), 401
+    token = auth_header[len("Bearer "):]
+    try:
+        audience = os.environ.get("PUBSUB_AUDIENCE", "")
+        claim = google_id_token.verify_oauth2_token(token, google_requests.Request(), audience=audience)
+        if claim.get("email") != "levelup-pubsub@level-up-a3181.iam.gserviceaccount.com":
+            return jsonify({"error": "Untrusted caller"}), 403
+    except Exception as e:
+        logger.error(f"play_webhook: JWT verification failed: {e}")
+        return jsonify({"error": "Invalid token"}), 401
+
+    # Decode the Pub/Sub message
+    envelope = request.get_json(silent=True)
+    if not envelope:
+        return jsonify({"error": "Bad request"}), 400
+    try:
+        data = json.loads(__import__("base64").b64decode(envelope["message"]["data"]).decode("utf-8"))
+    except Exception as e:
+        logger.error(f"play_webhook: failed to decode message: {e}")
+        return jsonify({"error": "Bad message"}), 400
+
+    notif = data.get("subscriptionNotification")
+    if not notif:
+        # Not a subscription notification (could be a test or other type) — ack and ignore
+        return jsonify({}), 200
+
+    purchase_token = notif.get("purchaseToken")
+    notification_type = notif.get("notificationType")
+
+    if not purchase_token or not notification_type:
+        return jsonify({}), 200
+
+    # Look up which user owns this token
+    uid = user_repo.get_uid_by_purchase_token(purchase_token)
+    if not uid:
+        logger.error(f"play_webhook: no user found for token {purchase_token[:20]}")
+        return jsonify({}), 200
+
+    try:
+        raw_sa = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON", "")
+        sa_json = json.loads(raw_sa)
+        credentials = service_account.Credentials.from_service_account_info(
+            sa_json,
+            scopes=["https://www.googleapis.com/auth/androidpublisher"],
+        )
+        publisher = google_build("androidpublisher", "v3", credentials=credentials)
+        result = publisher.purchases().subscriptionsv2().get(
+            packageName="com.nicholasdakis.levelup",
+            token=purchase_token,
+        ).execute()
+
+        subscription_state = result.get("subscriptionState", "")
+        active_states = {"SUBSCRIPTION_STATE_ACTIVE", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD"}
+        is_active = subscription_state in active_states
+
+        line_items = result.get("lineItems", [])
+        expiry_time = line_items[0].get("expiryTime") if line_items else None
+
+        user_repo.set_premium(uid, is_active, expiry_time if is_active else None)
+        logger.info(f"play_webhook: uid={uid} state={subscription_state} is_active={is_active}")
+    except Exception as e:
+        logger.error(f"play_webhook: failed to update uid={uid}: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+    return jsonify({}), 200
 
 
 @app.route("/premium_perks", methods=["GET"])

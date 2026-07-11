@@ -355,12 +355,20 @@ class UserRepository:
     def update_utc_offset_minutes(self, uid: str, utc_offset: int):
         self._supabase.table("users").update({"utc_offset_minutes": utc_offset}).eq("uid", uid).execute()
 
-    def set_premium(self, uid: str, is_premium: bool, expires_at: str | None):
+    def set_premium(self, uid: str, is_premium: bool, expires_at: str | None, purchase_token: str | None = None):
         # Sets the user's premium status and expiry timestamp
-        self._supabase.table("users").update({
+        payload: dict = {
             "is_premium": is_premium,
             "premium_expires_at": expires_at,
-        }).eq("uid", uid).execute()
+        }
+        if purchase_token is not None:
+            payload["purchase_token"] = purchase_token
+        self._supabase.table("users").update(payload).eq("uid", uid).execute()
+
+    def get_uid_by_purchase_token(self, token: str) -> str | None:
+        # Looks up the uid associated with a Play purchase token
+        result = self._supabase.table("users").select("uid").eq("purchase_token", token).limit(1).execute()
+        return result.data[0]["uid"] if result.data else None
 
     def get_premium_status(self, uid: str) -> dict:
         # Returns is_premium and premium_expires_at for the user
