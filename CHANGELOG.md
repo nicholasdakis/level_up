@@ -2551,3 +2551,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Preset color grid includes dark options (Navy, Forest, Midnight, Crimson) and colors matching real user data (Slate, Violet)
 - Recent foods limit dialog replaced with two options: 20 foods (free) and Unlimited (Pro)
 - Added a PRO badge with a shimmer effect to premium users in the leaderboard
+- Replaced the set your nutrition goals card with the real calorie card and macro gauges with a lock on top of it for guests
+- Added analytics collection for the premium sheet

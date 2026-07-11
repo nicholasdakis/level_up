@@ -362,6 +362,7 @@ Future<bool> _showShieldDialog(
             ),
             TextButton(
               onPressed: () async {
+                logAnalyticsEvent('shield_used');
                 final result = await ref
                     .read(userDataProvider.notifier)
                     .useStreakShield();
@@ -397,6 +398,7 @@ Future<bool> _showShieldUpsellDialog(
   Color appColor,
   WidgetRef ref,
 ) async {
+  logAnalyticsEvent('shield_upsell_shown');
   final accent = lightenColor(appColor, 0.45);
   final dim = lightenColor(appColor, 0.35);
   final shouldClaim = await showFrostedDialog<bool>(
@@ -441,6 +443,7 @@ Future<bool> _showShieldUpsellDialog(
             TextButton(
               onPressed: () {
                 Navigator.of(context, rootNavigator: true).pop(false);
+                logAnalyticsEvent('shield_upsell_learn_more');
                 showPremiumSheet(context, ref);
               },
               child: Text(

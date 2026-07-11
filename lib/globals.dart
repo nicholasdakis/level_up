@@ -452,6 +452,10 @@ Future<void> showProFeatureDialog(
   bool isPremium = false,
 }) {
   if (isPremium) return Future.value();
+  logAnalyticsEvent(
+    'pro_feature_dialog_shown',
+    parameters: {'feature': feature},
+  );
   return showFrostedDialog<void>(
     context: context,
     appColor: appColor,
@@ -510,6 +514,10 @@ Future<void> showProFeatureDialog(
             TextButton(
               onPressed: () {
                 Navigator.of(context, rootNavigator: true).pop();
+                logAnalyticsEvent(
+                  'pro_feature_dialog_learn_more',
+                  parameters: {'feature': feature},
+                );
                 onLearnMore();
               },
               child: Text(

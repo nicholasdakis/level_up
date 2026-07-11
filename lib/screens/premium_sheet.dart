@@ -115,6 +115,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   @override
   void initState() {
     super.initState();
+    logAnalyticsEvent('premium_sheet_opened');
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
@@ -143,6 +144,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   @override
   void dispose() {
+    if (!_purchasing) logAnalyticsEvent('premium_sheet_dismissed');
     _shimmerController.dispose();
     _pulseController.dispose();
     _particleController.dispose();
@@ -178,6 +180,10 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     final product = _selectedProduct;
     if (product == null || _purchasing) return;
     setState(() => _purchasing = true);
+    logAnalyticsEvent(
+      'premium_subscribe_tapped',
+      parameters: {'product_id': product.id},
+    );
     try {
       await ref.read(premiumServiceProvider).subscribe(product);
     } catch (e) {
@@ -489,6 +495,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
   }
 
   void _previewThemeColor(Color color) {
+    logAnalyticsEvent('premium_color_previewed');
     if (color.computeLuminance() > 0.5) {
       final excess = (color.computeLuminance() - 0.5) * 0.8;
       color = darkenColor(color, math.max(excess, 0.15));
@@ -796,9 +803,10 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         '13 presets',
         'Unlimited',
       ),
+      ('XP Multiplier', 'Level up faster on every action', '1.0×', '1.2×'),
     ];
     final proRows = [
-      ('XP Multiplier', 'Earn XP faster, level up quicker'),
+      ('1.2× XP Multiplier', 'Earn 20% more XP on every action'),
       ('Streak Shields', 'Protect your streak on off days'),
       ('Shimmering Pro Badge', 'Stand out on the leaderboard'),
     ];

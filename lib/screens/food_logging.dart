@@ -594,6 +594,165 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   // Calories bar which also has a "View Analytics button
   Widget _buildCaloriesBar(Color appColor) {
+    if (isGuest) {
+      final accent = lightenColor(appColor, 0.45);
+      return GestureDetector(
+        onTap: () => Guest.exit(),
+        child: Stack(
+          children: [
+            IgnorePointer(
+              child: Opacity(
+                opacity: 0.35,
+                child: frostedGlassCard(
+                  context,
+                  color: appColor,
+                  baseRadius: 20,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 20),
+                    vertical: Responsive.height(context, 18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '1340',
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 36),
+                              fontWeight: FontWeight.w800,
+                              color: lightenColor(appColor, 0.45),
+                              height: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: Responsive.height(context, 4),
+                            ),
+                            child: Text(
+                              ' / 2000 kcal',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: lightenColor(appColor, 0.45),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '660 left',
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 13),
+                                  fontWeight: FontWeight.w600,
+                                  color: lightenColor(appColor, 0.45),
+                                ),
+                              ),
+                              Text(
+                                'daily goal',
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: lightenColor(appColor, 0.45),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Responsive.height(context, 14)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 6),
+                        ),
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: Responsive.height(context, 8),
+                              width: double.infinity,
+                              color: Colors.white.withAlpha(18),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: 0.67,
+                              child: Container(
+                                height: Responsive.height(context, 8),
+                                color: lightenColor(appColor, 0.45),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 16)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          for (final (label, val, goal) in [
+                            ('P', '87g', '160g'),
+                            ('C', '142g', '200g'),
+                            ('F', '44g', '55g'),
+                          ])
+                            Column(
+                              children: [
+                                Text(
+                                  label,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 11),
+                                    color: lightenColor(appColor, 0.3),
+                                  ),
+                                ),
+                                Text(
+                                  val,
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 14),
+                                    fontWeight: FontWeight.w700,
+                                    color: lightenColor(appColor, 0.45),
+                                  ),
+                                ),
+                                Text(
+                                  '/ $goal',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 10),
+                                    color: lightenColor(appColor, 0.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedLockPassword,
+                      color: accent,
+                      size: Responsive.scale(context, 28),
+                    ),
+                    SizedBox(height: Responsive.height(context, 6)),
+                    Text(
+                      "Sign up to unlock",
+                      style: GoogleFonts.manrope(
+                        color: accent,
+                        fontSize: Responsive.font(context, 14),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // if no goals set, show a prompt to open the goals dialog
     if (!_goalsSet) {
       return frostedGlassCard(
@@ -608,11 +767,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           width: double.infinity,
           child: TextButton.icon(
             onPressed: () async {
-              // For guest users
-              if (isGuest) {
-                Guest.block(context);
-                return;
-              }
               await context.push('/settings/preferences');
               if (mounted) setState(() {});
             },

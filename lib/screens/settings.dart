@@ -313,6 +313,7 @@ Widget buildSettingsDrawer(
                       label: "Go Premium",
                       onTap: () {
                         Navigator.pop(context);
+                        logAnalyticsEvent('premium_status_checked');
                         showPremiumSheet(context, ref);
                       },
                     ),

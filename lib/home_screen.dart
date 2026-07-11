@@ -860,6 +860,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     GestureDetector(
                       onTap: () {
                         if (isPremium) {
+                          logAnalyticsEvent(
+                            'shield_indicator_tapped',
+                            parameters: {'shield_count': shieldCount},
+                          );
                           if (shieldCount >= 3) return;
                           final resetAt = ref
                               .read(userDataProvider)
