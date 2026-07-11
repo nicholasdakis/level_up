@@ -2564,3 +2564,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - purchase_token is now stored on the user record when a subscription is verified so the webhook can resolve the uid from incoming notifications
 - More analytics added
 - Updated the privacy policy, ToS, and README
+- Fixed the theme preview countdown bubble not reappearing after reopening and closing the Pro sheet without picking a new color

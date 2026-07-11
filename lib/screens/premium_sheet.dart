@@ -17,6 +17,7 @@ import '../utility/confetti.dart';
 import 'pro_welcome_overlay.dart';
 
 Future<void> showPremiumSheet(BuildContext context, WidgetRef ref) async {
+  final existingPreview = premiumPreviewNotifier.value;
   premiumPreviewNotifier.value = null;
   final originalColor = ref.read(userDataProvider).value?.appColor;
   // Notifier lets the sheet pass back whatever color was previewed on close
@@ -45,6 +46,11 @@ Future<void> showPremiumSheet(BuildContext context, WidgetRef ref) async {
       originalColor: originalColor,
       expiresAt: DateTime.now().add(const Duration(seconds: 30)),
     );
+  } else if (picked == null &&
+      existingPreview != null &&
+      existingPreview.expiresAt.isAfter(DateTime.now())) {
+    // User closed without picking a new color, restore the previous countdown
+    premiumPreviewNotifier.value = existingPreview;
   }
 }
 
@@ -767,7 +773,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                   Text(
-                    'Love it? Scroll down to see your Pro plan.',
+                    'Tap to try this color in the app.',
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
                       color: cardColors(appColor).onCard,
@@ -808,7 +814,6 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         '13 presets',
         'Unlimited',
       ),
-      ('XP Multiplier', 'Level up faster on every action', '1.0×', '1.2×'),
     ];
     final proRows = [
       ('1.2× XP Multiplier', 'Earn 20% more XP on every action'),
@@ -1263,7 +1268,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                     ),
                                     Text(
                                       _dailyStreak > 1
-                                          ? 'You have a $_dailyStreak-day daily streak. Go Pro and a shield will protect it if you miss a day.'
+                                          ? 'Your daily streak is at $_dailyStreak days. Go Pro and a shield will protect it if you miss a day.'
                                           : 'Level $_level and climbing. Save over 50% with the yearly plan.',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(

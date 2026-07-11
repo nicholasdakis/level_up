@@ -408,10 +408,10 @@ class _ProgressionState extends ConsumerState<Progression> {
                         MediaQuery.paddingOf(context).top +
                         Responsive.height(context, 24),
                   ),
-                  sectionHeader("LEADERBOARD", context, appColor: appColor),
+                  sectionHeader("LEADERBOARDS", context, appColor: appColor),
                   _buildCard(
                     icon: HugeIcons.strokeRoundedMedal01,
-                    title: "Leaderboard",
+                    title: "Leaderboards",
                     subtitle: "See how you rank against other players",
                     onTap: isGuest
                         ? () => Guest.block(context)
