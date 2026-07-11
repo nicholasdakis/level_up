@@ -2563,3 +2563,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added Google Play RTDN webhook at /play_webhook that will verify the Pub/Sub JWT, looks up the user by purchase token, calls the Android Publisher API, and updates premium status and expiry in real time when a subscription renews, cancels, or expires
 - purchase_token is now stored on the user record when a subscription is verified so the webhook can resolve the uid from incoming notifications
 - More analytics added
+- Updated the privacy policy, ToS, and README

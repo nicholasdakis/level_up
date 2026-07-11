@@ -113,3 +113,17 @@ Turn your surroundings into an XP source:
 - **Unit preferences** for using metric or imperial throughout the app
 - **Notification toggle** and push notification management
 - **Changelog** viewable in-app
+
+## Level Up! Pro
+
+Level Up! offers an optional **Pro subscription** available via Google Play, billed monthly or yearly.
+
+Pro unlocks:
+
+- **Streak shields**: 3 shields per month to restore a broken daily reward streak instantly
+- **Full analytics history**: unlimited date range on food, water, and weight analytics (free users are limited to 14 days)
+- **Unlimited recent foods**: no cap on the recent foods list
+- **Custom theme colors**: full color picker for any accent color (free users choose from a preset palette)
+- **PRO badge** on the leaderboard
+
+Free users have full access to all core tracking and gamification features. Pro is purely additive.
