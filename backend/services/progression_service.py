@@ -185,7 +185,10 @@ class ProgressionService: # Service class to handle all progression-related busi
             seconds_since = (datetime.now(timezone.utc) - to_utc_datetime(last_claim_raw)).total_seconds()
             streak_will_reset = seconds_since >= 172800
 
+        is_premium = user.get("is_premium", False)
         multiplier = 1.0 if streak_will_reset else streak_multiplier(current_streak)
+        if is_premium:
+            multiplier = round(multiplier * 1.2, 4)
 
         # Step 3: Calculate XP reward with streak multiplier and apply level-ups
         base_xp = calculate_daily_reward_xp(current_level)
@@ -245,6 +248,8 @@ class ProgressionService: # Service class to handle all progression-related busi
 
         # Step 3: Calculate XP reward for checking in (the higher the level, the higher the small bonus)
         xp_gained = 100 + random.randint(0, max(current_level, 0))
+        if user.get("is_premium", False):
+            xp_gained = round(xp_gained * 1.2)
 
         # Step 4: Calculate the new level and XP after applying the reward
         new_level, new_exp = calculate_level_up(current_level, current_exp, xp_gained)
@@ -511,6 +516,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             raise ValueError(f"User {uid} not found")
         needed = experience_needed(user["level"])
         xp_gained = int(needed * random.uniform(0.05, 0.10))  # 5-10% of XP needed for next level
+        if user.get("is_premium", False):
+            xp_gained = round(xp_gained * 1.2)
         new_level, new_exp = calculate_level_up(user["level"], user["exp_points"], xp_gained)
         self._repo.update_user_xp(uid, new_level, new_exp)
         if new_level > user["level"]:

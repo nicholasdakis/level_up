@@ -713,6 +713,7 @@ DECLARE
     -- double session / muscle variety
     v_today_workout_count      INTEGER;
     v_distinct_muscles         INTEGER;
+    v_is_premium               BOOLEAN;
 BEGIN
     -- check if the user already completed a workout today (XP is once per day)
     SELECT EXISTS (
@@ -821,6 +822,12 @@ BEGIN
         v_base_xp        := ROUND(v_daily_base * 0.4)::INTEGER;
         v_duration_bonus := ROUND(v_base_xp * LEAST(p_duration_seconds::NUMERIC / 3600.0, 0.3))::INTEGER;
         v_xp_gained      := v_base_xp + v_duration_bonus;
+
+        -- apply premium 1.2x multiplier
+        SELECT COALESCE(is_premium, FALSE) INTO v_is_premium FROM users WHERE uid = p_uid;
+        IF v_is_premium THEN
+            v_xp_gained := ROUND(v_xp_gained * 1.2)::INTEGER;
+        END IF;
 
         -- apply level-ups
         v_new_exp   := v_exp + v_xp_gained;
