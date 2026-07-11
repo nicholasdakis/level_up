@@ -62,7 +62,7 @@ class UserRepository:
 
     def get_leaderboard(self):
         # Fetches top 100 users ordered by level and XP descending for the leaderboard
-        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).limit(100).execute()
+        result = self._supabase.table("users").select("uid, username, level, exp_points, pfp_base64, is_premium").order("level", desc=True).order("exp_points", desc=True).order("uid", desc=False).limit(101).execute()
         return result.data
 
     def get_leaderboard_by_foods(self, since: str | None):

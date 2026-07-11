@@ -105,6 +105,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
   List<ProductDetails> _products = [];
   bool _loading = true;
+  bool _loadFailed = false;
   bool _purchasing = false;
   String _selectedId = 'level_up_premium:yearly';
   Color? _originalColor;
@@ -164,7 +165,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     setState(() {
       _products = products;
       _loading = false;
-      if (products.isNotEmpty) _selectedId = products.first.id;
+      _loadFailed = products.isEmpty;
     });
   }
 
@@ -1324,13 +1325,33 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                             _SkeletonTile(appColor: appColor, tall: true),
                             SizedBox(height: Responsive.height(context, 10)),
                             _SkeletonTile(appColor: appColor, tall: false),
+                          ] else if (_loadFailed && !kIsWeb) ...[
+                            Text(
+                              'Could not load pricing. Check your connection and try again.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 13),
+                                color: lightenColor(appColor, 0.4),
+                              ),
+                            ),
+                            SizedBox(height: Responsive.height(context, 12)),
+                            frostedButton(
+                              'Retry',
+                              context,
+                              color: appColor,
+                              onPressed: () {
+                                setState(() {
+                                  _loading = true;
+                                  _loadFailed = false;
+                                });
+                                _loadProducts();
+                              },
+                            ),
                           ] else ...[
                             _PlanTile(
                               label: 'Yearly',
                               subtitle: '\$2.50/mo. Save over 50% vs monthly.',
-                              price: kIsWeb
-                                  ? '\$29.99 / yr'
-                                  : (yearly?.price ?? '\$29.99'),
+                              price: kIsWeb ? '\$29.99 / yr' : yearly!.price,
                               badge: '50% OFF',
                               selected: !_selectedId.contains('monthly'),
                               large: true,
@@ -1343,9 +1364,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                             _PlanTile(
                               label: 'Monthly',
                               subtitle: 'Billed every month',
-                              price: kIsWeb
-                                  ? '\$4.99 / mo'
-                                  : (monthly?.price ?? '\$4.99'),
+                              price: kIsWeb ? '\$4.99 / mo' : monthly!.price,
                               badge: null,
                               selected: _selectedId.contains('monthly'),
                               large: false,

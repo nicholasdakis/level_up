@@ -107,7 +107,11 @@ class PremiumService {
         _ref
             .read(userDataProvider.notifier)
             .patch(
-              (u) => u.copyWith(isPremium: true, premiumExpiresAt: expiresAt),
+              (u) => u.copyWith(
+                isPremium: true,
+                premiumExpiresAt: expiresAt,
+                shieldCount: 3,
+              ),
             );
       } else {
         if (kDebugMode) {

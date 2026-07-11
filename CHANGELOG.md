@@ -2554,3 +2554,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the set your nutrition goals card with the real calorie card and macro gauges with a lock on top of it for guests
 - Added analytics collection for the premium sheet
 - Fixed foods and workouts leaderboard standing showing a rank higher than the total user count: total now counts all users instead of only those who have logged, and rank is capped at total
+
+- ## 2026-07-11
+- Fixed the yearly plan not being pre-selected correctly when the Pro sheet opens which incorrectly showed "29.99 per month"
+- Shields now update to 3 on the UI immediately after a successful purchase without requiring a restart
+- Pro sheet now shows an error message and retry button when pricing fails to load instead of falling back to hardcoded placeholder prices
+- Fetched 101 users on the server-side for leaderboard so the tester account doesn't make it show 99 users
