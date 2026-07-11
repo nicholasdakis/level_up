@@ -74,6 +74,15 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 10, 2026',
+                version: '1.2.2',
+                changes: [
+                  'Level Up! Pro is now available. Subscribe to unlock premium features and support the app',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 9, 2026',
                 version: '1.2.1',
                 changes: [

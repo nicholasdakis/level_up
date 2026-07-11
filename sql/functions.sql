@@ -579,21 +579,33 @@ CREATE OR REPLACE FUNCTION get_foods_standing(p_uid TEXT)
 RETURNS TABLE(rank BIGINT, total BIGINT) LANGUAGE sql STABLE AS $$
   WITH counts AS (
     SELECT uid, COUNT(*) AS cnt FROM food_logs_v2 GROUP BY uid
+  ),
+  totals AS (
+    SELECT COUNT(*) AS total_users FROM users
   )
   SELECT
-    (SELECT COUNT(*) + 1 FROM counts WHERE cnt > COALESCE((SELECT cnt FROM counts WHERE uid = p_uid), 0)) AS rank,
-    (SELECT COUNT(DISTINCT uid) FROM food_logs_v2) AS total;
+    LEAST(
+      (SELECT COUNT(*) + 1 FROM counts WHERE cnt > COALESCE((SELECT cnt FROM counts WHERE uid = p_uid), 0)),
+      (SELECT total_users FROM totals)
+    ) AS rank,
+    (SELECT total_users FROM totals) AS total;
 $$;
 
 -- get_workouts_standing: returns the user's rank by all-time workout count and total user count
 CREATE OR REPLACE FUNCTION get_workouts_standing(p_uid TEXT)
 RETURNS TABLE(rank BIGINT, total BIGINT) LANGUAGE sql STABLE AS $$
   WITH counts AS (
-    SELECT uid, COUNT(*) AS cnt FROM workouts GROUP BY uid
+    SELECT uid, COUNT(*) AS cnt FROM workouts WHERE completed = true GROUP BY uid
+  ),
+  totals AS (
+    SELECT COUNT(*) AS total_users FROM users
   )
   SELECT
-    (SELECT COUNT(*) + 1 FROM counts WHERE cnt > COALESCE((SELECT cnt FROM counts WHERE uid = p_uid), 0)) AS rank,
-    (SELECT COUNT(DISTINCT uid) FROM workouts) AS total;
+    LEAST(
+      (SELECT COUNT(*) + 1 FROM counts WHERE cnt > COALESCE((SELECT cnt FROM counts WHERE uid = p_uid), 0)),
+      (SELECT total_users FROM totals)
+    ) AS rank,
+    (SELECT total_users FROM totals) AS total;
 $$;
 
 -- award_ad_xp: Atomically awards XP for a verified rewarded ad watch

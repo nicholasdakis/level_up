@@ -2553,3 +2553,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a PRO badge with a shimmer effect to premium users in the leaderboard
 - Replaced the set your nutrition goals card with the real calorie card and macro gauges with a lock on top of it for guests
 - Added analytics collection for the premium sheet
+- Fixed foods and workouts leaderboard standing showing a rank higher than the total user count: total now counts all users instead of only those who have logged, and rank is capped at total

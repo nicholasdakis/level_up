@@ -43,12 +43,10 @@ class PremiumService {
       final response = await InAppPurchase.instance.queryProductDetails(
         _productIds,
       );
-      if (kDebugMode) {
-        debugPrint(
-          'PremiumService: ${response.productDetails.length} products loaded, '
-          'notFound=${response.notFoundIDs}, error=${response.error}',
-        );
-      }
+      debugPrint(
+        'PremiumService: ${response.productDetails.length} products loaded, '
+        'notFound=${response.notFoundIDs}, error=${response.error}',
+      );
       _cachedProducts = response.productDetails;
       _productsLoaded = true;
     } catch (e) {

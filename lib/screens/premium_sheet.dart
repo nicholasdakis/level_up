@@ -14,6 +14,7 @@ import '../services/premium_service.dart';
 import '../services/user_data_manager.dart' show defaultAppColor;
 import '../utility/responsive.dart';
 import '../utility/confetti.dart';
+import 'pro_welcome_overlay.dart';
 
 Future<void> showPremiumSheet(BuildContext context, WidgetRef ref) async {
   premiumPreviewNotifier.value = null;
@@ -158,26 +159,29 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       onTimeout: () => [],
     );
     if (!mounted) return;
-    final yearlyId = products
-        .where((p) => p.id.contains('yearly'))
-        .firstOrNull
-        ?.id;
+    // Sort by price descending so yearly is first
+    products.sort((a, b) => b.rawPrice.compareTo(a.rawPrice));
     setState(() {
       _products = products;
       _loading = false;
-      if (yearlyId != null) _selectedId = yearlyId;
+      if (products.isNotEmpty) _selectedId = products.first.id;
     });
   }
 
+  // yearly = index 0 (sorted by price desc), monthly = index 1
+  ProductDetails? get _yearly => _products.isNotEmpty ? _products[0] : null;
+  ProductDetails? get _monthly => _products.length > 1 ? _products[1] : null;
+
   ProductDetails? get _selectedProduct {
-    for (final p in _products) {
-      if (p.id == _selectedId) return p;
-    }
-    return null;
+    if (_selectedId.contains('monthly')) return _monthly;
+    return _yearly;
   }
 
   Future<void> _subscribe() async {
     final product = _selectedProduct;
+    debugPrint(
+      '_subscribe called, product=${product?.id}, purchasing=$_purchasing',
+    );
     if (product == null || _purchasing) return;
     setState(() => _purchasing = true);
     logAnalyticsEvent(
@@ -1103,15 +1107,13 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
       isPremium,
     ) {
       if (isPremium && mounted) {
-        badgesConfettiController.play();
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: true).pop();
+        showProWelcomeOverlay(context, appColor);
       }
     });
 
-    final monthly = _products
-        .where((p) => p.id.contains('monthly'))
-        .firstOrNull;
-    final yearly = _products.where((p) => p.id.contains('yearly')).firstOrNull;
+    final yearly = _yearly;
+    final monthly = _monthly;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.94,
@@ -1330,12 +1332,11 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                                   ? '\$29.99 / yr'
                                   : (yearly?.price ?? '\$29.99'),
                               badge: '50% OFF',
-                              selected: _selectedId.contains('yearly'),
+                              selected: !_selectedId.contains('monthly'),
                               large: true,
                               appColor: appColor,
                               onTap: () => setState(
-                                () => _selectedId =
-                                    yearly?.id ?? 'level_up_premium:yearly',
+                                () => _selectedId = 'level_up_premium:yearly',
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 10)),
@@ -1350,8 +1351,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                               large: false,
                               appColor: appColor,
                               onTap: () => setState(
-                                () => _selectedId =
-                                    monthly?.id ?? 'level_up_premium:monthly',
+                                () => _selectedId = 'level_up_premium:monthly',
                               ),
                             ),
                           ],
@@ -1411,6 +1411,9 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                         onTap: _purchasing
                             ? null
                             : () {
+                                debugPrint(
+                                  'subscribe button tapped, purchasing=$_purchasing',
+                                );
                                 if (kIsWeb) {
                                   showFrostedAlertDialog(
                                     context: context,
