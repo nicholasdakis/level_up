@@ -2550,3 +2550,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Theme color picker is now gated by premium: free users see a preset grid of 13 named colors plus a locked Custom swatch, premium users get the full color picker
 - Preset color grid includes dark options (Navy, Forest, Midnight, Crimson) and colors matching real user data (Slate, Violet)
 - Recent foods limit dialog replaced with two options: 20 foods (free) and Unlimited (Pro)
+- Added a PRO badge with a shimmer effect to premium users in the leaderboard

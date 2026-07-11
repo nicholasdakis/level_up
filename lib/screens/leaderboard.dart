@@ -14,6 +14,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 import 'package:hugeicons/hugeicons.dart';
+import 'premium_sheet.dart' show showPremiumSheet;
 
 enum _LeaderboardType { xp, foods, workouts }
 
@@ -137,18 +138,18 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
   // Circular profile picture, or a default person icon if none exists
   Widget _profilePicture(LeaderboardEntry user) {
     final size = Responsive.scale(context, 40);
-    if (user.pfpBytes != null) {
-      return ClipOval(
-        child: Image.memory(
-          // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
-          user.pfpBytes!,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-    return Icon(Icons.person, color: Colors.white, size: size);
+    Widget pic = user.pfpBytes != null
+        ? ClipOval(
+            child: Image.memory(
+              // Load profile picture from decoded bytes to prevent decoding the base64 string multiple times (expensive operation)
+              user.pfpBytes!,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+            ),
+          )
+        : Icon(Icons.person, color: Colors.white, size: size);
+    return pic;
   }
 
   // Single leaderboard entry card
@@ -187,10 +188,12 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
           horizontal: Responsive.width(context, 16),
           vertical: Responsive.height(context, 12),
         ),
-        // Current user gets a tinted background
+        // Current user gets a tinted background, premium users get a faint accent wash
         decoration: BoxDecoration(
           color: isCurrentUser
               ? lightenColor(appColor, 0.15)
+              : user.isPremium
+              ? lightenColor(appColor, 0.45).withAlpha(18)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 16)),
         ),
@@ -242,14 +245,33 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        username,
-                        style: GoogleFonts.manrope(
-                          color: Colors.white,
-                          fontSize: Responsive.font(context, 15),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      user.isPremium
+                          ? ShimmerProRow(
+                              username: username,
+                              fontSize: Responsive.font(context, 15),
+                              appColor: appColor,
+                              onProTap: () => showProFeatureDialog(
+                                context,
+                                feature: 'Shimmering Pro Badge',
+                                appColor: appColor,
+                                isPremium:
+                                    ref
+                                        .read(userDataProvider)
+                                        .value
+                                        ?.isPremium ??
+                                    false,
+                                onLearnMore: () =>
+                                    showPremiumSheet(context, ref),
+                              ),
+                            )
+                          : Text(
+                              username,
+                              style: GoogleFonts.manrope(
+                                color: Colors.white,
+                                fontSize: Responsive.font(context, 15),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                       SizedBox(height: Responsive.height(context, 2)),
                       Text(
                         subtext(),

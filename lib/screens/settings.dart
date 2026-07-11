@@ -307,14 +307,15 @@ Widget buildSettingsDrawer(
                           await context.push('/settings/install');
                         },
                       ),
-                  buildActionTile(
-                    icon: HugeIcons.strokeRoundedCrown,
-                    label: "Go Premium",
-                    onTap: () {
-                      Navigator.pop(context);
-                      showPremiumSheet(context, ref);
-                    },
-                  ),
+                  if (!(userData?.isPremium ?? false))
+                    buildActionTile(
+                      icon: HugeIcons.strokeRoundedCrown,
+                      label: "Go Premium",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showPremiumSheet(context, ref);
+                      },
+                    ),
                   // Divider to visually separate Log Out
                   Padding(
                     padding: EdgeInsets.symmetric(

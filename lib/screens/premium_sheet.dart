@@ -349,29 +349,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   ),
                 ),
                 SizedBox(width: Responsive.width(context, 5)),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 5),
-                    vertical: Responsive.height(context, 1),
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 4),
-                    ),
-                  ),
-                  child: Text(
-                    'PRO',
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 8),
-                      color: Colors.black.withAlpha(180),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
+                proChip(context),
               ],
             ),
           );

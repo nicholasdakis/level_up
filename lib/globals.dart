@@ -449,7 +449,9 @@ Future<void> showProFeatureDialog(
   required String feature,
   required Color appColor,
   required VoidCallback onLearnMore,
+  bool isPremium = false,
 }) {
+  if (isPremium) return Future.value();
   return showFrostedDialog<void>(
     context: context,
     appColor: appColor,
@@ -677,6 +679,108 @@ TextStyle dialogButtonStyle({bool confirm = false}) => GoogleFonts.manrope(
   color: confirm ? Colors.white : Colors.white60,
   fontWeight: confirm ? FontWeight.w700 : FontWeight.w500,
 );
+
+Widget proChip(BuildContext context) => Container(
+  padding: EdgeInsets.symmetric(
+    horizontal: Responsive.width(context, 5),
+    vertical: Responsive.height(context, 1),
+  ),
+  decoration: BoxDecoration(
+    gradient: const LinearGradient(
+      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+    ),
+    borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
+  ),
+  child: Text(
+    'PRO',
+    style: GoogleFonts.manrope(
+      fontSize: Responsive.font(context, 8),
+      color: Colors.black.withAlpha(180),
+      fontWeight: FontWeight.w900,
+      letterSpacing: 0.5,
+    ),
+  ),
+);
+
+// Shimmering username + PRO chip for premium users on the leaderboard
+class ShimmerProRow extends StatefulWidget {
+  final String username;
+  final double fontSize;
+  final Color appColor;
+  final VoidCallback? onProTap;
+  const ShimmerProRow({
+    super.key,
+    required this.username,
+    required this.fontSize,
+    required this.appColor,
+    this.onProTap,
+  });
+
+  @override
+  State<ShimmerProRow> createState() => _ShimmerProRowState();
+}
+
+class _ShimmerProRowState extends State<ShimmerProRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, _) {
+        final pos = _ctrl.value;
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            begin: Alignment(-1.5 + pos * 3.5, 0),
+            end: Alignment(-0.5 + pos * 3.5, 0),
+            colors: [
+              lightenColor(widget.appColor, 0.3),
+              lightenColor(widget.appColor, 0.45),
+              Colors.white,
+              lightenColor(widget.appColor, 0.45),
+              lightenColor(widget.appColor, 0.3),
+            ],
+            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+          ).createShader(bounds),
+          child: GestureDetector(
+            onTap: widget.onProTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.username,
+                  style: GoogleFonts.manrope(
+                    fontSize: widget.fontSize,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: Responsive.width(context, 5)),
+                proChip(context),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 // Frosted glass tappable button
 // Pass a [color] to tint the button with the theme color, otherwise it uses a neutral white glass

@@ -8,6 +8,7 @@ class LeaderboardEntry {
   final int expPoints;
   final Uint8List? pfpBytes;
   final int? count;
+  final bool isPremium;
 
   LeaderboardEntry({
     required this.uid,
@@ -16,6 +17,7 @@ class LeaderboardEntry {
     required this.expPoints,
     this.pfpBytes,
     this.count,
+    this.isPremium = false,
   });
 
   // Factory constructor parses the backend response into a LeaderboardEntry by extracting and
@@ -30,6 +32,7 @@ class LeaderboardEntry {
           ? base64Decode(data['pfp_base64'])
           : null, // pfp decodes once on initialization
       count: data['count'],
+      isPremium: data['is_premium'] == true,
     );
   }
 }
