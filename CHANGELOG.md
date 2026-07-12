@@ -2575,3 +2575,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - After a user's first daily reward claim, a dialog now asks if they want a reminder tomorrow, then triggers the OS notification permission prompt if they agree
 - Removed the notification permission request that incorrectly fired on the home screen immediately after onboarding if notifications were strictly set to false
 - The "Notifications Blocked" dialog now includes an "Open Settings" button that deep-links directly to the app's notification settings instead of just showing a dead-end dismiss
+- Notification permission handling now supports context-specific title and message and a skipIfDenied flag so daily reward claims silently skip denied users rather than nagging them

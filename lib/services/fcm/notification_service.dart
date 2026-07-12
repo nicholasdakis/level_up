@@ -18,12 +18,17 @@ Future<String?> requestNotificationAndToken() =>
 Future<String?> getWebFcmTokenSafe(String vapidKey) =>
     platform.getWebFcmTokenSafe(vapidKey);
 
-// Requests OS notification permission if not yet determined, or shows a dialog if denied
-// Returns true if notifications are granted, false if denied.
+// notDetermined: shows the OS permission prompt, saves the token if granted
+// denied + skipIfDenied=true: returns false silently (respects user choice)
+// denied + skipIfDenied=false: shows "Notifications Blocked" dialog with Open Settings
+// authorized: returns true immediately, nothing to do
 Future<bool> requestNotificationPermissionIfNeeded(
   BuildContext context,
   UserDataNotifierNew notifier, {
   required Color appColor,
+  String message = '',
+  String title = 'Notifications Disabled in Settings',
+  bool skipIfDenied = false,
 }) async {
   if (kIsWeb) {
     return true; // web uses showBrowserBlockedDialog directly via a user gesture
@@ -46,14 +51,14 @@ Future<bool> requestNotificationPermissionIfNeeded(
     }
     return false;
   } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-    // Already denied — can't re-prompt, send the user to device settings
+    if (skipIfDenied) return false; // respect the user's choice, don't nag
     if (context.mounted) {
       showFrostedAlertDialog(
         context: context,
         appColor: appColor,
-        title: "Notifications Blocked",
+        title: title,
         content: Text(
-          "Enable notifications for Level Up! in your device settings to receive reminders and never miss a daily reward.",
+          message,
           style: TextStyle(
             fontSize: Responsive.font(context, 14),
             color: Colors.white70,

@@ -560,6 +560,7 @@ Future<void> _showFirstClaimNotificationPrompt(
       context,
       ref.read(userDataProvider.notifier),
       appColor: appColor,
+      skipIfDenied: true,
     );
   }
 }

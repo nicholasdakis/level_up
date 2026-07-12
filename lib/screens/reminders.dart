@@ -69,6 +69,8 @@ class _RemindersState extends ConsumerState<Reminders> {
         context,
         ref.read(userDataProvider.notifier),
         appColor: appColor,
+        message:
+            'Enable notifications for Level Up! in your device settings to receive your reminders.',
       );
       if (!mounted) return;
       setState(() => _notifBlocked = !granted);
