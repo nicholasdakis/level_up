@@ -700,135 +700,195 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
                           ),
                           SizedBox(height: Responsive.padding(context, 20)),
                           Container(
-                                width: double.infinity,
-                                margin: EdgeInsets.symmetric(
-                                  horizontal: chipMargin,
-                                ),
-                                padding: EdgeInsets.all(
-                                  Responsive.scale(context, 16),
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 16),
-                                  ),
-                                  color: Colors.white.withValues(alpha: 0.06),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    AnimatedBuilder(
-                                      animation: _xpController,
-                                      builder: (context, _) {
-                                        final t = _xpController.value;
-                                        final inLevel2 = t >= _level1Fraction;
-                                        final int level = inLevel2 ? 2 : 1;
-                                        final int levelMax = inLevel2
-                                            ? _level2Max
-                                            : _level1Max;
-                                        // progress through the current phase (0→1)
-                                        final double phase = inLevel2
-                                            ? (t - _level1Fraction) /
-                                                  (1.0 - _level1Fraction)
-                                            : t / _level1Fraction;
-                                        final int xp =
-                                            (phase *
-                                                    (inLevel2
-                                                        ? _level2Xp
-                                                        : _level1Max))
-                                                .toInt();
-                                        // bar fill is xp as a fraction of the full level cap
-                                        final double barFill = xp / levelMax;
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(
+                              horizontal: chipMargin,
+                            ),
+                            padding: EdgeInsets.all(
+                              Responsive.scale(context, 16),
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 16),
+                              ),
+                              color: Colors.white.withValues(alpha: 0.06),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedBuilder(
+                                  animation: _xpController,
+                                  builder: (context, _) {
+                                    final t = _xpController.value;
+                                    final inLevel2 = t >= _level1Fraction;
+                                    final int level = inLevel2 ? 2 : 1;
+                                    final int levelMax = inLevel2
+                                        ? _level2Max
+                                        : _level1Max;
+                                    // progress through the current phase (0→1)
+                                    final double phase = inLevel2
+                                        ? (t - _level1Fraction) /
+                                              (1.0 - _level1Fraction)
+                                        : t / _level1Fraction;
+                                    final int xp =
+                                        (phase *
+                                                (inLevel2
+                                                    ? _level2Xp
+                                                    : _level1Max))
+                                            .toInt();
+                                    // bar fill is xp as a fraction of the full level cap
+                                    final double barFill = xp / levelMax;
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "Level $level",
-                                                  style: GoogleFonts.manrope(
-                                                    color: Colors.white70,
-                                                    fontSize: Responsive.font(
-                                                      context,
-                                                      13,
-                                                    ),
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
+                                            Text(
+                                              "Level $level",
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white70,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  13,
                                                 ),
-                                                Text(
-                                                  "$xp / $levelMax XP",
-                                                  style: GoogleFonts.manrope(
-                                                    color: Colors.white38,
-                                                    fontSize: Responsive.font(
-                                                      context,
-                                                      12,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: Responsive.height(
-                                                context,
-                                                8,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    Responsive.scale(
-                                                      context,
-                                                      4,
-                                                    ),
-                                                  ),
-                                              child: LinearProgressIndicator(
-                                                value: barFill,
-                                                minHeight: Responsive.height(
+                                            Text(
+                                              "$xp / $levelMax XP",
+                                              style: GoogleFonts.manrope(
+                                                color: Colors.white38,
+                                                fontSize: Responsive.font(
                                                   context,
-                                                  7,
+                                                  12,
                                                 ),
-                                                backgroundColor: Colors.white
-                                                    .withValues(alpha: 0.1),
-                                                valueColor:
-                                                    const AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(Color(0xFF3B82F6)),
                                               ),
                                             ),
                                           ],
-                                        );
-                                      },
-                                    ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 8),
-                                    ),
-                                    Center(
-                                      child: Text(
-                                        "Join today and start earning XP",
-                                        style: GoogleFonts.manrope(
-                                          color: Colors.white38,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            13,
-                                          ),
-                                          fontWeight: FontWeight.w400,
                                         ),
-                                      ),
-                                    ),
-                                  ],
+                                        SizedBox(
+                                          height: Responsive.height(context, 8),
+                                        ),
+                                        LayoutBuilder(
+                                          builder: (context, constraints) {
+                                            final barHeight = Responsive.height(
+                                              context,
+                                              7,
+                                            );
+                                            final radius = Responsive.scale(
+                                              context,
+                                              4,
+                                            );
+                                            return Container(
+                                              height: barHeight,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      radius,
+                                                    ),
+                                              ),
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      radius,
+                                                    ),
+                                                child: FractionallySizedBox(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  widthFactor: barFill.clamp(
+                                                    0.0,
+                                                    1.0,
+                                                  ),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            radius,
+                                                          ),
+                                                      gradient:
+                                                          const LinearGradient(
+                                                            colors: [
+                                                              Color(0xFF22D3EE),
+                                                              Color(0xFF3B82F6),
+                                                            ],
+                                                          ),
+                                                    ),
+                                                    child: Stack(
+                                                      children: [
+                                                        Positioned.fill(
+                                                          child: ShaderMask(
+                                                            shaderCallback: (rect) => LinearGradient(
+                                                              begin: Alignment
+                                                                  .centerLeft,
+                                                              end: Alignment
+                                                                  .centerRight,
+                                                              colors: [
+                                                                Colors.white
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.0,
+                                                                    ),
+                                                                Colors.white
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.25,
+                                                                    ),
+                                                                Colors.white
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.0,
+                                                                    ),
+                                                              ],
+                                                              stops: const [
+                                                                0.0,
+                                                                0.5,
+                                                                1.0,
+                                                              ],
+                                                            ).createShader(rect),
+                                                            child:
+                                                                const ColoredBox(
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
-                              )
-                              .animate()
-                              .fadeIn(delay: 400.ms, duration: 400.ms)
-                              .slideY(begin: 0.2, end: 0),
+                                SizedBox(height: Responsive.height(context, 8)),
+                                Center(
+                                  child: Text(
+                                    "Join today and start earning XP",
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white38,
+                                      fontSize: Responsive.font(context, 13),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(delay: 400.ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
                         ],
                       );
                     },
