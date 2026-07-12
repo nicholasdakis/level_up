@@ -149,6 +149,9 @@ dependencies:
   # Unity Ads (fallback rewarded ad network)
   unity_ads_plugin: ^0.3.30
 
+  # open device app settings directly (used for notification permission recovery)
+  android_intent_plus: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

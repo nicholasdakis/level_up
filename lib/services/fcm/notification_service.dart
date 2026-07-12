@@ -2,6 +2,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import '../../globals.dart';
 import '../../providers/user_data_provider.dart';
 import '../../utility/responsive.dart';
@@ -44,23 +46,40 @@ Future<bool> requestNotificationPermissionIfNeeded(
     }
     return false;
   } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-    // Already denied — can't re-prompt, tell the user to go to device settings
+    // Already denied — can't re-prompt, send the user to device settings
     if (context.mounted) {
       showFrostedAlertDialog(
         context: context,
         appColor: appColor,
         title: "Notifications Blocked",
         content: Text(
-          "Enable notifications for Level Up! in your device settings to receive reminders.",
-          style: TextStyle(fontSize: Responsive.font(context, 15)),
+          "Enable notifications for Level Up! in your device settings to receive reminders and never miss a daily reward.",
+          style: TextStyle(
+            fontSize: Responsive.font(context, 14),
+            color: Colors.white70,
+          ),
+          textAlign: TextAlign.center,
         ),
         actions: [
-          Expanded(
-            child: Center(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Dismiss", style: dialogButtonStyle(confirm: true)),
-              ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Dismiss", style: dialogButtonStyle()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              const AndroidIntent(
+                action: 'android.settings.APP_NOTIFICATION_SETTINGS',
+                flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+                arguments: {
+                  'android.provider.extra.APP_PACKAGE':
+                      'com.nicholasdakis.levelup',
+                },
+              ).launch();
+            },
+            child: Text(
+              "Open Settings",
+              style: dialogButtonStyle(confirm: true),
             ),
           ),
         ],

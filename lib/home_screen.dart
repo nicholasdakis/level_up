@@ -259,13 +259,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             context.go('/workout');
           } else {
             onboardingHintNotifier.value = 'reward';
-            if (mounted) {
-              await requestNotificationPermissionIfNeeded(
-                context,
-                ref.read(userDataProvider.notifier),
-                appColor: appColor,
-              );
-            }
           }
         });
         return;
@@ -901,7 +894,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           context,
                           feature: 'Streak Shields',
                           appColor: appColor,
-                          onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                          onLearnMore: () {
+                            logAnalyticsEvent(
+                              'premium_sheet_opened_from_learn_more',
+                            );
+                            showPremiumSheet(context, ref);
+                          },
                         );
                       },
                       child: Row(
