@@ -1662,6 +1662,7 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('reward');
                 },
@@ -1675,6 +1676,7 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('settings');
                 },

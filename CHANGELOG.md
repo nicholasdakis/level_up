@@ -2570,3 +2570,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced feature chip labels on the login screen with more descriptive text and added subtitles explaining each feature
 - Chip icons now pulse subtly
 - XP preview bar on the login screen now animates, filling up to the next level
+- Fixed a bug where new users who selected "Explore the home dashboard" or "Customize the app" at the end of onboarding had their calorie goal, macro goals, and weight data discarded
