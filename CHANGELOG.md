@@ -2565,3 +2565,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - More analytics added
 - Updated the privacy policy, ToS, and README
 - Fixed the theme preview countdown bubble not reappearing after reopening and closing the Pro sheet without picking a new color
+
+## 2026-07-12
+- Replaced feature chip labels on the login screen with more descriptive text and added subtitles explaining each feature
+- Chip icons now pulse subtly
+- XP preview bar on the login screen now animates, filling up to the next level

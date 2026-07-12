@@ -1,4 +1,5 @@
-﻿import 'package:firebase_analytics/firebase_analytics.dart';
+﻿import 'dart:math';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +23,8 @@ class RegisterOrLogin extends ConsumerStatefulWidget {
   ConsumerState<RegisterOrLogin> createState() => _RegisterOrLoginState();
 }
 
-class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
+class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
+    with SingleTickerProviderStateMixin {
   // Keep track of entered email and password fields
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -35,9 +37,38 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
   // true once the user taps "Continue with email instead"
   bool showEmailForm = false;
 
+  // Drives the XP preview card — one continuous 0→1 tween split into two phases
+  late final AnimationController _xpController;
+  // t < _level1Fraction: filling level 1 (0→130 XP)
+  // t >= _level1Fraction: filling level 2 (0→_level2Xp XP)
+  late final double _level1Fraction;
+  late final int _level2Xp;
+  static const int _level1Max = 130;
+  static const int _level2Max = 170;
+
   @override
   void initState() {
     super.initState();
+    final rng = Random();
+    _level2Xp = 20 + rng.nextInt(31); // 20-50 XP into level 2
+    // level 1 takes 130 "units", level 2 partial takes _level2Xp "units"
+    // split the 0→1 tween proportionally so speed feels constant
+    final totalUnits = _level1Max + _level2Xp;
+    _level1Fraction = _level1Max / totalUnits;
+    _xpController =
+        AnimationController(
+          vsync: this,
+          duration: Duration(
+            milliseconds: (1800 * totalUnits / _level1Max).round(),
+          ),
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            Future.delayed(const Duration(milliseconds: 1200), () {
+              if (mounted) _xpController.forward(from: 0);
+            });
+          }
+        });
+    _xpController.forward();
     FirebaseAnalytics.instance.logScreenView(
       screenName: '/register-or-login',
       screenClass: 'RegisterOrLogin',
@@ -46,6 +77,7 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
 
   @override
   void dispose() {
+    _xpController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -505,36 +537,62 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
     );
   }
 
-  // Builds one feature chip with a circular icon and a label below it
-  Widget _featureChip(IconData icon, String label) {
+  // Builds one feature chip with a circular icon, label, and subtitle
+  // staggerDelay offsets the pulse entrance so chips don't all animate in sync
+  Widget _featureChip(
+    IconData icon,
+    String label,
+    String subtitle, {
+    Duration staggerDelay = Duration.zero,
+  }) {
     return Expanded(
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(Responsive.scale(context, 8)),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.08),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.12),
-                width: 1,
+                padding: EdgeInsets.all(Responsive.scale(context, 10)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.08),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                ),
+                child: HugeIcon(
+                  icon: icon,
+                  color: Colors.white70,
+                  size: Responsive.scale(context, 20),
+                ),
+              )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scaleXY(
+                delay: staggerDelay,
+                duration: 2800.ms,
+                begin: 1.0,
+                end: 1.06,
+                curve: Curves.easeInOut,
               ),
-            ),
-            child: HugeIcon(
-              icon: icon,
-              color: Colors.white54,
-              size: Responsive.scale(context, 18),
-            ),
-          ),
           SizedBox(height: Responsive.height(context, 6)),
           Text(
             label,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(context, 12),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 2)),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.manrope(
               color: Colors.white38,
-              fontSize: Responsive.font(context, 11),
-              fontWeight: FontWeight.w500,
+              fontSize: Responsive.font(context, 10),
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -612,92 +670,165 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _featureChip(
-                                HugeIcons.strokeRoundedNote,
-                                "Track",
-                              ),
+                                    HugeIcons.strokeRoundedPencil,
+                                    "Log habits",
+                                    "Food, water, workouts",
+                                    staggerDelay: 0.ms,
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 100.ms, duration: 400.ms)
+                                  .slideY(begin: 0.2, end: 0),
                               _featureChip(
-                                HugeIcons.strokeRoundedChartIncrease,
-                                "Progress",
-                              ),
+                                    HugeIcons.strokeRoundedStar,
+                                    "Earn XP",
+                                    "Level up every day",
+                                    staggerDelay: 900.ms,
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 200.ms, duration: 400.ms)
+                                  .slideY(begin: 0.2, end: 0),
                               _featureChip(
-                                HugeIcons.strokeRoundedMedal01,
-                                "Compete",
-                              ),
+                                    HugeIcons.strokeRoundedMedal01,
+                                    "Compete",
+                                    "Climb the leaderboard",
+                                    staggerDelay: 1800.ms,
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 300.ms, duration: 400.ms)
+                                  .slideY(begin: 0.2, end: 0),
                             ],
                           ),
                           SizedBox(height: Responsive.padding(context, 20)),
                           Container(
-                            width: double.infinity,
-                            margin: EdgeInsets.symmetric(
-                              horizontal: chipMargin,
-                            ),
-                            padding: EdgeInsets.all(
-                              Responsive.scale(context, 16),
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 16),
-                              ),
-                              color: Colors.white.withValues(alpha: 0.06),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                width: 1,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                width: double.infinity,
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: chipMargin,
+                                ),
+                                padding: EdgeInsets.all(
+                                  Responsive.scale(context, 16),
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 16),
+                                  ),
+                                  color: Colors.white.withValues(alpha: 0.06),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.12),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      "Level 1",
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white70,
-                                        fontSize: Responsive.font(context, 13),
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                    AnimatedBuilder(
+                                      animation: _xpController,
+                                      builder: (context, _) {
+                                        final t = _xpController.value;
+                                        final inLevel2 = t >= _level1Fraction;
+                                        final int level = inLevel2 ? 2 : 1;
+                                        final int levelMax = inLevel2
+                                            ? _level2Max
+                                            : _level1Max;
+                                        // progress through the current phase (0→1)
+                                        final double phase = inLevel2
+                                            ? (t - _level1Fraction) /
+                                                  (1.0 - _level1Fraction)
+                                            : t / _level1Fraction;
+                                        final int xp =
+                                            (phase *
+                                                    (inLevel2
+                                                        ? _level2Xp
+                                                        : _level1Max))
+                                                .toInt();
+                                        // bar fill is xp as a fraction of the full level cap
+                                        final double barFill = xp / levelMax;
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Level $level",
+                                                  style: GoogleFonts.manrope(
+                                                    color: Colors.white70,
+                                                    fontSize: Responsive.font(
+                                                      context,
+                                                      13,
+                                                    ),
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "$xp / $levelMax XP",
+                                                  style: GoogleFonts.manrope(
+                                                    color: Colors.white38,
+                                                    fontSize: Responsive.font(
+                                                      context,
+                                                      12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: Responsive.height(
+                                                context,
+                                                8,
+                                              ),
+                                            ),
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    Responsive.scale(
+                                                      context,
+                                                      4,
+                                                    ),
+                                                  ),
+                                              child: LinearProgressIndicator(
+                                                value: barFill,
+                                                minHeight: Responsive.height(
+                                                  context,
+                                                  7,
+                                                ),
+                                                backgroundColor: Colors.white
+                                                    .withValues(alpha: 0.1),
+                                                valueColor:
+                                                    const AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Color(0xFF3B82F6)),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
-                                    Text(
-                                      "0 / 130 XP",
-                                      style: GoogleFonts.manrope(
-                                        color: Colors.white38,
-                                        fontSize: Responsive.font(context, 12),
+                                    SizedBox(
+                                      height: Responsive.height(context, 8),
+                                    ),
+                                    Center(
+                                      child: Text(
+                                        "Join today and start earning XP",
+                                        style: GoogleFonts.manrope(
+                                          color: Colors.white38,
+                                          fontSize: Responsive.font(
+                                            context,
+                                            13,
+                                          ),
+                                          fontWeight: FontWeight.w400,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: Responsive.height(context, 8)),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 4),
-                                  ),
-                                  child: LinearProgressIndicator(
-                                    value: 0.0,
-                                    minHeight: Responsive.height(context, 7),
-                                    backgroundColor: Colors.white.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                    valueColor:
-                                        const AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF3B82F6),
-                                        ),
-                                  ),
-                                ),
-                                SizedBox(height: Responsive.height(context, 8)),
-                                Text(
-                                  "Your journey starts at Level 1",
-                                  style: GoogleFonts.manrope(
-                                    color: Colors.white38,
-                                    fontSize: Responsive.font(context, 11),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                              )
+                              .animate()
+                              .fadeIn(delay: 400.ms, duration: 400.ms)
+                              .slideY(begin: 0.2, end: 0),
                         ],
                       );
                     },
