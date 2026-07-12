@@ -2572,3 +2572,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - XP preview bar on the login screen now animates, filling up to the next level
 - Fixed a bug where new users who selected "Explore the home dashboard" or "Customize the app" at the end of onboarding had their calorie goal, macro goals, and weight data discarded
 - Split the dense calorie setup step in onboarding into two lighter steps: body stats (sex, age, height, weight) and activity level + calorie goal
+- After a user's first daily reward claim, a dialog now asks if they want a reminder tomorrow, then triggers the OS notification permission prompt if they agree

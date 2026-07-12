@@ -13,6 +13,10 @@ import 'level_up_overlay.dart';
 import '../utility/responsive.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'premium_sheet.dart' show showPremiumSheet;
+import '../services/fcm/notification_service.dart'
+    show requestNotificationPermissionIfNeeded;
+import 'package:firebase_messaging/firebase_messaging.dart'
+    show FirebaseMessaging, AuthorizationStatus;
 
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
@@ -76,6 +80,8 @@ class DailyRewardDialog {
         lastClaim != null &&
         DateTime.now().toUtc().difference(lastClaim).inSeconds >= 172800 &&
         currentStreak > 0;
+
+    final isFirstClaim = lastClaim == null;
 
     if (streakBroke && context.mounted) {
       final isPremium = userData?.isPremium ?? false;
@@ -304,6 +310,17 @@ class DailyRewardDialog {
       await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }
 
+    // On first ever claim, ask for notification permission before scheduling
+    if (isFirstClaim && context.mounted) {
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+        if (context.mounted) {
+          await _showFirstClaimNotificationPrompt(context, appColor, ref);
+        }
+      }
+    }
+
     // Set a reminder 23 hours from now
     if (updatedData?.notificationsEnabled ?? false) {
       await setDailyRewardNotification();
@@ -477,4 +494,72 @@ Future<bool> _showShieldUpsellDialog(
     ),
   );
   return shouldClaim == true;
+}
+
+Future<void> _showFirstClaimNotificationPrompt(
+  BuildContext context,
+  Color appColor,
+  WidgetRef ref,
+) async {
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
+  final confirmed = await showFrostedDialog<bool>(
+    context: context,
+    appColor: appColor,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedNotification01,
+          color: accent,
+          size: 36,
+        ),
+        SizedBox(height: Responsive.height(context, 12)),
+        Text(
+          'Never miss a reward',
+          style: GoogleFonts.manrope(
+            color: Colors.white,
+            fontSize: Responsive.font(context, 16),
+            fontWeight: FontWeight.w700,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: Responsive.height(context, 6)),
+        Text(
+          'Enable notifications to get daily reminders, protect your streak, and never miss out on free XP.',
+          style: GoogleFonts.manrope(
+            color: dim,
+            fontSize: Responsive.font(context, 13),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: Responsive.height(context, 20)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context, rootNavigator: true).pop(false),
+              child: Text('No thanks', style: dialogButtonStyle()),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context, rootNavigator: true).pop(true),
+              child: Text(
+                'Yes, remind me',
+                style: dialogButtonStyle(confirm: true),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && context.mounted) {
+    await requestNotificationPermissionIfNeeded(
+      context,
+      ref.read(userDataProvider.notifier),
+      appColor: appColor,
+    );
+  }
 }
