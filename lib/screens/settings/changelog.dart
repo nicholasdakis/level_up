@@ -74,6 +74,16 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 12, 2026',
+                version: '1.2.21',
+                changes: [
+                  'Onboarding improvements and quality of life updates across the app',
+                  'Several bug fixes for a smoother experience',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 10, 2026',
                 version: '1.2.2',
                 changes: [

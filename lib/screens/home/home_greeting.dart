@@ -15,6 +15,14 @@ import 'dart:math';
     ("HOW'S EVERYTHING GOING", true),
     ("READY TO LEVEL UP", true),
     ("WELCOME BACK", false),
+    ("STAYING CONSISTENT", true),
+    ("ON A ROLL", false),
+    ("KEEP PUSHING", false),
+    ("WHAT ARE WE WORKING ON", true),
+    ("GOOD TO HAVE YOU BACK", false),
+    ("GOOD TO SEE YOU", false),
+    ("CRUSHING IT", false),
+    ("LET'S SEE WHAT YOU'VE GOT", true),
   ];
 
   final timeSlot = <(String, bool)>[];
@@ -25,6 +33,7 @@ import 'dart:math';
       ("UP LATE", true),
       ("CAN'T SLEEP", true),
       ("STILL AWAKE", true),
+      ("NIGHT MODE ACTIVATED", false),
     ]);
   } else if (hour < 12) {
     timeSlot.addAll([
@@ -34,6 +43,10 @@ import 'dart:math';
       ("HOW'S IT GOING", true),
       ("UP EARLY", true),
       ("GOOD TO SEE YOU", false),
+      ("STARTING STRONG", false),
+      ("EARLY BIRD", false),
+      ("FRESH START", false),
+      ("MORNING GRIND", false),
     ]);
   } else if (hour < 17) {
     timeSlot.addAll([
@@ -42,6 +55,9 @@ import 'dart:math';
       ("KEEP IT UP", false),
       ("HOW'S THE DAY GOING", true),
       ("STAYING FOCUSED", true),
+      ("HALFWAY THROUGH", false),
+      ("STILL GOING STRONG", false),
+      ("POWERING THROUGH", false),
     ]);
   } else if (hour < 21) {
     timeSlot.addAll([
@@ -57,6 +73,7 @@ import 'dart:math';
       ("NIGHT OWL", false),
       ("STILL GOING", true),
       ("CAN'T SLEEP", true),
+      ("LATE NIGHT HUSTLE", false),
     ]);
   }
 

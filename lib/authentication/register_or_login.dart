@@ -59,7 +59,7 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
         AnimationController(
           vsync: this,
           duration: Duration(
-            milliseconds: (1800 * totalUnits / _level1Max).round(),
+            milliseconds: (1200 * totalUnits / _level1Max).round(),
           ),
         )..addStatusListener((status) {
           if (status == AnimationStatus.completed) {
@@ -567,9 +567,9 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scaleXY(
                 delay: staggerDelay,
-                duration: 2800.ms,
+                duration: 1800.ms,
                 begin: 1.0,
-                end: 1.06,
+                end: 1.14,
                 curve: Curves.easeInOut,
               ),
           SizedBox(height: Responsive.height(context, 6)),

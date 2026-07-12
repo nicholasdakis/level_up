@@ -21,19 +21,21 @@ import 'package:firebase_messaging/firebase_messaging.dart'
 class DailyRewardDialog {
   String randomRewardReminderMessage() {
     List<String> reminderMessages = [
-      "23 hours have passed, come claim your daily reward!",
-      "Come claim your daily reward!",
+      "Your daily reward is ready to claim!",
       "Come claim your free daily XP!",
       "Your free daily XP is waiting for you!",
-      "Don't lose your daily reward streak!",
-      "Come claim your free daily XP to get ahead on the leaderboard!",
-      "Don't forget to claim your free experience points!",
+      "Don't lose your streak. Claim your daily reward!",
+      "Free XP is on the table. Come get it!",
       "Ready to boost your level? Claim your reward now!",
-      "Your daily XP is waiting! Don't miss out!",
+      "Your daily XP is waiting. Don't miss out!",
       "Time to grab today's reward and level up!",
-      "Daily reward alert! Claim it before it's gone!",
-      "Keep the streak alive! Claim your reward!",
-      "Stay ahead! Collect your daily reward now!",
+      "Keep the streak alive and claim your reward!",
+      "Stay ahead on the leaderboard. Claim your XP!",
+      "Another day, another reward. Come claim it!",
+      "Your streak is counting on you. Claim today's reward!",
+      "Don't let today's XP go to waste!",
+      "One tap away from free XP. Come get it!",
+      "Your streak is counting on you. Come claim your daily reward!",
     ];
     final random = Random();
     int randomIndex = random.nextInt(reminderMessages.length);

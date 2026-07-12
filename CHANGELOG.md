@@ -2576,3 +2576,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the notification permission request that incorrectly fired on the home screen immediately after onboarding if notifications were strictly set to false
 - The "Notifications Blocked" dialog now includes an "Open Settings" button that deep-links directly to the app's notification settings instead of just showing a dead-end dismiss
 - Notification permission handling now supports context-specific title and message and a skipIfDenied flag so daily reward claims silently skip denied users rather than nagging them
+- Added more possible generations for: random-generated usernames, greeting messages, placeholder reminder messages, and daily reward notification messages
