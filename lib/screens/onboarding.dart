@@ -66,8 +66,8 @@ Future<String?> showOnboardingWizard(
   ];
 
   int currentStep =
-      0; // 0 = pitch, 1 = goals, 2 = calories, 3 = macro profile, 4 = username, 5 = activation
-  const totalSteps = 6;
+      0; // 0 = pitch, 1 = goals, 2 = body stats, 3 = activity + calorie goal, 4 = macro profile, 5 = username, 6 = activation
+  const totalSteps = 7;
   final usernameController = TextEditingController();
   String? usernameError;
   // pending macro selections, written to db only in commitAll
@@ -562,10 +562,6 @@ Future<String?> showOnboardingWizard(
 
         Widget buildStep3() {
           final isMetric3 = isMetricCalorie;
-          final presets = isMetric3
-              ? [0.25, 0.5, 0.75, 1.0]
-              : [0.5, 1.0, 1.5, 2.0];
-          final isCustomActive = rateCustomMode;
           return ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.sizeOf(ctx).height * 0.65,
@@ -575,7 +571,7 @@ Future<String?> showOnboardingWizard(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Set your calorie goal',
+                    'Tell us about yourself',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(ctx, 20),
@@ -585,7 +581,7 @@ Future<String?> showOnboardingWizard(
                   ),
                   SizedBox(height: Responsive.height(ctx, 6)),
                   Text(
-                    "Age, sex, height, and weight let us calculate your metabolic rate so your calorie target is accurate for you.",
+                    'This lets us calculate your calorie target accurately. You can skip this and set goals manually later.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(ctx, 13),
@@ -813,7 +809,7 @@ Future<String?> showOnboardingWizard(
                       ),
                     ],
                   ),
-                  // show weight field if it wasn't entered on step 2
+                  // show weight field if it wasn't entered on step 1
                   if (currentWeightKg == null) ...[
                     SizedBox(height: Responsive.height(ctx, 12)),
                     _weightField(
@@ -825,7 +821,74 @@ Future<String?> showOnboardingWizard(
                       dim,
                     ),
                   ],
-                  SizedBox(height: Responsive.height(ctx, 16)),
+                  SizedBox(height: Responsive.height(ctx, 20)),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => setState(() => currentStep = 3),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: appColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          vertical: Responsive.height(ctx, 14),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: accent.withAlpha(80),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Continue',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(ctx, 15),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        Widget buildStep4() {
+          final isMetric3 = isMetricCalorie;
+          final presets = isMetric3
+              ? [0.25, 0.5, 0.75, 1.0]
+              : [0.5, 1.0, 1.5, 2.0];
+          final isCustomActive = rateCustomMode;
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(ctx).height * 0.65,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Set your calorie goal',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 20),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(ctx, 6)),
+                  Text(
+                    'How active are you, and what rate do you want to progress at?',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 13),
+                      color: dim,
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(ctx, 20)),
                   // Activity
                   Text(
                     'Activity level',
@@ -1293,7 +1356,7 @@ Future<String?> showOnboardingWizard(
                           (tdee != null &&
                               (goalType == 'maintain' ||
                                   rateController.text.isNotEmpty))
-                          ? () => setState(() => currentStep = 3)
+                          ? () => setState(() => currentStep = 4)
                           : () {
                               final missing = <String>[];
                               if (selectedSex == null) missing.add('sex');
@@ -1356,13 +1419,13 @@ Future<String?> showOnboardingWizard(
         }
 
         // Macro profile step: only shown when a calorie target was calculated
-        Widget buildStep4() {
+        Widget buildStep5() {
           void applyMacros(int protein, int carbs, int fat) {
             // store pending, written to db in commitAll
             pendingProtein = protein;
             pendingCarbs = carbs;
             pendingFat = fat;
-            setState(() => currentStep = 4);
+            setState(() => currentStep = 5);
           }
 
           final calories = liveCalories ?? 2000;
@@ -1464,7 +1527,7 @@ Future<String?> showOnboardingWizard(
         }
 
         // Username step: let user pick a name, or get a random one
-        Widget buildStep5() {
+        Widget buildStep6() {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1554,7 +1617,7 @@ Future<String?> showOnboardingWizard(
                       ref
                           .read(userDataProvider.notifier)
                           .patch((u) => u.copyWith(username: name));
-                      if (ctx.mounted) setState(() => currentStep = 5);
+                      if (ctx.mounted) setState(() => currentStep = 6);
                     } else {
                       setState(() => usernameError = 'Username already taken');
                     }
@@ -1584,7 +1647,7 @@ Future<String?> showOnboardingWizard(
               TextButton(
                 onPressed: () {
                   // leave username as uid so finishOnboarding assigns a random name at the end
-                  setState(() => currentStep = 5);
+                  setState(() => currentStep = 6);
                 },
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 child: Text(
@@ -1599,7 +1662,7 @@ Future<String?> showOnboardingWizard(
           );
         }
 
-        Widget buildStep6() {
+        Widget buildStep7() {
           final name = ref.read(userDataProvider).value?.username;
           final hasName =
               name != null && name != ref.read(userDataProvider).value?.uid;
@@ -1718,7 +1781,9 @@ Future<String?> showOnboardingWizard(
                         ? buildStep4()
                         : currentStep == 4
                         ? buildStep5()
-                        : buildStep6(),
+                        : currentStep == 5
+                        ? buildStep6()
+                        : buildStep7(),
                   ),
                 ),
               ),
@@ -1730,13 +1795,12 @@ Future<String?> showOnboardingWizard(
                   children: [
                     TextButton.icon(
                       onPressed: () => setState(() {
-                        // if goals were skipped, back from macro or username step jumps to step 1
-                        if (currentStep == 3 && selectedGoal == null) {
+                        // if goals were skipped, back from macro/username/activation jumps to step 1
+                        if (currentStep == 4 && selectedGoal == null) {
                           currentStep = 1;
-                        } else if (currentStep == 4 && selectedGoal == null) {
-                          currentStep = 1;
-                          // if goals were skipped, back from activation jumps to step 1
                         } else if (currentStep == 5 && selectedGoal == null) {
+                          currentStep = 1;
+                        } else if (currentStep == 6 && selectedGoal == null) {
                           currentStep = 1;
                         } else {
                           currentStep--;
@@ -1758,9 +1822,10 @@ Future<String?> showOnboardingWizard(
                     ),
                     if (currentStep == 1 ||
                         currentStep == 2 ||
-                        currentStep == 3)
+                        currentStep == 3 ||
+                        currentStep == 4)
                       TextButton(
-                        onPressed: () => setState(() => currentStep = 4),
+                        onPressed: () => setState(() => currentStep = 5),
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
