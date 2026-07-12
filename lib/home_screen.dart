@@ -1,4 +1,5 @@
 ﻿// home_screen.dart
+import 'dart:ui';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -470,52 +471,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Guest banner card
   Widget _buildGuestBanner() {
-    return frostedGlassCard(
-      context,
-      color: appColor,
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 14),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "You're in guest mode",
-                  style: GoogleFonts.manrope(
-                    color: lightenColor(appColor, 0.45),
-                    fontSize: Responsive.font(context, 14),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  "Create an account for the full experience",
-                  style: GoogleFonts.manrope(
-                    color: Colors.white54,
-                    fontSize: Responsive.font(context, 12),
-                  ),
-                ),
-              ],
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: frostedGlassCard(
+          context,
+          color: appColor,
+          baseRadius: 20,
+          backgroundColor: appColor.computeLuminance() < 0.18
+              ? Colors.white.withAlpha(18)
+              : Colors.white.withAlpha(50),
+          border: Border.all(
+            color: Colors.white.withAlpha(35),
+            width: Responsive.width(context, 1.5),
           ),
-          SizedBox(width: Responsive.width(context, 12)),
-          frostedButton(
-            "Sign Up",
-            context,
-            color: appColor,
-            onPressed: () async {
-              await authService.value.signOut(
-                ref.read(userDataProvider.notifier),
-                ref.read(workoutProvider.notifier),
-                ref: ref,
-              );
-            },
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
           ),
-        ],
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "You're in guest mode",
+                      style: GoogleFonts.manrope(
+                        color: lightenColor(appColor, 0.45),
+                        fontSize: Responsive.font(context, 14),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      "Create an account for the full experience",
+                      style: GoogleFonts.manrope(
+                        color: Colors.white54,
+                        fontSize: Responsive.font(context, 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: Responsive.width(context, 12)),
+              frostedButton(
+                "Sign Up",
+                context,
+                color: appColor,
+                onPressed: () async {
+                  await authService.value.signOut(
+                    ref.read(userDataProvider.notifier),
+                    ref.read(workoutProvider.notifier),
+                    ref: ref,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

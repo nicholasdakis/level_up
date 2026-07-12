@@ -2570,7 +2570,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced feature chip labels on the login screen with more descriptive text and added subtitles explaining each feature
 - Chip icons now pulse subtly
 - XP preview bar on the login screen now animates, filling up to the next level
-- XP preview bar replaced with a custom gradient shimmer bar for a more premium look
 - Fixed a bug where new users who selected "Explore the home dashboard" or "Customize the app" at the end of onboarding had their calorie goal, macro goals, and weight data discarded
 - Split the dense calorie setup step in onboarding into two lighter steps: body stats (sex, age, height, weight) and activity level + calorie goal
 - After a user's first daily reward claim, a dialog now asks if they want a reminder tomorrow, then triggers the OS notification permission prompt if they agree
@@ -2578,3 +2577,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The "Notifications Blocked" dialog now includes an "Open Settings" button that deep-links directly to the app's notification settings instead of just showing a dead-end dismiss
 - Notification permission handling now supports context-specific title and message and a skipIfDenied flag so daily reward claims silently skip denied users rather than nagging them
 - Added more possible generations for: random-generated usernames, greeting messages, placeholder reminder messages, and daily reward notification messages
+- XP preview bar replaced with a custom gradient shimmer bar for a more premium look
+- Guest mode banner UI updated to stand out a bit more
