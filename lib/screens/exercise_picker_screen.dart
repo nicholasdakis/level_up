@@ -879,7 +879,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                   });
                                   Navigator.of(dialogContext).pop();
                                   widget.onExerciseSelected(newEx);
-                                  if (mounted) context.pop();
+                                  if (mounted) Navigator.of(context).pop();
                                 }
                               },
                         child: saving
@@ -1495,7 +1495,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                 isCustom: isCustom,
                                 onTap: () {
                                   widget.onExerciseSelected(ex);
-                                  context.pop();
+                                  Navigator.of(context).pop();
                                 },
                                 onMenuTap: isCustom
                                     ? () => _showCustomExerciseMenu(context, ex)
@@ -1691,7 +1691,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     (_recommendedExercises[i]['equipment'] as String?) ?? '',
                 onTap: () {
                   widget.onExerciseSelected(_recommendedExercises[i]);
-                  context.pop();
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -1715,7 +1715,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               subtitle: '',
               onTap: () {
                 widget.onExerciseSelected(_recentExercises[i]);
-                context.pop();
+                Navigator.of(context).pop();
               },
             ),
           ],

@@ -55,6 +55,9 @@ dependencies:
   # state management
   flutter_riverpod: ^3.3.2
 
+  # foreground service for live workout notification on Android
+  flutter_foreground_task: ^9.2.2
+
   # Custom fonts
   google_fonts: ^6.3.0
 

@@ -2609,3 +2609,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made cards taller in reordering mode to be easier to swipe
 - Styled the minimize chevron like the back button on other screens
 - Fixed a bug where last_date was not returned in get_streaks (did not affect important streak-related logic as that is handled directly in RPCs)
+- Fixed a bug where selecting an exercise in the exercise picker did not dismiss the screen
+- Made the exercise menu (3-dot) button larger and easier to tap
+- Added an Android foreground service notification that shows a live workout timer, current exercise, completed/total sets, and rest countdown when a rest timer is active; includes +15s and Skip Rest action buttons and persists when the app is fully closed so users can see their workout is still running

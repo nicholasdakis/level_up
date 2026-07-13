@@ -19,6 +19,8 @@ import '/models/workout_session.dart';
 import '/providers/workout_provider.dart';
 import 'exercise_picker_screen.dart';
 import 'level_up_overlay.dart';
+import '/services/workout_foreground_service.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 class ActiveWorkoutScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>?
@@ -99,6 +101,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   void _startRestTimer() {
     _restTimer?.cancel();
     setState(() => _restSeconds = _restDuration);
+    _updateForegroundNotification();
     _restTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
@@ -112,17 +115,20 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
           t.cancel();
         }
       });
+      _updateForegroundNotification();
     });
   }
 
   void _dismissRestTimer() {
     _restTimer?.cancel();
     setState(() => _restSeconds = null);
+    _updateForegroundNotification();
   }
 
   @override
   void initState() {
     super.initState();
+    FlutterForegroundTask.addTaskDataCallback(_onTaskData);
     // use existing session if one is already active (restored), otherwise build one now
     final existingSession = ref.read(workoutProvider).value?.activeSession;
     WorkoutSession session;
@@ -161,6 +167,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       // schedule after mount — Riverpod forbids state changes during widget build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(workoutProvider.notifier).startSession(session);
+        _startForegroundService();
       });
       logAnalyticsEvent(
         'workout_started',
@@ -206,13 +213,75 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
   }
 
+  void _onTaskData(Object data) {
+    if (data is! Map) return;
+    final button = data['button'] as String?;
+    if (button == null) return;
+
+    switch (button) {
+      case 'resume':
+        // tapping the notification body brings the app to the foreground automatically on Android
+        // nothing extra needed here since this callback only fires when the app is already in memory
+        break;
+      case 'rest_add':
+        if (_restSeconds != null && mounted) {
+          setState(() => _restSeconds = _restSeconds! + 15);
+        }
+      case 'rest_skip':
+        if (mounted) _dismissRestTimer();
+      case 'discard':
+        _confirmDiscard().then((confirmed) {
+          if (confirmed && mounted) {
+            ref.read(workoutProvider.notifier).clearSession();
+            WorkoutForegroundService.stop();
+            Navigator.of(context).pop();
+          }
+        });
+    }
+  }
+
   @override
   void dispose() {
+    FlutterForegroundTask.removeTaskDataCallback(_onTaskData);
     _restTimer?.cancel();
     for (final c in _controllers.values) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  String _notificationText() {
+    final completed = _completedSets;
+    final total = _totalSets;
+    final exerciseCount = _exercises.length;
+    if (exerciseCount == 0) return 'No exercises added yet';
+    if (_restSeconds != null && _restSeconds! > 0) {
+      final m = _restSeconds! ~/ 60;
+      final s = _restSeconds! % 60;
+      final timeStr = m > 0 ? '$m:${s.toString().padLeft(2, '0')}' : '${s}s';
+      return 'Rest: $timeStr · ${_exercises.last['name'] ?? 'Unknown'}';
+    }
+    return '$completed / $total sets · ${_exercises.last['name'] ?? 'Unknown'}';
+  }
+
+  void _startForegroundService() {
+    if (isGuest) return;
+    // fire and forget so the foreground service startup doesn't block the UI
+    WorkoutForegroundService.start(
+      startedAtMs: _s.startedAtMs,
+      notificationText: _notificationText(),
+    ).ignore();
+  }
+
+  void _updateForegroundNotification() {
+    if (isGuest) return;
+    WorkoutForegroundService.update(notificationText: _notificationText());
+  }
+
+  // wraps persist() + foreground notification update so all mutations stay in sync
+  void _persist() {
+    ref.read(workoutProvider.notifier).persist();
+    _updateForegroundNotification();
   }
 
   void _removeExercise(int exIndex) {
@@ -230,7 +299,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       _checked.remove(k);
     }
     setState(() => _exercises.removeAt(exIndex));
-    ref.read(workoutProvider.notifier).persist();
+    _persist();
   }
 
   String get _durationLabel {
@@ -431,7 +500,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
     if (confirmedName == null) return; // user tapped Cancel
     _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
-    ref.read(workoutProvider.notifier).persist();
+    _persist();
 
     final durationSeconds = _s.elapsed.inSeconds;
     final date = DateTime.now();
@@ -570,6 +639,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         }
         if (!mounted) return;
         ref.read(workoutProvider.notifier).clearSession();
+        WorkoutForegroundService.stop();
         context.pushReplacement(
           '/workout/finish',
           extra: <String, dynamic>{
@@ -743,7 +813,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     if (_restDuration > 15) {
                       setDialogState(() {
                         _s.restDuration -= 15;
-                        ref.read(workoutProvider.notifier).persist();
+                        _persist();
                       });
                       setState(() {});
                     }
@@ -769,7 +839,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     if (_restDuration < 300) {
                       setDialogState(() {
                         _s.restDuration += 15;
-                        ref.read(workoutProvider.notifier).persist();
+                        _persist();
                       });
                       setState(() {});
                     }
@@ -830,7 +900,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                     ],
                   });
                 });
-                ref.read(workoutProvider.notifier).persist();
+                _persist();
               },
             ),
         transitionsBuilder: (_, animation, secondaryAnimation, child) =>
@@ -1084,7 +1154,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                                       ..clear()
                                       ..addAll(newChecked);
                                   });
-                                  ref.read(workoutProvider.notifier).persist();
+                                  _persist();
                                 }
                               : (oldI, newI) {},
                           children: [
@@ -1222,7 +1292,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     if (result != null && mounted) {
       setState(() {
         _s.workoutName = result.isEmpty ? null : result;
-        ref.read(workoutProvider.notifier).persist();
+        _persist();
       });
     }
   }
@@ -1544,14 +1614,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                                 ),
                                 child: Padding(
                                   padding: EdgeInsets.all(
-                                    Responsive.scale(context, 4),
+                                    Responsive.scale(context, 8),
                                   ),
                                   child: Icon(
                                     Icons.more_vert_rounded,
                                     color: cardColors(
                                       appColor,
                                     ).onCard.withAlpha(120),
-                                    size: Responsive.scale(context, 18),
+                                    size: Responsive.scale(context, 24),
                                   ),
                                 ),
                               ),
@@ -1628,7 +1698,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                             'weight_kg': null,
                           }),
                         );
-                        ref.read(workoutProvider.notifier).persist();
+                        _persist();
                       },
                       child: Container(
                         width: double.infinity,
@@ -1822,7 +1892,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               onChanged: (v) {
                 set['weight_kg'] = double.tryParse(v);
                 _s.weights['${exIndex}_${setIndex}_weight'] = v;
-                ref.read(workoutProvider.notifier).persist();
+                _persist();
                 // re-evaluate PR silently if this set is already checked
                 if (checked) {
                   final name = _cleanName(
@@ -1858,7 +1928,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               onChanged: (v) {
                 set['reps'] = int.tryParse(v);
                 _s.reps['${exIndex}_${setIndex}_reps'] = v;
-                ref.read(workoutProvider.notifier).persist();
+                _persist();
                 // re-evaluate PR silently if this set is already checked
                 if (checked) {
                   final name = _cleanName(
@@ -1920,7 +1990,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 });
               }
               setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
-              ref.read(workoutProvider.notifier).persist();
+              _persist();
               if (nowChecked) _startRestTimer();
             },
             child: AnimatedContainer(
@@ -2015,6 +2085,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                           },
                         );
                         ref.read(workoutProvider.notifier).clearSession();
+                        WorkoutForegroundService.stop();
                         if (context.mounted) Navigator.of(context).pop();
                       }
                     },

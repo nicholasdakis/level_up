@@ -28,6 +28,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/user_data_provider.dart';
 import 'providers/app_ready_provider.dart';
 import 'screens/level_up_overlay.dart';
+import 'services/workout_foreground_service.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +54,11 @@ Future<void> main() async {
     if (kDebugMode) debugPrint('PWA install setup skipped: $e');
   }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!kIsWeb) {
+    // must be called before runApp so the isolate communication port is ready
+    FlutterForegroundTask.initCommunicationPort();
+    WorkoutForegroundService.init();
+  }
   if (kIsWeb) {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
   }
