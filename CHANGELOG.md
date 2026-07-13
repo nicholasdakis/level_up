@@ -2591,3 +2591,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Split the workout START section into 3 separate guest locks (Start Empty, New Routine, Explore Routines) each with a tailored sign-up message
 - Replaced the "Sign Up" pill button in the guest block dialog with a plain shimmer text button to match the lock badge style
 - Extracted the sweeping shimmer animation into a shared ShimmerWidget that accepts an optional external animation controller for sync across multiple widgets; used by guest locks and the premium sheet
+- Added the shimmer effect into the PRO chip in the upsell dialog
+- Made a helper method for the shimmering PRO chip using the ShimmerWidget

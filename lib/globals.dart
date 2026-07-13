@@ -462,27 +462,7 @@ Future<void> showProFeatureDialog(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 8),
-            vertical: Responsive.height(context, 3),
-          ),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-            ),
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-          ),
-          child: Text(
-            'PRO',
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 10),
-              color: Colors.black.withAlpha(180),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
+        proChip(context),
         SizedBox(height: Responsive.height(context, 16)),
         Text(
           feature,
@@ -688,7 +668,7 @@ TextStyle dialogButtonStyle({bool confirm = false}) => GoogleFonts.manrope(
   fontWeight: confirm ? FontWeight.w700 : FontWeight.w500,
 );
 
-Widget proChip(BuildContext context) => Container(
+Widget _proChipStatic(BuildContext context) => Container(
   padding: EdgeInsets.symmetric(
     horizontal: Responsive.width(context, 5),
     vertical: Responsive.height(context, 1),
@@ -709,6 +689,20 @@ Widget proChip(BuildContext context) => Container(
     ),
   ),
 );
+
+Widget proChip(BuildContext context, {Animation<double>? animation}) =>
+    ShimmerWidget(
+      accent: const Color(0xFFFFD700),
+      colors: const [
+        Color(0xFFFFD700),
+        Color(0xFFFFA500),
+        Colors.white,
+        Color(0xFFFFA500),
+        Color(0xFFFFD700),
+      ],
+      animation: animation,
+      child: _proChipStatic(context),
+    );
 
 // Shimmering username + PRO chip for premium users on the leaderboard
 class ShimmerProRow extends StatefulWidget {
@@ -749,43 +743,34 @@ class _ShimmerProRowState extends State<ShimmerProRow>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
+    return ShimmerWidget(
+      accent: lightenColor(widget.appColor, 0.45),
+      colors: [
+        lightenColor(widget.appColor, 0.3),
+        lightenColor(widget.appColor, 0.45),
+        Colors.white,
+        lightenColor(widget.appColor, 0.45),
+        lightenColor(widget.appColor, 0.3),
+      ],
       animation: _ctrl,
-      builder: (_, _) {
-        final pos = _ctrl.value;
-        return ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment(-1.5 + pos * 3.5, 0),
-            end: Alignment(-0.5 + pos * 3.5, 0),
-            colors: [
-              lightenColor(widget.appColor, 0.3),
-              lightenColor(widget.appColor, 0.45),
-              Colors.white,
-              lightenColor(widget.appColor, 0.45),
-              lightenColor(widget.appColor, 0.3),
-            ],
-            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-          ).createShader(bounds),
-          child: GestureDetector(
-            onTap: widget.onProTap,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.username,
-                  style: GoogleFonts.manrope(
-                    fontSize: widget.fontSize,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(width: Responsive.width(context, 5)),
-                proChip(context),
-              ],
+      child: GestureDetector(
+        onTap: widget.onProTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.username,
+              style: GoogleFonts.manrope(
+                fontSize: widget.fontSize,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
-          ),
-        );
-      },
+            SizedBox(width: Responsive.width(context, 5)),
+            proChip(context, animation: _ctrl),
+          ],
+        ),
+      ),
     );
   }
 }

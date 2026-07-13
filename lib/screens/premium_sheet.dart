@@ -350,7 +350,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
               ),
             ),
             SizedBox(width: Responsive.width(context, 5)),
-            proChip(context),
+            proChip(context, animation: _shimmerController),
           ],
         ),
       );
