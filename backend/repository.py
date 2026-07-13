@@ -115,11 +115,11 @@ class UserRepository:
         )
         return result.data
 
-    def get_food_logs_by_uids_and_date(self, uids: list[str], date: str):
-        # Fetch food logs for snapshot users on given date
+    def get_food_logs_v2_by_uids_and_date(self, uids: list[str], date: str):
+        # Fetch normalized food log rows for snapshot users on a given date
         result = (
-            self._supabase.table("food_logs")
-            .select("*")
+            self._supabase.table("food_logs_v2")
+            .select("uid, meal, food_name, calories, protein, carbs, fat")
             .in_("uid", uids)
             .eq("date", date)
             .execute()

@@ -85,7 +85,6 @@ class UpdateUtcOffsetRequest(BaseModel):
     utc_offset: int
 
 class UpdateGoalsRequest(BaseModel):
-    # TODO: remove after update goes live
     calories_goal: int | None = None
     protein_goal: int | None = None
     carbs_goal: int | None = None

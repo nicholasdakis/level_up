@@ -32,17 +32,20 @@ class SnapshotService: # Service for building daily snapshots for users
         streaks = self.user_repo.get_streaks_by_uids(uids)
         achievements = self.user_repo.get_achievements_by_uids(uids)
         claims = self.user_repo.get_claims_by_uids(uids)
-        food_logs = (
-            self.user_repo.get_food_logs_by_uids_and_date(behind_uids, utc_today) if behind_uids else []
+        food_items = (
+            self.user_repo.get_food_logs_v2_by_uids_and_date(behind_uids, utc_today) if behind_uids else []
         ) + (
-            self.user_repo.get_food_logs_by_uids_and_date(ahead_uids, utc_tomorrow) if ahead_uids else []
+            self.user_repo.get_food_logs_v2_by_uids_and_date(ahead_uids, utc_tomorrow) if ahead_uids else []
         )
 
         # Index by uid
         streaks_by_uid = defaultdict(list)
         achievements_by_uid = defaultdict(list)
         claims_by_uid = defaultdict(list)
-        food_by_uid = {f["uid"]: f for f in food_logs}
+        # group food items by uid and meal
+        food_by_uid = defaultdict(lambda: defaultdict(list))
+        for item in food_items:
+            food_by_uid[item["uid"]][item["meal"]].append(item)
 
         for s in streaks:
             streaks_by_uid[s["uid"]].append(s)
@@ -58,7 +61,7 @@ class SnapshotService: # Service for building daily snapshots for users
 
         for user in users:
             uid = user["uid"]
-            food = food_by_uid.get(uid)
+            meals = food_by_uid.get(uid)
             snapshot_date = utc_tomorrow if uid in ahead_uid_set else utc_today
 
             rows.append({
@@ -90,11 +93,9 @@ class SnapshotService: # Service for building daily snapshots for users
                     ],
 
                     "food_logs": {
-                        "breakfast": food["breakfast"] or [],
-                        "lunch": food["lunch"] or [],
-                        "dinner": food["dinner"] or [],
-                        "snack": food["snack"] or [],
-                    } if food else None,
+                        meal: meals[meal]
+                        for meal in ["breakfast", "lunch", "dinner", "snacks"]
+                    } if meals else None,
                 }
             })
 

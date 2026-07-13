@@ -19,7 +19,7 @@ def make_mock_repo(users):
     mock_repo.get_streaks_by_uids.return_value = []
     mock_repo.get_achievements_by_uids.return_value = []
     mock_repo.get_claims_by_uids.return_value = []
-    mock_repo.get_food_logs_by_uids_and_date.return_value = []
+    mock_repo.get_food_logs_v2_by_uids_and_date.return_value = []
     mock_repo.upsert_daily_snapshots.return_value = None
     return mock_repo
 
