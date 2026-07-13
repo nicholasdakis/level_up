@@ -345,29 +345,44 @@ def test_check_in_poi_success(mocker):
     assert result["success"] == True
     assert result["xp_gained"] > 0
 
-# upsert_food_log tests -----------------
+# upsert_food_log_v2 tests -----------------
 
 # A successful food log must track the food_logs achievement and update the food streak
-def test_upsert_food_log_tracks_achievement(mocker):
+def test_upsert_food_log_v2_tracks_achievement(mocker):
     fake_repo = mocker.Mock()
+    fake_repo.upsert_food_log_v2.return_value = []
     fake_repo.update_food_streak.return_value = 3
     fake_achievement_repo = mocker.Mock()
     service = ProgressionService(fake_repo, None, fake_achievement_repo)
 
-    service.upsert_food_log("user_123", "2026-05-04", [], [], [], [])
+    service.upsert_food_log_v2("user_123", "2026-05-04", [])
 
     fake_achievement_repo.upsert_achievement_progress.assert_called_once_with("user_123", "food_logs", 1)
     fake_achievement_repo.set_achievement_progress.assert_called_once_with("user_123", "food_streak", 3)
 
-# A DB crash in the streak update must be swallowed and not break the food log itself
-def test_upsert_food_log_streak_exception_swallowed(mocker):
+# The repo must be called with the correct uid, date, and items
+def test_upsert_food_log_v2_calls_repo(mocker):
     fake_repo = mocker.Mock()
+    fake_repo.upsert_food_log_v2.return_value = [{"id": "abc"}]
+    fake_repo.update_food_streak.return_value = 1
+    service = ProgressionService(fake_repo, None, mocker.Mock())
+
+    items = [{"food_name": "Apple", "calories": 95, "meal": "breakfast"}]
+    result = service.upsert_food_log_v2("user_123", "2026-05-04", items)
+
+    fake_repo.upsert_food_log_v2.assert_called_once_with("user_123", "2026-05-04", items)
+    assert result == [{"id": "abc"}]
+
+# A DB crash in the streak update must be swallowed and not break the food log itself
+def test_upsert_food_log_v2_streak_exception_swallowed(mocker):
+    fake_repo = mocker.Mock()
+    fake_repo.upsert_food_log_v2.return_value = []
     fake_repo.update_food_streak.side_effect = Exception("DB crash")
     service = ProgressionService(fake_repo, None, mocker.Mock())
 
-    service.upsert_food_log("user_123", "2026-05-04", [], [], [], [])  # must not raise
+    service.upsert_food_log_v2("user_123", "2026-05-04", [])  # must not raise
 
-    fake_repo.upsert_food_log.assert_called_once()
+    fake_repo.upsert_food_log_v2.assert_called_once()
 
 # delete_reminder tests -----------------
 
