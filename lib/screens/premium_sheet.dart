@@ -220,34 +220,25 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
     FontWeight weight = FontWeight.w900,
     double letterSpacing = 2,
   }) {
-    return AnimatedBuilder(
+    return ShimmerWidget(
+      accent: lightenColor(appColor, 0.45),
+      colors: [
+        lightenColor(appColor, 0.3),
+        lightenColor(appColor, 0.45),
+        Colors.white,
+        lightenColor(appColor, 0.45),
+        lightenColor(appColor, 0.3),
+      ],
       animation: _shimmerController,
-      builder: (_, _) {
-        final pos = _shimmerController.value;
-        return ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment(-1.5 + pos * 3.5, 0),
-            end: Alignment(-0.5 + pos * 3.5, 0),
-            colors: [
-              lightenColor(appColor, 0.3),
-              lightenColor(appColor, 0.45),
-              Colors.white,
-              lightenColor(appColor, 0.45),
-              lightenColor(appColor, 0.3),
-            ],
-            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-          ).createShader(bounds),
-          child: Text(
-            text,
-            style: GoogleFonts.manrope(
-              fontSize: fontSize,
-              fontWeight: weight,
-              color: Colors.white,
-              letterSpacing: letterSpacing,
-            ),
-          ),
-        );
-      },
+      child: Text(
+        text,
+        style: GoogleFonts.manrope(
+          fontSize: fontSize,
+          fontWeight: weight,
+          color: Colors.white,
+          letterSpacing: letterSpacing,
+        ),
+      ),
     );
   }
 
@@ -337,40 +328,31 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
 
     Widget nameWidget;
     if (isPro) {
-      nameWidget = AnimatedBuilder(
+      nameWidget = ShimmerWidget(
+        accent: lightenColor(appColor, 0.45),
+        colors: [
+          lightenColor(appColor, 0.3),
+          lightenColor(appColor, 0.45),
+          Colors.white,
+          lightenColor(appColor, 0.45),
+          lightenColor(appColor, 0.3),
+        ],
         animation: _shimmerController,
-        builder: (_, _) {
-          final pos = _shimmerController.value;
-          return ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              begin: Alignment(-1.5 + pos * 3.5, 0),
-              end: Alignment(-0.5 + pos * 3.5, 0),
-              colors: [
-                lightenColor(appColor, 0.3),
-                lightenColor(appColor, 0.45),
-                Colors.white,
-                lightenColor(appColor, 0.45),
-                lightenColor(appColor, 0.3),
-              ],
-              stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-            ).createShader(bounds),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 14),
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(width: Responsive.width(context, 5)),
-                proChip(context),
-              ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              name,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 14),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
-          );
-        },
+            SizedBox(width: Responsive.width(context, 5)),
+            proChip(context),
+          ],
+        ),
       );
     } else {
       nameWidget = Text(
@@ -1022,29 +1004,20 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                       ),
                       child: Row(
                         children: [
-                          AnimatedBuilder(
+                          ShimmerWidget(
+                            accent: lightenColor(appColor, 0.45),
+                            colors: [
+                              lightenColor(appColor, 0.30),
+                              lightenColor(appColor, 0.45),
+                              lightenColor(appColor, 0.30),
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
                             animation: _shimmerController,
-                            builder: (_, _) {
-                              final pos = _shimmerController.value;
-                              return ShaderMask(
-                                shaderCallback: (bounds) => LinearGradient(
-                                  begin: Alignment(-1.5 + pos * 3.5, 0),
-                                  end: Alignment(-0.5 + pos * 3.5, 0),
-                                  colors: [
-                                    lightenColor(appColor, 0.30),
-                                    lightenColor(appColor, 0.45),
-                                    lightenColor(appColor, 0.30),
-                                  ],
-                                  stops: const [0.0, 0.5, 1.0],
-                                ).createShader(bounds),
-                                blendMode: BlendMode.srcIn,
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCrown,
-                                  color: Colors.white,
-                                  size: Responsive.scale(context, 14),
-                                ),
-                              );
-                            },
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCrown,
+                              color: Colors.white,
+                              size: Responsive.scale(context, 14),
+                            ),
                           ),
                           SizedBox(width: Responsive.width(context, 10)),
                           Expanded(

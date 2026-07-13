@@ -2585,3 +2585,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the same change to the workout tab
 - Made the Guest sign up text and locks pulse and shimmer so the user knows to click them
 - Made it so the Results "set goal" cards are now visibly locked to guests rather than incorrectly showing the goal was set
+
+## 2026-07-13
+- Added individual guest lock overlays to each of the 4 "Log Food" buttons in the food logging tab
+- Split the workout START section into 3 separate guest locks (Start Empty, New Routine, Explore Routines) each with a tailored sign-up message
+- Replaced the "Sign Up" pill button in the guest block dialog with a plain shimmer text button to match the lock badge style
+- Extracted the sweeping shimmer animation into a shared ShimmerWidget that accepts an optional external animation controller for sync across multiple widgets; used by guest locks and the premium sheet

@@ -1091,6 +1091,76 @@ Widget sectionHeader(
   );
 }
 
+// Sweeping shimmer animation over any child widget
+// Pass an external [animation] to share a single controller across multiple widgets to keep in sync
+// Omit it to let the widget manage its own internal controller
+class ShimmerWidget extends StatefulWidget {
+  final Widget child;
+  final Color accent;
+  final List<Color>? colors;
+  final List<double>? stops;
+  final Animation<double>? animation;
+
+  const ShimmerWidget({
+    super.key,
+    required this.child,
+    required this.accent,
+    this.colors,
+    this.stops,
+    this.animation,
+  });
+
+  @override
+  State<ShimmerWidget> createState() => _ShimmerWidgetState();
+}
+
+class _ShimmerWidgetState extends State<ShimmerWidget>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _ownCtrl;
+
+  Animation<double> get _anim => widget.animation ?? _ownCtrl!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animation == null) {
+      _ownCtrl = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 2000),
+      )..repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ownCtrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = widget.accent;
+    final colors =
+        widget.colors ?? [accent, accent, Colors.white, accent, accent];
+    final stops = widget.stops ?? const [0.0, 0.35, 0.5, 0.65, 1.0];
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, _) {
+        final pos = _anim.value;
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            begin: Alignment(-1.5 + pos * 3.5, 0),
+            end: Alignment(-0.5 + pos * 3.5, 0),
+            colors: colors,
+            stops: stops,
+          ).createShader(bounds),
+          child: widget.child,
+        );
+      },
+    );
+  }
+}
+
 // Shared pulsing lock overlay for guest-locked content
 // icon + "Sign up" text pulse together to signal the card is tappable
 Widget guestLockOverlay(BuildContext context, Color appColor) {
@@ -1100,68 +1170,33 @@ Widget guestLockOverlay(BuildContext context, Color appColor) {
   );
 }
 
-class PulsingLockBadge extends StatefulWidget {
+class PulsingLockBadge extends StatelessWidget {
   final Color accent;
   const PulsingLockBadge({super.key, required this.accent});
 
   @override
-  State<PulsingLockBadge> createState() => PulsingLockBadgeState();
-}
-
-class PulsingLockBadgeState extends State<PulsingLockBadge>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final accent = widget.accent;
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, _) {
-        final pos = _ctrl.value;
-        return ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment(-1.5 + pos * 3.5, 0),
-            end: Alignment(-0.5 + pos * 3.5, 0),
-            colors: [accent, accent, Colors.white, accent, accent],
-            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-          ).createShader(bounds),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedLockPassword,
-                color: Colors.white,
-                size: Responsive.scale(context, 26),
-              ),
-              SizedBox(height: Responsive.height(context, 4)),
-              Text(
-                'Sign up',
-                style: GoogleFonts.manrope(
-                  color: Colors.white,
-                  fontSize: Responsive.font(context, 12),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+    return ShimmerWidget(
+      accent: accent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedLockPassword,
+            color: Colors.white,
+            size: Responsive.scale(context, 26),
           ),
-        );
-      },
+          SizedBox(height: Responsive.height(context, 4)),
+          Text(
+            'Sign up',
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(context, 12),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

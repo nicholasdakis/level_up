@@ -7,56 +7,21 @@ import 'providers/user_data_provider.dart';
 import 'services/user_data_manager.dart' show defaultAppColor;
 import 'utility/responsive.dart';
 
-class _ShimmerSignUp extends StatefulWidget {
+class _ShimmerSignUp extends StatelessWidget {
   const _ShimmerSignUp();
 
   @override
-  State<_ShimmerSignUp> createState() => _ShimmerSignUpState();
-}
-
-class _ShimmerSignUpState extends State<_ShimmerSignUp>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(defaultAppColor, 0.45);
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, _) {
-        final pos = _ctrl.value;
-        return ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment(-1.5 + pos * 3.5, 0),
-            end: Alignment(-0.5 + pos * 3.5, 0),
-            colors: [accent, accent, Colors.white, accent, accent],
-            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-          ).createShader(bounds),
-          child: Text(
-            'Sign Up',
-            style: GoogleFonts.manrope(
-              color: Colors.white,
-              fontSize: Responsive.font(context, 14),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        );
-      },
+    return ShimmerWidget(
+      accent: lightenColor(defaultAppColor, 0.45),
+      child: Text(
+        'Sign Up',
+        style: GoogleFonts.manrope(
+          color: Colors.white,
+          fontSize: Responsive.font(context, 14),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
