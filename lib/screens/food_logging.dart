@@ -38,8 +38,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Color get appColor => ref.watch(
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
-  bool get _isPremium =>
-      ref.watch(userDataProvider.select((s) => s.value?.isPremium ?? false));
 
   DateTime currentDate = DateTime.now();
 
@@ -447,7 +445,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     }
   }
 
-  Widget _buildMacroText(FoodLog food, Color appColor) {
+  Widget _buildNutritionChips(FoodLog food, Color appColor) {
     final macros = FoodLoggingHelper.extractMacrosFromFood(food);
     final serving = FoodLoggingHelper.parseServingFromLog(food);
     final servingAmt = serving['amount'] as double;
@@ -501,11 +499,11 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             chip('P', macros['protein'] ?? 0),
             chip('C', macros['carbs'] ?? 0),
             chip('F', macros['fat'] ?? 0),
-            if (_isPremium && food.fiber != null && food.fiber! > 0)
+            if (food.fiber != null && food.fiber! > 0)
               chip('Fiber', food.fiber!),
-            if (_isPremium && food.sugar != null && food.sugar! > 0)
+            if (food.sugar != null && food.sugar! > 0)
               chip('Sugar', food.sugar!),
-            if (_isPremium && food.sodium != null && food.sodium! > 0)
+            if (food.sodium != null && food.sodium! > 0)
               chip('Na', food.sodium!, unit: 'mg'),
           ],
         ),
@@ -615,6 +613,49 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     }
   }
 
+  Widget _buildAnalyticsButton(
+    Color barColor,
+    Color appColor,
+    VoidCallback onPressed,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: onPressed,
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedAnalytics01,
+          color: barColor,
+          size: Responsive.font(context, 26),
+        ),
+        label: Text(
+          "View Analytics",
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 14),
+            fontWeight: FontWeight.w600,
+            color: barColor,
+          ),
+        ),
+        style: TextButton.styleFrom(
+          backgroundColor: barColor.withAlpha(
+            appColor.computeLuminance() < 0.2 ? 60 : 30,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            side: BorderSide(
+              color: barColor.withAlpha(
+                appColor.computeLuminance() < 0.2 ? 140 : 80,
+              ),
+              width: Responsive.scale(context, 1),
+            ),
+          ),
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 10),
+          ),
+        ),
+      ),
+    );
+  }
+
   // Calories bar which also has a "View Analytics button
   Widget _buildCaloriesBar(Color appColor) {
     if (isGuest) {
@@ -645,7 +686,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '1340',
+                            '1589',
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 36),
                               fontWeight: FontWeight.w800,
@@ -670,7 +711,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '660 left',
+                                '411 left',
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w600,
@@ -701,7 +742,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                               color: Colors.white.withAlpha(18),
                             ),
                             FractionallySizedBox(
-                              widthFactor: 0.67,
+                              widthFactor: 0.79,
                               child: Container(
                                 height: Responsive.height(context, 8),
                                 color: lightenColor(appColor, 0.45),
@@ -711,41 +752,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                         ),
                       ),
                       SizedBox(height: Responsive.height(context, 16)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          for (final (label, val, goal) in [
-                            ('P', '87g', '160g'),
-                            ('C', '142g', '200g'),
-                            ('F', '44g', '55g'),
-                          ])
-                            Column(
-                              children: [
-                                Text(
-                                  label,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 11),
-                                    color: lightenColor(appColor, 0.3),
-                                  ),
-                                ),
-                                Text(
-                                  val,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 14),
-                                    fontWeight: FontWeight.w700,
-                                    color: lightenColor(appColor, 0.45),
-                                  ),
-                                ),
-                                Text(
-                                  '/ $goal',
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(context, 10),
-                                    color: lightenColor(appColor, 0.3),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
+                      _buildAnalyticsButton(
+                        lightenColor(appColor, 0.45),
+                        appColor,
+                        () => Guest.block(
+                          context,
+                          title: 'Sign up to track nutrition',
+                          description:
+                              'Create a free account to view your calorie and macro trends over time.',
+                        ),
                       ),
                     ],
                   ),
@@ -913,57 +928,18 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           ),
 
           SizedBox(height: Responsive.height(context, 16)),
-
-          // View Analytics button
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed: () {
-                context.push(
-                  '/food-logging/analytics',
-                  extra: {
-                    'initialDate': currentDate,
-                    'onDateChanged': (DateTime date) {
-                      setState(() => currentDate = date);
-                      loadFoodForDate(date);
-                    },
-                  },
-                );
+          _buildAnalyticsButton(barColor, appColor, () {
+            context.push(
+              '/food-logging/analytics',
+              extra: {
+                'initialDate': currentDate,
+                'onDateChanged': (DateTime date) {
+                  setState(() => currentDate = date);
+                  loadFoodForDate(date);
+                },
               },
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAnalytics01,
-                color: barColor,
-                size: Responsive.font(context, 26),
-              ),
-              label: Text(
-                "View Analytics",
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 14),
-                  fontWeight: FontWeight.w600,
-                  color: barColor,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: barColor.withAlpha(
-                  appColor.computeLuminance() < 0.2 ? 60 : 30,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
-                  ),
-                  side: BorderSide(
-                    color: barColor.withAlpha(
-                      appColor.computeLuminance() < 0.2 ? 140 : 80,
-                    ),
-                    width: Responsive.scale(context, 1),
-                  ),
-                ),
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 10),
-                ),
-              ),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
@@ -1061,6 +1037,57 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   // Builds the 3 macro goal gauges
   Widget _buildMacroGauges(Color appColor) {
+    if (isGuest) {
+      final color = lightenColor(appColor, 0.30);
+      return GestureDetector(
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to track macros',
+          description:
+              'Create a free account to track calories, macros, and build your nutrition history.',
+        ),
+        child: Stack(
+          children: [
+            IgnorePointer(
+              child: Opacity(
+                opacity: 0.35,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildMacroGauge(
+                        label: 'Protein',
+                        current: 115,
+                        goal: 160,
+                        color: color,
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Expanded(
+                      child: _buildMacroGauge(
+                        label: 'Carbs',
+                        current: 146,
+                        goal: 200,
+                        color: color,
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Expanded(
+                      child: _buildMacroGauge(
+                        label: 'Fat',
+                        current: 55,
+                        goal: 55,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            guestLockOverlay(context, appColor),
+          ],
+        ),
+      );
+    }
     // hide gauges entirely if no goals set since the calories bar already shows the prompt
     if (!_goalsSet) return const SizedBox.shrink();
 
@@ -1155,7 +1182,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       mealFat += m['fat'] ?? 0;
     }
 
-    return Column(
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Tapping anywhere on the header row toggles collapse
@@ -1328,7 +1355,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   ],
                                 ),
                                 SizedBox(height: Responsive.height(context, 6)),
-                                _buildMacroText(food, appColor),
+                                _buildNutritionChips(food, appColor),
                               ],
                             ),
                           ),
@@ -1389,55 +1416,67 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               },
             );
           },
-          child: Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 13),
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 14),
-                  ),
-                  border: Border.all(
-                    color: accentColor.withAlpha(80),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      color: accentColor,
-                      size: Responsive.font(context, 16),
-                    ),
-                    SizedBox(width: Responsive.width(context, 8)),
-                    Text(
-                      "Log Food",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 15),
-                        color: accentColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.height(context, 13),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 14),
               ),
-              if (isGuest) guestLockOverlay(context, appColor),
-            ],
+              border: Border.all(color: accentColor.withAlpha(80), width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  color: accentColor,
+                  size: Responsive.font(context, 16),
+                ),
+                SizedBox(width: Responsive.width(context, 8)),
+                Text(
+                  "Log Food",
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    color: accentColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
+
+    if (isGuest) {
+      return GestureDetector(
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to log food',
+          description:
+              'Create a free account to track calories, macros, and build your nutrition history.',
+        ),
+        child: Stack(
+          children: [
+            IgnorePointer(child: Opacity(opacity: 0.35, child: content)),
+            guestLockOverlay(context, appColor),
+          ],
+        ),
+      );
+    }
+    return content;
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = !ref.watch(userDataLoadedProvider);
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
-    final logs = ref.watch(foodLogsProvider).value ?? [];
+    final logs = isGuest
+        ? Guest.fakeFoodLogs(dateKey)
+        : (ref.watch(foodLogsProvider).value ?? []);
     // sort by logged_at so moved foods stay in chronological order within the meal
     breakfastFoods =
         logs.where((f) => f.date == dateKey && f.meal == 'breakfast').toList()

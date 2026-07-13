@@ -50,14 +50,12 @@ class _WorkoutState extends ConsumerState<Workout> {
     _resetTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) _updateResetCountdown();
     });
-    if (!isGuest) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (ref.read(userDataProvider).value == null) {
-          await ref.read(userDataProvider.notifier).loadUserData();
-        }
-        if (mounted) ref.read(workoutProvider.notifier).loadWorkoutData();
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!isGuest && ref.read(userDataProvider).value == null) {
+        await ref.read(userDataProvider.notifier).loadUserData();
+      }
+      if (mounted) ref.read(workoutProvider.notifier).loadWorkoutData();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _WorkoutAnimationState.animated = true;
     });
@@ -1561,6 +1559,7 @@ class _WorkoutState extends ConsumerState<Workout> {
     return GestureDetector(
       onTap: () => Guest.block(context, title: title, description: description),
       child: Stack(
+        fit: StackFit.passthrough,
         children: [
           IgnorePointer(child: Opacity(opacity: 0.35, child: child)),
           guestLockOverlay(context, appColor),

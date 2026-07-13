@@ -2618,3 +2618,14 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Premium users see fiber, sugar, and sodium chips next to the protein, carbs, and fat chips on each logged food in the food logging tab
 - Free users do not see the chips but their data is stored so it becomes visible if they upgrade
 - Split the Redis cache hit and miss counters into separate keys for food search and food detail lookups so each can be monitored independently
+- Decided to make micros freely accessible for free users too because the added complexity is not worth it and they are useful information
+- Added fake placeholder values to guests rather than rendering fake versions of widgets so the data under locks looks like a real user's
+- Renamed buildMacroText to buildNutritionChips since it now shows micros too
+- Added a View Analytics button placeholder to the guest calories bar using the real button widget with a guest tap handler instead of a duplicate widget
+- Added fake food logs, water logs, weight, and workout data for guests so all tabs look populated behind locks
+- Fixed a race condition where logging a food before the food logs provider finished loading would wipe all existing logs for that date by awaiting the provider future before building the upsert payload
+- Fixed guest users seeing real food logs from a previously signed-in account by filtering to an empty list when in guest mode
+- Fixed workout start cards being squished in guest mode by using StackFit.passthrough so the Stack respects the Expanded constraint from the parent Row
+- Invalidate food, water, weight, and workout providers on guest exit so fake data does not bleed into a newly signed-up account
+- Added fake macro goals, water goal, weight goal, and weekly workout goal to guest default user data so goal-dependent UI renders correctly for guests
+- Made all providers be invalidated on sign out to make sure no stale data carries over to another login in the same session

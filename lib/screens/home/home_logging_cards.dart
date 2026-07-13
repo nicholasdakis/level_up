@@ -285,7 +285,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final accentColor = lightenColor(appColor, 0.45);
     final dimColor = lightenColor(appColor, 0.35);
     final macros = isGuest
-        ? (protein: 0, carbs: 0, fat: 0)
+        ? _todayMacros(Guest.fakeFoodLogs(_todayDateKey()))
         : _todayMacros(foodLogs);
 
     Widget macroRow(String label, IconData icon, int value, int? goal) {
@@ -415,7 +415,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final userData = ref.watch(userDataProvider).value;
     final foodLogs = ref.watch(foodLogsProvider).value ?? [];
 
-    final calories = _todayCalories(foodLogs);
+    final calories = isGuest
+        ? _todayCalories(Guest.fakeFoodLogs(_todayDateKey()))
+        : _todayCalories(foodLogs);
     final goal = userData?.caloriesGoal ?? 0;
     final progress = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
 
@@ -494,7 +496,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                       context,
                       icon: HugeIcons.strokeRoundedFire,
                       label: "Today's Calories",
-                      value: isGuest ? "--" : "$calories",
+                      value: "$calories",
                       subtext: goal > 0 ? "/ $goal goal" : "kcal",
                       progressBar: progressBar,
                       showButtons: true,
@@ -542,9 +544,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                         context,
                         icon: HugeIcons.strokeRoundedDroplet,
                         label: "Water",
-                        value: isGuest
-                            ? "--"
-                            : isImperial
+                        value: isImperial
                             ? UnitConverter.displayWater(
                                 totalWaterMl,
                                 imperial: isImperial,

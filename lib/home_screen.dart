@@ -404,28 +404,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Streak card showing food log streak and daily claim streak
   Widget _buildStreakCard() {
-    final foodStreak = isGuest ? 0 : _foodLogStreak();
-    final claimStreak = isGuest ? 0 : _dailyClaimStreak();
-    final workoutStreak = isGuest
-        ? 0
-        : () {
-            final ud = ref.watch(userDataProvider).value;
-            final streak = ud?.workoutStreak ?? 0;
-            final lastDate = ud?.workoutStreakLastDate;
-            if (streak == 0 || lastDate == null) return streak;
-            final last = DateTime.tryParse(lastDate);
-            if (last == null) return streak;
-            final daysSince = DateTime.now().difference(last).inDays;
-            return daysSince > 1 ? 0 : streak;
-          }();
+    final foodStreak = _foodLogStreak();
+    final claimStreak = _dailyClaimStreak();
+    final workoutStreak = () {
+      final ud = ref.watch(userDataProvider).value;
+      final streak = ud?.workoutStreak ?? 0;
+      final lastDate = ud?.workoutStreakLastDate;
+      if (streak == 0 || lastDate == null) return streak;
+      final last = DateTime.tryParse(lastDate);
+      if (last == null) return streak;
+      final daysSince = DateTime.now().difference(last).inDays;
+      return daysSince > 1 ? 0 : streak;
+    }();
     final accentColor = lightenColor(appColor, 0.45);
-    final foodStreakBest = isGuest
-        ? 0
-        : (ref.watch(userDataProvider).value?.foodLogStreakBest ?? 0);
-    final workoutStreakBest = isGuest
-        ? 0
-        : (ref.watch(userDataProvider).value?.workoutStreakBest ?? 0);
-    final guestSubtitle = "Create an account to track your streaks";
+    final foodStreakBest =
+        ref.watch(userDataProvider).value?.foodLogStreakBest ?? 0;
+    final workoutStreakBest =
+        ref.watch(userDataProvider).value?.workoutStreakBest ?? 0;
     return frostedGlassCard(
       context,
       color: appColor,
@@ -439,13 +434,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             icon: HugeIcons.strokeRoundedChartIncrease,
             label: "Daily reward streak",
             count: claimStreak,
-            best: isGuest
-                ? -1
-                : (ref.watch(userDataProvider).value?.dailyClaimStreakBest ??
-                      0),
+            best: ref.watch(userDataProvider).value?.dailyClaimStreakBest ?? 0,
             accentColor: accentColor,
             isLast: false,
-            overrideSubtitle: isGuest ? guestSubtitle : null,
+            overrideSubtitle: null,
           ),
           _buildStreakRow(
             icon: HugeIcons.strokeRoundedFire,
@@ -454,7 +446,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             best: foodStreakBest,
             accentColor: accentColor,
             isLast: false,
-            overrideSubtitle: isGuest ? guestSubtitle : null,
+            overrideSubtitle: null,
           ),
           _buildStreakRow(
             icon: HugeIcons.strokeRoundedDumbbell01,
@@ -463,7 +455,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             best: workoutStreakBest,
             accentColor: accentColor,
             isLast: true,
-            overrideSubtitle: isGuest ? guestSubtitle : null,
+            overrideSubtitle: null,
           ),
         ],
       ),
@@ -541,10 +533,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final c = cardColors(appColor);
     final accent = c.onCard;
     final dim = c.onCard.withAlpha(180);
-    final level = isGuest ? 0 : (ref.watch(userDataProvider).value?.level ?? 1);
-    final exp = isGuest
-        ? 0
-        : (ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0);
+    final level = ref.watch(userDataProvider).value?.level ?? 1;
+    final exp =
+        ref.watch(userDataProvider.select((u) => u.value?.expPoints)) ?? 0;
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(
@@ -691,15 +682,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              if (!isGuest)
-                                Text(
-                                  "${animatedExp.round()} / ${ref.read(userDataProvider.notifier).experienceNeeded ?? 0} XP",
-                                  style: GoogleFonts.manrope(
-                                    color: dim,
-                                    fontSize: Responsive.font(context, 12),
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              Text(
+                                "${animatedExp.round()} / ${ref.read(userDataProvider.notifier).experienceNeeded ?? 0} XP",
+                                style: GoogleFonts.manrope(
+                                  color: dim,
+                                  fontSize: Responsive.font(context, 12),
+                                  fontWeight: FontWeight.w500,
                                 ),
+                              ),
                             ],
                           ),
                         ],
@@ -748,28 +738,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 SizedBox(height: Responsive.height(context, 6)),
                 // XP to next level + total XP earned
-                if (!isGuest)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "$remaining XP to Level ${level + 1}",
-                        style: GoogleFonts.manrope(
-                          color: accent,
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w500,
-                        ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "$remaining XP to Level ${level + 1}",
+                      style: GoogleFonts.manrope(
+                        color: accent,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w500,
                       ),
-                      Text(
-                        "Total: ${_formatNumber(ref.read(userDataProvider.notifier).totalXpEarned ?? 0)} XP",
-                        style: GoogleFonts.manrope(
-                          color: dim,
-                          fontSize: Responsive.font(context, 11),
-                          fontWeight: FontWeight.w500,
-                        ),
+                    ),
+                    Text(
+                      "Total: ${_formatNumber(ref.read(userDataProvider.notifier).totalXpEarned ?? 0)} XP",
+                      style: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

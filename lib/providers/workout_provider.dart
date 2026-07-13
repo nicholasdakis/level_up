@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/workout_session.dart';
 import 'package:flutter/foundation.dart';
 import '../globals.dart' show isGuest;
+import '../guest.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, authenticatedPost;
 import 'user_data_provider.dart' show userDataProvider;
@@ -74,7 +75,12 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
 
   @override
   // start with empty state, session is restored separately via checkAndRestoreWorkoutSession
-  Future<WorkoutState> build() async => const WorkoutState();
+  Future<WorkoutState> build() async {
+    if (isGuest) {
+      return WorkoutState(myRoutines: Guest.fakeRoutines());
+    }
+    return const WorkoutState();
+  }
 
   // starts the 1-second ticker that causes elapsed time watchers to rebuild
   void _startTicker() {
@@ -165,7 +171,18 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
 
   // fetches all workout tab data in parallel and patches state once done
   Future<void> loadWorkoutData() async {
-    if (isGuest) return;
+    if (isGuest) {
+      state = AsyncData(
+        (state.value ?? const WorkoutState()).copyWith(
+          recentWorkouts: Guest.fakeRecentWorkouts(),
+          weeklyWorkoutCount: 2,
+          heatmap: Guest.fakeHeatmap(),
+          myRoutines: Guest.fakeRoutines(),
+          todayOverview: Guest.fakeTodayOverview(),
+        ),
+      );
+      return;
+    }
     state = AsyncData(
       (state.value ?? const WorkoutState()).copyWith(isLoading: true),
     );
@@ -282,14 +299,9 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
       if (response.statusCode == 200) {
         if (routineData != null) {
           final previous = state.value ?? const WorkoutState();
-          final entry = {
-            ...routineData,
-            'source_template_id': templateId,
-          };
+          final entry = {...routineData, 'source_template_id': templateId};
           state = AsyncData(
-            previous.copyWith(
-              myRoutines: [...previous.myRoutines, entry],
-            ),
+            previous.copyWith(myRoutines: [...previous.myRoutines, entry]),
           );
         }
         return true;

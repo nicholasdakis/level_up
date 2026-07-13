@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'globals.dart';
+import 'models/food_log.dart';
 import 'models/user_data.dart';
 import 'providers/user_data_provider.dart';
 import 'services/user_data_manager.dart' show defaultAppColor;
@@ -27,18 +28,209 @@ class _ShimmerSignUp extends StatelessWidget {
 }
 
 class Guest {
+  // Fake food logs shown to guests so the food tab looks like a real account
+  static List<FoodLog> fakeFoodLogs(String dateKey) => [
+    FoodLog(
+      date: dateKey,
+      meal: 'breakfast',
+      foodName: 'Greek Yogurt',
+      foodDescription:
+          'Per 200g - Calories: 190kcal | Protein: 18.0g | Carbs: 20.0g | Fat: 4.0g',
+      calories: 190,
+      protein: 18,
+      carbs: 20,
+      fat: 4,
+      servingSize: '200 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'breakfast',
+      foodName: 'Banana',
+      foodDescription:
+          'Per 118g - Calories: 105kcal | Protein: 1.3g | Carbs: 27.0g | Fat: 0.4g',
+      calories: 105,
+      protein: 1.3,
+      carbs: 27,
+      fat: 0.4,
+      servingSize: '118 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'lunch',
+      foodName: 'Grilled Chicken Breast',
+      foodDescription:
+          'Per 150g - Calories: 248kcal | Protein: 46.5g | Carbs: 0.0g | Fat: 5.4g',
+      calories: 248,
+      protein: 46.5,
+      carbs: 0,
+      fat: 5.4,
+      servingSize: '150 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'lunch',
+      foodName: 'Brown Rice',
+      foodDescription:
+          'Per 195g - Calories: 216kcal | Protein: 5.0g | Carbs: 45.0g | Fat: 1.8g',
+      calories: 216,
+      protein: 5,
+      carbs: 45,
+      fat: 1.8,
+      servingSize: '195 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'dinner',
+      foodName: 'Salmon Fillet',
+      foodDescription:
+          'Per 170g - Calories: 354kcal | Protein: 16.2g | Carbs: 0.0g | Fat: 22.0g | Sodium: 86.0mg',
+      calories: 354,
+      protein: 16.2,
+      carbs: 0,
+      fat: 22,
+      sodium: 86,
+      servingSize: '170 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'dinner',
+      foodName: 'Sweet Potato',
+      foodDescription:
+          'Per 130g - Calories: 112kcal | Protein: 2.1g | Carbs: 26.0g | Fat: 0.1g | Fiber: 3.8g',
+      calories: 112,
+      protein: 2.1,
+      carbs: 26,
+      fat: 0.1,
+      fiber: 3.8,
+      servingSize: '130 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'snacks',
+      foodName: 'Almonds',
+      foodDescription:
+          'Per 28g - Calories: 164kcal | Protein: 6.0g | Carbs: 6.0g | Fat: 14.0g',
+      calories: 164,
+      protein: 6,
+      carbs: 6,
+      fat: 14,
+      servingSize: '28 g',
+    ),
+    FoodLog(
+      date: dateKey,
+      meal: 'snacks',
+      foodName: 'Protein Bar',
+      foodDescription:
+          'Per 60g - Calories: 200kcal | Protein: 20.0g | Carbs: 22.0g | Fat: 7.0g | Fiber: 14.0g',
+      calories: 200,
+      protein: 20,
+      carbs: 22,
+      fat: 7,
+      fiber: 14,
+      servingSize: '60 g',
+    ),
+  ];
+
+  static String _dateKey(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  // Fake recent workouts shown on the workout tab
+  static List<Map<String, dynamic>> fakeRecentWorkouts() {
+    final today = DateTime.now();
+    String key(int daysAgo) =>
+        _dateKey(today.subtract(Duration(days: daysAgo)));
+    return [
+      {'name': 'Push Day', 'date': key(1), 'duration_seconds': 3120},
+      {'name': 'Leg Day', 'date': key(3), 'duration_seconds': 2700},
+      {'name': 'Pull Day', 'date': key(5), 'duration_seconds': 2880},
+    ];
+  }
+
+  static List<Map<String, dynamic>> fakeRoutines() => const [
+    {'template_id': 'guest_1', 'name': 'Push Day', 'exercise_count': 5},
+    {'template_id': 'guest_2', 'name': 'Pull Day', 'exercise_count': 4},
+    {'template_id': 'guest_3', 'name': 'Leg Day', 'exercise_count': 6},
+  ];
+
+  static Map<String, int> fakeHeatmap() {
+    final today = DateTime.now();
+    String key(int daysAgo) =>
+        _dateKey(today.subtract(Duration(days: daysAgo)));
+    return {
+      key(0): 1,
+      key(1): 1,
+      key(2): 1,
+      key(3): 1,
+      key(4): 1,
+      key(6): 1,
+      key(8): 2,
+      key(11): 1,
+      key(13): 1,
+      key(15): 1,
+      key(18): 2,
+      key(21): 1,
+      key(24): 1,
+      key(27): 1,
+      key(30): 2,
+      key(33): 1,
+      key(37): 1,
+      key(41): 1,
+      key(44): 2,
+      key(48): 1,
+      key(52): 1,
+      key(55): 1,
+      key(59): 2,
+      key(63): 1,
+      key(67): 1,
+      key(71): 1,
+      key(75): 2,
+      key(80): 1,
+      key(85): 1,
+      key(90): 1,
+    };
+  }
+
+  static Map<String, dynamic> fakeTodayOverview() => const {
+    'volume_kg': 3240,
+    'exercises': 5,
+    'sets': 18,
+    'reps': 72,
+    'duration_seconds': 3120,
+    'primary_muscles': ['Chest', 'Triceps', 'Shoulders'],
+    'secondary_muscles': ['Core'],
+  };
+
+  // Fake water logs keyed by date, 1800ml today
+  static Map<String, List<int>> fakeWaterLogs(String todayKey) => {
+    todayKey: [300, 400, 300, 250, 300, 250],
+  };
+
   // Blank user data used while browsing as a guest so the app has something to render
   static UserData get defaultUserData => UserData(
     uid: 'guest',
     pfpBase64: null,
-    level: 1,
-    expPoints: 0,
+    level: 12,
+    expPoints: 780,
     canClaimDailyReward: true,
     notificationsEnabled: false,
     lastDailyClaim: null,
     username: 'Guest',
     appColor: defaultAppColor,
     fcmTokens: [],
+    caloriesGoal: 2000,
+    proteinGoal: 160,
+    carbsGoal: 200,
+    fatGoal: 55,
+    waterMlGoal: 2500,
+    weightKgGoal: 75.0,
+    weeklyWorkoutsGoal: 4,
+    foodLogStreak: 14,
+    foodLogStreakBest: 67,
+    workoutStreak: 5,
+    workoutStreakBest: 12,
+    workoutStreakLastDate: DateTime.now().toIso8601String().substring(0, 10),
+    dailyClaimStreak: 98,
+    dailyClaimStreakBest: 98,
   );
 
   // Called when the user taps "Continue as Guest", sets the flag and triggers the router to navigate past the login screen

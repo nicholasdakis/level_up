@@ -10,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_data_provider.dart';
 import '../providers/workout_provider.dart';
 import '../providers/food_logs_provider.dart';
+import '../providers/water_logs_provider.dart';
+import '../providers/weight_logs_provider.dart';
 import '../services/user_data_manager.dart';
 import '../guest.dart';
 import '../services/fcm/web_fcm_token_stub.dart'
@@ -32,6 +34,10 @@ class AuthService {
     WidgetRef? ref,
   }) async {
     if (isGuest) {
+      ref?.invalidate(foodLogsProvider);
+      ref?.invalidate(waterLogsProvider);
+      ref?.invalidate(weightLogsProvider);
+      ref?.invalidate(workoutProvider);
       Guest.exit();
       return;
     }
@@ -49,6 +55,9 @@ class AuthService {
 
     workoutNotifier.clearSession();
     ref?.invalidate(foodLogsProvider);
+    ref?.invalidate(waterLogsProvider);
+    ref?.invalidate(weightLogsProvider);
+    ref?.invalidate(workoutProvider);
     await firebaseAuth.signOut();
     appInitialized = false;
     appReadyNotifier.reset();

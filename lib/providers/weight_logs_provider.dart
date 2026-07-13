@@ -1,11 +1,18 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../globals.dart' show isGuest;
 import '../services/user_data_manager.dart'
     show authenticatedGet, authenticatedPost;
 
 class WeightLogsNotifier extends AsyncNotifier<Map<String, double>> {
   @override
   Future<Map<String, double>> build() async {
+    if (isGuest) {
+      final today = DateTime.now();
+      final key =
+          '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      return {key: 78.4};
+    }
     final response = await authenticatedGet('weight_logs');
     if (response.statusCode != 200) return {};
     return _parse(response.body);
