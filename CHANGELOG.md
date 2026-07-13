@@ -2612,3 +2612,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where selecting an exercise in the exercise picker did not dismiss the screen
 - Made the exercise menu (3-dot) button larger and easier to tap
 - Added an Android foreground service notification that shows a live workout timer, current exercise, completed/total sets, and rest countdown when a rest timer is active; includes +15s and Skip Rest action buttons and persists when the app is fully closed so users can see their workout is still running
+- Added micronutrient tracking to food logging
+- When a user searches for food, the backend now fetches the full nutrition detail for each result from FatSecret and injects the micros before returning the response (since micronutrients are fetched in a separate FatSecret erndpoint)
+- Micros are saved to the database when the food is logged regardless of the user's plan
+- Premium users see fiber, sugar, and sodium chips next to the protein, carbs, and fat chips on each logged food in the food logging tab
+- Free users do not see the chips but their data is stored so it becomes visible if they upgrade
+- Split the Redis cache hit and miss counters into separate keys for food search and food detail lookups so each can be monitored independently

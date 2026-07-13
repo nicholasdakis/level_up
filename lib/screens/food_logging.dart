@@ -38,6 +38,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Color get appColor => ref.watch(
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
+  bool get _isPremium =>
+      ref.watch(userDataProvider.select((s) => s.value?.isPremium ?? false));
 
   DateTime currentDate = DateTime.now();
 
@@ -456,7 +458,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final base = appColor;
     final dim = lightenColor(base, 0.35);
 
-    Widget chip(String label, double value) {
+    Widget chip(String label, double value, {String unit = 'g'}) {
       return Container(
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.width(context, 7),
@@ -471,7 +473,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           ),
         ),
         child: Text(
-          '$label ${value.toStringAsFixed(1)}g',
+          '$label ${value.toStringAsFixed(1)}$unit',
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 11),
             fontWeight: FontWeight.w600,
@@ -499,6 +501,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             chip('P', macros['protein'] ?? 0),
             chip('C', macros['carbs'] ?? 0),
             chip('F', macros['fat'] ?? 0),
+            if (_isPremium && food.fiber != null && food.fiber! > 0)
+              chip('Fiber', food.fiber!),
+            if (_isPremium && food.sugar != null && food.sugar! > 0)
+              chip('Sugar', food.sugar!),
+            if (_isPremium && food.sodium != null && food.sodium! > 0)
+              chip('Na', food.sodium!, unit: 'mg'),
           ],
         ),
       ],

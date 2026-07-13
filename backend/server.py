@@ -137,7 +137,7 @@ rate_limit_repo = RateLimitRepository(supabase_client)
 achievement_repo = AchievementRepository(supabase_client)
 
 progression_service = ProgressionService(user_repo, reminder_repo, achievement_repo)
-food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET)
+food_service = FoodService(token_manager, rate_limit_repo, CLIENT_ID, CLIENT_SECRET, redis=redis)
 poi_service = POIService()
 snapshot_service = SnapshotService(user_repo)
 workout_repo = WorkoutRepository(supabase_client)
@@ -338,13 +338,13 @@ def get_food():
     try:
         cached = redis.get(cache_key)
         if cached:
-            redis.incr("cache_hits")
+            redis.incr("search_cache_hits")
             # Return the cached food as a json as expected
-            return jsonify(json.loads(cached))
+            return jsonify(food_service.enrich_search_response(json.loads(cached)))
 
     except Exception as e: # Prints exception and continues with the API call as fallback
         logger.warning(f"[Redis Error]: {e}")
-    
+
     # Lock to prevent race conditions and redundant API calls
     # The timeout is to prevent the lock from being stuck if the server crashes
     # The blocking_timeout is to prevent a pileup of many workers from waiting for the lock, instead giving an error
@@ -356,8 +356,8 @@ def get_food():
             try:
                 cached = redis.get(cache_key)
                 if cached:
-                    redis.incr("cache_hits")
-                    return jsonify(json.loads(cached))
+                    redis.incr("search_cache_hits")
+                    return jsonify(food_service.enrich_search_response(json.loads(cached)))
             except Exception as e:
                 logger.warning(f"[Redis Error]: {e}")
 
@@ -388,10 +388,10 @@ def get_food():
             try:
                 # Add the response into the cache
                 redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text) # foods are stored for 30 days before expiring
-                redis.incr("cache_misses")
+                redis.incr("search_cache_misses")
 
                 # Return the jsonified response from the API
-                return jsonify(api_response.json())
+                return jsonify(food_service.enrich_search_response(api_response.json()))
             except ValueError:
                 token_manager.refund()  # Give back token on invalid JSON
                 return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text})
@@ -407,26 +407,10 @@ def get_food_detail():
     if err:
         return err
 
-    cache_key = f"food_detail:{body.food_id}"
-    try:
-        cached = redis.get(cache_key)
-        if cached:
-            redis.incr("cache_hits")
-            return jsonify(json.loads(cached))
-    except Exception as e:
-        logger.warning(f"[Redis Error]: {e}")
-
-    try:
-        api_response = food_service.get_food_detail(body.food_id, timeout=9)
-    except RuntimeError as e:
-        return jsonify({"error": str(e)}), 500
-
-    try:
-        redis.setex(cache_key, FOOD_CACHE_TTL, api_response.text)
-        redis.incr("cache_misses")
-        return jsonify(api_response.json())
-    except ValueError:
-        return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text}), 500
+    detail = food_service.get_food_detail(body.food_id, timeout=9)
+    if detail is None:
+        return jsonify({"error": "Failed to fetch food detail"}), 500
+    return jsonify(detail)
 
 @app.route("/update_goals", methods=["POST"])
 def update_goals():
@@ -747,7 +731,9 @@ def upsert_food_log_v2():
     uid, body, err = _parse_and_auth(UpsertFoodLogV2Request)
     if err:
         return err
-    results = progression_service.upsert_food_log_v2(uid, body.date, body.items)
+    # enrich items with fiber/sugar/sodium from FatSecret cache before saving
+    enriched_items = food_service.enrich_items_with_micros(body.items)
+    results = progression_service.upsert_food_log_v2(uid, body.date, enriched_items)
     return jsonify({"success": True, "items": results}), 200
 
 @app.route("/upsert_water_log", methods=["POST"])
@@ -830,12 +816,23 @@ def get_reminders():
     response = GetRemindersResponse(reminders=reminders)
     return jsonify(response.model_dump()), 200
 
+def _strip_micros(logs: list, is_premium: bool) -> list:
+    # free users don't see fiber/sugar/sodium, strip them from the response
+    if is_premium:
+        return logs
+    for log in logs:
+        log["fiber"] = None
+        log["sugar"] = None
+        log["sodium"] = None
+    return logs
+
 @app.route("/food_logs_v2", methods=["GET"])
 def get_food_logs_v2():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    logs = progression_service.get_food_logs_v2(uid=uid)
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    logs = _strip_micros(progression_service.get_food_logs_v2(uid=uid), is_premium)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 # separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data
@@ -845,7 +842,8 @@ def get_food_logs_analytics():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    logs = progression_service.get_food_logs_analytics(uid=uid)
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    logs = _strip_micros(progression_service.get_food_logs_analytics(uid=uid), is_premium)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 @app.route("/water_logs", methods=["GET"])

@@ -66,7 +66,8 @@ CREATE TABLE food_logs_v2 (
     meal TEXT NOT NULL CHECK (meal IN ('breakfast', 'lunch', 'dinner', 'snacks')),
     food_name TEXT NOT NULL,
     brand_name TEXT,
-    food_description TEXT,             -- kept as display string during migration, not for parsing
+    food_description TEXT,
+    food_id TEXT,                       -- FatSecret food_id, used server-side to fetch micros on log             -- kept as display string during migration, not for parsing
     calories INTEGER,
     protein NUMERIC(6,2),
     carbs NUMERIC(6,2),

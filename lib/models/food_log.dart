@@ -1,5 +1,6 @@
 class FoodLog {
   final String? id;
+  final String? foodId; // FatSecret food_id, used server-side to fetch micros
   final String date;
   final String meal;
   final String foodName;
@@ -17,6 +18,7 @@ class FoodLog {
 
   FoodLog({
     this.id,
+    this.foodId,
     required this.date,
     required this.meal,
     required this.foodName,
@@ -36,6 +38,7 @@ class FoodLog {
   factory FoodLog.fromJson(Map<String, dynamic> json) {
     return FoodLog(
       id: json['id'] as String?,
+      foodId: json['food_id'] as String?,
       date: json['date'] as String,
       meal: json['meal'] as String,
       foodName: json['food_name'] as String? ?? '',
@@ -69,6 +72,7 @@ class FoodLog {
 
   FoodLog copyWith({
     String? id,
+    String? foodId,
     String? date,
     String? meal,
     String? foodName,
@@ -85,6 +89,7 @@ class FoodLog {
     String? loggedAt,
   }) => FoodLog(
     id: id ?? this.id,
+    foodId: foodId ?? this.foodId,
     date: date ?? this.date,
     meal: meal ?? this.meal,
     foodName: foodName ?? this.foodName,
@@ -104,6 +109,7 @@ class FoodLog {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'food_id': foodId,
       'date': date,
       'meal': meal,
       'food_name': foodName,

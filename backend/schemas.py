@@ -142,6 +142,7 @@ class FoodLogItem(BaseModel):
     food_name: str
     brand_name: str | None = None
     food_description: str | None = None
+    food_id: str | None = None
     calories: float | None = None
     protein: float | None = None
     carbs: float | None = None

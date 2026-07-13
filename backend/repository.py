@@ -262,6 +262,7 @@ class UserRepository:
                 "food_name": item.get("food_name"),
                 "brand_name": item.get("brand_name"),
                 "food_description": desc or None,
+                "food_id": item.get("food_id"),
                 "calories": item.get("calories"),
                 "protein": macro("protein", r"Protein:\s*([\d.]+)"),
                 "carbs": macro("carbs", r"Carbs:\s*([\d.]+)"),
