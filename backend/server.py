@@ -426,6 +426,9 @@ def update_goals():
         protein_goal=body.protein_goal,
         carbs_goal=body.carbs_goal,
         fat_goal=body.fat_goal,
+        fiber_goal=body.fiber_goal,
+        sugar_goal=body.sugar_goal,
+        sodium_goal=body.sodium_goal,
         weight_goal_type=body.weight_goal_type,
         weekly_workouts_goal=body.weekly_workouts_goal,
     )
@@ -447,6 +450,9 @@ def update_nutrition_goals():
         protein_goal=body.protein_goal,
         carbs_goal=body.carbs_goal,
         fat_goal=body.fat_goal,
+        fiber_goal=body.fiber_goal,
+        sugar_goal=body.sugar_goal,
+        sodium_goal=body.sodium_goal,
     )
     return jsonify(result), 200
 

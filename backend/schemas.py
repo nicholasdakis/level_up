@@ -89,6 +89,9 @@ class UpdateGoalsRequest(BaseModel):
     protein_goal: int | None = None
     carbs_goal: int | None = None
     fat_goal: int | None = None
+    fiber_goal: int | None = None
+    sugar_goal: int | None = None
+    sodium_goal: int | None = None
     weekly_workouts_goal: int | None = None
     weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
 
@@ -97,6 +100,9 @@ class UpdateNutritionGoalsRequest(BaseModel):
     protein_goal: int | None = None
     carbs_goal: int | None = None
     fat_goal: int | None = None
+    fiber_goal: int | None = None
+    sugar_goal: int | None = None
+    sodium_goal: int | None = None
 
 class UpdateWeightGoalRequest(BaseModel):
     weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
@@ -260,6 +266,9 @@ class GoalsResponse(BaseModel):
     protein_goal: int | None = None
     carbs_goal: int | None = None
     fat_goal: int | None = None
+    fiber_goal: int | None = None
+    sugar_goal: int | None = None
+    sodium_goal: int | None = None
     weight_goal_type: str | None = None
     water_ml_goal: int | None = None
     weight_kg_goal: float | None = None

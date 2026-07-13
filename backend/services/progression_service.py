@@ -536,8 +536,8 @@ class ProgressionService: # Service class to handle all progression-related busi
             self._achievement_repo.set_achievement_progress(uid, "level", new_level)
         return xp_gained
 
-    def update_nutrition_goals(self, uid: str, calories_goal: int | None, protein_goal: int | None, carbs_goal: int | None, fat_goal: int | None):
-        data = {"calories_goal": calories_goal, "protein_goal": protein_goal, "carbs_goal": carbs_goal, "fat_goal": fat_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
+    def update_nutrition_goals(self, uid: str, calories_goal: int | None, protein_goal: int | None, carbs_goal: int | None, fat_goal: int | None, fiber_goal: int | None = None, sugar_goal: int | None = None, sodium_goal: int | None = None):
+        data = {"calories_goal": calories_goal, "protein_goal": protein_goal, "carbs_goal": carbs_goal, "fat_goal": fat_goal, "fiber_goal": fiber_goal, "sugar_goal": sugar_goal, "sodium_goal": sodium_goal, "last_updated": datetime.now(timezone.utc).isoformat()}
         data = {k: v for k, v in data.items() if v is not None}
         self._repo.upsert_goals(uid, data)
         return {"success": True}
@@ -567,6 +567,9 @@ class ProgressionService: # Service class to handle all progression-related busi
         protein_goal: int | None,
         carbs_goal: int | None,
         fat_goal: int | None,
+        fiber_goal: int | None,
+        sugar_goal: int | None,
+        sodium_goal: int | None,
         weight_goal_type: str | None,
         weekly_workouts_goal: int | None,
     ):
@@ -575,6 +578,9 @@ class ProgressionService: # Service class to handle all progression-related busi
             "protein_goal": protein_goal,
             "carbs_goal": carbs_goal,
             "fat_goal": fat_goal,
+            "fiber_goal": fiber_goal,
+            "sugar_goal": sugar_goal,
+            "sodium_goal": sodium_goal,
             "weight_goal_type": weight_goal_type,
             "weekly_workouts_goal": weekly_workouts_goal,
             "last_updated": datetime.now(timezone.utc).isoformat(),
