@@ -331,6 +331,9 @@ class LoggedExerciseRequest(BaseModel):
     exercise_name: str = Field(..., min_length=1)
     sets: list[LoggedSetRequest]
 
+class DeleteWorkoutRequest(BaseModel):
+    workout_id: str = Field(..., min_length=1)
+
 class LogWorkoutRequest(BaseModel):
     name: str | None = None                             # null for empty sessions not started from a routine
     date: str = Field(..., min_length=1)                # "YYYY-MM-DD"

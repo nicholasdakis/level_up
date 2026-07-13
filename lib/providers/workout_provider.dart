@@ -475,6 +475,31 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
     }
   }
 
+  // optimistically removes a recent workout, rolls back on failure
+  Future<bool> deleteWorkout(String workoutId) async {
+    final previous = state.value ?? const WorkoutState();
+    state = AsyncData(
+      previous.copyWith(
+        recentWorkouts: previous.recentWorkouts
+            .where((w) => w['workout_id'] != workoutId)
+            .toList(),
+      ),
+    );
+    try {
+      final response = await authenticatedPost(
+        'delete_workout',
+        body: {'workout_id': workoutId},
+      );
+      if (response.statusCode == 200) return true;
+      state = AsyncData(previous);
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteWorkout failed: $e');
+      state = AsyncData(previous);
+      return false;
+    }
+  }
+
   // loads browse routines for the browse screen
   Future<void> loadBrowseRoutines() async {
     if (isGuest) return;

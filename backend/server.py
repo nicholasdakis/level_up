@@ -74,6 +74,7 @@ from backend.schemas import (
     ClaimReferralRewardRequest,
     ClaimReferralRewardResponse,
     SearchExercisesResponse,
+    DeleteWorkoutRequest,
     LogWorkoutRequest,
     LogWorkoutResponse,
     GetRecentWorkoutsResponse,
@@ -1351,6 +1352,14 @@ def get_weekly_workout_count():
     count = workout_service.get_weekly_workout_count(uid)
     return jsonify(GetWeeklyWorkoutCountResponse(count=count).model_dump()), 200
 
+
+@app.route("/delete_workout", methods=["POST"])
+def delete_workout():
+    uid, body, err = _parse_and_auth(DeleteWorkoutRequest)
+    if err:
+        return err
+    deleted = workout_service.delete_workout(uid, body.workout_id)
+    return jsonify({"success": deleted}), 200
 
 @app.route("/recent_workouts", methods=["GET"])
 def get_recent_workouts():

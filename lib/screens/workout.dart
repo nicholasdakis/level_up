@@ -488,6 +488,59 @@ class _WorkoutState extends ConsumerState<Workout> {
                                   fontSize: Responsive.font(context, 11),
                                 ),
                               ),
+                              SizedBox(width: Responsive.width(context, 8)),
+                              GestureDetector(
+                                onTap: () async {
+                                  final workoutId = w['workout_id'] as String?;
+                                  if (workoutId == null) return;
+                                  final confirmed =
+                                      await showFrostedAlertDialog<bool>(
+                                        context: context,
+                                        appColor: appColor,
+                                        title: 'Delete workout?',
+                                        content: Text(
+                                          'Remove "${w['name'] ?? 'this workout'}" from your history? This cannot be undone.',
+                                          style: GoogleFonts.manrope(
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).pop(false),
+                                            child: Text(
+                                              'Cancel',
+                                              style: dialogButtonStyle(),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).pop(true),
+                                            child: Text(
+                                              'Delete',
+                                              style: dialogButtonStyle(
+                                                confirm: true,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                  if (confirmed == true) {
+                                    ref
+                                        .read(workoutProvider.notifier)
+                                        .deleteWorkout(workoutId);
+                                  }
+                                },
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedDelete02,
+                                  color: lightenColor(appColor, 0.30),
+                                  size: Responsive.scale(context, 18),
+                                ),
+                              ),
                             ],
                           ),
                         ),

@@ -73,6 +73,9 @@ class WorkoutService:
         # sessions on the same date are still returned in the correct order
         return self._repo.get_recent_workouts(uid)
 
+    def delete_workout(self, uid: str, workout_id: str) -> bool:
+        return self._repo.delete_workout(uid, workout_id)
+
     def get_recent_exercises(self, uid: str) -> list[dict]:
         # Returns the most recently used unique exercises across all of the user's sessions
         return self._repo.get_recent_exercises(uid)

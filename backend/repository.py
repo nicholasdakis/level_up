@@ -537,6 +537,11 @@ class WorkoutRepository:
             .execute()
         return result.data or []
 
+    def delete_workout(self, uid: str, workout_id: str) -> bool:
+        # uid filter enforces ownership so a user cannot delete another user's workout
+        result = self._supabase.table("workouts").delete().eq("workout_id", workout_id).eq("uid", uid).execute()
+        return bool(result.data)
+
     def get_workout_heatmap(self, uid: str, weeks: int = 12) -> list[dict]:
         from datetime import date, timedelta
         since = (date.today() - timedelta(weeks=weeks)).isoformat()

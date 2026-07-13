@@ -2655,3 +2655,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added range validation to all goal fields in the backend schemas; None is still allowed (meaning "don't change this field"), but integer values outside realistic bounds are now rejected
 - Added IP-based rate limiting to /check_user_email_exists (10 requests per minute per IP) to prevent email enumeration; keys expire after 60 seconds so there is no persistent Redis usage
 - Added date validation to date-related upserts
+- Fixed StreakEntry stripping the last_date entry which showed a wrong "1 day" value for workout streak when it should have been 0
+- Added the ability to delete a workout from the recent workouts list; a confirmation dialog warns that this cannot be undone
