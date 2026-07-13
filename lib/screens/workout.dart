@@ -389,8 +389,10 @@ class _WorkoutState extends ConsumerState<Workout> {
   String _formatDuration(int seconds) {
     final h = seconds ~/ 3600;
     final m = (seconds % 3600) ~/ 60;
+    final s = seconds % 60;
     if (h > 0) return '${h}h ${m}m';
-    return '${m}m';
+    if (m > 0) return '${m}m';
+    return '${s}s';
   }
 
   Widget _buildRecentWorkoutsCard(BuildContext context) {

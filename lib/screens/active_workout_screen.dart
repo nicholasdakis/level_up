@@ -919,6 +919,26 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   String _cleanName(String raw) =>
       raw.replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '').trim();
 
+  // re-evaluates PR across all checked sets for an exercise after a weight/reps change;
+  // uses the best PR found across all checked sets so editing one set down doesn't lose
+  // a PR that another checked set still holds
+  void _reEvaluatePR(String exerciseName, int exIndex) {
+    final sets = (_exercises[exIndex]['sets'] as List);
+    Map<String, dynamic>? bestPR;
+    for (int s = 0; s < sets.length; s++) {
+      if (!(_checked['${exIndex}_$s'] ?? false)) continue;
+      final pr = _detectPR(exerciseName, exIndex, s);
+      if (pr != null) bestPR = pr;
+    }
+    setState(() {
+      if (bestPR != null) {
+        _prDetails[exerciseName] = bestPR;
+      } else {
+        _prDetails.remove(exerciseName);
+      }
+    });
+  }
+
   // compares current weight/reps in the controllers against stored lifetime PRs.
   // returns a detail map if either is a new PR, null if not.
   Map<String, dynamic>? _detectPR(
@@ -1145,6 +1165,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                                           newChecked['${newI}_$s'] =
                                               _checked[oldCheckedKey]!;
                                         }
+                                      }
+                                    }
+                                    // dispose controllers that didn't make it into the remapped set
+                                    for (final key in _controllers.keys) {
+                                      if (!newControllers.containsKey(key)) {
+                                        _controllers[key]!.dispose();
                                       }
                                     }
                                     _controllers
@@ -1893,19 +1919,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 set['weight_kg'] = double.tryParse(v);
                 _s.weights['${exIndex}_${setIndex}_weight'] = v;
                 _persist();
-                // re-evaluate PR silently if this set is already checked
+                // re-evaluate PR across all checked sets so editing one set down
+                // doesn't lose a PR that another checked set still holds
                 if (checked) {
-                  final name = _cleanName(
-                    _exercises[exIndex]['name'] as String? ?? '',
+                  _reEvaluatePR(
+                    _cleanName(_exercises[exIndex]['name'] as String? ?? ''),
+                    exIndex,
                   );
-                  final pr = _detectPR(name, exIndex, setIndex);
-                  setState(() {
-                    if (pr != null) {
-                      _prDetails[name] = pr;
-                    } else {
-                      _prDetails.remove(name);
-                    }
-                  });
                 }
               },
             ),
@@ -1929,19 +1949,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 set['reps'] = int.tryParse(v);
                 _s.reps['${exIndex}_${setIndex}_reps'] = v;
                 _persist();
-                // re-evaluate PR silently if this set is already checked
+                // re-evaluate PR across all checked sets so editing one set down
+                // doesn't lose a PR that another checked set still holds
                 if (checked) {
-                  final name = _cleanName(
-                    _exercises[exIndex]['name'] as String? ?? '',
+                  _reEvaluatePR(
+                    _cleanName(_exercises[exIndex]['name'] as String? ?? ''),
+                    exIndex,
                   );
-                  final pr = _detectPR(name, exIndex, setIndex);
-                  setState(() {
-                    if (pr != null) {
-                      _prDetails[name] = pr;
-                    } else {
-                      _prDetails.remove(name);
-                    }
-                  });
                 }
               },
             ),

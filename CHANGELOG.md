@@ -2657,3 +2657,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added date validation to date-related upserts
 - Fixed StreakEntry stripping the last_date entry which showed a wrong "1 day" value for workout streak when it should have been 0
 - Added the ability to delete a workout from the recent workouts list; a confirmation dialog warns that this cannot be undone
+- Fixed workout duration showing "0m" for sub-minute sessions in the recent workouts list
+- Fixed PR badge persisting on an exercise after editing a weight down below the PR threshold; now re-evaluates all checked sets so the badge only shows if at least one checked set still qualifies
+- Fixed a memory leak where TextEditingControllers were not disposed when exercises were reordered during a workout
