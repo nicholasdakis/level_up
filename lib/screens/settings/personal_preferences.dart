@@ -947,9 +947,12 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         controller: ctrl,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          FilteringTextInputFormatter.allow(
-            RegExp(r'^\d{0,4}\.?\d{0,1}'),
-          ), // up to 4 digits, optional decimal, 1 decimal place
+          TextInputFormatter.withFunction((oldValue, newValue) {
+            if (newValue.text.isEmpty) return newValue;
+            if (!RegExp(r'^\d{0,4}\.?\d{0,1}$').hasMatch(newValue.text))
+              return oldValue;
+            return newValue;
+          }),
         ],
         decoration: InputDecoration(
           labelText: hint,
