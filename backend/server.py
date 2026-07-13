@@ -816,23 +816,12 @@ def get_reminders():
     response = GetRemindersResponse(reminders=reminders)
     return jsonify(response.model_dump()), 200
 
-def _strip_micros(logs: list, is_premium: bool) -> list:
-    # free users don't see fiber/sugar/sodium, strip them from the response
-    if is_premium:
-        return logs
-    for log in logs:
-        log["fiber"] = None
-        log["sugar"] = None
-        log["sodium"] = None
-    return logs
-
 @app.route("/food_logs_v2", methods=["GET"])
 def get_food_logs_v2():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
-    logs = _strip_micros(progression_service.get_food_logs_v2(uid=uid), is_premium)
+    logs = progression_service.get_food_logs_v2(uid=uid)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 # separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data
@@ -842,8 +831,7 @@ def get_food_logs_analytics():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
-    logs = _strip_micros(progression_service.get_food_logs_analytics(uid=uid), is_premium)
+    logs = progression_service.get_food_logs_analytics(uid=uid)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 @app.route("/water_logs", methods=["GET"])
