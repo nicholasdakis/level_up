@@ -312,10 +312,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             except Exception:
                 pass
 
-        food_logs_v2 = self._repo.get_food_logs_v2(uid)
-        reminders = self._reminder_repo.get_reminders(uid)  # kept for older app versions, remove after forced update
-        water_logs = self._repo.get_water_logs(uid)  # kept for older app versions, remove after forced update
-        weight_logs = self._repo.get_weight_logs(uid)  # kept for older app versions, remove after forced update
         goals = self._repo.get_goals(uid)
 
         # TODO: after forced update ships, remove fallbacks to users table and drop migrated columns from users
@@ -339,10 +335,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "notifications_enabled": settings.get("notifications_enabled") if settings.get("notifications_enabled") is not None else user.get("notifications_enabled", True),
             "last_daily_claim": user.get("last_daily_claim"),
             "daily_streak": daily_streak,
-            "food_logs_v2": food_logs_v2,
-            "reminders": reminders,
-            "water_logs": water_logs,
-            "weight_logs": weight_logs,
             "goals": goals,
             "referral_code": user.get("referral_code"),
             "referral_count": self._repo.get_referral_count(uid),

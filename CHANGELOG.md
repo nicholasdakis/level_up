@@ -2601,3 +2601,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added an update recent foods max route and methods and removed its code from being written and read from sharedprefs
 - Deleted old food logs backend code
 - Replaced unneeded upsert_food_log tests with upsert_food_log_v2 tests
+- Removed food logs, reminders, water and weight logs being sent into user data as this was migrated out into dedicated endpoints during Riverpod migration
