@@ -9,7 +9,11 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
   @override
   Future<List<FoodLog>> build() async {
     if (isGuest) return [];
-    return await loadFromServer();
+    try {
+      return await loadFromServer();
+    } catch (_) {
+      return [];
+    }
   }
 
   // fetches the full food log list from the server and returns it

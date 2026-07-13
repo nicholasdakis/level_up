@@ -417,9 +417,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       protein: scaled['protein'],
       carbs: scaled['carbs'],
       fat: scaled['fat'],
-      fiber: food.fiber,
-      sugar: food.sugar,
-      sodium: food.sodium,
+      fiber:
+          result.macroOverrides?['fiber'] ??
+          (food.fiber != null ? food.fiber! * (newAmt / currentAmt) : null),
+      sugar:
+          result.macroOverrides?['sugar'] ??
+          (food.sugar != null ? food.sugar! * (newAmt / currentAmt) : null),
+      sodium:
+          result.macroOverrides?['sodium'] ??
+          (food.sodium != null ? food.sodium! * (newAmt / currentAmt) : null),
       servingSize: '$newAmt $unit',
       loggedAt: food.loggedAt,
     );
@@ -1789,7 +1795,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = !ref.watch(userDataLoadedProvider);
+    final isLoading =
+        !ref.watch(userDataLoadedProvider) ||
+        ref.watch(foodLogsProvider).isLoading;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final logs = isGuest
         ? Guest.fakeFoodLogs(dateKey)
