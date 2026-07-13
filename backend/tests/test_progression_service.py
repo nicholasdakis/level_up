@@ -386,21 +386,20 @@ def test_upsert_food_log_v2_streak_exception_swallowed(mocker):
 
 # delete_reminder tests -----------------
 
-# A reminder that doesn't belong to the user must be rejected without touching the DB
+# A reminder that doesn't belong to the user must return False (DB delete with uid filter returns no rows)
 def test_delete_reminder_wrong_user(mocker):
     fake_reminder_repo = mocker.Mock()
-    fake_reminder_repo.get_reminders.return_value = [{"id": "reminder_abc"}]
+    fake_reminder_repo.delete_reminder.return_value = False  # uid+id filter matched nothing
     service = ProgressionService(None, fake_reminder_repo, None)
 
-    result = service.delete_reminder("user_123", "reminder_xyz")  # wrong id
+    result = service.delete_reminder("user_123", "reminder_xyz")
 
     assert result == False
-    fake_reminder_repo.delete_reminder.assert_not_called()
+    fake_reminder_repo.delete_reminder.assert_called_once_with("reminder_xyz", uid="user_123")
 
 # A successful deletion must return True and track the delete_reminder achievement
 def test_delete_reminder_success(mocker):
     fake_reminder_repo = mocker.Mock()
-    fake_reminder_repo.get_reminders.return_value = [{"id": "reminder_abc"}]
     fake_reminder_repo.delete_reminder.return_value = True
     fake_achievement_repo = mocker.Mock()
     service = ProgressionService(None, fake_reminder_repo, fake_achievement_repo)
@@ -413,7 +412,6 @@ def test_delete_reminder_success(mocker):
 # If the DB deletion fails the achievement must not be tracked
 def test_delete_reminder_db_failure_does_not_track(mocker):
     fake_reminder_repo = mocker.Mock()
-    fake_reminder_repo.get_reminders.return_value = [{"id": "reminder_abc"}]
     fake_reminder_repo.delete_reminder.return_value = False
     fake_achievement_repo = mocker.Mock()
     service = ProgressionService(None, fake_reminder_repo, fake_achievement_repo)
