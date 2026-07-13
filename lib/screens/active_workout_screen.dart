@@ -278,9 +278,36 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       context: context,
       appColor: appColor,
       title: 'Leave workout?',
-      content: Text(
-        'Minimize: use the rest of the app, session stays saved.\nDiscard: permanently delete this workout.',
-        style: GoogleFonts.manrope(color: Colors.white70),
+      content: RichText(
+        text: TextSpan(
+          style: GoogleFonts.manrope(
+            color: Colors.white70,
+            fontSize: Responsive.font(context, 14),
+          ),
+          children: [
+            TextSpan(
+              text: 'Minimize',
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const TextSpan(
+              text: ' to keep your workout running while using the app.\n',
+            ),
+            TextSpan(
+              text: 'Discard',
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const TextSpan(
+              text:
+                  ' to permanently delete.\n\nTip: If you fully close the app, your workout will still be saved when you return.',
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

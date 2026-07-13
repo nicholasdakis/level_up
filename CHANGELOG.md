@@ -2603,7 +2603,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced unneeded upsert_food_log tests with upsert_food_log_v2 tests
 - Removed food logs, reminders, water and weight logs being sent into user data as this was migrated out into dedicated endpoints during Riverpod migration
 - Made the snapshot data now read from food_logs_v2 instead of from food_logs
-- Made the minimize option in the discard workout dialog clearer
+- Made the minimize option in the discard workout dialog clearer, and emphasized how workouts still run when the app is fully closed
 - Improved the UI of the "done reordering" text
 - Added a banner when the user is in "Reordering' mode
 - Made cards taller in reordering mode to be easier to swipe
