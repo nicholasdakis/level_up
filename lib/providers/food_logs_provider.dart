@@ -42,6 +42,8 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
         items.add({...food.toJson(), 'meal': meal});
       }
     }
+    // never send empty items, the backend delete sweep would wipe every food log for this entire day
+    if (items.isEmpty) return true;
 
     try {
       final response = await authenticatedPost(

@@ -131,8 +131,13 @@ Future<void> handleLevelUpOverlay(
   final newLevel = ref.read(userDataProvider).value?.level ?? 0;
   if (newLevel > levelBefore) {
     await showLevelUpOverlay(context, newLevel, appColor, ref);
+    logAnalyticsEvent('level_up', parameters: {'level': newLevel});
     final review = InAppReview.instance;
     if (await review.isAvailable()) {
+      logAnalyticsEvent(
+        'in_app_review_prompted',
+        parameters: {'level': newLevel},
+      );
       review.requestReview();
     }
   }

@@ -276,12 +276,13 @@ class UserRepository:
         valid_items = [i for i in items if i and i.get("food_name")]
         incoming_ids = [i["id"] for i in valid_items if i.get("id")]
 
-        # Delete any DB rows for this date whose id is not in the incoming list (handles deletions)
-        # If no ids are incoming at all, delete everything for this date
-        query = self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date)
-        if incoming_ids:
-            query = query.not_.in_("id", incoming_ids)
-        query.execute()
+        # Delete DB rows for this date whose id is not in the incoming list (handles deletions)
+        # Skip the delete sweep entirely when valid_items is empty to avoid wiping every food log for this entire day
+        if valid_items:
+            query = self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date)
+            if incoming_ids:
+                query = query.not_.in_("id", incoming_ids)
+            query.execute()
 
         # Split into existing rows (have an id, upsert in place) and new rows (no id, insert fresh)
         existing = [i for i in valid_items if i.get("id")]
