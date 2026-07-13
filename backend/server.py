@@ -287,8 +287,16 @@ def ping():
 
 # Checks if a user exists in Supabase by email before Google Sign-In
 # This allows TOS enforcement without ever touching Firebase Auth for new users
+# Unauthenticated by design (no Firebase token exists yet), so rate limited by IP to prevent email enumeration
 @app.route("/check_user_email_exists", methods=["POST"])
 def check_user_exists():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0].strip()
+    rate_key = f"email_check:{ip}"
+    count = redis.incr(rate_key)
+    if count == 1:
+        redis.expire(rate_key, 60)
+    if count > 10:
+        return jsonify({"error": "Too many requests"}), 429
     data = request.get_json()
     if not data or 'email' not in data:
         return jsonify({"error": "Missing email"}), 400

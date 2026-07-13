@@ -799,6 +799,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         },
         timeout: const Duration(seconds: 2),
       );
+      if (response.statusCode == 422) {
+        throw Exception('One or more goal values are out of the allowed range.');
+      }
       if (response.statusCode != 200) {
         throw Exception(
           'update_nutrition_goals failed: ${response.statusCode}',
