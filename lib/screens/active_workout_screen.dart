@@ -277,9 +277,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     final result = await showFrostedAlertDialog<bool>(
       context: context,
       appColor: appColor,
-      title: 'Discard workout?',
+      title: 'Leave workout?',
       content: Text(
-        'All progress will be lost.',
+        'Minimize: use the rest of the app, session stays saved.\nDiscard: permanently delete this workout.',
         style: GoogleFonts.manrope(color: Colors.white70),
       ),
       actions: [
@@ -294,7 +294,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             Navigator.of(context, rootNavigator: true).pop(false);
             Navigator.of(context).pop();
           },
-          child: Text('Minimize', style: dialogButtonStyle()),
+          child: Text('Minimize', style: dialogButtonStyle(confirm: true)),
         ),
         TextButton(
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
@@ -961,6 +961,34 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 children: [
                   _buildHeader(context, accent, dim, volDisplay, volUnit),
                   Container(height: 1, color: Colors.white.withAlpha(15)),
+                  if (_reordering)
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(context, 8),
+                        horizontal: Responsive.width(context, 16),
+                      ),
+                      color: lightenColor(appColor, 0.1).withAlpha(60),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowReloadVertical,
+                            color: lightenColor(appColor, 0.45),
+                            size: Responsive.scale(context, 16),
+                          ),
+                          SizedBox(width: Responsive.width(context, 6)),
+                          Text(
+                            'Drag to reorder exercises',
+                            style: GoogleFonts.manrope(
+                              color: lightenColor(appColor, 0.45),
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (_exercises.isEmpty && !_reordering)
                     Expanded(
                       child: Center(
@@ -976,7 +1004,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                             bottom: Responsive.height(context, 8),
                           ),
                           buildDefaultDragHandles: false,
-                          proxyDecorator: (child, index, animation) => child,
+                          proxyDecorator: (child, index, animation) =>
+                              Material(color: Colors.transparent, child: child),
                           onReorder: _reordering
                               ? (oldIndex, newIndex) {
                                   setState(() {
@@ -1046,24 +1075,45 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                       ),
                     ),
                   if (_reordering)
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        setState(() => _reordering = false);
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(context, 12),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.centeredHorizontalPadding(
+                          context,
+                          16,
                         ),
-                        color: appColor.withAlpha(60),
-                        child: Text(
-                          'Done Reordering',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.manrope(
-                            color: lightenColor(appColor, 0.45),
-                            fontSize: Responsive.font(context, 14),
-                            fontWeight: FontWeight.w700,
+                        vertical: Responsive.height(context, 8),
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() => _reordering = false);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.height(context, 13),
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 14),
+                            ),
+                            color: lightenColor(appColor, 0.1).withAlpha(80),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColor,
+                                0.45,
+                              ).withAlpha(120),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            'Done Reordering',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(context, 15),
+                              color: lightenColor(appColor, 0.45),
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
@@ -1172,10 +1222,21 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
             },
             child: Padding(
               padding: EdgeInsets.only(right: Responsive.width(context, 12)),
-              child: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: lightenColor(appColor, 0.35),
-                size: Responsive.scale(context, 28),
+              child: Container(
+                padding: EdgeInsets.all(Responsive.scale(context, 10)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: lightenColor(appColor, 0.1).withAlpha(20),
+                  border: Border.all(
+                    color: lightenColor(appColor, 0.3).withAlpha(180),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: lightenColor(appColor, 0.3).withAlpha(180),
+                  size: Responsive.font(context, 16),
+                ),
               ),
             ),
           ),
@@ -1383,8 +1444,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 padding: EdgeInsets.only(
                   left: Responsive.width(context, 16),
                   right: Responsive.width(context, 16),
-                  top: Responsive.height(context, 10),
-                  bottom: Responsive.height(context, 8),
+                  top: Responsive.height(context, _reordering ? 18 : 10),
+                  bottom: Responsive.height(context, _reordering ? 18 : 8),
                 ),
                 child: Row(
                   children: [
