@@ -2652,3 +2652,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Simplified reminder deletion from two DB round trips (fetch all reminders to verify ownership, then delete) to a single query filtering by both id and uid
 - Fixed fiber/sugar/sodium not scaling when editing a food's serving size; they now scale by the same ratio as protein/carbs/fat, and manual overrides from the dialog are also respected
 - Fixed food logging skeletonizer not accounting for foodLogsProvider loading state, causing a flash of empty data before logs appeared
+- Added range validation to all goal fields in the backend schemas; None is still allowed (meaning "don't change this field"), but integer values outside realistic bounds are now rejected

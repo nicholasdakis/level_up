@@ -85,34 +85,36 @@ class UpdateUtcOffsetRequest(BaseModel):
     utc_offset: int
 
 class UpdateGoalsRequest(BaseModel):
-    calories_goal: int | None = None
-    protein_goal: int | None = None
-    carbs_goal: int | None = None
-    fat_goal: int | None = None
-    fiber_goal: int | None = None
-    sugar_goal: int | None = None
-    sodium_goal: int | None = None
-    weekly_workouts_goal: int | None = None
+    # ge/le bounds only apply when the value is not None, so None is still valid and means "don't change this field"
+    calories_goal: int | None = Field(default=None, ge=0, le=99999)
+    protein_goal: int | None = Field(default=None, ge=0, le=9999)
+    carbs_goal: int | None = Field(default=None, ge=0, le=9999)
+    fat_goal: int | None = Field(default=None, ge=0, le=9999)
+    fiber_goal: int | None = Field(default=None, ge=0, le=9999)
+    sugar_goal: int | None = Field(default=None, ge=0, le=9999)
+    sodium_goal: int | None = Field(default=None, ge=0, le=99999)
+    weekly_workouts_goal: int | None = Field(default=None, ge=1, le=7)
     weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
 
 class UpdateNutritionGoalsRequest(BaseModel):
-    calories_goal: int | None = None
-    protein_goal: int | None = None
-    carbs_goal: int | None = None
-    fat_goal: int | None = None
-    fiber_goal: int | None = None
-    sugar_goal: int | None = None
-    sodium_goal: int | None = None
+    # ge/le bounds only apply when the value is not None, so None is still valid and means "don't change this field"
+    calories_goal: int | None = Field(default=None, ge=0, le=99999)
+    protein_goal: int | None = Field(default=None, ge=0, le=9999)
+    carbs_goal: int | None = Field(default=None, ge=0, le=9999)
+    fat_goal: int | None = Field(default=None, ge=0, le=9999)
+    fiber_goal: int | None = Field(default=None, ge=0, le=9999)
+    sugar_goal: int | None = Field(default=None, ge=0, le=9999)
+    sodium_goal: int | None = Field(default=None, ge=0, le=99999)
 
 class UpdateWeightGoalRequest(BaseModel):
     weight_goal_type: str | None = Field(default=None, description="lose | gain | maintain")
-    weight_kg_goal: float | None = None
+    weight_kg_goal: float | None = Field(default=None, ge=0, le=999)
 
 class UpdateWaterGoalRequest(BaseModel):
-    water_ml_goal: int | None = None
+    water_ml_goal: int | None = Field(default=None, ge=0, le=99999)
 
 class UpdateWeeklyWorkoutsGoalRequest(BaseModel):
-    weekly_workouts_goal: int | None = None
+    weekly_workouts_goal: int | None = Field(default=None, ge=1, le=7)
 
 # ==============================================================================
 # Shared / nested models  (defined before any response that references them)
