@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../globals.dart';
 import '../../providers/user_data_provider.dart';
 import '../../utility/responsive.dart';
@@ -38,17 +39,24 @@ Future<bool> requestNotificationPermissionIfNeeded(
 
   if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
     // First time asking, so show the OS permission dialog
+    FirebaseAnalytics.instance.logEvent(
+      name: 'notification_permission_prompted',
+    );
     final result = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
     if (result.authorizationStatus == AuthorizationStatus.authorized) {
+      FirebaseAnalytics.instance.logEvent(
+        name: 'notification_permission_granted',
+      );
       // Permission just granted, grab the token now since we skipped it at startup
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) await notifier.initializeFcmToken(token);
       return true;
     }
+    FirebaseAnalytics.instance.logEvent(name: 'notification_permission_denied');
     return false;
   } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
     if (skipIfDenied) return false; // respect the user's choice, don't nag

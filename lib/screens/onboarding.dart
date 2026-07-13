@@ -10,6 +10,7 @@ import 'package:flutter/services.dart'
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '/globals.dart';
 import '/providers/user_data_provider.dart';
 import '/providers/weight_logs_provider.dart';
@@ -75,6 +76,8 @@ Future<String?> showOnboardingWizard(
   int? pendingCarbs;
   int? pendingFat;
   String? wizardChoice;
+
+  FirebaseAnalytics.instance.logEvent(name: 'onboarding_started');
 
   wizardChoice = await showFrostedDialog<String>(
     context: context,
@@ -287,7 +290,13 @@ Future<String?> showOnboardingWizard(
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => setState(() => currentStep = 1),
+                onPressed: () {
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_step_viewed',
+                    parameters: {'step': 1},
+                  );
+                  setState(() => currentStep = 1);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: appColor,
                   foregroundColor: Colors.white,
@@ -526,8 +535,13 @@ Future<String?> showOnboardingWizard(
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () =>
-                                    setState(() => currentStep = 2),
+                                onPressed: () {
+                                  FirebaseAnalytics.instance.logEvent(
+                                    name: 'onboarding_step_viewed',
+                                    parameters: {'step': 2},
+                                  );
+                                  setState(() => currentStep = 2);
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: appColor,
                                   foregroundColor: Colors.white,
@@ -825,7 +839,13 @@ Future<String?> showOnboardingWizard(
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => setState(() => currentStep = 3),
+                      onPressed: () {
+                        FirebaseAnalytics.instance.logEvent(
+                          name: 'onboarding_step_viewed',
+                          parameters: {'step': 3},
+                        );
+                        setState(() => currentStep = 3);
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: appColor,
                         foregroundColor: Colors.white,
@@ -1356,7 +1376,13 @@ Future<String?> showOnboardingWizard(
                           (tdee != null &&
                               (goalType == 'maintain' ||
                                   rateController.text.isNotEmpty))
-                          ? () => setState(() => currentStep = 4)
+                          ? () {
+                              FirebaseAnalytics.instance.logEvent(
+                                name: 'onboarding_step_viewed',
+                                parameters: {'step': 4},
+                              );
+                              setState(() => currentStep = 4);
+                            }
                           : () {
                               final missing = <String>[];
                               if (selectedSex == null) missing.add('sex');
@@ -1425,6 +1451,10 @@ Future<String?> showOnboardingWizard(
             pendingProtein = protein;
             pendingCarbs = carbs;
             pendingFat = fat;
+            FirebaseAnalytics.instance.logEvent(
+              name: 'onboarding_step_viewed',
+              parameters: {'step': 5},
+            );
             setState(() => currentStep = 5);
           }
 
@@ -1617,7 +1647,16 @@ Future<String?> showOnboardingWizard(
                       ref
                           .read(userDataProvider.notifier)
                           .patch((u) => u.copyWith(username: name));
-                      if (ctx.mounted) setState(() => currentStep = 6);
+                      if (ctx.mounted) {
+                        FirebaseAnalytics.instance.logEvent(
+                          name: 'onboarding_step_viewed',
+                          parameters: {'step': 6},
+                        );
+                        FirebaseAnalytics.instance.logEvent(
+                          name: 'onboarding_username_set',
+                        );
+                        setState(() => currentStep = 6);
+                      }
                     } else {
                       setState(() => usernameError = 'Username already taken');
                     }
@@ -1647,6 +1686,13 @@ Future<String?> showOnboardingWizard(
               TextButton(
                 onPressed: () {
                   // leave username as uid so finishOnboarding assigns a random name at the end
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_step_viewed',
+                    parameters: {'step': 6},
+                  );
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_username_skipped',
+                  );
                   setState(() => currentStep = 6);
                 },
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
@@ -1696,6 +1742,10 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_activation_choice',
+                    parameters: {'choice': 'workout'},
+                  );
                   commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('workout');
@@ -1710,6 +1760,10 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_activation_choice',
+                    parameters: {'choice': 'food'},
+                  );
                   commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('food');
@@ -1725,6 +1779,10 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_activation_choice',
+                    parameters: {'choice': 'home'},
+                  );
                   commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('reward');
@@ -1739,6 +1797,10 @@ Future<String?> showOnboardingWizard(
                 accent: accent,
                 dim: dim,
                 onTap: () {
+                  FirebaseAnalytics.instance.logEvent(
+                    name: 'onboarding_activation_choice',
+                    parameters: {'choice': 'settings'},
+                  );
                   commitAll();
                   finishOnboarding(context, ref);
                   Navigator.of(context, rootNavigator: true).pop('settings');
@@ -1825,7 +1887,17 @@ Future<String?> showOnboardingWizard(
                         currentStep == 3 ||
                         currentStep == 4)
                       TextButton(
-                        onPressed: () => setState(() => currentStep = 5),
+                        onPressed: () {
+                          FirebaseAnalytics.instance.logEvent(
+                            name: 'onboarding_step_skipped',
+                            parameters: {'from_step': currentStep},
+                          );
+                          FirebaseAnalytics.instance.logEvent(
+                            name: 'onboarding_step_viewed',
+                            parameters: {'step': 5},
+                          );
+                          setState(() => currentStep = 5);
+                        },
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

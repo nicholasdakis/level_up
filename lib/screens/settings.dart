@@ -368,6 +368,7 @@ Widget buildSettingsDrawer(
                         ],
                       );
                       if (confirmed == true) {
+                        logAnalyticsEvent('logout_confirmed');
                         Navigator.pop(context); // close drawer on confirm
                         await authService.value.signOut(
                           ref.read(userDataProvider.notifier),

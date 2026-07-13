@@ -2632,3 +2632,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The edit serving dialog now allows editing micros
 - Manual entry now allows adding micros
 - Added micro breakdown and micro graph sections to Food Analytics
+- Added analytics tracking for the onboarding funnel: fires an event when onboarding starts, when each step is viewed, when a step is skipped (with which step was skipped), when the username step is completed or skipped, and which activation choice the user picks at the end (workout, food, home, settings)
+- Added notification permission analytics: tracks when the OS permission dialog is shown, whether the user grants or denies it
+- Added notification tap analytics: tracks when a user opens the app by tapping a push notification, with whether the app was terminated or in the background
+- Added first-action analytics: fires once when a user logs their first food, first water entry, and first weight entry
+- Added guest mode analytics: tracks when a user enters guest mode and which lock dialog they hit (with the title of the lock so the most-blocked features are visible)
+- Added feature engagement analytics: weekly workout goal changes, routine deletions, leaderboard category switches, logout confirmations, and premium plan selection (yearly vs monthly)

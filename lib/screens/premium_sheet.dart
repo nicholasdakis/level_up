@@ -1334,9 +1334,15 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                               selected: !_selectedId.contains('monthly'),
                               large: true,
                               appColor: appColor,
-                              onTap: () => setState(
-                                () => _selectedId = 'level_up_premium:yearly',
-                              ),
+                              onTap: () {
+                                logAnalyticsEvent(
+                                  'premium_plan_selected',
+                                  parameters: {'plan': 'yearly'},
+                                );
+                                setState(
+                                  () => _selectedId = 'level_up_premium:yearly',
+                                );
+                              },
                             ),
                             SizedBox(height: Responsive.height(context, 10)),
                             _PlanTile(
@@ -1347,9 +1353,16 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                               selected: _selectedId.contains('monthly'),
                               large: false,
                               appColor: appColor,
-                              onTap: () => setState(
-                                () => _selectedId = 'level_up_premium:monthly',
-                              ),
+                              onTap: () {
+                                logAnalyticsEvent(
+                                  'premium_plan_selected',
+                                  parameters: {'plan': 'monthly'},
+                                );
+                                setState(
+                                  () =>
+                                      _selectedId = 'level_up_premium:monthly',
+                                );
+                              },
                             ),
                           ],
 

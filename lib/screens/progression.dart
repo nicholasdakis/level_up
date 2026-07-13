@@ -121,6 +121,10 @@ class _ProgressionState extends ConsumerState<Progression> {
                         child: GestureDetector(
                           onTap: () {
                             if (_standingType != type) {
+                              logAnalyticsEvent(
+                                'leaderboard_type_changed',
+                                parameters: {'type': type},
+                              );
                               setState(() => _standingType = type);
                               _fetchStanding();
                             }

@@ -240,6 +240,7 @@ class Guest {
     ref.read(userDataProvider.notifier).setUserData(Guest.defaultUserData);
     guestNotifier.value = true;
     appReadyNotifier.setReady();
+    logAnalyticsEvent('guest_mode_entered');
   }
 
   // Called on sign out or when the guest taps "Sign Up" in the block dialog, clears all guest state and sends the router back to login
@@ -270,6 +271,7 @@ class Guest {
     String title = 'Sign up to do this',
     String description = "Create a free account to use this feature.",
   }) {
+    logAnalyticsEvent('guest_block_shown', parameters: {'title': title});
     showFrostedAlertDialog(
       context: context,
       appColor: defaultAppColor,

@@ -375,6 +375,10 @@ class _WorkoutState extends ConsumerState<Workout> {
     );
 
     if (result != null) {
+      logAnalyticsEvent(
+        'weekly_workout_goal_set',
+        parameters: {'goal': result},
+      );
       await ref
           .read(userDataProvider.notifier)
           .updateGoals(weeklyWorkoutsGoal: result, context: context);
@@ -532,6 +536,7 @@ class _WorkoutState extends ConsumerState<Workout> {
       ],
     );
     if (confirmed != true) return;
+    logAnalyticsEvent('routine_deleted');
     final ok = await ref
         .read(workoutProvider.notifier)
         .deleteRoutine(routine['template_id'] as String);

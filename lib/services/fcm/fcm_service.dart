@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../firebase_options.dart';
@@ -86,6 +87,28 @@ class FcmService {
         observer,
       ); // observer on Web so that it automatically calls refreshToken() on resuming the app
     }
+
+    // Track when user opens the app by tapping a notification
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        FirebaseAnalytics.instance.logEvent(
+          name: 'notification_tapped',
+          parameters: {
+            'type': message.data['type'] ?? 'unknown',
+            'source': 'terminated',
+          },
+        );
+      }
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      FirebaseAnalytics.instance.logEvent(
+        name: 'notification_tapped',
+        parameters: {
+          'type': message.data['type'] ?? 'unknown',
+          'source': 'background',
+        },
+      );
+    });
 
     // Show a browser notification for foreground messages on web
     // (setForegroundNotificationPresentationOptions is iOS-only and does nothing on web)
