@@ -111,7 +111,7 @@ from backend.schemas import (
 )
 from backend.auth import verify_token
 from backend.valid_achievements import TRIVIAL_ACHIEVEMENT_IDS, ACHIEVEMENT_DEFINITIONS
-from backend.utils import utc_minute_of_day, find_utc_midnight_offset_mins
+from backend.utils import utc_minute_of_day, find_utc_midnight_offset_mins, FREE_PRESET_COLORS
 from backend.redis_cache import FOOD_CACHE_TTL, redis
 from google.oauth2 import service_account, id_token as google_id_token
 from google.auth.transport import requests as google_requests
@@ -673,11 +673,13 @@ def update_pfp():
 
 @app.route("/update_app_color", methods=["POST"])
 def update_app_color():
-    # Method that updates the user's app theme color, stored as an ARGB integer
+    # Updates the user's app theme color, stored as an ARGB integer
     uid, body, err = _parse_and_auth(UpdateAppColorRequest)
     if err:
         return err
-
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    if not is_premium and body.app_color not in FREE_PRESET_COLORS:
+        return jsonify({"error": "Premium required for custom colors"}), 403
     progression_service.update_app_color(uid, body.app_color)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 

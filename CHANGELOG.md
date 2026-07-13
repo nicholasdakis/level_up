@@ -2595,3 +2595,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made a helper method for the shimmering PRO chip using the ShimmerWidget
 - Enforced the cutoff date check for analytics server-side
 - Split the food, water, and weight logs routes into two routes to differentiate between the data used for analytics
+- Enforced preset app themes for free users on the server-side

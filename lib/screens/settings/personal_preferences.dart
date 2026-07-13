@@ -273,7 +273,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       return;
     }
     final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
-    // TODO: server-side: validate that free users only send preset colors on app_color update
     if (!isPremium) {
       _showPresetColorDialog();
       return;

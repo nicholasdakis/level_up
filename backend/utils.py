@@ -27,6 +27,23 @@ def to_utc_datetime(ts, fallback=None):
     # unknown type, return fallback or current UTC time
     return fallback or datetime.now(timezone.utc)
 
+# ARGB integer values of the colors free users are allowed to set as their app theme
+FREE_PRESET_COLORS = {
+    0xFF2D2D2D,  # Default
+    0xFF4F8EF7,  # Blue
+    0xFF7C5CBF,  # Purple
+    0xFFE05C8A,  # Pink
+    0xFF2EBF91,  # Teal
+    0xFFE8864B,  # Orange
+    0xFF5782AF,  # Steel
+    0xFF4F17A1,  # Violet
+    0xFFE84B4B,  # Red
+    0xFF1A2A4A,  # Navy
+    0xFF1A3A2A,  # Forest
+    0xFF2A1A3A,  # Midnight
+    0xFF3A1A1A,  # Crimson
+}
+
 # ----------------------
 # Daily Snapshot related utility functions
 MINUTES_IN_DAY = 1440 # for wrapping around the time when converting it
