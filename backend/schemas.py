@@ -51,13 +51,6 @@ class AddFcmTokenRequest(BaseModel):
 class RemoveFcmTokenRequest(BaseModel):
     token: str = Field(..., min_length=1)
 
-class UpsertFoodLogRequest(BaseModel):
-    date: str = Field(..., min_length=1)  # e.g. "2025-04-13"
-    breakfast: list = Field(default_factory=list)
-    lunch: list = Field(default_factory=list)
-    dinner: list = Field(default_factory=list)
-    snack: list = Field(default_factory=list)
-
 class UpsertFoodLogV2Request(BaseModel):
     date: str = Field(..., min_length=1)
     items: list = Field(default_factory=list)  # list of food item dicts with meal, macros, etc.
@@ -285,7 +278,6 @@ class GetUserDataResponse(BaseModel):
     last_daily_claim: str | None = None  # ISO string
     can_claim_daily_reward: bool = True  # computed from last_daily_claim, not stored in DB
     daily_streak: int = 1
-    food_logs: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
     food_logs_v2: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
     reminders: list = Field(default_factory=list)  # kept for older app versions, remove after forced update
     water_logs: list = Field(default_factory=list)  # kept for older app versions, remove after forced update

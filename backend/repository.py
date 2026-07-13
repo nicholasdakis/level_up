@@ -230,11 +230,6 @@ class UserRepository:
 
     # Methods for the full user data load
 
-    def get_food_logs(self, uid: str):
-        # Fetches all food log rows for a user
-        result = self._supabase.table("food_logs").select("*").eq("uid", uid).execute()
-        return result.data
-
     def get_food_logs_v2(self, uid: str, cutoff: str | None = None):
         # Fetches normalized food log rows, one per food item, sorted by date and logged_at
         # query is built incrementally so the cutoff filter can be conditionally added before executing
@@ -246,17 +241,6 @@ class UserRepository:
         if cutoff:
             query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
         return query.order("date", desc=False).order("logged_at", desc=False).execute().data
-
-    def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
-        # Upserts a single date's food log (insert or update based on the (uid, date) primary key)
-        self._supabase.table("food_logs").upsert({
-            "uid": uid,
-            "date": date,
-            "breakfast": breakfast,
-            "lunch": lunch,
-            "dinner": dinner,
-            "snack": snack,
-        }).execute()
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Upserts food log rows for a given date

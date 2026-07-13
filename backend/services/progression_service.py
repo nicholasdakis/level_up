@@ -312,8 +312,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             except Exception:
                 pass
 
-        food_logs = self._repo.get_food_logs(uid)  # kept for older app versions, remove after forced update
-        food_logs_v2 = self._repo.get_food_logs_v2(uid)  # kept for older app versions, remove after forced update
+        food_logs_v2 = self._repo.get_food_logs_v2(uid)
         reminders = self._reminder_repo.get_reminders(uid)  # kept for older app versions, remove after forced update
         water_logs = self._repo.get_water_logs(uid)  # kept for older app versions, remove after forced update
         weight_logs = self._repo.get_weight_logs(uid)  # kept for older app versions, remove after forced update
@@ -340,7 +339,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "notifications_enabled": settings.get("notifications_enabled") if settings.get("notifications_enabled") is not None else user.get("notifications_enabled", True),
             "last_daily_claim": user.get("last_daily_claim"),
             "daily_streak": daily_streak,
-            "food_logs": food_logs,
             "food_logs_v2": food_logs_v2,
             "reminders": reminders,
             "water_logs": water_logs,
@@ -390,10 +388,6 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Removes an FCM token from the user's list
         self._repo.remove_fcm_token(uid, token)
 
-    def get_food_logs(self, uid: str):
-        # kept for users on older app versions, remove after forced update
-        return self._repo.get_food_logs(uid)
-
     def _analytics_cutoff(self, uid: str) -> str | None:
         # free users only see 14 days of history in analytics, premium users get everything
         is_premium = self._repo.get_premium_status(uid).get("is_premium", False)
@@ -430,12 +424,7 @@ class ProgressionService: # Service class to handle all progression-related busi
     def delete_weight_log(self, uid: str, date: str):
         self._repo.delete_weight_log(uid, date)
 
-    def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
-        # kept for users on older app versions, remove after forced update
-        self._repo.upsert_food_log(uid, date, breakfast, lunch, dinner, snack)
-        self._track_achievement(uid, "food_logs")
 
-        # Update the food logging streak and sync it to achievement progress
         try:
             food_streak = self._repo.update_food_streak(uid)
             self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)

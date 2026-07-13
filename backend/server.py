@@ -37,7 +37,6 @@ from backend.schemas import (
     UpdateRecentFoodsMaxRequest,
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
-    UpsertFoodLogRequest,
     UpsertFoodLogV2Request,
     UpsertWaterLogRequest,
     UpsertWeightLogRequest,
@@ -743,20 +742,6 @@ def remove_fcm_token():
     progression_service.remove_fcm_token(uid, body.token)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
-
-# kept for users on older app versions that still write to the old food_logs table, remove after forced update
-@app.route("/upsert_food_log", methods=["POST"])
-def upsert_food_log():
-    # Method that inserts or updates a food log entry for a specific date
-    uid, body, err = _parse_and_auth(UpsertFoodLogRequest)
-    if err:
-        return err
-
-    progression_service.upsert_food_log(
-        uid, body.date, body.breakfast, body.lunch, body.dinner, body.snack
-    )
-    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
-
 @app.route("/upsert_food_log_v2", methods=["POST"])
 def upsert_food_log_v2():
     uid, body, err = _parse_and_auth(UpsertFoodLogV2Request)
@@ -845,7 +830,6 @@ def get_reminders():
     response = GetRemindersResponse(reminders=reminders)
     return jsonify(response.model_dump()), 200
 
-# TODO: once old app versions are gone, remove food_logs_v2 from the /user_data response and rely solely on this endpoint
 @app.route("/food_logs_v2", methods=["GET"])
 def get_food_logs_v2():
     uid, _, err = _parse_and_auth()
