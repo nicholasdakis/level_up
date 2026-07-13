@@ -2644,3 +2644,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated the nutrition goals dialog to also accept micronutrients
 - Edited the macro gauges in Food Logging to now be collapsable, showing micros when expanded
 - The collapsed / expanded state is persisted in SharedPrefs (default is collapsed)
+- Edit the macros today card so that it has an arrow that shows "micros today" instead when pressed
+- Added dot indicators onto the macros today card to further show it has more content

@@ -44,6 +44,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   bool get isImperial =>
       ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
 
+  bool _showMicros = false;
+
   // Calculates total calories logged today
   int _todayCalories(List<FoodLog> logs) {
     final key = _todayDateKey();
@@ -65,6 +67,21 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
       fat += (macros['fat'] ?? 0.0).toInt();
     }
     return (protein: protein, carbs: carbs, fat: fat);
+  }
+
+  // Returns today's total fiber/sugar/sodium
+  ({double fiber, double sugar, double sodium}) _todayMicros(
+    List<FoodLog> logs,
+  ) {
+    final key = _todayDateKey();
+    double fiber = 0, sugar = 0, sodium = 0;
+    for (final food in logs.where((f) => f.date == key)) {
+      final macros = FoodLoggingHelper.extractMacrosFromFood(food);
+      fiber += macros['fiber'] ?? 0.0;
+      sugar += macros['sugar'] ?? 0.0;
+      sodium += macros['sodium'] ?? 0.0;
+    }
+    return (fiber: fiber, sugar: sugar, sodium: sodium);
   }
 
   VoidCallback get onShowWaterSheet => widget.onShowWaterSheet;
@@ -284,21 +301,23 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final foodLogs = ref.watch(foodLogsProvider).value ?? [];
     final accentColor = lightenColor(appColor, 0.45);
     final dimColor = lightenColor(appColor, 0.35);
-    final macros = isGuest
-        ? _todayMacros(Guest.fakeFoodLogs(_todayDateKey()))
-        : _todayMacros(foodLogs);
+    final logs = isGuest ? Guest.fakeFoodLogs(_todayDateKey()) : foodLogs;
+    final macros = _todayMacros(logs);
+    final micros = _todayMicros(logs);
 
-    Widget macroRow(String label, IconData icon, int value, int? goal) {
+    Widget row(String label, IconData icon, String value, String? goal) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // label left
-          Text(
-            label,
-            style: GoogleFonts.manrope(
-              color: dimColor,
-              fontSize: Responsive.font(context, 11),
-              fontWeight: FontWeight.w600,
+          SizedBox(
+            width: Responsive.width(context, 46),
+            child: Text(
+              label,
+              style: GoogleFonts.manrope(
+                color: dimColor,
+                fontSize: Responsive.font(context, 11),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           // value center
@@ -308,7 +327,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: "${value}g",
+                    text: value,
                     style: GoogleFonts.manrope(
                       color: accentColor,
                       fontSize: Responsive.font(context, 15),
@@ -317,7 +336,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                   ),
                   if (goal != null)
                     TextSpan(
-                      text: " /${goal}g",
+                      text: " /$goal",
                       style: GoogleFonts.manrope(
                         color: dimColor,
                         fontSize: Responsive.font(context, 11),
@@ -327,7 +346,6 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
               ),
             ),
           ),
-          // icon right
           HugeIcon(
             icon: icon,
             color: dimColor,
@@ -337,6 +355,109 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
       );
     }
 
+    Widget header(String title, IconData arrow, VoidCallback onArrow) => Row(
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedAppleStocks,
+          color: accentColor,
+          size: Responsive.scale(context, 14),
+        ),
+        SizedBox(width: Responsive.width(context, 5)),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.manrope(
+              color: accentColor,
+              fontSize: Responsive.font(context, 11),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: onArrow,
+          child: HugeIcon(
+            icon: arrow,
+            color: dimColor,
+            size: Responsive.scale(context, 18),
+          ),
+        ),
+      ],
+    );
+
+    final cardContent = _showMicros
+        ? Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              header(
+                "Today's Micros",
+                HugeIcons.strokeRoundedArrowLeft01,
+                () => setState(() => _showMicros = false),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+              row(
+                "Fiber",
+                HugeIcons.strokeRoundedLeaf01,
+                "${micros.fiber.toStringAsFixed(1)}g",
+                userData?.fiberGoal != null ? "${userData!.fiberGoal}g" : null,
+              ),
+              SizedBox(height: Responsive.height(context, 2)),
+              row(
+                "Sugar",
+                HugeIcons.strokeRoundedCube,
+                "${micros.sugar.toStringAsFixed(1)}g",
+                userData?.sugarGoal != null ? "${userData!.sugarGoal}g" : null,
+              ),
+              SizedBox(height: Responsive.height(context, 2)),
+              row(
+                "Sodium",
+                HugeIcons.strokeRoundedDroplet,
+                "${micros.sodium.toStringAsFixed(0)}mg",
+                userData?.sodiumGoal != null
+                    ? "${userData!.sodiumGoal}mg"
+                    : null,
+              ),
+              const Spacer(),
+              Center(child: _pageIndicator()),
+            ],
+          )
+        : Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              header(
+                "Today's Macros",
+                HugeIcons.strokeRoundedArrowRight01,
+                () => setState(() => _showMicros = true),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+              row(
+                "Protein",
+                HugeIcons.strokeRoundedBodyPartMuscle,
+                "${macros.protein}g",
+                userData?.proteinGoal != null
+                    ? "${userData!.proteinGoal}g"
+                    : null,
+              ),
+              SizedBox(height: Responsive.height(context, 2)),
+              row(
+                "Carbs",
+                HugeIcons.strokeRoundedFire,
+                "${macros.carbs}g",
+                userData?.carbsGoal != null ? "${userData!.carbsGoal}g" : null,
+              ),
+              SizedBox(height: Responsive.height(context, 2)),
+              row(
+                "Fat",
+                HugeIcons.strokeRoundedDroplet,
+                "${macros.fat}g",
+                userData?.fatGoal != null ? "${userData!.fatGoal}g" : null,
+              ),
+              const Spacer(),
+              Center(child: _pageIndicator()),
+            ],
+          );
+
     return frostedGlassCard(
       context,
       color: appColor,
@@ -344,51 +465,28 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
         horizontal: Responsive.width(context, 16),
         vertical: Responsive.height(context, 10),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedAppleStocks,
-                color: accentColor,
-                size: Responsive.scale(context, 14),
-              ),
-              SizedBox(width: Responsive.width(context, 5)),
-              Text(
-                "Today's Macros",
-                style: GoogleFonts.manrope(
-                  color: accentColor,
-                  fontSize: Responsive.font(context, 11),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: Responsive.height(context, 6)),
-          macroRow(
-            "P",
-            HugeIcons.strokeRoundedBodyPartMuscle,
-            macros.protein,
-            userData?.proteinGoal,
-          ),
-          SizedBox(height: Responsive.height(context, 2)),
-          macroRow(
-            "C",
-            HugeIcons.strokeRoundedFire,
-            macros.carbs,
-            userData?.carbsGoal,
-          ),
-          SizedBox(height: Responsive.height(context, 2)),
-          macroRow(
-            "F",
-            HugeIcons.strokeRoundedDroplet,
-            macros.fat,
-            userData?.fatGoal,
-          ),
-        ],
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: KeyedSubtree(key: ValueKey(_showMicros), child: cardContent),
       ),
+    );
+  }
+
+  Widget _pageIndicator() {
+    final active = lightenColor(appColor, 0.45);
+    final inactive = lightenColor(appColor, 0.20);
+    dot(bool filled) => Container(
+      width: Responsive.scale(context, 7),
+      height: Responsive.scale(context, 7),
+      margin: EdgeInsets.symmetric(horizontal: Responsive.width(context, 4)),
+      decoration: BoxDecoration(
+        color: filled ? active : inactive,
+        shape: BoxShape.circle,
+      ),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [dot(!_showMicros), dot(_showMicros)],
     );
   }
 
