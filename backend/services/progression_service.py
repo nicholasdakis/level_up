@@ -337,7 +337,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "username": user.get("username") or uid,
             "app_color": settings.get("app_color") or user.get("app_color"),
             "fcm_tokens": user.get("fcm_tokens") or [],
-            "notifications_enabled": settings.get("notifications_enabled", user.get("notifications_enabled", True)),
+            "notifications_enabled": settings.get("notifications_enabled") if settings.get("notifications_enabled") is not None else user.get("notifications_enabled", True),
             "last_daily_claim": user.get("last_daily_claim"),
             "daily_streak": daily_streak,
             "food_logs": food_logs,
