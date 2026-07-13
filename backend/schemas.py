@@ -52,15 +52,15 @@ class RemoveFcmTokenRequest(BaseModel):
     token: str = Field(..., min_length=1)
 
 class UpsertFoodLogV2Request(BaseModel):
-    date: str = Field(..., min_length=1)
+    date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     items: list = Field(default_factory=list)  # list of food item dicts with meal, macros, etc.
 
 class UpsertWaterLogRequest(BaseModel):
-    date: str = Field(..., min_length=1)
+    date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     entries_ml: list = Field(default_factory=list)  # list of {amount_ml: int}
 
 class UpsertWeightLogRequest(BaseModel):
-    date: str = Field(..., min_length=1)
+    date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     weight_kg: float
 
 class DeleteWeightLogRequest(BaseModel):
@@ -213,6 +213,7 @@ class StreakEntry(BaseModel):
     streak_type: str
     streak: int
     highest_streak: int
+    last_date: str | None = None
 
 # ==============================================================================
 # Response schemas
