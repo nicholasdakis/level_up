@@ -71,7 +71,10 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
       screenClass: 'FoodAnalyticsScreen',
     );
     _tabController = TabController(length: 2, vsync: this);
-    currentDate = widget.initialDate;
+    // clamp initialDate to the cutoff so free users don't open to an empty day with no explanation
+    currentDate = (!_isPremium && widget.initialDate.isBefore(_cutoff))
+        ? _cutoff
+        : widget.initialDate;
     _loadForDate(currentDate);
   }
 
