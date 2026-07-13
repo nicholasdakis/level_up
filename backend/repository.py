@@ -128,7 +128,7 @@ class UserRepository:
     
     def get_streaks(self, uid: str):
         # Fetches all streak rows for a user
-        result = self._supabase.table("streaks").select("streak_type, streak, highest_streak").eq("uid", uid).execute()
+        result = self._supabase.table("streaks").select("streak_type, streak, highest_streak, last_date").eq("uid", uid).execute()
         return result.data
 
 

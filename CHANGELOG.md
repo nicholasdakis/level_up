@@ -2608,3 +2608,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a banner when the user is in "Reordering' mode
 - Made cards taller in reordering mode to be easier to swipe
 - Styled the minimize chevron like the back button on other screens
+- Fixed a bug where last_date was not returned in get_streaks (did not affect important streak-related logic as that is handled directly in RPCs)
