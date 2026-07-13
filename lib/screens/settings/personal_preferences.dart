@@ -127,8 +127,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
   late bool notificationsEnabled; // tracks the notification toggle state
   late String _units; // tracks the selected unit system (metric or imperial)
   bool _cropLoading = false;
-  int _recentFoodsMax =
-      30; // current max, RecentFoodsService.unlimited (0) = unlimited
+  int _recentFoodsMax = 20;
 
   final _recentFoodsService = RecentFoodsService();
 
@@ -160,9 +159,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             if (c != null) setState(() {});
           }
         });
-    _recentFoodsService.getRecentFoodsMax().then((val) {
-      if (mounted && val != null) setState(() => _recentFoodsMax = val);
-    });
+    final storedMax = ref.read(userDataProvider).value?.recentFoodsMax;
+    if (storedMax != null) _recentFoodsMax = storedMax;
   }
 
   Future pickProfileImage() async {
@@ -399,7 +397,12 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                             context,
                             feature: 'Custom Theme Colors',
                             appColor: appColor,
-                            onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                            onLearnMore: () {
+                              logAnalyticsEvent(
+                                'premium_sheet_opened_from_learn_more',
+                              );
+                              showPremiumSheet(context, ref);
+                            },
                           );
                         },
                         child: Column(
@@ -1440,7 +1443,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   Guest.block(context);
                                   return;
                                 }
-                                // TODO: server-side: enforce max 20 recent foods for free users on save
                                 final isPremium =
                                     ref
                                         .read(userDataProvider)
@@ -1458,14 +1460,25 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                       context,
                                       feature: 'Unlimited Quick Logging',
                                       appColor: appColor,
-                                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                                      onLearnMore: () {
+                                        logAnalyticsEvent(
+                                          'premium_sheet_opened_from_learn_more',
+                                        );
+                                        showPremiumSheet(context, ref);
+                                      },
                                     );
                                     return;
                                   }
-                                  await _recentFoodsService.setRecentFoodsMax(
-                                    val,
-                                  );
-                                  if (mounted) {
+                                  final ok = await _recentFoodsService
+                                      .setRecentFoodsMax(val);
+                                  if (!mounted) return;
+                                  if (ok) {
+                                    ref
+                                        .read(userDataProvider.notifier)
+                                        .patch(
+                                          (u) =>
+                                              u.copyWith(recentFoodsMax: val),
+                                        );
                                     setState(() => _recentFoodsMax = val);
                                   }
                                   if (context.mounted) {
@@ -1476,9 +1489,13 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          val == RecentFoodsService.unlimited
-                                              ? "Recent foods limit set to Unlimited"
-                                              : "Recent foods limit set to $val foods",
+                                          ok
+                                              ? (val ==
+                                                        RecentFoodsService
+                                                            .unlimited
+                                                    ? "Recent foods limit set to Unlimited"
+                                                    : "Recent foods limit set to $val foods")
+                                              : "Failed to update recent foods limit.",
                                         ),
                                         duration: snackBarDuration,
                                       ),

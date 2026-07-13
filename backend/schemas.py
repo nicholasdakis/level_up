@@ -42,6 +42,9 @@ class UpdateNotificationsRequest(BaseModel):
 class UpdateUnitsRequest(BaseModel):
     units: str
 
+class UpdateRecentFoodsMaxRequest(BaseModel):
+    max: int = Field(..., ge=0)  # 0 = unlimited (premium only), positive = capped
+
 class AddFcmTokenRequest(BaseModel):
     token: str = Field(..., min_length=1)
 

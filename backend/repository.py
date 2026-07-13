@@ -176,11 +176,18 @@ class UserRepository:
         }).execute()
         return result.data
 
+    def get_user_settings(self, uid: str) -> dict:
+        result = self._supabase.table("user_settings").select("*").eq("uid", uid).execute()
+        return result.data[0] if result.data else {}
+
     # Write operations
 
     # Method to update the user's data
     def set_user_data(self, uid: str, data: dict):
         self._supabase.table("users").update(data).eq("uid", uid).execute()
+
+    def set_user_settings(self, uid: str, data: dict):
+        self._supabase.table("user_settings").upsert({"uid": uid, **data}).execute()
 
     def upsert_daily_snapshots(self, rows: list[dict]):
         # Method for adding the user's snapshot into the table

@@ -2597,3 +2597,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Split the food, water, and weight logs routes into two routes to differentiate between the data used for analytics
 - Enforced preset app themes for free users on the server-side
 - Clamped initialDate for food analytics to the cutoff date so free users who try to open it do not see an incorrect "no foods logged this day" if they open analytics on a date before the cutoff
+- Added a user_settings table to clean up the users table from fields like pfp, app color, notifications etc and to add recent foods enforcement server-side
+- Added an update recent foods max route and methods and removed its code from being written and read from sharedprefs

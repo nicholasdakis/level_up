@@ -308,8 +308,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
   // Derives recent foods from food_logs_v2, deduped by food_name, newest first, capped by user preference
   Future<void> _loadRecentFoods() async {
-    final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
-    final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
+    final userData = ref.read(userDataProvider).value;
+    final isPremium = userData?.isPremium ?? false;
+    final stored = userData?.recentFoodsMax;
     final max = (stored == RecentFoodsService.unlimited && !isPremium)
         ? 20
         : (stored ?? 20);

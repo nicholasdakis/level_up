@@ -319,6 +319,10 @@ class ProgressionService: # Service class to handle all progression-related busi
         weight_logs = self._repo.get_weight_logs(uid)  # kept for older app versions, remove after forced update
         goals = self._repo.get_goals(uid)
 
+        # TODO: after forced update ships, remove fallbacks to users table and drop migrated columns from users
+        # dual-read: prefer user_settings, fall back to users for fields being migrated
+        settings = self._repo.get_user_settings(uid)
+
         streaks = self._repo.get_streaks(uid)
         daily_streak = next(
             (s["streak"] for s in streaks if s["streak_type"] == "daily_consecutive_streak"),
@@ -329,11 +333,11 @@ class ProgressionService: # Service class to handle all progression-related busi
             "level": user.get("level", 1),
             "exp_points": user.get("exp_points", 0),
             "exp_needed": experience_needed(user.get("level", 1)),
-            "pfp_base64": user.get("pfp_base64"),
+            "pfp_base64": settings.get("pfp_base64") or user.get("pfp_base64"),
             "username": user.get("username") or uid,
-            "app_color": user.get("app_color"),
+            "app_color": settings.get("app_color") or user.get("app_color"),
             "fcm_tokens": user.get("fcm_tokens") or [],
-            "notifications_enabled": user.get("notifications_enabled", True),
+            "notifications_enabled": settings.get("notifications_enabled", user.get("notifications_enabled", True)),
             "last_daily_claim": user.get("last_daily_claim"),
             "daily_streak": daily_streak,
             "food_logs": food_logs,
@@ -345,29 +349,38 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_code": user.get("referral_code"),
             "referral_count": self._repo.get_referral_count(uid),
             "referral_used": self._repo.has_used_referral(uid),
-            "units": user.get("units", "metric"),
+            "units": settings.get("units") or user.get("units", "metric"),
+            "recent_foods_max": settings.get("recent_foods_max"),
             "created_at": user.get("created_at"),
             "is_premium": user.get("is_premium", False),
             "premium_expires_at": user.get("premium_expires_at"),
         }
 
     def update_pfp(self, uid: str, pfp_base64: str):
-        # Updates the user's profile picture
+        # Updates the user's profile picture, dual-write during migration window
         self._repo.set_user_data(uid, {"pfp_base64": pfp_base64})
+        self._repo.set_user_settings(uid, {"pfp_base64": pfp_base64})
         self._track_achievement(uid, "set_pfp")
 
     def update_app_color(self, uid: str, app_color: str):
-        # Updates the user's app theme color (stored as a string)
+        # Updates the user's app theme color, dual-write during migration window
         self._repo.set_user_data(uid, {"app_color": app_color})
+        self._repo.set_user_settings(uid, {"app_color": app_color})
         self._track_achievement(uid, "change_app_color")
         self._track_achievement(uid, "color_indecisive")
 
     def update_notifications_enabled(self, uid: str, enabled: bool):
-        # Updates the user's notification preference
+        # Updates the user's notification preference, dual-write during migration window
         self._repo.set_user_data(uid, {"notifications_enabled": enabled})
+        self._repo.set_user_settings(uid, {"notifications_enabled": enabled})
 
     def update_units(self, uid: str, units: str):
+        # dual-write during migration window
         self._repo.set_user_data(uid, {"units": units})
+        self._repo.set_user_settings(uid, {"units": units})
+
+    def update_recent_foods_max(self, uid: str, max: int):
+        self._repo.set_user_settings(uid, {"recent_foods_max": max})
 
     def add_fcm_token(self, uid: str, token: str):
         # Adds an FCM token to the user's list

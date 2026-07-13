@@ -34,6 +34,7 @@ from backend.schemas import (
     UpdateAppColorRequest,
     UpdateNotificationsRequest,
     UpdateUnitsRequest,
+    UpdateRecentFoodsMaxRequest,
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogRequest,
@@ -707,6 +708,17 @@ def update_units():
     if err:
         return err
     progression_service.update_units(uid, body.units)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/update_recent_foods_max", methods=["POST"])
+def update_recent_foods_max():
+    uid, body, err = _parse_and_auth(UpdateRecentFoodsMaxRequest)
+    if err:
+        return err
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    if not is_premium and body.max == 0:
+        return jsonify({"error": "Premium required for unlimited recent foods"}), 403
+    progression_service.update_recent_foods_max(uid, body.max)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 

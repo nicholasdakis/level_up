@@ -37,6 +37,8 @@ class UserData {
   DateTime? premiumExpiresAt;
   int shieldCount;
   DateTime? shieldsResetAt;
+  int?
+  recentFoodsMax; // null means use default (20), 0 means unlimited (premium only)
 
   // constructor
   UserData({
@@ -74,6 +76,7 @@ class UserData {
     this.premiumExpiresAt,
     this.shieldCount = 0,
     this.shieldsResetAt,
+    this.recentFoodsMax,
   }) : fcmTokens = fcmTokens ?? [],
        username = username ?? uid; // Default username is the UID
 
@@ -112,6 +115,7 @@ class UserData {
     DateTime? premiumExpiresAt,
     int? shieldCount,
     DateTime? shieldsResetAt,
+    int? recentFoodsMax,
   }) {
     return UserData(
       uid: uid,
@@ -149,6 +153,7 @@ class UserData {
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
       shieldCount: shieldCount ?? this.shieldCount,
       shieldsResetAt: shieldsResetAt ?? this.shieldsResetAt,
+      recentFoodsMax: recentFoodsMax ?? this.recentFoodsMax,
     );
   }
 }

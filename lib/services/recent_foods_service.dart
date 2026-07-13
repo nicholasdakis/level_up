@@ -1,19 +1,15 @@
-import '../utility/shared_preferences/shared_prefs_async.dart';
+import '../services/user_data_manager.dart' show authenticatedPost;
 
 class RecentFoodsService {
   // Sentinel value meaning no limit on recent foods
   static const int unlimited = 0;
 
-  // Centralized cache wrapper for SharedPreferences
-  final SharedPrefsService _prefs = SharedPrefsService();
-
-  // Returns the user's configured recent foods max, 0 means unlimited, null means not set (use default)
-  Future<int?> getRecentFoodsMax() async {
-    return await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
-  }
-
-  // Saves the user's recent foods max preference, pass 0 for unlimited
-  Future<void> setRecentFoodsMax(int max) async {
-    await _prefs.setInt(SharedPreferencesKey.recentFoodsMax, max);
+  // Saves the user's recent foods max preference to the backend, pass 0 for unlimited (premium only)
+  Future<bool> setRecentFoodsMax(int max) async {
+    final response = await authenticatedPost(
+      'update_recent_foods_max',
+      body: {'max': max},
+    );
+    return response.statusCode == 200;
   }
 }

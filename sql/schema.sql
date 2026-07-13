@@ -319,6 +319,17 @@ CREATE TABLE routine_downloads (
     PRIMARY KEY (uid, template_id)
 );
 
+-- Per-user settings migrated out of the users table; dual-read/dual-write during migration window
+-- TODO: once MIN_APP_VERSION is bumped past the dual-write release, drop app_color, units, notifications_enabled, pfp_base64 from users
+CREATE TABLE user_settings (
+    uid TEXT PRIMARY KEY REFERENCES users(uid) ON DELETE CASCADE,
+    app_color BIGINT,                       -- Flutter Color value stored as an integer
+    units TEXT NOT NULL DEFAULT 'metric',   -- display units preference: 'metric' or 'imperial'
+    notifications_enabled BOOLEAN NOT NULL DEFAULT true,  -- whether the user has push notifications turned on
+    pfp_base64 TEXT,                        -- profile picture stored as a Base64-encoded string
+    recent_foods_max INTEGER                -- max recent foods shown in quick logging; NULL means use default (20), 0 means unlimited (premium only)
+);
+
 -- RPC to atomically increment download_count on a workout template
 CREATE OR REPLACE FUNCTION increment_download_count(tid UUID)
 RETURNS VOID AS $$
