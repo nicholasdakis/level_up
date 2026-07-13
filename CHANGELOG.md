@@ -2646,3 +2646,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The collapsed / expanded state is persisted in SharedPrefs (default is collapsed)
 - Edit the macros today card so that it has an arrow that shows "micros today" instead when pressed
 - Added dot indicators onto the macros today card to further show it has more content
+- Added placeholder micro data for guest users

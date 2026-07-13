@@ -110,7 +110,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           .toDouble();
   bool get _goalsSet =>
       ref.watch(userDataProvider.select((s) => s.value?.caloriesGoal)) != null;
-  bool _microsExpanded = false;
+  bool _microsExpanded = false; // overridden to true for guests in initState
 
   @override
   void initState() {
@@ -120,7 +120,11 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       screenClass: 'FoodLogging',
     );
     _loadCollapsedState();
-    _loadMicrosExpanded();
+    if (isGuest) {
+      _microsExpanded = true;
+    } else {
+      _loadMicrosExpanded();
+    }
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
   }
@@ -1359,61 +1363,92 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           : CrossFadeState.showSecond,
       firstChild: Padding(
         padding: EdgeInsets.only(top: Responsive.height(context, 8)),
-        child: frostedGlassCard(
-          context,
-          color: appColor,
-          baseRadius: 16,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 16),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: noGoals
-              ? SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: _editMicroGoals,
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedAddCircle,
-                      color: color,
-                      size: Responsive.scale(context, 14),
-                    ),
-                    label: Text(
-                      'Set micro goals',
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        color: color,
-                      ),
+        child: Stack(
+          children: [
+            IgnorePointer(
+              ignoring: isGuest,
+              child: Opacity(
+                opacity: isGuest ? 0.35 : 1.0,
+                child: frostedGlassCard(
+                  context,
+                  color: appColor,
+                  baseRadius: 16,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 16),
+                    vertical: Responsive.height(context, 14),
+                  ),
+                  child: noGoals
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            onPressed: _editMicroGoals,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedAddCircle,
+                              color: color,
+                              size: Responsive.scale(context, 14),
+                            ),
+                            label: Text(
+                              'Set micro goals',
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 12),
+                                color: color,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                GestureDetector(
+                                  onTap: _editMicroGoals,
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedPencilEdit01,
+                                    color: Colors.white24,
+                                    size: Responsive.scale(context, 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: Responsive.height(context, 4)),
+                            if (_goalFiber > 0) ...[
+                              microBar('Fiber', totalFiber, _goalFiber, 'g'),
+                              SizedBox(height: Responsive.height(context, 12)),
+                            ],
+                            if (_goalSugar > 0) ...[
+                              microBar('Sugar', totalSugar, _goalSugar, 'g'),
+                              SizedBox(height: Responsive.height(context, 12)),
+                            ],
+                            if (_goalSodium > 0)
+                              microBar(
+                                'Sodium',
+                                totalSodium,
+                                _goalSodium,
+                                'mg',
+                              ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+            if (isGuest)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () => Guest.block(
+                    context,
+                    title: 'Sign up to track micros',
+                    description:
+                        'Create a free account to set micro goals and track fiber, sugar, and sodium.',
+                  ),
+                  child: Center(
+                    child: PulsingLockBadge(
+                      accent: lightenColor(appColor, 0.45),
                     ),
                   ),
-                )
-              : Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: _editMicroGoals,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedPencilEdit01,
-                            color: Colors.white24,
-                            size: Responsive.scale(context, 13),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: Responsive.height(context, 4)),
-                    if (_goalFiber > 0) ...[
-                      microBar('Fiber', totalFiber, _goalFiber, 'g'),
-                      SizedBox(height: Responsive.height(context, 12)),
-                    ],
-                    if (_goalSugar > 0) ...[
-                      microBar('Sugar', totalSugar, _goalSugar, 'g'),
-                      SizedBox(height: Responsive.height(context, 12)),
-                    ],
-                    if (_goalSodium > 0)
-                      microBar('Sodium', totalSodium, _goalSodium, 'mg'),
-                  ],
                 ),
+              ),
+          ],
         ),
       ),
       secondChild: const SizedBox.shrink(),
