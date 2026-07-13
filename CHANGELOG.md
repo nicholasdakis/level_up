@@ -2631,3 +2631,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made all providers be invalidated on sign out to make sure no stale data carries over to another login in the same session
 - The edit serving dialog now allows editing micros
 - Manual entry now allows adding micros
+- Added micro breakdown and micro graph sections to Food Analytics
