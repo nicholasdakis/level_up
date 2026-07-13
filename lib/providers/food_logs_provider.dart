@@ -1,17 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../globals.dart' show isGuest;
 import '../models/food_log.dart';
 import '../services/user_data_manager.dart';
 
 class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
   @override
   Future<List<FoodLog>> build() async {
+    if (isGuest) return [];
     return await loadFromServer();
   }
 
   // fetches the full food log list from the server and returns it
   Future<List<FoodLog>> loadFromServer() async {
+    if (isGuest) return [];
     final response = await authenticatedGet('food_logs_v2');
     if (response.statusCode != 200) {
       throw Exception('food_logs_v2 fetch failed: ${response.body}');
@@ -24,6 +27,7 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
 
   // re-fetches from the server and replaces local state
   Future<void> refresh() async {
+    if (isGuest) return;
     try {
       state = AsyncData(await loadFromServer());
     } catch (e) {

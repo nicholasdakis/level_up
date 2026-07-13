@@ -2648,3 +2648,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added dot indicators onto the macros today card to further show it has more content
 - Added placeholder micro data for guest users
 - Fixed a critical bug where sending an empty food list to the backend would trigger a delete sweep that wiped every food log for that entire day; the Flutter side now skips the request entirely when there is nothing to write, and the backend skips the delete sweep when no valid items are present (this would probably never happen unless there was somehow a race condition)
+- Added guards to food logs providers for guests (not really an issue as guests already have their own branching food logic, but still worth guarding)
