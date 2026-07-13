@@ -256,39 +256,7 @@ class _ProgressionState extends ConsumerState<Progression> {
       ),
     );
 
-    if (!isGuest) return combined;
-
-    return GestureDetector(
-      onTap: () => Guest.exit(),
-      child: Stack(
-        children: [
-          IgnorePointer(child: Opacity(opacity: 0.35, child: combined)),
-          Positioned.fill(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedLockPassword,
-                    color: accent,
-                    size: Responsive.scale(context, 28),
-                  ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  Text(
-                    "Sign up to unlock",
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return combined;
   }
 
   Widget _buildCard({
@@ -409,27 +377,87 @@ class _ProgressionState extends ConsumerState<Progression> {
                         Responsive.height(context, 24),
                   ),
                   sectionHeader("LEADERBOARDS", context, appColor: appColor),
-                  _buildCard(
-                    icon: HugeIcons.strokeRoundedMedal01,
-                    title: "Leaderboards",
-                    subtitle: "See how you rank against other players",
-                    onTap: isGuest
-                        ? () => Guest.block(context)
-                        : () => context.push('/leaderboard'),
-                  ),
-                  SizedBox(height: Responsive.height(context, 12)),
-                  // Standing stat cards showing rank and total players
-                  _buildStandingCard(context),
+                  isGuest
+                      ? GestureDetector(
+                          onTap: () => Guest.block(
+                            context,
+                            title: 'Sign up to compete',
+                            description:
+                                'Create a free account to appear on the leaderboard and see how you rank.',
+                          ),
+                          child: Stack(
+                            children: [
+                              IgnorePointer(
+                                child: Opacity(
+                                  opacity: 0.35,
+                                  child: Column(
+                                    children: [
+                                      _buildCard(
+                                        icon: HugeIcons.strokeRoundedMedal01,
+                                        title: "Leaderboards",
+                                        subtitle:
+                                            "Compete across XP, foods logged, and workouts",
+                                        onTap: () {},
+                                      ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 12),
+                                      ),
+                                      _buildStandingCard(context),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              guestLockOverlay(context, appColor),
+                            ],
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            _buildCard(
+                              icon: HugeIcons.strokeRoundedMedal01,
+                              title: "Leaderboards",
+                              subtitle:
+                                  "Compete across XP, foods logged, and workouts",
+                              onTap: () => context.push('/leaderboard'),
+                            ),
+                            SizedBox(height: Responsive.height(context, 12)),
+                            _buildStandingCard(context),
+                          ],
+                        ),
                   SizedBox(height: Responsive.height(context, 20)),
                   sectionHeader("BADGES", context, appColor: appColor),
-                  _buildCard(
-                    icon: HugeIcons.strokeRoundedCrown,
-                    title: "Badges",
-                    subtitle: "Track achievements and claim tier rewards",
-                    onTap: isGuest
-                        ? () => Guest.block(context)
-                        : () => context.push('/badges'),
-                  ),
+                  isGuest
+                      ? GestureDetector(
+                          onTap: () => Guest.block(
+                            context,
+                            title: 'Sign up to earn badges',
+                            description:
+                                'Create a free account to unlock achievements and claim tier rewards.',
+                          ),
+                          child: Stack(
+                            children: [
+                              IgnorePointer(
+                                child: Opacity(
+                                  opacity: 0.35,
+                                  child: _buildCard(
+                                    icon: HugeIcons.strokeRoundedCrown,
+                                    title: "Badges",
+                                    subtitle:
+                                        "Track achievements and claim tier rewards",
+                                    onTap: () {},
+                                  ),
+                                ),
+                              ),
+                              guestLockOverlay(context, appColor),
+                            ],
+                          ),
+                        )
+                      : _buildCard(
+                          icon: HugeIcons.strokeRoundedCrown,
+                          title: "Badges",
+                          subtitle: "Track achievements and claim tier rewards",
+                          onTap: () => context.push('/badges'),
+                        ),
                   SizedBox(height: Responsive.height(context, 120)),
                 ],
               ),

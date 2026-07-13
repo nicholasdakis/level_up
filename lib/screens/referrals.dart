@@ -6,10 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../globals.dart';
+import '../guest.dart';
 import '../providers/user_data_provider.dart';
 import '../utility/responsive.dart';
-import '../authentication/auth_services.dart';
-import '/providers/workout_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/user_data_manager.dart'
     show authenticatedGet, defaultAppColor;
@@ -469,41 +468,18 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
 
       if (!isGuest) return card;
 
-      // Guest overlay: same pattern as the logging cards, faded real card + lock overlay
       return GestureDetector(
-        onTap: () => authService.value.signOut(
-          ref.read(userDataProvider.notifier),
-          ref.read(workoutProvider.notifier),
-          ref: ref,
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to refer friends',
+          description:
+              'Create a free account to invite friends and earn bonus XP for every referral.',
         ),
         child: Stack(
           fit: StackFit.expand,
           children: [
             IgnorePointer(child: Opacity(opacity: 0.35, child: card)),
-            Positioned.fill(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedLockPassword,
-                      color: accent,
-                      size: Responsive.scale(context, 22),
-                    ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    Text(
-                      'Sign up to unlock',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 11),
-                        fontWeight: FontWeight.w600,
-                        color: accent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            guestLockOverlay(context, appColor),
           ],
         ),
       );

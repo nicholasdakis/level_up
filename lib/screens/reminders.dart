@@ -238,7 +238,12 @@ class _RemindersState extends ConsumerState<Reminders> {
   // Method that deletes a reminder from the Supabase Postgres db
   Future<void> _deleteReminder(ReminderData reminder) async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to set reminders',
+        description:
+            'Create a free account to set custom reminders and never miss a habit.',
+      );
       return;
     } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
@@ -369,7 +374,12 @@ class _RemindersState extends ConsumerState<Reminders> {
   // Method that saves a new reminder to the Supabase Postgres db
   Future<void> _setReminder() async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to set reminders',
+        description:
+            'Create a free account to set custom reminders and never miss a habit.',
+      );
       return;
     } // For guest users
     if (isLoading) return;

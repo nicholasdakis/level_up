@@ -144,7 +144,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   // Instantly filters recent foods, then schedules a debounced API call if no recent matches
   void _filterRecents(String value) {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log food',
+        description:
+            'Create a free account to track calories, macros, and build your nutrition history.',
+      );
       return;
     }
 
@@ -188,7 +193,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   // Toggles the microphone for voice input on the search bar
   Future<void> _toggleListening() async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log food',
+        description:
+            'Create a free account to track calories, macros, and build your nutrition history.',
+      );
       return;
     } // For guest users
     if (!_voiceSearch.isAvailable) {
@@ -300,7 +310,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   Future<void> _loadRecentFoods() async {
     final stored = await _prefs.getInt(SharedPreferencesKey.recentFoodsMax);
     final isPremium = ref.read(userDataProvider).value?.isPremium ?? false;
-    final max = (stored == RecentFoodsService.unlimited && !isPremium) ? 20 : (stored ?? 20);
+    final max = (stored == RecentFoodsService.unlimited && !isPremium)
+        ? 20
+        : (stored ?? 20);
     final logs = ref.read(foodLogsProvider).value ?? [];
     final seen = <String>{};
     final recents = <FoodLog>[];
@@ -1747,7 +1759,12 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                           sublabel: "Scan a barcode",
                           onTap: () {
                             if (isGuest) {
-                              Guest.block(context);
+                              Guest.block(
+                                context,
+                                title: 'Sign up to log food',
+                                description:
+                                    'Create a free account to track calories, macros, and build your nutrition history.',
+                              );
                               return;
                             }
                             setState(() => scannerActive = true);

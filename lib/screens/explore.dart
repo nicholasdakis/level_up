@@ -124,7 +124,12 @@ class _ExploreState extends ConsumerState<Explore> {
     _poiService.cleanupOldVisits();
     if (isGuest) {
       // For guest users
-      Guest.blockOnOpen(context);
+      Guest.blockOnOpen(
+        context,
+        title: 'Sign up to explore',
+        description:
+            'Create a free account to check in to nearby spots and earn bonus XP.',
+      );
     } else {
       _checkAndInitLocation();
     }
@@ -709,7 +714,11 @@ class _ExploreState extends ConsumerState<Explore> {
                         context,
                         onPressed: () {
                           if (isGuest) {
-                            Guest.block(context);
+                            Guest.block(
+                              context,
+                              title: 'Sign up to explore',
+                              description: 'Create a free account to check in to nearby spots and earn bonus XP.',
+                            );
                             return;
                           }
                           setState(() => _locationRequested = true);

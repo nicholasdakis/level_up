@@ -1,12 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
-import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../authentication/auth_services.dart';
+import '../../guest.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
@@ -393,42 +392,20 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     );
   }
 
-  Widget _buildGuestLoggingCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
+  // Wraps a card with a lock overlay when guest, otherwise returns child as-is
+  Widget _guestLock(
+    BuildContext context,
+    Widget child, {
+    required String title,
+    required String description,
+  }) {
+    if (!isGuest) return child;
     return GestureDetector(
-      onTap: () async => authService.value.signOut(
-        ref.read(userDataProvider.notifier),
-        ref.read(workoutProvider.notifier),
-        ref: ref,
-      ),
+      onTap: () => Guest.block(context, title: title, description: description),
       child: Stack(
         children: [
-          IgnorePointer(
-            child: Opacity(opacity: 0.35, child: _buildLoggingCards(context)),
-          ),
-          Positioned.fill(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedLockPassword,
-                    color: accent,
-                    size: Responsive.scale(context, 28),
-                  ),
-                  SizedBox(height: Responsive.height(context, 6)),
-                  Text(
-                    "Sign up to unlock",
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          IgnorePointer(child: Opacity(opacity: 0.35, child: child)),
+          guestLockOverlay(context, appColor),
         ],
       ),
     );
@@ -511,24 +488,44 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             child: Column(
               children: [
                 Expanded(
-                  child: _buildLoggingCard(
+                  child: _guestLock(
                     context,
-                    icon: HugeIcons.strokeRoundedFire,
-                    label: "Today's Calories",
-                    value: isGuest ? "--" : "$calories",
-                    subtext: goal > 0 ? "/ $goal goal" : "kcal",
-                    progressBar: progressBar,
-                    showButtons: !isGuest,
-                    onAdd: () => _showMealPicker(context),
-                    onAddIcon: Icons.add,
-                    onChart: () => context.push(
-                      '/food-logging/analytics',
-                      extra: {
-                        'initialDate': DateTime.now(),
-                        'onDateChanged': null,
-                        'noAnimation': true,
-                      },
+                    _buildLoggingCard(
+                      context,
+                      icon: HugeIcons.strokeRoundedFire,
+                      label: "Today's Calories",
+                      value: isGuest ? "--" : "$calories",
+                      subtext: goal > 0 ? "/ $goal goal" : "kcal",
+                      progressBar: progressBar,
+                      showButtons: true,
+                      onAdd: isGuest
+                          ? () => Guest.block(
+                              context,
+                              title: 'Sign up to log food',
+                              description:
+                                  'Create a free account to track calories, macros, and build your nutrition history.',
+                            )
+                          : () => _showMealPicker(context),
+                      onAddIcon: Icons.add,
+                      onChart: isGuest
+                          ? () => Guest.block(
+                              context,
+                              title: 'Sign up to see your nutrition',
+                              description:
+                                  'Create a free account to track calories and macros and see how you are hitting your daily goals.',
+                            )
+                          : () => context.push(
+                              '/food-logging/analytics',
+                              extra: {
+                                'initialDate': DateTime.now(),
+                                'onDateChanged': null,
+                                'noAnimation': true,
+                              },
+                            ),
                     ),
+                    title: 'Sign up to see your nutrition',
+                    description:
+                        'Create a free account to track calories and macros and see how you are hitting your daily goals.',
                   ),
                 ),
                 SizedBox(height: Responsive.height(context, 12)),
@@ -539,31 +536,51 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                       baseColor: lightenColor(appColor, 0.10),
                       highlightColor: lightenColor(appColor, 0.22),
                     ),
-                    child: _buildLoggingCard(
+                    child: _guestLock(
                       context,
-                      icon: HugeIcons.strokeRoundedDroplet,
-                      label: "Water",
-                      value: isGuest
-                          ? "--"
-                          : isImperial
-                          ? UnitConverter.displayWater(
-                              totalWaterMl,
-                              imperial: isImperial,
-                            )
-                          : "$totalWaterMl",
-                      subtext: () {
-                        if (waterGoalMl <= 0) {
-                          return isImperial ? "oz today" : "ml today";
-                        }
-                        final goalDisplay = isImperial
-                            ? "${UnitConverter.displayWater(waterGoalMl, imperial: isImperial, decimals: 0)} oz"
-                            : "$waterGoalMl ml";
-                        return "/ $goalDisplay goal";
-                      }(),
-                      progressBar: waterProgressBar,
-                      showButtons: !isGuest,
-                      onAdd: onShowWaterSheet,
-                      onChart: () => context.push('/water/analytics'),
+                      _buildLoggingCard(
+                        context,
+                        icon: HugeIcons.strokeRoundedDroplet,
+                        label: "Water",
+                        value: isGuest
+                            ? "--"
+                            : isImperial
+                            ? UnitConverter.displayWater(
+                                totalWaterMl,
+                                imperial: isImperial,
+                              )
+                            : "$totalWaterMl",
+                        subtext: () {
+                          if (waterGoalMl <= 0) {
+                            return isImperial ? "oz today" : "ml today";
+                          }
+                          final goalDisplay = isImperial
+                              ? "${UnitConverter.displayWater(waterGoalMl, imperial: isImperial, decimals: 0)} oz"
+                              : "$waterGoalMl ml";
+                          return "/ $goalDisplay goal";
+                        }(),
+                        progressBar: waterProgressBar,
+                        showButtons: true,
+                        onAdd: isGuest
+                            ? () => Guest.block(
+                                context,
+                                title: 'Sign up to track water',
+                                description:
+                                    'Create a free account to log your daily water intake and hit your hydration goal.',
+                              )
+                            : onShowWaterSheet,
+                        onChart: isGuest
+                            ? () => Guest.block(
+                                context,
+                                title: 'Sign up to track water',
+                                description:
+                                    'Create a free account to log your daily water intake and hit your hydration goal.',
+                              )
+                            : () => context.push('/water/analytics'),
+                      ),
+                      title: 'Sign up to track water',
+                      description:
+                          'Create a free account to log your daily water intake and hit your hydration goal.',
                     ),
                   ),
                 ),
@@ -574,68 +591,98 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
           Expanded(
             child: Column(
               children: [
-                Expanded(child: _buildMacrosCard(context)),
+                Expanded(
+                  child: _guestLock(
+                    context,
+                    _buildMacrosCard(context),
+                    title: 'Sign up to track macros',
+                    description:
+                        'Create a free account to monitor your protein, carbs, and fat intake.',
+                  ),
+                ),
                 SizedBox(height: Responsive.height(context, 12)),
                 Expanded(
-                  child: _buildLoggingCard(
+                  child: _guestLock(
                     context,
-                    icon: HugeIcons.strokeRoundedWeightScale,
-                    label: "Weight",
-                    value: () {
-                      // use today's entry, or fall back to the most recent logged weight
-                      final byDate = ref.watch(weightLogsProvider).value ?? {};
-                      final kg =
-                          byDate[_todayDateKey()] ??
-                          (byDate.entries.toList()
-                                ..sort((a, b) => b.key.compareTo(a.key)))
-                              .firstOrNull
-                              ?.value;
-                      if (kg == null) return "--";
-                      return isImperial
-                          ? UnitConverter.displayWeight(
-                              kg,
-                              imperial: isImperial,
+                    _buildLoggingCard(
+                      context,
+                      icon: HugeIcons.strokeRoundedWeightScale,
+                      label: "Weight",
+                      value: () {
+                        // use today's entry, or fall back to the most recent logged weight
+                        final byDate =
+                            ref.watch(weightLogsProvider).value ?? {};
+                        final kg =
+                            byDate[_todayDateKey()] ??
+                            (byDate.entries.toList()
+                                  ..sort((a, b) => b.key.compareTo(a.key)))
+                                .firstOrNull
+                                ?.value;
+                        if (kg == null) return "--";
+                        return isImperial
+                            ? UnitConverter.displayWeight(
+                                kg,
+                                imperial: isImperial,
+                              )
+                            : kg.toStringAsFixed(1);
+                      }(),
+                      subtext: () {
+                        final byDate =
+                            ref.watch(weightLogsProvider).value ?? {};
+                        // same fallback logic as the value above
+                        final currentKg =
+                            byDate[_todayDateKey()] ??
+                            (byDate.entries.toList()
+                                  ..sort((a, b) => b.key.compareTo(a.key)))
+                                .firstOrNull
+                                ?.value;
+                        final goalKg = userData?.weightKgGoal;
+                        final type = userData?.weightGoalType;
+                        // no goal at all
+                        if (goalKg == null && type == null) {
+                          return "No weight goal set";
+                        }
+                        // goal type set but missing either a logged weight or a target weight
+                        if (currentKg == null || goalKg == null) {
+                          return type != null
+                              ? "${type[0].toUpperCase()}${type.substring(1)}"
+                              : "";
+                        }
+                        // how far the current weight is from the target, always positive
+                        final delta = (currentKg - goalKg).abs();
+                        final deltaDisplay = isImperial
+                            ? "${UnitConverter.displayWeight(delta, imperial: isImperial)} lbs"
+                            : "${delta.toStringAsFixed(1)} kg";
+                        // direction-aware check: losing means at/under target, gaining means at/over, maintain is exact
+                        final bool atOrPastGoal = type == 'lose'
+                            ? currentKg <= goalKg
+                            : type == 'gain'
+                            ? currentKg >= goalKg
+                            : currentKg == goalKg;
+                        if (atOrPastGoal) return "You're at your goal weight!";
+                        return "You're $deltaDisplay away from your goal";
+                      }(),
+                      showButtons: true,
+                      onAdd: isGuest
+                          ? () => Guest.block(
+                              context,
+                              title: 'Sign up to track weight',
+                              description:
+                                  'Create a free account to log your weight and track progress toward your goal.',
                             )
-                          : kg.toStringAsFixed(1);
-                    }(),
-                    subtext: () {
-                      final byDate = ref.watch(weightLogsProvider).value ?? {};
-                      // same fallback logic as the value above
-                      final currentKg =
-                          byDate[_todayDateKey()] ??
-                          (byDate.entries.toList()
-                                ..sort((a, b) => b.key.compareTo(a.key)))
-                              .firstOrNull
-                              ?.value;
-                      final goalKg = userData?.weightKgGoal;
-                      final type = userData?.weightGoalType;
-                      // no goal at all
-                      if (goalKg == null && type == null) {
-                        return "No weight goal set";
-                      }
-                      // goal type set but missing either a logged weight or a target weight
-                      if (currentKg == null || goalKg == null) {
-                        return type != null
-                            ? "${type[0].toUpperCase()}${type.substring(1)}"
-                            : "";
-                      }
-                      // how far the current weight is from the target, always positive
-                      final delta = (currentKg - goalKg).abs();
-                      final deltaDisplay = isImperial
-                          ? "${UnitConverter.displayWeight(delta, imperial: isImperial)} lbs"
-                          : "${delta.toStringAsFixed(1)} kg";
-                      // direction-aware check: losing means at/under target, gaining means at/over, maintain is exact
-                      final bool atOrPastGoal = type == 'lose'
-                          ? currentKg <= goalKg
-                          : type == 'gain'
-                          ? currentKg >= goalKg
-                          : currentKg == goalKg;
-                      if (atOrPastGoal) return "You're at your goal weight!";
-                      return "You're $deltaDisplay away from your goal";
-                    }(),
-                    showButtons: !isGuest,
-                    onAdd: onShowWeightSheet,
-                    onChart: () => context.push('/weight/analytics'),
+                          : onShowWeightSheet,
+                      onChart: isGuest
+                          ? () => Guest.block(
+                              context,
+                              title: 'Sign up to track weight',
+                              description:
+                                  'Create a free account to log your weight and track progress toward your goal.',
+                            )
+                          : () => context.push('/weight/analytics'),
+                    ),
+                    title: 'Sign up to track weight',
+                    description:
+                        'Create a free account to log your weight and track progress toward your goal.',
                   ),
                 ),
               ],
@@ -648,8 +695,6 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   @override
   Widget build(BuildContext context) {
-    return isGuest
-        ? _buildGuestLoggingCard(context)
-        : _buildLoggingCards(context);
+    return _buildLoggingCards(context);
   }
 }

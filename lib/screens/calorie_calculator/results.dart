@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/globals.dart';
+import '/guest.dart';
 import '/utility/responsive.dart';
 import '/utility/tdee_calculator.dart';
 
@@ -258,6 +259,30 @@ class _ResultsState extends ConsumerState<Results> {
   }
 
   Widget _setGoalButton(int calories) {
+    if (isGuest) {
+      final accent = lightenColor(appColor, 0.45);
+      return GestureDetector(
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to set goals',
+          description:
+              'Create a free account to save your calorie goal and start tracking your nutrition.',
+        ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 12),
+            vertical: Responsive.height(context, 6),
+          ),
+          decoration: BoxDecoration(
+            color: lightenColor(appColor, 0.1).withAlpha(30),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: accent.withAlpha(120), width: 1),
+          ),
+          child: PulsingLockBadge(accent: accent),
+        ),
+      );
+    }
     final isSet = _goalSetCalories == calories;
     return GestureDetector(
       onTap: isSet

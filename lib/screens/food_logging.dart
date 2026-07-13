@@ -147,7 +147,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   Future<void> _deleteFood(String mealKey, int idx, List<FoodLog> foods) async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log food',
+        description:
+            'Create a free account to track calories, macros, and build your nutrition history.',
+      );
       return;
     } // For guest users
     final confirmed = await showFrostedAlertDialog<bool>(
@@ -319,7 +324,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     FoodLog food,
   ) async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log food',
+        description:
+            'Create a free account to track calories, macros, and build your nutrition history.',
+      );
       return;
     }
     final serving = FoodLoggingHelper.parseServingFromLog(food);
@@ -497,7 +507,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   Future<void> _editGoal(BuildContext context, String type) async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log food',
+        description:
+            'Create a free account to track calories, macros, and build your nutrition history.',
+      );
       return;
     }
     final current = switch (type) {
@@ -595,9 +610,13 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   // Calories bar which also has a "View Analytics button
   Widget _buildCaloriesBar(Color appColor) {
     if (isGuest) {
-      final accent = lightenColor(appColor, 0.45);
       return GestureDetector(
-        onTap: () => Guest.exit(),
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to log food',
+          description:
+              'Create a free account to track calories, macros, and build your nutrition history.',
+        ),
         child: Stack(
           children: [
             IgnorePointer(
@@ -725,29 +744,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                 ),
               ),
             ),
-            Positioned.fill(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedLockPassword,
-                      color: accent,
-                      size: Responsive.scale(context, 28),
-                    ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    Text(
-                      "Sign up to unlock",
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            guestLockOverlay(context, appColor),
           ],
         ),
       );
@@ -1107,7 +1104,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         onPressed: () async {
           // For guest users
           if (isGuest) {
-            Guest.block(context);
+            Guest.block(
+              context,
+              title: 'Sign up to log food',
+              description:
+                  'Create a free account to track calories, macros, and build your nutrition history.',
+            );
             return;
           }
           await context.push('/settings/preferences');
@@ -1361,7 +1363,12 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         GestureDetector(
           onTap: () {
             if (isGuest) {
-              Guest.block(context);
+              Guest.block(
+                context,
+                title: 'Sign up to log food',
+                description:
+                    'Create a free account to track calories, macros, and build your nutrition history.',
+              );
               return;
             }
             context.push(
@@ -1374,36 +1381,44 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               },
             );
           },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              vertical: Responsive.height(context, 13),
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                Responsive.scale(context, 14),
-              ),
-              border: Border.all(color: accentColor.withAlpha(80), width: 1),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  color: accentColor,
-                  size: Responsive.font(context, 16),
+          child: Stack(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 13),
                 ),
-                SizedBox(width: Responsive.width(context, 8)),
-                Text(
-                  "Log Food",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 15),
-                    color: accentColor,
-                    fontWeight: FontWeight.w600,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 14),
+                  ),
+                  border: Border.all(
+                    color: accentColor.withAlpha(80),
+                    width: 1,
                   ),
                 ),
-              ],
-            ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      color: accentColor,
+                      size: Responsive.font(context, 16),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Text(
+                      "Log Food",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 15),
+                        color: accentColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isGuest) guestLockOverlay(context, appColor),
+            ],
           ),
         ),
       ],

@@ -7,6 +7,60 @@ import 'providers/user_data_provider.dart';
 import 'services/user_data_manager.dart' show defaultAppColor;
 import 'utility/responsive.dart';
 
+class _ShimmerSignUp extends StatefulWidget {
+  const _ShimmerSignUp();
+
+  @override
+  State<_ShimmerSignUp> createState() => _ShimmerSignUpState();
+}
+
+class _ShimmerSignUpState extends State<_ShimmerSignUp>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = lightenColor(defaultAppColor, 0.45);
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, _) {
+        final pos = _ctrl.value;
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            begin: Alignment(-1.5 + pos * 3.5, 0),
+            end: Alignment(-0.5 + pos * 3.5, 0),
+            colors: [accent, accent, Colors.white, accent, accent],
+            stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+          ).createShader(bounds),
+          child: Text(
+            'Sign Up',
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(context, 14),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class Guest {
   // Blank user data used while browsing as a guest so the app has something to render
   static UserData get defaultUserData => UserData(
@@ -39,22 +93,32 @@ class Guest {
     guestNotifier.value = false;
   }
 
-  // Call from initState on screens that guests should not access,shows the block dialog as soon as the screen opens
-  static void blockOnOpen(BuildContext context) {
+  // Call from initState on screens that guests should not access, shows the block dialog as soon as the screen opens
+  static void blockOnOpen(
+    BuildContext context, {
+    String title = 'Sign up to do this',
+    String description = "Create a free account to use this feature.",
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) block(context);
+      if (context.mounted) {
+        block(context, title: title, description: description);
+      }
     });
   }
 
   // Shows a dialog telling the guest they need an account to use this feature
   // "Maybe Later" dismisses it, "Sign Up" calls exit() which redirects to the login screen
-  static void block(BuildContext context) {
+  static void block(
+    BuildContext context, {
+    String title = 'Sign up to do this',
+    String description = "Create a free account to use this feature.",
+  }) {
     showFrostedAlertDialog(
       context: context,
       appColor: defaultAppColor,
-      title: "Sign up to do this",
+      title: title,
       content: Text(
-        "You're browsing as a guest. Create a free account to use this feature.",
+        description,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 14),
@@ -66,15 +130,12 @@ class Guest {
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           child: Text("Maybe Later", style: dialogButtonStyle()),
         ),
-        frostedButton(
-          "Sign Up",
-          context,
-          color: defaultAppColor,
-          small: true,
+        TextButton(
           onPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
             exit();
           },
+          child: const _ShimmerSignUp(),
         ),
       ],
     );

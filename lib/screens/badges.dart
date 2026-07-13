@@ -152,7 +152,12 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
     // For guest users
     if (isGuest) {
-      Guest.blockOnOpen(context);
+      Guest.blockOnOpen(
+        context,
+        title: 'Sign up to earn badges',
+        description:
+            'Create a free account to unlock achievements and claim tier rewards.',
+      );
       setState(() => _isLoading = false);
       return;
     }

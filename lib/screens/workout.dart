@@ -690,7 +690,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    inProgress ? "Continue Workout" : "Start Workout",
+                    inProgress ? "Continue Workout" : "Start an Empty Workout",
                     style: GoogleFonts.manrope(
                       color: accent,
                       fontSize: Responsive.font(context, 15),
@@ -734,74 +734,78 @@ class _WorkoutState extends ConsumerState<Workout> {
     );
   }
 
-  Widget _buildRoutineActionCards(BuildContext context) {
+  Widget _buildRoutineCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
-
-    Widget card(
-      IconData icon,
-      String label,
-      String subtitle,
-      VoidCallback onTap,
-    ) {
-      return Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: frostedGlassCard(
-            context,
-            color: appColor,
-            padding: EdgeInsets.symmetric(
-              vertical: Responsive.height(context, 20),
-              horizontal: Responsive.width(context, 8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(
-                  icon: icon,
-                  color: accent,
-                  size: Responsive.scale(context, 26),
-                ),
-                SizedBox(height: Responsive.height(context, 8)),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 12),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: Responsive.height(context, 2)),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(context, 10),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: frostedGlassCard(
+        context,
+        color: appColor,
+        padding: EdgeInsets.symmetric(
+          vertical: Responsive.height(context, 20),
+          horizontal: Responsive.width(context, 8),
         ),
-      );
-    }
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(
+              icon: icon,
+              color: accent,
+              size: Responsive.scale(context, 26),
+            ),
+            SizedBox(height: Responsive.height(context, 8)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: accent,
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 2)),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: dim,
+                fontSize: Responsive.font(context, 10),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildRoutineActionCards(BuildContext context) {
     return Row(
       children: [
-        card(
-          HugeIcons.strokeRoundedAddSquare,
-          "New Routine",
-          "Build your own",
-          _onNewRoutine,
+        Expanded(
+          child: _buildRoutineCard(
+            context,
+            HugeIcons.strokeRoundedAddSquare,
+            "New Routine",
+            "Build your own",
+            _onNewRoutine,
+          ),
         ),
         SizedBox(width: Responsive.width(context, 12)),
-        card(
-          HugeIcons.strokeRoundedCompass,
-          "Explore Routines",
-          "Find & follow plans",
-          _onExploreRoutines,
+        Expanded(
+          child: _buildRoutineCard(
+            context,
+            HugeIcons.strokeRoundedCompass,
+            "Explore Routines",
+            "Find & follow plans",
+            _onExploreRoutines,
+          ),
         ),
       ],
     );
@@ -1546,37 +1550,20 @@ class _WorkoutState extends ConsumerState<Workout> {
     );
   }
 
-  Widget _guestLock(BuildContext context, Widget child) {
+  Widget _guestLock(
+    BuildContext context,
+    Widget child, {
+    String title = 'Sign up to log workouts',
+    String description =
+        'Create a free account to track sets, reps, and weight, and earn XP for every session.',
+  }) {
     if (!isGuest) return child;
-    final accent = lightenColor(appColor, 0.45);
     return GestureDetector(
-      onTap: Guest.exit,
+      onTap: () => Guest.block(context, title: title, description: description),
       child: Stack(
         children: [
           IgnorePointer(child: Opacity(opacity: 0.35, child: child)),
-          Positioned.fill(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedLockPassword,
-                    color: accent,
-                    size: Responsive.scale(context, 22),
-                  ),
-                  SizedBox(height: Responsive.height(context, 4)),
-                  Text(
-                    'Sign up to unlock',
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 12),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          guestLockOverlay(context, appColor),
         ],
       ),
     );
@@ -1599,31 +1586,94 @@ class _WorkoutState extends ConsumerState<Workout> {
                     Responsive.height(context, 24),
               ),
               sectionHeader("WORKOUT", context, appColor: appColor),
-              _guestLock(context, _buildGoalCard(context)),
+              _guestLock(
+                context,
+                _buildGoalCard(context),
+                title: 'Sign up to set workout goals',
+                description:
+                    'Create a free account to set a weekly workout goal and track your progress.',
+              ),
               SizedBox(height: Responsive.height(context, 20)),
               sectionHeader("START", context, appColor: appColor),
               _guestLock(
                 context,
-                Column(
-                  children: [
-                    _buildStartWorkoutCard(context),
-                    SizedBox(height: Responsive.height(context, 12)),
-                    _buildRoutineActionCards(context),
-                  ],
-                ),
+                _buildStartWorkoutCard(context),
+                title: 'Sign up to start a workout',
+                description:
+                    'Create a free account to log exercises, track sets and reps, and earn XP.',
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+              Row(
+                children: [
+                  Expanded(
+                    child: _guestLock(
+                      context,
+                      _buildRoutineCard(
+                        context,
+                        HugeIcons.strokeRoundedAddSquare,
+                        "New Routine",
+                        "Build your own",
+                        _onNewRoutine,
+                      ),
+                      title: 'Sign up to create routines',
+                      description:
+                          'Create a free account to build and save your own workout routines.',
+                    ),
+                  ),
+                  SizedBox(width: Responsive.width(context, 12)),
+                  Expanded(
+                    child: _guestLock(
+                      context,
+                      _buildRoutineCard(
+                        context,
+                        HugeIcons.strokeRoundedCompass,
+                        "Explore Routines",
+                        "Find & follow plans",
+                        _onExploreRoutines,
+                      ),
+                      title: 'Sign up to explore routines',
+                      description:
+                          'Create a free account to browse featured plans and follow a program.',
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: Responsive.height(context, 20)),
               sectionHeader("MY ROUTINES", context, appColor: appColor),
-              _guestLock(context, _buildMyRoutinesCard(context)),
+              _guestLock(
+                context,
+                _buildMyRoutinesCard(context),
+                title: 'Sign up to use routines',
+                description:
+                    'Create a free account to browse featured routines or build your own.',
+              ),
               SizedBox(height: Responsive.height(context, 20)),
               sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
-              _guestLock(context, _buildLiftsCard(context)),
+              _guestLock(
+                context,
+                _buildLiftsCard(context),
+                title: 'Sign up to track lifts',
+                description:
+                    'Create a free account to see your daily volume, sets, and reps at a glance.',
+              ),
               SizedBox(height: Responsive.height(context, 20)),
               sectionHeader("ACTIVITY HEATMAP", context, appColor: appColor),
-              _guestLock(context, _buildHeatmapCard(context)),
+              _guestLock(
+                context,
+                _buildHeatmapCard(context),
+                title: 'Sign up to see your activity',
+                description:
+                    'Create a free account to track your workout consistency over time.',
+              ),
               SizedBox(height: Responsive.height(context, 20)),
               sectionHeader("RECENT WORKOUTS", context, appColor: appColor),
-              _guestLock(context, _buildRecentWorkoutsCard(context)),
+              _guestLock(
+                context,
+                _buildRecentWorkoutsCard(context),
+                title: 'Sign up to view workout history',
+                description:
+                    'Create a free account to see your past workouts and track progress over time.',
+              ),
               SizedBox(height: Responsive.height(context, 120)),
             ],
           ),

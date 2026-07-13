@@ -2579,3 +2579,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added more possible generations for: random-generated usernames, greeting messages, placeholder reminder messages, and daily reward notification messages
 - XP preview bar replaced with a custom gradient shimmer bar for a more premium look
 - Guest mode banner UI updated to stand out a bit more
+- Improved guest UX by reworking the guest block dialog to show specific messages based on the locked content that was clicked
+- Made it so when guests click on locked content, it shows the dialog mentioned above with an explanation rather than directly sending them to the registration screen
+- Replaced the guest logging card lock with 4 individual locks with individual dialogs and made the + and analytics buttons visible
+- Made the same change to the workout tab
+- Made the Guest sign up text and locks pulse and shimmer so the user knows to click them
+- Made it so the Results "set goal" cards are now visibly locked to guests rather than incorrectly showing the goal was set

@@ -70,7 +70,12 @@ class DailyRewardDialog {
     WidgetRef ref,
   ) async {
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to claim rewards',
+        description:
+            'Create a free account to earn daily XP, build streaks, and level up.',
+      );
       return;
     }
 

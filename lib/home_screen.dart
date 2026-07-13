@@ -24,6 +24,7 @@ import 'screens/premium_sheet.dart' show showPremiumSheet;
 import 'screens/referrals.dart';
 import 'authentication/auth_services.dart';
 import 'globals.dart';
+import 'guest.dart';
 import 'utility/responsive.dart';
 import 'screens/onboarding.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -683,11 +684,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                isGuest
-                                    ? "Sign up to level up"
-                                    : "Level $level",
+                                "Level $level",
                                 style: GoogleFonts.manrope(
-                                  color: isGuest ? Colors.white54 : accent,
+                                  color: accent,
                                   fontSize: Responsive.font(context, 15),
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -836,21 +835,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isGuest
-                              ? "Sign up to claim daily rewards"
-                              : canClaim
+                          canClaim
                               ? "Daily reward ready!"
                               : "Daily reward claimed today!",
                           style: GoogleFonts.manrope(
-                            color: isGuest ? dim : accent,
+                            color: accent,
                             fontSize: Responsive.font(context, 14),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          isGuest
-                              ? "Create an account to start earning XP"
-                              : canClaim
+                          canClaim
                               ? "Tap to claim your XP bonus"
                               : _timeUntilReward.inSeconds > 0
                               ? "Next reward in ${_timeUntilReward.inHours}h ${_timeUntilReward.inMinutes.remainder(60)}m"
@@ -954,7 +949,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
 
-    if (!canClaim || isGuest || _shimmerPaused || _onboardingInProgress) {
+    if (isGuest) {
+      return GestureDetector(
+        onTap: () => Guest.block(
+          context,
+          title: 'Sign up to claim rewards',
+          description:
+              'Create a free account to earn daily XP, build streaks, and level up.',
+        ),
+        child: Stack(
+          children: [
+            IgnorePointer(child: Opacity(opacity: 0.35, child: card)),
+            guestLockOverlay(context, appColor),
+          ],
+        ),
+      );
+    }
+
+    if (!canClaim || _shimmerPaused || _onboardingInProgress) {
       return card;
     }
 
@@ -1261,7 +1273,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         SizedBox(height: Responsive.height(context, 16)),
 
                         sectionHeader("PROGRESS", context, appColor: appColor),
-                        _maybeAnimate(_buildXpCard(), 60.ms),
+                        _maybeAnimate(
+                          isGuest
+                              ? GestureDetector(
+                                  onTap: () => Guest.block(
+                                    context,
+                                    title: 'Sign up to level up',
+                                    description:
+                                        'Create a free account to earn XP, level up, and track your progression.',
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      IgnorePointer(
+                                        child: Opacity(
+                                          opacity: 0.35,
+                                          child: _buildXpCard(),
+                                        ),
+                                      ),
+                                      guestLockOverlay(context, appColor),
+                                    ],
+                                  ),
+                                )
+                              : _buildXpCard(),
+                          60.ms,
+                        ),
                         SizedBox(height: Responsive.height(context, 20)),
 
                         ...[
@@ -1321,7 +1356,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         SizedBox(height: Responsive.height(context, 20)),
 
                         sectionHeader("STREAKS", context, appColor: appColor),
-                        _maybeAnimate(_buildStreakCard(), 180.ms),
+                        _maybeAnimate(
+                          isGuest
+                              ? GestureDetector(
+                                  onTap: () => Guest.block(
+                                    context,
+                                    title: 'Sign up to track streaks',
+                                    description:
+                                        'Create a free account to build daily reward, food logging, and workout streaks.',
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      IgnorePointer(
+                                        child: Opacity(
+                                          opacity: 0.35,
+                                          child: _buildStreakCard(),
+                                        ),
+                                      ),
+                                      guestLockOverlay(context, appColor),
+                                    ],
+                                  ),
+                                )
+                              : _buildStreakCard(),
+                          180.ms,
+                        ),
                         SizedBox(height: Responsive.height(context, 20)),
 
                         sectionHeader("TOOLS", context, appColor: appColor),

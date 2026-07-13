@@ -327,7 +327,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
 
     if (isGuest) {
-      Guest.block(context);
+      Guest.block(
+        context,
+        title: 'Sign up to log workouts',
+        description:
+            'Create a free account to track sets, reps, and weight, and earn XP for every session.',
+      );
       return;
     }
 

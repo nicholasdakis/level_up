@@ -76,7 +76,14 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
       type: _lbType,
       period: _lbPeriod,
     );
-    if (isGuest) Guest.blockOnOpen(context); // For guest users
+    if (isGuest) {
+      Guest.blockOnOpen(
+        context,
+        title: 'Sign up to compete',
+        description:
+            'Create a free account to appear on the leaderboard and see how you rank.',
+      );
+    }
   }
 
   @override
@@ -260,7 +267,12 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                                         .value
                                         ?.isPremium ??
                                     false,
-                                onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                                onLearnMore: () {
+                                  logAnalyticsEvent(
+                                    'premium_sheet_opened_from_learn_more',
+                                  );
+                                  showPremiumSheet(context, ref);
+                                },
                               ),
                             )
                           : Text(
