@@ -1388,78 +1388,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
   // A single search result or recent-match row, name bold, description dim, + button on right
   Widget _buildFoodRow(FoodLog food, {required VoidCallback onTap}) {
-    final c = cardColors(appColor);
-    final cal =
-        food.calories ??
-        FoodLoggingHelper.extractCalories(food.foodDescription ?? '');
-    final serving = FoodLoggingHelper.parseServingFromLog(food);
-    final servingAmt = serving['amount'] as double;
-    final servingStr = servingAmt % 1 == 0
-        ? servingAmt.toInt().toString()
-        : servingAmt.toString();
-    final subtitle = '$servingStr ${serving['unit']} · $cal calories';
-    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
-    final hasMacros =
-        (macros['protein'] ?? 0) > 0 ||
-        (macros['carbs'] ?? 0) > 0 ||
-        (macros['fat'] ?? 0) > 0;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior
-          .opaque, // ensures tap registers across the full row including empty space
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 13)),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    food.foodName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w600,
-                      color: lightenColor(appColor, 0.45),
-                    ),
-                  ),
-                  Text(
-                    food.brandName != null
-                        ? '${food.brandName} · $subtitle'
-                        : subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 12),
-                      color: c.onCard.withAlpha(140),
-                    ),
-                  ),
-                  if (hasMacros)
-                    Text(
-                      'Protein ${macros['protein']!.toStringAsFixed(1)}g · Carbs ${macros['carbs']!.toStringAsFixed(1)}g · Fat ${macros['fat']!.toStringAsFixed(1)}g',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 11),
-                        color: c.onCard.withAlpha(100),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            // chevron makes it clear the row is tappable
-            Icon(
-              Icons.chevron_right,
-              color: lightenColor(appColor, 0.3).withAlpha(160),
-              size: Responsive.scale(context, 20),
-            ),
-          ],
-        ),
-      ),
-    );
+    return _FoodResultRow(food: food, onTap: onTap, appColor: appColor);
   }
 
   Widget _buildEndOfResults() {
@@ -2339,6 +2268,206 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
             ),
           ),
       ],
+    );
+  }
+}
+
+class _FoodResultRow extends ConsumerStatefulWidget {
+  final FoodLog food;
+  final VoidCallback onTap;
+  final Color appColor;
+  const _FoodResultRow({
+    required this.food,
+    required this.onTap,
+    required this.appColor,
+  });
+
+  @override
+  ConsumerState<_FoodResultRow> createState() => _FoodResultRowState();
+}
+
+class _FoodResultRowState extends ConsumerState<_FoodResultRow> {
+  bool _loadingMicros = false;
+  double? _fiber;
+  double? _sugar;
+  double? _sodium;
+  bool _microsLoaded = false;
+
+  Future<void> _loadMicros() async {
+    final foodId = widget.food.foodId;
+    if (foodId == null || _loadingMicros || _microsLoaded) return;
+    setState(() => _loadingMicros = true);
+    try {
+      final response = await authenticatedPost(
+        'food_detail',
+        body: {'food_id': foodId},
+        timeout: const Duration(seconds: 9),
+      );
+      if (response.statusCode == 200) {
+        final detail = jsonDecode(response.body);
+        final food = detail['food'];
+        final servings = food?['servings']?['serving'];
+        Map<String, dynamic>? serving;
+        if (servings is List) {
+          serving = (servings.first as Map<String, dynamic>);
+        } else if (servings is Map) {
+          serving = servings.cast<String, dynamic>();
+        }
+        if (serving != null && mounted) {
+          setState(() {
+            _fiber = double.tryParse(serving!['fiber']?.toString() ?? '');
+            _sugar = double.tryParse(serving['sugar']?.toString() ?? '');
+            _sodium = double.tryParse(serving['sodium']?.toString() ?? '');
+            _microsLoaded = true;
+          });
+        }
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _loadingMicros = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appColor = widget.appColor;
+    final food = widget.food;
+    final c = cardColors(appColor);
+    final cal =
+        food.calories ??
+        FoodLoggingHelper.extractCalories(food.foodDescription ?? '');
+    final serving = FoodLoggingHelper.parseServingFromLog(food);
+    final servingAmt = serving['amount'] as double;
+    final servingStr = servingAmt % 1 == 0
+        ? servingAmt.toInt().toString()
+        : servingAmt.toString();
+    final subtitle = '$servingStr ${serving['unit']} · $cal calories';
+    final macros = FoodLoggingHelper.extractMacrosFromFood(food);
+    final hasMacros =
+        (macros['protein'] ?? 0) > 0 ||
+        (macros['carbs'] ?? 0) > 0 ||
+        (macros['fat'] ?? 0) > 0;
+    final hasMicros =
+        _microsLoaded && (_fiber != null || _sugar != null || _sodium != null);
+    final dim = lightenColor(appColor, 0.30);
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 13)),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    food.foodName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w600,
+                      color: lightenColor(appColor, 0.45),
+                    ),
+                  ),
+                  Text(
+                    food.brandName != null
+                        ? '${food.brandName} · $subtitle'
+                        : subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 12),
+                      color: c.onCard.withAlpha(140),
+                    ),
+                  ),
+                  if (hasMacros)
+                    Text(
+                      'Protein ${macros['protein']!.toStringAsFixed(1)}g · Carbs ${macros['carbs']!.toStringAsFixed(1)}g · Fat ${macros['fat']!.toStringAsFixed(1)}g',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 11),
+                        color: c.onCard.withAlpha(100),
+                      ),
+                    ),
+                  if (hasMicros)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: Responsive.height(context, 3),
+                      ),
+                      child: Text(
+                        [
+                          if (_fiber != null)
+                            'Fiber ${_fiber!.toStringAsFixed(1)}g',
+                          if (_sugar != null)
+                            'Sugar ${_sugar!.toStringAsFixed(1)}g',
+                          if (_sodium != null)
+                            'Na ${_sodium!.toStringAsFixed(0)}mg',
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 11),
+                          color: c.onCard.withAlpha(80),
+                        ),
+                      ),
+                    ),
+                  if (food.foodId != null && !_microsLoaded)
+                    GestureDetector(
+                      onTap: _loadMicros,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: Responsive.height(context, 5),
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
+                            vertical: Responsive.height(context, 4),
+                          ),
+                          decoration: BoxDecoration(
+                            color: dim.withAlpha(20),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            border: Border.all(
+                              color: dim.withAlpha(60),
+                              width: 1,
+                            ),
+                          ),
+                          child: _loadingMicros
+                              ? SizedBox(
+                                  width: Responsive.scale(context, 11),
+                                  height: Responsive.scale(context, 11),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: dim,
+                                  ),
+                                )
+                              : Text(
+                                  'Preview Micros',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 11),
+                                    fontWeight: FontWeight.w600,
+                                    color: dim,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: lightenColor(appColor, 0.3).withAlpha(160),
+              size: Responsive.scale(context, 20),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

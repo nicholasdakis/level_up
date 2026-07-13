@@ -880,8 +880,9 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                 reservedSize: Responsive.height(context, 48),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= values.length)
+                  if (i < 0 || i >= values.length) {
                     return const SizedBox.shrink();
+                  }
                   final v = values[i];
                   if (v == 0) return const SizedBox.shrink();
                   final unit = i == 2 ? 'mg' : 'g';
@@ -907,8 +908,9 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                 reservedSize: Responsive.height(context, 32),
                 getTitlesWidget: (value, meta) {
                   final i = value.toInt();
-                  if (i < 0 || i >= labels.length)
+                  if (i < 0 || i >= labels.length) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Responsive.height(context, 6),
@@ -2218,8 +2220,9 @@ class _MicroLineChartState extends ConsumerState<_MicroLineChart> {
                       showTitles: true,
                       reservedSize: Responsive.width(context, 36),
                       getTitlesWidget: (val, info) {
-                        if (val == info.min || val == info.max)
+                        if (val == info.min || val == info.max) {
                           return const SizedBox.shrink();
+                        }
                         return SideTitleWidget(
                           meta: info,
                           child: Text(
@@ -2246,8 +2249,9 @@ class _MicroLineChartState extends ConsumerState<_MicroLineChart> {
                       interval: points.length <= 5 ? 1 : 2,
                       getTitlesWidget: (val, info) {
                         final i = val.toInt();
-                        if (i < 0 || i >= points.length)
+                        if (i < 0 || i >= points.length) {
                           return const SizedBox.shrink();
+                        }
                         final d = points[i].date;
                         return SideTitleWidget(
                           meta: info,

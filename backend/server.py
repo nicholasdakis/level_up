@@ -340,7 +340,7 @@ def get_food():
         if cached:
             redis.incr("search_cache_hits")
             # Return the cached food as a json as expected
-            return jsonify(food_service.enrich_search_response(json.loads(cached)))
+            return jsonify(json.loads(cached))
 
     except Exception as e: # Prints exception and continues with the API call as fallback
         logger.warning(f"[Redis Error]: {e}")
@@ -357,7 +357,7 @@ def get_food():
                 cached = redis.get(cache_key)
                 if cached:
                     redis.incr("search_cache_hits")
-                    return jsonify(food_service.enrich_search_response(json.loads(cached)))
+                    return jsonify(json.loads(cached))
             except Exception as e:
                 logger.warning(f"[Redis Error]: {e}")
 
@@ -391,7 +391,7 @@ def get_food():
                 redis.incr("search_cache_misses")
 
                 # Return the jsonified response from the API
-                return jsonify(food_service.enrich_search_response(api_response.json()))
+                return jsonify(api_response.json())
             except ValueError:
                 token_manager.refund()  # Give back token on invalid JSON
                 return jsonify({"error": "Invalid JSON from FatSecret API", "raw": api_response.text})

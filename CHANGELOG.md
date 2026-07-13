@@ -2638,3 +2638,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added first-action analytics: fires once when a user logs their first food, first water entry, and first weight entry
 - Added guest mode analytics: tracks when a user enters guest mode and which lock dialog they hit (with the title of the lock so the most-blocked features are visible)
 - Added feature engagement analytics: weekly workout goal changes, routine deletions, leaderboard category switches, logout confirmations, and premium plan selection (yearly vs monthly)
+- Fixed a bug where searching for a food on the first attempt would return no results because micro enrichment was running sequentially for every result before returning the response, causing the request to time out on the first call while the second would hit the cache and return instantly
+- Moved micro enrichment out of the search flow entirely since micros are already stored at log time; users can now tap a "Preview Micros" button on individual search results to load fiber, sugar, and sodium on demand for that specific food without blocking the search
