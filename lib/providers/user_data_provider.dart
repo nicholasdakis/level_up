@@ -175,6 +175,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           proteinGoal: goals?['protein_goal'] ?? current.proteinGoal,
           carbsGoal: goals?['carbs_goal'] ?? current.carbsGoal,
           fatGoal: goals?['fat_goal'] ?? current.fatGoal,
+          fiberGoal: goals?['fiber_goal'] ?? current.fiberGoal,
+          sugarGoal: goals?['sugar_goal'] ?? current.sugarGoal,
+          sodiumGoal: goals?['sodium_goal'] ?? current.sodiumGoal,
           weightGoalType: goals?['weight_goal_type'] ?? current.weightGoalType,
           weeklyWorkoutsGoal:
               goals?['weekly_workouts_goal'] ?? current.weeklyWorkoutsGoal,
@@ -760,6 +763,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     int? proteinGoal,
     int? carbsGoal,
     int? fatGoal,
+    int? fiberGoal,
+    int? sugarGoal,
+    int? sodiumGoal,
     BuildContext? context,
   }) async {
     if (isGuest) {
@@ -774,6 +780,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         proteinGoal: proteinGoal ?? previous.proteinGoal,
         carbsGoal: carbsGoal ?? previous.carbsGoal,
         fatGoal: fatGoal ?? previous.fatGoal,
+        fiberGoal: fiberGoal ?? previous.fiberGoal,
+        sugarGoal: sugarGoal ?? previous.sugarGoal,
+        sodiumGoal: sodiumGoal ?? previous.sodiumGoal,
       ),
     );
     try {
@@ -784,6 +793,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           'protein_goal': proteinGoal,
           'carbs_goal': carbsGoal,
           'fat_goal': fatGoal,
+          'fiber_goal': fiberGoal,
+          'sugar_goal': sugarGoal,
+          'sodium_goal': sodiumGoal,
         },
         timeout: const Duration(seconds: 2),
       );

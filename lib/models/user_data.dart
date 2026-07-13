@@ -24,6 +24,9 @@ class UserData {
   int? proteinGoal;
   int? carbsGoal;
   int? fatGoal;
+  int? fiberGoal;
+  int? sugarGoal;
+  int? sodiumGoal;
   String? weightGoalType;
   int? weeklyWorkoutsGoal;
   int? waterMlGoal;
@@ -63,6 +66,9 @@ class UserData {
     this.proteinGoal,
     this.carbsGoal,
     this.fatGoal,
+    this.fiberGoal,
+    this.sugarGoal,
+    this.sodiumGoal,
     this.weightGoalType,
     this.weeklyWorkoutsGoal,
     this.waterMlGoal,
@@ -102,6 +108,9 @@ class UserData {
     int? proteinGoal,
     int? carbsGoal,
     int? fatGoal,
+    int? fiberGoal,
+    int? sugarGoal,
+    int? sodiumGoal,
     String? weightGoalType,
     int? weeklyWorkoutsGoal,
     int? waterMlGoal,
@@ -140,6 +149,9 @@ class UserData {
       proteinGoal: proteinGoal ?? this.proteinGoal,
       carbsGoal: carbsGoal ?? this.carbsGoal,
       fatGoal: fatGoal ?? this.fatGoal,
+      fiberGoal: fiberGoal ?? this.fiberGoal,
+      sugarGoal: sugarGoal ?? this.sugarGoal,
+      sodiumGoal: sodiumGoal ?? this.sodiumGoal,
       weightGoalType: weightGoalType ?? this.weightGoalType,
       weeklyWorkoutsGoal: weeklyWorkoutsGoal ?? this.weeklyWorkoutsGoal,
       waterMlGoal: waterMlGoal ?? this.waterMlGoal,

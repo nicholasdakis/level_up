@@ -569,17 +569,25 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       return;
     }
     // pre-fill with existing values if they exist
+    final ud = ref.read(userDataProvider).value;
     final calCtrl = TextEditingController(
-      text: ref.read(userDataProvider).value?.caloriesGoal?.toString() ?? '',
+      text: ud?.caloriesGoal?.toString() ?? '',
     );
     final proCtrl = TextEditingController(
-      text: ref.read(userDataProvider).value?.proteinGoal?.toString() ?? '',
+      text: ud?.proteinGoal?.toString() ?? '',
     );
     final carbCtrl = TextEditingController(
-      text: ref.read(userDataProvider).value?.carbsGoal?.toString() ?? '',
+      text: ud?.carbsGoal?.toString() ?? '',
     );
-    final fatCtrl = TextEditingController(
-      text: ref.read(userDataProvider).value?.fatGoal?.toString() ?? '',
+    final fatCtrl = TextEditingController(text: ud?.fatGoal?.toString() ?? '');
+    final fiberCtrl = TextEditingController(
+      text: ud?.fiberGoal?.toString() ?? '',
+    );
+    final sugarCtrl = TextEditingController(
+      text: ud?.sugarGoal?.toString() ?? '',
+    );
+    final sodiumCtrl = TextEditingController(
+      text: ud?.sodiumGoal?.toString() ?? '',
     );
 
     await showFrostedAlertDialog(
@@ -594,6 +602,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             _goalField(proCtrl, "Protein (g)"),
             _goalField(carbCtrl, "Carbs (g)"),
             _goalField(fatCtrl, "Fat (g)"),
+            _goalField(fiberCtrl, "Fiber (g)"),
+            _goalField(sugarCtrl, "Sugar (g)"),
+            _goalField(sodiumCtrl, "Sodium (mg)", maxLength: 5),
           ],
         ),
       ),
@@ -612,6 +623,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                   proteinGoal: int.tryParse(proCtrl.text.trim()),
                   carbsGoal: int.tryParse(carbCtrl.text.trim()),
                   fatGoal: int.tryParse(fatCtrl.text.trim()),
+                  fiberGoal: int.tryParse(fiberCtrl.text.trim()),
+                  sugarGoal: int.tryParse(sugarCtrl.text.trim()),
+                  sodiumGoal: int.tryParse(sodiumCtrl.text.trim()),
                   context: context,
                 );
             if (mounted) setState(() {}); // refresh subtitle with new values
@@ -1323,10 +1337,16 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                 final pro = userData?.proteinGoal;
                                 final carb = userData?.carbsGoal;
                                 final fat = userData?.fatGoal;
+                                final fiber = userData?.fiberGoal;
+                                final sugar = userData?.sugarGoal;
+                                final sodium = userData?.sodiumGoal;
                                 if (cal == null &&
                                     pro == null &&
                                     carb == null &&
-                                    fat == null) {
+                                    fat == null &&
+                                    fiber == null &&
+                                    sugar == null &&
+                                    sodium == null) {
                                   return "Current: None";
                                 }
                                 final parts = [
@@ -1334,6 +1354,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                                   if (pro != null) "${pro}g protein",
                                   if (carb != null) "${carb}g carbs",
                                   if (fat != null) "${fat}g fat",
+                                  if (fiber != null) "${fiber}g fiber",
+                                  if (sugar != null) "${sugar}g sugar",
+                                  if (sodium != null) "${sodium}mg sodium",
                                 ];
                                 return "Current: ${parts.join(' · ')}";
                               }(),
