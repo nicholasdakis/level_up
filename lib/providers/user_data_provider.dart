@@ -416,7 +416,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
             duration: snackBarDuration,
           ),
         );
-        return true; // to close the dialog
+        return false; // keep dialog open so the user can retry when back online
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -800,7 +800,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         timeout: const Duration(seconds: 2),
       );
       if (response.statusCode == 422) {
-        throw Exception('One or more goal values are out of the allowed range.');
+        throw Exception(
+          'One or more goal values are out of the allowed range.',
+        );
       }
       if (response.statusCode != 200) {
         throw Exception(

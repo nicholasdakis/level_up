@@ -156,6 +156,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "level": level,
             "exp_points": exp,
             "exp_needed": experience_needed(level),
+            "can_claim_daily_reward": self._can_claim_daily_reward(user),
         }
 
     def claim_daily_reward(self, uid: str):

@@ -128,7 +128,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     extra: {
                       'meal': m.meal,
                       'currentDate': DateTime.now(),
-                      'onFoodLogged': () {},
+                      'onFoodLogged': () =>
+                          ref.read(foodLogsProvider.notifier).refresh(),
                       'achievementId': null,
                     },
                   );
@@ -476,9 +477,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
     final active = lightenColor(appColor, 0.45);
     final inactive = lightenColor(appColor, 0.20);
     dot(bool filled) => Container(
-      width: Responsive.scale(context, 7),
-      height: Responsive.scale(context, 7),
-      margin: EdgeInsets.symmetric(horizontal: Responsive.width(context, 4)),
+      width: Responsive.scale(context, 5),
+      height: Responsive.scale(context, 5),
+      margin: EdgeInsets.symmetric(horizontal: Responsive.width(context, 3)),
       decoration: BoxDecoration(
         color: filled ? active : inactive,
         shape: BoxShape.circle,
@@ -793,6 +794,17 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildLoggingCards(context);
+    final isLoading =
+        !isGuest &&
+        (ref.watch(userDataProvider).value == null ||
+            ref.watch(foodLogsProvider).isLoading);
+    return Skeletonizer(
+      enabled: isLoading,
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColor, 0.10),
+        highlightColor: lightenColor(appColor, 0.22),
+      ),
+      child: _buildLoggingCards(context),
+    );
   }
 }
