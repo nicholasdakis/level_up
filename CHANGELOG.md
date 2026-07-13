@@ -2641,3 +2641,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where searching for a food on the first attempt would return no results because micro enrichment was running sequentially for every result before returning the response, causing the request to time out on the first call while the second would hit the cache and return instantly
 - Moved micro enrichment out of the search flow entirely since micros are already stored at log time; users can now tap a "Preview Micros" button on individual search results to load fiber, sugar, and sodium on demand for that specific food without blocking the search
 - Added micronutrients to update goals requests, and wired it up into loading into user data
+- Updated the nutrition goals dialog to also accept micronutrients
+- Edited the macro gauges in Food Logging to now be collapsable, showing micros when expanded
+- The collapsed / expanded state is persisted in SharedPrefs (default is collapsed)

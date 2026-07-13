@@ -4,6 +4,7 @@ import '/providers/user_data_provider.dart';
 import '/providers/user_data_loaded_provider.dart';
 import '../providers/food_logs_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -76,6 +77,15 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
   }
 
+  Future<void> _loadMicrosExpanded() async {
+    final val = await _prefs.getBool(SharedPreferencesKey.microsExpanded);
+    if (val != null && mounted) setState(() => _microsExpanded = val);
+  }
+
+  void _saveMicrosExpanded(bool val) {
+    _prefs.setBool(SharedPreferencesKey.microsExpanded, val);
+  }
+
   // getters for nutrition goals
   double get _goalCalories =>
       (ref.watch(userDataProvider.select((s) => s.value?.caloriesGoal)) ?? 0)
@@ -89,8 +99,18 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   double get _goalFat =>
       (ref.watch(userDataProvider.select((s) => s.value?.fatGoal)) ?? 0)
           .toDouble();
+  double get _goalFiber =>
+      (ref.watch(userDataProvider.select((s) => s.value?.fiberGoal)) ?? 0)
+          .toDouble();
+  double get _goalSugar =>
+      (ref.watch(userDataProvider.select((s) => s.value?.sugarGoal)) ?? 0)
+          .toDouble();
+  double get _goalSodium =>
+      (ref.watch(userDataProvider.select((s) => s.value?.sodiumGoal)) ?? 0)
+          .toDouble();
   bool get _goalsSet =>
       ref.watch(userDataProvider.select((s) => s.value?.caloriesGoal)) != null;
+  bool _microsExpanded = false;
 
   @override
   void initState() {
@@ -100,6 +120,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       screenClass: 'FoodLogging',
     );
     _loadCollapsedState();
+    _loadMicrosExpanded();
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
   }
@@ -1166,6 +1187,239 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
   }
 
+  Future<void> _editMicroGoals() async {
+    final fiberCtrl = TextEditingController(
+      text: _goalFiber > 0 ? _goalFiber.toInt().toString() : '',
+    );
+    final sugarCtrl = TextEditingController(
+      text: _goalSugar > 0 ? _goalSugar.toInt().toString() : '',
+    );
+    final sodiumCtrl = TextEditingController(
+      text: _goalSodium > 0 ? _goalSodium.toInt().toString() : '',
+    );
+
+    Widget field(TextEditingController ctrl, String label, String unit) =>
+        Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 6),
+          ),
+          child: TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(5),
+            ],
+            style: GoogleFonts.manrope(
+              color: lightenColor(appColor, 0.45),
+              fontSize: Responsive.font(context, 20),
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+              labelText: '$label ($unit)',
+              labelStyle: TextStyle(color: Colors.white54),
+              floatingLabelStyle: TextStyle(color: Colors.white70),
+              suffixText: unit,
+              suffixStyle: GoogleFonts.manrope(
+                color: lightenColor(appColor, 0.35),
+                fontSize: Responsive.font(context, 14),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: lightenColor(appColor, 0.45)),
+              ),
+            ),
+          ),
+        );
+
+    // capture values before pop so controllers are not read after dispose
+    int? savedFiber, savedSugar, savedSodium;
+    bool didSave = false;
+
+    await showFrostedAlertDialog(
+      context: context,
+      appColor: appColor,
+      title: 'Micro Goals',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            field(fiberCtrl, 'Fiber', 'g'),
+            field(sugarCtrl, 'Sugar', 'g'),
+            field(sodiumCtrl, 'Sodium', 'mg'),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text('Cancel', style: dialogButtonStyle()),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+        ),
+        TextButton(
+          child: Text('Save', style: dialogButtonStyle(confirm: true)),
+          onPressed: () {
+            savedFiber = int.tryParse(fiberCtrl.text.trim());
+            savedSugar = int.tryParse(sugarCtrl.text.trim());
+            savedSodium = int.tryParse(sodiumCtrl.text.trim());
+            didSave = true;
+            Navigator.of(context, rootNavigator: true).pop();
+          },
+        ),
+      ],
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fiberCtrl.dispose();
+      sugarCtrl.dispose();
+      sodiumCtrl.dispose();
+    });
+
+    if (!didSave) return;
+    await ref
+        .read(userDataProvider.notifier)
+        .updateNutritionGoals(
+          fiberGoal: savedFiber,
+          sugarGoal: savedSugar,
+          sodiumGoal: savedSodium,
+          context: mounted ? context : null,
+        );
+    if (mounted) setState(() {});
+  }
+
+  // Expandable card showing fiber/sugar/sodium progress against goals
+  Widget _buildMicroGoalsRow() {
+    if (!_goalsSet) return const SizedBox.shrink();
+
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+    final color = lightenColor(appColor, 0.30);
+
+    Widget microBar(String label, double current, double goal, String unit) {
+      final progress = (current / goal).clamp(0.0, 1.0);
+      final isOver = current > goal;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 12),
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                ),
+              ),
+              Text(
+                '${current.toStringAsFixed(unit == 'mg' ? 0 : 1)}$unit / ${goal.toStringAsFixed(0)}$unit',
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 11),
+                  color: dim,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Responsive.height(context, 4)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
+            child: Stack(
+              children: [
+                Container(
+                  height: Responsive.height(context, 3),
+                  width: double.infinity,
+                  color: Colors.white.withAlpha(18),
+                ),
+                FractionallySizedBox(
+                  widthFactor: progress,
+                  child: Container(
+                    height: Responsive.height(context, 3),
+                    color: isOver ? accent : color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final totalFiber = _totalMacro('fiber');
+    final totalSugar = _totalMacro('sugar');
+    final totalSodium = _totalMacro('sodium');
+    final noGoals = _goalFiber == 0 && _goalSugar == 0 && _goalSodium == 0;
+
+    return AnimatedCrossFade(
+      duration: const Duration(milliseconds: 220),
+      crossFadeState: _microsExpanded
+          ? CrossFadeState.showFirst
+          : CrossFadeState.showSecond,
+      firstChild: Padding(
+        padding: EdgeInsets.only(top: Responsive.height(context, 8)),
+        child: frostedGlassCard(
+          context,
+          color: appColor,
+          baseRadius: 16,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
+          ),
+          child: noGoals
+              ? SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: _editMicroGoals,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAddCircle,
+                      color: color,
+                      size: Responsive.scale(context, 14),
+                    ),
+                    label: Text(
+                      'Set micro goals',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 12),
+                        color: color,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: _editMicroGoals,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedPencilEdit01,
+                            color: Colors.white24,
+                            size: Responsive.scale(context, 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: Responsive.height(context, 4)),
+                    if (_goalFiber > 0) ...[
+                      microBar('Fiber', totalFiber, _goalFiber, 'g'),
+                      SizedBox(height: Responsive.height(context, 12)),
+                    ],
+                    if (_goalSugar > 0) ...[
+                      microBar('Sugar', totalSugar, _goalSugar, 'g'),
+                      SizedBox(height: Responsive.height(context, 12)),
+                    ],
+                    if (_goalSodium > 0)
+                      microBar('Sodium', totalSodium, _goalSodium, 'mg'),
+                  ],
+                ),
+        ),
+      ),
+      secondChild: const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildMealSection(
     String mealKey,
     String title,
@@ -1204,14 +1458,17 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               left: Responsive.width(context, 4),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: Responsive.scale(context, 10),
-                  height: Responsive.scale(context, 10),
-                  decoration: BoxDecoration(
-                    color: accentColor,
-                    shape: BoxShape.circle,
+                Padding(
+                  padding: EdgeInsets.only(top: Responsive.height(context, 3)),
+                  child: Container(
+                    width: Responsive.scale(context, 10),
+                    height: Responsive.scale(context, 10),
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
                 SizedBox(width: Responsive.width(context, 8)),
@@ -1583,7 +1840,40 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                   _buildCaloriesBar(appColor),
 
                   SizedBox(height: Responsive.height(context, 20)),
-                  _buildMacroGauges(appColor),
+                  Stack(
+                    children: [
+                      _buildMacroGauges(appColor),
+                      if (_goalsSet)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(
+                                () => _microsExpanded = !_microsExpanded,
+                              );
+                              _saveMicrosExpanded(_microsExpanded);
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: EdgeInsets.all(
+                                Responsive.scale(context, 4),
+                              ),
+                              child: AnimatedRotation(
+                                turns: _microsExpanded ? -0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowDown01,
+                                  color: lightenColor(appColor, 0.30),
+                                  size: Responsive.scale(context, 18),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_goalsSet) _buildMicroGoalsRow(),
 
                   SizedBox(height: Responsive.height(context, 8)),
 

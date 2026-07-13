@@ -14,6 +14,7 @@ class SharedPreferencesKey {
   // FoodLogging keys
   static const String mealCollapsedState = 'meal_collapsed_state';
   static const String recentFoodsExpanded = 'recent_foods_expanded';
+  static const String microsExpanded = 'micros_expanded';
 
   // WorkoutSessionService keys
   static const String activeWorkoutSession = 'active_workout_session';
