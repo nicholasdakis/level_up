@@ -442,11 +442,8 @@ class ProgressionService: # Service class to handle all progression-related busi
         return result
 
     def delete_reminder(self, uid: str, reminder_id: str):
-        # Verify the reminder belongs to this user before deleting
-        reminders = self._reminder_repo.get_reminders(uid)
-        if not any(r["id"] == reminder_id for r in reminders):
-            return False
-        deleted = self._reminder_repo.delete_reminder(reminder_id)
+        # uid comes from the Firebase token (server.py), not the request body, so a user cannot delete another user's reminder by guessing their reminder_id
+        deleted = self._reminder_repo.delete_reminder(reminder_id, uid=uid)
         if deleted:
             self._track_achievement(uid, "delete_reminder")
         return deleted

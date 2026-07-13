@@ -992,9 +992,13 @@ class ReminderRepository:
         # Fetches all reminders where the scheduled time has passed
         return self._supabase.table("reminders").select("*").lte("scheduled_at", now_iso).execute().data
 
-    def delete_reminder(self, reminder_id: str):
-        # Atomically claims a reminder by deleting it; returns True if this instance claimed it
-        result = self._supabase.table("reminders").delete().eq("id", reminder_id).execute()
+    def delete_reminder(self, reminder_id: str, uid: str | None = None):
+        # uid=None is used by the FCM dispatcher so multiple server instances don't double-send the same reminder
+        # uid=uid is used by user-facing deletes to enforce ownership at the DB level in the same query
+        query = self._supabase.table("reminders").delete().eq("id", reminder_id)
+        if uid:
+            query = query.eq("uid", uid)
+        result = query.execute()
         return bool(result.data)
 
 
