@@ -2629,3 +2629,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Invalidate food, water, weight, and workout providers on guest exit so fake data does not bleed into a newly signed-up account
 - Added fake macro goals, water goal, weight goal, and weekly workout goal to guest default user data so goal-dependent UI renders correctly for guests
 - Made all providers be invalidated on sign out to make sure no stale data carries over to another login in the same session
+- The edit serving dialog now allows editing micros
+- Manual entry now allows adding micros

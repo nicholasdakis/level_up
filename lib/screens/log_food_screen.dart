@@ -103,6 +103,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   final TextEditingController manualFatController = TextEditingController();
   final TextEditingController manualCarbsController = TextEditingController();
   final TextEditingController manualProteinController = TextEditingController();
+  final TextEditingController manualFiberController = TextEditingController();
+  final TextEditingController manualSugarController = TextEditingController();
+  final TextEditingController manualSodiumController = TextEditingController();
   final TextEditingController manualServingAmountController =
       TextEditingController();
   final TextEditingController _recentServingController =
@@ -227,6 +230,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     manualFatController.dispose();
     manualCarbsController.dispose();
     manualProteinController.dispose();
+    manualFiberController.dispose();
+    manualSugarController.dispose();
+    manualSodiumController.dispose();
     manualServingAmountController.dispose();
     _recentServingController.dispose();
     super.dispose();
@@ -551,6 +557,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     manualProteinController.clear();
     manualCarbsController.clear();
     manualFatController.clear();
+    manualFiberController.clear();
+    manualSugarController.clear();
+    manualSodiumController.clear();
     manualSelectedUnit = 'serving';
     String? dialogError;
 
@@ -939,6 +948,39 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                           LogFoodScreen.decimalFormatter(decimalPlaces: 3),
                         ],
                       ),
+                      goalField(
+                        ctx,
+                        manualFiberController,
+                        "Fiber (g)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
+                      goalField(
+                        ctx,
+                        manualSugarController,
+                        "Sugar (g)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
+                      goalField(
+                        ctx,
+                        manualSodiumController,
+                        "Sodium (mg)",
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          LogFoodScreen.decimalFormatter(decimalPlaces: 3),
+                        ],
+                      ),
                       if (dialogError != null) ...[
                         SizedBox(height: Responsive.height(ctx, 8)),
                         Text(
@@ -1014,6 +1056,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                   fat,
                                   carbs,
                                   protein,
+                                  manualFiberController.text.trim(),
+                                  manualSugarController.text.trim(),
+                                  manualSodiumController.text.trim(),
                                 );
                               },
                               child: Text(
@@ -1032,6 +1077,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                         fat,
                         carbs,
                         protein,
+                        manualFiberController.text.trim(),
+                        manualSugarController.text.trim(),
+                        manualSodiumController.text.trim(),
                       );
                     },
                     child: Text(
@@ -1058,6 +1106,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     String fat,
     String carbs,
     String protein,
+    String fiber,
+    String sugar,
+    String sodium,
   ) async {
     final servingAmt = manualServingAmountController.text.trim();
     final servingLabel = servingAmt.isNotEmpty
@@ -1067,6 +1118,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     if (fat.isNotEmpty) parts.add('Fat: ${fat}g');
     if (carbs.isNotEmpty) parts.add('Carbs: ${carbs}g');
     if (protein.isNotEmpty) parts.add('Protein: ${protein}g');
+    if (fiber.isNotEmpty) parts.add('Fiber: ${fiber}g');
+    if (sugar.isNotEmpty) parts.add('Sugar: ${sugar}g');
+    if (sodium.isNotEmpty) parts.add('Sodium: ${sodium}mg');
 
     trackTrivialAchievement('food_manual');
     await logFood(
@@ -1079,6 +1133,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         protein: double.tryParse(protein),
         carbs: double.tryParse(carbs),
         fat: double.tryParse(fat),
+        fiber: double.tryParse(fiber),
+        sugar: double.tryParse(sugar),
+        sodium: double.tryParse(sodium),
         servingSize: servingLabel,
       ),
     );

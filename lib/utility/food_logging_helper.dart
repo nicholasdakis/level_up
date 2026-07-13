@@ -537,12 +537,16 @@ Future<ServingDialogResult?> showServingAmountDialog({
     String key,
     String label,
     double value,
-    void Function(void Function()) setDialogState,
-  ) {
+    void Function(void Function()) setDialogState, {
+    String? unit,
+    bool isNone = false,
+  }) {
     final isCalories = key == 'calories';
-    final suffix = isCalories ? 'kcal' : 'g';
+    final suffix = unit ?? (isCalories ? 'kcal' : 'g');
     final displayValue = overrides[key] ?? value;
-    final valueStr = isCalories
+    final valueStr = isNone && !overrides.containsKey(key)
+        ? 'None'
+        : isCalories
         ? '${displayValue.round()}'
         : displayValue.toStringAsFixed(1);
 
@@ -616,7 +620,7 @@ Future<ServingDialogResult?> showServingAmountDialog({
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '$valueStr$suffix',
+                valueStr == 'None' ? 'None' : '$valueStr$suffix',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.manrope(
@@ -653,10 +657,121 @@ Future<ServingDialogResult?> showServingAmountDialog({
           typedAmt,
         );
 
+        Widget microChip(
+          String key,
+          String label,
+          double value,
+          bool isNone,
+          String unit,
+        ) {
+          final displayValue = overrides[key] ?? value;
+          final displayStr = isNone
+              ? 'None'
+              : '${displayValue.toStringAsFixed(1)}$unit';
+          if (activeKey == key) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: Responsive.width(ctx, 46),
+                  child: TextField(
+                    controller: activeController,
+                    autofocus: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: dim,
+                      fontSize: Responsive.font(ctx, 12),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onChanged: (val) {
+                      final v = double.tryParse(val);
+                      if (v != null) overrides[key] = v;
+                    },
+                    onSubmitted: (_) => setDialogState(() => activeKey = null),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      suffixText: unit,
+                      suffixStyle: GoogleFonts.manrope(
+                        color: dim,
+                        fontSize: Responsive.font(ctx, 9),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: dim.withAlpha(80)),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: dim),
+                      ),
+                    ),
+                  ),
+                ),
+                Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(ctx, 10),
+                    color: dim,
+                  ),
+                ),
+              ],
+            );
+          }
+          return GestureDetector(
+            onTap: () => setDialogState(() {
+              activeKey = key;
+              activeController.text = isNone
+                  ? ''
+                  : displayValue.toStringAsFixed(1);
+            }),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      displayStr,
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(ctx, 12),
+                        fontWeight: FontWeight.w600,
+                        color: dim,
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(ctx, 2)),
+                    Icon(
+                      Icons.edit,
+                      size: Responsive.scale(ctx, 11),
+                      color: dim.withAlpha(140),
+                    ),
+                  ],
+                ),
+                Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(ctx, 10),
+                    color: dim,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         final cal = (overrides['calories'] ?? scaled['calories'] ?? 0).round();
         final protein = overrides['protein'] ?? scaled['protein'] ?? 0.0;
         final carbs = overrides['carbs'] ?? scaled['carbs'] ?? 0.0;
         final fat = overrides['fat'] ?? scaled['fat'] ?? 0.0;
+        final ratio = typedAmt / baseAmt;
+        final fiber = food.fiber != null ? food.fiber! * ratio : 0.0;
+        final sugar = food.sugar != null ? food.sugar! * ratio : 0.0;
+        final sodium = food.sodium != null ? food.sodium! * ratio : 0.0;
+        final fiberIsNone =
+            food.fiber == null && !overrides.containsKey('fiber');
+        final sugarIsNone =
+            food.sugar == null && !overrides.containsKey('sugar');
+        final sodiumIsNone =
+            food.sodium == null && !overrides.containsKey('sodium');
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -708,6 +823,15 @@ Future<ServingDialogResult?> showServingAmountDialog({
                 Expanded(
                   child: macroChip(ctx, 'fat', 'fat', fat, setDialogState),
                 ),
+              ],
+            ),
+            SizedBox(height: Responsive.height(ctx, 4)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                microChip('fiber', 'Fiber', fiber, fiberIsNone, 'g'),
+                microChip('sugar', 'Sugar', sugar, sugarIsNone, 'g'),
+                microChip('sodium', 'Sodium', sodium, sodiumIsNone, 'mg'),
               ],
             ),
             SizedBox(height: Responsive.height(ctx, 16)),
