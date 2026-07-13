@@ -139,7 +139,6 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                     : Column(
                         children: [
                           SizedBox(height: Responsive.height(context, 8)),
-                          // TODO: enforce firstDay restriction server-side
                           TableCalendar(
                             firstDay: widget.firstDay ?? DateTime(2020),
                             lastDay: DateTime.now(),

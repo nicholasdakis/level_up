@@ -2593,3 +2593,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Extracted the sweeping shimmer animation into a shared ShimmerWidget that accepts an optional external animation controller for sync across multiple widgets; used by guest locks and the premium sheet
 - Added the shimmer effect into the PRO chip in the upsell dialog
 - Made a helper method for the shimmering PRO chip using the ShimmerWidget
+- Enforced the cutoff date check for analytics server-side
+- Split the food, water, and weight logs routes into two routes to differentiate between the data used for analytics

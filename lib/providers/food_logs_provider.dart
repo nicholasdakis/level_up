@@ -77,3 +77,14 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
 final foodLogsProvider = AsyncNotifierProvider<FoodLogsNotifier, List<FoodLog>>(
   FoodLogsNotifier.new,
 );
+
+final foodLogsAnalyticsProvider = FutureProvider<List<FoodLog>>((ref) async {
+  final response = await authenticatedGet('food_logs_analytics');
+  if (response.statusCode != 200) {
+    throw Exception('food_logs_analytics fetch failed: ${response.body}');
+  }
+  final List data = jsonDecode(response.body)['food_logs_v2'];
+  return data
+      .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+      .toList();
+});

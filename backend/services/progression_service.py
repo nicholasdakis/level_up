@@ -381,14 +381,32 @@ class ProgressionService: # Service class to handle all progression-related busi
         # kept for users on older app versions, remove after forced update
         return self._repo.get_food_logs(uid)
 
+    def _analytics_cutoff(self, uid: str) -> str | None:
+        # free users only see 14 days of history in analytics, premium users get everything
+        is_premium = self._repo.get_premium_status(uid).get("is_premium", False)
+        if is_premium:
+            return None
+        return (datetime.now(timezone.utc) - timedelta(days=14)).strftime("%Y-%m-%d")
+
     def get_food_logs_v2(self, uid: str):
+        # no cutoff, returns all logs (used for the food logging tab)
         return self._repo.get_food_logs_v2(uid)
+
+    def get_food_logs_analytics(self, uid: str):
+        # enforces 14-day cutoff for free users (used for analytics only)
+        return self._repo.get_food_logs_v2(uid, cutoff=self._analytics_cutoff(uid))
 
     def get_water_logs(self, uid: str):
         return self._repo.get_water_logs(uid)
 
+    def get_water_logs_analytics(self, uid: str):
+        return self._repo.get_water_logs(uid, cutoff=self._analytics_cutoff(uid))
+
     def get_weight_logs(self, uid: str):
         return self._repo.get_weight_logs(uid)
+
+    def get_weight_logs_analytics(self, uid: str):
+        return self._repo.get_weight_logs(uid, cutoff=self._analytics_cutoff(uid))
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._repo.upsert_water_log(uid, date, entries_ml)

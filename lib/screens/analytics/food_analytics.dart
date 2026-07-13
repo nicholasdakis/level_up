@@ -1,7 +1,7 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
-import '/providers/food_logs_provider.dart';
+import '/providers/food_logs_provider.dart' show foodLogsAnalyticsProvider;
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -83,7 +83,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   void _loadForDate(DateTime date) {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final logs = ref.read(foodLogsProvider).value ?? [];
+    final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     setState(() {
       breakfastFoods = logs
           .where((f) => f.date == dateKey && f.meal == 'breakfast')
@@ -111,12 +111,15 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         context,
         feature: 'Full Progress History',
         appColor: appColor,
-        onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+        onLearnMore: () {
+          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
+          showPremiumSheet(context, ref);
+        },
       );
       return;
     }
     final now = DateTime.now();
-    final logs = ref.read(foodLogsProvider).value ?? [];
+    final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     setState(() {
       _chipIndex = index;
       _rangeAnimationKey++;
@@ -201,7 +204,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   // Goes through all days and sums the calories and macros
   // daysWithData is returned to compute averages without using empty days
   _RangeAggregate _aggregateRange(DateTime start, DateTime end) {
-    final logs = ref.read(foodLogsProvider).value ?? [];
+    final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
     final inRange = logs
@@ -279,7 +282,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   // Returns per-day calorie and macro data for the line charts
   List<_DayPoint> _dailyPoints(DateTime start, DateTime end) {
-    final logs = ref.read(foodLogsProvider).value ?? [];
+    final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
     final inRange = logs
@@ -958,7 +961,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     final dim = lightenColor(appColor, 0.35);
     final startKey = FoodLoggingHelper.formatDateKey(start);
     final endKey = FoodLoggingHelper.formatDateKey(end);
-    final logs = ref.read(foodLogsProvider).value ?? [];
+    final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
 
     final counts = <String, int>{};
     final displayNames = <String, String>{};
@@ -1127,7 +1130,12 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                       context,
                       feature: 'Full Progress History',
                       appColor: appColor,
-                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                      onLearnMore: () {
+                        logAnalyticsEvent(
+                          'premium_sheet_opened_from_learn_more',
+                        );
+                        showPremiumSheet(context, ref);
+                      },
                     ),
             ),
             SizedBox(height: Responsive.height(context, 12)),

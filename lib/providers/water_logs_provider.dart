@@ -8,7 +8,7 @@ class WaterLogsNotifier extends AsyncNotifier<Map<String, List<int>>> {
   Future<Map<String, List<int>>> build() async {
     final response = await authenticatedGet('water_logs');
     if (response.statusCode != 200) return {};
-    return _parse(response.body);
+    return _parseWaterLogs(response.body);
   }
 
   // optimistically updates local state, rolls back on backend failure
@@ -31,30 +31,38 @@ class WaterLogsNotifier extends AsyncNotifier<Map<String, List<int>>> {
       return false;
     }
   }
-
-  Map<String, List<int>> _parse(String body) {
-    try {
-      final decoded = jsonDecode(body);
-      final List<dynamic> rows = decoded is List
-          ? decoded
-          : (decoded as Map<String, dynamic>)['water_logs'] as List<dynamic>;
-      final Map<String, List<int>> result = {};
-      for (final row in rows) {
-        final map = row as Map<String, dynamic>;
-        final dateKey = map['date'] as String;
-        final entries = (map['entries_ml'] as List<dynamic>?) ?? [];
-        result[dateKey] = entries
-            .map((e) => (e as Map<String, dynamic>)['amount_ml'] as int)
-            .toList();
-      }
-      return result;
-    } catch (_) {
-      return {};
-    }
-  }
 }
 
 final waterLogsProvider =
     AsyncNotifierProvider<WaterLogsNotifier, Map<String, List<int>>>(
       WaterLogsNotifier.new,
     );
+
+Map<String, List<int>> _parseWaterLogs(String body) {
+  try {
+    final decoded = jsonDecode(body);
+    final List<dynamic> rows = decoded is List
+        ? decoded
+        : (decoded as Map<String, dynamic>)['water_logs'] as List<dynamic>;
+    final Map<String, List<int>> result = {};
+    for (final row in rows) {
+      final map = row as Map<String, dynamic>;
+      final dateKey = map['date'] as String;
+      final entries = (map['entries_ml'] as List<dynamic>?) ?? [];
+      result[dateKey] = entries
+          .map((e) => (e as Map<String, dynamic>)['amount_ml'] as int)
+          .toList();
+    }
+    return result;
+  } catch (_) {
+    return {};
+  }
+}
+
+final waterLogsAnalyticsProvider = FutureProvider<Map<String, List<int>>>((
+  ref,
+) async {
+  final response = await authenticatedGet('water_logs_analytics');
+  if (response.statusCode != 200) return {};
+  return _parseWaterLogs(response.body);
+});

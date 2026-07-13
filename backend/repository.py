@@ -228,17 +228,17 @@ class UserRepository:
         result = self._supabase.table("food_logs").select("*").eq("uid", uid).execute()
         return result.data
 
-    def get_food_logs_v2(self, uid: str):
+    def get_food_logs_v2(self, uid: str, cutoff: str | None = None):
         # Fetches normalized food log rows, one per food item, sorted by date and logged_at
-        result = (
+        # query is built incrementally so the cutoff filter can be conditionally added before executing
+        query = (
             self._supabase.table("food_logs_v2")
             .select("*")
             .eq("uid", uid)
-            .order("date", desc=False)
-            .order("logged_at", desc=False)
-            .execute()
         )
-        return result.data
+        if cutoff:
+            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
+        return query.order("date", desc=False).order("logged_at", desc=False).execute().data
 
     def upsert_food_log(self, uid: str, date: str, breakfast: list, lunch: list, dinner: list, snack: list):
         # Upserts a single date's food log (insert or update based on the (uid, date) primary key)
@@ -312,9 +312,11 @@ class UserRepository:
 
         return results
 
-    def get_water_logs(self, uid: str):
-        result = self._supabase.table("water_logs").select("*").eq("uid", uid).execute()
-        return result.data
+    def get_water_logs(self, uid: str, cutoff: str | None = None):
+        query = self._supabase.table("water_logs").select("*").eq("uid", uid)
+        if cutoff:
+            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
+        return query.execute().data
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._supabase.table("water_logs").upsert({
@@ -323,9 +325,11 @@ class UserRepository:
             "entries_ml": entries_ml,
         }).execute()
 
-    def get_weight_logs(self, uid: str):
-        result = self._supabase.table("weight_logs").select("*").eq("uid", uid).execute()
-        return result.data
+    def get_weight_logs(self, uid: str, cutoff: str | None = None):
+        query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
+        if cutoff:
+            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
+        return query.execute().data
 
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._supabase.table("weight_logs").upsert({

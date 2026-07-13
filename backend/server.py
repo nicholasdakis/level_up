@@ -4,7 +4,7 @@ import json
 import random
 import logging
 import requests
-from datetime import timedelta, timezone, datetime
+from datetime import timezone, datetime
 from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from pydantic import ValidationError
@@ -837,30 +837,52 @@ def get_food_logs_v2():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    # TODO: step 3 of analytics gate migration: after client-side gate ships and MIN_APP_VERSION is bumped, switch to get_food_logs_v2_gated with a 14-day cutoff for free users
     logs = progression_service.get_food_logs_v2(uid=uid)
-    response = GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs])
-    return jsonify(response.model_dump()), 200
+    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
+
+# separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data
+# this one is analytics-only so the 14-day cutoff for free users can be enforced here without breaking the tab
+@app.route("/food_logs_analytics", methods=["GET"])
+def get_food_logs_analytics():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    logs = progression_service.get_food_logs_analytics(uid=uid)
+    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 @app.route("/water_logs", methods=["GET"])
 def get_water_logs():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    # TODO: step 3 of analytics gate migration: after client-side gate ships and MIN_APP_VERSION is bumped, switch to get_water_logs_gated with a 14-day cutoff for free users
     logs = progression_service.get_water_logs(uid=uid)
-    response = GetWaterLogsResponse(water_logs=[WaterLogItem(**l) for l in logs])
-    return jsonify(response.model_dump()), 200
+    return jsonify(GetWaterLogsResponse(water_logs=[WaterLogItem(**l) for l in logs]).model_dump()), 200
+
+# analytics-only, enforces 14-day cutoff for free users
+@app.route("/water_logs_analytics", methods=["GET"])
+def get_water_logs_analytics():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    logs = progression_service.get_water_logs_analytics(uid=uid)
+    return jsonify(GetWaterLogsResponse(water_logs=[WaterLogItem(**l) for l in logs]).model_dump()), 200
 
 @app.route("/weight_logs", methods=["GET"])
 def get_weight_logs():
     uid, _, err = _parse_and_auth()
     if err:
         return err
-    # TODO: step 3 of analytics gate migration: after client-side gate ships and MIN_APP_VERSION is bumped, switch to get_weight_logs_gated with a 14-day cutoff for free users
     logs = progression_service.get_weight_logs(uid=uid)
-    response = GetWeightLogsResponse(weight_logs=[WeightLogItem(**l) for l in logs])
-    return jsonify(response.model_dump()), 200
+    return jsonify(GetWeightLogsResponse(weight_logs=[WeightLogItem(**l) for l in logs]).model_dump()), 200
+
+# analytics-only, enforces 14-day cutoff for free users
+@app.route("/weight_logs_analytics", methods=["GET"])
+def get_weight_logs_analytics():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    logs = progression_service.get_weight_logs_analytics(uid=uid)
+    return jsonify(GetWeightLogsResponse(weight_logs=[WeightLogItem(**l) for l in logs]).model_dump()), 200
 
 @app.route("/delete_reminder", methods=["POST"])
 def delete_reminder():

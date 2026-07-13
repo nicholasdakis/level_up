@@ -1,7 +1,8 @@
 ﻿import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
-import '/providers/weight_logs_provider.dart';
+import '/providers/weight_logs_provider.dart'
+    show weightLogsProvider, weightLogsAnalyticsProvider;
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -72,7 +73,10 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
         context,
         feature: 'Full Progress History',
         appColor: appColor,
-        onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+        onLearnMore: () {
+          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
+          showPremiumSheet(context, ref);
+        },
       );
       return;
     }
@@ -115,7 +119,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   // Returns all weight entries sorted chronologically oldest-first
   List<MapEntry<String, double>> _sortedEntries() {
-    final byDate = ref.watch(weightLogsProvider).value ?? {};
+    final byDate = ref.watch(weightLogsAnalyticsProvider).value ?? {};
     final entries = byDate.entries.toList();
     entries.sort((a, b) => a.key.compareTo(b.key));
     return entries;
@@ -833,7 +837,12 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                                       context,
                                       feature: 'Full Progress History',
                                       appColor: appColor,
-                                      onLearnMore: () { logAnalyticsEvent('premium_sheet_opened_from_learn_more'); showPremiumSheet(context, ref); },
+                                      onLearnMore: () {
+                                        logAnalyticsEvent(
+                                          'premium_sheet_opened_from_learn_more',
+                                        );
+                                        showPremiumSheet(context, ref);
+                                      },
                                     ),
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))

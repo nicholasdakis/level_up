@@ -72,3 +72,30 @@ final weightLogsProvider =
     AsyncNotifierProvider<WeightLogsNotifier, Map<String, double>>(
       WeightLogsNotifier.new,
     );
+
+Map<String, double> _parseWeightLogs(String body) {
+  try {
+    final decoded = jsonDecode(body);
+    final List<dynamic> rows = decoded is List
+        ? decoded
+        : (decoded as Map<String, dynamic>)['weight_logs'] as List<dynamic>;
+    final Map<String, double> result = {};
+    for (final row in rows) {
+      final map = row as Map<String, dynamic>;
+      final dateKey = map['date'] as String;
+      final weightKg = (map['weight_kg'] as num).toDouble();
+      result[dateKey] = weightKg;
+    }
+    return result;
+  } catch (_) {
+    return {};
+  }
+}
+
+final weightLogsAnalyticsProvider = FutureProvider<Map<String, double>>((
+  ref,
+) async {
+  final response = await authenticatedGet('weight_logs_analytics');
+  if (response.statusCode != 200) return {};
+  return _parseWeightLogs(response.body);
+});
