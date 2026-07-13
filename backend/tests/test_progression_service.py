@@ -456,7 +456,7 @@ def test_update_goals_strips_none_values(mocker):
     fake_repo = mocker.Mock()
     service = ProgressionService(fake_repo, None, None)
 
-    service.update_goals("user_123", calories_goal=2000, protein_goal=None, carbs_goal=None, fat_goal=None, weight_goal_type=None, weekly_workouts_goal=None)
+    service.update_goals("user_123", calories_goal=2000, protein_goal=None, carbs_goal=None, fat_goal=None, fiber_goal=None, sugar_goal=None, sodium_goal=None, weight_goal_type=None, weekly_workouts_goal=None)
 
     call_data = fake_repo.upsert_goals.call_args[0][1]
     assert "calories_goal" in call_data
