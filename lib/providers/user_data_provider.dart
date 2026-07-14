@@ -237,6 +237,9 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     int? proteinGoal,
     int? carbsGoal,
     int? fatGoal,
+    int? fiberGoal,
+    int? sugarGoal,
+    int? sodiumGoal,
     String? username,
     String? dateKey,
   }) async {
@@ -264,6 +267,11 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
           fatGoal: fatGoal,
         );
       }
+      if (fiberGoal != null) updated = updated.copyWith(fiberGoal: fiberGoal);
+      if (sugarGoal != null) updated = updated.copyWith(sugarGoal: sugarGoal);
+      if (sodiumGoal != null) {
+        updated = updated.copyWith(sodiumGoal: sodiumGoal);
+      }
       if (username != null) updated = updated.copyWith(username: username);
       return updated;
     });
@@ -282,14 +290,16 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     if (weightKgGoal != null) {
       await updateWeightGoal(weightKgGoal: weightKgGoal);
     }
-    if (caloriesGoal != null && caloriesGoal > 0) {
-      await updateGoals(caloriesGoal: caloriesGoal);
-    }
-    if (proteinGoal != null && carbsGoal != null && fatGoal != null) {
-      await updateGoals(
+    if (caloriesGoal != null ||
+        (proteinGoal != null && carbsGoal != null && fatGoal != null)) {
+      await updateNutritionGoals(
+        caloriesGoal: caloriesGoal,
         proteinGoal: proteinGoal,
         carbsGoal: carbsGoal,
         fatGoal: fatGoal,
+        fiberGoal: fiberGoal,
+        sugarGoal: sugarGoal,
+        sodiumGoal: sodiumGoal,
       );
     }
     if (username != null) {

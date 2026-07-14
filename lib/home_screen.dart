@@ -1166,7 +1166,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         : userData!.username!;
 
     return Skeletonizer(
-      enabled: !isGuest && !_initialized,
+      enabled: (!isGuest && !_initialized) || _onboardingInProgress,
       effect: ShimmerEffect(
         baseColor: lightenColor(appColor, 0.10),
         highlightColor: lightenColor(appColor, 0.22),
@@ -1226,7 +1226,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                           : "WELCOME TO LEVEL UP!",
                                       style: GoogleFonts.manrope(
                                         color: lightenColor(appColor, 0.45),
-                                        fontSize: Responsive.font(context, 14),
+                                        fontSize: Responsive.font(
+                                          context,
+                                          username != null ? 14 : 20,
+                                        ),
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: Responsive.scale(
                                           context,

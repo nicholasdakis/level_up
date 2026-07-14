@@ -334,6 +334,8 @@ Future<T?> showFrostedDialog<T>({
   double baseRadius = 20,
   double maxWidth = 500,
   Color barrierColor = const Color(0x80000000),
+  Color? backgroundColor,
+  Color? borderColor,
 }) {
   return showDialog<T>(
     context: context,
@@ -347,6 +349,8 @@ Future<T?> showFrostedDialog<T>({
         baseRadius: baseRadius,
         padding: padding,
         maxWidth: maxWidth,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
         child: child,
       ),
     ),
@@ -360,6 +364,8 @@ class _FrostedDialogShell extends StatefulWidget {
   final double baseRadius;
   final EdgeInsetsGeometry? padding;
   final double maxWidth;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   const _FrostedDialogShell({
     required this.child,
@@ -367,6 +373,8 @@ class _FrostedDialogShell extends StatefulWidget {
     required this.baseRadius,
     this.padding,
     this.maxWidth = 500,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   @override
@@ -421,9 +429,10 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
                   context,
                   color: widget.appColor,
                   baseRadius: widget.baseRadius,
-                  backgroundColor: Colors.white.withAlpha(10),
+                  backgroundColor:
+                      widget.backgroundColor ?? Colors.white.withAlpha(10),
                   border: Border.all(
-                    color: Colors.white.withAlpha(22),
+                    color: widget.borderColor ?? Colors.white.withAlpha(22),
                     width: Responsive.width(context, 1),
                   ),
                   padding:
@@ -885,6 +894,8 @@ class _OnboardingHintState extends State<OnboardingHint>
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScale;
   late final Animation<double> _pulseOpacity;
+  late final AnimationController _cardPulseController;
+  late final Animation<double> _cardScale;
 
   @override
   void initState() {
@@ -898,6 +909,13 @@ class _OnboardingHintState extends State<OnboardingHint>
     );
     _pulseOpacity = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _cardPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+    _cardScale = Tween<double>(begin: 1.0, end: 1.025).animate(
+      CurvedAnimation(parent: _cardPulseController, curve: Curves.easeInOut),
     );
     onboardingHintNotifier.addListener(_onHintChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _onHintChanged());
@@ -932,6 +950,7 @@ class _OnboardingHintState extends State<OnboardingHint>
     onboardingHintNotifier.removeListener(_onHintChanged);
     _fingerTimer?.cancel();
     _pulseController.dispose();
+    _cardPulseController.dispose();
     super.dispose();
   }
 
@@ -939,45 +958,45 @@ class _OnboardingHintState extends State<OnboardingHint>
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
 
-    final color = widget.appColor;
-    final accentColor = lightenColor(color, 0.45);
     final radius = BorderRadius.circular(Responsive.scale(context, 20));
 
     final tooltip = ClipRRect(
       borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: frostedGlassCard(
-          context,
-          color: widget.appColor,
-          backgroundColor: Colors.white.withAlpha(10),
-          border: Border.all(color: Colors.white.withAlpha(22), width: 1),
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 20),
-            vertical: Responsive.height(context, 16),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF22D3EE), Color(0xFF3B82F6), Color(0xFF1E40AF)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.title,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 14),
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
-                ),
+          border: Border.all(color: const Color(0xFF3B82F6), width: 1.5),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 20),
+          vertical: Responsive.height(context, 16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.title,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 18),
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
-              SizedBox(height: Responsive.height(context, 6)),
-              Text(
-                widget.description,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  color: Colors.white70,
-                ),
+            ),
+            SizedBox(height: Responsive.height(context, 6)),
+            Text(
+              widget.description,
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 15),
+                color: Colors.white.withAlpha(200),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1006,7 +1025,7 @@ class _OnboardingHintState extends State<OnboardingHint>
                   constraints: const BoxConstraints(
                     maxWidth: Responsive.desktopContentMaxWidth,
                   ),
-                  child: tooltip,
+                  child: ScaleTransition(scale: _cardScale, child: tooltip),
                 ),
               ),
             ),

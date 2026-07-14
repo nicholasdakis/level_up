@@ -66,15 +66,23 @@ Future<String?> showOnboardingWizard(
     ),
   ];
 
+  bool step0Animated = false;
+  List<String> randomSuggestions = [];
+  String? selectedSuggestion;
+  String? step2MissingError;
+  String? step3MissingError;
   int currentStep =
       0; // 0 = pitch, 1 = goals, 2 = body stats, 3 = activity + calorie goal, 4 = macro profile, 5 = username, 6 = activation
   const totalSteps = 7;
   final usernameController = TextEditingController();
   String? usernameError;
-  // pending macro selections, written to db only in commitAll
+  // pending macro/micro selections, written to db only in commitAll
   int? pendingProtein;
   int? pendingCarbs;
   int? pendingFat;
+  int? pendingFiber;
+  int? pendingSugar;
+  int? pendingSodium;
   String? wizardChoice;
 
   FirebaseAnalytics.instance.logEvent(name: 'onboarding_started');
@@ -84,10 +92,13 @@ Future<String?> showOnboardingWizard(
     appColor: appColor,
     dismissible: false,
     maxWidth: 460,
+    barrierColor: const Color(0xD9000000),
+    borderColor: const Color(0x883B82F6),
+    backgroundColor: const Color(0x2A3B82F6),
     child: StatefulBuilder(
       builder: (ctx, setState) {
-        final accent = lightenColor(appColor, 0.45);
-        final dim = lightenColor(appColor, 0.35);
+        final accent = Colors.white;
+        final dim = Colors.white.withAlpha(180);
 
         // Step 2 derived
         final isMetricGoal = selectedUnits == 'metric';
@@ -180,6 +191,9 @@ Future<String?> showOnboardingWizard(
                 proteinGoal: pendingProtein,
                 carbsGoal: pendingCarbs,
                 fatGoal: pendingFat,
+                fiberGoal: pendingFiber,
+                sugarGoal: pendingSugar,
+                sodiumGoal: pendingSodium,
                 dateKey: dateKey,
               );
         }
@@ -206,122 +220,135 @@ Future<String?> showOnboardingWizard(
           );
         }
 
-        Widget buildStep1() => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/app_logo_circle.png',
-              width: Responsive.scale(ctx, 64),
-              height: Responsive.scale(ctx, 64),
-            ),
-            SizedBox(height: Responsive.height(ctx, 16)),
-            Text(
-              'Welcome to Level Up!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(ctx, 24),
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+        Widget buildStep1() {
+          final shouldAnimate = !step0Animated;
+          if (!step0Animated) step0Animated = true;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/app_logo_circle.png',
+                width: Responsive.scale(ctx, 64),
+                height: Responsive.scale(ctx, 64),
               ),
-            ),
-            SizedBox(height: Responsive.height(ctx, 6)),
-            SizedBox(height: Responsive.height(ctx, 20)),
-            Divider(color: Colors.white.withAlpha(20), thickness: 1),
-            SizedBox(height: Responsive.height(ctx, 16)),
-            Text(
-              "Here's what's waiting for you:",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(ctx, 15),
-                color: accent,
-                fontWeight: FontWeight.w700,
+              SizedBox(height: Responsive.height(ctx, 16)),
+              Text(
+                'Welcome to Level Up!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(ctx, 24),
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            SizedBox(height: Responsive.height(ctx, 12)),
-            SizedBox(height: Responsive.height(ctx, 14)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedDumbbell01,
-              'Log workouts, track PRs and follow built-in routines',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedRestaurant03,
-              'Log food, water and weight, all in one place',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedStar,
-              'Earn XP for every healthy habit and level up',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedAnalytics01,
-              'See your calorie and macro trends over time',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedMedal01,
-              'Compete on the leaderboard and earn badges',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 10)),
-            _featurePill(
-              ctx,
-              HugeIcons.strokeRoundedMapsLocation01,
-              'Check in to nearby spots to earn bonus XP',
-              accent,
-              dim,
-            ),
-            SizedBox(height: Responsive.height(ctx, 32)),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
+              SizedBox(height: Responsive.height(ctx, 20)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedDumbbell01,
+                'Workout tracking & PRs',
+                accent,
+                dim,
+                index: 0,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedRestaurant03,
+                'Log food, water & weight',
+                accent,
+                dim,
+                index: 1,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedStar,
+                'XP & leveling',
+                accent,
+                dim,
+                index: 2,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedAnalytics01,
+                'Calorie & macro trends',
+                accent,
+                dim,
+                index: 3,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedMedal01,
+                'Leaderboard & badges',
+                accent,
+                dim,
+                index: 4,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 14)),
+              _featurePill(
+                ctx,
+                HugeIcons.strokeRoundedMapsLocation01,
+                'Nearby location check-ins',
+                accent,
+                dim,
+                index: 5,
+                animate: shouldAnimate,
+              ),
+              SizedBox(height: Responsive.height(ctx, 16)),
+              GestureDetector(
+                onTap: () {
                   FirebaseAnalytics.instance.logEvent(
                     name: 'onboarding_step_viewed',
                     parameters: {'step': 1},
                   );
                   setState(() => currentStep = 1);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: appColor,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
+                child: Container(
+                  width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    vertical: Responsive.height(ctx, 16),
+                    vertical: Responsive.height(ctx, 17),
+                    horizontal: Responsive.width(ctx, 24),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: accent.withAlpha(80), width: 1),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 14),
+                    ),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF22D3EE),
+                        Color(0xFF3B82F6),
+                        Color(0xFF1E40AF),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6),
+                      width: 1.5,
+                    ),
                   ),
-                ),
-                child: Text(
-                  "Let's get started",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(ctx, 16),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
+                  child: Text(
+                    "Let's get started",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(ctx, 16),
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
+            ],
+          );
+        }
 
         Widget buildStep2() => Column(
           mainAxisSize: MainAxisSize.min,
@@ -341,30 +368,46 @@ Future<String?> showOnboardingWizard(
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(ctx, 13),
-                color: dim,
+                color: Colors.white.withAlpha(180),
               ),
             ),
             SizedBox(height: Responsive.height(ctx, 24)),
             for (final goal in weightGoals) ...[
               GestureDetector(
-                onTap: () => setState(() => selectedGoal = goal.value),
+                onTap: () => setState(() {
+                  selectedGoal = goal.value;
+                  step2MissingError = null;
+                }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(ctx, 16),
-                    vertical: Responsive.height(ctx, 14),
+                    horizontal: Responsive.width(ctx, 24),
+                    vertical: Responsive.height(ctx, 17),
                   ),
                   decoration: BoxDecoration(
+                    gradient: selectedGoal == goal.value
+                        ? const LinearGradient(
+                            colors: [
+                              Color(0xFF22D3EE),
+                              Color(0xFF3B82F6),
+                              Color(0xFF1E40AF),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          )
+                        : null,
                     color: selectedGoal == goal.value
-                        ? accent.withAlpha(30)
-                        : accent.withAlpha(10),
-                    borderRadius: BorderRadius.circular(12),
+                        ? null
+                        : const Color(0x223B82F6),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(ctx, 14),
+                    ),
                     border: Border.all(
                       color: selectedGoal == goal.value
-                          ? accent.withAlpha(160)
-                          : accent.withAlpha(40),
-                      width: selectedGoal == goal.value ? 1.5 : 1,
+                          ? const Color(0xFF3B82F6)
+                          : const Color(0xCC3B82F6),
+                      width: 1.5,
                     ),
                   ),
                   child: Center(
@@ -372,10 +415,8 @@ Future<String?> showOnboardingWizard(
                       goal.label,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(ctx, 16),
-                        fontWeight: selectedGoal == goal.value
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: selectedGoal == goal.value ? accent : dim,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -397,99 +438,120 @@ Future<String?> showOnboardingWizard(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             SizedBox(height: Responsive.height(ctx, 8)),
-                            Row(
-                              children: [
-                                for (final u in ['metric', 'imperial']) ...[
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => setState(() {
-                                        final toMetric = u == 'metric';
-                                        if (toMetric &&
-                                            selectedUnits == 'imperial') {
-                                          final lbs = double.tryParse(
-                                            currentWeightController.text.trim(),
-                                          );
-                                          if (lbs != null) {
-                                            currentWeightController.text =
-                                                (lbs * 0.453592)
-                                                    .toStringAsFixed(1);
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Container(
+                                padding: EdgeInsets.all(
+                                  Responsive.scale(ctx, 3),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0x1A3B82F6),
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(ctx, 20),
+                                  ),
+                                  border: Border.all(
+                                    color: const Color(0x443B82F6),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    for (final u in ['metric', 'imperial'])
+                                      GestureDetector(
+                                        onTap: () => setState(() {
+                                          final toMetric = u == 'metric';
+                                          if (toMetric &&
+                                              selectedUnits == 'imperial') {
+                                            final lbs = double.tryParse(
+                                              currentWeightController.text
+                                                  .trim(),
+                                            );
+                                            if (lbs != null) {
+                                              currentWeightController.text =
+                                                  (lbs * 0.453592)
+                                                      .toStringAsFixed(1);
+                                            }
+                                            final tLbs = double.tryParse(
+                                              targetWeightController.text
+                                                  .trim(),
+                                            );
+                                            if (tLbs != null) {
+                                              targetWeightController.text =
+                                                  (tLbs * 0.453592)
+                                                      .toStringAsFixed(1);
+                                            }
+                                          } else if (!toMetric &&
+                                              selectedUnits == 'metric') {
+                                            final kg = double.tryParse(
+                                              currentWeightController.text
+                                                  .trim(),
+                                            );
+                                            if (kg != null) {
+                                              currentWeightController.text =
+                                                  (kg / 0.453592)
+                                                      .toStringAsFixed(1);
+                                            }
+                                            final tKg = double.tryParse(
+                                              targetWeightController.text
+                                                  .trim(),
+                                            );
+                                            if (tKg != null) {
+                                              targetWeightController.text =
+                                                  (tKg / 0.453592)
+                                                      .toStringAsFixed(1);
+                                            }
                                           }
-                                          final tLbs = double.tryParse(
-                                            targetWeightController.text.trim(),
-                                          );
-                                          if (tLbs != null) {
-                                            targetWeightController.text =
-                                                (tLbs * 0.453592)
-                                                    .toStringAsFixed(1);
-                                          }
-                                        } else if (!toMetric &&
-                                            selectedUnits == 'metric') {
-                                          final kg = double.tryParse(
-                                            currentWeightController.text.trim(),
-                                          );
-                                          if (kg != null) {
-                                            currentWeightController.text =
-                                                (kg / 0.453592).toStringAsFixed(
-                                                  1,
-                                                );
-                                          }
-                                          final tKg = double.tryParse(
-                                            targetWeightController.text.trim(),
-                                          );
-                                          if (tKg != null) {
-                                            targetWeightController.text =
-                                                (tKg / 0.453592)
-                                                    .toStringAsFixed(1);
-                                          }
-                                        }
-                                        selectedUnits = u;
-                                        isMetricCalorie = u == 'metric';
-                                      }),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 180,
-                                        ),
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: Responsive.height(ctx, 10),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: selectedUnits == u
-                                              ? accent.withAlpha(30)
-                                              : accent.withAlpha(10),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+                                          selectedUnits = u;
+                                          isMetricCalorie = u == 'metric';
+                                        }),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 180,
                                           ),
-                                          border: Border.all(
-                                            color: selectedUnits == u
-                                                ? accent.withAlpha(160)
-                                                : accent.withAlpha(40),
-                                            width: selectedUnits == u ? 1.5 : 1,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: Responsive.width(
+                                              ctx,
+                                              12,
+                                            ),
+                                            vertical: Responsive.height(ctx, 6),
                                           ),
-                                        ),
-                                        child: Center(
+                                          decoration: BoxDecoration(
+                                            gradient: selectedUnits == u
+                                                ? const LinearGradient(
+                                                    colors: [
+                                                      Color(0xFF22D3EE),
+                                                      Color(0xFF3B82F6),
+                                                      Color(0xFF1E40AF),
+                                                    ],
+                                                    begin: Alignment.centerLeft,
+                                                    end: Alignment.centerRight,
+                                                  )
+                                                : null,
+                                            borderRadius: BorderRadius.circular(
+                                              Responsive.scale(ctx, 16),
+                                            ),
+                                          ),
                                           child: Text(
                                             u == 'metric' ? 'kg' : 'lbs',
                                             style: GoogleFonts.manrope(
                                               fontSize: Responsive.font(
                                                 ctx,
-                                                14,
+                                                12,
                                               ),
                                               fontWeight: selectedUnits == u
                                                   ? FontWeight.w700
                                                   : FontWeight.w500,
                                               color: selectedUnits == u
-                                                  ? accent
+                                                  ? Colors.white
                                                   : dim,
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  if (u == 'metric')
-                                    SizedBox(width: Responsive.width(ctx, 8)),
-                                ],
-                              ],
+                                  ],
+                                ),
+                              ),
                             ),
                             SizedBox(height: Responsive.height(ctx, 12)),
                             _weightField(
@@ -499,6 +561,7 @@ Future<String?> showOnboardingWizard(
                               weightUnit,
                               accent,
                               dim,
+                              onChanged: (_) => setState(() {}),
                             ),
                             AnimatedSize(
                               duration: const Duration(milliseconds: 480),
@@ -524,6 +587,7 @@ Future<String?> showOnboardingWizard(
                                               weightUnit,
                                               accent,
                                               dim,
+                                              onChanged: (_) => setState(() {}),
                                             ),
                                           ),
                                         ],
@@ -532,38 +596,117 @@ Future<String?> showOnboardingWizard(
                               ),
                             ),
                             SizedBox(height: Responsive.height(ctx, 20)),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  FirebaseAnalytics.instance.logEvent(
-                                    name: 'onboarding_step_viewed',
-                                    parameters: {'step': 2},
+                            GestureDetector(
+                              onTap: () {
+                                final missing = <String>[];
+                                if (currentWeightController.text
+                                    .trim()
+                                    .isEmpty) {
+                                  missing.add('current weight');
+                                }
+                                if (showTarget &&
+                                    targetWeightController.text
+                                        .trim()
+                                        .isEmpty) {
+                                  missing.add('target weight');
+                                }
+                                if (missing.isNotEmpty) {
+                                  setState(
+                                    () => step2MissingError =
+                                        'Still needed: ${missing.join(', ')}.',
                                   );
-                                  setState(() => currentStep = 2);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: appColor,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: Responsive.height(ctx, 14),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: accent.withAlpha(80),
-                                      width: 1,
+                                  return;
+                                }
+                                FirebaseAnalytics.instance.logEvent(
+                                  name: 'onboarding_step_viewed',
+                                  parameters: {'step': 2},
+                                );
+                                setState(() {
+                                  step2MissingError = null;
+                                  currentStep = 2;
+                                });
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: Responsive.height(ctx, 17),
+                                      horizontal: Responsive.width(ctx, 24),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(ctx, 14),
+                                      ),
+                                      gradient:
+                                          (selectedGoal != null &&
+                                              currentWeightController.text
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              (!showTarget ||
+                                                  targetWeightController.text
+                                                      .trim()
+                                                      .isNotEmpty))
+                                          ? const LinearGradient(
+                                              colors: [
+                                                Color(0xFF22D3EE),
+                                                Color(0xFF3B82F6),
+                                                Color(0xFF1E40AF),
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            )
+                                          : const LinearGradient(
+                                              colors: [
+                                                Color(0xFFFF6B6B),
+                                                Color(0xFFEF4444),
+                                                Color(0xFFB91C1C),
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            ),
+                                      border: Border.all(
+                                        color:
+                                            (selectedGoal != null &&
+                                                currentWeightController.text
+                                                    .trim()
+                                                    .isNotEmpty &&
+                                                (!showTarget ||
+                                                    targetWeightController.text
+                                                        .trim()
+                                                        .isNotEmpty))
+                                            ? const Color(0xFF3B82F6)
+                                            : const Color(0xFFEF4444),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Continue',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(ctx, 15),
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                child: Text(
-                                  'Continue',
-                                  style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(ctx, 15),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                                  if (step2MissingError != null)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        top: Responsive.height(ctx, 8),
+                                      ),
+                                      child: Text(
+                                        step2MissingError!,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(ctx, 12),
+                                          color: Colors.redAccent,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ],
@@ -599,101 +742,117 @@ Future<String?> showOnboardingWizard(
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(ctx, 13),
-                      color: dim,
+                      color: Colors.white.withAlpha(180),
                     ),
                   ),
                   SizedBox(height: Responsive.height(ctx, 20)),
                   // Units toggle
-                  Row(
-                    children: [
-                      for (final u in ['metric', 'imperial']) ...[
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() {
-                              final toMetric = u == 'metric';
-                              if (toMetric && !isMetricCalorie) {
-                                final ft = double.tryParse(
-                                  heightFtController.text.trim(),
-                                );
-                                final inc = double.tryParse(
-                                  heightInController.text.trim(),
-                                );
-                                if (ft != null || inc != null) {
-                                  final totalIn = (ft ?? 0) * 12 + (inc ?? 0);
-                                  heightCmController.text = (totalIn * 2.54)
-                                      .round()
-                                      .toString();
-                                  heightFtController.clear();
-                                  heightInController.clear();
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: EdgeInsets.all(Responsive.scale(ctx, 3)),
+                      decoration: BoxDecoration(
+                        color: const Color(0x1A3B82F6),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(ctx, 20),
+                        ),
+                        border: Border.all(
+                          color: const Color(0x443B82F6),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final u in ['metric', 'imperial']) ...[
+                            GestureDetector(
+                              onTap: () => setState(() {
+                                final toMetric = u == 'metric';
+                                if (toMetric && !isMetricCalorie) {
+                                  final ft = double.tryParse(
+                                    heightFtController.text.trim(),
+                                  );
+                                  final inc = double.tryParse(
+                                    heightInController.text.trim(),
+                                  );
+                                  if (ft != null || inc != null) {
+                                    final totalIn = (ft ?? 0) * 12 + (inc ?? 0);
+                                    heightCmController.text = (totalIn * 2.54)
+                                        .round()
+                                        .toString();
+                                    heightFtController.clear();
+                                    heightInController.clear();
+                                  }
+                                } else if (!toMetric && isMetricCalorie) {
+                                  final cm = double.tryParse(
+                                    heightCmController.text.trim(),
+                                  );
+                                  if (cm != null) {
+                                    final totalIn = (cm / 2.54).round();
+                                    heightFtController.text = (totalIn ~/ 12)
+                                        .toString();
+                                    heightInController.text = (totalIn % 12)
+                                        .toString();
+                                    heightCmController.clear();
+                                  }
                                 }
-                              } else if (!toMetric && isMetricCalorie) {
-                                final cm = double.tryParse(
-                                  heightCmController.text.trim(),
+                                final currentRate = double.tryParse(
+                                  rateController.text.trim(),
                                 );
-                                if (cm != null) {
-                                  final totalIn = (cm / 2.54).round();
-                                  heightFtController.text = (totalIn ~/ 12)
-                                      .toString();
-                                  heightInController.text = (totalIn % 12)
-                                      .toString();
-                                  heightCmController.clear();
+                                if (currentRate != null) {
+                                  rateController.text = toMetric
+                                      ? (currentRate / 2.205).toStringAsFixed(2)
+                                      : (currentRate * 2.205).toStringAsFixed(
+                                          2,
+                                        );
+                                } else {
+                                  rateController.clear();
                                 }
-                              }
-                              final currentRate = double.tryParse(
-                                rateController.text.trim(),
-                              );
-                              if (currentRate != null) {
-                                rateController.text = toMetric
-                                    ? (currentRate / 2.205).toStringAsFixed(2)
-                                    : (currentRate * 2.205).toStringAsFixed(2);
-                              } else {
+                                isMetricCalorie = toMetric;
                                 rateController.clear();
-                              }
-                              isMetricCalorie = toMetric;
-                              rateController.clear();
-                              rateCustomMode = false;
-                            }),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              padding: EdgeInsets.symmetric(
-                                vertical: Responsive.height(ctx, 10),
-                              ),
-                              decoration: BoxDecoration(
-                                color: (isMetricCalorie == (u == 'metric'))
-                                    ? accent.withAlpha(30)
-                                    : accent.withAlpha(10),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: (isMetricCalorie == (u == 'metric'))
-                                      ? accent.withAlpha(160)
-                                      : accent.withAlpha(40),
-                                  width: (isMetricCalorie == (u == 'metric'))
-                                      ? 1.5
-                                      : 1,
+                                rateCustomMode = false;
+                              }),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(ctx, 12),
+                                  vertical: Responsive.height(ctx, 6),
                                 ),
-                              ),
-                              child: Center(
+                                decoration: BoxDecoration(
+                                  gradient: (isMetricCalorie == (u == 'metric'))
+                                      ? const LinearGradient(
+                                          colors: [
+                                            Color(0xFF22D3EE),
+                                            Color(0xFF3B82F6),
+                                            Color(0xFF1E40AF),
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(ctx, 16),
+                                  ),
+                                ),
                                 child: Text(
                                   u == 'metric' ? 'kg / cm' : 'lbs / ft',
                                   style: GoogleFonts.manrope(
-                                    fontSize: Responsive.font(ctx, 13),
+                                    fontSize: Responsive.font(ctx, 12),
                                     fontWeight:
                                         (isMetricCalorie == (u == 'metric'))
                                         ? FontWeight.w700
                                         : FontWeight.w500,
                                     color: (isMetricCalorie == (u == 'metric'))
-                                        ? accent
+                                        ? Colors.white
                                         : dim,
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        if (u == 'metric')
-                          SizedBox(width: Responsive.width(ctx, 8)),
-                      ],
-                    ],
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(height: Responsive.height(ctx, 12)),
                   // Sex toggle
@@ -702,22 +861,36 @@ Future<String?> showOnboardingWizard(
                       for (final s in ['Male', 'Female']) ...[
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => setState(() => selectedSex = s),
+                            onTap: () => setState(() {
+                              selectedSex = s;
+                              step3MissingError = null;
+                            }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
                               padding: EdgeInsets.symmetric(
                                 vertical: Responsive.height(ctx, 10),
                               ),
                               decoration: BoxDecoration(
+                                gradient: selectedSex == s
+                                    ? const LinearGradient(
+                                        colors: [
+                                          Color(0xFF22D3EE),
+                                          Color(0xFF3B82F6),
+                                          Color(0xFF1E40AF),
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      )
+                                    : null,
                                 color: selectedSex == s
-                                    ? accent.withAlpha(30)
-                                    : accent.withAlpha(10),
+                                    ? null
+                                    : const Color(0x113B82F6),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: selectedSex == s
-                                      ? accent.withAlpha(160)
-                                      : accent.withAlpha(40),
-                                  width: selectedSex == s ? 1.5 : 1,
+                                      ? const Color(0xFF3B82F6)
+                                      : const Color(0x663B82F6),
+                                  width: 1.5,
                                 ),
                               ),
                               child: Center(
@@ -759,7 +932,6 @@ Future<String?> showOnboardingWizard(
                       ),
                       SizedBox(width: Responsive.width(ctx, 8)),
                       Expanded(
-                        flex: 2,
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 440),
                           switchInCurve: Curves.easeOutQuart,
@@ -836,38 +1008,99 @@ Future<String?> showOnboardingWizard(
                     ),
                   ],
                   SizedBox(height: Responsive.height(ctx, 20)),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        FirebaseAnalytics.instance.logEvent(
-                          name: 'onboarding_step_viewed',
-                          parameters: {'step': 3},
+                  GestureDetector(
+                    onTap: () {
+                      final missing = <String>[];
+                      if (selectedSex == null) missing.add('sex');
+                      if (ageController.text.trim().isEmpty) missing.add('age');
+                      if (heightCm == null) missing.add('height');
+                      if (missing.isNotEmpty) {
+                        setState(
+                          () => step3MissingError =
+                              'Still needed: ${missing.join(', ')}.',
                         );
-                        setState(() => currentStep = 3);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: appColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(ctx, 14),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: accent.withAlpha(80),
-                            width: 1,
+                        return;
+                      }
+                      FirebaseAnalytics.instance.logEvent(
+                        name: 'onboarding_step_viewed',
+                        parameters: {'step': 3},
+                      );
+                      setState(() {
+                        step3MissingError = null;
+                        currentStep = 3;
+                      });
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.height(ctx, 17),
+                            horizontal: Responsive.width(ctx, 24),
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(ctx, 14),
+                            ),
+                            gradient:
+                                (selectedSex != null &&
+                                    ageController.text.trim().isNotEmpty &&
+                                    heightCm != null)
+                                ? const LinearGradient(
+                                    colors: [
+                                      Color(0xFF22D3EE),
+                                      Color(0xFF3B82F6),
+                                      Color(0xFF1E40AF),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  )
+                                : const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF6B6B),
+                                      Color(0xFFEF4444),
+                                      Color(0xFFB91C1C),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                            border: Border.all(
+                              color:
+                                  (selectedSex != null &&
+                                      ageController.text.trim().isNotEmpty &&
+                                      heightCm != null)
+                                  ? const Color(0xFF3B82F6)
+                                  : const Color(0xFFEF4444),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            'Continue',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.manrope(
+                              fontSize: Responsive.font(ctx, 15),
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                      child: Text(
-                        'Continue',
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(ctx, 15),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                        if (step3MissingError != null)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: Responsive.height(ctx, 8),
+                            ),
+                            child: Text(
+                              step3MissingError!,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(ctx, 12),
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -905,7 +1138,7 @@ Future<String?> showOnboardingWizard(
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(ctx, 13),
-                      color: dim,
+                      color: Colors.white.withAlpha(180),
                     ),
                   ),
                   SizedBox(height: Responsive.height(ctx, 20)),
@@ -913,9 +1146,9 @@ Future<String?> showOnboardingWizard(
                   Text(
                     'Activity level',
                     style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(ctx, 13),
-                      color: dim,
-                      fontWeight: FontWeight.w600,
+                      fontSize: Responsive.font(ctx, 15),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   SizedBox(height: Responsive.height(ctx, 8)),
@@ -946,10 +1179,18 @@ Future<String?> showOnboardingWizard(
                                       vertical: Responsive.height(ctx, 10),
                                     ),
                                     decoration: BoxDecoration(
-                                      color: accent.withAlpha(28),
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF22D3EE),
+                                          Color(0xFF3B82F6),
+                                          Color(0xFF1E40AF),
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
-                                        color: accent.withAlpha(150),
+                                        color: const Color(0xFF3B82F6),
                                         width: 1.5,
                                       ),
                                     ),
@@ -970,13 +1211,13 @@ Future<String?> showOnboardingWizard(
                                                 14,
                                               ),
                                               fontWeight: FontWeight.w700,
-                                              color: accent,
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ),
                                         Icon(
                                           Icons.check_rounded,
-                                          color: accent,
+                                          color: Colors.white,
                                           size: Responsive.scale(ctx, 16),
                                         ),
                                         SizedBox(
@@ -986,7 +1227,7 @@ Future<String?> showOnboardingWizard(
                                           'change',
                                           style: GoogleFonts.manrope(
                                             fontSize: Responsive.font(ctx, 11),
-                                            color: dim,
+                                            color: Colors.white.withAlpha(180),
                                           ),
                                         ),
                                       ],
@@ -1015,12 +1256,12 @@ Future<String?> showOnboardingWizard(
                                             vertical: Responsive.height(ctx, 7),
                                           ),
                                           decoration: BoxDecoration(
-                                            color: accent.withAlpha(8),
+                                            color: const Color(0x1A3B82F6),
                                             borderRadius: BorderRadius.circular(
                                               10,
                                             ),
                                             border: Border.all(
-                                              color: accent.withAlpha(35),
+                                              color: const Color(0x663B82F6),
                                               width: 1,
                                             ),
                                           ),
@@ -1041,8 +1282,8 @@ Future<String?> showOnboardingWizard(
                                                                   14,
                                                                 ),
                                                             fontWeight:
-                                                                FontWeight.w500,
-                                                            color: dim,
+                                                                FontWeight.w600,
+                                                            color: Colors.white,
                                                           ),
                                                     ),
                                                     Text(
@@ -1054,7 +1295,7 @@ Future<String?> showOnboardingWizard(
                                                                   ctx,
                                                                   11,
                                                                 ),
-                                                            color: dim
+                                                            color: Colors.white
                                                                 .withAlpha(160),
                                                           ),
                                                     ),
@@ -1095,7 +1336,7 @@ Future<String?> showOnboardingWizard(
                                       'How many ${isMetric3 ? 'kg' : 'lbs'} do you want to ${goalType == 'lose' ? 'lose' : 'gain'} per week?',
                                       style: GoogleFonts.manrope(
                                         fontSize: Responsive.font(ctx, 13),
-                                        color: dim,
+                                        color: Colors.white.withAlpha(180),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -1121,12 +1362,28 @@ Future<String?> showOnboardingWizard(
                                                   ),
                                                 ),
                                                 decoration: BoxDecoration(
+                                                  gradient:
+                                                      !isCustomActive &&
+                                                          rateController.text ==
+                                                              r.toString()
+                                                      ? const LinearGradient(
+                                                          colors: [
+                                                            Color(0xFF22D3EE),
+                                                            Color(0xFF3B82F6),
+                                                            Color(0xFF1E40AF),
+                                                          ],
+                                                          begin: Alignment
+                                                              .centerLeft,
+                                                          end: Alignment
+                                                              .centerRight,
+                                                        )
+                                                      : null,
                                                   color:
                                                       !isCustomActive &&
                                                           rateController.text ==
                                                               r.toString()
-                                                      ? accent.withAlpha(30)
-                                                      : accent.withAlpha(8),
+                                                      ? null
+                                                      : const Color(0x113B82F6),
                                                   borderRadius:
                                                       BorderRadius.circular(8),
                                                   border: Border.all(
@@ -1135,15 +1392,13 @@ Future<String?> showOnboardingWizard(
                                                             rateController
                                                                     .text ==
                                                                 r.toString()
-                                                        ? accent.withAlpha(160)
-                                                        : accent.withAlpha(35),
-                                                    width:
-                                                        !isCustomActive &&
-                                                            rateController
-                                                                    .text ==
-                                                                r.toString()
-                                                        ? 1.5
-                                                        : 1,
+                                                        ? const Color(
+                                                            0xFF3B82F6,
+                                                          )
+                                                        : const Color(
+                                                            0x663B82F6,
+                                                          ),
+                                                    width: 1.5,
                                                   ),
                                                 ),
                                                 child: Center(
@@ -1195,18 +1450,29 @@ Future<String?> showOnboardingWizard(
                                                 ),
                                               ),
                                               decoration: BoxDecoration(
+                                                gradient: isCustomActive
+                                                    ? const LinearGradient(
+                                                        colors: [
+                                                          Color(0xFF22D3EE),
+                                                          Color(0xFF3B82F6),
+                                                          Color(0xFF1E40AF),
+                                                        ],
+                                                        begin: Alignment
+                                                            .centerLeft,
+                                                        end: Alignment
+                                                            .centerRight,
+                                                      )
+                                                    : null,
                                                 color: isCustomActive
-                                                    ? accent.withAlpha(30)
-                                                    : accent.withAlpha(8),
+                                                    ? null
+                                                    : const Color(0x113B82F6),
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                                 border: Border.all(
                                                   color: isCustomActive
-                                                      ? accent.withAlpha(160)
-                                                      : accent.withAlpha(35),
-                                                  width: isCustomActive
-                                                      ? 1.5
-                                                      : 1,
+                                                      ? const Color(0xFF3B82F6)
+                                                      : const Color(0x663B82F6),
+                                                  width: 1.5,
                                                 ),
                                               ),
                                               child: Center(
@@ -1215,10 +1481,12 @@ Future<String?> showOnboardingWizard(
                                                       .strokeRoundedPencilEdit01,
                                                   color: isCustomActive
                                                       ? accent
-                                                      : dim,
+                                                      : Colors.white.withAlpha(
+                                                          180,
+                                                        ),
                                                   size: Responsive.scale(
                                                     ctx,
-                                                    14,
+                                                    16,
                                                   ),
                                                 ),
                                               ),
@@ -1279,10 +1547,10 @@ Future<String?> showOnboardingWizard(
                                         vertical: Responsive.height(ctx, 14),
                                       ),
                                       decoration: BoxDecoration(
-                                        color: accent.withAlpha(18),
+                                        color: const Color(0x1A3B82F6),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: accent.withAlpha(60),
+                                          color: const Color(0x663B82F6),
                                           width: 1,
                                         ),
                                       ),
@@ -1299,7 +1567,7 @@ Future<String?> showOnboardingWizard(
                                                 ctx,
                                                 12,
                                               ),
-                                              color: dim,
+                                              color: Colors.white,
                                             ),
                                           ),
                                           SizedBox(
@@ -1338,7 +1606,7 @@ Future<String?> showOnboardingWizard(
                                                         ctx,
                                                         13,
                                                       ),
-                                                      color: dim,
+                                                      color: Colors.white,
                                                     ),
                                                   ),
                                                 ),
@@ -1354,12 +1622,97 @@ Future<String?> showOnboardingWizard(
                     ),
                   ),
                   SizedBox(height: Responsive.height(ctx, 20)),
-                  // red is fine here â€” users have not chosen a theme color yet at this point in onboarding
+                  GestureDetector(
+                    onTap:
+                        (tdee != null &&
+                            (goalType == 'maintain' ||
+                                rateController.text.isNotEmpty))
+                        ? () {
+                            FirebaseAnalytics.instance.logEvent(
+                              name: 'onboarding_step_viewed',
+                              parameters: {'step': 4},
+                            );
+                            setState(() => currentStep = 4);
+                          }
+                        : () {
+                            final missing = <String>[];
+                            if (selectedSex == null) missing.add('sex');
+                            if (age == null) missing.add('age');
+                            if (heightCm == null) missing.add('height');
+                            if (currentWeightKg == null) {
+                              missing.add('current weight');
+                            }
+                            if (tdee != null &&
+                                goalType != 'maintain' &&
+                                rateController.text.isEmpty) {
+                              missing.add('weekly rate');
+                            }
+                            if (selectedActivity == null) {
+                              missing.add('activity level');
+                            }
+                            setState(() {
+                              setupMissingError =
+                                  'Still needed: ${missing.join(', ')}.';
+                            });
+                          },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: Responsive.height(ctx, 17),
+                        horizontal: Responsive.width(ctx, 24),
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(ctx, 14),
+                        ),
+                        gradient:
+                            (tdee != null &&
+                                (goalType == 'maintain' ||
+                                    rateController.text.isNotEmpty))
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFF22D3EE),
+                                  Color(0xFF3B82F6),
+                                  Color(0xFF1E40AF),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              )
+                            : const LinearGradient(
+                                colors: [
+                                  Color(0xFFFF6B6B),
+                                  Color(0xFFEF4444),
+                                  Color(0xFFB91C1C),
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                        border: Border.all(
+                          color:
+                              (tdee != null &&
+                                  (goalType == 'maintain' ||
+                                      rateController.text.isNotEmpty))
+                              ? const Color(0xFF3B82F6)
+                              : const Color(0xFFEF4444),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        'Set my calorie goal',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(ctx, 15),
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // red is fine here — users have not chosen a theme color yet at this point in onboarding
                   if (setupMissingError != null)
                     Padding(
-                      padding: EdgeInsets.only(
-                        bottom: Responsive.height(ctx, 10),
-                      ),
+                      padding: EdgeInsets.only(top: Responsive.height(ctx, 8)),
                       child: Text(
                         setupMissingError!,
                         textAlign: TextAlign.center,
@@ -1369,75 +1722,6 @@ Future<String?> showOnboardingWizard(
                         ),
                       ),
                     ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          (tdee != null &&
-                              (goalType == 'maintain' ||
-                                  rateController.text.isNotEmpty))
-                          ? () {
-                              FirebaseAnalytics.instance.logEvent(
-                                name: 'onboarding_step_viewed',
-                                parameters: {'step': 4},
-                              );
-                              setState(() => currentStep = 4);
-                            }
-                          : () {
-                              final missing = <String>[];
-                              if (selectedSex == null) missing.add('sex');
-                              if (age == null) missing.add('age');
-                              if (heightCm == null) missing.add('height');
-                              if (currentWeightKg == null) {
-                                missing.add('current weight');
-                              }
-                              if (tdee != null &&
-                                  goalType != 'maintain' &&
-                                  rateController.text.isEmpty) {
-                                missing.add('weekly rate');
-                              }
-                              if (selectedActivity == null) {
-                                missing.add('activity level');
-                              }
-                              setState(() {
-                                setupMissingError =
-                                    'Still needed: ${missing.join(', ')}.';
-                              });
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            (tdee != null &&
-                                (goalType == 'maintain' ||
-                                    rateController.text.isNotEmpty))
-                            ? appColor
-                            : Colors.white.withAlpha(20),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(ctx, 14),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color:
-                                (tdee != null &&
-                                    (goalType == 'maintain' ||
-                                        rateController.text.isNotEmpty))
-                                ? accent.withAlpha(80)
-                                : Colors.white.withAlpha(30),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        'Set my calorie goal',
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(ctx, 15),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1451,6 +1735,16 @@ Future<String?> showOnboardingWizard(
             pendingProtein = protein;
             pendingCarbs = carbs;
             pendingFat = fat;
+            // standard micro defaults based on calorie target
+            pendingFiber = ((liveCalories ?? 2000) * 0.014).round().clamp(
+              20,
+              40,
+            );
+            pendingSugar = ((liveCalories ?? 2000) * 0.025).round().clamp(
+              25,
+              60,
+            );
+            pendingSodium = 2300;
             FirebaseAnalytics.instance.logEvent(
               name: 'onboarding_step_viewed',
               parameters: {'step': 5},
@@ -1496,7 +1790,7 @@ Future<String?> showOnboardingWizard(
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(ctx, 13),
-                  color: dim,
+                  color: Colors.white.withAlpha(180),
                 ),
               ),
               SizedBox(height: Responsive.height(ctx, 20)),
@@ -1576,134 +1870,374 @@ Future<String?> showOnboardingWizard(
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(ctx, 13),
-                  color: dim,
+                  color: Colors.white.withAlpha(180),
                 ),
               ),
               SizedBox(height: Responsive.height(ctx, 20)),
-              TextField(
-                controller: usernameController,
-                style: GoogleFonts.manrope(color: Colors.white),
-                textCapitalization: TextCapitalization.none,
-                decoration: InputDecoration(
-                  hintText: 'Username',
-                  hintStyle: GoogleFonts.manrope(color: Colors.white38),
-                  filled: true,
-                  fillColor: Colors.white.withAlpha(10),
-                  errorText: usernameError,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(ctx, 12),
-                    ),
-                    borderSide: BorderSide(color: Colors.white.withAlpha(40)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(ctx, 12),
-                    ),
-                    borderSide: BorderSide(color: Colors.white.withAlpha(40)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(ctx, 12),
-                    ),
-                    borderSide: BorderSide(
-                      color: Colors.white.withAlpha(80),
-                      width: 1.5,
+              AnimatedSize(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutQuart,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOutQuart,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.06),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
                     ),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(ctx, 16),
-                    vertical: Responsive.height(ctx, 14),
-                  ),
-                ),
-                onChanged: (_) {
-                  if (usernameError != null) {
-                    setState(() => usernameError = null);
-                  }
-                },
-              ),
-              SizedBox(height: Responsive.height(ctx, 12)),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final name = usernameController.text.trim();
-                    if (name.isEmpty) {
-                      setState(
-                        () => usernameError = 'Enter a username to continue',
-                      );
-                      return;
-                    }
-                    if (name.length > 20) {
-                      setState(
-                        () => usernameError = 'Must be 20 characters or fewer',
-                      );
-                      return;
-                    }
-                    final ok = await ref
-                        .read(userDataProvider.notifier)
-                        .updateUsername(name, ctx, showFeedback: false);
-                    if (ok) {
-                      ref
-                          .read(userDataProvider.notifier)
-                          .patch((u) => u.copyWith(username: name));
-                      if (ctx.mounted) {
-                        FirebaseAnalytics.instance.logEvent(
-                          name: 'onboarding_step_viewed',
-                          parameters: {'step': 6},
-                        );
-                        FirebaseAnalytics.instance.logEvent(
-                          name: 'onboarding_username_set',
-                        );
-                        setState(() => currentStep = 6);
-                      }
-                    } else {
-                      setState(() => usernameError = 'Username already taken');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColor,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      vertical: Responsive.height(ctx, 14),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: accent.withAlpha(80), width: 1),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(ctx, 15),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: Responsive.height(ctx, 12)),
-              TextButton(
-                onPressed: () {
-                  // leave username as uid so finishOnboarding assigns a random name at the end
-                  FirebaseAnalytics.instance.logEvent(
-                    name: 'onboarding_step_viewed',
-                    parameters: {'step': 6},
-                  );
-                  FirebaseAnalytics.instance.logEvent(
-                    name: 'onboarding_username_skipped',
-                  );
-                  setState(() => currentStep = 6);
-                },
-                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: Text(
-                  'Give me a random name instead',
-                  style: GoogleFonts.manrope(
-                    color: dim,
-                    fontSize: Responsive.font(ctx, 12),
-                  ),
-                ),
-              ),
+                  child: randomSuggestions.isEmpty
+                      ? KeyedSubtree(
+                          key: const ValueKey('type-own'),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: usernameController,
+                                style: GoogleFonts.manrope(color: Colors.white),
+                                textCapitalization: TextCapitalization.none,
+                                decoration: InputDecoration(
+                                  hintText: 'Username',
+                                  hintStyle: GoogleFonts.manrope(
+                                    color: Colors.white38,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withAlpha(10),
+                                  errorText: usernameError,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 12),
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: Color(0x663B82F6),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 12),
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: Color(0x663B82F6),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 12),
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF3B82F6),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(ctx, 16),
+                                    vertical: Responsive.height(ctx, 14),
+                                  ),
+                                ),
+                                onChanged: (_) {
+                                  if (usernameError != null) {
+                                    setState(() => usernameError = null);
+                                  }
+                                },
+                              ),
+                              SizedBox(height: Responsive.height(ctx, 12)),
+                              GestureDetector(
+                                onTap: () async {
+                                  final name = usernameController.text.trim();
+                                  if (name.isEmpty) {
+                                    setState(
+                                      () => usernameError =
+                                          'Enter a username to continue',
+                                    );
+                                    return;
+                                  }
+                                  if (name.length > 20) {
+                                    setState(
+                                      () => usernameError =
+                                          'Must be 20 characters or fewer',
+                                    );
+                                    return;
+                                  }
+                                  final ok = await ref
+                                      .read(userDataProvider.notifier)
+                                      .updateUsername(
+                                        name,
+                                        ctx,
+                                        showFeedback: false,
+                                      );
+                                  if (ok) {
+                                    ref
+                                        .read(userDataProvider.notifier)
+                                        .patch(
+                                          (u) => u.copyWith(username: name),
+                                        );
+                                    if (ctx.mounted) {
+                                      FirebaseAnalytics.instance.logEvent(
+                                        name: 'onboarding_step_viewed',
+                                        parameters: {'step': 6},
+                                      );
+                                      FirebaseAnalytics.instance.logEvent(
+                                        name: 'onboarding_username_set',
+                                      );
+                                      setState(() => currentStep = 6);
+                                    }
+                                  } else {
+                                    setState(
+                                      () => usernameError =
+                                          'Username already taken',
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: Responsive.height(ctx, 17),
+                                    horizontal: Responsive.width(ctx, 24),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(ctx, 14),
+                                    ),
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF22D3EE),
+                                        Color(0xFF3B82F6),
+                                        Color(0xFF1E40AF),
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                    border: Border.all(
+                                      color: const Color(0xFF3B82F6),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Continue',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(ctx, 15),
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: Responsive.height(ctx, 16)),
+                              GestureDetector(
+                                onTap: () => setState(() {
+                                  randomSuggestions = List.generate(
+                                    3,
+                                    (_) => generateRandomUsername(),
+                                  );
+                                  selectedSuggestion = null;
+                                }),
+                                child: Text(
+                                  'Give me a random name instead',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.manrope(
+                                    color: Colors.white.withAlpha(200),
+                                    fontSize: Responsive.font(ctx, 13),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('random'),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => setState(() {
+                                      randomSuggestions = List.generate(
+                                        3,
+                                        (_) => generateRandomUsername(),
+                                      );
+                                      selectedSuggestion = null;
+                                    }),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.refresh_rounded,
+                                          color: Colors.white,
+                                          size: Responsive.scale(ctx, 14),
+                                        ),
+                                        SizedBox(
+                                          width: Responsive.width(ctx, 4),
+                                        ),
+                                        Text(
+                                          'Regenerate',
+                                          style: GoogleFonts.manrope(
+                                            color: Colors.white,
+                                            fontSize: Responsive.font(ctx, 12),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: Responsive.height(ctx, 8)),
+                              for (final name in randomSuggestions) ...[
+                                GestureDetector(
+                                  onTap: () =>
+                                      setState(() => selectedSuggestion = name),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 150),
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: Responsive.width(ctx, 16),
+                                      vertical: Responsive.height(ctx, 11),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: selectedSuggestion == name
+                                          ? const LinearGradient(
+                                              colors: [
+                                                Color(0xFF22D3EE),
+                                                Color(0xFF3B82F6),
+                                                Color(0xFF1E40AF),
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            )
+                                          : null,
+                                      color: selectedSuggestion == name
+                                          ? null
+                                          : const Color(0x113B82F6),
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(ctx, 10),
+                                      ),
+                                      border: Border.all(
+                                        color: selectedSuggestion == name
+                                            ? const Color(0xFF3B82F6)
+                                            : const Color(0x663B82F6),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      name,
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white,
+                                        fontSize: Responsive.font(ctx, 14),
+                                        fontWeight: selectedSuggestion == name
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: Responsive.height(ctx, 6)),
+                              ],
+                              if (selectedSuggestion != null) ...[
+                                SizedBox(height: Responsive.height(ctx, 4)),
+                                GestureDetector(
+                                  onTap: () async {
+                                    final name = selectedSuggestion!;
+                                    final ok = await ref
+                                        .read(userDataProvider.notifier)
+                                        .updateUsername(
+                                          name,
+                                          ctx,
+                                          showFeedback: false,
+                                        );
+                                    if (ok) {
+                                      ref
+                                          .read(userDataProvider.notifier)
+                                          .patch(
+                                            (u) => u.copyWith(username: name),
+                                          );
+                                      if (ctx.mounted) {
+                                        FirebaseAnalytics.instance.logEvent(
+                                          name: 'onboarding_username_set',
+                                        );
+                                        FirebaseAnalytics.instance.logEvent(
+                                          name: 'onboarding_step_viewed',
+                                          parameters: {'step': 6},
+                                        );
+                                        setState(() => currentStep = 6);
+                                      }
+                                    } else {
+                                      setState(() {
+                                        randomSuggestions = List.generate(
+                                          3,
+                                          (_) => generateRandomUsername(),
+                                        );
+                                        selectedSuggestion = null;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: Responsive.height(ctx, 17),
+                                      horizontal: Responsive.width(ctx, 24),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                        Responsive.scale(ctx, 14),
+                                      ),
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF22D3EE),
+                                          Color(0xFF3B82F6),
+                                          Color(0xFF1E40AF),
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                      border: Border.all(
+                                        color: const Color(0xFF3B82F6),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Use $selectedSuggestion',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(ctx, 15),
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              SizedBox(height: Responsive.height(ctx, 12)),
+                              GestureDetector(
+                                onTap: () => setState(() {
+                                  randomSuggestions = [];
+                                  selectedSuggestion = null;
+                                }),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    'Type my own instead',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white,
+                                      fontSize: Responsive.font(ctx, 15),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ), // Column
+                        ), // KeyedSubtree
+                ), // AnimatedSwitcher
+              ), // AnimatedSize
             ],
           );
         }
@@ -1730,7 +2264,7 @@ Future<String?> showOnboardingWizard(
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(ctx, 13),
-                  color: dim,
+                  color: Colors.white.withAlpha(180),
                 ),
               ),
               SizedBox(height: Responsive.height(ctx, 20)),
@@ -1857,12 +2391,10 @@ Future<String?> showOnboardingWizard(
                   children: [
                     TextButton.icon(
                       onPressed: () => setState(() {
-                        // if goals were skipped, back from macro/username/activation jumps to step 1
+                        // if goals were skipped, back from macro/username jumps to step 1
                         if (currentStep == 4 && selectedGoal == null) {
                           currentStep = 1;
                         } else if (currentStep == 5 && selectedGoal == null) {
-                          currentStep = 1;
-                        } else if (currentStep == 6 && selectedGoal == null) {
                           currentStep = 1;
                         } else {
                           currentStep--;
@@ -1870,14 +2402,15 @@ Future<String?> showOnboardingWizard(
                       }),
                       icon: Icon(
                         Icons.arrow_back_ios_rounded,
-                        size: Responsive.scale(ctx, 12),
-                        color: dim,
+                        size: Responsive.scale(ctx, 14),
+                        color: Colors.white.withAlpha(220),
                       ),
                       label: Text(
                         'Back',
                         style: GoogleFonts.manrope(
-                          color: dim,
-                          fontSize: Responsive.font(ctx, 12),
+                          color: Colors.white.withAlpha(220),
+                          fontSize: Responsive.font(ctx, 14),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       style: TextButton.styleFrom(padding: EdgeInsets.zero),
@@ -1887,7 +2420,96 @@ Future<String?> showOnboardingWizard(
                         currentStep == 3 ||
                         currentStep == 4)
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          if (currentStep == 1) {
+                            final confirmed = await showFrostedDialog<bool>(
+                              context: ctx,
+                              appColor: appColor,
+                              backgroundColor: const Color(0x2A3B82F6),
+                              borderColor: const Color(0x883B82F6),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Skip goal setup?',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(ctx, 20),
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: Responsive.height(ctx, 12)),
+                                  Text(
+                                    "We'll use smart defaults for your calorie, macro, and weight goals. Change them anytime in Settings.",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white.withAlpha(180),
+                                      fontSize: Responsive.font(ctx, 13),
+                                    ),
+                                  ),
+                                  SizedBox(height: Responsive.height(ctx, 24)),
+                                  GestureDetector(
+                                    onTap: () => Navigator.of(
+                                      ctx,
+                                      rootNavigator: true,
+                                    ).pop(false),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: Responsive.height(ctx, 15),
+                                        horizontal: Responsive.width(ctx, 24),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          Responsive.scale(ctx, 14),
+                                        ),
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF22D3EE),
+                                            Color(0xFF3B82F6),
+                                            Color(0xFF1E40AF),
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ),
+                                        border: Border.all(
+                                          color: const Color(0xFF3B82F6),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Fill it in',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.manrope(
+                                          fontSize: Responsive.font(ctx, 15),
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: Responsive.height(ctx, 12)),
+                                  GestureDetector(
+                                    onTap: () => Navigator.of(
+                                      ctx,
+                                      rootNavigator: true,
+                                    ).pop(true),
+                                    child: Text(
+                                      'Skip anyway',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white.withAlpha(160),
+                                        fontSize: Responsive.font(ctx, 13),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed != true) return;
+                          }
                           FirebaseAnalytics.instance.logEvent(
                             name: 'onboarding_step_skipped',
                             parameters: {'from_step': currentStep},
@@ -1896,7 +2518,7 @@ Future<String?> showOnboardingWizard(
                             name: 'onboarding_step_viewed',
                             parameters: {'step': 5},
                           );
-                          setState(() => currentStep = 5);
+                          if (ctx.mounted) setState(() => currentStep = 5);
                         },
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
                         child: Row(
@@ -1907,8 +2529,9 @@ Future<String?> showOnboardingWizard(
                                   ? "I'll do this later"
                                   : 'Skip this step',
                               style: GoogleFonts.manrope(
-                                color: dim,
-                                fontSize: Responsive.font(ctx, 12),
+                                color: Colors.white.withAlpha(220),
+                                fontSize: Responsive.font(ctx, 14),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             SizedBox(width: Responsive.width(ctx, 4)),
@@ -1916,8 +2539,8 @@ Future<String?> showOnboardingWizard(
                               flipX: true,
                               child: Icon(
                                 Icons.arrow_back_ios_rounded,
-                                size: Responsive.scale(ctx, 12),
-                                color: dim,
+                                size: Responsive.scale(ctx, 14),
+                                color: Colors.white.withAlpha(220),
                               ),
                             ),
                           ],
@@ -1943,28 +2566,127 @@ Future<String?> showOnboardingWizard(
   return wizardChoice;
 }
 
+class _FeaturePill extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color accent;
+  final Color dim;
+  final int index;
+  final bool animate;
+
+  const _FeaturePill({
+    required this.icon,
+    required this.label,
+    required this.accent,
+    required this.dim,
+    required this.index,
+    required this.animate,
+  });
+
+  @override
+  State<_FeaturePill> createState() => _FeaturePillState();
+}
+
+class _FeaturePillState extends State<_FeaturePill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _slideCtrl;
+  late final Animation<Offset> _slide;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _slideCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _slide = Tween<Offset>(
+      begin: const Offset(-0.18, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut));
+    _fade = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut));
+
+    if (widget.animate) {
+      Future.delayed(Duration(milliseconds: 80 * widget.index), () {
+        if (mounted) _slideCtrl.forward();
+      });
+    } else {
+      _slideCtrl.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _slideCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 12),
+            vertical: Responsive.height(context, 9),
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0x0D3B82F6),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+            border: Border(
+              left: BorderSide(
+                color: const Color(0xFF22D3EE),
+                width: Responsive.scale(context, 3),
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: widget.icon,
+                color: widget.accent,
+                size: Responsive.scale(context, 22),
+              ),
+              SizedBox(width: Responsive.width(context, 12)),
+              Flexible(
+                child: Text(
+                  widget.label,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    color: widget.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Widget _featurePill(
   BuildContext context,
   IconData icon,
   String label,
   Color accent,
-  Color dim,
-) {
-  return Row(
-    children: [
-      HugeIcon(icon: icon, color: accent, size: Responsive.scale(context, 20)),
-      SizedBox(width: Responsive.width(context, 12)),
-      Flexible(
-        child: Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 14),
-            color: dim,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    ],
+  Color dim, {
+  int index = 0,
+  bool animate = true,
+}) {
+  return _FeaturePill(
+    icon: icon,
+    label: label,
+    accent: accent,
+    dim: dim,
+    index: index,
+    animate: animate,
   );
 }
 
@@ -2008,11 +2730,11 @@ Widget _labeledField(
       fillColor: Colors.white.withAlpha(12),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.white.withAlpha(25)),
+        borderSide: const BorderSide(color: Color(0x663B82F6)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: accent.withAlpha(180)),
+        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 14),
@@ -2028,10 +2750,12 @@ Widget _weightField(
   String label,
   String unit,
   Color accent,
-  Color dim,
-) {
+  Color dim, {
+  ValueChanged<String>? onChanged,
+}) {
   return TextField(
     controller: controller,
+    onChanged: onChanged,
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     inputFormatters: [
       _DecimalInputFormatter(maxIntDigits: 3, maxDecimalPlaces: 2),
@@ -2050,11 +2774,11 @@ Widget _weightField(
       fillColor: Colors.white.withAlpha(12),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.white.withAlpha(25)),
+        borderSide: const BorderSide(color: Color(0x663B82F6)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: accent.withAlpha(180)),
+        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 14),
@@ -2095,15 +2819,15 @@ Widget _activationOption(
         vertical: Responsive.height(context, 14),
       ),
       decoration: BoxDecoration(
-        color: accent.withAlpha(12),
+        color: const Color(0x113B82F6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accent.withAlpha(50), width: 1),
+        border: Border.all(color: const Color(0x993B82F6), width: 1.5),
       ),
       child: Row(
         children: [
           HugeIcon(
             icon: icon,
-            color: accent,
+            color: Colors.white,
             size: Responsive.scale(context, 24),
           ),
           SizedBox(width: Responsive.width(context, 14)),
@@ -2116,14 +2840,14 @@ Widget _activationOption(
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
-                    color: accent,
+                    color: Colors.white,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 12),
-                    color: dim,
+                    color: Colors.white.withAlpha(180),
                   ),
                 ),
                 if (description != null) ...[
@@ -2132,7 +2856,7 @@ Widget _activationOption(
                     description,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: dim.withAlpha(160),
+                      color: Colors.white.withAlpha(140),
                     ),
                   ),
                 ],
@@ -2141,7 +2865,7 @@ Widget _activationOption(
           ),
           Icon(
             Icons.arrow_forward_ios_rounded,
-            color: dim,
+            color: Colors.white,
             size: Responsive.scale(context, 14),
           ),
         ],

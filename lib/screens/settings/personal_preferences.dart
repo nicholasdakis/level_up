@@ -949,8 +949,9 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
         inputFormatters: [
           TextInputFormatter.withFunction((oldValue, newValue) {
             if (newValue.text.isEmpty) return newValue;
-            if (!RegExp(r'^\d{0,4}\.?\d{0,1}$').hasMatch(newValue.text))
+            if (!RegExp(r'^\d{0,4}\.?\d{0,1}$').hasMatch(newValue.text)) {
               return oldValue;
+            }
             return newValue;
           }),
         ],

@@ -2660,3 +2660,23 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed workout duration showing "0m" for sub-minute sessions in the recent workouts list
 - Fixed PR badge persisting on an exercise after editing a weight down below the PR threshold; now re-evaluates all checked sets so the badge only shows if at least one checked set still qualifies
 - Fixed a memory leak where TextEditingControllers were not disposed when exercises were reordered during a workout
+- Darkened the home screen UI while onboarding is in progress
+- Completely overhauled the onboarding dialog with a consistent blue brand identity matching the login screen
+- Onboarding CTA buttons now use a cyan-to-blue gradient matching the login screen's primary button style
+- All selection chips in onboarding (goal type, units, sex, activity level, rate presets) now use the gradient when selected and a blue outline when unselected
+- Input fields in onboarding now use a blue border at rest and a brighter blue when focused
+- The onboarding dialog background is now a frosted glass with a blue tint
+- Feature pills on the welcome step now slide in with a staggered animation on first view and skip the animation if the user navigates back
+- Feature pills now have a left-accent border and a subtle blue background for visual weight
+- "Give me a random name instead" now shows 3 random username suggestions the user can browse and regenerate before confirming instead of just choosing one at random without showing the user
+- The home screen skeletonizes while onboarding is in progress
+- The "WELCOME TO LEVEL UP!" greeting on the home dashboard is now larger when no username is set
+- Onboarding now sets fiber, sugar, and sodium goals automatically based on the selected calorie target and macro profile
+- Post-onboarding hint cards (Start your first workout, Log your first food, etc.) now use the same cyan-to-blue gradient as the CTA buttons so they stand out more
+- Age and height fields in the body stats step now use equal widths so Age is no longer squished on small screens
+- Back and skip buttons in onboarding are now larger, bolder, and closer to white for better readability
+- The disabled state of the calorie goal button is now a red gradient to indicate missing fields rather than a flat gray
+- Goal type, body stats, and calorie goal Continue buttons now start red and turn blue as required fields are filled in, giving live feedback on what is still missing
+- "I'll do this later" on the goal setup step now shows a confirmation dialog explaining that smart defaults will be used
+- The username step now animates between the type-your-own and random suggestion views with a smooth fade and slide transition
+- The onboarding hint cards now pulse subtly to draw attention
