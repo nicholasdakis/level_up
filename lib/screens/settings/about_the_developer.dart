@@ -9,7 +9,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '/services/user_data_manager.dart' show trackTrivialAchievement;
 
 class AboutTheDeveloper extends ConsumerStatefulWidget {
   const AboutTheDeveloper({super.key});
@@ -170,18 +169,11 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                           SizedBox(height: Responsive.height(context, 14)),
                           socialLink(
                             icon: Icons.mail_outline_rounded,
-                            label: 'Send feedback',
+                            label: 'Contact Us',
                             url: '',
                             context: context,
                             appColor: appColor,
-                            onTap: () {
-                              trackTrivialAchievement("send_feedback");
-                              sendEmail(
-                                context,
-                                "n1ch0lasd4k1s@gmail.com",
-                                "Feedback for Level Up!",
-                              );
-                            },
+                            onTap: () => showContactDialog(context, appColor),
                           ),
                         ],
                       ),

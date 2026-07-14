@@ -14,7 +14,6 @@ import '../providers/user_data_provider.dart';
 import '../providers/workout_provider.dart';
 import '../utility/responsive.dart';
 import '../authentication/auth_services.dart';
-import '../services/user_data_manager.dart' show trackTrivialAchievement;
 import 'premium_sheet.dart';
 import 'settings_stub_utils.dart'
     if (dart.library.js_interop) 'settings_web_utils.dart';
@@ -215,15 +214,11 @@ Widget buildSettingsDrawer(
                   ),
                   buildActionTile(
                     icon: HugeIcons.strokeRoundedComment01,
-                    label: "Send Feedback",
+                    label: "Contact Us",
                     onTap: () async {
                       Navigator.pop(context);
-                      trackTrivialAchievement("send_feedback");
-                      sendEmail(
-                        context,
-                        "n1ch0lasd4k1s@gmail.com",
-                        "Feedback for Level up!",
-                      );
+                      if (!context.mounted) return;
+                      showContactDialog(context, appColor);
                     },
                   ),
                   buildActionTile(

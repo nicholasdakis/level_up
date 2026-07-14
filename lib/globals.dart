@@ -223,6 +223,127 @@ Future<void> sendEmail(
   }
 }
 
+// Shows a contact topic picker then opens the email app with a prefilled subject
+Future<void> showContactDialog(BuildContext context, Color appColor) async {
+  const options = [
+    ('Report a Bug', HugeIcons.strokeRoundedBug01),
+    ('Feature Request', HugeIcons.strokeRoundedIdea01),
+    ('General Feedback', HugeIcons.strokeRoundedComment01),
+    ('Other', HugeIcons.strokeRoundedMoreHorizontal),
+  ];
+  final choice = await showFrostedDialog<String>(
+    context: context,
+    appColor: appColor,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'Contact Us',
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 18),
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 4)),
+        Text(
+          'What can we help you with?',
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white.withAlpha(140),
+          ),
+        ),
+        SizedBox(height: Responsive.height(context, 16)),
+        for (final (label, icon) in options) ...[
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            child: InkWell(
+              onTap: () =>
+                  Navigator.of(context, rootNavigator: true).pop(label),
+              borderRadius: BorderRadius.circular(
+                Responsive.scale(context, 12),
+              ),
+              splashColor: lightenColor(appColor, 0.3).withAlpha(60),
+              highlightColor: lightenColor(appColor, 0.2).withAlpha(40),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 14),
+                  vertical: Responsive.height(context, 13),
+                ),
+                decoration: BoxDecoration(
+                  color: lightenColor(appColor, 0.15).withAlpha(35),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  border: Border.all(
+                    color: lightenColor(appColor, 0.35).withAlpha(100),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: Responsive.scale(context, 34),
+                      height: Responsive.scale(context, 34),
+                      decoration: BoxDecoration(
+                        color: lightenColor(appColor, 0.25).withAlpha(60),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 8),
+                        ),
+                        border: Border.all(
+                          color: lightenColor(appColor, 0.35).withAlpha(80),
+                        ),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: lightenColor(appColor, 0.5),
+                        size: Responsive.scale(context, 18),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 12)),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 14),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.white.withAlpha(100),
+                      size: Responsive.scale(context, 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
+        ],
+        SizedBox(height: Responsive.height(context, 4)),
+        TextButton(
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              color: Colors.white.withAlpha(120),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+  if (choice == null || !context.mounted) return;
+  final subject = choice == 'Other' ? '' : '$choice - Level Up!';
+  sendEmail(context, "n1ch0lasd4k1s@gmail.com", subject);
+}
+
 // CREATE TEXT WITH THE MAIN APP FONT
 Widget textWithFont(
   String text,
