@@ -33,7 +33,8 @@ class ActiveWorkoutScreen extends ConsumerStatefulWidget {
       _ActiveWorkoutScreenState();
 }
 
-class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
+class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
+    with SingleTickerProviderStateMixin {
   Color get appColor => ref.watch(
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
@@ -62,6 +63,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   int? _restSeconds;
   Timer? _restTimer;
 
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
+
   // convenience getters into the global session, falls back to local session during the 500ms provider delay
   WorkoutSession get _s =>
       ref.read(workoutProvider).value?.activeSession ?? _localSession!;
@@ -69,6 +73,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   Map<String, bool> get _checked => _s.checked;
   String? get _workoutName => _s.workoutName;
   int get _restDuration => _s.restDuration;
+  bool get _restEnabled => _s.restEnabled;
 
   TextEditingController _ctrl(int ex, int set, String field) {
     final key = '${ex}_${set}_$field';
@@ -128,6 +133,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.04).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
     FlutterForegroundTask.addTaskDataCallback(_onTaskData);
     // use existing session if one is already active (restored), otherwise build one now
     final existingSession = ref.read(workoutProvider).value?.activeSession;
@@ -164,7 +176,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         routineId: widget.routine?['id']?.toString(),
       );
       _localSession = session;
-      // schedule after mount — Riverpod forbids state changes during widget build
+      // schedule after mount, Riverpod forbids state changes during widget build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(workoutProvider.notifier).startSession(session);
         _startForegroundService();
@@ -226,6 +238,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       case 'rest_add':
         if (_restSeconds != null && mounted) {
           setState(() => _restSeconds = _restSeconds! + 15);
+          _updateForegroundNotification();
         }
       case 'rest_skip':
         if (mounted) _dismissRestTimer();
@@ -242,6 +255,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
   @override
   void dispose() {
+    _pulseController.dispose();
     FlutterForegroundTask.removeTaskDataCallback(_onTaskData);
     _restTimer?.cancel();
     for (final c in _controllers.values) {
@@ -777,110 +791,406 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     }
   }
 
-  void _openWorkoutSettings() {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
+  void _openTimerEdit() {
     showFrostedDialog<void>(
       context: context,
       appColor: appColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Workout Settings',
-            style: GoogleFonts.manrope(
-              color: accent,
-              fontSize: Responsive.font(context, 16),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 20)),
-          Text(
-            'Rest Timer',
-            style: GoogleFonts.manrope(
-              color: dim,
-              fontSize: Responsive.font(context, 13),
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          StatefulBuilder(
-            builder: (context, setDialogState) => Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_restDuration > 15) {
-                      setDialogState(() {
-                        _s.restDuration -= 15;
-                        _persist();
-                      });
-                      setState(() {});
-                    }
-                  },
-                  child: Icon(
-                    Icons.remove_rounded,
-                    color: dim,
-                    size: Responsive.scale(context, 22),
-                  ),
-                ),
-                SizedBox(width: Responsive.width(context, 16)),
-                Text(
-                  '${_restDuration}s',
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 22),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(width: Responsive.width(context, 16)),
-                GestureDetector(
-                  onTap: () {
-                    if (_restDuration < 300) {
-                      setDialogState(() {
-                        _s.restDuration += 15;
-                        _persist();
-                      });
-                      setState(() {});
-                    }
-                  },
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: dim,
-                    size: Responsive.scale(context, 22),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 20)),
-          GestureDetector(
-            onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 12),
-              ),
-              decoration: BoxDecoration(
-                color: lightenColor(appColor, 0.1).withAlpha(40),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(120),
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                'Done',
-                textAlign: TextAlign.center,
+      child: StatefulBuilder(
+        builder: (context, setDialogState) {
+          final elapsed = _s.elapsed;
+          final h = elapsed.inHours;
+          final m = elapsed.inMinutes % 60;
+          final s = elapsed.inSeconds % 60;
+          final timeStr = h > 0
+              ? '${h}h ${m.toString().padLeft(2, '0')}m'
+              : '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+
+          void adjust(int minutes) {
+            final deltaMs = minutes * 60 * 1000;
+            // shifting start time back adds duration, forward subtracts
+            final newStart = _s.startedAtMs - deltaMs;
+            // clamp so elapsed never goes negative
+            final minStart =
+                DateTime.now().millisecondsSinceEpoch -
+                const Duration(hours: 12).inMilliseconds;
+            _s.startedAtMs = newStart.clamp(
+              minStart,
+              DateTime.now().millisecondsSinceEpoch,
+            );
+            _persist();
+            FlutterForegroundTask.saveData(
+              key: 'started_at_ms',
+              value: _s.startedAtMs,
+            );
+            setDialogState(() {});
+            setState(() {});
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Adjust Timer',
                 style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 14),
-                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: Responsive.font(context, 17),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              Text(
+                timeStr,
+                style: GoogleFonts.manrope(
+                  color: lightenColor(appColor, 0.45),
+                  fontSize: Responsive.font(context, 36),
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (final delta in [-5, -1, 1, 5])
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 5),
+                      ),
+                      child: GestureDetector(
+                        onTap: () => adjust(delta),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 12),
+                            vertical: Responsive.height(context, 10),
+                          ),
+                          decoration: BoxDecoration(
+                            color: lightenColor(
+                              appColor,
+                              0.1,
+                            ).withAlpha(delta < 0 ? 20 : 35),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
+                            ),
+                            border: Border.all(
+                              color: lightenColor(appColor, 0.25).withAlpha(80),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            '${delta > 0 ? '+' : ''}${delta}m',
+                            style: GoogleFonts.manrope(
+                              color: delta < 0
+                                  ? lightenColor(appColor, 0.35)
+                                  : lightenColor(appColor, 0.45),
+                              fontSize: Responsive.font(context, 14),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(height: Responsive.height(context, 20)),
+              GestureDetector(
+                onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 14),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        lightenColor(appColor, 0.35),
+                        lightenColor(appColor, 0.20),
+                        lightenColor(appColor, 0.05),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 14),
+                    ),
+                    border: Border.all(
+                      color: lightenColor(appColor, 0.35).withAlpha(180),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    'Done',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 10)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  _renameWorkout();
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 6),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.edit_rounded,
+                        color: lightenColor(appColor, 0.35),
+                        size: Responsive.scale(context, 13),
+                      ),
+                      SizedBox(width: Responsive.width(context, 6)),
+                      Text(
+                        'Rename workout',
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.35),
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRestToggle(BuildContext context, StateSetter setDialogState) {
+    return Container(
+      padding: EdgeInsets.all(Responsive.scale(context, 3)),
+      decoration: BoxDecoration(
+        color: lightenColor(appColor, 0.1).withAlpha(25),
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+        border: Border.all(
+          color: lightenColor(appColor, 0.25).withAlpha(80),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final option in ['Off', 'On'])
+            GestureDetector(
+              onTap: () {
+                setDialogState(() {
+                  _s.restEnabled = option == 'On';
+                  _persist();
+                });
+                setState(() {});
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 20),
+                  vertical: Responsive.height(context, 7),
+                ),
+                decoration: BoxDecoration(
+                  gradient: (_restEnabled == (option == 'On'))
+                      ? LinearGradient(
+                          colors: [
+                            lightenColor(appColor, 0.38),
+                            lightenColor(appColor, 0.22),
+                            lightenColor(appColor, 0.06),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 16),
+                  ),
+                ),
+                child: Text(
+                  option,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 13),
+                    fontWeight: (_restEnabled == (option == 'On'))
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                    color: (_restEnabled == (option == 'On'))
+                        ? Colors.white
+                        : Colors.white.withAlpha(70),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+
+  void _openWorkoutSettings() {
+    showFrostedDialog<void>(
+      context: context,
+      appColor: appColor,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Workout Settings',
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontSize: Responsive.font(context, 17),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 20)),
+            StatefulBuilder(
+              builder: (context, setDialogState) => Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Rest Timer',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      _buildRestToggle(context, setDialogState),
+                    ],
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeInOut,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeInOut,
+                      opacity: _restEnabled ? 1.0 : 0.0,
+                      child: _restEnabled
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  height: Responsive.height(context, 20),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (_restDuration > 15) {
+                                          setDialogState(() {
+                                            _s.restDuration -= 15;
+                                            _persist();
+                                          });
+                                          setState(() {});
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                          Responsive.scale(context, 8),
+                                        ),
+                                        child: Icon(
+                                          Icons.remove_rounded,
+                                          color: lightenColor(appColor, 0.45),
+                                          size: Responsive.scale(context, 30),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 16),
+                                    ),
+                                    Text(
+                                      '${_restDuration}s',
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white,
+                                        fontSize: Responsive.font(context, 32),
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: Responsive.width(context, 16),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (_restDuration < 300) {
+                                          setDialogState(() {
+                                            _s.restDuration += 15;
+                                            _persist();
+                                          });
+                                          setState(() {});
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                          Responsive.scale(context, 8),
+                                        ),
+                                        child: Icon(
+                                          Icons.add_rounded,
+                                          color: lightenColor(appColor, 0.45),
+                                          size: Responsive.scale(context, 30),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 20)),
+            GestureDetector(
+              onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 14),
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      lightenColor(appColor, 0.35),
+                      lightenColor(appColor, 0.20),
+                      lightenColor(appColor, 0.05),
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 14),
+                  ),
+                  border: Border.all(
+                    color: lightenColor(appColor, 0.35).withAlpha(180),
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  'Done',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(context, 15),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1029,14 +1339,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
   // borderless bare input, no fill, no border, just the number
   InputDecoration _fieldDec(String hint) {
-    final onCard = cardColors(appColor).onCard;
     return InputDecoration(
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
       focusedBorder: InputBorder.none,
       hintText: hint,
       hintStyle: GoogleFonts.manrope(
-        color: onCard.withAlpha(60),
+        color: lightenColor(appColor, 0.30).withAlpha(160),
         fontSize: Responsive.font(context, 15),
       ),
       isDense: true,
@@ -1077,7 +1386,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               child: Column(
                 children: [
                   _buildHeader(context, accent, dim, volDisplay, volUnit),
-                  Container(height: 1, color: Colors.white.withAlpha(15)),
                   if (_reordering)
                     Container(
                       width: double.infinity,
@@ -1330,150 +1638,177 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     String volDisplay,
     String volUnit,
   ) {
+    final hPad = Responsive.centeredHorizontalPadding(context, 20);
+
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.centeredHorizontalPadding(context, 20),
-        vertical: Responsive.height(context, 14),
+      padding: EdgeInsets.only(
+        left: hPad,
+        right: hPad,
+        top: Responsive.height(context, 14),
+        bottom: Responsive.height(context, 14),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // back chevron
           GestureDetector(
             onTap: () {
               logAnalyticsEvent('workout_minimized');
               Navigator.of(context).pop();
             },
-            child: Padding(
-              padding: EdgeInsets.only(right: Responsive.width(context, 12)),
-              child: Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 10)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: lightenColor(appColor, 0.1).withAlpha(20),
-                  border: Border.all(
-                    color: lightenColor(appColor, 0.3).withAlpha(180),
-                    width: 1.5,
-                  ),
-                ),
-                child: Icon(
-                  Icons.keyboard_arrow_down_rounded,
+            child: Container(
+              padding: EdgeInsets.all(Responsive.scale(context, 10)),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: lightenColor(appColor, 0.1).withAlpha(20),
+                border: Border.all(
                   color: lightenColor(appColor, 0.3).withAlpha(180),
-                  size: Responsive.font(context, 16),
+                  width: 1.5,
                 ),
+              ),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.white.withAlpha(160),
+                size: Responsive.font(context, 16),
               ),
             ),
           ),
+          SizedBox(width: Responsive.width(context, 14)),
+          // left: duration + name stacked
           Expanded(
-            child: GestureDetector(
-              onTap: _renameWorkout,
-              behavior: HitTestBehavior.opaque,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _durationLabel,
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 28),
-                      fontWeight: FontWeight.w800,
-                      height: 1.0,
-                    ),
-                  ),
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: _openTimerEdit,
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Flexible(
-                        child: Text(
-                          _workoutName ?? _s.routineName ?? 'Tap to name',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.manrope(
-                            color:
-                                _workoutName != null || _s.routineName != null
-                                ? dim
-                                : lightenColor(appColor, 0.35),
-                            fontSize: Responsive.font(context, 13),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        _durationLabel,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 26),
+                          fontWeight: FontWeight.w800,
+                          height: 1.0,
                         ),
                       ),
-                      SizedBox(width: Responsive.width(context, 3)),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.padding(context, 1),
-                        ),
-                        child: Icon(
-                          Icons.edit_rounded,
-                          color: lightenColor(appColor, 0.35),
-                          size: Responsive.scale(context, 12),
-                        ),
+                      SizedBox(width: Responsive.width(context, 4)),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white.withAlpha(120),
+                        size: Responsive.scale(context, 18),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          // stats column, rest timer appears as a third line when active
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$volDisplay $volUnit',
-                style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
                 ),
-              ),
-              Text(
-                '$_completedSets / $_totalSets sets',
-                style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(context, 11),
-                ),
-              ),
-              if (_restSeconds != null)
+                SizedBox(height: Responsive.height(context, 2)),
                 GestureDetector(
-                  onTap: _dismissRestTimer,
+                  onTap: _renameWorkout,
+                  behavior: HitTestBehavior.opaque,
                   child: Text(
-                    () {
-                      final m = (_restSeconds! ~/ 60).toString().padLeft(
-                        2,
-                        '0',
-                      );
-                      final s = (_restSeconds! % 60).toString().padLeft(2, '0');
-                      return 'rest $m:$s';
-                    }(),
+                    _workoutName ?? _s.routineName ?? 'Name this workout',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 11),
-                      fontWeight: FontWeight.w700,
+                      color: _workoutName != null || _s.routineName != null
+                          ? Colors.white.withAlpha(180)
+                          : Colors.white.withAlpha(100),
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
+          // center: stats
+          Expanded(
+            child: Center(
+              child: _restSeconds != null
+                  ? GestureDetector(
+                      onTap: _dismissRestTimer,
+                      child: Text(
+                        () {
+                          final m = (_restSeconds! ~/ 60).toString().padLeft(
+                            2,
+                            '0',
+                          );
+                          final s = (_restSeconds! % 60).toString().padLeft(
+                            2,
+                            '0',
+                          );
+                          return 'rest $m:$s ×';
+                        }(),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white.withAlpha(180),
+                          fontSize: Responsive.font(context, 12),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$volDisplay $volUnit',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            color: Colors.white,
+                            fontSize: Responsive.font(context, 15),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          '$_completedSets/$_totalSets sets',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            color: Colors.white.withAlpha(160),
+                            fontSize: Responsive.font(context, 12),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          SizedBox(width: Responsive.width(context, 12)),
+          // finish button
           GestureDetector(
             onTap: _finishWorkout,
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 18),
+                horizontal: Responsive.width(context, 20),
                 vertical: Responsive.height(context, 10),
               ),
               decoration: BoxDecoration(
-                color: appColor.withAlpha(70),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: appColor.withAlpha(150), width: 1.5),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    lightenColor(appColor, 0.35),
+                    lightenColor(appColor, 0.20),
+                    lightenColor(appColor, 0.05),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                border: Border.all(
+                  color: lightenColor(appColor, 0.25).withAlpha(180),
+                  width: 1.5,
+                ),
               ),
               child: Text(
                 'Finish',
                 style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 14),
+                  color: Colors.white,
+                  fontSize: Responsive.font(context, 15),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1489,26 +1824,47 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedDumbbell01,
-          color: Colors.white.withAlpha(35),
-          size: Responsive.scale(context, 44),
-        ),
-        SizedBox(height: Responsive.height(context, 14)),
-        Text(
-          'No exercises yet',
-          style: GoogleFonts.manrope(
-            color: accent,
-            fontSize: Responsive.font(context, 15),
-            fontWeight: FontWeight.w700,
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 40),
+            vertical: Responsive.height(context, 32),
           ),
-        ),
-        SizedBox(height: Responsive.height(context, 4)),
-        Text(
-          'Tap Add Exercise below to get started',
-          style: GoogleFonts.manrope(
-            color: dim,
-            fontSize: Responsive.font(context, 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(12),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 24)),
+            border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedBuilder(
+                animation: _pulseScale,
+                builder: (context, child) =>
+                    Transform.scale(scale: _pulseScale.value, child: child),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDumbbell01,
+                  color: Colors.white.withAlpha(120),
+                  size: Responsive.scale(context, 48),
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 14)),
+              Text(
+                'No exercises yet',
+                style: GoogleFonts.manrope(
+                  color: Colors.white.withAlpha(120),
+                  fontSize: Responsive.font(context, 16),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: Responsive.height(context, 6)),
+              Text(
+                'Add an exercise to get started',
+                style: GoogleFonts.manrope(
+                  color: Colors.white.withAlpha(60),
+                  fontSize: Responsive.font(context, 12),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -1533,9 +1889,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
     // bar encodes completion: none=muted, partial=dim accent, full=full accent
     final Color barColor = checkedCount == 0
-        ? Colors.white.withAlpha(50)
+        ? Colors.white.withAlpha(100)
         : checkedCount < totalCount
-        ? accent.withAlpha(160)
+        ? accent.withAlpha(180)
         : accent;
 
     final card = Padding(
@@ -1550,13 +1906,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
         color: appColor,
         padding: EdgeInsets.zero,
         border: Border.all(
-          color: lightenColor(appColor, 0.3).withAlpha(80),
+          color: lightenColor(appColor, 0.3).withAlpha(120),
           width: 1.5,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // header row — long press enters reorder mode
+            // header row, long press enters reorder mode
             GestureDetector(
               onLongPress: () {
                 HapticFeedback.mediumImpact();
@@ -1688,7 +2044,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                       ),
                     ),
 
-                    Container(height: 1, color: Colors.white.withAlpha(8)),
+                    Container(
+                      height: 1,
+                      color: lightenColor(appColor, 0.25).withAlpha(50),
+                    ),
 
                     // set rows
                     ConstrainedBox(
@@ -1736,14 +2095,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                           children: [
                             Icon(
                               Icons.add_rounded,
-                              color: dim,
+                              color: lightenColor(appColor, 0.40),
                               size: Responsive.scale(context, 16),
                             ),
                             SizedBox(width: Responsive.width(context, 4)),
                             Text(
                               'Add Set',
                               style: GoogleFonts.manrope(
-                                color: dim,
+                                color: lightenColor(appColor, 0.40),
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1787,33 +2146,31 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
     String label, {
     required double width,
   }) {
-    final subtle = cardColors(appColor).onCard.withAlpha(120);
     return SizedBox(
       width: width,
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          color: subtle,
+          color: lightenColor(appColor, 0.38),
           fontSize: Responsive.font(context, 10),
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.6,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.7,
         ),
       ),
     );
   }
 
   Widget _headerExpanded(BuildContext context, String label) {
-    final subtle = cardColors(appColor).onCard.withAlpha(120);
     return Expanded(
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          color: subtle,
+          color: lightenColor(appColor, 0.38),
           fontSize: Responsive.font(context, 10),
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.6,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.7,
         ),
       ),
     );
@@ -2005,23 +2362,25 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
               }
               setState(() => _checked['${exIndex}_$setIndex'] = nowChecked);
               _persist();
-              if (nowChecked) _startRestTimer();
+              if (nowChecked && _restEnabled) _startRestTimer();
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               width: Responsive.scale(context, 28),
               height: Responsive.scale(context, 28),
               decoration: BoxDecoration(
-                color: checked ? onCard.withAlpha(220) : Colors.transparent,
+                color: checked
+                    ? onCard.withAlpha(220)
+                    : lightenColor(appColor, 0.15).withAlpha(40),
                 borderRadius: BorderRadius.circular(6),
                 border: checked
                     ? null
-                    : Border.all(color: onCard.withAlpha(80), width: 1.5),
+                    : Border.all(color: onCard.withAlpha(140), width: 1.5),
               ),
               child: Icon(
                 Icons.check_rounded,
                 size: Responsive.scale(context, 16),
-                color: checked ? appColor : onCard.withAlpha(80),
+                color: checked ? appColor : onCard.withAlpha(140),
               ),
             ),
           ),
@@ -2032,11 +2391,6 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
 
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(15), width: 1),
-        ),
-      ),
       padding: EdgeInsets.only(
         left: Responsive.centeredHorizontalPadding(context, 20),
         right: Responsive.centeredHorizontalPadding(context, 20),
@@ -2054,10 +2408,20 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 vertical: Responsive.height(context, 15),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColor, 0.1).withAlpha(40),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    lightenColor(appColor, 0.40),
+                    lightenColor(appColor, 0.25),
+                    lightenColor(appColor, 0.08),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
                 border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(120),
+                  color: lightenColor(appColor, 0.35).withAlpha(180),
                   width: 1.5,
                 ),
               ),
@@ -2066,16 +2430,17 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                 children: [
                   Icon(
                     Icons.add_rounded,
-                    color: accent,
+                    color: Colors.white,
                     size: Responsive.scale(context, 20),
                   ),
                   SizedBox(width: Responsive.width(context, 6)),
                   Text(
                     'Add Exercise',
                     style: GoogleFonts.manrope(
-                      color: accent,
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 15),
                       fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
@@ -2109,21 +2474,31 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(appColor, 0.1).withAlpha(40),
+                        color: Colors.white.withAlpha(8),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: lightenColor(appColor, 0.35).withAlpha(120),
+                          color: Colors.white.withAlpha(28),
                           width: 1.5,
                         ),
                       ),
-                      child: Text(
-                        'Discard',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
-                          fontSize: Responsive.font(context, 13),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.white.withAlpha(90),
+                            size: Responsive.scale(context, 15),
+                          ),
+                          SizedBox(width: Responsive.width(context, 5)),
+                          Text(
+                            'Discard',
+                            style: GoogleFonts.manrope(
+                              color: Colors.white.withAlpha(90),
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -2138,10 +2513,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: lightenColor(appColor, 0.1).withAlpha(40),
+                        color: Colors.white.withAlpha(8),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: lightenColor(appColor, 0.35).withAlpha(120),
+                          color: Colors.white.withAlpha(28),
                           width: 1.5,
                         ),
                       ),
@@ -2149,7 +2524,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen> {
                         'Settings',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: lightenColor(appColor, 0.45),
+                          color: Colors.white.withAlpha(140),
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w600,
                         ),

@@ -2694,3 +2694,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed food logs showing empty after switching accounts; appLaunchUri was never reset on sign out so the router restored the previous user's last screen, causing food logging to open before the new user's data was ready; appLaunchUri is now cleared on sign out so the router always starts fresh after a sign in, and food logging now explicitly refreshes on open so the skeletonizer always shows while data loads
 - View Analytics button in food logging given more visual weight with bolder font and stronger border
 - Micronutrient expand chevron now matches the meal section chevrons in color and size
+- Active workout screen header redesigned with a duration pill button that opens a timer adjustment dialog (+/-1m, +/-5m), synced to the foreground notification isolate
+- Workout name moved to its own tappable row in the header, editable inline and also accessible from the timer dialog
+- Workout Settings dialog overhauled with a custom sliding pill toggle for the rest timer, a larger duration stepper with bigger touch targets, and a gradient Done button that clearly outranks the stepper visually
+- Rest timer can now be disabled entirely; the duration stepper only shows when rest is enabled
+- Added restEnabled field to WorkoutSession, persisted across session restores and app kills
+- Tapping +15s on the foreground notification now immediately updates the notification text without waiting for the next tick
+- startedAtMs made mutable so the timer adjustment dialog can shift the session start time and immediately reflect in both the UI and the foreground notification
+- Active workout header, empty state card, and bottom button hierarchy all visually overhauled
+- Add Exercise is the clear primary action with a gradient fill; Discard has a trash icon; Settings is text-only secondary
+- All text and icon colors in the workout screen use white-based opacity values so the screen looks correct at any appColor including the default grey

@@ -3,13 +3,13 @@
 // state survives navigation away from the screen and app kills
 class WorkoutSession {
   final List<Map<String, dynamic>> exercises;
-  final int
-  startedAtMs; // DateTime.now().millisecondsSinceEpoch at session start
+  int startedAtMs; // DateTime.now().millisecondsSinceEpoch at session start
   String? workoutName;
   final Map<String, bool> checked; // "exIndex_setIndex" -> true
   final Map<String, String> weights; // "exIndex_setIndex_weight" -> raw string
   final Map<String, String> reps; // "exIndex_setIndex_reps" -> raw string
   int restDuration; // seconds, user-configurable
+  bool restEnabled; // whether the rest timer auto-starts after a set
   final String? routineId;
   final String? routineName;
   final String? uid; // Firebase UID of the user who started this session
@@ -22,6 +22,7 @@ class WorkoutSession {
     Map<String, String>? weights,
     Map<String, String>? reps,
     this.restDuration = 90,
+    this.restEnabled = true,
     this.routineId,
     this.routineName,
     this.uid,
@@ -41,6 +42,7 @@ class WorkoutSession {
     'weights': weights,
     'reps': reps,
     'restDuration': restDuration,
+    'restEnabled': restEnabled,
     'routineId': routineId,
     'routineName': routineName,
     'uid': uid,
@@ -63,6 +65,7 @@ class WorkoutSession {
         (k, v) => MapEntry(k as String, v as String),
       ),
       restDuration: json['restDuration'] as int? ?? 90,
+      restEnabled: json['restEnabled'] as bool? ?? true,
       routineId: json['routineId'] as String?,
       routineName: json['routineName'] as String?,
       uid: json['uid'] as String?,

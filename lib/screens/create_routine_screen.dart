@@ -475,7 +475,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
         ),
         SizedBox(height: Responsive.height(context, 4)),
         Text(
-          'Tap Add Exercise below to get started',
+          'Add an exercise to get started',
           style: GoogleFonts.manrope(
             color: dim,
             fontSize: Responsive.font(context, 12),
