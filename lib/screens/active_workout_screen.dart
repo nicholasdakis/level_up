@@ -1,4 +1,5 @@
 ﻿import 'dart:async';
+import 'starfield_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
 import 'dart:convert';
@@ -1416,8 +1417,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                     ),
                   if (_exercises.isEmpty && !_reordering)
                     Expanded(
-                      child: Center(
-                        child: _buildEmptyState(context, accent, dim),
+                      child: StarfieldBackground(
+                        child: Center(
+                          child: _buildEmptyState(context, accent, dim),
+                        ),
                       ),
                     ),
                   if (_exercises.isNotEmpty || _reordering)
@@ -1824,16 +1827,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 40),
-            vertical: Responsive.height(context, 32),
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha(12),
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 24)),
-            border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
-          ),
+        ShimmerWidget(
+          accent: lightenColor(appColor, 0.45),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1842,26 +1837,18 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 builder: (context, child) =>
                     Transform.scale(scale: _pulseScale.value, child: child),
                 child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedDumbbell01,
-                  color: Colors.white.withAlpha(120),
-                  size: Responsive.scale(context, 48),
+                  icon: HugeIcons.strokeRoundedBodyPartMuscle,
+                  color: Colors.white.withAlpha(220),
+                  size: Responsive.scale(context, 54),
                 ),
               ),
-              SizedBox(height: Responsive.height(context, 14)),
+              SizedBox(height: Responsive.height(context, 16)),
               Text(
-                'No exercises yet',
+                'Add an Exercise',
                 style: GoogleFonts.manrope(
-                  color: Colors.white.withAlpha(120),
+                  color: Colors.white.withAlpha(180),
                   fontSize: Responsive.font(context, 16),
                   fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 6)),
-              Text(
-                'Add an exercise to get started',
-                style: GoogleFonts.manrope(
-                  color: Colors.white.withAlpha(60),
-                  fontSize: Responsive.font(context, 12),
                 ),
               ),
             ],

@@ -2704,3 +2704,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Active workout header, empty state card, and bottom button hierarchy all visually overhauled
 - Add Exercise is the clear primary action with a gradient fill; Discard has a trash icon; Settings is text-only secondary
 - All text and icon colors in the workout screen use white-based opacity values so the screen looks correct at any appColor including the default grey
+- Active workout empty state replaced with a twinkling starfield background and a shimmer-animated icon and tagline so the empty state feels more alive
