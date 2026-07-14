@@ -11,6 +11,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
 import 'exercise_picker_screen.dart';
+import 'starfield_background.dart';
 
 class CreateRoutineScreen extends ConsumerStatefulWidget {
   const CreateRoutineScreen({super.key});
@@ -20,10 +21,14 @@ class CreateRoutineScreen extends ConsumerStatefulWidget {
       _CreateRoutineScreenState();
 }
 
-class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
+class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
+    with SingleTickerProviderStateMixin {
   Color get appColor => ref.watch(
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
+
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
@@ -34,10 +39,18 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.04).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _nameController.dispose();
     _durationController.dispose();
     super.dispose();
@@ -256,11 +269,12 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
             child: Column(
               children: [
                 _buildHeader(context, accent, dim),
-                Container(height: 1, color: dim.withAlpha(40)),
                 if (_exercises.isEmpty && !_reordering)
                   Expanded(
-                    child: Center(
-                      child: _buildEmptyState(context, accent, dim),
+                    child: StarfieldBackground(
+                      child: Center(
+                        child: _buildEmptyState(context, accent, dim),
+                      ),
                     ),
                   ),
                 if (_exercises.isNotEmpty || _reordering)
@@ -327,122 +341,253 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     );
   }
 
+  Future<void> _openRoutineDetails() async {
+    final tempName = TextEditingController(text: _nameController.text);
+    final tempDuration = TextEditingController(text: _durationController.text);
+    await showFrostedDialog<void>(
+      context: context,
+      appColor: appColor,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Routine Details',
+            style: GoogleFonts.manrope(
+              color: Colors.white,
+              fontSize: Responsive.font(context, 17),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 20)),
+          TextField(
+            controller: tempName,
+            autofocus: true,
+            maxLength: 40,
+            style: GoogleFonts.manrope(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: 'Routine Name',
+              labelStyle: GoogleFonts.manrope(color: Colors.white60),
+              counterStyle: GoogleFonts.manrope(
+                color: Colors.white38,
+                fontSize: Responsive.font(context, 10),
+              ),
+              hintText: 'e.g. Push Day',
+              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              filled: true,
+              fillColor: Colors.white.withAlpha(15),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide(color: Colors.white.withAlpha(38)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide(
+                  color: lightenColor(appColor, 0.35),
+                  width: 1.5,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 16),
+                horizontal: Responsive.width(context, 16),
+              ),
+            ),
+            cursorColor: lightenColor(appColor, 0.45),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
+          TextField(
+            controller: tempDuration,
+            keyboardType: TextInputType.number,
+            maxLength: 3,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: GoogleFonts.manrope(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: 'Est. Duration (min)',
+              labelStyle: GoogleFonts.manrope(color: Colors.white60),
+              counterText: '',
+              hintText: '0',
+              hintStyle: GoogleFonts.manrope(color: Colors.white38),
+              filled: true,
+              fillColor: Colors.white.withAlpha(15),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide(color: Colors.white.withAlpha(38)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                borderSide: BorderSide(
+                  color: lightenColor(appColor, 0.35),
+                  width: 1.5,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 16),
+                horizontal: Responsive.width(context, 16),
+              ),
+            ),
+            cursorColor: lightenColor(appColor, 0.45),
+          ),
+          SizedBox(height: Responsive.height(context, 24)),
+          GestureDetector(
+            onTap: () {
+              _nameController.text = tempName.text;
+              _durationController.text = tempDuration.text;
+              Navigator.of(context, rootNavigator: true).pop();
+            },
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 14),
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    lightenColor(appColor, 0.35),
+                    lightenColor(appColor, 0.20),
+                    lightenColor(appColor, 0.05),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 14),
+                ),
+                border: Border.all(
+                  color: lightenColor(appColor, 0.35).withAlpha(180),
+                  width: 1.5,
+                ),
+              ),
+              child: Text(
+                'Done',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: Colors.white,
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          GestureDetector(
+            onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 6),
+              ),
+              child: Text(
+                'Cancel',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  color: Colors.white.withAlpha(100),
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    tempName.dispose();
+    tempDuration.dispose();
+    if (mounted) setState(() {});
+  }
+
   Widget _buildHeader(BuildContext context, Color accent, Color dim) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
-    final dimmer = lightenColor(appColor, 0.30);
+    final gradientDeco = BoxDecoration(
+      borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+      gradient: LinearGradient(
+        colors: [
+          lightenColor(appColor, 0.35),
+          lightenColor(appColor, 0.20),
+          lightenColor(appColor, 0.05),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ),
+      border: Border.all(
+        color: lightenColor(appColor, 0.25).withAlpha(180),
+        width: 1.5,
+      ),
+    );
+
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: hPad,
-        vertical: Responsive.height(context, 16),
+      padding: EdgeInsets.only(
+        left: hPad,
+        right: hPad,
+        top: Responsive.height(context, 14),
+        bottom: Responsive.height(context, 14),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  maxLength: 40,
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 24),
-                    fontWeight: FontWeight.w800,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    hintText: 'Routine Name',
-                    hintStyle: GoogleFonts.manrope(
-                      color: accent.withAlpha(50),
-                      fontSize: Responsive.font(context, 24),
-                      fontWeight: FontWeight.w800,
-                    ),
-                    counterText: '',
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  cursorColor: accent,
-                  onChanged: (_) => setState(() {}),
+          // back chevron
+          GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              padding: EdgeInsets.all(Responsive.scale(context, 10)),
+              margin: EdgeInsets.only(right: Responsive.width(context, 10)),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: lightenColor(appColor, 0.1).withAlpha(20),
+                border: Border.all(
+                  color: Colors.white.withAlpha(60),
+                  width: 1.5,
                 ),
-                SizedBox(height: Responsive.height(context, 6)),
-                Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedClock01,
-                      color: dimmer,
-                      size: Responsive.scale(context, 13),
-                    ),
-                    SizedBox(width: Responsive.width(context, 5)),
-                    IntrinsicWidth(
-                      child: TextField(
-                        controller: _durationController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 3,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        style: GoogleFonts.manrope(
-                          color: dim,
-                          fontSize: Responsive.font(context, 13),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          hintText: '0',
-                          hintStyle: GoogleFonts.manrope(
-                            color: dimmer,
-                            fontSize: Responsive.font(context, 13),
-                          ),
-                          counterText: '',
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        cursorColor: accent,
-                      ),
-                    ),
-                    Text(
-                      ' min',
-                      style: GoogleFonts.manrope(
-                        color: dimmer,
-                        fontSize: Responsive.font(context, 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white.withAlpha(160),
+                size: Responsive.font(context, 16),
+              ),
             ),
           ),
-          SizedBox(width: Responsive.width(context, 12)),
+          const Spacer(),
+          // save button
           GestureDetector(
             onTap: _saving ? null : _saveRoutine,
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 18),
+                horizontal: Responsive.width(context, 20),
                 vertical: Responsive.height(context, 10),
               ),
-              decoration: BoxDecoration(
-                color: appColor.withAlpha(70),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: appColor.withAlpha(150), width: 1.5),
-              ),
+              decoration: gradientDeco,
               child: _saving
                   ? SizedBox(
                       width: Responsive.scale(context, 14),
                       height: Responsive.scale(context, 14),
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: accent,
+                        color: Colors.white,
                       ),
                     )
                   : Text(
                       'Save',
                       style: GoogleFonts.manrope(
-                        color: accent,
+                        color: Colors.white,
                         fontSize: Responsive.font(context, 14),
                         fontWeight: FontWeight.w700,
                       ),
@@ -455,33 +600,33 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context, Color accent, Color dim) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedDumbbell01,
-          color: dim.withAlpha(80),
-          size: Responsive.scale(context, 44),
-        ),
-        SizedBox(height: Responsive.height(context, 14)),
-        Text(
-          'No exercises yet',
-          style: GoogleFonts.manrope(
-            color: accent,
-            fontSize: Responsive.font(context, 15),
-            fontWeight: FontWeight.w700,
+    return ShimmerWidget(
+      accent: lightenColor(appColor, 0.45),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedBuilder(
+            animation: _pulseScale,
+            builder: (context, child) =>
+                Transform.scale(scale: _pulseScale.value, child: child),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedNote02,
+              color: Colors.white.withAlpha(220),
+              size: Responsive.scale(context, 54),
+            ),
           ),
-        ),
-        SizedBox(height: Responsive.height(context, 4)),
-        Text(
-          'Add an exercise to get started',
-          style: GoogleFonts.manrope(
-            color: dim,
-            fontSize: Responsive.font(context, 12),
+          SizedBox(height: Responsive.height(context, 16)),
+          Text(
+            'Add an Exercise',
+            style: GoogleFonts.manrope(
+              color: Colors.white.withAlpha(180),
+              fontSize: Responsive.font(context, 16),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -688,31 +833,138 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildBottomBar(BuildContext context, Color accent, Color dim) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: dim.withAlpha(40), width: 1)),
+    final hPad = Responsive.centeredHorizontalPadding(context, 20);
+    final gradDeco = BoxDecoration(
+      borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
+      gradient: LinearGradient(
+        colors: [
+          lightenColor(appColor, 0.40),
+          lightenColor(appColor, 0.25),
+          lightenColor(appColor, 0.08),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
       ),
+      border: Border.all(
+        color: lightenColor(appColor, 0.35).withAlpha(180),
+        width: 1.5,
+      ),
+    );
+
+    Widget pill(Widget child, VoidCallback onTap) => Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 15),
+          ),
+          decoration: gradDeco,
+          child: child,
+        ),
+      ),
+    );
+
+    return Padding(
       padding: EdgeInsets.only(
-        left: Responsive.centeredHorizontalPadding(context, 20),
-        right: Responsive.centeredHorizontalPadding(context, 20),
+        left: hPad,
+        right: hPad,
         top: Responsive.height(context, 14),
         bottom: Responsive.height(context, 22),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                pill(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.tune_rounded,
+                        color: Colors.white,
+                        size: Responsive.scale(context, 16),
+                      ),
+                      SizedBox(width: Responsive.width(context, 6)),
+                      Text(
+                        'Details',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  _openRoutineDetails,
+                ),
+                SizedBox(width: Responsive.width(context, 10)),
+                pill(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_rounded,
+                        color: Colors.white,
+                        size: Responsive.scale(context, 20),
+                      ),
+                      SizedBox(width: Responsive.width(context, 6)),
+                      Text(
+                        'Add Exercise',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  _openExercisePicker,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 12)),
           GestureDetector(
-            onTap: _openExercisePicker,
+            onTap: () async {
+              final confirmed = await showFrostedAlertDialog<bool>(
+                context: context,
+                appColor: appColor,
+                title: 'Discard routine?',
+                content: Text(
+                  'You will lose all progress on this routine.',
+                  style: GoogleFonts.manrope(color: Colors.white70),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(false),
+                    child: Text('Keep editing', style: dialogButtonStyle()),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).pop(true),
+                    child: Text(
+                      'Discard',
+                      style: dialogButtonStyle(confirm: true),
+                    ),
+                  ),
+                ],
+              );
+              if ((confirmed ?? false) && context.mounted) context.pop();
+            },
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 15),
+                vertical: Responsive.height(context, 12),
               ),
               decoration: BoxDecoration(
-                color: lightenColor(appColor, 0.1).withAlpha(40),
+                color: Colors.white.withAlpha(8),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(120),
+                  color: Colors.white.withAlpha(28),
                   width: 1.5,
                 ),
               ),
@@ -720,37 +972,20 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.add_rounded,
-                    color: accent,
-                    size: Responsive.scale(context, 20),
+                    Icons.delete_outline_rounded,
+                    color: Colors.white.withAlpha(90),
+                    size: Responsive.scale(context, 15),
                   ),
-                  SizedBox(width: Responsive.width(context, 6)),
+                  SizedBox(width: Responsive.width(context, 5)),
                   Text(
-                    'Add Exercise',
+                    'Discard',
                     style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withAlpha(90),
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 12)),
-          GestureDetector(
-            onTap: () => context.pop(),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 4),
-              ),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.manrope(
-                  color: dim,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w500,
-                ),
               ),
             ),
           ),

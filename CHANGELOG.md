@@ -2705,3 +2705,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Add Exercise is the clear primary action with a gradient fill; Discard has a trash icon; Settings is text-only secondary
 - All text and icon colors in the workout screen use white-based opacity values so the screen looks correct at any appColor including the default grey
 - Active workout empty state replaced with a twinkling starfield background and a shimmer-animated icon and tagline so the empty state feels more alive
+- Create Routine screen overhauled to match active workout screen: starfield background, shimmer empty state, gradient Add Exercise and Save buttons, Discard button with confirmation dialog, and a Routine Details button that opens a clean dialog with filled rounded inputs for name and estimated duration
+- Create Routine screen: header redesigned with a back button, a Routine Details pill button (matching Save gradient) that opens a dialog to set name and duration together, and a Save button; changes only apply on Done so edits are not committed until confirmed
