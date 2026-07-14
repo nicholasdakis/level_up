@@ -604,154 +604,161 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                 highlightColor: lightenColor(appColor, 0.1),
                 duration: const Duration(milliseconds: 1200),
               ),
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: hPad,
-                        right: hPad,
-                        top:
-                            MediaQuery.paddingOf(context).top +
-                            Responsive.height(context, 16),
-                        bottom: Responsive.height(context, 12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Back and refresh buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () => context.pop(),
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.1,
-                                    ).withAlpha(20),
-                                    border: Border.all(
+              child: AppRefreshIndicator(
+                onRefresh: () async {
+                  _refreshLeaderboard();
+                }, // forceRefresh: true bypasses the cached future
+                appColor: appColor,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: hPad,
+                          right: hPad,
+                          top:
+                              MediaQuery.paddingOf(context).top +
+                              Responsive.height(context, 16),
+                          bottom: Responsive.height(context, 12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Back and refresh buttons
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => context.pop(),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_back_ios_new,
                                       color: lightenColor(
                                         appColor,
                                         0.3,
                                       ).withAlpha(180),
-                                      width: 1.5,
+                                      size: Responsive.font(context, 13),
                                     ),
                                   ),
-                                  child: Icon(
-                                    Icons.arrow_back_ios_new,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.3,
-                                    ).withAlpha(180),
-                                    size: Responsive.font(context, 13),
-                                  ),
                                 ),
-                              ),
-                              GestureDetector(
-                                onTap: _refreshLeaderboard,
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.1,
-                                    ).withAlpha(20),
-                                    border: Border.all(
+                                GestureDetector(
+                                  onTap: _refreshLeaderboard,
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.refresh,
                                       color: lightenColor(
                                         appColor,
                                         0.3,
                                       ).withAlpha(180),
-                                      width: 1.5,
+                                      size: Responsive.font(context, 13),
                                     ),
                                   ),
-                                  child: Icon(
-                                    Icons.refresh,
-                                    color: lightenColor(
-                                      appColor,
-                                      0.3,
-                                    ).withAlpha(180),
-                                    size: Responsive.font(context, 13),
-                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: Responsive.height(context, 16)),
-                          _buildTypeChips(),
-                          ClipRect(
-                            child: AnimatedAlign(
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeInOut,
-                              alignment: Alignment.topCenter,
-                              heightFactor: _selectedType != _LeaderboardType.xp
-                                  ? 1.0
-                                  : 0.0,
-                              child: AnimatedOpacity(
-                                duration: const Duration(milliseconds: 300),
-                                opacity: _selectedType != _LeaderboardType.xp
+                              ],
+                            ),
+                            SizedBox(height: Responsive.height(context, 16)),
+                            _buildTypeChips(),
+                            ClipRect(
+                              child: AnimatedAlign(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.topCenter,
+                                heightFactor:
+                                    _selectedType != _LeaderboardType.xp
                                     ? 1.0
                                     : 0.0,
-                                child: Column(
-                                  children: [
-                                    SizedBox(
-                                      height: Responsive.height(context, 20),
-                                    ),
-                                    _buildPeriodToggle(),
-                                  ],
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 300),
+                                  opacity: _selectedType != _LeaderboardType.xp
+                                      ? 1.0
+                                      : 0.0,
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        height: Responsive.height(context, 20),
+                                      ),
+                                      _buildPeriodToggle(),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: Responsive.height(context, 16)),
-                        ],
+                            SizedBox(height: Responsive.height(context, 16)),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  SliverPadding(
-                    padding: EdgeInsets.only(
-                      left: hPad,
-                      right: hPad,
-                      bottom: Responsive.height(context, 120),
+                    SliverPadding(
+                      padding: EdgeInsets.only(
+                        left: hPad,
+                        right: hPad,
+                        bottom: Responsive.height(context, 120),
+                      ),
+                      sliver: SliverList.builder(
+                        itemCount: leaderboardUsers.length > 100
+                            ? 100
+                            : leaderboardUsers.length,
+                        itemBuilder: (context, i) {
+                          final user = leaderboardUsers[i];
+                          final isCurrentUser = user.uid == currentUserId;
+                          final card = _buildUserCard(user, i, isCurrentUser);
+                          // Only the first 20 spots get the animation
+                          if (isLoading ||
+                              i >= 20 ||
+                              _animatedIndices.contains(i)) {
+                            return card;
+                          }
+                          _animatedIndices.add(i);
+                          return card
+                              .animate()
+                              .fadeIn(
+                                delay: (i * 50).clamp(0, 400).ms,
+                                duration: 300.ms,
+                              )
+                              .slideY(
+                                begin: 0.08,
+                                duration: 300.ms,
+                                curve: Curves.easeOut,
+                              );
+                        },
+                      ),
                     ),
-                    sliver: SliverList.builder(
-                      itemCount: leaderboardUsers.length > 100
-                          ? 100
-                          : leaderboardUsers.length,
-                      itemBuilder: (context, i) {
-                        final user = leaderboardUsers[i];
-                        final isCurrentUser = user.uid == currentUserId;
-                        final card = _buildUserCard(user, i, isCurrentUser);
-                        // Only the first 20 spots get the animation
-                        if (isLoading ||
-                            i >= 20 ||
-                            _animatedIndices.contains(i)) {
-                          return card;
-                        }
-                        _animatedIndices.add(i);
-                        return card
-                            .animate()
-                            .fadeIn(
-                              delay: (i * 50).clamp(0, 400).ms,
-                              duration: 300.ms,
-                            )
-                            .slideY(
-                              begin: 0.08,
-                              duration: 300.ms,
-                              curve: Curves.easeOut,
-                            );
-                      },
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },

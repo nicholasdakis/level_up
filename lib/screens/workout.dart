@@ -1534,61 +1534,72 @@ class _WorkoutState extends ConsumerState<Workout> {
                   highlightColor: lightenColor(appColor, 0.1),
                   duration: const Duration(milliseconds: 1200),
                 ),
-                child: ScrollConfiguration(
-                  behavior: NoGlowScrollBehavior(),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.centeredHorizontalPadding(
-                          context,
-                          20,
+                child: AppRefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(workoutProvider.notifier).loadWorkoutData();
+                  },
+                  appColor: appColor,
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.centeredHorizontalPadding(
+                            context,
+                            20,
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            height:
-                                MediaQuery.paddingOf(context).top +
-                                Responsive.height(context, 24),
-                          ),
-                          sectionHeader("WORKOUT", context, appColor: appColor),
-                          _animate(_buildGoalCard(context), 0.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader("START", context, appColor: appColor),
-                          _animate(_buildStartWorkoutCard(context), 60.ms),
-                          SizedBox(height: Responsive.height(context, 12)),
-                          _animate(_buildRoutineActionCards(context), 120.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader(
-                            "MY ROUTINES",
-                            context,
-                            appColor: appColor,
-                          ),
-                          _animate(_buildMyRoutinesCard(context), 180.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader(
-                            "TODAY'S OVERVIEW",
-                            context,
-                            appColor: appColor,
-                          ),
-                          _animate(_buildLiftsCard(context), 240.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader(
-                            "ACTIVITY HEATMAP",
-                            context,
-                            appColor: appColor,
-                          ),
-                          _animate(_buildHeatmapCard(context), 300.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                          sectionHeader(
-                            "RECENT WORKOUTS",
-                            context,
-                            appColor: appColor,
-                          ),
-                          _animate(_buildRecentWorkoutsCard(context), 360.ms),
-                          SizedBox(height: Responsive.height(context, 120)),
-                        ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(
+                              height:
+                                  MediaQuery.paddingOf(context).top +
+                                  Responsive.height(context, 24),
+                            ),
+                            sectionHeader(
+                              "WORKOUT",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _animate(_buildGoalCard(context), 0.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                            sectionHeader("START", context, appColor: appColor),
+                            _animate(_buildStartWorkoutCard(context), 60.ms),
+                            SizedBox(height: Responsive.height(context, 12)),
+                            _animate(_buildRoutineActionCards(context), 120.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                            sectionHeader(
+                              "MY ROUTINES",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _animate(_buildMyRoutinesCard(context), 180.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                            sectionHeader(
+                              "TODAY'S OVERVIEW",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _animate(_buildLiftsCard(context), 240.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                            sectionHeader(
+                              "ACTIVITY HEATMAP",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _animate(_buildHeatmapCard(context), 300.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                            sectionHeader(
+                              "RECENT WORKOUTS",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _animate(_buildRecentWorkoutsCard(context), 360.ms),
+                            SizedBox(height: Responsive.height(context, 120)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1629,112 +1640,118 @@ class _WorkoutState extends ConsumerState<Workout> {
   }
 
   Widget _buildWorkoutContent(BuildContext context) {
-    return ScrollConfiguration(
-      behavior: NoGlowScrollBehavior(),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.centeredHorizontalPadding(context, 20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height:
-                    MediaQuery.paddingOf(context).top +
-                    Responsive.height(context, 24),
-              ),
-              sectionHeader("WORKOUT", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildGoalCard(context),
-                title: 'Sign up to set workout goals',
-                description:
-                    'Create a free account to set a weekly workout goal and track your progress.',
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("START", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildStartWorkoutCard(context),
-                title: 'Sign up to start a workout',
-                description:
-                    'Create a free account to log exercises, track sets and reps, and earn XP.',
-              ),
-              SizedBox(height: Responsive.height(context, 12)),
-              Row(
-                children: [
-                  Expanded(
-                    child: _guestLock(
-                      context,
-                      _buildRoutineCard(
+    return AppRefreshIndicator(
+      onRefresh: () async {
+        await ref.read(workoutProvider.notifier).loadWorkoutData();
+      },
+      appColor: appColor,
+      child: ScrollConfiguration(
+        behavior: NoGlowScrollBehavior(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.centeredHorizontalPadding(context, 20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height:
+                      MediaQuery.paddingOf(context).top +
+                      Responsive.height(context, 24),
+                ),
+                sectionHeader("WORKOUT", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildGoalCard(context),
+                  title: 'Sign up to set workout goals',
+                  description:
+                      'Create a free account to set a weekly workout goal and track your progress.',
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                sectionHeader("START", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildStartWorkoutCard(context),
+                  title: 'Sign up to start a workout',
+                  description:
+                      'Create a free account to log exercises, track sets and reps, and earn XP.',
+                ),
+                SizedBox(height: Responsive.height(context, 12)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _guestLock(
                         context,
-                        HugeIcons.strokeRoundedAddSquare,
-                        "New Routine",
-                        "Build your own",
-                        _onNewRoutine,
+                        _buildRoutineCard(
+                          context,
+                          HugeIcons.strokeRoundedAddSquare,
+                          "New Routine",
+                          "Build your own",
+                          _onNewRoutine,
+                        ),
+                        title: 'Sign up to create routines',
+                        description:
+                            'Create a free account to build and save your own workout routines.',
                       ),
-                      title: 'Sign up to create routines',
-                      description:
-                          'Create a free account to build and save your own workout routines.',
                     ),
-                  ),
-                  SizedBox(width: Responsive.width(context, 12)),
-                  Expanded(
-                    child: _guestLock(
-                      context,
-                      _buildRoutineCard(
+                    SizedBox(width: Responsive.width(context, 12)),
+                    Expanded(
+                      child: _guestLock(
                         context,
-                        HugeIcons.strokeRoundedCompass,
-                        "Explore Routines",
-                        "Find & follow plans",
-                        _onExploreRoutines,
+                        _buildRoutineCard(
+                          context,
+                          HugeIcons.strokeRoundedCompass,
+                          "Explore Routines",
+                          "Find & follow plans",
+                          _onExploreRoutines,
+                        ),
+                        title: 'Sign up to explore routines',
+                        description:
+                            'Create a free account to browse featured plans and follow a program.',
                       ),
-                      title: 'Sign up to explore routines',
-                      description:
-                          'Create a free account to browse featured plans and follow a program.',
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("MY ROUTINES", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildMyRoutinesCard(context),
-                title: 'Sign up to use routines',
-                description:
-                    'Create a free account to browse featured routines or build your own.',
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildLiftsCard(context),
-                title: 'Sign up to track lifts',
-                description:
-                    'Create a free account to see your daily volume, sets, and reps at a glance.',
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("ACTIVITY HEATMAP", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildHeatmapCard(context),
-                title: 'Sign up to see your activity',
-                description:
-                    'Create a free account to track your workout consistency over time.',
-              ),
-              SizedBox(height: Responsive.height(context, 20)),
-              sectionHeader("RECENT WORKOUTS", context, appColor: appColor),
-              _guestLock(
-                context,
-                _buildRecentWorkoutsCard(context),
-                title: 'Sign up to view workout history',
-                description:
-                    'Create a free account to see your past workouts and track progress over time.',
-              ),
-              SizedBox(height: Responsive.height(context, 120)),
-            ],
+                  ],
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                sectionHeader("MY ROUTINES", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildMyRoutinesCard(context),
+                  title: 'Sign up to use routines',
+                  description:
+                      'Create a free account to browse featured routines or build your own.',
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildLiftsCard(context),
+                  title: 'Sign up to track lifts',
+                  description:
+                      'Create a free account to see your daily volume, sets, and reps at a glance.',
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                sectionHeader("ACTIVITY HEATMAP", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildHeatmapCard(context),
+                  title: 'Sign up to see your activity',
+                  description:
+                      'Create a free account to track your workout consistency over time.',
+                ),
+                SizedBox(height: Responsive.height(context, 20)),
+                sectionHeader("RECENT WORKOUTS", context, appColor: appColor),
+                _guestLock(
+                  context,
+                  _buildRecentWorkoutsCard(context),
+                  title: 'Sign up to view workout history',
+                  description:
+                      'Create a free account to see your past workouts and track progress over time.',
+                ),
+                SizedBox(height: Responsive.height(context, 120)),
+              ],
+            ),
           ),
         ),
       ),

@@ -567,153 +567,36 @@ class _RemindersState extends ConsumerState<Reminders> {
         body: SafeArea(
           child: Stack(
             children: [
-              SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: Responsive.centeredHorizontalPadding(context, 50),
-                    right: Responsive.centeredHorizontalPadding(context, 50),
-                    bottom: Responsive.height(context, 24),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                          top: Responsive.height(context, 8),
-                          bottom: Responsive.height(context, 12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () => context.pop(),
-                              child: Container(
-                                padding: EdgeInsets.all(
-                                  Responsive.scale(context, 12),
-                                ),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: lightenColor(
-                                    appColor,
-                                    0.1,
-                                  ).withAlpha(20),
-                                  border: Border.all(
-                                    color: lightenColor(
-                                      appColor,
-                                      0.3,
-                                    ).withAlpha(180),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.arrow_back_ios_new,
-                                  color: lightenColor(
-                                    appColor,
-                                    0.3,
-                                  ).withAlpha(180),
-                                  size: Responsive.font(context, 13),
-                                ),
-                              ),
-                            ),
-                            if (kIsWeb)
+              AppRefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(remindersProvider);
+                }, // no manual refresh method, invalidate triggers auto-fetch on next read
+                appColor: appColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: Responsive.centeredHorizontalPadding(context, 50),
+                      right: Responsive.centeredHorizontalPadding(context, 50),
+                      bottom: Responsive.height(context, 24),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: Responsive.height(context, 8),
+                            bottom: Responsive.height(context, 12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               GestureDetector(
-                                onTap: () => showFrostedAlertDialog(
-                                  context: context,
-                                  appColor: appColor,
-                                  title: "Notifications not working?",
-                                  content: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        "All three must be enabled:",
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            13,
-                                          ),
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.5,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 8),
-                                      ),
-                                      Text(
-                                        "1) In-app notifications\n2) Browser notification permissions\n3) Browser notifications in your system settings",
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            13,
-                                          ),
-                                          color: Colors.white54,
-                                          height: 1.6,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          HugeIcon(
-                                            icon: HugeIcons
-                                                .strokeRoundedSmartPhone01,
-                                            color: Colors.white38,
-                                            size: Responsive.scale(context, 18),
-                                          ),
-                                          SizedBox(
-                                            width: Responsive.width(
-                                              context,
-                                              10,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              "iPhone users must install Level Up! as a PWA (Add to Home Screen) for notifications to work.",
-                                              style: GoogleFonts.manrope(
-                                                fontSize: Responsive.font(
-                                                  context,
-                                                  13,
-                                                ),
-                                                color: Colors.white54,
-                                                height: 1.5,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  actions: [
-                                    Expanded(
-                                      child: Center(
-                                        child: TextButton(
-                                          onPressed: () => Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop(),
-                                          child: Text(
-                                            "Dismiss",
-                                            style: GoogleFonts.manrope(
-                                              color: lightenColor(
-                                                appColor,
-                                                0.45,
-                                              ),
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                onTap: () => context.pop(),
                                 child: Container(
-                                  width: Responsive.scale(context, 37),
-                                  height: Responsive.scale(context, 37),
+                                  padding: EdgeInsets.all(
+                                    Responsive.scale(context, 12),
+                                  ),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: lightenColor(
@@ -728,280 +611,52 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       width: 1.5,
                                     ),
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      "?",
-                                      style: GoogleFonts.manrope(
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
-                                        fontSize: Responsive.font(context, 15),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                  child: Icon(
+                                    Icons.arrow_back_ios_new,
+                                    color: lightenColor(
+                                      appColor,
+                                      0.3,
+                                    ).withAlpha(180),
+                                    size: Responsive.font(context, 13),
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-                      sectionHeader(
-                        "REMINDER DETAILS",
-                        context,
-                        appColor: appColor,
-                      ),
-                      frostedGlassCard(
-                        context,
-                        color: appColor,
-                        padding: EdgeInsets.all(Responsive.scale(context, 20)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Text field
-                            TextField(
-                              enabled: !_notifBlocked,
-                              minLines: 1,
-                              maxLines:
-                                  null, // allow the text field to expand vertically as the user types more lines
-                              controller: remindersController,
-                              keyboardType: TextInputType.text,
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 15),
-                                color: Colors.white,
-                              ),
-                              decoration: InputDecoration(
-                                prefixIcon: Padding(
-                                  padding: EdgeInsets.only(
-                                    left: Responsive.width(context, 12),
-                                    right: Responsive.width(context, 10),
-                                  ),
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedMessage01,
-                                    color: lightenColor(appColor, 0.3),
-                                    size: Responsive.scale(context, 18),
-                                  ),
-                                ),
-                                prefixIconConstraints: const BoxConstraints(),
-                                suffixIcon: !isGuest && _voiceSearch.isAvailable
-                                    ? GestureDetector(
-                                        onTap: _toggleListening,
-                                        child: Padding(
-                                          padding: EdgeInsets.only(
-                                            right: Responsive.width(
-                                              context,
-                                              12,
-                                            ),
-                                          ),
-                                          child: HugeIcon(
-                                            icon: _voiceSearch.isListening
-                                                ? HugeIcons.strokeRoundedMic01
-                                                : HugeIcons.strokeRoundedMic02,
-                                            color: _voiceSearch.isListening
-                                                ? lightenColor(appColor, 0.45)
-                                                : lightenColor(
-                                                    appColor,
-                                                    0.45,
-                                                  ).withAlpha(140),
-                                            size: Responsive.scale(context, 18),
-                                          ),
-                                        ),
-                                      )
-                                    : null,
-                                suffixIconConstraints: const BoxConstraints(),
-                                hintText:
-                                    "Enter a reminder message (E.g. $placeholderMessage)",
-                                hintStyle: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 14),
-                                  color: Colors.white38,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white.withAlpha(12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: Colors.white.withAlpha(40),
-                                    width: Responsive.scale(context, 1),
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: Colors.white.withAlpha(40),
-                                    width: Responsive.scale(context, 1),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: Colors.white.withAlpha(80),
-                                    width: Responsive.scale(context, 1.5),
-                                  ),
-                                ),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 12),
-                                ),
-                              ),
-                              onChanged: (value) => reminder = value,
-                            ),
-                            SizedBox(height: Responsive.height(context, 14)),
-
-                            // Selected date/time display, validates message before opening picker
-                            GestureDetector(
-                              onTap: _notifBlocked
-                                  ? null
-                                  : () {
-                                      if (remindersController.text
-                                          .trim()
-                                          .isEmpty) {
-                                        _showSnackbar(
-                                          "Enter a message first.",
-                                          isError: true,
-                                        );
-                                        return;
-                                      }
-                                      pickDateTime(
-                                        context,
-                                        dateTime,
-                                        (newDate) => setState(() {
-                                          dateTime = newDate;
-                                          _dateTimePicked = true;
-                                        }),
-                                      );
-                                    },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 16),
-                                  vertical: Responsive.height(context, 12),
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(12),
-                                  borderRadius: BorderRadius.circular(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withAlpha(40),
-                                    width: Responsive.scale(context, 1),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    HugeIcon(
-                                      icon: HugeIcons.strokeRoundedClock01,
-                                      color: lightenColor(appColor, 0.3),
-                                      size: Responsive.scale(context, 18),
-                                    ),
-                                    SizedBox(
-                                      width: Responsive.width(context, 10),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        !_dateTimePicked
-                                            ? "Enter a reminder time"
-                                            : _formatDateTime(dateTime),
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            15,
-                                          ),
-                                          color: Colors.white38,
-                                        ),
-                                      ),
-                                    ),
-
-                                    HugeIcon(
-                                      icon: HugeIcons.strokeRoundedArrowRight01,
-                                      color: Colors.white38,
-                                      size: Responsive.scale(context, 18),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (isLoading)
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  top: Responsive.height(context, 16),
-                                ),
-                                child: Center(
-                                  child: SizedBox(
-                                    height: Responsive.scale(context, 24),
-                                    width: Responsive.scale(context, 24),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: Responsive.scale(context, 2),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: Responsive.height(context, 28)),
-
-                      // --- Section header ---
-                      sectionHeader(
-                        "UPCOMING REMINDERS",
-                        context,
-                        appColor: appColor,
-                      ),
-
-                      // Reminder list or empty state
-                      Builder(
-                        builder: (context) {
-                          final remindersAsync = ref.watch(remindersProvider);
-                          final isLoading = remindersAsync.isLoading;
-                          final reminders = remindersAsync.value ?? [];
-
-                          if (!isGuest && isLoading) {
-                            return Skeletonizer(
-                              effect: ShimmerEffect(
-                                baseColor: darkenColor(appColor, 0.1),
-                                highlightColor: lightenColor(appColor, 0.2),
-                                duration: const Duration(milliseconds: 1200),
-                              ),
-                              child: Column(
-                                children: List.generate(
-                                  3,
-                                  (_) => _buildReminderCard(
-                                    ReminderData(
-                                      id: 'placeholder',
-                                      message: 'Loading reminder message here',
-                                      scheduledAt: DateTime.now(),
-                                      notificationId: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          return reminders.isEmpty
-                              ? Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: Responsive.height(context, 32),
-                                  ),
-                                  child: frostedGlassCard(
-                                    context,
-                                    color: appColor,
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: Responsive.height(context, 32),
-                                      horizontal: Responsive.width(context, 20),
-                                    ),
-                                    child: Column(
+                              if (kIsWeb)
+                                GestureDetector(
+                                  onTap: () => showFrostedAlertDialog(
+                                    context: context,
+                                    appColor: appColor,
+                                    title: "Notifications not working?",
+                                    content: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        HugeIcon(
-                                          icon: HugeIcons
-                                              .strokeRoundedNotification02,
-                                          color: Colors.white24,
-                                          size: Responsive.scale(context, 48),
+                                        Text(
+                                          "All three must be enabled:",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              13,
+                                            ),
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: Responsive.height(context, 8),
+                                        ),
+                                        Text(
+                                          "1) In-app notifications\n2) Browser notification permissions\n3) Browser notifications in your system settings",
+                                          style: GoogleFonts.manrope(
+                                            fontSize: Responsive.font(
+                                              context,
+                                              13,
+                                            ),
+                                            color: Colors.white54,
+                                            height: 1.6,
+                                          ),
                                         ),
                                         SizedBox(
                                           height: Responsive.height(
@@ -1009,46 +664,428 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             12,
                                           ),
                                         ),
-                                        Text(
-                                          "No upcoming reminders",
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedSmartPhone01,
+                                              color: Colors.white38,
+                                              size: Responsive.scale(
+                                                context,
+                                                18,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              width: Responsive.width(
+                                                context,
+                                                10,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                "iPhone users must install Level Up! as a PWA (Add to Home Screen) for notifications to work.",
+                                                style: GoogleFonts.manrope(
+                                                  fontSize: Responsive.font(
+                                                    context,
+                                                    13,
+                                                  ),
+                                                  color: Colors.white54,
+                                                  height: 1.5,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      Expanded(
+                                        child: Center(
+                                          child: TextButton(
+                                            onPressed: () => Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).pop(),
+                                            child: Text(
+                                              "Dismiss",
+                                              style: GoogleFonts.manrope(
+                                                color: lightenColor(
+                                                  appColor,
+                                                  0.45,
+                                                ),
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Container(
+                                    width: Responsive.scale(context, 37),
+                                    height: Responsive.scale(context, 37),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "?",
+                                        style: GoogleFonts.manrope(
+                                          color: lightenColor(
+                                            appColor,
+                                            0.3,
+                                          ).withAlpha(180),
+                                          fontSize: Responsive.font(
+                                            context,
+                                            15,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        sectionHeader(
+                          "REMINDER DETAILS",
+                          context,
+                          appColor: appColor,
+                        ),
+                        frostedGlassCard(
+                          context,
+                          color: appColor,
+                          padding: EdgeInsets.all(
+                            Responsive.scale(context, 20),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Text field
+                              TextField(
+                                enabled: !_notifBlocked,
+                                minLines: 1,
+                                maxLines:
+                                    null, // allow the text field to expand vertically as the user types more lines
+                                controller: remindersController,
+                                keyboardType: TextInputType.text,
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 15),
+                                  color: Colors.white,
+                                ),
+                                decoration: InputDecoration(
+                                  prefixIcon: Padding(
+                                    padding: EdgeInsets.only(
+                                      left: Responsive.width(context, 12),
+                                      right: Responsive.width(context, 10),
+                                    ),
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedMessage01,
+                                      color: lightenColor(appColor, 0.3),
+                                      size: Responsive.scale(context, 18),
+                                    ),
+                                  ),
+                                  prefixIconConstraints: const BoxConstraints(),
+                                  suffixIcon:
+                                      !isGuest && _voiceSearch.isAvailable
+                                      ? GestureDetector(
+                                          onTap: _toggleListening,
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                              right: Responsive.width(
+                                                context,
+                                                12,
+                                              ),
+                                            ),
+                                            child: HugeIcon(
+                                              icon: _voiceSearch.isListening
+                                                  ? HugeIcons.strokeRoundedMic01
+                                                  : HugeIcons
+                                                        .strokeRoundedMic02,
+                                              color: _voiceSearch.isListening
+                                                  ? lightenColor(appColor, 0.45)
+                                                  : lightenColor(
+                                                      appColor,
+                                                      0.45,
+                                                    ).withAlpha(140),
+                                              size: Responsive.scale(
+                                                context,
+                                                18,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : null,
+                                  suffixIconConstraints: const BoxConstraints(),
+                                  hintText:
+                                      "Enter a reminder message (E.g. $placeholderMessage)",
+                                  hintStyle: GoogleFonts.manrope(
+                                    fontSize: Responsive.font(context, 14),
+                                    color: Colors.white38,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withAlpha(12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withAlpha(40),
+                                      width: Responsive.scale(context, 1),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withAlpha(40),
+                                      width: Responsive.scale(context, 1),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withAlpha(80),
+                                      width: Responsive.scale(context, 1.5),
+                                    ),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(context, 16),
+                                    vertical: Responsive.height(context, 12),
+                                  ),
+                                ),
+                                onChanged: (value) => reminder = value,
+                              ),
+                              SizedBox(height: Responsive.height(context, 14)),
+
+                              // Selected date/time display, validates message before opening picker
+                              GestureDetector(
+                                onTap: _notifBlocked
+                                    ? null
+                                    : () {
+                                        if (remindersController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          _showSnackbar(
+                                            "Enter a message first.",
+                                            isError: true,
+                                          );
+                                          return;
+                                        }
+                                        pickDateTime(
+                                          context,
+                                          dateTime,
+                                          (newDate) => setState(() {
+                                            dateTime = newDate;
+                                            _dateTimePicked = true;
+                                          }),
+                                        );
+                                      },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(context, 16),
+                                    vertical: Responsive.height(context, 12),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withAlpha(12),
+                                    borderRadius: BorderRadius.circular(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withAlpha(40),
+                                      width: Responsive.scale(context, 1),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      HugeIcon(
+                                        icon: HugeIcons.strokeRoundedClock01,
+                                        color: lightenColor(appColor, 0.3),
+                                        size: Responsive.scale(context, 18),
+                                      ),
+                                      SizedBox(
+                                        width: Responsive.width(context, 10),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          !_dateTimePicked
+                                              ? "Enter a reminder time"
+                                              : _formatDateTime(dateTime),
                                           style: GoogleFonts.manrope(
                                             fontSize: Responsive.font(
                                               context,
                                               15,
                                             ),
                                             color: Colors.white38,
-                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        SizedBox(
-                                          height: Responsive.height(context, 6),
+                                      ),
+
+                                      HugeIcon(
+                                        icon:
+                                            HugeIcons.strokeRoundedArrowRight01,
+                                        color: Colors.white38,
+                                        size: Responsive.scale(context, 18),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (isLoading)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: Responsive.height(context, 16),
+                                  ),
+                                  child: Center(
+                                    child: SizedBox(
+                                      height: Responsive.scale(context, 24),
+                                      width: Responsive.scale(context, 24),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: Responsive.scale(
+                                          context,
+                                          2,
                                         ),
-                                        Text(
-                                          "Type a message above and tap the time row to set one.",
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.manrope(
-                                            fontSize: Responsive.font(
-                                              context,
-                                              13,
-                                            ),
-                                            color: Colors.white24,
-                                            height: 1.5,
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                )
-                              : Column(
-                                  children: reminders
-                                      .map(_buildReminderCard)
-                                      .toList(),
-                                );
-                        },
-                      ),
+                                ),
+                            ],
+                          ),
+                        ),
 
-                      SizedBox(height: Responsive.height(context, 40)),
-                    ],
+                        SizedBox(height: Responsive.height(context, 28)),
+
+                        // --- Section header ---
+                        sectionHeader(
+                          "UPCOMING REMINDERS",
+                          context,
+                          appColor: appColor,
+                        ),
+
+                        // Reminder list or empty state
+                        Builder(
+                          builder: (context) {
+                            final remindersAsync = ref.watch(remindersProvider);
+                            final isLoading = remindersAsync.isLoading;
+                            final reminders = remindersAsync.value ?? [];
+
+                            if (!isGuest && isLoading) {
+                              return Skeletonizer(
+                                effect: ShimmerEffect(
+                                  baseColor: lightenColor(appColor, 0.3),
+                                  highlightColor: lightenColor(appColor, 0.1),
+                                  duration: const Duration(milliseconds: 1200),
+                                ),
+                                child: Column(
+                                  children: List.generate(
+                                    3,
+                                    (_) => _buildReminderCard(
+                                      ReminderData(
+                                        id: 'placeholder',
+                                        message:
+                                            'Loading reminder message here',
+                                        scheduledAt: DateTime.now(),
+                                        notificationId: 0,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return reminders.isEmpty
+                                ? Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: Responsive.height(context, 32),
+                                    ),
+                                    child: frostedGlassCard(
+                                      context,
+                                      color: appColor,
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: Responsive.height(
+                                          context,
+                                          32,
+                                        ),
+                                        horizontal: Responsive.width(
+                                          context,
+                                          20,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          HugeIcon(
+                                            icon: HugeIcons
+                                                .strokeRoundedNotification02,
+                                            color: Colors.white24,
+                                            size: Responsive.scale(context, 48),
+                                          ),
+                                          SizedBox(
+                                            height: Responsive.height(
+                                              context,
+                                              12,
+                                            ),
+                                          ),
+                                          Text(
+                                            "No upcoming reminders",
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                context,
+                                                15,
+                                              ),
+                                              color: Colors.white38,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: Responsive.height(
+                                              context,
+                                              6,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Type a message above and tap the time row to set one.",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.manrope(
+                                              fontSize: Responsive.font(
+                                                context,
+                                                13,
+                                              ),
+                                              color: Colors.white24,
+                                              height: 1.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : Column(
+                                    children: reminders
+                                        .map(_buildReminderCard)
+                                        .toList(),
+                                  );
+                          },
+                        ),
+
+                        SizedBox(height: Responsive.height(context, 40)),
+                      ],
+                    ),
                   ),
                 ),
               ),

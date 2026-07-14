@@ -12,6 +12,7 @@ import 'services/leaderboard_service.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 
 // Global leaderboard_service object
 final leaderboardService = LeaderboardService();
@@ -1093,6 +1094,64 @@ Widget sectionHeader(
       ],
     ),
   );
+}
+
+// Reusable pull-to-refresh wrapper that renders a themed spinner above content
+class AppRefreshIndicator extends StatelessWidget {
+  final Widget child;
+  final Future<void> Function() onRefresh;
+  final Color appColor;
+
+  const AppRefreshIndicator({
+    super.key,
+    required this.child,
+    required this.onRefresh,
+    required this.appColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final spinnerColor = lightenColor(appColor, 0.45);
+    return CustomRefreshIndicator(
+      onRefresh: onRefresh,
+      builder: (context, child, controller) => AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) {
+          final pulling = controller.value > 0;
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              child,
+              if (pulling)
+                Positioned(
+                  top:
+                      MediaQuery.paddingOf(context).top +
+                      Responsive.height(context, 8) +
+                      (controller.value * Responsive.height(context, 40)),
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      width: Responsive.scale(context, 32),
+                      height: Responsive.scale(context, 32),
+                      child: CircularProgressIndicator(
+                        value: controller.state == IndicatorState.loading
+                            ? null
+                            : controller.value.clamp(0.0, 1.0),
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(spinnerColor),
+                        backgroundColor: spinnerColor.withAlpha(40),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      child: child,
+    );
+  }
 }
 
 // Sweeping shimmer animation over any child widget

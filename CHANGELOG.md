@@ -2680,3 +2680,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - "I'll do this later" on the goal setup step now shows a confirmation dialog explaining that smart defaults will be used
 - The username step now animates between the type-your-own and random suggestion views with a smooth fade and slide transition
 - The onboarding hint cards now pulse subtly to draw attention
+- Pull to refresh added to all main tabs and sub-screens: Home, Food, Workout, Progression, Leaderboard, Badges, and Reminders
+- Each tab shows its existing skeletonizer while refreshing

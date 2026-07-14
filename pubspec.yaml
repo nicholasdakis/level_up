@@ -126,6 +126,7 @@ dependencies:
 
   # skeleton loading placeholders
   skeletonizer: ^2.1.3
+  custom_refresh_indicator: ^4.0.1
 
   # declarative animations
   flutter_animate: ^4.5.2

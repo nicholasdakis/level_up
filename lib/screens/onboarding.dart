@@ -1709,7 +1709,7 @@ Future<String?> showOnboardingWizard(
                       ),
                     ),
                   ),
-                  // red is fine here — users have not chosen a theme color yet at this point in onboarding
+                  // red is fine here, users have not chosen a theme color yet at this point in onboarding
                   if (setupMissingError != null)
                     Padding(
                       padding: EdgeInsets.only(top: Responsive.height(ctx, 8)),

@@ -365,105 +365,117 @@ class _ProgressionState extends ConsumerState<Progression> {
       decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: ScrollConfiguration(
-          behavior: NoGlowScrollBehavior(),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.centeredHorizontalPadding(context, 20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height:
-                        MediaQuery.paddingOf(context).top +
-                        Responsive.height(context, 24),
-                  ),
-                  sectionHeader("LEADERBOARDS", context, appColor: appColor),
-                  isGuest
-                      ? GestureDetector(
-                          onTap: () => Guest.block(
-                            context,
-                            title: 'Sign up to compete',
-                            description:
-                                'Create a free account to appear on the leaderboard and see how you rank.',
-                          ),
-                          child: Stack(
-                            children: [
-                              IgnorePointer(
-                                child: Opacity(
-                                  opacity: 0.35,
-                                  child: Column(
-                                    children: [
-                                      _buildCard(
-                                        icon: HugeIcons.strokeRoundedMedal01,
-                                        title: "Leaderboards",
-                                        subtitle:
-                                            "Compete across XP, foods logged, and workouts",
-                                        onTap: () {},
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 12),
-                                      ),
-                                      _buildStandingCard(context),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              guestLockOverlay(context, appColor),
-                            ],
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            _buildCard(
-                              icon: HugeIcons.strokeRoundedMedal01,
-                              title: "Leaderboards",
-                              subtitle:
-                                  "Compete across XP, foods logged, and workouts",
-                              onTap: () => context.push('/leaderboard'),
+        body: AppRefreshIndicator(
+          onRefresh: () async {
+            await _fetchStanding();
+            await ref.read(userDataProvider.notifier).refreshUserData();
+          },
+          appColor: appColor,
+          child: ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.centeredHorizontalPadding(context, 20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height:
+                          MediaQuery.paddingOf(context).top +
+                          Responsive.height(context, 24),
+                    ),
+                    sectionHeader("LEADERBOARDS", context, appColor: appColor),
+                    isGuest
+                        ? GestureDetector(
+                            onTap: () => Guest.block(
+                              context,
+                              title: 'Sign up to compete',
+                              description:
+                                  'Create a free account to appear on the leaderboard and see how you rank.',
                             ),
-                            SizedBox(height: Responsive.height(context, 12)),
-                            _buildStandingCard(context),
-                          ],
-                        ),
-                  SizedBox(height: Responsive.height(context, 20)),
-                  sectionHeader("BADGES", context, appColor: appColor),
-                  isGuest
-                      ? GestureDetector(
-                          onTap: () => Guest.block(
-                            context,
-                            title: 'Sign up to earn badges',
-                            description:
-                                'Create a free account to unlock achievements and claim tier rewards.',
-                          ),
-                          child: Stack(
-                            children: [
-                              IgnorePointer(
-                                child: Opacity(
-                                  opacity: 0.35,
-                                  child: _buildCard(
-                                    icon: HugeIcons.strokeRoundedCrown,
-                                    title: "Badges",
-                                    subtitle:
-                                        "Track achievements and claim tier rewards",
-                                    onTap: () {},
+                            child: Stack(
+                              children: [
+                                IgnorePointer(
+                                  child: Opacity(
+                                    opacity: 0.35,
+                                    child: Column(
+                                      children: [
+                                        _buildCard(
+                                          icon: HugeIcons.strokeRoundedMedal01,
+                                          title: "Leaderboards",
+                                          subtitle:
+                                              "Compete across XP, foods logged, and workouts",
+                                          onTap: () {},
+                                        ),
+                                        SizedBox(
+                                          height: Responsive.height(
+                                            context,
+                                            12,
+                                          ),
+                                        ),
+                                        _buildStandingCard(context),
+                                      ],
+                                    ),
                                   ),
                                 ),
+                                guestLockOverlay(context, appColor),
+                              ],
+                            ),
+                          )
+                        : Column(
+                            children: [
+                              _buildCard(
+                                icon: HugeIcons.strokeRoundedMedal01,
+                                title: "Leaderboards",
+                                subtitle:
+                                    "Compete across XP, foods logged, and workouts",
+                                onTap: () => context.push('/leaderboard'),
                               ),
-                              guestLockOverlay(context, appColor),
+                              SizedBox(height: Responsive.height(context, 12)),
+                              _buildStandingCard(context),
                             ],
                           ),
-                        )
-                      : _buildCard(
-                          icon: HugeIcons.strokeRoundedCrown,
-                          title: "Badges",
-                          subtitle: "Track achievements and claim tier rewards",
-                          onTap: () => context.push('/badges'),
-                        ),
-                  SizedBox(height: Responsive.height(context, 120)),
-                ],
+                    SizedBox(height: Responsive.height(context, 20)),
+                    sectionHeader("BADGES", context, appColor: appColor),
+                    isGuest
+                        ? GestureDetector(
+                            onTap: () => Guest.block(
+                              context,
+                              title: 'Sign up to earn badges',
+                              description:
+                                  'Create a free account to unlock achievements and claim tier rewards.',
+                            ),
+                            child: Stack(
+                              children: [
+                                IgnorePointer(
+                                  child: Opacity(
+                                    opacity: 0.35,
+                                    child: _buildCard(
+                                      icon: HugeIcons.strokeRoundedCrown,
+                                      title: "Badges",
+                                      subtitle:
+                                          "Track achievements and claim tier rewards",
+                                      onTap: () {},
+                                    ),
+                                  ),
+                                ),
+                                guestLockOverlay(context, appColor),
+                              ],
+                            ),
+                          )
+                        : _buildCard(
+                            icon: HugeIcons.strokeRoundedCrown,
+                            title: "Badges",
+                            subtitle:
+                                "Track achievements and claim tier rewards",
+                            onTap: () => context.push('/badges'),
+                          ),
+                    SizedBox(height: Responsive.height(context, 120)),
+                  ],
+                ),
               ),
             ),
           ),

@@ -1831,155 +1831,172 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                 highlightColor: lightenColor(appColor, 0.1),
                 duration: const Duration(milliseconds: 1200),
               ),
-              child: ListView(
-                padding: EdgeInsets.only(
-                  left: Responsive.centeredHorizontalPadding(context, 20),
-                  right: Responsive.centeredHorizontalPadding(context, 20),
-                  top:
-                      MediaQuery.paddingOf(context).top +
-                      Responsive.height(context, 16),
-                  bottom: Responsive.height(context, 12),
-                ),
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DateNavigationRow(
-                          appColor: appColor,
-                          currentDate: currentDate,
-                          onDateChanged: (date) {
-                            setState(() => currentDate = date);
-                            loadFoodForDate(date);
-                          },
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => setState(() {
-                          _refreshAndLoadFood();
-                        }),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
+              child: AppRefreshIndicator(
+                onRefresh: _refreshAndLoadFood,
+                appColor: appColor,
+                child: ListView(
+                  padding: EdgeInsets.only(
+                    left: Responsive.centeredHorizontalPadding(context, 20),
+                    right: Responsive.centeredHorizontalPadding(context, 20),
+                    top:
+                        MediaQuery.paddingOf(context).top +
+                        Responsive.height(context, 16),
+                    bottom: Responsive.height(context, 12),
+                  ),
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DateNavigationRow(
+                            appColor: appColor,
+                            currentDate: currentDate,
+                            onDateChanged: (date) {
+                              setState(() => currentDate = date);
+                              loadFoodForDate(date);
+                            },
                           ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: lightenColor(appColor, 0.1).withAlpha(20),
-                            border: Border.all(
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() {
+                            _refreshAndLoadFood();
+                          }),
+                          child: Container(
+                            padding: EdgeInsets.all(
+                              Responsive.scale(context, 12),
+                            ),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: lightenColor(appColor, 0.1).withAlpha(20),
+                              border: Border.all(
+                                color: lightenColor(
+                                  appColor,
+                                  0.3,
+                                ).withAlpha(180),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.refresh,
                               color: lightenColor(appColor, 0.3).withAlpha(180),
-                              width: 1.5,
+                              size: Responsive.font(context, 13),
                             ),
                           ),
-                          child: Icon(
-                            Icons.refresh,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
-                            size: Responsive.font(context, 13),
-                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  SizedBox(height: Responsive.height(context, 16)),
-                  _buildCaloriesBar(appColor),
+                    SizedBox(height: Responsive.height(context, 16)),
+                    _buildCaloriesBar(appColor),
 
-                  SizedBox(height: Responsive.height(context, 20)),
-                  Stack(
-                    children: [
-                      _buildMacroGauges(appColor),
-                      if (_goalsSet)
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(
-                                () => _microsExpanded = !_microsExpanded,
-                              );
-                              _saveMicrosExpanded(_microsExpanded);
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: Padding(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 4),
-                              ),
-                              child: AnimatedRotation(
-                                turns: _microsExpanded ? -0.5 : 0,
-                                duration: const Duration(milliseconds: 200),
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedArrowDown01,
-                                  color: lightenColor(appColor, 0.30),
-                                  size: Responsive.scale(context, 18),
+                    SizedBox(height: Responsive.height(context, 20)),
+                    Stack(
+                      children: [
+                        _buildMacroGauges(appColor),
+                        if (_goalsSet)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(
+                                  () => _microsExpanded = !_microsExpanded,
+                                );
+                                _saveMicrosExpanded(_microsExpanded);
+                              },
+                              behavior: HitTestBehavior.opaque,
+                              child: Padding(
+                                padding: EdgeInsets.all(
+                                  Responsive.scale(context, 4),
+                                ),
+                                child: AnimatedRotation(
+                                  turns: _microsExpanded ? -0.5 : 0,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedArrowDown01,
+                                    color: lightenColor(appColor, 0.30),
+                                    size: Responsive.scale(context, 18),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  if (_goalsSet) _buildMicroGoalsRow(),
+                      ],
+                    ),
+                    if (_goalsSet) _buildMicroGoalsRow(),
 
-                  SizedBox(height: Responsive.height(context, 8)),
+                    SizedBox(height: Responsive.height(context, 8)),
 
-                  _buildMealSection(
-                    "breakfast",
-                    "Breakfast",
-                    breakfastFoods,
-                    colors[0],
-                  ),
-                  _buildMealSection("lunch", "Lunch", lunchFoods, colors[1]),
-                  _buildMealSection("dinner", "Dinner", dinnerFoods, colors[2]),
-                  _buildMealSection("snacks", "Snacks", snacksFoods, colors[3]),
-
-                  SizedBox(height: Responsive.height(context, 24)),
-
-                  // FatSecret terms require attribution to be visible without login
-                  if (isGuest)
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () => launchUrl(
-                              Uri.parse("https://platform.fatsecret.com"),
-                            ),
-                            child: Text(
-                              "Powered by FatSecret",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white24,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white24,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            "  ·  ",
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 11),
-                              color: Colors.white24,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => launchUrl(
-                              Uri.parse("https://openfoodfacts.org"),
-                            ),
-                            child: Text(
-                              "Open Food Facts (ODbL)",
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
-                                color: Colors.white24,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.white24,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    _buildMealSection(
+                      "breakfast",
+                      "Breakfast",
+                      breakfastFoods,
+                      colors[0],
+                    ),
+                    _buildMealSection("lunch", "Lunch", lunchFoods, colors[1]),
+                    _buildMealSection(
+                      "dinner",
+                      "Dinner",
+                      dinnerFoods,
+                      colors[2],
+                    ),
+                    _buildMealSection(
+                      "snacks",
+                      "Snacks",
+                      snacksFoods,
+                      colors[3],
                     ),
 
-                  // Extra space so content clears the floating nav bar
-                  SizedBox(height: Responsive.height(context, 100)),
-                ],
+                    SizedBox(height: Responsive.height(context, 24)),
+
+                    // FatSecret terms require attribution to be visible without login
+                    if (isGuest)
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () => launchUrl(
+                                Uri.parse("https://platform.fatsecret.com"),
+                              ),
+                              child: Text(
+                                "Powered by FatSecret",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: Colors.white24,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.white24,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              "  ·  ",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white24,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => launchUrl(
+                                Uri.parse("https://openfoodfacts.org"),
+                              ),
+                              child: Text(
+                                "Open Food Facts (ODbL)",
+                                style: GoogleFonts.manrope(
+                                  fontSize: Responsive.font(context, 11),
+                                  color: Colors.white24,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.white24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Extra space so content clears the floating nav bar
+                    SizedBox(height: Responsive.height(context, 100)),
+                  ],
+                ),
               ),
             ),
             OnboardingHint(

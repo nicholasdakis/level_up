@@ -74,14 +74,14 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
-                date: 'July 13, 2026',
+                date: 'July 14, 2026',
                 version: '1.2.3',
                 changes: [
                   'Micronutrient tracking, goals, and analytics are now here. Track your fiber, sodium, and sugar intake.',
                   'Active workout sessions now show a persistent foreground notification for frictionless workout logging.',
                   'Guest mode and onboarding have been completely overhauled to provide a richer experience for new users browsing and joining the app.',
                   'Food logging and workout tracking have received numerous usability improvements.',
-                  'Past workouts can now be deleted',
+                  'Pull-to-refresh added to most screens',
                   'A smoother, faster experience with dozens of UI refinements, bug fixes, performance improvements, and security enhancements.',
                 ],
               ),

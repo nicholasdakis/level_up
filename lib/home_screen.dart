@@ -1189,305 +1189,256 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
-              ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: Responsive.centeredHorizontalPadding(context, 24),
-                      right: Responsive.centeredHorizontalPadding(context, 24),
-                      top:
-                          MediaQuery.paddingOf(context).top +
-                          Responsive.height(context, 16),
-                      bottom: Responsive.height(context, 20),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Guest banner
-                        if (isGuest) ...[
-                          _buildGuestBanner(),
-                          SizedBox(height: Responsive.height(context, 16)),
-                        ],
+              AppRefreshIndicator(
+                onRefresh: () async {
+                  setState(() => _initialized = false);
+                  await ref.read(userDataProvider.notifier).refreshUserData();
+                  if (mounted) setState(() => _initialized = true);
+                },
+                appColor: appColor,
+                child: ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    controller: _scrollController,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: Responsive.centeredHorizontalPadding(context, 24),
+                        right: Responsive.centeredHorizontalPadding(
+                          context,
+                          24,
+                        ),
+                        top:
+                            MediaQuery.paddingOf(context).top +
+                            Responsive.height(context, 16),
+                        bottom: Responsive.height(context, 20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Guest banner
+                          if (isGuest) ...[
+                            _buildGuestBanner(),
+                            SizedBox(height: Responsive.height(context, 16)),
+                          ],
 
-                        // Greeting: time of day small + name big, settings icon top right
-                        _maybeAnimate(
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      username != null
-                                          ? _timeOfDayLabel()
-                                          : "WELCOME TO LEVEL UP!",
-                                      style: GoogleFonts.manrope(
-                                        color: lightenColor(appColor, 0.45),
-                                        fontSize: Responsive.font(
-                                          context,
-                                          username != null ? 14 : 20,
-                                        ),
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: Responsive.scale(
-                                          context,
-                                          1.2,
+                          // Greeting: time of day small + name big, settings icon top right
+                          _maybeAnimate(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        username != null
+                                            ? _timeOfDayLabel()
+                                            : "WELCOME TO LEVEL UP!",
+                                        style: GoogleFonts.manrope(
+                                          color: lightenColor(appColor, 0.45),
+                                          fontSize: Responsive.font(
+                                            context,
+                                            username != null ? 14 : 20,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: Responsive.scale(
+                                            context,
+                                            1.2,
+                                          ),
                                         ),
                                       ),
+                                      SizedBox(
+                                        height: Responsive.height(context, 2),
+                                      ),
+                                      Text(
+                                        username != null
+                                            ? "$username${_greetingIsQuestion ? "?" : "!"}"
+                                            : "",
+                                        style: GoogleFonts.manrope(
+                                          color: lightenColor(appColor, 0.45),
+                                          fontSize: Responsive.font(
+                                            context,
+                                            26,
+                                          ),
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SettingsIconButton(
+                                  onTap: () =>
+                                      _scaffoldKey.currentState?.openDrawer(),
+                                ),
+                              ],
+                            ),
+                            0.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 16)),
+
+                          sectionHeader(
+                            "PROGRESS",
+                            context,
+                            appColor: appColor,
+                          ),
+                          _maybeAnimate(
+                            isGuest
+                                ? GestureDetector(
+                                    onTap: () => Guest.block(
+                                      context,
+                                      title: 'Sign up to level up',
+                                      description:
+                                          'Create a free account to earn XP, level up, and track your progression.',
                                     ),
+                                    child: Stack(
+                                      children: [
+                                        IgnorePointer(
+                                          child: Opacity(
+                                            opacity: 0.35,
+                                            child: _buildXpCard(),
+                                          ),
+                                        ),
+                                        guestLockOverlay(context, appColor),
+                                      ],
+                                    ),
+                                  )
+                                : _buildXpCard(),
+                            60.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          ...[
+                            sectionHeader(
+                              "EARN XP",
+                              context,
+                              appColor: appColor,
+                            ),
+                            _maybeAnimate(
+                              IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(child: _buildEarnXpCard()),
                                     SizedBox(
-                                      height: Responsive.height(context, 2),
+                                      width: Responsive.width(context, 12),
                                     ),
-                                    Text(
-                                      username != null
-                                          ? "$username${_greetingIsQuestion ? "?" : "!"}"
-                                          : "",
-                                      style: GoogleFonts.manrope(
-                                        color: lightenColor(appColor, 0.45),
-                                        fontSize: Responsive.font(context, 26),
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.1,
+                                    Expanded(
+                                      child: buildReferralsCard(
+                                        context,
+                                        appColor,
+                                        ref,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              SettingsIconButton(
-                                onTap: () =>
-                                    _scaffoldKey.currentState?.openDrawer(),
+                              120.ms,
+                            ),
+                            SizedBox(height: Responsive.height(context, 12)),
+                            // Daily reward sits below the earn XP tiles as a slim full-width row
+                            _maybeAnimate(_buildDailyRewardCard(), 150.ms),
+                            SizedBox(height: Responsive.height(context, 20)),
+                          ],
+
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: sectionHeader(
+                                  "LOGGING",
+                                  context,
+                                  appColor: appColor,
+                                ),
                               ),
-                            ],
+                            ),
                           ),
-                          0.ms,
-                        ),
-                        SizedBox(height: Responsive.height(context, 16)),
+                          _maybeAnimate(
+                            Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 600,
+                                ),
+                                child: HomeLoggingCards(
+                                  onShowWaterSheet: _showWaterLogSheet,
+                                  onShowWeightSheet: _showWeightLogSheet,
+                                ),
+                              ),
+                            ),
+                            160.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
 
-                        sectionHeader("PROGRESS", context, appColor: appColor),
-                        _maybeAnimate(
-                          isGuest
-                              ? GestureDetector(
-                                  onTap: () => Guest.block(
-                                    context,
-                                    title: 'Sign up to level up',
-                                    description:
-                                        'Create a free account to earn XP, level up, and track your progression.',
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      IgnorePointer(
-                                        child: Opacity(
-                                          opacity: 0.35,
-                                          child: _buildXpCard(),
+                          sectionHeader("STREAKS", context, appColor: appColor),
+                          _maybeAnimate(
+                            isGuest
+                                ? GestureDetector(
+                                    onTap: () => Guest.block(
+                                      context,
+                                      title: 'Sign up to track streaks',
+                                      description:
+                                          'Create a free account to build daily reward, food logging, and workout streaks.',
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        IgnorePointer(
+                                          child: Opacity(
+                                            opacity: 0.35,
+                                            child: _buildStreakCard(),
+                                          ),
                                         ),
-                                      ),
-                                      guestLockOverlay(context, appColor),
-                                    ],
-                                  ),
-                                )
-                              : _buildXpCard(),
-                          60.ms,
-                        ),
-                        SizedBox(height: Responsive.height(context, 20)),
+                                        guestLockOverlay(context, appColor),
+                                      ],
+                                    ),
+                                  )
+                                : _buildStreakCard(),
+                            180.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
 
-                        ...[
-                          sectionHeader("EARN XP", context, appColor: appColor),
+                          sectionHeader("TOOLS", context, appColor: appColor),
+                          // Tool tiles row
                           _maybeAnimate(
                             IntrinsicHeight(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Expanded(child: _buildEarnXpCard()),
-                                  SizedBox(
-                                    width: Responsive.width(context, 12),
-                                  ),
                                   Expanded(
-                                    child: buildReferralsCard(
-                                      context,
-                                      appColor,
-                                      ref,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            120.ms,
-                          ),
-                          SizedBox(height: Responsive.height(context, 12)),
-                          // Daily reward sits below the earn XP tiles as a slim full-width row
-                          _maybeAnimate(_buildDailyRewardCard(), 150.ms),
-                          SizedBox(height: Responsive.height(context, 20)),
-                        ],
-
-                        Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 600),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: sectionHeader(
-                                "LOGGING",
-                                context,
-                                appColor: appColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                        _maybeAnimate(
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 600),
-                              child: HomeLoggingCards(
-                                onShowWaterSheet: _showWaterLogSheet,
-                                onShowWeightSheet: _showWeightLogSheet,
-                              ),
-                            ),
-                          ),
-                          160.ms,
-                        ),
-                        SizedBox(height: Responsive.height(context, 20)),
-
-                        sectionHeader("STREAKS", context, appColor: appColor),
-                        _maybeAnimate(
-                          isGuest
-                              ? GestureDetector(
-                                  onTap: () => Guest.block(
-                                    context,
-                                    title: 'Sign up to track streaks',
-                                    description:
-                                        'Create a free account to build daily reward, food logging, and workout streaks.',
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      IgnorePointer(
-                                        child: Opacity(
-                                          opacity: 0.35,
-                                          child: _buildStreakCard(),
-                                        ),
-                                      ),
-                                      guestLockOverlay(context, appColor),
-                                    ],
-                                  ),
-                                )
-                              : _buildStreakCard(),
-                          180.ms,
-                        ),
-                        SizedBox(height: Responsive.height(context, 20)),
-
-                        sectionHeader("TOOLS", context, appColor: appColor),
-                        // Tool tiles row
-                        _maybeAnimate(
-                          IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      trackTrivialAchievement("open_reminders");
-                                      logAnalyticsEvent('tap_reminders');
-                                      context.push('/reminders');
-                                    },
-                                    child: frostedGlassCard(
-                                      context,
-                                      color: appColor,
-                                      baseRadius: 14,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          16,
-                                        ),
-                                        vertical: Responsive.height(
-                                          context,
-                                          14,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              HugeIcon(
-                                                icon: HugeIcons
-                                                    .strokeRoundedAlarmClock,
-                                                color: lightenColor(
-                                                  appColor,
-                                                  0.35,
-                                                ),
-                                                size: Responsive.scale(
-                                                  context,
-                                                  20,
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                width: Responsive.width(
-                                                  context,
-                                                  8,
-                                                ),
-                                              ),
-                                              Text(
-                                                "Reminders",
-                                                style: GoogleFonts.manrope(
-                                                  color: lightenColor(
-                                                    appColor,
-                                                    0.45,
-                                                  ),
-                                                  fontSize: Responsive.font(
-                                                    context,
-                                                    13,
-                                                  ),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        trackTrivialAchievement(
+                                          "open_reminders",
+                                        );
+                                        logAnalyticsEvent('tap_reminders');
+                                        context.push('/reminders');
+                                      },
+                                      child: frostedGlassCard(
+                                        context,
+                                        color: appColor,
+                                        baseRadius: 14,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Responsive.width(
+                                            context,
+                                            16,
                                           ),
-                                          Icon(
-                                            Icons.chevron_right,
-                                            color: lightenColor(appColor, 0.3),
-                                            size: Responsive.scale(context, 18),
+                                          vertical: Responsive.height(
+                                            context,
+                                            14,
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: Responsive.width(context, 12)),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      trackTrivialAchievement(
-                                        "calorie_calculator",
-                                      );
-                                      logAnalyticsEvent(
-                                        'tap_calorie_calculator',
-                                      );
-                                      context.push('/calorie-calculator');
-                                    },
-                                    child: frostedGlassCard(
-                                      context,
-                                      color: appColor,
-                                      baseRadius: 14,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          16,
                                         ),
-                                        vertical: Responsive.height(
-                                          context,
-                                          14,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
                                               children: [
                                                 HugeIcon(
                                                   icon: HugeIcons
-                                                      .strokeRoundedCalculate,
+                                                      .strokeRoundedAlarmClock,
                                                   color: lightenColor(
                                                     appColor,
                                                     0.35,
@@ -1503,45 +1454,139 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                                     8,
                                                   ),
                                                 ),
-                                                Flexible(
-                                                  child: Text(
-                                                    "Calorie Calculator",
-                                                    style: GoogleFonts.manrope(
-                                                      color: lightenColor(
-                                                        appColor,
-                                                        0.45,
-                                                      ),
-                                                      fontSize: Responsive.font(
-                                                        context,
-                                                        13,
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                                Text(
+                                                  "Reminders",
+                                                  style: GoogleFonts.manrope(
+                                                    color: lightenColor(
+                                                      appColor,
+                                                      0.45,
                                                     ),
+                                                    fontSize: Responsive.font(
+                                                      context,
+                                                      13,
+                                                    ),
+                                                    fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          ),
-                                          Icon(
-                                            Icons.chevron_right,
-                                            color: lightenColor(appColor, 0.3),
-                                            size: Responsive.scale(context, 18),
-                                          ),
-                                        ],
+                                            Icon(
+                                              Icons.chevron_right,
+                                              color: lightenColor(
+                                                appColor,
+                                                0.3,
+                                              ),
+                                              size: Responsive.scale(
+                                                context,
+                                                18,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        trackTrivialAchievement(
+                                          "calorie_calculator",
+                                        );
+                                        logAnalyticsEvent(
+                                          'tap_calorie_calculator',
+                                        );
+                                        context.push('/calorie-calculator');
+                                      },
+                                      child: frostedGlassCard(
+                                        context,
+                                        color: appColor,
+                                        baseRadius: 14,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: Responsive.width(
+                                            context,
+                                            16,
+                                          ),
+                                          vertical: Responsive.height(
+                                            context,
+                                            14,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  HugeIcon(
+                                                    icon: HugeIcons
+                                                        .strokeRoundedCalculate,
+                                                    color: lightenColor(
+                                                      appColor,
+                                                      0.35,
+                                                    ),
+                                                    size: Responsive.scale(
+                                                      context,
+                                                      20,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: Responsive.width(
+                                                      context,
+                                                      8,
+                                                    ),
+                                                  ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      "Calorie Calculator",
+                                                      style:
+                                                          GoogleFonts.manrope(
+                                                            color: lightenColor(
+                                                              appColor,
+                                                              0.45,
+                                                            ),
+                                                            fontSize:
+                                                                Responsive.font(
+                                                                  context,
+                                                                  13,
+                                                                ),
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.chevron_right,
+                                              color: lightenColor(
+                                                appColor,
+                                                0.3,
+                                              ),
+                                              size: Responsive.scale(
+                                                context,
+                                                18,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            240.ms,
                           ),
-                          240.ms,
-                        ),
 
-                        // Extra bottom space so content clears the floating nav bar
-                        SizedBox(height: Responsive.height(context, 100)),
-                      ],
+                          // Extra bottom space so content clears the floating nav bar
+                          SizedBox(height: Responsive.height(context, 100)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
