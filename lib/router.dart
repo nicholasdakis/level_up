@@ -121,9 +121,9 @@ final GoRouter appRouter = GoRouter(
     if (suppressAuthRedirect) {
       return null; // TOS check in progress
     }
-    // force outdated users to the update screen
-    if (isAppOutdated && state.matchedLocation != '/update-required') {
-      return '/update-required';
+    // force outdated users to the update screen, skip all other redirect logic
+    if (isAppOutdated) {
+      return state.matchedLocation == '/update-required' ? null : '/update-required';
     }
 
     // send logged-out users to login

@@ -82,8 +82,9 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
   Future<bool> deleteFoodLog(FoodLog log) async {
     final current = List<FoodLog>.from(state.value ?? []);
     state = AsyncData(current.where((f) => f.id != log.id).toList());
-    if (log.id == null)
+    if (log.id == null) {
       return true; // legacy food with no id, local-only removal
+    }
     try {
       final response = await authenticatedPost(
         'delete_food_log',
