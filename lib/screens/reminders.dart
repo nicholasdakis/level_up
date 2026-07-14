@@ -74,7 +74,8 @@ class _RemindersState extends ConsumerState<Reminders> {
       );
       if (!mounted) return;
       setState(() => _notifBlocked = !granted);
-      if (ref.read(userDataProvider).value?.notificationsEnabled == false) {
+      if (!isGuest &&
+          ref.read(userDataProvider).value?.notificationsEnabled == false) {
         _showNotificationsDisabledDialog(); // in-app toggle is off, prompt to re-enable
       }
     });

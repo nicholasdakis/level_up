@@ -694,7 +694,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                   child: _guestLock(
                     context,
                     _buildMacrosCard(context),
-                    title: 'Sign up to track macros',
+                    title: 'Sign up to track nutrients',
                     description:
                         'Create a free account to monitor your protein, carbs, and fat intake.',
                   ),

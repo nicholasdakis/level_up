@@ -2682,3 +2682,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - The onboarding hint cards now pulse subtly to draw attention
 - Pull to refresh added to all main tabs and sub-screens: Home, Food, Workout, Progression, Leaderboard, Badges, and Reminders
 - Each tab shows its existing skeletonizer while refreshing
+
+## 2026-07-14
+- Made the notifications dialog not show to guests when opening reminders
+- Made meals always appear expanded to guests instead of reading from SharedPrefs

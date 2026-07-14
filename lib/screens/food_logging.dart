@@ -119,10 +119,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       screenName: '/food-logging',
       screenClass: 'FoodLogging',
     );
-    _loadCollapsedState();
     if (isGuest) {
       _microsExpanded = true;
     } else {
+      _loadCollapsedState();
       _loadMicrosExpanded();
     }
     // Track that the user opened food logging
