@@ -305,6 +305,9 @@ class UserRepository:
 
         return results
 
+    def delete_food_log(self, uid: str, food_id: str):
+        self._supabase.table("food_logs_v2").delete().eq("id", food_id).eq("uid", uid).execute()
+
     def get_water_logs(self, uid: str, cutoff: str | None = None):
         query = self._supabase.table("water_logs").select("*").eq("uid", uid)
         if cutoff:

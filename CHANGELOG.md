@@ -2686,3 +2686,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 ## 2026-07-14
 - Made the notifications dialog not show to guests when opening reminders
 - Made meals always appear expanded to guests instead of reading from SharedPrefs
+- Fixed a bug where deleting the last food logged for a day would silently fail since the empty list guard (which exists to prevent accidental full-day wipes) blocked the backend call entirely
+- Replaced the upsert-based deletion flow with a dedicated DELETE /delete_food_log endpoint that deletes a single row by its Supabase UUID; deletion was previously done by sending the remaining meal list and letting the backend sweep-delete anything missing, which was a leftover from when food logs were stored as a JSON blob with no individual row IDs
+- With food_logs_v2 having real per-row IDs, deletion is now a single query

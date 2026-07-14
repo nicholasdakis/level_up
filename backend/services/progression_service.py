@@ -417,6 +417,9 @@ class ProgressionService: # Service class to handle all progression-related busi
     def delete_weight_log(self, uid: str, date: str):
         self._repo.delete_weight_log(uid, date)
 
+    def delete_food_log(self, uid: str, food_id: str):
+        self._repo.delete_food_log(uid, food_id)
+
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Writes normalized food items to food_logs_v2 and tracks achievements
         results = self._repo.upsert_food_log_v2(uid, date, items)

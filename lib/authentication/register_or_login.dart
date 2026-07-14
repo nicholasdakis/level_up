@@ -690,7 +690,7 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
                               _featureChip(
                                     HugeIcons.strokeRoundedMedal01,
                                     "Compete",
-                                    "Climb the leaderboard",
+                                    "Climb the leaderboards",
                                     staggerDelay: 1800.ms,
                                   )
                                   .animate()

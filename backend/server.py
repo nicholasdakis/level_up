@@ -41,6 +41,7 @@ from backend.schemas import (
     UpsertWaterLogRequest,
     UpsertWeightLogRequest,
     DeleteWeightLogRequest,
+    DeleteFoodLogRequest,
     SimpleSuccessResponse,
     GetLeaderboardResponse,
     LeaderboardUserEntry,
@@ -274,7 +275,7 @@ def send_due_reminders():
     except Exception as e:
         logger.exception(f'Error sending reminders: {e}')
 
-MIN_APP_VERSION = "1.2.3"
+MIN_APP_VERSION = "1.2.30"
 
 @app.route("/app_config")
 def app_config():
@@ -773,6 +774,14 @@ def delete_weight_log():
     if err:
         return err
     progression_service.delete_weight_log(uid, body.date)
+    return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
+
+@app.route("/delete_food_log", methods=["POST"])
+def delete_food_log():
+    uid, body, err = _parse_and_auth(DeleteFoodLogRequest)
+    if err:
+        return err
+    progression_service.delete_food_log(uid, body.id)
     return jsonify(SimpleSuccessResponse(success=True).model_dump()), 200
 
 @app.route("/leaderboard", methods=["GET"])

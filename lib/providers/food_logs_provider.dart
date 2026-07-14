@@ -50,7 +50,8 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
         items.add({...food.toJson(), 'meal': meal});
       }
     }
-    // never send empty items, the backend delete sweep would wipe every food log for this entire day
+    // never send empty items for edit/move, the backend delete sweep would wipe every food log for this entire day
+    // deletion now goes through deleteFoodLog directly so this path is only reached for edit and move
     if (items.isEmpty) return true;
 
     try {
@@ -77,10 +78,27 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
-  // removes a single entry from local state; the backend deletion is handled by upsertForDate
-  void removeLocal(FoodLog log) {
-    final current = state.value ?? [];
+  // deletes a single food log by id; removes from local state optimistically and calls backend
+  Future<bool> deleteFoodLog(FoodLog log) async {
+    final current = List<FoodLog>.from(state.value ?? []);
     state = AsyncData(current.where((f) => f.id != log.id).toList());
+    if (log.id == null)
+      return true; // legacy food with no id, local-only removal
+    try {
+      final response = await authenticatedPost(
+        'delete_food_log',
+        body: {'id': log.id},
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode != 200) {
+        state = AsyncData(current); // rollback
+        return false;
+      }
+      return true;
+    } catch (_) {
+      state = AsyncData(current); // rollback
+      return false;
+    }
   }
 }
 

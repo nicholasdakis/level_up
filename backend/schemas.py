@@ -66,6 +66,9 @@ class UpsertWeightLogRequest(BaseModel):
 class DeleteWeightLogRequest(BaseModel):
     date: str = Field(..., min_length=1)
 
+class DeleteFoodLogRequest(BaseModel):
+    id: str = Field(..., min_length=1)
+
 class SetReminderRequest(BaseModel):
     message: str = Field(..., min_length=1)
     scheduled_at: str = Field(..., min_length=1)

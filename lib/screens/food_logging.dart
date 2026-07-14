@@ -202,8 +202,24 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     );
     if (confirmed != true) return;
 
+    final food = foods[idx];
     setState(() => foods.removeAt(idx));
-    await _saveFoodData("delete");
+    final success = await ref
+        .read(foodLogsProvider.notifier)
+        .deleteFoodLog(food);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? "Food deleted successfully."
+              : (isConnected
+                    ? "Error deleting food."
+                    : "No connection. Please try again when online."),
+        ),
+        duration: snackBarDuration,
+      ),
+    );
   }
 
   Future<void> _moveFood(String fromMeal, FoodLog food) async {
