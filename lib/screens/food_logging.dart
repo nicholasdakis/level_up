@@ -127,6 +127,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     }
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!isGuest) ref.read(foodLogsProvider.notifier).refresh();
+    });
   }
 
   Future<void> _refreshAndLoadFood() async {
@@ -660,44 +663,42 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     }
   }
 
-  Widget _buildAnalyticsButton(
-    Color barColor,
-    Color appColor,
-    VoidCallback onPressed,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextButton.icon(
-        onPressed: onPressed,
-        icon: HugeIcon(
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          color: barColor,
-          size: Responsive.font(context, 26),
+  Widget _buildAnalyticsButton(Color appColor, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          vertical: Responsive.height(context, 14),
+          horizontal: Responsive.width(context, 24),
         ),
-        label: Text(
-          "View Analytics",
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 14),
-            fontWeight: FontWeight.w600,
-            color: barColor,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 14)),
+          color: lightenColor(appColor, 0.1).withAlpha(40),
+          border: Border.all(
+            color: lightenColor(appColor, 0.35).withAlpha(160),
+            width: 1.5,
           ),
         ),
-        style: TextButton.styleFrom(
-          backgroundColor: barColor.withAlpha(
-            appColor.computeLuminance() < 0.2 ? 60 : 30,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            side: BorderSide(
-              color: barColor.withAlpha(
-                appColor.computeLuminance() < 0.2 ? 140 : 80,
-              ),
-              width: Responsive.scale(context, 1),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAnalytics01,
+              color: lightenColor(appColor, 0.45),
+              size: Responsive.font(context, 20),
             ),
-          ),
-          padding: EdgeInsets.symmetric(
-            vertical: Responsive.height(context, 10),
-          ),
+            SizedBox(width: Responsive.width(context, 8)),
+            Text(
+              "View Analytics",
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 15),
+                fontWeight: FontWeight.w800,
+                color: lightenColor(appColor, 0.45),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -800,7 +801,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       ),
                       SizedBox(height: Responsive.height(context, 16)),
                       _buildAnalyticsButton(
-                        lightenColor(appColor, 0.45),
                         appColor,
                         () => Guest.block(
                           context,
@@ -975,7 +975,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           ),
 
           SizedBox(height: Responsive.height(context, 16)),
-          _buildAnalyticsButton(barColor, appColor, () {
+          _buildAnalyticsButton(appColor, () {
             context.push(
               '/food-logging/analytics',
               extra: {
@@ -1515,86 +1515,81 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               left: Responsive.width(context, 4),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Padding(
-                  padding: EdgeInsets.only(top: Responsive.height(context, 3)),
-                  child: Container(
-                    width: Responsive.scale(context, 10),
-                    height: Responsive.scale(context, 10),
-                    decoration: BoxDecoration(
-                      color: accentColor,
-                      shape: BoxShape.circle,
-                    ),
+                Container(
+                  width: Responsive.scale(context, 10),
+                  height: Responsive.scale(context, 10),
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
                 SizedBox(width: Responsive.width(context, 8)),
-                Text(
-                  "${title.toUpperCase()} (${foods.length})",
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 14),
-                    color: lightenColor(appColor, 0.45),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
+                Expanded(
+                  child: Text(
+                    "${title.toUpperCase()} (${foods.length})",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      color: lightenColor(appColor, 0.45),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                // Calorie count only shows when something is logged
                 if (mealCal > 0) ...[
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: "$mealCal",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 18),
-                                  fontWeight: FontWeight.w800,
-                                  color: accentColor,
-                                  height: 1,
-                                ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "$mealCal",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 18),
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                                height: 1,
                               ),
-                              TextSpan(
-                                text: " cal",
-                                style: GoogleFonts.manrope(
-                                  fontSize: Responsive.font(context, 11),
-                                  color: lightenColor(appColor, 0.45),
-                                ),
+                            ),
+                            TextSpan(
+                              text: " cal",
+                              style: GoogleFonts.manrope(
+                                fontSize: Responsive.font(context, 11),
+                                color: lightenColor(appColor, 0.45),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                      ),
+                      Text(
+                        'P ${mealProtein.round()}g · C ${mealCarbs.round()}g · F ${mealFat.round()}g',
+                        style: GoogleFonts.manrope(
+                          fontSize: Responsive.font(context, 10),
+                          color: lightenColor(appColor, 0.35),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (hasMicros)
                         Text(
-                          'P ${mealProtein.round()}g · C ${mealCarbs.round()}g · F ${mealFat.round()}g',
+                          [
+                            if (mealFiber > 0)
+                              'Fiber ${mealFiber.toStringAsFixed(1)}g',
+                            if (mealSugar > 0)
+                              'Sugar ${mealSugar.toStringAsFixed(1)}g',
+                            if (mealSodium > 0)
+                              'Na ${mealSodium.toStringAsFixed(0)}mg',
+                          ].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 10),
-                            color: lightenColor(appColor, 0.35),
+                            color: lightenColor(appColor, 0.30),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        if (hasMicros)
-                          Text(
-                            [
-                              if (mealFiber > 0)
-                                'Fiber ${mealFiber.toStringAsFixed(1)}g',
-                              if (mealSugar > 0)
-                                'Sugar ${mealSugar.toStringAsFixed(1)}g',
-                              if (mealSodium > 0)
-                                'Na ${mealSodium.toStringAsFixed(0)}mg',
-                            ].join(' · '),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 10),
-                              color: lightenColor(appColor, 0.30),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                      ],
-                    ),
+                    ],
                   ),
                   SizedBox(width: Responsive.width(context, 8)),
                 ],
@@ -1764,7 +1759,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               borderRadius: BorderRadius.circular(
                 Responsive.scale(context, 14),
               ),
-              border: Border.all(color: accentColor.withAlpha(80), width: 1),
+              border: Border.all(color: accentColor.withAlpha(160), width: 1.5),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1929,8 +1924,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   duration: const Duration(milliseconds: 200),
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedArrowDown01,
-                                    color: lightenColor(appColor, 0.30),
-                                    size: Responsive.scale(context, 18),
+                                    color: lightenColor(appColor, 0.45),
+                                    size: Responsive.scale(context, 20),
                                   ),
                                 ),
                               ),

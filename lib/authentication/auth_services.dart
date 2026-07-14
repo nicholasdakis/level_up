@@ -54,13 +54,15 @@ class AuthService {
     }
 
     workoutNotifier.clearSession();
+    appInitialized = false;
+    appLaunchUri =
+        Uri(); // clear stale route so sign-in doesn't restore previous user's screen
+    appReadyNotifier.reset();
     ref?.invalidate(foodLogsProvider);
     ref?.invalidate(waterLogsProvider);
     ref?.invalidate(weightLogsProvider);
     ref?.invalidate(workoutProvider);
     await firebaseAuth.signOut();
-    appInitialized = false;
-    appReadyNotifier.reset();
     notifier.setUserData(null);
   }
 
