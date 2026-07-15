@@ -38,7 +38,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   OverlayEntry? _heatmapTooltip;
   Timer? _resetTimer;
   Duration _timeUntilReset = Duration.zero;
-  final PageController _liftsPageController = PageController();
   int _liftsPage = 0;
 
   @override
@@ -183,7 +182,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   @override
   void dispose() {
     _resetTimer?.cancel();
-    _liftsPageController.dispose();
     super.dispose();
   }
 
@@ -1058,6 +1056,7 @@ class _WorkoutState extends ConsumerState<Workout> {
 
     // page 1: stats (volume, duration, exercises, sets, reps) + analytics button
     Widget page1 = Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -1182,6 +1181,7 @@ class _WorkoutState extends ConsumerState<Workout> {
         );
         final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
         return Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
@@ -1241,8 +1241,9 @@ class _WorkoutState extends ConsumerState<Workout> {
                       final days = d.inDays;
                       final hours = d.inHours % 24;
                       final minutes = d.inMinutes % 60;
-                      if (days > 0)
+                      if (days > 0) {
                         return 'Resets in ${days}d ${hours}h ${minutes}m';
+                      }
                       if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
                       return 'Resets in ${minutes}m';
                     }(),
@@ -1322,6 +1323,33 @@ class _WorkoutState extends ConsumerState<Workout> {
       },
     );
 
+    final cardContent = _liftsPage == 0 ? page1 : page2;
+
+    Widget dot(int i) => GestureDetector(
+      onTap: () => setState(() => _liftsPage = i),
+      child: Container(
+        width: Responsive.scale(context, _liftsPage == i ? 16 : 6),
+        height: Responsive.scale(context, 6),
+        margin: EdgeInsets.symmetric(horizontal: Responsive.width(context, 3)),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
+          color: _liftsPage == i
+              ? lightenColor(appColor, 0.45)
+              : lightenColor(appColor, 0.2).withAlpha(100),
+        ),
+      ),
+    );
+
+    Widget arrow(IconData icon, bool enabled, VoidCallback onTap) =>
+        GestureDetector(
+          onTap: enabled ? onTap : null,
+          child: Icon(
+            icon,
+            color: enabled ? lightenColor(appColor, 0.4) : Colors.transparent,
+            size: Responsive.scale(context, 32),
+          ),
+        );
+
     return frostedGlassCard(
       context,
       color: appColor,
@@ -1330,78 +1358,29 @@ class _WorkoutState extends ConsumerState<Workout> {
         vertical: Responsive.height(context, 12),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: Responsive.height(context, 200),
-            child: PageView(
-              controller: _liftsPageController,
-              onPageChanged: (i) => setState(() => _liftsPage = i),
-              children: [page1, page2],
-            ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (child, animation) =>
+                FadeTransition(opacity: animation, child: child),
+            child: KeyedSubtree(key: ValueKey(_liftsPage), child: cardContent),
           ),
-          SizedBox(height: Responsive.height(context, 8)),
+          SizedBox(height: Responsive.height(context, 10)),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: _liftsPage == 0
-                    ? null
-                    : () => _liftsPageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      ),
-                child: Icon(
-                  Icons.chevron_left_rounded,
-                  color: _liftsPage == 0
-                      ? Colors.transparent
-                      : lightenColor(appColor, 0.35),
-                  size: Responsive.scale(context, 18),
-                ),
+              arrow(
+                Icons.chevron_left_rounded,
+                _liftsPage > 0,
+                () => setState(() => _liftsPage = 0),
               ),
-              SizedBox(width: Responsive.width(context, 8)),
-              ...List.generate(
-                2,
-                (i) => GestureDetector(
-                  onTap: () => _liftsPageController.animateToPage(
-                    i,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  ),
-                  child: Container(
-                    width: Responsive.scale(context, _liftsPage == i ? 16 : 6),
-                    height: Responsive.scale(context, 6),
-                    margin: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 3),
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        Responsive.scale(context, 4),
-                      ),
-                      color: _liftsPage == i
-                          ? lightenColor(appColor, 0.45)
-                          : lightenColor(appColor, 0.2).withAlpha(100),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: Responsive.width(context, 8)),
-              GestureDetector(
-                onTap: _liftsPage == 1
-                    ? null
-                    : () => _liftsPageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      ),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: _liftsPage == 1
-                      ? Colors.transparent
-                      : lightenColor(appColor, 0.35),
-                  size: Responsive.scale(context, 18),
-                ),
+              Row(children: [dot(0), dot(1)]),
+              arrow(
+                Icons.chevron_right_rounded,
+                _liftsPage < 1,
+                () => setState(() => _liftsPage = 1),
               ),
             ],
           ),
