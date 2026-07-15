@@ -29,69 +29,128 @@ Future<void> showUsernameDialogBox(
   WidgetRef ref,
   Color appColor,
 ) async {
-  await showFrostedAlertDialog(
+  final accent = lightenColor(appColor, 0.45);
+  final dim = lightenColor(appColor, 0.35);
+  final currentUsername = ref.read(userDataProvider).value?.username;
+  final hasUsername =
+      currentUsername != null &&
+      currentUsername != ref.read(userDataProvider).value?.uid;
+
+  await showFrostedDialog(
     context: context,
     appColor: appColor,
-    title: title,
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Only show text if the user has set a username before
-        if (ref.read(userDataProvider).value?.username !=
-            ref.read(userDataProvider).value?.uid)
-          Text(
-            "Current username: \n ${ref.read(userDataProvider).value?.username}",
-            style: GoogleFonts.manrope(color: Colors.white70),
-          ),
-        SizedBox(height: 10),
-        TextField(
-          controller: usernameController,
-          style: TextStyle(color: Colors.white),
-        ),
-      ],
+    child: StatefulBuilder(
+      builder: (context, setDialogState) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.manrope(
+                color: accent,
+                fontSize: Responsive.font(context, 16),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (hasUsername) ...[
+              SizedBox(height: Responsive.height(context, 4)),
+              Text(
+                'Current: $currentUsername',
+                style: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 12),
+                ),
+              ),
+            ],
+            SizedBox(height: Responsive.height(context, 16)),
+            TextField(
+              controller: usernameController,
+              autofocus: true,
+              maxLength: 20,
+              style: GoogleFonts.manrope(color: Colors.white),
+              textCapitalization: TextCapitalization.none,
+              decoration: InputDecoration(
+                hintText: 'Username',
+                hintStyle: GoogleFonts.manrope(color: Colors.white38),
+                filled: true,
+                fillColor: Colors.white.withAlpha(10),
+                counterStyle: GoogleFonts.manrope(
+                  color: dim,
+                  fontSize: Responsive.font(context, 11),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  borderSide: BorderSide(
+                    color: lightenColor(appColor, 0.2).withAlpha(100),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  borderSide: BorderSide(
+                    color: lightenColor(appColor, 0.2).withAlpha(100),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  borderSide: BorderSide(
+                    color: lightenColor(appColor, 0.4),
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 16),
+                  vertical: Responsive.height(context, 14),
+                ),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 16)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
+                  child: Text('Cancel', style: dialogButtonStyle()),
+                ),
+                SizedBox(width: Responsive.width(context, 8)),
+                TextButton(
+                  onPressed: () async {
+                    final updatedUsername = usernameController.text.trim();
+                    if (updatedUsername.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please enter a username.'),
+                          duration: snackBarDuration,
+                        ),
+                      );
+                      return;
+                    }
+                    if (await ref
+                        .read(userDataProvider.notifier)
+                        .updateUsername(updatedUsername, context)) {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    }
+                  },
+                  child: Text(
+                    'Confirm',
+                    style: dialogButtonStyle(confirm: true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     ),
-    actions: [
-      TextButton(
-        // close if canceled
-        onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-        child: Text("Cancel", style: dialogButtonStyle()),
-      ),
-      TextButton(
-        // Handle username update
-        onPressed: () async {
-          final updatedUsername = usernameController.text.trim();
-          if (updatedUsername.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Please enter a username."),
-                duration: snackBarDuration,
-              ),
-            );
-            return;
-          }
-          if (updatedUsername.length > 20) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Username must be 20 characters or fewer."),
-                duration: snackBarDuration,
-              ),
-            );
-            return;
-          }
-          // Only pop if successful
-          if (await ref
-              .read(userDataProvider.notifier)
-              .updateUsername(updatedUsername, context)) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
-        },
-        child: Text("Confirm", style: dialogButtonStyle(confirm: true)),
-      ),
-    ],
   ).then((_) {
-    // Reset the text field after exiting the dialog box
-    usernameController.text = "";
+    usernameController.text = '';
   });
 }
 

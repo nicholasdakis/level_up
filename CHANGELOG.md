@@ -2749,3 +2749,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - This is to allow users to delete their routines if they are public so that instead of the deleted routine disappearing from the community section, the uid gets set to null and it remains in the community section, just with UID = null as the creator
 - is_featured is now used because before this, uid = null is how routines were handled if they were featured
 - Edited the routines schema so that if a user's account is deleted, instead of cascade-deleting all their data including workout templates, workout templates are not deleted if they are public
+- Upgraded the UI of the update username dialog and made it cap at 20 characters client-side too
