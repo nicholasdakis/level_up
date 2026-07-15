@@ -501,7 +501,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                         appColor: appColor,
                                         title: 'Delete workout?',
                                         content: Text(
-                                          'Remove "${w['name'] ?? 'this workout'}" from your history? This cannot be undone.',
+                                          'Remove ${w['name'] != null ? '"${w['name']}"' : 'this workout'} from your history? This cannot be undone.',
                                           style: GoogleFonts.manrope(
                                             color: Colors.white70,
                                           ),
