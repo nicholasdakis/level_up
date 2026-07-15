@@ -138,6 +138,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         _loadSuggestedFoods();
       }
     });
+    // re-load recent foods when premium status or the limit changes, since the cap depends on both
+    ref.listenManual(
+      userDataProvider.select((s) => (s.value?.isPremium, s.value?.recentFoodsMax)),
+      (prev, next) {
+        if (prev != next) _loadRecentFoods();
+      },
+    );
     _loadRecentExpanded();
     _voiceSearch.init(() {
       if (mounted) setState(() {});

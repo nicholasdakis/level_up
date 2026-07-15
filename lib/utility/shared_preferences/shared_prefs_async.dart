@@ -6,11 +6,6 @@ class SharedPreferencesKey {
   // Calorie Calculator keys
   static const String calorieCalculatorData = 'calorie_calculator_data';
 
-  // RecentFoodsService keys
-  static const String recentFoods = 'recent_foods';
-  static const String recentFoodsMax =
-      'recent_foods_max'; // user-configurable max, 0 means unlimited
-
   // FoodLogging keys
   static const String mealCollapsedState = 'meal_collapsed_state';
   static const String recentFoodsExpanded = 'recent_foods_expanded';
