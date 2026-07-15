@@ -822,17 +822,18 @@ BEGIN
             total_sets     = user_exercise_stats.total_sets + EXCLUDED.total_sets;
 
         -- write a pr_history row for each PR type broken this session; multiple can fire at once
+        -- workout_id foreign key means these rows are deleted automatically if the workout is deleted
         IF v_best_weight IS NOT NULL AND (v_existing_pr_weight IS NULL OR v_best_weight > v_existing_pr_weight) THEN
-            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
-            VALUES (p_uid, v_exercise_name, 'weight', v_existing_pr_weight, v_best_weight);
+            INSERT INTO pr_history (uid, workout_id, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_workout_id, v_exercise_name, 'weight', v_existing_pr_weight, v_best_weight);
         END IF;
         IF v_best_reps IS NOT NULL AND (v_existing_pr_reps IS NULL OR v_best_reps > v_existing_pr_reps) THEN
-            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
-            VALUES (p_uid, v_exercise_name, 'reps', v_existing_pr_reps, v_best_reps);
+            INSERT INTO pr_history (uid, workout_id, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_workout_id, v_exercise_name, 'reps', v_existing_pr_reps, v_best_reps);
         END IF;
         IF v_session_volume > 0 AND (v_existing_pr_volume IS NULL OR ROUND(v_session_volume, 2) > v_existing_pr_volume) THEN
-            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
-            VALUES (p_uid, v_exercise_name, 'volume', v_existing_pr_volume, ROUND(v_session_volume, 2));
+            INSERT INTO pr_history (uid, workout_id, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_workout_id, v_exercise_name, 'volume', v_existing_pr_volume, ROUND(v_session_volume, 2));
         END IF;
     END LOOP;
 

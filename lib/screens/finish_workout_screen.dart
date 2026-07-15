@@ -1,6 +1,7 @@
 ﻿import 'package:confetti/confetti.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '/providers/user_data_provider.dart';
+import '/providers/workout_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
@@ -436,7 +437,10 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                       Responsive.height(context, 24),
                     ),
                     child: GestureDetector(
-                      onTap: () => context.go('/workout'),
+                      onTap: () {
+                        ref.read(workoutProvider.notifier).loadWorkoutData();
+                        context.go('/workout');
+                      },
                       child: Container(
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(

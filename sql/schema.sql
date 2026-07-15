@@ -310,6 +310,7 @@ CREATE TABLE user_exercise_stats (
 CREATE TABLE pr_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    workout_id UUID NOT NULL REFERENCES workouts(workout_id) ON DELETE CASCADE,
     exercise_name TEXT NOT NULL,
     pr_type TEXT NOT NULL CHECK (pr_type IN ('weight', 'reps', 'volume')),
     old_value NUMERIC(10, 2),              -- previous PR value, null if this is the first ever
