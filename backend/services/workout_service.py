@@ -68,6 +68,9 @@ class WorkoutService:
             exercises=clean_exercises,
         )
 
+    def get_workout_history(self, uid: str, since: str | None = None) -> list[dict]:
+        return self._repo.get_workout_history(uid, since=since)
+
     def get_recent_workouts(self, uid: str) -> list[dict]:
         # Returns the 10 most recently completed sessions, ordered by created_at so two
         # sessions on the same date are still returned in the correct order

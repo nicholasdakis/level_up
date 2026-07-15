@@ -560,6 +560,51 @@ class WorkoutRepository:
             counts[d] = counts.get(d, 0) + 1
         return [{"date": d, "count": c} for d, c in sorted(counts.items())]
 
+    def get_workout_history(self, uid: str, since: str | None = None) -> list[dict]:
+        query = self._supabase.table("workouts") \
+            .select("workout_id, name, date, duration_seconds, created_at") \
+            .eq("uid", uid) \
+            .eq("completed", True) \
+            .order("date", desc=False)
+        if since:
+            query = query.gte("date", since)
+        workouts = query.execute().data or []
+        if not workouts:
+            return []
+        workout_ids = [w["workout_id"] for w in workouts]
+        ex_rows = self._supabase.table("workout_exercises") \
+            .select("workout_id, workout_exercise_id") \
+            .in_("workout_id", workout_ids) \
+            .execute().data or []
+        ex_ids = [e["workout_exercise_id"] for e in ex_rows]
+        set_rows = self._supabase.table("workout_sets") \
+            .select("workout_exercise_id, reps, weight_kg") \
+            .in_("workout_exercise_id", ex_ids) \
+            .execute().data or [] if ex_ids else []
+        volume_by_workout: dict[str, float] = {}
+        for s in set_rows:
+            weid = s["workout_exercise_id"]
+            vol = (s["reps"] or 0) * (s["weight_kg"] or 0.0)
+            volume_by_workout[weid] = volume_by_workout.get(weid, 0.0) + vol
+        ex_count_by_workout: dict[str, int] = {}
+        volume_by_workout_id: dict[str, float] = {}
+        for e in ex_rows:
+            wid = e["workout_id"]
+            weid = e["workout_exercise_id"]
+            ex_count_by_workout[wid] = ex_count_by_workout.get(wid, 0) + 1
+            volume_by_workout_id[wid] = volume_by_workout_id.get(wid, 0.0) + volume_by_workout.get(weid, 0.0)
+        return [
+            {
+                "workout_id": w["workout_id"],
+                "name": w["name"],
+                "date": w["date"],
+                "duration_seconds": w["duration_seconds"] or 0,
+                "volume_kg": round(volume_by_workout_id.get(w["workout_id"], 0.0), 2),
+                "exercise_count": ex_count_by_workout.get(w["workout_id"], 0),
+            }
+            for w in workouts
+        ]
+
     def get_today_overview(self, uid: str) -> dict:
         from datetime import date
         today = date.today().isoformat()

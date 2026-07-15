@@ -79,6 +79,8 @@ from backend.schemas import (
     LogWorkoutRequest,
     LogWorkoutResponse,
     GetRecentWorkoutsResponse,
+    WorkoutHistoryItem,
+    GetWorkoutHistoryResponse,
     GetWeeklyWorkoutCountResponse,
     GetTodayOverviewResponse,
     GetWorkoutHeatmapResponse,
@@ -1369,6 +1371,23 @@ def delete_workout():
         return err
     deleted = workout_service.delete_workout(uid, body.workout_id)
     return jsonify({"success": deleted}), 200
+
+@app.route("/workout_history", methods=["GET"])
+def get_workout_history():
+    # Returns completed workouts with volume, duration, and exercise count for analytics
+    # Free users are capped at 14 days of history regardless of any since param passed
+    from datetime import date, timedelta
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    cutoff = (date.today() - timedelta(days=13)).isoformat()
+    since = request.args.get("since")
+    if not is_premium:
+        since = cutoff if (since is None or since < cutoff) else since
+    workouts = workout_service.get_workout_history(uid, since=since)
+    return jsonify(GetWorkoutHistoryResponse(workouts=[WorkoutHistoryItem(**w) for w in workouts]).model_dump()), 200
+
 
 @app.route("/recent_workouts", methods=["GET"])
 def get_recent_workouts():

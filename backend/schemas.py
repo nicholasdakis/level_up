@@ -362,6 +362,17 @@ class RecentWorkoutItem(BaseModel):
 class GetRecentWorkoutsResponse(BaseModel):
     workouts: list[RecentWorkoutItem]
 
+class WorkoutHistoryItem(BaseModel):
+    workout_id: str
+    name: str | None = None
+    date: str
+    duration_seconds: int
+    volume_kg: float
+    exercise_count: int
+
+class GetWorkoutHistoryResponse(BaseModel):
+    workouts: list[WorkoutHistoryItem]
+
 class GetWeeklyWorkoutCountResponse(BaseModel):
     count: int
 
