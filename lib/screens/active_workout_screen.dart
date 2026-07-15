@@ -447,75 +447,80 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       return;
     }
 
-    // prompt for a name before saving
-    final nameCtrl = TextEditingController(
-      text: _workoutName ?? _s.routineName ?? '',
-    );
-    final confirmedName = await showFrostedDialog<String>(
-      context: context,
-      appColor: appColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Name this workout',
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColor, 0.45),
-              fontSize: Responsive.font(context, 16),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 16)),
-          TextField(
-            controller: nameCtrl,
-            autofocus: true,
-            maxLength: 40,
-            style: GoogleFonts.manrope(
-              color: lightenColor(appColor, 0.45),
-              fontSize: Responsive.font(context, 15),
-            ),
-            decoration: InputDecoration(
-              hintText: 'e.g. Push Day',
-              hintStyle: GoogleFonts.manrope(color: Colors.white38),
-              counterStyle: GoogleFonts.manrope(
-                color: Colors.white38,
-                fontSize: Responsive.font(context, 10),
-              ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: appColor.withAlpha(200)),
+    // skip the name dialog if the workout already has a name from a routine or a previous rename
+    final existingName = _workoutName ?? _s.routineName;
+    if (existingName != null && existingName.isNotEmpty) {
+      _s.workoutName = existingName;
+      _persist();
+    } else {
+      // prompt for a name before saving
+      final nameCtrl = TextEditingController(text: '');
+      final confirmedName = await showFrostedDialog<String>(
+        context: context,
+        appColor: appColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Name this workout',
+              style: GoogleFonts.manrope(
+                color: lightenColor(appColor, 0.45),
+                fontSize: Responsive.font(context, 16),
+                fontWeight: FontWeight.w700,
               ),
             ),
-            cursorColor: lightenColor(appColor, 0.45),
-          ),
-          SizedBox(height: Responsive.height(context, 8)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context, rootNavigator: true).pop(null),
-                child: Text('Cancel', style: dialogButtonStyle()),
+            SizedBox(height: Responsive.height(context, 16)),
+            TextField(
+              controller: nameCtrl,
+              autofocus: true,
+              maxLength: 40,
+              style: GoogleFonts.manrope(
+                color: lightenColor(appColor, 0.45),
+                fontSize: Responsive.font(context, 15),
               ),
-              TextButton(
-                onPressed: () => Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pop(nameCtrl.text.trim()),
-                child: Text('Save', style: dialogButtonStyle(confirm: true)),
+              decoration: InputDecoration(
+                hintText: 'e.g. Push Day',
+                hintStyle: GoogleFonts.manrope(color: Colors.white38),
+                counterStyle: GoogleFonts.manrope(
+                  color: Colors.white38,
+                  fontSize: Responsive.font(context, 10),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: appColor.withAlpha(200)),
+                ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
-    if (confirmedName == null) return; // user tapped Cancel
-    _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
-    _persist();
+              cursorColor: lightenColor(appColor, 0.45),
+            ),
+            SizedBox(height: Responsive.height(context, 8)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(null),
+                  child: Text('Cancel', style: dialogButtonStyle()),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop(nameCtrl.text.trim()),
+                  child: Text('Save', style: dialogButtonStyle(confirm: true)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
+      if (confirmedName == null) return; // user tapped Cancel
+      _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
+      _persist();
+    }
 
     final durationSeconds = _s.elapsed.inSeconds;
     final date = DateTime.now();
@@ -541,9 +546,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
         if ((reps == null || reps == 0) && (weight == null || weight == 0)) {
           continue;
         }
-        // convert to kg before storing if user is in imperial mode
+        // convert to kg before storing if user is in imperial mode, rounded to 2dp to avoid float drift in PR comparisons
         final weightKg = (weight != null && isImperial)
-            ? UnitConverter.lbsToKg(weight)
+            ? double.parse(UnitConverter.lbsToKg(weight).toStringAsFixed(2))
             : weight;
         checkedSets.add({
           'set_number': s + 1,
@@ -552,6 +557,9 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
         });
       }
       if (checkedSets.isEmpty) continue;
+      debugPrint(
+        'exercise keys: ${ex.keys.toList()} | id=${ex['id']} | exercise_id=${ex['exercise_id']}',
+      );
       exercises.add({
         'exercise_id': ex['id'] ?? ex['exercise_id'],
         'exercise_name': _cleanName(ex['name'] as String? ?? ''),
@@ -1261,9 +1269,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
 
     final wRaw = double.tryParse(_ctrl(exIndex, setIndex, 'weight').text);
     // controller value is in display units; convert to kg for comparison against stored pr_weight_kg
+    // rounded to 2dp to avoid float drift when converting lbs -> kg
     final w = wRaw == null
         ? null
-        : (isImperial ? UnitConverter.lbsToKg(wRaw) : wRaw);
+        : double.parse(
+            (isImperial ? UnitConverter.lbsToKg(wRaw) : wRaw).toStringAsFixed(
+              2,
+            ),
+          );
     final r = int.tryParse(_ctrl(exIndex, setIndex, 'reps').text);
     var oldWeight = (stats?['pr_weight_kg'] as num?)?.toDouble();
     var oldReps = stats?['pr_reps'] as int?;
@@ -1707,13 +1720,16 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        _durationLabel,
-                        style: GoogleFonts.manrope(
-                          color: Colors.white,
-                          fontSize: Responsive.font(context, 26),
-                          fontWeight: FontWeight.w800,
-                          height: 1.0,
+                      Flexible(
+                        child: Text(
+                          _durationLabel,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.manrope(
+                            color: Colors.white,
+                            fontSize: Responsive.font(context, 26),
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                          ),
                         ),
                       ),
                       SizedBox(width: Responsive.width(context, 4)),

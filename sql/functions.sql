@@ -775,7 +775,7 @@ BEGIN
                 'working',
                 -- mark as PR if this set beats the stored weight or reps record
                 (
-                    (NULLIF(v_set->>'weight_kg', '')::NUMERIC IS NOT NULL AND (v_existing_pr_weight IS NULL OR NULLIF(v_set->>'weight_kg', '')::NUMERIC > v_existing_pr_weight))
+                    (NULLIF(v_set->>'weight_kg', '')::NUMERIC IS NOT NULL AND (v_existing_pr_weight IS NULL OR ROUND(NULLIF(v_set->>'weight_kg', '')::NUMERIC, 2) > v_existing_pr_weight))
                     OR
                     (NULLIF(v_set->>'reps', '')::INTEGER IS NOT NULL AND (v_existing_pr_reps IS NULL OR NULLIF(v_set->>'reps', '')::INTEGER > v_existing_pr_reps))
                 )
@@ -822,7 +822,7 @@ BEGIN
 
         -- write a pr_history row for each PR type broken this session; multiple can fire at once
         -- workout_id foreign key means these rows are deleted automatically if the workout is deleted
-        IF v_best_weight IS NOT NULL AND (v_existing_pr_weight IS NULL OR v_best_weight > v_existing_pr_weight) THEN
+        IF v_best_weight IS NOT NULL AND (v_existing_pr_weight IS NULL OR ROUND(v_best_weight, 2) > v_existing_pr_weight) THEN
             INSERT INTO pr_history (uid, workout_id, exercise_name, pr_type, old_value, new_value)
             VALUES (p_uid, v_workout_id, v_exercise_name, 'weight', v_existing_pr_weight, v_best_weight);
         END IF;

@@ -2739,3 +2739,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a radar chart to workout analytics for muscle usage
 - Fixed routine-sourced exercises not passing exercise_id to the backend when logging, which caused muscle group data to be missing from today's overview and analytics
 - Fixed an exploit where deleting a workout and re-logging one on the same day would award workout XP again; XP is now gated on last_workout_xp_date on the users table instead of counting completed workouts for today
+- Fixed false PR badges being stamped on sets logged in imperial units due to lbs-to-kg float precision drift; weight is now rounded to 2dp before PR comparison both client-side and in the log_workout Postgres function
+- Fixed exercise_id being stripped from routine exercise responses by the Pydantic schema, causing muscle data to be missing from today's overview and analytics for all routine-sourced workouts
+- Made the set name dialog not appear when "Finish" is pressed and a name is already set
