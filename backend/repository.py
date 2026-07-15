@@ -1000,6 +1000,7 @@ class WorkoutRepository:
             self._supabase.table("workout_templates") \
                 .update({"uid": None}) \
                 .eq("template_id", template_id) \
+                .eq("uid", uid) \
                 .execute()
         else:
             # private routines are only visible to the owner so it is safe to fully delete them

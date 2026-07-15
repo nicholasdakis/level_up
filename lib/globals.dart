@@ -60,6 +60,7 @@ final UserDataManager userManager =
 // Logs a named analytics event, skipped for guests and the developer account to avoid skewing data
 void logAnalyticsEvent(String name, {Map<String, Object>? parameters}) {
   if (isGuest) return;
+  if (kDebugMode) return;
   if (FirebaseAuth.instance.currentUser?.email == 'n1ch0lasd4k1s@gmail.com') {
     return;
   }

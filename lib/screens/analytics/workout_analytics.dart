@@ -122,7 +122,15 @@ class _WorkoutAnalyticsScreenState
   void _applyChip(int index) {
     // chips 2+ (1M, 3M, All) require premium
     if (!_isPremium && index >= 2) {
-      showPremiumSheet(context, ref);
+      showProFeatureDialog(
+        context,
+        feature: 'Full Progress History',
+        appColor: appColor,
+        onLearnMore: () {
+          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
+          showPremiumSheet(context, ref);
+        },
+      );
       return;
     }
     final now = DateTime.now();
@@ -228,6 +236,53 @@ class _WorkoutAnalyticsScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (!_isPremium) ...[
+                          GestureDetector(
+                            onTap: () => showPremiumSheet(context, ref),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Responsive.width(context, 14),
+                                vertical: Responsive.height(context, 10),
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(10),
+                                borderRadius: BorderRadius.circular(
+                                  Responsive.scale(context, 12),
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(20),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  proChip(context),
+                                  SizedBox(width: Responsive.width(context, 8)),
+                                  Expanded(
+                                    child: Text(
+                                      'Free plan shows the last 14 days. Upgrade for full history.',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 12),
+                                        color: lightenColor(appColor, 0.35),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Upgrade',
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 12),
+                                      color: lightenColor(appColor, 0.45),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 12)),
+                        ],
+
                         // range chips
                         buildRangeChips(
                           context,
@@ -238,7 +293,17 @@ class _WorkoutAnalyticsScreenState
                           shimmerIndices: _isPremium ? [] : [2, 3, 4],
                           onLockedTap: _isPremium
                               ? null
-                              : () => showPremiumSheet(context, ref),
+                              : () => showProFeatureDialog(
+                                  context,
+                                  feature: 'Full Progress History',
+                                  appColor: appColor,
+                                  onLearnMore: () {
+                                    logAnalyticsEvent(
+                                      'premium_sheet_opened_from_learn_more',
+                                    );
+                                    showPremiumSheet(context, ref);
+                                  },
+                                ),
                         ),
                         SizedBox(height: Responsive.height(context, 12)),
 
