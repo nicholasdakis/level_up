@@ -79,9 +79,9 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                 changes: [
                   'New Workout Analytics screen with workout trends, muscle group insights, personal record tracking, and session statistics',
                   'The Workout tab and its internal screens have been completely overhauled for a more premium experience',
-                  'Sets can now be deleted from exercises',
+                  'Sets can now be deleted from exercises without having to delete the entire exercise',
                   'The workout rest timer can now be disabled',
-                  'The workout timer can now be adjusted',
+                  'The workout duration timer can now be adjusted',
                   'Various bug fixes and polish across multiple screens',
                 ],
               ),
