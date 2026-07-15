@@ -317,11 +317,13 @@ class DailyRewardDialog {
       await handleLevelUpOverlay(context, levelBefore, appColor, ref);
     }
 
-    // On first ever claim, ask for notification permission before scheduling
+    // On first ever claim, show notification prompt if permission hasn't been granted yet.
+    // notDetermined is iOS-only; on Android the status comes back as authorized or denied
+    // so checking for anything other than authorized ensures the prompt shows on both platforms
     if (isFirstClaim && context.mounted) {
       final settings = await FirebaseMessaging.instance
           .getNotificationSettings();
-      if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
         if (context.mounted) {
           await _showFirstClaimNotificationPrompt(context, appColor, ref);
         }
