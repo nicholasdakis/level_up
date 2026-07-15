@@ -1,0 +1,556 @@
+import 'dart:convert';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '/providers/user_data_provider.dart';
+import '/services/user_data_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
+import 'package:skeletonizer/skeletonizer.dart';
+import '../../globals.dart';
+import '../../utility/responsive.dart';
+import '../../utility/unit_converter.dart';
+import 'analytics_components.dart';
+import '../premium_sheet.dart' show showPremiumSheet;
+
+class WorkoutAnalyticsScreen extends ConsumerStatefulWidget {
+  const WorkoutAnalyticsScreen({super.key});
+
+  @override
+  ConsumerState<WorkoutAnalyticsScreen> createState() =>
+      _WorkoutAnalyticsScreenState();
+}
+
+class _WorkoutAnalyticsScreenState extends ConsumerState<WorkoutAnalyticsScreen> {
+  Color get appColor => ref.watch(
+    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
+  );
+
+  bool get isImperial =>
+      ref.watch(userDataProvider.select((s) => s.value?.units == 'imperial'));
+
+  // range state, default 1W
+  int _chipIndex = 0;
+  DateTime? _rangeStart = DateTime.now().subtract(const Duration(days: 6));
+  DateTime? _rangeEnd = DateTime.now();
+  bool _rangeSelected = true;
+  DateTime _calendarFocused = DateTime.now();
+  int _animationKey = 0;
+
+  List<Map<String, dynamic>> _workouts = [];
+  bool _loading = false;
+
+  static const _chips = ['1W', '2W', '1M', '3M', 'All'];
+
+  bool get _isPremium => ref.read(userDataProvider).value?.isPremium ?? false;
+  DateTime get _cutoff => DateTime.now().subtract(const Duration(days: 13));
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: '/workout-analytics',
+      screenClass: 'WorkoutAnalyticsScreen',
+    );
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (isGuest) return;
+    setState(() => _loading = true);
+    // free users capped at 2 weeks
+    final effectiveStart = (!_isPremium && (_rangeStart == null || _rangeStart!.isBefore(_cutoff)))
+        ? _cutoff
+        : _rangeStart;
+    try {
+      final since = effectiveStart != null
+          ? '${effectiveStart.year}-${effectiveStart.month.toString().padLeft(2, '0')}-${effectiveStart.day.toString().padLeft(2, '0')}'
+          : null;
+      final url = since != null ? 'workout_history?since=$since' : 'workout_history';
+      final response = await authenticatedGet(url);
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final all = (data['workouts'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        // filter to range end
+        final end = _rangeEnd;
+        setState(() {
+          _workouts = end == null
+              ? all
+              : all.where((w) {
+                  final d = DateTime.tryParse(w['date'] as String? ?? '');
+                  return d == null || !d.isAfter(end);
+                }).toList();
+          _animationKey++;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _applyChip(int index) {
+    // chips 2+ (1M, 3M, All) require premium
+    if (!_isPremium && index >= 2) {
+      showPremiumSheet(context, ref);
+      return;
+    }
+    final now = DateTime.now();
+    DateTime? start;
+    switch (index) {
+      case 0: start = now.subtract(const Duration(days: 6)); break;
+      case 1: start = now.subtract(const Duration(days: 13)); break;
+      case 2: start = DateTime(now.year, now.month - 1, now.day); break;
+      case 3: start = DateTime(now.year, now.month - 3, now.day); break;
+      case 4: start = null; break;
+    }
+    setState(() {
+      _chipIndex = index;
+      _rangeStart = start;
+      _rangeEnd = now;
+      _rangeSelected = true;
+      _calendarFocused = now;
+    });
+    _load();
+  }
+
+  // aggregated totals across the filtered range
+  int get _totalWorkouts => _workouts.length;
+  double get _totalVolumeKg => _workouts.fold(0.0, (s, w) => s + ((w['volume_kg'] as num?)?.toDouble() ?? 0));
+  int get _totalDurationSeconds => _workouts.fold(0, (s, w) => s + ((w['duration_seconds'] as num?)?.toInt() ?? 0));
+  int get _avgDurationSeconds => _totalWorkouts == 0 ? 0 : _totalDurationSeconds ~/ _totalWorkouts;
+
+  String _formatDuration(int seconds) {
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    if (h > 0) return '${h}h ${m}m';
+    return '${m}m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = lightenColor(appColor, 0.45);
+    final dim = lightenColor(appColor, 0.35);
+    final hPad = Responsive.centeredHorizontalPadding(context, 20);
+
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // header
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: hPad)
+                    .copyWith(top: Responsive.height(context, 8), bottom: Responsive.height(context, 12)),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        padding: EdgeInsets.all(Responsive.scale(context, 10)),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lightenColor(appColor, 0.1).withAlpha(20),
+                          border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
+                        ),
+                        child: Icon(Icons.arrow_back_ios_new,
+                            color: Colors.white.withAlpha(160), size: Responsive.font(context, 13)),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 16)),
+                    Text(
+                      'Workout Analytics',
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 20),
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: hPad)
+                        .copyWith(bottom: Responsive.height(context, 24)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // range chips
+                        buildRangeChips(
+                          context,
+                          _chips,
+                          _chipIndex,
+                          (i) => _applyChip(i),
+                          appColor: appColor,
+                          shimmerIndices: _isPremium ? [] : [2, 3, 4],
+                          onLockedTap: _isPremium ? null : () => showPremiumSheet(context, ref),
+                        ),
+                        SizedBox(height: Responsive.height(context, 12)),
+
+                        // calendar range picker
+                        RangePickerCard(
+                          rangeStart: _rangeStart,
+                          rangeEnd: _rangeEnd,
+                          rangeSelected: _rangeSelected,
+                          calendarFocused: _calendarFocused,
+                          rangeLabel: 'workouts',
+                          onRangeSelected: (start, end, focused) {
+                            setState(() {
+                              _rangeStart = start;
+                              _rangeEnd = end;
+                              _rangeSelected = start != null && end != null;
+                              _calendarFocused = focused;
+                              _chipIndex = -1;
+                            });
+                            if (_rangeSelected) _load();
+                          },
+                          onPageChanged: (f) => setState(() => _calendarFocused = f),
+                          onClearRange: () {
+                            setState(() {
+                              _rangeStart = null;
+                              _rangeEnd = null;
+                              _rangeSelected = false;
+                              _chipIndex = -1;
+                            });
+                          },
+                          firstDay: _isPremium ? null : _cutoff,
+                        ),
+                        SizedBox(height: Responsive.height(context, 20)),
+
+                        if (!_loading && _workouts.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(Responsive.scale(context, 40)),
+                              child: Text(
+                                'No workouts in this range',
+                                style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 13)),
+                              ),
+                            ),
+                          )
+                        else
+                          Skeletonizer(
+                            enabled: _loading,
+                            effect: ShimmerEffect(
+                              baseColor: lightenColor(appColor, 0.3),
+                              highlightColor: lightenColor(appColor, 0.1),
+                              duration: const Duration(milliseconds: 1200),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSummaryCards(context, accent, dim)
+                                    .animate(key: ValueKey(('summary', _animationKey)))
+                                    .fadeIn(duration: 300.ms)
+                                    .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                                SizedBox(height: Responsive.height(context, 20)),
+
+                                _buildVolumeChart(context, accent, dim)
+                                    .animate(key: ValueKey(('volume', _animationKey)))
+                                    .fadeIn(delay: 60.ms, duration: 300.ms)
+                                    .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                                SizedBox(height: Responsive.height(context, 16)),
+
+                                _buildDurationChart(context, accent, dim)
+                                    .animate(key: ValueKey(('duration', _animationKey)))
+                                    .fadeIn(delay: 120.ms, duration: 300.ms)
+                                    .slideY(begin: 0.1, curve: Curves.easeOut),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(BuildContext context, Color accent, Color dim) {
+    final volDisplay = isImperial
+        ? '${UnitConverter.displayWeight(_totalVolumeKg, imperial: true)} lbs'
+        : '${_totalVolumeKg.toStringAsFixed(0)} kg';
+    return frostedGlassCard(
+      context,
+      color: appColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 20),
+        vertical: Responsive.height(context, 18),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _statCell(context, '$_totalWorkouts', 'Workouts', accent, dim),
+          _vDivider(context),
+          _statCell(context, volDisplay, 'Total Volume', accent, dim),
+          _vDivider(context),
+          _statCell(context, _formatDuration(_avgDurationSeconds), 'Avg Duration', accent, dim),
+        ],
+      ),
+    );
+  }
+
+  Widget _statCell(BuildContext context, String value, String label, Color accent, Color dim) {
+    return Column(
+      children: [
+        Text(value, style: GoogleFonts.manrope(color: Colors.white, fontSize: Responsive.font(context, 16), fontWeight: FontWeight.w800)),
+        Text(label, style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 11))),
+      ],
+    );
+  }
+
+  Widget _vDivider(BuildContext context) => Container(
+    width: 1, height: Responsive.height(context, 32), color: Colors.white.withAlpha(15));
+
+  Widget _buildVolumeChart(BuildContext context, Color accent, Color dim) {
+    // group by date, sum volume
+    final Map<String, double> byDate = {};
+    for (final w in _workouts) {
+      final d = w['date'] as String? ?? '';
+      byDate[d] = (byDate[d] ?? 0) + ((w['volume_kg'] as num?)?.toDouble() ?? 0);
+    }
+    final sorted = byDate.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    if (sorted.isEmpty) return const SizedBox.shrink();
+
+    final spots = sorted.asMap().entries.map((e) {
+      final volKg = e.value.value;
+      final vol = isImperial ? volKg * 2.20462 : volKg;
+      return FlSpot(e.key.toDouble(), vol);
+    }).toList();
+
+    final maxY = spots.map((s) => s.y).fold(0.0, (a, b) => a > b ? a : b);
+
+    return frostedGlassCard(
+      context,
+      color: appColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Volume per Workout',
+              style: GoogleFonts.manrope(color: Colors.white, fontSize: Responsive.font(context, 14), fontWeight: FontWeight.w700)),
+          Text(isImperial ? 'lbs' : 'kg',
+              style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 11))),
+          SizedBox(height: Responsive.height(context, 16)),
+          SizedBox(
+            height: Responsive.height(context, 160),
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) => FlLine(color: Colors.white.withAlpha(12), strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  touchSpotThreshold: 20,
+                  touchTooltipData: LineTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipColor: (_) => darkenColor(appColor, 0.1).withAlpha(220),
+                    getTooltipItems: (touched) => touched.map((s) {
+                      final i = s.spotIndex;
+                      final dateStr = i >= 0 && i < sorted.length ? formatDateKeyShort(sorted[i].key) : '';
+                      final unit = isImperial ? 'lbs' : 'kg';
+                      return LineTooltipItem(
+                        '$dateStr\n',
+                        GoogleFonts.manrope(fontSize: Responsive.font(context, 11), color: dim, fontWeight: FontWeight.w500),
+                        children: [
+                          TextSpan(
+                            text: '${s.y.toStringAsFixed(0)} $unit',
+                            style: GoogleFonts.manrope(fontSize: Responsive.font(context, 13), color: accent, fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: Responsive.width(context, 40),
+                      getTitlesWidget: (v, _) => Text(
+                        v.toInt().toString(),
+                        style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 9)),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: sorted.length <= 14,
+                      interval: sorted.length <= 7 ? 1 : 2,
+                      getTitlesWidget: (v, _) {
+                        final i = v.toInt();
+                        if (i < 0 || i >= sorted.length) return const SizedBox.shrink();
+                        return Text(
+                          formatDateKeyShort(sorted[i].key),
+                          style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 9)),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                minY: 0,
+                maxY: maxY * 1.2,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    curveSmoothness: 0.3,
+                    color: accent,
+                    barWidth: 2.5,
+                    dotData: FlDotData(
+                      show: spots.length <= 14,
+                      getDotPainter: (p, q, r, s) => FlDotCirclePainter(
+                        radius: 3, color: accent, strokeWidth: 0),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: accent.withAlpha(30),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDurationChart(BuildContext context, Color accent, Color dim) {
+    final sorted = List<Map<String, dynamic>>.from(_workouts)
+      ..sort((a, b) => (a['date'] as String? ?? '').compareTo(b['date'] as String? ?? ''));
+
+    final spots = sorted.asMap().entries.map((e) {
+      final mins = ((e.value['duration_seconds'] as num?)?.toInt() ?? 0) / 60.0;
+      return FlSpot(e.key.toDouble(), mins);
+    }).toList();
+
+    final maxY = spots.map((s) => s.y).fold(0.0, (a, b) => a > b ? a : b);
+    if (maxY == 0) return const SizedBox.shrink();
+
+    return frostedGlassCard(
+      context,
+      color: appColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 16),
+        vertical: Responsive.height(context, 16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Duration per Workout',
+              style: GoogleFonts.manrope(color: Colors.white, fontSize: Responsive.font(context, 14), fontWeight: FontWeight.w700)),
+          Text('minutes',
+              style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 11))),
+          SizedBox(height: Responsive.height(context, 16)),
+          SizedBox(
+            height: Responsive.height(context, 160),
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (_) => FlLine(color: Colors.white.withAlpha(12), strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  touchSpotThreshold: 20,
+                  touchTooltipData: LineTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipColor: (_) => darkenColor(appColor, 0.1).withAlpha(220),
+                    getTooltipItems: (touched) => touched.map((s) {
+                      final i = s.spotIndex;
+                      final dateStr = i >= 0 && i < sorted.length ? formatDateKeyShort(sorted[i]['date'] as String? ?? '') : '';
+                      final mins = s.y.toInt();
+                      return LineTooltipItem(
+                        '$dateStr\n',
+                        GoogleFonts.manrope(fontSize: Responsive.font(context, 11), color: dim, fontWeight: FontWeight.w500),
+                        children: [
+                          TextSpan(
+                            text: '${mins}m',
+                            style: GoogleFonts.manrope(fontSize: Responsive.font(context, 13), color: accent, fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: Responsive.width(context, 40),
+                      getTitlesWidget: (v, _) => Text(
+                        '${v.toInt()}m',
+                        style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 9)),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: sorted.length <= 14,
+                      interval: sorted.length <= 7 ? 1 : 2,
+                      getTitlesWidget: (v, _) {
+                        final i = v.toInt();
+                        if (i < 0 || i >= sorted.length) return const SizedBox.shrink();
+                        return Text(
+                          formatDateKeyShort(sorted[i]['date'] as String? ?? ''),
+                          style: GoogleFonts.manrope(color: Colors.white38, fontSize: Responsive.font(context, 9)),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                minY: 0,
+                maxY: maxY * 1.2,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    curveSmoothness: 0.3,
+                    color: lightenColor(appColor, 0.30),
+                    barWidth: 2.5,
+                    dotData: FlDotData(
+                      show: spots.length <= 14,
+                      getDotPainter: (p, q, r, s) => FlDotCirclePainter(
+                        radius: 3, color: lightenColor(appColor, 0.30), strokeWidth: 0),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: lightenColor(appColor, 0.30).withAlpha(25),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -2730,3 +2730,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Done Reordering button updated with gradient styling matching other primary CTAs
 - Header dims to 25% opacity during reorder mode and becomes non-interactive; bottom bar does the same so Done Reordering is the only obvious action
 - Removed redundant drag hint banner above the exercise list during reorder mode
+- Today's Overview card moved to the top of the workout tab and now includes the weekly goal progress bar and reset countdown inline, replacing the separate Weekly Goal card; a View Analytics button was added at the bottom of the card
+- Added GET /workout_history backend route that returns the user's full workout log, filterable by a since date
+- Added WorkoutAnalyticsScreen at /workout/analytics: shows a summary stat card (total workouts, total volume, avg duration), a volume-per-workout line chart, and a duration-per-workout line chart; date range is selectable via 1W/2W/1M/3M/All chips and a calendar range picker; free users are capped at 2 weeks, longer ranges prompt the Pro sheet; data loads with a skeletonizer instead of a spinner

@@ -19,6 +19,7 @@ import 'screens/food_logging.dart';
 import 'screens/analytics/food_analytics.dart';
 import 'screens/analytics/weight_analytics.dart';
 import 'screens/analytics/water_analytics.dart';
+import 'screens/analytics/workout_analytics.dart';
 import 'screens/reminders.dart';
 import 'screens/badges.dart';
 import 'screens/leaderboard.dart';
@@ -123,7 +124,9 @@ final GoRouter appRouter = GoRouter(
     }
     // force outdated users to the update screen, skip all other redirect logic
     if (isAppOutdated) {
-      return state.matchedLocation == '/update-required' ? null : '/update-required';
+      return state.matchedLocation == '/update-required'
+          ? null
+          : '/update-required';
     }
 
     // send logged-out users to login
@@ -247,6 +250,14 @@ final GoRouter appRouter = GoRouter(
                       ),
                     );
                   },
+                ),
+                GoRoute(
+                  path: 'analytics',
+                  parentNavigatorKey: _rootNavKey,
+                  pageBuilder: (context, state) => _slideUpPage(
+                    key: state.pageKey,
+                    child: const WorkoutAnalyticsScreen(),
+                  ),
                 ),
               ],
             ),

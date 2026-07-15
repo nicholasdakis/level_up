@@ -63,15 +63,12 @@ class _WorkoutState extends ConsumerState<Workout> {
 
   void _updateResetCountdown() {
     final now = DateTime.now();
-    // DateTime.monday == 1, weekday is 1-7, so this gives 0 on Monday and counts up to 6 on Sunday
-    final daysUntilMonday = (DateTime.monday - now.weekday + 7) % 7;
-    // midnight of the next Monday (day arithmetic overflows correctly into the next month/year)
+    final int raw = (DateTime.monday - now.weekday + 7) % 7;
+    // 0 means today is Monday — next reset is 7 days away, not 0
+    final int daysUntilMonday = raw == 0 ? 7 : raw;
     final nextMonday = DateTime(now.year, now.month, now.day + daysUntilMonday);
     final remaining = nextMonday.difference(now);
-    // guard against the edge case where this fires just after midnight on Monday
-    setState(
-      () => _timeUntilReset = remaining.isNegative ? Duration.zero : remaining,
-    );
+    setState(() => _timeUntilReset = remaining);
   }
 
   void _dismissHeatmapTooltip() {
@@ -185,93 +182,6 @@ class _WorkoutState extends ConsumerState<Workout> {
   void dispose() {
     _resetTimer?.cancel();
     super.dispose();
-  }
-
-  Widget _buildGoalCard(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final int weeklyGoal =
-        ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
-    final int workoutsThisWeek = ref.watch(
-      workoutProvider.select((s) => s.value?.weeklyWorkoutCount ?? 0),
-    );
-
-    final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
-    return GestureDetector(
-      onTap: () => _onSetWeeklyGoal(context),
-      child: frostedGlassCard(
-        context,
-        color: appColor,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 20),
-          vertical: Responsive.height(context, 16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Weekly Goal",
-                  style: GoogleFonts.manrope(
-                    color: accent,
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      "$workoutsThisWeek / $weeklyGoal workouts",
-                      style: GoogleFonts.manrope(
-                        color: dim,
-                        fontSize: Responsive.font(context, 12),
-                      ),
-                    ),
-                    SizedBox(width: Responsive.width(context, 8)),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedPencilEdit01,
-                      color: dim,
-                      size: Responsive.scale(context, 14),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: Responsive.height(context, 10)),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Responsive.scale(context, 4)),
-              child: LinearProgressIndicator(
-                value: fraction,
-                minHeight: Responsive.height(context, 6),
-                backgroundColor: Colors.white.withAlpha(20),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  lightenColor(appColor, 0.4),
-                ),
-              ),
-            ),
-            SizedBox(height: Responsive.height(context, 6)),
-            Text(
-              () {
-                final d = _timeUntilReset;
-                if (d.inSeconds <= 0) return 'Resets today';
-                final days = d.inDays;
-                final hours = d.inHours % 24;
-                final minutes = d.inMinutes % 60;
-                if (days > 0) return 'Resets in ${days}d ${hours}h ${minutes}m';
-                if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
-                return 'Resets in ${minutes}m';
-              }(),
-              style: GoogleFonts.manrope(
-                color: lightenColor(appColor, 0.35),
-                fontSize: Responsive.font(context, 10),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _onSetWeeklyGoal(BuildContext context) async {
@@ -1148,7 +1058,7 @@ class _WorkoutState extends ConsumerState<Workout> {
       color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 16),
+        vertical: Responsive.height(context, 12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1164,7 +1074,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                     volumeDisplay,
                     style: GoogleFonts.manrope(
                       color: accent,
-                      fontSize: Responsive.font(context, 26),
+                      fontSize: Responsive.font(context, 22),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1172,7 +1082,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                     'volume ($volumeUnit)',
                     style: GoogleFonts.manrope(
                       color: dim,
-                      fontSize: Responsive.font(context, 11),
+                      fontSize: Responsive.font(context, 10),
                     ),
                   ),
                 ],
@@ -1185,7 +1095,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                     durationDisplay,
                     style: GoogleFonts.manrope(
                       color: accent,
-                      fontSize: Responsive.font(context, 26),
+                      fontSize: Responsive.font(context, 22),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1193,20 +1103,20 @@ class _WorkoutState extends ConsumerState<Workout> {
                     'duration',
                     style: GoogleFonts.manrope(
                       color: dim,
-                      fontSize: Responsive.font(context, 11),
+                      fontSize: Responsive.font(context, 10),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          SizedBox(height: Responsive.height(context, 14)),
+          SizedBox(height: Responsive.height(context, 10)),
           Divider(
             color: c.onCard.withAlpha(30),
             height: Responsive.height(context, 1),
-            thickness: Responsive.height(context, 1.5),
+            thickness: Responsive.height(context, 1),
           ),
-          SizedBox(height: Responsive.height(context, 14)),
+          SizedBox(height: Responsive.height(context, 10)),
           Row(
             children: [
               stat('$exercises', 'exercises'),
@@ -1214,6 +1124,142 @@ class _WorkoutState extends ConsumerState<Workout> {
               stat('$reps', 'reps'),
             ],
           ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Divider(
+            color: c.onCard.withAlpha(30),
+            height: Responsive.height(context, 1),
+            thickness: Responsive.height(context, 1),
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Builder(
+            builder: (context) {
+              final int weeklyGoal =
+                  ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
+              final int workoutsThisWeek = ref.watch(
+                workoutProvider.select((s) => s.value?.weeklyWorkoutCount ?? 0),
+              );
+              final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
+              return GestureDetector(
+                onTap: () => _onSetWeeklyGoal(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Weekly Goal",
+                          style: GoogleFonts.manrope(
+                            color: lightenColor(appColor, 0.45),
+                            fontSize: Responsive.font(context, 12),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "$workoutsThisWeek / $weeklyGoal workouts",
+                              style: GoogleFonts.manrope(
+                                color: lightenColor(appColor, 0.35),
+                                fontSize: Responsive.font(context, 11),
+                              ),
+                            ),
+                            SizedBox(width: Responsive.width(context, 6)),
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedPencilEdit01,
+                              color: lightenColor(appColor, 0.35),
+                              size: Responsive.scale(context, 13),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: Responsive.height(context, 6)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 4),
+                      ),
+                      child: LinearProgressIndicator(
+                        value: fraction,
+                        minHeight: Responsive.height(context, 5),
+                        backgroundColor: Colors.white.withAlpha(20),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          lightenColor(appColor, 0.4),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 5)),
+                    Text(
+                      () {
+                        final d = _timeUntilReset;
+                        if (d.inSeconds <= 0) return 'Resets today';
+                        final days = d.inDays;
+                        final hours = d.inHours % 24;
+                        final minutes = d.inMinutes % 60;
+                        if (days > 0) {
+                          return 'Resets in ${days}d ${hours}h ${minutes}m';
+                        }
+                        if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
+                        return 'Resets in ${minutes}m';
+                      }(),
+                      style: GoogleFonts.manrope(
+                        color: lightenColor(appColor, 0.35),
+                        fontSize: Responsive.font(context, 10),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          Divider(
+            color: c.onCard.withAlpha(30),
+            height: Responsive.height(context, 1),
+            thickness: Responsive.height(context, 1),
+          ),
+          SizedBox(height: Responsive.height(context, 10)),
+          if (!isGuest)
+            GestureDetector(
+              onTap: () => context.push('/workout/analytics'),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 10),
+                  horizontal: Responsive.width(context, 24),
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    Responsive.scale(context, 12),
+                  ),
+                  color: lightenColor(appColor, 0.1).withAlpha(40),
+                  border: Border.all(
+                    color: lightenColor(appColor, 0.35).withAlpha(160),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedAnalytics01,
+                      color: lightenColor(appColor, 0.45),
+                      size: Responsive.font(context, 18),
+                    ),
+                    SizedBox(width: Responsive.width(context, 8)),
+                    Text(
+                      "View Analytics",
+                      style: GoogleFonts.manrope(
+                        fontSize: Responsive.font(context, 14),
+                        fontWeight: FontWeight.w800,
+                        color: lightenColor(appColor, 0.45),
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 12)),
             Divider(
@@ -1559,11 +1605,11 @@ class _WorkoutState extends ConsumerState<Workout> {
                                   Responsive.height(context, 24),
                             ),
                             sectionHeader(
-                              "WORKOUT",
+                              "TODAY'S OVERVIEW",
                               context,
                               appColor: appColor,
                             ),
-                            _animate(_buildGoalCard(context), 0.ms),
+                            _animate(_buildLiftsCard(context), 0.ms),
                             SizedBox(height: Responsive.height(context, 20)),
                             sectionHeader("START", context, appColor: appColor),
                             _animate(_buildStartWorkoutCard(context), 60.ms),
@@ -1578,25 +1624,18 @@ class _WorkoutState extends ConsumerState<Workout> {
                             _animate(_buildMyRoutinesCard(context), 180.ms),
                             SizedBox(height: Responsive.height(context, 20)),
                             sectionHeader(
-                              "TODAY'S OVERVIEW",
-                              context,
-                              appColor: appColor,
-                            ),
-                            _animate(_buildLiftsCard(context), 240.ms),
-                            SizedBox(height: Responsive.height(context, 20)),
-                            sectionHeader(
                               "ACTIVITY HEATMAP",
                               context,
                               appColor: appColor,
                             ),
-                            _animate(_buildHeatmapCard(context), 300.ms),
+                            _animate(_buildHeatmapCard(context), 240.ms),
                             SizedBox(height: Responsive.height(context, 20)),
                             sectionHeader(
                               "RECENT WORKOUTS",
                               context,
                               appColor: appColor,
                             ),
-                            _animate(_buildRecentWorkoutsCard(context), 360.ms),
+                            _animate(_buildRecentWorkoutsCard(context), 300.ms),
                             SizedBox(height: Responsive.height(context, 120)),
                           ],
                         ),
@@ -1660,13 +1699,13 @@ class _WorkoutState extends ConsumerState<Workout> {
                       MediaQuery.paddingOf(context).top +
                       Responsive.height(context, 24),
                 ),
-                sectionHeader("WORKOUT", context, appColor: appColor),
+                sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
                 _guestLock(
                   context,
-                  _buildGoalCard(context),
-                  title: 'Sign up to set workout goals',
+                  _buildLiftsCard(context),
+                  title: 'Sign up to track lifts',
                   description:
-                      'Create a free account to set a weekly workout goal and track your progress.',
+                      'Create a free account to see your daily volume, sets, and reps at a glance.',
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
                 sectionHeader("START", context, appColor: appColor),
@@ -1721,15 +1760,6 @@ class _WorkoutState extends ConsumerState<Workout> {
                   title: 'Sign up to use routines',
                   description:
                       'Create a free account to browse featured routines or build your own.',
-                ),
-                SizedBox(height: Responsive.height(context, 20)),
-                sectionHeader("TODAY'S OVERVIEW", context, appColor: appColor),
-                _guestLock(
-                  context,
-                  _buildLiftsCard(context),
-                  title: 'Sign up to track lifts',
-                  description:
-                      'Create a free account to see your daily volume, sets, and reps at a glance.',
                 ),
                 SizedBox(height: Responsive.height(context, 20)),
                 sectionHeader("ACTIVITY HEATMAP", context, appColor: appColor),
