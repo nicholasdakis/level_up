@@ -728,11 +728,10 @@ DECLARE
     v_distinct_muscles         INTEGER;
     v_is_premium               BOOLEAN;
 BEGIN
-    -- check if the user already completed a workout today (XP is once per day)
-    SELECT EXISTS (
-        SELECT 1 FROM workouts
-        WHERE uid = p_uid AND completed = true AND date = v_today
-    ) INTO v_xp_already_awarded_today;
+    -- check last_workout_xp_date rather than counting workouts so deleting and re-logging cannot re-earn XP
+    SELECT (last_workout_xp_date = v_today)
+    INTO v_xp_already_awarded_today
+    FROM users WHERE uid = p_uid;
 
     -- insert workout row
     INSERT INTO workouts (uid, name, date, duration_seconds, completed)
@@ -865,7 +864,7 @@ BEGIN
             v_new_level := v_new_level + 1;
         END LOOP;
 
-        UPDATE users SET level = v_new_level, exp_points = v_new_exp WHERE uid = p_uid;
+        UPDATE users SET level = v_new_level, exp_points = v_new_exp, last_workout_xp_date = v_today WHERE uid = p_uid;
 
         -- update workout streak
         SELECT last_date, streak INTO v_last_date, v_current_streak

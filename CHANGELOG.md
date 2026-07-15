@@ -2737,3 +2737,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added WorkoutAnalyticsScreen at /workout/analytics: shows a summary stat card (total workouts, total volume, avg duration), a volume-per-workout line chart, and a duration-per-workout line chart; date range is selectable via 1W/2W/1M/3M/All chips and a calendar range picker; free users are capped at 2 weeks, longer ranges prompt the Pro sheet; data loads with a skeletonizer instead of a spinner
 - Merged /workout_history and /workout_pr_summary into a single /workout_analytics endpoint that returns workouts, muscle frequency maps, and PR counts in one call to cut down on round trips
 - Added a radar chart to workout analytics for muscle usage
+- Fixed routine-sourced exercises not passing exercise_id to the backend when logging, which caused muscle group data to be missing from today's overview and analytics
+- Fixed an exploit where deleting a workout and re-logging one on the same day would award workout XP again; XP is now gated on last_workout_xp_date on the users table instead of counting completed workouts for today

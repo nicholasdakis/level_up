@@ -32,7 +32,8 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ,              -- when the user first signed up
     is_premium BOOLEAN NOT NULL DEFAULT FALSE,        -- whether the user currently has an active premium subscription
     premium_expires_at TIMESTAMPTZ NULL,              -- when the premium subscription expires; null means not premium
-    purchase_token TEXT NULL                          -- latest Google Play purchase token, used by the RTDN webhook to resolve uid
+    purchase_token TEXT NULL,                         -- latest Google Play purchase token, used by the RTDN webhook to resolve uid
+    last_workout_xp_date DATE NULL                    -- the last date workout XP was awarded, used to prevent re-earning XP by deleting and re-logging
 );
 
 -- Tracks referrals between users; referee_uid is the primary key so a user can only be referred once
