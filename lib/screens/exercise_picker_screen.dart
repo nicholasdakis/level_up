@@ -351,14 +351,18 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 : '${selectedSecondary.length} muscles';
             final chips = <(String, int)>[];
             if (step > 0) chips.add((nameController.text.trim(), 0));
-            if (step > 1 && selectedMuscle != null)
+            if (step > 1 && selectedMuscle != null) {
               chips.add((selectedMuscle!, 1));
-            if (step > 2 && selectedSecondary.isNotEmpty)
+            }
+            if (step > 2 && selectedSecondary.isNotEmpty) {
               chips.add((secondaryLabel, 2));
-            if (step > 3 && selectedEquipment != null)
+            }
+            if (step > 3 && selectedEquipment != null) {
               chips.add((selectedEquipment!, 3));
-            if (step > 4 && selectedLevel != null)
+            }
+            if (step > 4 && selectedLevel != null) {
               chips.add((selectedLevel!, 4));
+            }
             if (chips.isEmpty) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.only(bottom: Responsive.height(context, 14)),
@@ -986,7 +990,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
           color: active
               ? Colors.white.withAlpha(30)
               : Colors.white.withAlpha(18),
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
           border: Border.all(
             color: active
                 ? Colors.white.withAlpha(80)
@@ -1567,10 +1571,9 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       child: Text(
         label,
         style: GoogleFonts.manrope(
-          color: Colors.white38,
-          fontSize: Responsive.font(context, 10),
+          color: Colors.white70,
+          fontSize: Responsive.font(context, 13),
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
         ),
       ),
     );
@@ -1604,7 +1607,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             SizedBox(height: Responsive.height(context, 16)),
           ],
           if (_recentExercises.isNotEmpty) ...[
-            sectionHeader('RECENT EXERCISES'),
+            sectionHeader('RECENTLY LOGGED EXERCISES'),
             for (int i = 0; i < _recentExercises.length; i++) ...[
               if (i > 0)
                 Divider(
@@ -1626,9 +1629,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ],
             SizedBox(height: Responsive.height(context, 20)),
           ],
+          Divider(color: Colors.white.withAlpha(40), height: 1),
+          SizedBox(height: Responsive.height(context, 16)),
           sectionHeader('BROWSE BY MUSCLE'),
           _buildMuscleGrid(context),
           SizedBox(height: Responsive.height(context, 20)),
+          Divider(color: Colors.white.withAlpha(40), height: 1),
+          SizedBox(height: Responsive.height(context, 16)),
           sectionHeader('BROWSE BY EQUIPMENT'),
           _buildEquipmentGrid(context),
         ],
@@ -1637,25 +1644,25 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   }
 
   static const _muscleGridItems = [
-    ('Chest', 'Chest'),
-    ('Back', 'Lats'),
-    ('Shoulders', 'Shoulders'),
-    ('Biceps', 'Biceps'),
-    ('Triceps', 'Triceps'),
-    ('Legs', 'Quadriceps'),
-    ('Glutes', 'Glutes'),
-    ('Core', 'Abdominals'),
+    ('Chest', 'Chest', HugeIcons.strokeRoundedEquipmentChestPress),
+    ('Back', 'Lats', HugeIcons.strokeRoundedBackMuscleBody),
+    ('Shoulders', 'Shoulders', HugeIcons.strokeRoundedShoulder),
+    ('Biceps', 'Biceps', HugeIcons.strokeRoundedBodyPartMuscle),
+    ('Triceps', 'Triceps', HugeIcons.strokeRoundedDumbbell02),
+    ('Legs', 'Quadriceps', HugeIcons.strokeRoundedBodyPartLeg),
+    ('Glutes', 'Glutes', HugeIcons.strokeRoundedWorkoutSquats),
+    ('Core', 'Abdominals', HugeIcons.strokeRoundedBodyPartSixPack),
   ];
 
   static const _equipmentGridItems = [
-    ('Barbell', 'Barbell'),
-    ('Dumbbell', 'Dumbbell'),
-    ('Body Only', 'Body Only'),
-    ('Machine', 'Machine'),
-    ('Cable', 'Cable'),
-    ('Kettlebell', 'Kettlebells'),
-    ('Bands', 'Bands'),
-    ('Other', 'Other'),
+    ('Barbell', 'Barbell', HugeIcons.strokeRoundedEquipmentBenchPress),
+    ('Dumbbell', 'Dumbbell', HugeIcons.strokeRoundedDumbbell01),
+    ('Body Only', 'Body Only', HugeIcons.strokeRoundedCancel02),
+    ('Machine', 'Machine', HugeIcons.strokeRoundedEquipmentChestPress),
+    ('Cable', 'Cable', HugeIcons.strokeRoundedPulley),
+    ('Kettlebell', 'Kettlebells', HugeIcons.strokeRoundedKettlebell),
+    ('Bands', 'Bands', HugeIcons.strokeRoundedWorkoutStretching),
+    ('Other', 'Other', HugeIcons.strokeRoundedWorkoutBattleRopes),
   ];
 
   Widget _buildEquipmentGrid(BuildContext context) {
@@ -1667,7 +1674,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       crossAxisSpacing: Responsive.width(context, 10),
       childAspectRatio: 1.1,
       children: [
-        for (final (label, equipment) in _equipmentGridItems)
+        for (final (label, equipment, icon) in _equipmentGridItems)
           GestureDetector(
             onTap: () {
               setState(() => _selectedEquipment = {equipment});
@@ -1685,7 +1692,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   HugeIcon(
-                    icon: HugeIcons.strokeRoundedDumbbell01,
+                    icon: icon,
                     color: Colors.white38,
                     size: Responsive.scale(context, 22),
                   ),
@@ -1716,7 +1723,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       crossAxisSpacing: Responsive.width(context, 10),
       childAspectRatio: 1.1,
       children: [
-        for (final (label, muscle) in _muscleGridItems)
+        for (final (label, muscle, icon) in _muscleGridItems)
           GestureDetector(
             onTap: () {
               setState(() => _selectedMuscle = {muscle});
@@ -1734,7 +1741,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   HugeIcon(
-                    icon: HugeIcons.strokeRoundedDumbbell01,
+                    icon: icon,
                     color: Colors.white38,
                     size: Responsive.scale(context, 22),
                   ),
