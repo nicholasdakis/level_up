@@ -1657,7 +1657,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   static const _equipmentGridItems = [
     ('Barbell', 'Barbell', HugeIcons.strokeRoundedEquipmentBenchPress),
     ('Dumbbell', 'Dumbbell', HugeIcons.strokeRoundedDumbbell01),
-    ('Body Only', 'Body Only', HugeIcons.strokeRoundedCancel02),
+    ('Body Only', 'Body Only', HugeIcons.strokeRoundedCancel01),
     ('Machine', 'Machine', HugeIcons.strokeRoundedEquipmentChestPress),
     ('Cable', 'Cable', HugeIcons.strokeRoundedPulley),
     ('Kettlebell', 'Kettlebells', HugeIcons.strokeRoundedKettlebell),

@@ -129,11 +129,23 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedCheckmarkCircle02,
-                                      color: accent,
-                                      size: Responsive.scale(context, 52),
+                                ShaderMask(
+                                      shaderCallback: (bounds) =>
+                                          LinearGradient(
+                                            colors: [
+                                              lightenColor(appColor, 0.38),
+                                              lightenColor(appColor, 0.22),
+                                              lightenColor(appColor, 0.06),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ).createShader(bounds),
+                                      child: HugeIcon(
+                                        icon: HugeIcons
+                                            .strokeRoundedCheckmarkCircle02,
+                                        color: Colors.white,
+                                        size: Responsive.scale(context, 52),
+                                      ),
                                     )
                                     .animate()
                                     .fadeIn(duration: 300.ms)
@@ -147,7 +159,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                       'Workout Complete',
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.manrope(
-                                        color: accent,
+                                        color: Colors.white,
                                         fontSize: Responsive.font(context, 30),
                                         fontWeight: FontWeight.w800,
                                       ),
@@ -159,13 +171,16 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                 SizedBox(height: Responsive.height(context, 8)),
 
                                 if (widget.xpGained > 0)
-                                  Text(
-                                    '+${widget.xpGained} XP',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.manrope(
-                                      color: dim,
-                                      fontSize: Responsive.font(context, 22),
-                                      fontWeight: FontWeight.w700,
+                                  ShimmerWidget(
+                                    accent: lightenColor(appColor, 0.48),
+                                    child: Text(
+                                      '+${widget.xpGained} XP',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.manrope(
+                                        color: Colors.white,
+                                        fontSize: Responsive.font(context, 28),
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ).animate().fadeIn(
                                     delay: 140.ms,
@@ -176,7 +191,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                                     'XP already earned from a workout today',
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.manrope(
-                                      color: dimmer,
+                                      color: Colors.white54,
                                       fontSize: Responsive.font(context, 13),
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -212,10 +227,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             Text(
                               'SUMMARY',
                               style: GoogleFonts.manrope(
-                                color: dimmer,
-                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white70,
+                                fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
                               ),
                             ).animate().fadeIn(delay: 220.ms, duration: 300.ms),
                             SizedBox(height: Responsive.height(context, 10)),
@@ -266,10 +280,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                               Text(
                                 'PERSONAL RECORDS',
                                 style: GoogleFonts.manrope(
-                                  color: dimmer,
-                                  fontSize: Responsive.font(context, 11),
+                                  color: Colors.white70,
+                                  fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
                                 ),
                               ).animate().fadeIn(
                                 delay: 220.ms,
@@ -289,14 +302,63 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                               Text(
                                 'MUSCLES WORKED',
                                 style: GoogleFonts.manrope(
-                                  color: dimmer,
-                                  fontSize: Responsive.font(context, 11),
+                                  color: Colors.white70,
+                                  fontSize: Responsive.font(context, 13),
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.2,
                                 ),
                               ).animate().fadeIn(
                                 delay: 240.ms,
                                 duration: 300.ms,
+                              ),
+                              SizedBox(height: Responsive.height(context, 8)),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          lightenColor(appColor, 0.38),
+                                          lightenColor(appColor, 0.06),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 6)),
+                                  Text(
+                                    'Primary',
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white54,
+                                      fontSize: Responsive.font(context, 11),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: Responsive.width(context, 16),
+                                  ),
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withAlpha(18),
+                                      borderRadius: BorderRadius.circular(3),
+                                      border: Border.all(
+                                        color: Colors.white.withAlpha(50),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 6)),
+                                  Text(
+                                    'Secondary',
+                                    style: GoogleFonts.manrope(
+                                      color: Colors.white54,
+                                      fontSize: Responsive.font(context, 11),
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(height: Responsive.height(context, 8)),
                               Wrap(
@@ -330,10 +392,9 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                             Text(
                               'EXERCISES',
                               style: GoogleFonts.manrope(
-                                color: dimmer,
-                                fontSize: Responsive.font(context, 11),
+                                color: Colors.white70,
+                                fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
                               ),
                             ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
 
@@ -382,10 +443,18 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                           vertical: Responsive.height(context, 16),
                         ),
                         decoration: BoxDecoration(
-                          color: appColor.withAlpha(100),
+                          gradient: LinearGradient(
+                            colors: [
+                              lightenColor(appColor, 0.38),
+                              lightenColor(appColor, 0.22),
+                              lightenColor(appColor, 0.06),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: appColor.withAlpha(180),
+                            color: lightenColor(appColor, 0.25).withAlpha(180),
                             width: 1.5,
                           ),
                         ),
@@ -393,7 +462,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                           'Done',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.manrope(
-                            color: accent,
+                            color: Colors.white,
                             fontSize: Responsive.font(context, 15),
                             fontWeight: FontWeight.w700,
                           ),
@@ -452,7 +521,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             Text(
               'Level ${ref.watch(userDataProvider).value?.level ?? 1}',
               style: GoogleFonts.manrope(
-                color: dim,
+                color: Colors.white70,
                 fontSize: Responsive.font(context, 11),
                 fontWeight: FontWeight.w600,
               ),
@@ -460,7 +529,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             Text(
               '$exp / $expNeeded XP',
               style: GoogleFonts.manrope(
-                color: dimmer,
+                color: Colors.white54,
                 fontSize: Responsive.font(context, 11),
                 fontWeight: FontWeight.w500,
               ),
@@ -502,12 +571,89 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     bool isImperial,
   ) {
     final unit = isImperial ? 'lbs' : 'kg';
+
+    Widget statChip(String label, String? oldVal, String newVal) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(28),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
+          border: Border.all(color: Colors.white.withAlpha(45), width: 1),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 10),
+                  vertical: Responsive.height(context, 5),
+                ),
+                child: Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    color: Colors.white54,
+                    fontSize: Responsive.font(context, 11),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              VerticalDivider(
+                color: Colors.white.withAlpha(45),
+                width: 1,
+                thickness: 1,
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.width(context, 10),
+                  vertical: Responsive.height(context, 5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (oldVal != null) ...[
+                      Text(
+                        oldVal,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(context, 11),
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: Colors.white38,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 4),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white38,
+                          size: Responsive.scale(context, 10),
+                        ),
+                      ),
+                    ],
+                    Text(
+                      newVal,
+                      style: GoogleFonts.manrope(
+                        color: Colors.white,
+                        fontSize: Responsive.font(context, 11),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return frostedGlassCard(
       context,
       color: appColor,
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 16),
-        vertical: Responsive.height(context, 14),
+        vertical: Responsive.height(context, 16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,85 +662,85 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             children: [
               HugeIcon(
                 icon: HugeIcons.strokeRoundedMedal01,
-                color: accent,
-                size: Responsive.scale(context, 16),
+                color: Colors.white,
+                size: Responsive.scale(context, 20),
               ),
-              SizedBox(width: Responsive.width(context, 8)),
+              SizedBox(width: Responsive.width(context, 10)),
               Text(
                 widget.prDetails.length == 1
                     ? '1 Personal Record'
                     : '${widget.prDetails.length} Personal Records',
                 style: GoogleFonts.manrope(
-                  color: accent,
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: Responsive.font(context, 15),
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
-          SizedBox(height: Responsive.height(context, 10)),
+          SizedBox(height: Responsive.height(context, 12)),
           for (final entry in widget.prDetails.entries) ...[
             Builder(
               builder: (context) {
                 final pr = entry.value;
                 final weightPR = pr['weightPR'] as bool;
                 final repsPR = pr['repsPR'] as bool;
-                final parts = <String>[];
-                if (weightPR) {
-                  final oldW = pr['oldWeight'] as double?;
-                  final newW = pr['newWeight'] as double;
-                  final newDisplay = UnitConverter.displayWeightCompact(
-                    newW,
-                    imperial: isImperial,
-                  );
-                  if (oldW != null) {
-                    final oldDisplay = UnitConverter.displayWeightCompact(
-                      oldW,
-                      imperial: isImperial,
-                    );
-                    parts.add('$oldDisplay -> $newDisplay $unit');
-                  } else {
-                    parts.add('First weight: $newDisplay $unit');
-                  }
-                }
-                if (repsPR) {
-                  final oldR = pr['oldReps'] as int?;
-                  final newR = pr['newReps'] as int;
-                  parts.add(
-                    oldR != null ? '$oldR -> $newR reps' : 'First reps: $newR',
-                  );
-                }
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 6),
+                return Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 12),
+                    vertical: Responsive.height(context, 10),
                   ),
-                  child: Row(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 10),
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withAlpha(18),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          entry.key,
-                          style: GoogleFonts.manrope(
-                            color: accent,
-                            fontSize: Responsive.font(context, 12),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        entry.key,
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 13),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(width: Responsive.width(context, 8)),
-                      Text(
-                        parts.join(' | '),
-                        style: GoogleFonts.manrope(
-                          color: dim,
-                          fontSize: Responsive.font(context, 12),
-                          fontWeight: FontWeight.w500,
-                        ),
+                      SizedBox(height: Responsive.height(context, 8)),
+                      Divider(color: Colors.white.withAlpha(15), height: 1),
+                      SizedBox(height: Responsive.height(context, 8)),
+                      Wrap(
+                        spacing: Responsive.width(context, 6),
+                        runSpacing: Responsive.height(context, 6),
+                        children: [
+                          if (weightPR)
+                            statChip(
+                              'Weight',
+                              pr['oldWeight'] != null
+                                  ? '${UnitConverter.displayWeightCompact(pr['oldWeight'] as double, imperial: isImperial)} $unit'
+                                  : null,
+                              '${UnitConverter.displayWeightCompact(pr['newWeight'] as double, imperial: isImperial)} $unit',
+                            ),
+                          if (repsPR)
+                            statChip(
+                              'Reps',
+                              pr['oldReps'] != null ? '${pr['oldReps']}' : null,
+                              '${pr['newReps']}',
+                            ),
+                        ],
                       ),
                     ],
                   ),
                 );
               },
             ),
+            SizedBox(height: Responsive.height(context, 8)),
           ],
         ],
       ),
@@ -626,7 +772,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                 child: Text(
                   exerciseName,
                   style: GoogleFonts.manrope(
-                    color: accent,
+                    color: Colors.white,
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
                   ),
@@ -653,14 +799,14 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                         color: appColor.withAlpha(60),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: accent.withAlpha(120),
+                          color: Colors.white.withAlpha(80),
                           width: 1,
                         ),
                       ),
                       child: Text(
                         label,
                         style: GoogleFonts.manrope(
-                          color: accent,
+                          color: Colors.white,
                           fontSize: Responsive.font(context, 10),
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -716,7 +862,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             '$reps reps',
             style: GoogleFonts.manrope(
-              color: accent,
+              color: Colors.white,
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w600,
             ),
@@ -725,7 +871,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             ' x ',
             style: GoogleFonts.manrope(
-              color: Colors.white24,
+              color: Colors.white38,
               fontSize: Responsive.font(context, 13),
             ),
           ),
@@ -733,7 +879,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             weightDisplay,
             style: GoogleFonts.manrope(
-              color: accent,
+              color: Colors.white,
               fontSize: Responsive.font(context, 13),
               fontWeight: FontWeight.w600,
             ),
@@ -749,25 +895,50 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
     Color appColor, {
     required bool primary,
   }) {
+    if (primary) {
+      return Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.width(context, 12),
+          vertical: Responsive.height(context, 6),
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              lightenColor(appColor, 0.38),
+              lightenColor(appColor, 0.22),
+              lightenColor(appColor, 0.06),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.manrope(
+            color: Colors.white,
+            fontSize: Responsive.font(context, 12),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.width(context, 12),
         vertical: Responsive.height(context, 6),
       ),
       decoration: BoxDecoration(
-        color: appColor.withAlpha(primary ? 40 : 20),
+        color: Colors.white.withAlpha(18),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: accent.withAlpha(primary ? 100 : 50),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withAlpha(50), width: 1),
       ),
       child: Text(
         label,
         style: GoogleFonts.manrope(
-          color: accent.withAlpha(primary ? 230 : 140),
+          color: Colors.white70,
           fontSize: Responsive.font(context, 12),
-          fontWeight: primary ? FontWeight.w600 : FontWeight.w500,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -785,15 +956,15 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         Text(
           value,
           style: GoogleFonts.manrope(
-            color: accent,
-            fontSize: Responsive.font(context, 16),
+            color: Colors.white,
+            fontSize: Responsive.font(context, 18),
             fontWeight: FontWeight.w800,
           ),
         ),
         Text(
           label,
           style: GoogleFonts.manrope(
-            color: dim,
+            color: Colors.white38,
             fontSize: Responsive.font(context, 11),
           ),
         ),

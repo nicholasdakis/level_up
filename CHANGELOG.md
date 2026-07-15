@@ -2714,3 +2714,12 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Recent exercises are now capped at 8 results instead of 25
 - Replaced the Create Exercise modal with a step-by-step wizard using animated transitions between steps
 - Each wizard step collapses into a gradient chip summary on completion, tappable to go back
+- Overhauled the finish workout screen UI throughout
+- Checkmark icon uses a gradient shader matching the app accent color
+- Workout Complete title is bold white; XP gained uses ShimmerWidget so it sweeps light across the text
+- Section headers enlarged and brightened to match the home dashboard style
+- Summary stat values are white and larger; labels are dimmer for hierarchy
+- Muscle chip legend uses gradient-filled and outlined squares to distinguish primary from secondary
+- Personal Records card redesigned: each exercise gets a nested container with its name, a divider, then inline stat chips showing the before/after value with a vertical divider between the label and number
+- All card text uses white-based colors throughout instead of grey accent tints
+- Done button uses the full-width gradient matching all other primary CTAs in the app
