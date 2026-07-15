@@ -306,6 +306,19 @@ CREATE TABLE user_exercise_stats (
     PRIMARY KEY (uid, exercise_name)
 );
 
+-- Records each time a user breaks a PR, with the old and new values for history/charting
+CREATE TABLE pr_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uid TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    exercise_name TEXT NOT NULL,
+    pr_type TEXT NOT NULL CHECK (pr_type IN ('weight', 'reps', 'volume')),
+    old_value NUMERIC(10, 2),              -- previous PR value, null if this is the first ever
+    new_value NUMERIC(10, 2) NOT NULL,     -- the new PR value that beat it
+    achieved_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pr_history_uid_date ON pr_history (uid, achieved_at DESC);
+
 -- Index to speed up leaderboard rank queries at scale, matches sort order: level DESC, exp_points DESC, uid ASC
 CREATE INDEX IF NOT EXISTS idx_users_rank ON users (level DESC, exp_points DESC, uid ASC);
 

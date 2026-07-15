@@ -704,9 +704,10 @@ DECLARE
     v_session_volume    NUMERIC;
     v_estimated_1rm     NUMERIC;
     v_ex_order          INTEGER := 0;
-    -- existing PR values read before sets are inserted, used to mark is_personal_record
-    v_existing_pr_weight NUMERIC;
-    v_existing_pr_reps   INTEGER;
+    -- existing PR values read before sets are inserted, used to mark is_personal_record and write pr_history
+    v_existing_pr_weight  NUMERIC;
+    v_existing_pr_reps    INTEGER;
+    v_existing_pr_volume  NUMERIC;
     -- XP calculation
     v_level             INTEGER;
     v_exp               INTEGER;
@@ -759,9 +760,9 @@ BEGIN
         v_last_reps     := NULL;
         v_session_volume := 0;
 
-        -- read existing PRs before inserting sets to mark is_personal_record correctly
-        SELECT pr_weight_kg, pr_reps
-        INTO v_existing_pr_weight, v_existing_pr_reps
+        -- read existing PRs before inserting sets to mark is_personal_record correctly and to compare after upsert
+        SELECT pr_weight_kg, pr_reps, pr_volume_kg
+        INTO v_existing_pr_weight, v_existing_pr_reps, v_existing_pr_volume
         FROM user_exercise_stats
         WHERE uid = p_uid AND exercise_name = v_exercise_name;
 
@@ -819,6 +820,20 @@ BEGIN
             last_reps      = EXCLUDED.last_reps,
             last_logged_at = EXCLUDED.last_logged_at,
             total_sets     = user_exercise_stats.total_sets + EXCLUDED.total_sets;
+
+        -- write a pr_history row for each PR type broken this session; multiple can fire at once
+        IF v_best_weight IS NOT NULL AND (v_existing_pr_weight IS NULL OR v_best_weight > v_existing_pr_weight) THEN
+            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_exercise_name, 'weight', v_existing_pr_weight, v_best_weight);
+        END IF;
+        IF v_best_reps IS NOT NULL AND (v_existing_pr_reps IS NULL OR v_best_reps > v_existing_pr_reps) THEN
+            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_exercise_name, 'reps', v_existing_pr_reps, v_best_reps);
+        END IF;
+        IF v_session_volume > 0 AND (v_existing_pr_volume IS NULL OR ROUND(v_session_volume, 2) > v_existing_pr_volume) THEN
+            INSERT INTO pr_history (uid, exercise_name, pr_type, old_value, new_value)
+            VALUES (p_uid, v_exercise_name, 'volume', v_existing_pr_volume, ROUND(v_session_volume, 2));
+        END IF;
     END LOOP;
 
     -- XP, streak, and achievements are only awarded once per day
