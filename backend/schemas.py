@@ -378,6 +378,19 @@ class WorkoutPrSummaryResponse(BaseModel):
     reps: int = 0
     volume: int = 0
 
+class WorkoutAnalyticsItem(BaseModel):
+    workout_id: str
+    name: str | None = None
+    date: str
+    duration_seconds: int
+    volume_kg: float
+
+class WorkoutAnalyticsResponse(BaseModel):
+    workouts: list[WorkoutAnalyticsItem]
+    primary_muscles: dict[str, int]
+    secondary_muscles: dict[str, int]
+    pr_counts: WorkoutPrSummaryResponse
+
 class GetWeeklyWorkoutCountResponse(BaseModel):
     count: int
 

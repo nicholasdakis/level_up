@@ -82,6 +82,8 @@ from backend.schemas import (
     WorkoutHistoryItem,
     GetWorkoutHistoryResponse,
     WorkoutPrSummaryResponse,
+    WorkoutAnalyticsItem,
+    WorkoutAnalyticsResponse,
     GetWeeklyWorkoutCountResponse,
     GetTodayOverviewResponse,
     GetWorkoutHeatmapResponse,
@@ -1390,9 +1392,9 @@ def get_workout_history():
     return jsonify(GetWorkoutHistoryResponse(workouts=[WorkoutHistoryItem(**w) for w in workouts]).model_dump()), 200
 
 
-@app.route("/workout_pr_summary", methods=["GET"])
-def get_workout_pr_summary():
-    # Returns PR counts by type (weight, reps, volume) for the given date range
+@app.route("/workout_analytics", methods=["GET"])
+def get_workout_analytics():
+    # Returns workouts, muscle frequency, and PR counts for the given date range in one call
     # Free users capped at 14 days
     from datetime import date, timedelta
     uid, _, err = _parse_and_auth()
@@ -1403,8 +1405,14 @@ def get_workout_pr_summary():
     since = request.args.get("since")
     if not is_premium:
         since = cutoff if (since is None or since < cutoff) else since
-    summary = workout_repo.get_pr_summary(uid, since=since)
-    return jsonify(WorkoutPrSummaryResponse(**summary).model_dump()), 200
+    data = workout_repo.get_workout_analytics(uid, since=since)
+    response = WorkoutAnalyticsResponse(
+        workouts=[WorkoutAnalyticsItem(**w) for w in data["workouts"]],
+        primary_muscles=data["primary_muscles"],
+        secondary_muscles=data["secondary_muscles"],
+        pr_counts=WorkoutPrSummaryResponse(**data["pr_counts"]),
+    )
+    return jsonify(response.model_dump()), 200
 
 
 @app.route("/recent_workouts", methods=["GET"])

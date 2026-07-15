@@ -430,6 +430,121 @@ class WorkoutRepository:
         }).execute()
         return result.data
 
+    def get_workout_analytics(self, uid: str, since: str | None = None) -> dict:
+        # fetch workouts
+        query = self._supabase.table("workouts") \
+            .select("workout_id, name, date, duration_seconds") \
+            .eq("uid", uid) \
+            .eq("completed", True) \
+            .order("date", desc=False)
+        if since:
+            query = query.gte("date", since)
+        workouts = query.execute().data or []
+
+        if not workouts:
+            return {"workouts": [], "primary_muscles": {}, "secondary_muscles": {}, "pr_counts": {"weight": 0, "reps": 0, "volume": 0}}
+
+        workout_ids = [w["workout_id"] for w in workouts]
+
+        # fetch exercises for these workouts with muscle data in one query
+        ex_rows = self._supabase.table("workout_exercises") \
+            .select("workout_id, workout_exercise_id, exercise_id") \
+            .in_("workout_id", workout_ids) \
+            .execute().data or []
+
+        ex_ids = [e["workout_exercise_id"] for e in ex_rows]
+
+        # fetch sets to compute volume per workout
+        set_rows = self._supabase.table("workout_sets") \
+            .select("workout_exercise_id, reps, weight_kg") \
+            .in_("workout_exercise_id", ex_ids) \
+            .execute().data or [] if ex_ids else []
+
+        # fetch muscle groups for built-in exercises
+        builtin_ex_ids = list({e["exercise_id"] for e in ex_rows if e["exercise_id"] is not None})
+        primary_counts: dict[str, int] = {}
+        secondary_counts: dict[str, int] = {}
+        if builtin_ex_ids:
+            muscle_rows = self._supabase.table("exercise_muscles") \
+                .select("exercise_id, muscle_type, muscle_groups(name)") \
+                .in_("exercise_id", builtin_ex_ids) \
+                .execute().data or []
+            # map exercise_id -> muscles so we can count per workout occurrence
+            ex_id_to_muscles: dict[int, dict] = {}
+            for row in muscle_rows:
+                eid = row["exercise_id"]
+                name = (row.get("muscle_groups") or {}).get("name")
+                if not name:
+                    continue
+                if eid not in ex_id_to_muscles:
+                    ex_id_to_muscles[eid] = {"primary": set(), "secondary": set()}
+                ex_id_to_muscles[eid][row["muscle_type"]].add(name)
+            for ex in ex_rows:
+                eid = ex["exercise_id"]
+                if eid is None:
+                    continue
+                muscles = ex_id_to_muscles.get(eid, {})
+                for m in muscles.get("primary", set()):
+                    primary_counts[m] = primary_counts.get(m, 0) + 1
+                for m in muscles.get("secondary", set()):
+                    secondary_counts[m] = secondary_counts.get(m, 0) + 1
+
+        # compute volume per workout
+        vol_by_weid: dict[str, float] = {}
+        for s in set_rows:
+            weid = s["workout_exercise_id"]
+            vol_by_weid[weid] = vol_by_weid.get(weid, 0.0) + (s["reps"] or 0) * (s["weight_kg"] or 0.0)
+        ex_by_wid: dict[str, list] = {}
+        for e in ex_rows:
+            ex_by_wid.setdefault(e["workout_id"], []).append(e["workout_exercise_id"])
+        vol_by_wid: dict[str, float] = {}
+        for wid, weids in ex_by_wid.items():
+            vol_by_wid[wid] = sum(vol_by_weid.get(weid, 0.0) for weid in weids)
+
+        # fetch PR counts for the range
+        pr_query = self._supabase.table("pr_history").select("pr_type").eq("uid", uid)
+        if since:
+            pr_query = pr_query.gte("achieved_at", since)
+        pr_rows = pr_query.execute().data or []
+        pr_counts = {"weight": 0, "reps": 0, "volume": 0}
+        for r in pr_rows:
+            t = r["pr_type"]
+            if t in pr_counts:
+                pr_counts[t] += 1
+
+        workout_list = [
+            {
+                "workout_id": w["workout_id"],
+                "name": w["name"],
+                "date": w["date"],
+                "duration_seconds": w["duration_seconds"] or 0,
+                "volume_kg": round(vol_by_wid.get(w["workout_id"], 0.0), 2),
+            }
+            for w in workouts
+        ]
+
+        return {
+            "workouts": workout_list,
+            "primary_muscles": primary_counts,
+            "secondary_muscles": secondary_counts,
+            "pr_counts": pr_counts,
+        }
+
+    def get_pr_summary(self, uid: str, since: str | None = None) -> dict:
+        # counts PRs broken per type in the given date range
+        query = self._supabase.table("pr_history") \
+            .select("pr_type") \
+            .eq("uid", uid)
+        if since:
+            query = query.gte("achieved_at", since)
+        rows = query.execute().data or []
+        counts = {"weight": 0, "reps": 0, "volume": 0}
+        for r in rows:
+            t = r["pr_type"]
+            if t in counts:
+                counts[t] += 1
+        return counts
+
     def get_every_prev_set(self, uid: str, exercise_names: list[str]) -> list[dict]:
         # calls the RPC that returns all sets from the most recent session per exercise
         return self._supabase.rpc("get_every_prev_set", {
