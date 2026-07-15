@@ -5,8 +5,8 @@ import '/providers/workout_provider.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '/globals.dart';
 import '/utility/responsive.dart';
@@ -275,631 +275,501 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     bool saving = false;
     String? errorMsg;
 
+    // gradient matching the rest timer toggle and other app buttons
+    final accentGradient = LinearGradient(
+      colors: [
+        lightenColor(appColor, 0.38),
+        lightenColor(appColor, 0.22),
+        lightenColor(appColor, 0.06),
+      ],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
+    // one step shown at a time, no growing column, no overflow
+    // step 5 = confirm (all chips shown, submit button)
+    int step = isEditing ? 5 : 0;
+
     await showFrostedDialog<void>(
       context: context,
       appColor: appColor,
-      dismissible: false,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = lightenColor(appColor, 0.45);
-          final dim = lightenColor(appColor, 0.35);
-          // wrap in a closure so setDialogState is in scope for nested widgets
-          return Builder(
-            builder: (dialogContext) {
-              // tappable frosted row that opens a single-select frosted dialog
-              Widget selectField(
-                String label,
-                List<String> options,
-                String? value,
-                void Function(String?) onChanged,
-              ) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: Responsive.height(context, 12),
-                  ),
-                  child: GestureDetector(
-                    onTap: () async {
-                      await showFrostedDialog(
-                        context: context,
-                        appColor: appColor,
-                        barrierColor: Colors.transparent,
-                        child: StatefulBuilder(
-                          builder: (ctx, _) => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                label,
-                                style: GoogleFonts.manrope(
-                                  color: accent,
-                                  fontSize: Responsive.font(ctx, 16),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              SizedBox(height: Responsive.height(ctx, 12)),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight: Responsive.height(ctx, 300),
-                                ),
-                                child: ScrollConfiguration(
-                                  behavior: NoGlowScrollBehavior(),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      children: [
-                                        // "None" option to clear the selection
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            bottom: Responsive.height(ctx, 6),
-                                          ),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              onChanged(null);
-                                              Navigator.of(
-                                                ctx,
-                                                rootNavigator: true,
-                                              ).pop();
-                                            },
-                                            child: AnimatedContainer(
-                                              duration: const Duration(
-                                                milliseconds: 150,
-                                              ),
-                                              width: double.infinity,
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: Responsive.width(
-                                                  ctx,
-                                                  14,
-                                                ),
-                                                vertical: Responsive.height(
-                                                  ctx,
-                                                  12,
-                                                ),
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: value == null
-                                                    ? accent.withAlpha(30)
-                                                    : accent.withAlpha(10),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                border: Border.all(
-                                                  color: value == null
-                                                      ? accent.withAlpha(160)
-                                                      : accent.withAlpha(40),
-                                                  width: value == null
-                                                      ? 1.5
-                                                      : 1,
-                                                ),
-                                              ),
-                                              child: Text(
-                                                'None',
-                                                style: GoogleFonts.manrope(
-                                                  color: value == null
-                                                      ? accent
-                                                      : dim,
-                                                  fontSize: Responsive.font(
-                                                    ctx,
-                                                    13,
-                                                  ),
-                                                  fontWeight: value == null
-                                                      ? FontWeight.w700
-                                                      : FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        for (final opt in options)
-                                          Padding(
-                                            padding: EdgeInsets.only(
-                                              bottom: Responsive.height(ctx, 6),
-                                            ),
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                onChanged(opt);
-                                                Navigator.of(
-                                                  ctx,
-                                                  rootNavigator: true,
-                                                ).pop();
-                                              },
-                                              child: AnimatedContainer(
-                                                duration: const Duration(
-                                                  milliseconds: 150,
-                                                ),
-                                                width: double.infinity,
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: Responsive.width(
-                                                    ctx,
-                                                    14,
-                                                  ),
-                                                  vertical: Responsive.height(
-                                                    ctx,
-                                                    12,
-                                                  ),
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: value == opt
-                                                      ? accent.withAlpha(30)
-                                                      : accent.withAlpha(10),
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  border: Border.all(
-                                                    color: value == opt
-                                                        ? accent.withAlpha(160)
-                                                        : accent.withAlpha(40),
-                                                    width: value == opt
-                                                        ? 1.5
-                                                        : 1,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  opt,
-                                                  style: GoogleFonts.manrope(
-                                                    color: value == opt
-                                                        ? accent
-                                                        : dim,
-                                                    fontSize: Responsive.font(
-                                                      ctx,
-                                                      13,
-                                                    ),
-                                                    fontWeight: value == opt
-                                                        ? FontWeight.w700
-                                                        : FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Responsive.width(context, 14),
-                        vertical: Responsive.height(context, 14),
-                      ),
-                      decoration: BoxDecoration(
-                        color: value != null
-                            ? accent.withAlpha(30)
-                            : accent.withAlpha(10),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: value != null
-                              ? accent.withAlpha(160)
-                              : accent.withAlpha(40),
-                          width: value != null ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            value ?? label,
-                            style: GoogleFonts.manrope(
-                              color: value != null ? accent : dim,
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: value != null
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                            ),
-                          ),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            color: dim,
-                            size: Responsive.scale(context, 18),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }
+          void goTo(int s) => setDialogState(() => step = s);
+          void advance() => setDialogState(() => step = (step + 1).clamp(0, 5));
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isEditing ? 'Edit Exercise' : 'Create Exercise',
+          Widget gradientButton(String label, VoidCallback onTap) =>
+              GestureDetector(
+                onTap: onTap,
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 15),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: accentGradient,
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    border: Border.all(
+                      color: lightenColor(appColor, 0.25).withAlpha(180),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 18),
-                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: Responsive.height(context, 16)),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.width(context, 14),
-                      vertical: Responsive.height(context, 2),
-                    ),
-                    decoration: BoxDecoration(
-                      color: accent.withAlpha(10),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: accent.withAlpha(40)),
-                    ),
-                    child: TextField(
-                      controller: nameController,
-                      style: GoogleFonts.manrope(
-                        color: accent,
-                        fontSize: Responsive.font(context, 13),
-                      ),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Exercise name *',
-                        hintStyle: GoogleFonts.manrope(
-                          color: dim,
-                          fontSize: Responsive.font(context, 13),
-                        ),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: Responsive.height(context, 14),
-                        ),
-                      ),
+                ),
+              );
+
+          Widget ghostButton(String label, VoidCallback onTap) =>
+              GestureDetector(
+                onTap: onTap,
+                child: Center(
+                  child: Text(
+                    label,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white38,
+                      fontSize: Responsive.font(context, 13),
                     ),
                   ),
-                  SizedBox(height: Responsive.height(context, 12)),
-                  selectField(
-                    'Primary Muscle (optional)',
-                    _muscleOptions,
-                    selectedMuscle,
-                    (v) => setDialogState(() => selectedMuscle = v),
-                  ),
-                  // secondary muscles multi-select button
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: Responsive.height(context, 12),
-                    ),
-                    child: GestureDetector(
-                      onTap: () async {
-                        Set<String> temp = Set.from(selectedSecondary);
-                        await showFrostedDialog(
-                          context: context,
-                          appColor: appColor,
-                          barrierColor: Colors.transparent,
-                          child: StatefulBuilder(
-                            builder: (ctx, setInner) => Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Secondary Muscles',
-                                  style: GoogleFonts.manrope(
-                                    color: accent,
-                                    fontSize: Responsive.font(ctx, 16),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                SizedBox(height: Responsive.height(ctx, 12)),
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxHeight: Responsive.height(ctx, 280),
-                                  ),
-                                  child: ScrollConfiguration(
-                                    behavior: NoGlowScrollBehavior(),
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        children: [
-                                          for (final opt in _muscleOptions)
-                                            if (opt != selectedMuscle)
-                                              Padding(
-                                                padding: EdgeInsets.only(
-                                                  bottom: Responsive.height(
-                                                    ctx,
-                                                    6,
-                                                  ),
-                                                ),
-                                                child: GestureDetector(
-                                                  onTap: () => setInner(() {
-                                                    if (temp.contains(opt)) {
-                                                      temp.remove(opt);
-                                                    } else {
-                                                      temp.add(opt);
-                                                    }
-                                                  }),
-                                                  child: AnimatedContainer(
-                                                    duration: const Duration(
-                                                      milliseconds: 150,
-                                                    ),
-                                                    width: double.infinity,
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                          horizontal:
-                                                              Responsive.width(
-                                                                ctx,
-                                                                14,
-                                                              ),
-                                                          vertical:
-                                                              Responsive.height(
-                                                                ctx,
-                                                                12,
-                                                              ),
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: temp.contains(opt)
-                                                          ? accent.withAlpha(30)
-                                                          : accent.withAlpha(
-                                                              10,
-                                                            ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            10,
-                                                          ),
-                                                      border: Border.all(
-                                                        color:
-                                                            temp.contains(opt)
-                                                            ? accent.withAlpha(
-                                                                160,
-                                                              )
-                                                            : accent.withAlpha(
-                                                                40,
-                                                              ),
-                                                        width:
-                                                            temp.contains(opt)
-                                                            ? 1.5
-                                                            : 1,
-                                                      ),
-                                                    ),
-                                                    child: Text(
-                                                      opt,
-                                                      style:
-                                                          GoogleFonts.manrope(
-                                                            color:
-                                                                temp.contains(
-                                                                  opt,
-                                                                )
-                                                                ? accent
-                                                                : dim,
-                                                            fontSize:
-                                                                Responsive.font(
-                                                                  ctx,
-                                                                  13,
-                                                                ),
-                                                            fontWeight:
-                                                                temp.contains(
-                                                                  opt,
-                                                                )
-                                                                ? FontWeight
-                                                                      .w700
-                                                                : FontWeight
-                                                                      .w500,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: Responsive.height(ctx, 8)),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(
-                                        ctx,
-                                        rootNavigator: true,
-                                      ).pop(),
-                                      child: Text(
-                                        'Cancel',
-                                        style: dialogButtonStyle(),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        setDialogState(
-                                          () => selectedSecondary = temp,
-                                        );
-                                        Navigator.of(
-                                          ctx,
-                                          rootNavigator: true,
-                                        ).pop();
-                                      },
-                                      child: Text(
-                                        'Apply',
-                                        style: dialogButtonStyle(confirm: true),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: double.infinity,
+                ),
+              );
+
+          // compact summary row at the top showing what's been filled so far
+          Widget summaryChips() {
+            final secondaryLabel = selectedSecondary.isEmpty
+                ? 'No secondary'
+                : selectedSecondary.length == 1
+                ? selectedSecondary.first
+                : '${selectedSecondary.length} muscles';
+            final chips = <(String, int)>[];
+            if (step > 0) chips.add((nameController.text.trim(), 0));
+            if (step > 1 && selectedMuscle != null)
+              chips.add((selectedMuscle!, 1));
+            if (step > 2 && selectedSecondary.isNotEmpty)
+              chips.add((secondaryLabel, 2));
+            if (step > 3 && selectedEquipment != null)
+              chips.add((selectedEquipment!, 3));
+            if (step > 4 && selectedLevel != null)
+              chips.add((selectedLevel!, 4));
+            if (chips.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: EdgeInsets.only(bottom: Responsive.height(context, 14)),
+              child: Wrap(
+                spacing: Responsive.width(context, 6),
+                runSpacing: Responsive.height(context, 6),
+                children: [
+                  for (final (label, s) in chips)
+                    GestureDetector(
+                      onTap: () => goTo(s),
+                      child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 14),
-                          vertical: Responsive.height(context, 14),
+                          horizontal: Responsive.width(context, 10),
+                          vertical: Responsive.height(context, 6),
                         ),
                         decoration: BoxDecoration(
-                          color: selectedSecondary.isNotEmpty
-                              ? accent.withAlpha(30)
-                              : accent.withAlpha(10),
-                          borderRadius: BorderRadius.circular(10),
+                          gradient: accentGradient,
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 20),
+                          ),
                           border: Border.all(
-                            color: selectedSecondary.isNotEmpty
-                                ? accent.withAlpha(160)
-                                : accent.withAlpha(40),
-                            width: selectedSecondary.isNotEmpty ? 1.5 : 1,
+                            color: lightenColor(appColor, 0.25).withAlpha(120),
+                            width: 1,
                           ),
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(
-                              child: Text(
-                                selectedSecondary.isEmpty
-                                    ? 'Secondary Muscles (optional)'
-                                    : selectedSecondary.join(', '),
-                                style: GoogleFonts.manrope(
-                                  color: selectedSecondary.isEmpty
-                                      ? dim
-                                      : accent,
-                                  fontSize: Responsive.font(context, 13),
-                                  fontWeight: selectedSecondary.isNotEmpty
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                            Text(
+                              label,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.manrope(
+                                color: Colors.white,
+                                fontSize: Responsive.font(context, 11),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
+                            SizedBox(width: Responsive.width(context, 4)),
                             Icon(
-                              Icons.keyboard_arrow_down,
-                              color: dim,
-                              size: Responsive.scale(context, 18),
+                              Icons.swap_horiz_rounded,
+                              color: Colors.white70,
+                              size: Responsive.scale(context, 12),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  selectField(
-                    'Equipment (optional)',
-                    _equipmentOptions,
-                    selectedEquipment,
-                    (v) => setDialogState(() => selectedEquipment = v),
-                  ),
-                  selectField(
-                    'Level (optional)',
-                    _levelOptions,
-                    selectedLevel,
-                    (v) => setDialogState(() => selectedLevel = v),
-                  ),
-                  if (errorMsg != null) ...[
-                    SizedBox(height: Responsive.height(context, 4)),
-                    Text(
-                      errorMsg!,
-                      style: GoogleFonts.manrope(
-                        color: lightenColor(appColor, 0.45),
-                        fontSize: Responsive.font(context, 12),
-                      ),
-                    ),
-                    SizedBox(height: Responsive.height(context, 4)),
-                  ],
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ],
+              ),
+            );
+          }
+
+          Widget stepLabel(String text) => Padding(
+            padding: EdgeInsets.only(bottom: Responsive.height(context, 12)),
+            child: Text(
+              text,
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontSize: Responsive.font(context, 15),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          );
+
+          Widget scrollableOptions(
+            List<String> options,
+            String? selected,
+            void Function(String) onPick,
+          ) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: Responsive.height(context, 240),
+              ),
+              child: ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  child: Column(
                     children: [
-                      TextButton(
-                        onPressed: saving
-                            ? null
-                            : () => Navigator.of(dialogContext).pop(),
-                        child: Text('Cancel', style: dialogButtonStyle()),
-                      ),
-                      TextButton(
-                        onPressed: saving
-                            ? null
-                            : () async {
-                                final name = nameController.text.trim();
-                                if (name.isEmpty) {
-                                  setDialogState(
-                                    () => errorMsg = 'Name is required',
-                                  );
-                                  return;
-                                }
-                                setDialogState(() {
-                                  saving = true;
-                                  errorMsg = null;
-                                });
-                                if (isEditing) {
-                                  final ok = await ref
-                                      .read(workoutProvider.notifier)
-                                      .editCustomExercise(
-                                        exerciseId: existing['id'] as int,
-                                        name: name,
-                                        primaryMuscle: selectedMuscle,
-                                        secondaryMuscles: selectedSecondary
-                                            .where((m) => m != selectedMuscle)
-                                            .toList(),
-                                        equipment: selectedEquipment,
-                                        level: selectedLevel,
-                                      );
-                                  if (!mounted) return;
-                                  if (!ok) {
-                                    setDialogState(() {
-                                      saving = false;
-                                      errorMsg = 'Failed to save changes';
-                                    });
-                                    return;
-                                  }
-                                  Navigator.of(dialogContext).pop();
-                                  _search();
-                                } else {
-                                  final result = await ref
-                                      .read(workoutProvider.notifier)
-                                      .createCustomExercise(
-                                        name: name,
-                                        primaryMuscle: selectedMuscle,
-                                        secondaryMuscles: selectedSecondary
-                                            .where((m) => m != selectedMuscle)
-                                            .toList(),
-                                        equipment: selectedEquipment,
-                                        level: selectedLevel,
-                                      );
-                                  if (!mounted) return;
-                                  if (result == null ||
-                                      result.containsKey('error')) {
-                                    setDialogState(() {
-                                      saving = false;
-                                      errorMsg =
-                                          result?['error'] as String? ??
-                                          'Failed to create exercise';
-                                    });
-                                    return;
-                                  }
-                                  final newEx = {
-                                    'id': result['exercise_id'],
-                                    'name': name,
-                                    'primary_muscle': selectedMuscle ?? '',
-                                    'secondary_muscles': selectedSecondary
-                                        .toList(),
-                                    'equipment': selectedEquipment ?? '',
-                                    'level': selectedLevel ?? '',
-                                    'is_custom': true,
-                                    'exercise_name': name,
-                                    'exercise_id': result['exercise_id'],
-                                  };
-                                  // add to recents and search results so it's visible immediately without re-fetching
-                                  setState(() {
-                                    _recentExercises.insert(0, newEx);
-                                    _results.add(newEx);
-                                    _hasSearched = true;
-                                  });
-                                  Navigator.of(dialogContext).pop();
-                                  widget.onExerciseSelected(newEx);
-                                  if (mounted) Navigator.of(context).pop();
-                                }
-                              },
-                        child: saving
-                            ? SizedBox(
-                                width: Responsive.scale(context, 16),
-                                height: Responsive.scale(context, 16),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: accent,
-                                ),
-                              )
-                            : Text(
-                                isEditing ? 'Save' : 'Create',
-                                style: dialogButtonStyle(confirm: true),
-                              ),
-                      ),
+                      for (final opt in options)
+                        _dialogOptionRow(
+                          context,
+                          label: opt,
+                          selected: selected == opt,
+                          gradient: accentGradient,
+                          onTap: () => onPick(opt),
+                        ),
                     ],
                   ),
-                ],
-              );
+                ),
+              ),
+            );
+          }
+
+          Future<void> submit() async {
+            final name = nameController.text.trim();
+            setDialogState(() {
+              saving = true;
+              errorMsg = null;
+            });
+            if (isEditing) {
+              final ok = await ref
+                  .read(workoutProvider.notifier)
+                  .editCustomExercise(
+                    exerciseId: existing['id'] as int,
+                    name: name,
+                    primaryMuscle: selectedMuscle,
+                    secondaryMuscles: selectedSecondary
+                        .where((m) => m != selectedMuscle)
+                        .toList(),
+                    equipment: selectedEquipment,
+                    level: selectedLevel,
+                  );
+              if (!mounted) return;
+              if (!ok) {
+                setDialogState(() {
+                  saving = false;
+                  errorMsg = 'Failed to save changes';
+                });
+                return;
+              }
+              Navigator.of(context).pop();
+              _search();
+            } else {
+              final result = await ref
+                  .read(workoutProvider.notifier)
+                  .createCustomExercise(
+                    name: name,
+                    primaryMuscle: selectedMuscle,
+                    secondaryMuscles: selectedSecondary
+                        .where((m) => m != selectedMuscle)
+                        .toList(),
+                    equipment: selectedEquipment,
+                    level: selectedLevel,
+                  );
+              if (!mounted) return;
+              if (result == null || result.containsKey('error')) {
+                setDialogState(() {
+                  saving = false;
+                  errorMsg =
+                      result?['error'] as String? ??
+                      'Failed to create exercise';
+                });
+                return;
+              }
+              final newEx = {
+                'id': result['exercise_id'],
+                'name': name,
+                'primary_muscle': selectedMuscle ?? '',
+                'secondary_muscles': selectedSecondary.toList(),
+                'equipment': selectedEquipment ?? '',
+                'level': selectedLevel ?? '',
+                'is_custom': true,
+                'exercise_name': name,
+                'exercise_id': result['exercise_id'],
+              };
+              // add to recents and search results so it's visible immediately without re-fetching
+              setState(() {
+                _recentExercises.insert(0, newEx);
+                _results.add(newEx);
+                _hasSearched = true;
+              });
+              Navigator.of(context).pop();
+              widget.onExerciseSelected(newEx);
+              if (mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$name added to your library'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            }
+          }
+
+          // single AnimatedSwitcher swaps the whole step, no height animation, no overflow
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            switchInCurve: Curves.easeOutQuart,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(anim),
+                child: child,
+              ),
+            ),
+            child: switch (step) {
+              0 => KeyedSubtree(
+                key: const ValueKey(0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    stepLabel("What's the exercise called?"),
+                    TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      style: GoogleFonts.manrope(
+                        color: Colors.white,
+                        fontSize: Responsive.font(context, 14),
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. Bulgarian Split Squat',
+                        hintStyle: GoogleFonts.manrope(
+                          color: Colors.white38,
+                          fontSize: Responsive.font(context, 14),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withAlpha(10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 12),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.white.withAlpha(30),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 12),
+                          ),
+                          borderSide: BorderSide(
+                            color: Colors.white.withAlpha(30),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            Responsive.scale(context, 12),
+                          ),
+                          borderSide: BorderSide(
+                            color: lightenColor(appColor, 0.30).withAlpha(200),
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: Responsive.width(context, 16),
+                          vertical: Responsive.height(context, 14),
+                        ),
+                      ),
+                      onSubmitted: (_) {
+                        if (nameController.text.trim().isNotEmpty) advance();
+                      },
+                    ),
+                    if (errorMsg != null) ...[
+                      SizedBox(height: Responsive.height(context, 6)),
+                      Text(
+                        errorMsg!,
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.45),
+                          fontSize: Responsive.font(context, 12),
+                        ),
+                      ),
+                    ],
+                    SizedBox(height: Responsive.height(context, 14)),
+                    gradientButton('Continue', () {
+                      if (nameController.text.trim().isEmpty) {
+                        setDialogState(() => errorMsg = 'Name is required');
+                        return;
+                      }
+                      setDialogState(() => errorMsg = null);
+                      advance();
+                    }),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    ghostButton('Cancel', () => Navigator.of(context).pop()),
+                  ],
+                ),
+              ),
+              1 => KeyedSubtree(
+                key: const ValueKey(1),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    summaryChips(),
+                    stepLabel('Primary muscle?'),
+                    scrollableOptions(_muscleOptions, selectedMuscle, (v) {
+                      setDialogState(() => selectedMuscle = v);
+                      advance();
+                    }),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    ghostButton('Skip', advance),
+                  ],
+                ),
+              ),
+              2 => KeyedSubtree(
+                key: const ValueKey(2),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    summaryChips(),
+                    stepLabel('Secondary muscle(s)?'),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: Responsive.height(context, 200),
+                      ),
+                      child: ScrollConfiguration(
+                        behavior: NoGlowScrollBehavior(),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              for (final opt in _muscleOptions)
+                                if (opt != selectedMuscle)
+                                  _dialogOptionRow(
+                                    context,
+                                    label: opt,
+                                    selected: selectedSecondary.contains(opt),
+                                    gradient: accentGradient,
+                                    onTap: () => setDialogState(() {
+                                      if (selectedSecondary.contains(opt)) {
+                                        selectedSecondary.remove(opt);
+                                      } else {
+                                        selectedSecondary.add(opt);
+                                      }
+                                    }),
+                                  ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    gradientButton('Continue', advance),
+                  ],
+                ),
+              ),
+              3 => KeyedSubtree(
+                key: const ValueKey(3),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    summaryChips(),
+                    stepLabel('Equipment?'),
+                    scrollableOptions(_equipmentOptions, selectedEquipment, (
+                      v,
+                    ) {
+                      setDialogState(() => selectedEquipment = v);
+                      advance();
+                    }),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    ghostButton('Skip', advance),
+                  ],
+                ),
+              ),
+              4 => KeyedSubtree(
+                key: const ValueKey(4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    summaryChips(),
+                    stepLabel('Difficulty?'),
+                    for (final opt in _levelOptions)
+                      _dialogOptionRow(
+                        context,
+                        label: opt,
+                        selected: selectedLevel == opt,
+                        gradient: accentGradient,
+                        onTap: () {
+                          setDialogState(() => selectedLevel = opt);
+                          advance();
+                        },
+                      ),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    ghostButton('Skip', advance),
+                  ],
+                ),
+              ),
+              _ => KeyedSubtree(
+                key: const ValueKey(5),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    summaryChips(),
+                    if (errorMsg != null) ...[
+                      SizedBox(height: Responsive.height(context, 4)),
+                      Text(
+                        errorMsg!,
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.45),
+                          fontSize: Responsive.font(context, 12),
+                        ),
+                      ),
+                      SizedBox(height: Responsive.height(context, 8)),
+                    ],
+                    saving
+                        ? Center(
+                            child: SizedBox(
+                              width: Responsive.scale(context, 20),
+                              height: Responsive.scale(context, 20),
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : gradientButton(
+                            isEditing ? 'Save Changes' : 'Create Exercise',
+                            submit,
+                          ),
+                    SizedBox(height: Responsive.height(context, 10)),
+                    ghostButton('Cancel', () => Navigator.of(context).pop()),
+                  ],
+                ),
+              ),
             },
           );
         },
@@ -1105,8 +975,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   }
 
   Widget _filterButton(String label, Set<String> selected, VoidCallback onTap) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
     final active = selected.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
@@ -1115,9 +983,16 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 10)),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(18),
+          color: active
+              ? Colors.white.withAlpha(30)
+              : Colors.white.withAlpha(18),
           borderRadius: BorderRadius.circular(Responsive.scale(context, 20)),
-          border: Border.all(color: Colors.white.withAlpha(30), width: 1),
+          border: Border.all(
+            color: active
+                ? Colors.white.withAlpha(80)
+                : Colors.white.withAlpha(30),
+            width: active ? 1.5 : 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1126,7 +1001,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               label.toUpperCase(),
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                color: dim,
+                color: Colors.white60,
                 fontSize: Responsive.font(context, 9),
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.8,
@@ -1149,7 +1024,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   : 'Multiple',
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                color: active ? accent : lightenColor(appColor, 0.45),
+                color: active ? Colors.white : Colors.white70,
                 fontSize: Responsive.font(context, 12),
                 fontWeight: active ? FontWeight.w700 : FontWeight.w600,
               ),
@@ -1162,10 +1037,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final c = cardColors(appColor);
-
     return Container(
       decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
       child: Scaffold(
@@ -1191,19 +1062,19 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         onTap: () => context.pop(),
                         child: Container(
                           padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
+                            Responsive.scale(context, 10),
                           ),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: lightenColor(appColor, 0.1).withAlpha(20),
                             border: Border.all(
-                              color: lightenColor(appColor, 0.3).withAlpha(180),
+                              color: Colors.white.withAlpha(60),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.arrow_back_ios_new,
-                            color: lightenColor(appColor, 0.3).withAlpha(180),
+                            color: Colors.white.withAlpha(160),
                             size: Responsive.font(context, 13),
                           ),
                         ),
@@ -1215,18 +1086,45 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 20),
                             fontWeight: FontWeight.w800,
-                            color: accent,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                       GestureDetector(
                         onTap: _showCreateExerciseDialog,
-                        child: Text(
-                          'Create',
-                          style: GoogleFonts.manrope(
-                            color: accent,
-                            fontSize: Responsive.font(context, 14),
-                            fontWeight: FontWeight.w600,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 14),
+                            vertical: Responsive.height(context, 8),
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 12),
+                            ),
+                            gradient: LinearGradient(
+                              colors: [
+                                lightenColor(appColor, 0.35),
+                                lightenColor(appColor, 0.20),
+                                lightenColor(appColor, 0.05),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            border: Border.all(
+                              color: lightenColor(
+                                appColor,
+                                0.25,
+                              ).withAlpha(180),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            'Create',
+                            style: GoogleFonts.manrope(
+                              color: Colors.white,
+                              fontSize: Responsive.font(context, 13),
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
@@ -1241,14 +1139,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   baseRadius: 14,
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 14),
-                    vertical: Responsive.height(context, 8),
+                    vertical: Responsive.height(context, 4),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.search,
-                        color: c.onCard.withAlpha(120),
-                        size: Responsive.font(context, 20),
+                        color: Colors.white38,
+                        size: Responsive.font(context, 18),
                       ),
                       SizedBox(width: Responsive.width(context, 10)),
                       Expanded(
@@ -1256,20 +1154,19 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                           controller: _searchController,
                           keyboardType: TextInputType.text,
                           style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            color: accent,
+                            fontSize: Responsive.font(context, 14),
+                            color: Colors.white,
                           ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Search exercise...',
                             hintStyle: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 15),
-                              color: c.onCard.withAlpha(100),
+                              fontSize: Responsive.font(context, 14),
+                              color: Colors.white30,
                             ),
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(
-                              vertical: Responsive.height(context, 16),
-                              horizontal: Responsive.width(context, 4),
+                              vertical: Responsive.height(context, 12),
                             ),
                           ),
                           onChanged: _onSearchChanged,
@@ -1288,13 +1185,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                   });
                                 },
                                 child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: Responsive.width(context, 8),
+                                  padding: EdgeInsets.only(
+                                    left: Responsive.width(context, 8),
                                   ),
                                   child: Icon(
                                     Icons.close,
-                                    color: c.onCard.withAlpha(140),
-                                    size: Responsive.font(context, 20),
+                                    color: Colors.white38,
+                                    size: Responsive.font(context, 16),
                                   ),
                                 ),
                               )
@@ -1423,36 +1320,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       : !_hasSearched
                       ? _loadingRecents
                             ? _buildRecentsSkeleton(context)
-                            : _recentExercises.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    HugeIcon(
-                                      icon: HugeIcons.strokeRoundedSearch01,
-                                      color: Colors.white24,
-                                      size: Responsive.scale(context, 40),
-                                    ),
-                                    SizedBox(
-                                      height: Responsive.height(context, 12),
-                                    ),
-                                    Text(
-                                      'Search for an exercise',
-                                      style: GoogleFonts.manrope(
-                                        color: dim,
-                                        fontSize: Responsive.font(context, 13),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : _buildRecentExercisesList(context, accent, dim)
+                            : _buildRecentExercisesList(context)
                       : _results.isEmpty
                       ? Center(
                           child: Text(
                             'No exercises found',
                             style: GoogleFonts.manrope(
-                              color: dim,
+                              color: Colors.white38,
                               fontSize: Responsive.font(context, 13),
                             ),
                           ),
@@ -1483,8 +1357,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                               final isCustom = ex['is_custom'] == true;
                               return _buildExerciseRow(
                                 context,
-                                accent,
-                                dim,
                                 name: name,
                                 subtitle: [
                                   if (muscle.isNotEmpty)
@@ -1513,10 +1385,50 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     );
   }
 
+  Widget _dialogOptionRow(
+    BuildContext context, {
+    required String label,
+    required bool selected,
+    required LinearGradient gradient,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Responsive.height(context, 6)),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 13),
+          ),
+          decoration: BoxDecoration(
+            gradient: selected ? gradient : null,
+            color: selected ? null : Colors.white.withAlpha(25),
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+            border: Border.all(
+              color: selected
+                  ? Colors.white.withAlpha(60)
+                  : Colors.white.withAlpha(50),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.manrope(
+              color: selected ? Colors.white : Colors.white,
+              fontSize: Responsive.font(context, 13),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildExerciseRow(
-    BuildContext context,
-    Color accent,
-    Color dim, {
+    BuildContext context, {
     required String name,
     required String subtitle,
     required VoidCallback onTap,
@@ -1539,7 +1451,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.manrope(
-                      color: accent,
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -1550,7 +1462,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
-                        color: dim,
+                        color: Colors.white54,
                         fontSize: Responsive.font(context, 12),
                       ),
                     ),
@@ -1565,7 +1477,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   padding: EdgeInsets.only(left: Responsive.width(context, 8)),
                   child: Icon(
                     Icons.more_vert,
-                    color: dim.withAlpha(160),
+                    color: Colors.white38,
                     size: Responsive.scale(context, 20),
                   ),
                 ),
@@ -1573,7 +1485,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             else
               Icon(
                 Icons.chevron_right,
-                color: dim.withAlpha(120),
+                color: Colors.white30,
                 size: Responsive.scale(context, 20),
               ),
           ],
@@ -1646,11 +1558,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
     );
   }
 
-  Widget _buildRecentExercisesList(
-    BuildContext context,
-    Color accent,
-    Color dim,
-  ) {
+  Widget _buildRecentExercisesList(BuildContext context) {
     Widget sectionHeader(String label) => Padding(
       padding: EdgeInsets.only(
         bottom: Responsive.height(context, 10),
@@ -1659,7 +1567,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       child: Text(
         label,
         style: GoogleFonts.manrope(
-          color: dim,
+          color: Colors.white38,
           fontSize: Responsive.font(context, 10),
           fontWeight: FontWeight.w700,
           letterSpacing: 0.8,
@@ -1682,8 +1590,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 ),
               _buildExerciseRow(
                 context,
-                accent,
-                dim,
                 name: (_recommendedExercises[i]['name'] as String? ?? '')
                     .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
                     .trim(),
@@ -1697,30 +1603,155 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ],
             SizedBox(height: Responsive.height(context, 16)),
           ],
-          sectionHeader('RECENT EXERCISES'),
-          for (int i = 0; i < _recentExercises.length; i++) ...[
-            if (i > 0)
-              Divider(
-                color: Colors.white.withAlpha(12),
-                height: 1,
-                thickness: 1,
+          if (_recentExercises.isNotEmpty) ...[
+            sectionHeader('RECENT EXERCISES'),
+            for (int i = 0; i < _recentExercises.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  color: Colors.white.withAlpha(12),
+                  height: 1,
+                  thickness: 1,
+                ),
+              _buildExerciseRow(
+                context,
+                name: (_recentExercises[i]['exercise_name'] as String? ?? '')
+                    .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                    .trim(),
+                subtitle: '',
+                onTap: () {
+                  widget.onExerciseSelected(_recentExercises[i]);
+                  Navigator.of(context).pop();
+                },
               ),
-            _buildExerciseRow(
-              context,
-              accent,
-              dim,
-              name: (_recentExercises[i]['exercise_name'] as String? ?? '')
-                  .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
-                  .trim(),
-              subtitle: '',
-              onTap: () {
-                widget.onExerciseSelected(_recentExercises[i]);
-                Navigator.of(context).pop();
-              },
-            ),
+            ],
+            SizedBox(height: Responsive.height(context, 20)),
           ],
+          sectionHeader('BROWSE BY MUSCLE'),
+          _buildMuscleGrid(context),
+          SizedBox(height: Responsive.height(context, 20)),
+          sectionHeader('BROWSE BY EQUIPMENT'),
+          _buildEquipmentGrid(context),
         ],
       ),
+    );
+  }
+
+  static const _muscleGridItems = [
+    ('Chest', 'Chest'),
+    ('Back', 'Lats'),
+    ('Shoulders', 'Shoulders'),
+    ('Biceps', 'Biceps'),
+    ('Triceps', 'Triceps'),
+    ('Legs', 'Quadriceps'),
+    ('Glutes', 'Glutes'),
+    ('Core', 'Abdominals'),
+  ];
+
+  static const _equipmentGridItems = [
+    ('Barbell', 'Barbell'),
+    ('Dumbbell', 'Dumbbell'),
+    ('Body Only', 'Body Only'),
+    ('Machine', 'Machine'),
+    ('Cable', 'Cable'),
+    ('Kettlebell', 'Kettlebells'),
+    ('Bands', 'Bands'),
+    ('Other', 'Other'),
+  ];
+
+  Widget _buildEquipmentGrid(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: Responsive.height(context, 10),
+      crossAxisSpacing: Responsive.width(context, 10),
+      childAspectRatio: 1.1,
+      children: [
+        for (final (label, equipment) in _equipmentGridItems)
+          GestureDetector(
+            onTap: () {
+              setState(() => _selectedEquipment = {equipment});
+              _search();
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedDumbbell01,
+                    color: Colors.white38,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white60,
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMuscleGrid(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: Responsive.height(context, 10),
+      crossAxisSpacing: Responsive.width(context, 10),
+      childAspectRatio: 1.1,
+      children: [
+        for (final (label, muscle) in _muscleGridItems)
+          GestureDetector(
+            onTap: () {
+              setState(() => _selectedMuscle = {muscle});
+              _search();
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(14),
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                border: Border.all(color: Colors.white.withAlpha(22), width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedDumbbell01,
+                    color: Colors.white38,
+                    size: Responsive.scale(context, 22),
+                  ),
+                  SizedBox(height: Responsive.height(context, 4)),
+                  Text(
+                    label,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white60,
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

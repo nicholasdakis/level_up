@@ -634,7 +634,7 @@ class WorkoutRepository:
             .execute()
         return result.count or 0
 
-    def get_recent_exercises(self, uid: str, limit: int = 25) -> list[dict]:
+    def get_recent_exercises(self, uid: str, limit: int = 8) -> list[dict]:
         # DISTINCT ON keeps the latest occurrence of each exercise_name across all sessions
         result = self._supabase.rpc("get_recent_exercises", {
             "p_uid": uid,

@@ -2707,3 +2707,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Active workout empty state replaced with a twinkling starfield background and a shimmer-animated icon and tagline so the empty state feels more alive
 - Create Routine screen overhauled to match active workout screen: starfield background, shimmer empty state, gradient Add Exercise and Save buttons, Discard button with confirmation dialog, and a Routine Details button that opens a clean dialog with filled rounded inputs for name and estimated duration
 - Create Routine screen: header redesigned with a back button, a Routine Details pill button (matching Save gradient) that opens a dialog to set name and duration together, and a Save button; changes only apply on Done so edits are not committed until confirmed
+- Overhauled the exercise picker screen UI to match the other upgraded screens
+- Replaced the Create button plain text with a gradient pill button
+- Filter buttons now use white-based colors with an active highlight state
+- Added a Browse by Muscle grid and Browse by Equipment grid to fill the empty state below recents
+- Recent exercises are now capped at 8 results instead of 25
+- Replaced the Create Exercise modal with a step-by-step wizard using animated transitions between steps
+- Each wizard step collapses into a gradient chip summary on completion, tappable to go back

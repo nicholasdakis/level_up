@@ -180,7 +180,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-            child: Text('OK', style: dialogButtonStyle(confirm: true)),
+            child: Text('Dismiss', style: dialogButtonStyle()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              _openRoutineDetails();
+            },
+            child: Text('Set Name', style: dialogButtonStyle(confirm: true)),
           ),
         ],
       );
