@@ -2750,3 +2750,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - is_featured is now used because before this, uid = null is how routines were handled if they were featured
 - Edited the routines schema so that if a user's account is deleted, instead of cascade-deleting all their data including workout templates, workout templates are not deleted if they are public
 - Upgraded the UI of the update username dialog and made it cap at 20 characters client-side too
+- Fixed a bug where saving a routine would strip out estimated_duration_minutes

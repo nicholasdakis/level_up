@@ -74,6 +74,20 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 15, 2026',
+                version: '1.2.4',
+                changes: [
+                  'New Workout Analytics screen with workout trends, muscle group insights, personal record tracking, and session statistics',
+                  'The Workout tab and its internal screens have been completely overhauled for a more premium experience',
+                  'Sets can now be deleted from exercises',
+                  'The workout rest timer can now be disabled',
+                  'The workout timer can now be adjusted',
+                  'Various bug fixes and polish across multiple screens',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 14, 2026',
                 version: '1.2.3',
                 changes: [

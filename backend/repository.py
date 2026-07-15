@@ -880,7 +880,7 @@ class WorkoutRepository:
     def copy_routine(self, uid: str, template_id: str) -> str:
         # copy a public browse template into the user's own routines (uid set, is_public false)
         template = self._supabase.table("workout_templates") \
-            .select("name") \
+            .select("name, estimated_duration_minutes") \
             .eq("template_id", template_id) \
             .single() \
             .execute().data
@@ -901,7 +901,7 @@ class WorkoutRepository:
         if result.data:
             self._supabase.rpc("increment_download_count", {"tid": template_id}).execute()
         # reuse create_routine so the new copy gets its own template_id, tracking the source
-        return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
+        return self.create_routine(uid=uid, name=template["name"], exercises=exercises, estimated_duration_minutes=template.get("estimated_duration_minutes"), source_template_id=template_id)
 
     def get_browse_routines(self, uid: str) -> dict:
         # featured routines are curated (is_featured = true); community routines are user-submitted (is_public = true, is_featured = false)
