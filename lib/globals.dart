@@ -563,7 +563,10 @@ class _FrostedDialogShellState extends State<_FrostedDialogShell> {
                         horizontal: Responsive.width(context, 28),
                         vertical: Responsive.height(context, 32),
                       ),
-                  child: widget.child,
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: SingleChildScrollView(child: widget.child),
+                  ),
                 ),
               ),
             ),

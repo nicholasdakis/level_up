@@ -1386,35 +1386,20 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             child: SafeArea(
               child: Column(
                 children: [
-                  _buildHeader(context, accent, dim, volDisplay, volUnit),
-                  if (_reordering)
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        vertical: Responsive.height(context, 8),
-                        horizontal: Responsive.width(context, 16),
-                      ),
-                      color: lightenColor(appColor, 0.1).withAlpha(60),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowReloadVertical,
-                            color: lightenColor(appColor, 0.45),
-                            size: Responsive.scale(context, 16),
-                          ),
-                          SizedBox(width: Responsive.width(context, 6)),
-                          Text(
-                            'Drag to reorder exercises',
-                            style: GoogleFonts.manrope(
-                              color: lightenColor(appColor, 0.45),
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                  AnimatedOpacity(
+                    opacity: _reordering ? 0.25 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: IgnorePointer(
+                      ignoring: _reordering,
+                      child: _buildHeader(
+                        context,
+                        accent,
+                        dim,
+                        volDisplay,
+                        volUnit,
                       ),
                     ),
+                  ),
                   if (_exercises.isEmpty && !_reordering)
                     Expanded(
                       child: StarfieldBackground(
@@ -1425,87 +1410,104 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                     ),
                   if (_exercises.isNotEmpty || _reordering)
                     Expanded(
-                      child: ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: ReorderableListView(
-                          padding: EdgeInsets.only(
-                            bottom: Responsive.height(context, 8),
-                          ),
-                          buildDefaultDragHandles: false,
-                          proxyDecorator: (child, index, animation) =>
-                              Material(color: Colors.transparent, child: child),
-                          onReorder: _reordering
-                              ? (oldIndex, newIndex) {
-                                  setState(() {
-                                    if (newIndex > oldIndex) newIndex--;
-                                    final oldOrder = List.of(_exercises);
-                                    final ex = _exercises.removeAt(oldIndex);
-                                    _exercises.insert(newIndex, ex);
-                                    final newControllers =
-                                        <String, TextEditingController>{};
-                                    final newChecked = <String, bool>{};
-                                    for (
-                                      int newI = 0;
-                                      newI < _exercises.length;
-                                      newI++
-                                    ) {
-                                      final oldI = oldOrder.indexOf(
-                                        _exercises[newI],
-                                      );
-                                      final sets =
-                                          (_exercises[newI]['sets'] as List)
-                                              .length;
-                                      for (int s = 0; s < sets; s++) {
-                                        for (final field in [
-                                          'reps',
-                                          'weight',
-                                        ]) {
-                                          final oldKey = '${oldI}_${s}_$field';
-                                          final newKey = '${newI}_${s}_$field';
-                                          if (_controllers.containsKey(
-                                            oldKey,
-                                          )) {
-                                            newControllers[newKey] =
-                                                _controllers[oldKey]!;
+                      child: Stack(
+                        children: [
+                          ClipRect(
+                            child: ScrollConfiguration(
+                              behavior: NoGlowScrollBehavior(),
+                              child: ReorderableListView(
+                                padding: EdgeInsets.only(
+                                  bottom: Responsive.height(context, 8),
+                                ),
+                                buildDefaultDragHandles: false,
+                                proxyDecorator: (child, index, animation) =>
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: child,
+                                    ),
+                                onReorder: _reordering
+                                    ? (oldIndex, newIndex) {
+                                        setState(() {
+                                          if (newIndex > oldIndex) newIndex--;
+                                          final oldOrder = List.of(_exercises);
+                                          final ex = _exercises.removeAt(
+                                            oldIndex,
+                                          );
+                                          _exercises.insert(newIndex, ex);
+                                          final newControllers =
+                                              <String, TextEditingController>{};
+                                          final newChecked = <String, bool>{};
+                                          for (
+                                            int newI = 0;
+                                            newI < _exercises.length;
+                                            newI++
+                                          ) {
+                                            final oldI = oldOrder.indexOf(
+                                              _exercises[newI],
+                                            );
+                                            final sets =
+                                                (_exercises[newI]['sets']
+                                                        as List)
+                                                    .length;
+                                            for (int s = 0; s < sets; s++) {
+                                              for (final field in [
+                                                'reps',
+                                                'weight',
+                                              ]) {
+                                                final oldKey =
+                                                    '${oldI}_${s}_$field';
+                                                final newKey =
+                                                    '${newI}_${s}_$field';
+                                                if (_controllers.containsKey(
+                                                  oldKey,
+                                                )) {
+                                                  newControllers[newKey] =
+                                                      _controllers[oldKey]!;
+                                                }
+                                              }
+                                              final oldCheckedKey =
+                                                  '${oldI}_$s';
+                                              if (_checked.containsKey(
+                                                oldCheckedKey,
+                                              )) {
+                                                newChecked['${newI}_$s'] =
+                                                    _checked[oldCheckedKey]!;
+                                              }
+                                            }
                                           }
-                                        }
-                                        final oldCheckedKey = '${oldI}_$s';
-                                        if (_checked.containsKey(
-                                          oldCheckedKey,
-                                        )) {
-                                          newChecked['${newI}_$s'] =
-                                              _checked[oldCheckedKey]!;
-                                        }
+                                          // dispose controllers that didn't make it into the remapped set
+                                          for (final key in _controllers.keys) {
+                                            if (!newControllers.containsKey(
+                                              key,
+                                            )) {
+                                              _controllers[key]!.dispose();
+                                            }
+                                          }
+                                          _controllers
+                                            ..clear()
+                                            ..addAll(newControllers);
+                                          _checked
+                                            ..clear()
+                                            ..addAll(newChecked);
+                                        });
+                                        _persist();
                                       }
-                                    }
-                                    // dispose controllers that didn't make it into the remapped set
-                                    for (final key in _controllers.keys) {
-                                      if (!newControllers.containsKey(key)) {
-                                        _controllers[key]!.dispose();
-                                      }
-                                    }
-                                    _controllers
-                                      ..clear()
-                                      ..addAll(newControllers);
-                                    _checked
-                                      ..clear()
-                                      ..addAll(newChecked);
-                                  });
-                                  _persist();
-                                }
-                              : (oldI, newI) {},
-                          children: [
-                            for (int i = 0; i < _exercises.length; i++)
-                              _buildExerciseSection(
-                                context,
-                                i,
-                                accent,
-                                dim,
-                                isImperial,
-                                key: ValueKey(i),
+                                    : (oldI, newI) {},
+                                children: [
+                                  for (int i = 0; i < _exercises.length; i++)
+                                    _buildExerciseSection(
+                                      context,
+                                      i,
+                                      accent,
+                                      dim,
+                                      isImperial,
+                                      key: ValueKey(i),
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
+                            ),
+                          ), // ClipRect
+                        ],
                       ),
                     ),
                   if (_reordering)
@@ -1531,13 +1533,21 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                             borderRadius: BorderRadius.circular(
                               Responsive.scale(context, 14),
                             ),
-                            color: lightenColor(appColor, 0.1).withAlpha(80),
+                            gradient: LinearGradient(
+                              colors: [
+                                lightenColor(appColor, 0.35),
+                                lightenColor(appColor, 0.20),
+                                lightenColor(appColor, 0.05),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
                             border: Border.all(
                               color: lightenColor(
                                 appColor,
-                                0.45,
-                              ).withAlpha(120),
-                              width: 1,
+                                0.25,
+                              ).withAlpha(180),
+                              width: 1.5,
                             ),
                           ),
                           child: Text(
@@ -1545,14 +1555,21 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                             textAlign: TextAlign.center,
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 15),
-                              color: lightenColor(appColor, 0.45),
+                              color: Colors.white,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                       ),
                     ),
-                  _buildBottomBar(context, accent, dim),
+                  AnimatedOpacity(
+                    opacity: _reordering ? 0.25 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: IgnorePointer(
+                      ignoring: _reordering,
+                      child: _buildBottomBar(context, accent, dim),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -2026,7 +2043,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                           SizedBox(width: Responsive.width(context, 12)),
                           _headerExpanded(context, 'REPS'),
                           SizedBox(width: Responsive.width(context, 12)),
-                          SizedBox(width: Responsive.scale(context, 28)),
+                          SizedBox(width: Responsive.scale(context, 58)),
                         ],
                       ),
                     ),
@@ -2305,6 +2322,58 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
             ),
           ),
           SizedBox(width: Responsive.width(context, 12)),
+          // delete set, only visible when there are multiple sets
+          if ((_exercises[exIndex]['sets'] as List).length > 1)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  (_exercises[exIndex]['sets'] as List).removeAt(setIndex);
+                  _checked.remove('${exIndex}_$setIndex');
+                  // shift checked keys for sets after the deleted one
+                  for (
+                    int s = setIndex + 1;
+                    s <= (_exercises[exIndex]['sets'] as List).length;
+                    s++
+                  ) {
+                    final val = _checked.remove('${exIndex}_$s');
+                    if (val != null) _checked['${exIndex}_${s - 1}'] = val;
+                  }
+                  // dispose and remove controllers for deleted set
+                  for (final field in ['weight', 'reps']) {
+                    _controllers
+                        .remove('${exIndex}_${setIndex}_$field')
+                        ?.dispose();
+                  }
+                  // shift controller keys for sets after the deleted one
+                  for (
+                    int s = setIndex + 1;
+                    s <= (_exercises[exIndex]['sets'] as List).length;
+                    s++
+                  ) {
+                    for (final field in ['weight', 'reps']) {
+                      final ctrl = _controllers.remove(
+                        '${exIndex}_${s}_$field',
+                      );
+                      if (ctrl != null) {
+                        _controllers['${exIndex}_${s - 1}_$field'] = ctrl;
+                      }
+                    }
+                  }
+                });
+                _persist();
+              },
+              child: Padding(
+                padding: EdgeInsets.only(left: Responsive.width(context, 4)),
+                child: Icon(
+                  Icons.remove_circle_outline_rounded,
+                  color: onCard.withAlpha(80),
+                  size: Responsive.scale(context, 18),
+                ),
+              ),
+            )
+          else
+            SizedBox(width: Responsive.scale(context, 22)),
+          SizedBox(width: Responsive.width(context, 8)),
           // check button
           GestureDetector(
             onTap: () {

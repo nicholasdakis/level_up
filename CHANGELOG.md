@@ -2723,3 +2723,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Personal Records card redesigned: each exercise gets a nested container with its name, a divider, then inline stat chips showing the before/after value with a vertical divider between the label and number
 - All card text uses white-based colors throughout instead of grey accent tints
 - Done button uses the full-width gradient matching all other primary CTAs in the app
+- Fixed delete workout confirmation not wrapping the name in quotes when the workout has no name
+- Added set deletion: a remove icon appears on each set row when there are multiple sets, correctly shifting checked state and controller keys after deletion
+- Added a clear filters button to the exercise picker that appears when any filter is active
+- Frosted dialog content is now wrapped in SingleChildScrollView so it scrolls instead of pushing the dialog off screen when the keyboard appears on PWA
+- Done Reordering button updated with gradient styling matching other primary CTAs
+- Header dims to 25% opacity during reorder mode and becomes non-interactive; bottom bar does the same so Done Reordering is the only obvious action
+- Removed redundant drag hint banner above the exercise list during reorder mode

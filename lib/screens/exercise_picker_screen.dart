@@ -1248,6 +1248,42 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         ),
                       ),
                     ),
+                    if (_selectedEquipment.isNotEmpty ||
+                        _selectedMuscle.isNotEmpty ||
+                        _selectedLevel.isNotEmpty) ...[
+                      SizedBox(width: Responsive.width(context, 10)),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedEquipment = {};
+                            _selectedMuscle = {};
+                            _selectedLevel = {};
+                          });
+                          _search();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 10),
+                            vertical: Responsive.height(context, 10),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(18),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 10),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(30),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white54,
+                            size: Responsive.scale(context, 16),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
 
