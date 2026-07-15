@@ -2742,3 +2742,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed false PR badges being stamped on sets logged in imperial units due to lbs-to-kg float precision drift; weight is now rounded to 2dp before PR comparison both client-side and in the log_workout Postgres function
 - Fixed exercise_id being stripped from routine exercise responses by the Pydantic schema, causing muscle data to be missing from today's overview and analytics for all routine-sourced workouts
 - Made the set name dialog not appear when "Finish" is pressed and a name is already set
+- Separated the today's overview card into 2 pages so its size does not overwhelm on the Workout tab

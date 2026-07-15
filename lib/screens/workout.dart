@@ -38,6 +38,8 @@ class _WorkoutState extends ConsumerState<Workout> {
   OverlayEntry? _heatmapTooltip;
   Timer? _resetTimer;
   Duration _timeUntilReset = Duration.zero;
+  final PageController _liftsPageController = PageController();
+  int _liftsPage = 0;
 
   @override
   void initState() {
@@ -181,6 +183,7 @@ class _WorkoutState extends ConsumerState<Workout> {
   @override
   void dispose() {
     _resetTimer?.cancel();
+    _liftsPageController.dispose();
     super.dispose();
   }
 
@@ -1053,6 +1056,272 @@ class _WorkoutState extends ConsumerState<Workout> {
       ),
     );
 
+    // page 1: stats (volume, duration, exercises, sets, reps) + analytics button
+    Widget page1 = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  volumeDisplay,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'volume ($volumeUnit)',
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(context, 10),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(width: Responsive.width(context, 32)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  durationDisplay,
+                  style: GoogleFonts.manrope(
+                    color: accent,
+                    fontSize: Responsive.font(context, 22),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'duration',
+                  style: GoogleFonts.manrope(
+                    color: dim,
+                    fontSize: Responsive.font(context, 10),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Divider(
+          color: c.onCard.withAlpha(30),
+          height: Responsive.height(context, 1),
+          thickness: Responsive.height(context, 1),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Row(
+          children: [
+            stat('$exercises', 'exercises'),
+            stat('$sets', 'sets'),
+            stat('$reps', 'reps'),
+          ],
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Divider(
+          color: c.onCard.withAlpha(30),
+          height: Responsive.height(context, 1),
+          thickness: Responsive.height(context, 1),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        if (!isGuest)
+          GestureDetector(
+            onTap: () => context.push('/workout/analytics'),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                vertical: Responsive.height(context, 10),
+                horizontal: Responsive.width(context, 24),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                color: lightenColor(appColor, 0.1).withAlpha(40),
+                border: Border.all(
+                  color: lightenColor(appColor, 0.35).withAlpha(160),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAnalytics01,
+                    color: lightenColor(appColor, 0.45),
+                    size: Responsive.font(context, 18),
+                  ),
+                  SizedBox(width: Responsive.width(context, 8)),
+                  Text(
+                    "View Analytics",
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      fontWeight: FontWeight.w800,
+                      color: lightenColor(appColor, 0.45),
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+
+    // page 2: weekly goal + muscles
+    Widget page2 = Builder(
+      builder: (context) {
+        final int weeklyGoal =
+            ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
+        final int workoutsThisWeek = ref.watch(
+          workoutProvider.select((s) => s.value?.weeklyWorkoutCount ?? 0),
+        );
+        final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () => _onSetWeeklyGoal(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Weekly Goal",
+                        style: GoogleFonts.manrope(
+                          color: lightenColor(appColor, 0.45),
+                          fontSize: Responsive.font(context, 12),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "$workoutsThisWeek / $weeklyGoal workouts",
+                            style: GoogleFonts.manrope(
+                              color: lightenColor(appColor, 0.35),
+                              fontSize: Responsive.font(context, 11),
+                            ),
+                          ),
+                          SizedBox(width: Responsive.width(context, 6)),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedPencilEdit01,
+                            color: lightenColor(appColor, 0.35),
+                            size: Responsive.scale(context, 13),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Responsive.height(context, 6)),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 4),
+                    ),
+                    child: LinearProgressIndicator(
+                      value: fraction,
+                      minHeight: Responsive.height(context, 5),
+                      backgroundColor: Colors.white.withAlpha(20),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        lightenColor(appColor, 0.4),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: Responsive.height(context, 5)),
+                  Text(
+                    () {
+                      final d = _timeUntilReset;
+                      if (d.inSeconds <= 0) return 'Resets today';
+                      final days = d.inDays;
+                      final hours = d.inHours % 24;
+                      final minutes = d.inMinutes % 60;
+                      if (days > 0)
+                        return 'Resets in ${days}d ${hours}h ${minutes}m';
+                      if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
+                      return 'Resets in ${minutes}m';
+                    }(),
+                    style: GoogleFonts.manrope(
+                      color: lightenColor(appColor, 0.35),
+                      fontSize: Responsive.font(context, 10),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
+              SizedBox(height: Responsive.height(context, 12)),
+              Divider(
+                color: c.onCard.withAlpha(30),
+                height: Responsive.height(context, 1),
+                thickness: Responsive.height(context, 1),
+              ),
+              SizedBox(height: Responsive.height(context, 12)),
+              for (final entry in [
+                if (primaryMuscles.isNotEmpty)
+                  ('PRIMARY MUSCLES WORKED', primaryMuscles),
+                if (secondaryMuscles.isNotEmpty)
+                  ('SECONDARY MUSCLES WORKED', secondaryMuscles),
+              ]) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    entry.$1,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.manrope(
+                      color: subtle,
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 6)),
+                Center(
+                  child: Wrap(
+                    spacing: Responsive.width(context, 6),
+                    runSpacing: Responsive.height(context, 4),
+                    children: [
+                      for (final muscle in entry.$2)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
+                            vertical: Responsive.height(context, 3),
+                          ),
+                          decoration: BoxDecoration(
+                            color: c.onCard.withAlpha(45),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            border: Border.all(color: c.onCard.withAlpha(40)),
+                          ),
+                          child: Text(
+                            muscle.isEmpty
+                                ? muscle
+                                : '${muscle[0].toUpperCase()}${muscle.substring(1)}',
+                            style: GoogleFonts.manrope(
+                              color: accent,
+                              fontSize: Responsive.font(context, 10),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: Responsive.height(context, 8)),
+              ],
+            ],
+          ],
+        );
+      },
+    );
+
     return frostedGlassCard(
       context,
       color: appColor,
@@ -1063,266 +1332,79 @@ class _WorkoutState extends ConsumerState<Workout> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(
+            height: Responsive.height(context, 200),
+            child: PageView(
+              controller: _liftsPageController,
+              onPageChanged: (i) => setState(() => _liftsPage = i),
+              children: [page1, page2],
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 8)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    volumeDisplay,
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 22),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    'volume ($volumeUnit)',
-                    style: GoogleFonts.manrope(
-                      color: dim,
-                      fontSize: Responsive.font(context, 10),
-                    ),
-                  ),
-                ],
+              GestureDetector(
+                onTap: _liftsPage == 0
+                    ? null
+                    : () => _liftsPageController.animateToPage(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                child: Icon(
+                  Icons.chevron_left_rounded,
+                  color: _liftsPage == 0
+                      ? Colors.transparent
+                      : lightenColor(appColor, 0.35),
+                  size: Responsive.scale(context, 18),
+                ),
               ),
-              SizedBox(width: Responsive.width(context, 32)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    durationDisplay,
-                    style: GoogleFonts.manrope(
-                      color: accent,
-                      fontSize: Responsive.font(context, 22),
-                      fontWeight: FontWeight.w700,
-                    ),
+              SizedBox(width: Responsive.width(context, 8)),
+              ...List.generate(
+                2,
+                (i) => GestureDetector(
+                  onTap: () => _liftsPageController.animateToPage(
+                    i,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
                   ),
-                  Text(
-                    'duration',
-                    style: GoogleFonts.manrope(
-                      color: dim,
-                      fontSize: Responsive.font(context, 10),
+                  child: Container(
+                    width: Responsive.scale(context, _liftsPage == i ? 16 : 6),
+                    height: Responsive.scale(context, 6),
+                    margin: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 3),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Divider(
-            color: c.onCard.withAlpha(30),
-            height: Responsive.height(context, 1),
-            thickness: Responsive.height(context, 1),
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Row(
-            children: [
-              stat('$exercises', 'exercises'),
-              stat('$sets', 'sets'),
-              stat('$reps', 'reps'),
-            ],
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Divider(
-            color: c.onCard.withAlpha(30),
-            height: Responsive.height(context, 1),
-            thickness: Responsive.height(context, 1),
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Builder(
-            builder: (context) {
-              final int weeklyGoal =
-                  ref.read(userDataProvider).value?.weeklyWorkoutsGoal ?? 5;
-              final int workoutsThisWeek = ref.watch(
-                workoutProvider.select((s) => s.value?.weeklyWorkoutCount ?? 0),
-              );
-              final fraction = (workoutsThisWeek / weeklyGoal).clamp(0.0, 1.0);
-              return GestureDetector(
-                onTap: () => _onSetWeeklyGoal(context),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Weekly Goal",
-                          style: GoogleFonts.manrope(
-                            color: lightenColor(appColor, 0.45),
-                            fontSize: Responsive.font(context, 12),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              "$workoutsThisWeek / $weeklyGoal workouts",
-                              style: GoogleFonts.manrope(
-                                color: lightenColor(appColor, 0.35),
-                                fontSize: Responsive.font(context, 11),
-                              ),
-                            ),
-                            SizedBox(width: Responsive.width(context, 6)),
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedPencilEdit01,
-                              color: lightenColor(appColor, 0.35),
-                              size: Responsive.scale(context, 13),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: Responsive.height(context, 6)),
-                    ClipRRect(
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(
                         Responsive.scale(context, 4),
                       ),
-                      child: LinearProgressIndicator(
-                        value: fraction,
-                        minHeight: Responsive.height(context, 5),
-                        backgroundColor: Colors.white.withAlpha(20),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          lightenColor(appColor, 0.4),
-                        ),
-                      ),
+                      color: _liftsPage == i
+                          ? lightenColor(appColor, 0.45)
+                          : lightenColor(appColor, 0.2).withAlpha(100),
                     ),
-                    SizedBox(height: Responsive.height(context, 5)),
-                    Text(
-                      () {
-                        final d = _timeUntilReset;
-                        if (d.inSeconds <= 0) return 'Resets today';
-                        final days = d.inDays;
-                        final hours = d.inHours % 24;
-                        final minutes = d.inMinutes % 60;
-                        if (days > 0) {
-                          return 'Resets in ${days}d ${hours}h ${minutes}m';
-                        }
-                        if (hours > 0) return 'Resets in ${hours}h ${minutes}m';
-                        return 'Resets in ${minutes}m';
-                      }(),
-                      style: GoogleFonts.manrope(
-                        color: lightenColor(appColor, 0.35),
-                        fontSize: Responsive.font(context, 10),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          Divider(
-            color: c.onCard.withAlpha(30),
-            height: Responsive.height(context, 1),
-            thickness: Responsive.height(context, 1),
-          ),
-          SizedBox(height: Responsive.height(context, 10)),
-          if (!isGuest)
-            GestureDetector(
-              onTap: () => context.push('/workout/analytics'),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 10),
-                  horizontal: Responsive.width(context, 24),
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 12),
-                  ),
-                  color: lightenColor(appColor, 0.1).withAlpha(40),
-                  border: Border.all(
-                    color: lightenColor(appColor, 0.35).withAlpha(160),
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedAnalytics01,
-                      color: lightenColor(appColor, 0.45),
-                      size: Responsive.font(context, 18),
-                    ),
-                    SizedBox(width: Responsive.width(context, 8)),
-                    Text(
-                      "View Analytics",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w800,
-                        color: lightenColor(appColor, 0.45),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
-            SizedBox(height: Responsive.height(context, 12)),
-            Divider(
-              color: c.onCard.withAlpha(30),
-              height: Responsive.height(context, 1),
-              thickness: Responsive.height(context, 1.5),
-            ),
-            SizedBox(height: Responsive.height(context, 12)),
-            for (final entry in [
-              if (primaryMuscles.isNotEmpty)
-                ('PRIMARY MUSCLES WORKED', primaryMuscles),
-              if (secondaryMuscles.isNotEmpty)
-                ('SECONDARY MUSCLES WORKED', secondaryMuscles),
-            ]) ...[
-              SizedBox(
-                width: double.infinity,
-                child: Text(
-                  entry.$1,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: subtle,
-                    fontSize: Responsive.font(context, 10),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
                   ),
                 ),
               ),
-              SizedBox(height: Responsive.height(context, 6)),
-              Center(
-                child: Wrap(
-                  spacing: Responsive.width(context, 6),
-                  runSpacing: Responsive.height(context, 4),
-                  children: [
-                    for (final muscle in entry.$2)
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 8),
-                          vertical: Responsive.height(context, 3),
-                        ),
-                        decoration: BoxDecoration(
-                          color: c.onCard.withAlpha(45),
-                          borderRadius: BorderRadius.circular(
-                            Responsive.scale(context, 20),
-                          ),
-                          border: Border.all(color: c.onCard.withAlpha(40)),
-                        ),
-                        child: Text(
-                          muscle.isEmpty
-                              ? muscle
-                              : '${muscle[0].toUpperCase()}${muscle.substring(1)}',
-                          style: GoogleFonts.manrope(
-                            color: accent,
-                            fontSize: Responsive.font(context, 10),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+              SizedBox(width: Responsive.width(context, 8)),
+              GestureDetector(
+                onTap: _liftsPage == 1
+                    ? null
+                    : () => _liftsPageController.animateToPage(
+                        1,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
                       ),
-                  ],
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  color: _liftsPage == 1
+                      ? Colors.transparent
+                      : lightenColor(appColor, 0.35),
+                  size: Responsive.scale(context, 18),
                 ),
               ),
-              SizedBox(height: Responsive.height(context, 8)),
             ],
-          ],
+          ),
         ],
       ),
     );
