@@ -1535,70 +1535,26 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   }
 
   Widget _buildRecentsSkeleton(BuildContext context) {
+    const fakeRecents = [
+      {'exercise_name': 'Barbell Bench Press'},
+      {'exercise_name': 'Squat'},
+      {'exercise_name': 'Deadlift'},
+    ];
     return Skeletonizer(
       enabled: true,
-      ignoreContainers: false,
       effect: ShimmerEffect(
         baseColor: lightenColor(appColor, 0.10),
         highlightColor: lightenColor(appColor, 0.22),
         duration: const Duration(milliseconds: 1200),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // label placeholder
-          Container(
-            width: Responsive.width(context, 90),
-            height: Responsive.height(context, 10),
-            margin: EdgeInsets.only(bottom: Responsive.height(context, 10)),
-            color: Colors.white,
-          ),
-          for (int i = 0; i < 6; i++) ...[
-            if (i > 0)
-              Divider(
-                color: Colors.white.withAlpha(12),
-                height: 1,
-                thickness: 1,
-              ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 13),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: Responsive.height(context, 14),
-                          width: Responsive.width(context, 150),
-                          color: Colors.white,
-                        ),
-                        SizedBox(height: Responsive.height(context, 4)),
-                        Container(
-                          height: Responsive.height(context, 11),
-                          width: Responsive.width(context, 100),
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: Responsive.scale(context, 16),
-                    height: Responsive.scale(context, 16),
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+      child: _buildRecentExercisesList(context, skeletonRecents: fakeRecents),
     );
   }
 
-  Widget _buildRecentExercisesList(BuildContext context) {
+  Widget _buildRecentExercisesList(
+    BuildContext context, {
+    List<Map<String, dynamic>>? skeletonRecents,
+  }) {
     Widget sectionHeader(String label) => Padding(
       padding: EdgeInsets.only(
         bottom: Responsive.height(context, 10),
@@ -1642,9 +1598,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ],
             SizedBox(height: Responsive.height(context, 16)),
           ],
-          if (_recentExercises.isNotEmpty) ...[
+          if ((skeletonRecents ?? _recentExercises).isNotEmpty) ...[
             sectionHeader('RECENTLY LOGGED EXERCISES'),
-            for (int i = 0; i < _recentExercises.length; i++) ...[
+            for (
+              int i = 0;
+              i < (skeletonRecents ?? _recentExercises).length;
+              i++
+            ) ...[
               if (i > 0)
                 Divider(
                   color: Colors.white.withAlpha(12),
@@ -1653,13 +1613,18 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 ),
               _buildExerciseRow(
                 context,
-                name: (_recentExercises[i]['exercise_name'] as String? ?? '')
-                    .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
-                    .trim(),
+                name:
+                    ((skeletonRecents ?? _recentExercises)[i]['exercise_name']
+                                as String? ??
+                            '')
+                        .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
+                        .trim(),
                 subtitle: '',
                 onTap: () {
-                  widget.onExerciseSelected(_recentExercises[i]);
-                  Navigator.of(context).pop();
+                  if (skeletonRecents == null) {
+                    widget.onExerciseSelected(_recentExercises[i]);
+                    Navigator.of(context).pop();
+                  }
                 },
               ),
             ],
