@@ -2743,3 +2743,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed exercise_id being stripped from routine exercise responses by the Pydantic schema, causing muscle data to be missing from today's overview and analytics for all routine-sourced workouts
 - Made the set name dialog not appear when "Finish" is pressed and a name is already set
 - Separated the today's overview card into 2 pages so its size does not overwhelm on the Workout tab
+
+## 2026-07-15
+- Added is_featured parameter to the routines schema
+- This is to allow users to delete their routines if they are public so that instead of the deleted routine disappearing from the community section, the uid gets set to null and it remains in the community section, just with UID = null as the creator
+- is_featured is now used because before this, uid = null is how routines were handled if they were featured
+- Edited the routines schema so that if a user's account is deleted, instead of cascade-deleting all their data including workout templates, workout templates are not deleted if they are public

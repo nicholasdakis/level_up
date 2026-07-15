@@ -1088,3 +1088,21 @@ BEGIN
   RETURN NEXT;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- preserve_public_routines_on_user_delete: runs before a user row is deleted and sets uid = NULL
+-- on any public routines they created, so those routines stay in the community browse section
+-- under "Level Up! User" etc instead of being cascade-deleted with the account.
+-- Private routines are unaffected and get deleted by the CASCADE as normal
+CREATE OR REPLACE FUNCTION preserve_public_routines_on_user_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE workout_templates
+    SET uid = NULL
+    WHERE uid = OLD.uid AND is_public = true;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_preserve_public_routines
+BEFORE DELETE ON users
+FOR EACH ROW EXECUTE FUNCTION preserve_public_routines_on_user_delete();

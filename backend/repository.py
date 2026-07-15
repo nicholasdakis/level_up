@@ -904,10 +904,10 @@ class WorkoutRepository:
         return self.create_routine(uid=uid, name=template["name"], exercises=exercises, source_template_id=template_id)
 
     def get_browse_routines(self, uid: str) -> dict:
-        # fetch featured (uid IS NULL) and community (uid not null, is_public true) separately
+        # featured routines are curated (is_featured = true); community routines are user-submitted (is_public = true, is_featured = false)
         featured_rows = self._supabase.table("workout_templates") \
             .select("template_id, name, estimated_duration_minutes, like_count, download_count") \
-            .is_("uid", "null") \
+            .eq("is_featured", True) \
             .eq("is_public", True) \
             .order("like_count", desc=True) \
             .order("download_count", desc=True) \
@@ -915,7 +915,7 @@ class WorkoutRepository:
             .execute().data or []
         community_rows = self._supabase.table("workout_templates") \
             .select("template_id, name, estimated_duration_minutes, uid, like_count, download_count") \
-            .not_.is_("uid", "null") \
+            .eq("is_featured", False) \
             .eq("is_public", True) \
             .order("like_count", desc=True) \
             .order("download_count", desc=True) \
@@ -969,7 +969,13 @@ class WorkoutRepository:
                 "liked_by_me": routine_row["template_id"] in liked_ids,
             }
             if is_community:
-                item["creator_username"] = username_map.get(routine_row["uid"])
+                if routine_row.get("uid"):
+                    item["creator_username"] = username_map.get(routine_row["uid"])
+                else:
+                    # uid is null when the creator deleted their copy; pick a placeholder deterministically
+                    # using template_id so the same routine always shows the same name across requests
+                    _placeholders = ["Level Up! User", "Mystery Athlete", "Anonymous Lifter", "Unknown Warrior"]
+                    item["creator_username"] = _placeholders[hash(routine_row["template_id"]) % len(_placeholders)]
             return item
 
         return {
@@ -978,12 +984,30 @@ class WorkoutRepository:
         }
 
     def delete_routine(self, uid: str, template_id: str) -> None:
-        # only delete if the user owns the routine
-        self._supabase.table("workout_templates") \
-            .delete() \
+        # fetch the routine owned by this user to check its visibility before deciding how to delete it
+        row = self._supabase.table("workout_templates") \
+            .select("is_public") \
             .eq("template_id", template_id) \
             .eq("uid", uid) \
-            .execute()
+            .single() \
+            .execute().data
+        if not row:
+            # row is None if the template_id doesn't exist or doesn't belong to this user, nothing to do
+            return
+        if row.get("is_public"):
+            # public routines appear in the community browse section so we keep the row but
+            # detach it from the user by setting uid to null; it will show a placeholder username
+            self._supabase.table("workout_templates") \
+                .update({"uid": None}) \
+                .eq("template_id", template_id) \
+                .execute()
+        else:
+            # private routines are only visible to the owner so it is safe to fully delete them
+            self._supabase.table("workout_templates") \
+                .delete() \
+                .eq("template_id", template_id) \
+                .eq("uid", uid) \
+                .execute()
 
     def like_routine(self, uid: str, template_id: str) -> None:
         # insert is a no-op if already liked due to the unique constraint
