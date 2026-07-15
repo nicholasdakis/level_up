@@ -859,6 +859,7 @@ class WorkoutRepository:
                 elif em.get("muscle_type") == "secondary":
                     secondary_muscles.append(muscle_name)
             ex_by_template[tid].append({
+                "exercise_id": exercise_row["exercise_id"],
                 "exercise_name": exercise_row["exercise_name"],
                 "exercise_order": exercise_row["exercise_order"],
                 "primary_muscle": primary_muscle or "",

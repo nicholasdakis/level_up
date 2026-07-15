@@ -553,7 +553,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       }
       if (checkedSets.isEmpty) continue;
       exercises.add({
-        'exercise_id': ex['id'],
+        'exercise_id': ex['id'] ?? ex['exercise_id'],
         'exercise_name': _cleanName(ex['name'] as String? ?? ''),
         'primary_muscle': ex['primary_muscle'] as String? ?? '',
         'secondary_muscles': ex['secondary_muscles'] as List<dynamic>? ?? [],
