@@ -373,6 +373,11 @@ class WorkoutHistoryItem(BaseModel):
 class GetWorkoutHistoryResponse(BaseModel):
     workouts: list[WorkoutHistoryItem]
 
+class WorkoutPrSummaryResponse(BaseModel):
+    weight: int = 0
+    reps: int = 0
+    volume: int = 0
+
 class GetWeeklyWorkoutCountResponse(BaseModel):
     count: int
 

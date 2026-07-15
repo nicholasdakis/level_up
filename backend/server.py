@@ -81,6 +81,7 @@ from backend.schemas import (
     GetRecentWorkoutsResponse,
     WorkoutHistoryItem,
     GetWorkoutHistoryResponse,
+    WorkoutPrSummaryResponse,
     GetWeeklyWorkoutCountResponse,
     GetTodayOverviewResponse,
     GetWorkoutHeatmapResponse,
@@ -1387,6 +1388,23 @@ def get_workout_history():
         since = cutoff if (since is None or since < cutoff) else since
     workouts = workout_service.get_workout_history(uid, since=since)
     return jsonify(GetWorkoutHistoryResponse(workouts=[WorkoutHistoryItem(**w) for w in workouts]).model_dump()), 200
+
+
+@app.route("/workout_pr_summary", methods=["GET"])
+def get_workout_pr_summary():
+    # Returns PR counts by type (weight, reps, volume) for the given date range
+    # Free users capped at 14 days
+    from datetime import date, timedelta
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    cutoff = (date.today() - timedelta(days=13)).isoformat()
+    since = request.args.get("since")
+    if not is_premium:
+        since = cutoff if (since is None or since < cutoff) else since
+    summary = workout_repo.get_pr_summary(uid, since=since)
+    return jsonify(WorkoutPrSummaryResponse(**summary).model_dump()), 200
 
 
 @app.route("/recent_workouts", methods=["GET"])

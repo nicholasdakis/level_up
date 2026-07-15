@@ -413,91 +413,6 @@ class WorkoutRepository:
         }).execute().data[0]
         return workout_row["workout_id"]
 
-    def _save_sets_and_collect_stats(self, workout_exercise_id: str, sets: list[dict]) -> dict:
-        # batch inserts all sets for one exercise and returns per-set stats needed for PR tracking
-        set_count = 0
-        best_weight: float | None = None
-        best_reps: int | None = None
-        last_weight: float | None = None
-        last_reps: int | None = None
-        session_volume = 0.0
-        set_rows = []
-        for set_data in sets:
-            reps = set_data.get("reps")
-            weight_kg = set_data.get("weight_kg")
-            set_rows.append({
-                "workout_exercise_id": workout_exercise_id,
-                "set_number": set_data["set_number"],
-                "reps": reps,
-                "weight_kg": weight_kg,
-                "set_type": "working",
-            })
-            set_count += 1
-            last_weight = weight_kg
-            last_reps = reps
-            if weight_kg is not None and reps is not None:
-                session_volume += weight_kg * reps
-                if best_weight is None or weight_kg > best_weight:
-                    best_weight = weight_kg
-                if best_reps is None or reps > best_reps:
-                    best_reps = reps
-        if set_rows:
-            self._supabase.table("workout_sets").insert(set_rows).execute()
-        return {
-            "set_count": set_count,
-            "best_weight": best_weight,
-            "best_reps": best_reps,
-            "last_weight": last_weight,
-            "last_reps": last_reps,
-            "session_volume": session_volume,
-        }
-
-    def _upsert_exercise_stats(self, uid: str, exercise_name: str, stats: dict) -> None:
-        # last_* always updated, PR fields only updated if this session beat the stored value
-        best_weight = stats["best_weight"]
-        best_reps = stats["best_reps"]
-        session_volume = stats["session_volume"]
-
-        # Epley formula: weight * (1 + reps/30) estimates the 1-rep max from a submaximal set
-        estimated_1rm: float | None = None
-        if best_weight and best_reps:
-            estimated_1rm = round(best_weight * (1 + best_reps / 30), 2)
-
-        existing_stats = self._supabase.table("user_exercise_stats") \
-            .select("pr_weight_kg, pr_reps, pr_volume_kg, estimated_1rm, total_sets") \
-            .eq("uid", uid) \
-            .eq("exercise_name", exercise_name) \
-            .execute().data
-        if existing_stats:
-            current = existing_stats[0]
-            new_pr_weight = best_weight if (best_weight and (current["pr_weight_kg"] is None or best_weight > current["pr_weight_kg"])) else current["pr_weight_kg"]
-            new_pr_reps = best_reps if (best_reps and (current["pr_reps"] is None or best_reps > current["pr_reps"])) else current["pr_reps"]
-            new_pr_volume = round(session_volume, 2) if (session_volume and (current["pr_volume_kg"] is None or session_volume > current["pr_volume_kg"])) else current["pr_volume_kg"]
-            new_1rm = estimated_1rm if (estimated_1rm and (current["estimated_1rm"] is None or estimated_1rm > current["estimated_1rm"])) else current["estimated_1rm"]
-            self._supabase.table("user_exercise_stats").update({
-                "pr_weight_kg": new_pr_weight,
-                "pr_reps": new_pr_reps,
-                "pr_volume_kg": new_pr_volume,
-                "estimated_1rm": new_1rm,
-                "last_weight_kg": stats["last_weight"],
-                "last_reps": stats["last_reps"],
-                "last_logged_at": "now()",
-                "total_sets": (current["total_sets"] or 0) + stats["set_count"],
-            }).eq("uid", uid).eq("exercise_name", exercise_name).execute()
-        else:
-            self._supabase.table("user_exercise_stats").insert({
-                "uid": uid,
-                "exercise_name": exercise_name,
-                "pr_weight_kg": best_weight,
-                "pr_reps": best_reps,
-                "pr_volume_kg": round(session_volume, 2) if session_volume else None,
-                "estimated_1rm": estimated_1rm,
-                "last_weight_kg": stats["last_weight"],
-                "last_reps": stats["last_reps"],
-                "last_logged_at": "now()",
-                "total_sets": stats["set_count"],
-            }).execute()
-
     def log_workout(self, uid: str, name: str | None, date: str, duration_seconds: int, exercises: list[dict]) -> dict:
         # strip parenthetical suffixes from exercise names before sending to the RPC
         clean = []
@@ -559,6 +474,21 @@ class WorkoutRepository:
             d = row["date"]
             counts[d] = counts.get(d, 0) + 1
         return [{"date": d, "count": c} for d, c in sorted(counts.items())]
+
+    def get_pr_summary(self, uid: str, since: str | None = None) -> dict:
+        # counts PRs broken per type in the given date range
+        query = self._supabase.table("pr_history") \
+            .select("pr_type") \
+            .eq("uid", uid)
+        if since:
+            query = query.gte("achieved_at", since)
+        rows = query.execute().data or []
+        counts = {"weight": 0, "reps": 0, "volume": 0}
+        for r in rows:
+            t = r["pr_type"]
+            if t in counts:
+                counts[t] += 1
+        return counts
 
     def get_workout_history(self, uid: str, since: str | None = None) -> list[dict]:
         query = self._supabase.table("workouts") \
