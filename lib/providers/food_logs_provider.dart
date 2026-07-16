@@ -12,6 +12,8 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
   @override
   Future<List<FoodLog>> build() async => [];
 
+  bool isCached(String date) => _cache.containsKey(date);
+
   // fetches a single day from the server, caches the result, merges into state
   Future<void> loadDate(String date) async {
     if (isGuest) return;

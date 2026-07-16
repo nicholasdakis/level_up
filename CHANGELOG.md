@@ -2756,3 +2756,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Extracted provider invalidation on sign out into a single invalidateAllProviders function so new providers are never silently skipped on account switch
 - Fixed food log race condition where logging a food while the provider was still loading would build the meal map from an empty list, causing an upsert that wiped all existing logs for that date
 - Added a dedicated add food endpoint instead of using the upsert method
+- Realized the real issue with food logging was that supabase caps rows to 1000 and developer user had hit 1000 rows
+- Fixed the food logging side of this by making food log entries only care about the specific date instead of every food entry ever
+- Replaced the bulk food log fetch (all-time, 1000+ rows) with a per-day fetch via a new GET /food_logs_for_date?date= endpoint; the food tab now loads only the selected day on open, caches fetched days in memory for instant switching, and never hits the Supabase 1000-row limit regardless of how much history a user has
+- Added in-memory date cache to the food logs provider so navigating back to an already-viewed day is instant with no network request
+- Skeletonizer now shows when switching to an uncached date, matching the existing loading UX

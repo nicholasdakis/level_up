@@ -41,6 +41,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   );
 
   DateTime currentDate = DateTime.now();
+  bool _dateLoading = false;
 
   List<FoodLog> breakfastFoods = const [];
   List<FoodLog> lunchFoods = const [];
@@ -142,13 +143,19 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         .refresh(FoodLoggingHelper.formatDateKey(currentDate));
   }
 
-  void loadFoodForDate(DateTime date) {
-    setState(() => currentDate = date);
+  Future<void> loadFoodForDate(DateTime date) async {
+    final dateKey = FoodLoggingHelper.formatDateKey(date);
+    final alreadyCached = ref
+        .read(foodLogsProvider.notifier)
+        .isCached(dateKey);
+    setState(() {
+      currentDate = date;
+      _dateLoading = !alreadyCached && !isGuest;
+    });
     if (!isGuest) {
-      ref
-          .read(foodLogsProvider.notifier)
-          .loadDate(FoodLoggingHelper.formatDateKey(date));
+      await ref.read(foodLogsProvider.notifier).loadDate(dateKey);
     }
+    if (mounted) setState(() => _dateLoading = false);
   }
 
   // Helper method for getting calories per meal type
@@ -991,7 +998,6 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               extra: {
                 'initialDate': currentDate,
                 'onDateChanged': (DateTime date) {
-                  setState(() => currentDate = date);
                   loadFoodForDate(date);
                 },
               },
@@ -1818,7 +1824,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Widget build(BuildContext context) {
     final isLoading =
         !ref.watch(userDataLoadedProvider) ||
-        ref.watch(foodLogsProvider).isLoading;
+        ref.watch(foodLogsProvider).isLoading ||
+        _dateLoading;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
     final foodLogsState = ref.watch(foodLogsProvider);
     final logs = isGuest
