@@ -128,7 +128,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!isGuest) ref.read(foodLogsProvider.notifier).refresh();
+      if (!isGuest && ref.read(foodLogsProvider).value == null) {
+        ref.read(foodLogsProvider.notifier).refresh();
+      }
     });
   }
 

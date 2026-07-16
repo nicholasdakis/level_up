@@ -78,6 +78,30 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     }
   }
 
+  // inserts a single new food log row
+  Future<FoodLog?> addFoodLog(String date, FoodLog food) async {
+    try {
+      final response = await authenticatedPost(
+        'add_food_log',
+        body: {
+          'date': date,
+          'item': {...food.toJson(), 'meal': food.meal},
+        },
+        timeout: const Duration(seconds: 10),
+      );
+      if (response.statusCode != 200) return null;
+      final returned = FoodLog.fromJson(
+        Map<String, dynamic>.from(jsonDecode(response.body)['item']),
+      );
+      final current = List<FoodLog>.from(state.value ?? []);
+      current.add(returned);
+      state = AsyncData(current);
+      return returned;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // deletes a single food log by id; removes from local state optimistically and calls backend
   Future<bool> deleteFoodLog(FoodLog log) async {
     final current = List<FoodLog>.from(state.value ?? []);

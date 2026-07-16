@@ -38,6 +38,7 @@ from backend.schemas import (
     AddFcmTokenRequest,
     RemoveFcmTokenRequest,
     UpsertFoodLogV2Request,
+    AddFoodLogRequest,
     UpsertWaterLogRequest,
     UpsertWeightLogRequest,
     DeleteWeightLogRequest,
@@ -756,6 +757,15 @@ def upsert_food_log_v2():
     enriched_items = food_service.enrich_items_with_micros(body.items)
     results = progression_service.upsert_food_log_v2(uid, body.date, enriched_items)
     return jsonify({"success": True, "items": results}), 200
+
+@app.route("/add_food_log", methods=["POST"])
+def add_food_log():
+    uid, body, err = _parse_and_auth(AddFoodLogRequest)
+    if err:
+        return err
+    enriched = food_service.enrich_items_with_micros([body.item])
+    result = progression_service.add_food_log(uid, body.date, enriched[0] if enriched else body.item)
+    return jsonify({"success": True, "item": result}), 200
 
 @app.route("/upsert_water_log", methods=["POST"])
 def upsert_water_log():

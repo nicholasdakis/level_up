@@ -2755,3 +2755,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed recent foods limit resetting to 20 on account switch by invalidating all user-scoped providers on sign out via a new invalidateAll helper, preventing stale state from a previous session carrying over on re-login
 - Extracted provider invalidation on sign out into a single invalidateAllProviders function so new providers are never silently skipped on account switch
 - Fixed food log race condition where logging a food while the provider was still loading would build the meal map from an empty list, causing an upsert that wiped all existing logs for that date
+- Added a dedicated add food endpoint instead of using the upsert method

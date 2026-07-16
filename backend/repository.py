@@ -274,7 +274,6 @@ class UserRepository:
             }
 
         valid_items = [i for i in items if i and i.get("food_name")]
-        incoming_ids = [i["id"] for i in valid_items if i.get("id")]
 
         # Split into existing rows (have an id, upsert in place) and new rows (no id, insert fresh)
         existing = [i for i in valid_items if i.get("id")]
@@ -295,16 +294,39 @@ class UserRepository:
             res = self._supabase.table("food_logs_v2").insert(rows).execute()
             results.extend(res.data)
 
-        # Delete DB rows for this date whose id is not in the incoming list (handles deletions)
+        # Delete DB rows for this date whose id is not in the final result set
+        # Uses result IDs (not incoming_ids) so newly inserted rows are included in the exclusion list
         # Done after writes succeed so a failed insert does not wipe existing rows
         # Skip the delete sweep entirely when valid_items is empty to avoid wiping every food log for this entire day
         if valid_items:
+            result_ids = [r["id"] for r in results if r.get("id")]
             query = self._supabase.table("food_logs_v2").delete().eq("uid", uid).eq("date", date)
-            if incoming_ids:
-                query = query.not_.in_("id", incoming_ids)
+            if result_ids:
+                query = query.not_.in_("id", result_ids)
             query.execute()
 
         return results
+
+    def add_food_log(self, uid: str, date: str, item: dict) -> dict:
+        row = {
+            "uid": uid,
+            "date": date,
+            "meal": item.get("meal"),
+            "food_name": item.get("food_name"),
+            "brand_name": item.get("brand_name"),
+            "food_description": item.get("food_description") or None,
+            "food_id": item.get("food_id"),
+            "calories": item.get("calories"),
+            "protein": item.get("protein"),
+            "carbs": item.get("carbs"),
+            "fat": item.get("fat"),
+            "fiber": item.get("fiber"),
+            "sugar": item.get("sugar"),
+            "sodium": item.get("sodium"),
+            "serving_size": item.get("serving_size"),
+        }
+        res = self._supabase.table("food_logs_v2").insert(row).execute()
+        return res.data[0] if res.data else {}
 
     def delete_food_log(self, uid: str, food_id: str):
         self._supabase.table("food_logs_v2").delete().eq("id", food_id).eq("uid", uid).execute()

@@ -55,6 +55,10 @@ class UpsertFoodLogV2Request(BaseModel):
     date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     items: list = Field(default_factory=list)  # list of food item dicts with meal, macros, etc.
 
+class AddFoodLogRequest(BaseModel):
+    date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
+    item: dict  # single food item dict with meal, macros, etc.
+
 class UpsertWaterLogRequest(BaseModel):
     date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
     entries_ml: list = Field(default_factory=list)  # list of {amount_ml: int}

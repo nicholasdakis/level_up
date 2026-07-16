@@ -418,6 +418,16 @@ class ProgressionService: # Service class to handle all progression-related busi
     def delete_weight_log(self, uid: str, date: str):
         self._repo.delete_weight_log(uid, date)
 
+    def add_food_log(self, uid: str, date: str, item: dict) -> dict:
+        result = self._repo.add_food_log(uid, date, item)
+        self._track_achievement(uid, "food_logs")
+        try:
+            food_streak = self._repo.update_food_streak(uid)
+            self._achievement_repo.set_achievement_progress(uid, "food_streak", food_streak)
+        except Exception as e:
+            logger.error(f"[achievements] Failed to update food_streak for {uid}: {e}")
+        return result
+
     def delete_food_log(self, uid: str, food_id: str):
         self._repo.delete_food_log(uid, food_id)
 

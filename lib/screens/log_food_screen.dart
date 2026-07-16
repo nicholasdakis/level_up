@@ -478,14 +478,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
-    // Build meal map for the current date including the new food
-    // use current state if already loaded to avoid a stale future that returns empty
-    final existingLogs =
-        ref.read(foodLogsProvider).value ??
-        await ref.read(foodLogsProvider.future) ??
-        <FoodLog>[];
-    final existing = existingLogs.where((f) => f.date == dateKey).toList();
-    // Strip id and logged_at so re-logged foods get a fresh row and timestamp
     final newFood = FoodLog(
       date: dateKey,
       meal: widget.meal,
@@ -503,17 +495,11 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
       sodium: foodObject.sodium,
       servingSize: foodObject.servingSize,
     );
-    final mealMap = {
-      'breakfast': existing.where((f) => f.meal == 'breakfast').toList(),
-      'lunch': existing.where((f) => f.meal == 'lunch').toList(),
-      'dinner': existing.where((f) => f.meal == 'dinner').toList(),
-      'snacks': existing.where((f) => f.meal == 'snacks').toList(),
-    };
-    mealMap[widget.meal]!.add(newFood);
 
-    final success = await ref
+    final result = await ref
         .read(foodLogsProvider.notifier)
-        .upsertForDate(dateKey, mealMap);
+        .addFoodLog(dateKey, newFood);
+    final success = result != null;
     if (!success && kDebugMode) debugPrint("Error saving food data");
 
     _loadRecentFoods();
