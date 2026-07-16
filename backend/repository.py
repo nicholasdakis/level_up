@@ -310,6 +310,52 @@ class UserRepository:
 
         return results
 
+    def get_recent_foods(self, uid: str, limit: int) -> list:
+        # Uses an RPC so DISTINCT ON runs inside Postgres before any rows are sent to the client
+        result = self._supabase.rpc("get_recent_foods", {"p_uid": uid, "p_limit": limit}).execute()
+        return result.data or []
+
+    def get_suggested_foods(self, uid: str, meal: str) -> list:
+        # Top foods by frequency in the last 30 days for the given meal slot
+        # Weighted by recency: more recent logs score higher
+        from datetime import date, timedelta
+        cutoff = (date.today() - timedelta(days=30)).isoformat()
+        rows = (
+            self._supabase.table("food_logs_v2")
+            .select("*")
+            .eq("uid", uid)
+            .gte("date", cutoff)
+            .order("logged_at", desc=True)
+            .limit(1000)
+            .execute()
+            .data
+        )
+        from math import pow as mpow
+        scores: dict[str, float] = {}
+        counts: dict[str, int] = {}
+        by_name: dict[str, dict] = {}
+        today = date.today()
+        decay = 0.85
+        for row in rows:
+            if meal and row.get("meal") != meal:
+                continue
+            name = row.get("food_name", "")
+            if not name:
+                continue
+            logged_date = row.get("date", "")
+            try:
+                days_ago = (today - date.fromisoformat(logged_date)).days
+            except Exception:
+                days_ago = 30
+            weight = mpow(decay, days_ago)
+            scores[name] = scores.get(name, 0) + weight
+            counts[name] = counts.get(name, 0) + 1
+            by_name.setdefault(name, row)
+        # require at least 2 occurrences, sort by score descending
+        eligible = [(name, score) for name, score in scores.items() if counts[name] >= 2]
+        eligible.sort(key=lambda x: x[1], reverse=True)
+        return [by_name[name] for name, _ in eligible[:20]]
+
     def get_food_logs_for_date(self, uid: str, date: str) -> list:
         return (
             self._supabase.table("food_logs_v2")

@@ -863,6 +863,25 @@ def get_food_logs_for_date():
     logs = progression_service.get_food_logs_for_date(uid=uid, date=date)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
+@app.route("/recent_foods", methods=["GET"])
+def get_recent_foods():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    is_premium = user_repo.get_premium_status(uid).get("is_premium", False)
+    limit = 500 if is_premium else 20
+    logs = progression_service.get_recent_foods(uid=uid, limit=limit)
+    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
+
+@app.route("/suggested_foods", methods=["GET"])
+def get_suggested_foods():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    meal = request.args.get("meal", "")
+    logs = progression_service.get_suggested_foods(uid=uid, meal=meal)
+    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
+
 # separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data
 # this one is analytics-only so the 14-day cutoff for free users can be enforced here without breaking the tab
 @app.route("/food_logs_analytics", methods=["GET"])

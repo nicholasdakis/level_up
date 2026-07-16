@@ -2766,3 +2766,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made the empty state of Recent Foods card also show the Suggested card so users know it exists
 - Made primary and secondary muscles in the Todays Overview card show even when empty
 - Removed the set recent foods option in settings and removed all backend-related code to updating the recent foods max as it is now just handled based on premium status
+- Added and wired up dedicated recent foods and suggested foods endpoints as they can't be calculated client-side anymore after moving food loading to per-date
+- Removed the recent foods variable and column entirely as it is now just enforced directly in the route

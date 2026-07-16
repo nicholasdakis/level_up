@@ -341,7 +341,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_count": self._repo.get_referral_count(uid),
             "referral_used": self._repo.has_used_referral(uid),
             "units": settings.get("units") or user.get("units", "metric"),
-            "recent_foods_max": settings.get("recent_foods_max"),
             "can_claim_daily_reward": self._can_claim_daily_reward(user),
             "created_at": user.get("created_at"),
             "is_premium": user.get("is_premium", False),
@@ -392,6 +391,12 @@ class ProgressionService: # Service class to handle all progression-related busi
 
     def get_food_logs_for_date(self, uid: str, date: str):
         return self._repo.get_food_logs_for_date(uid, date)
+
+    def get_recent_foods(self, uid: str, limit: int) -> list:
+        return self._repo.get_recent_foods(uid, limit)
+
+    def get_suggested_foods(self, uid: str, meal: str) -> list:
+        return self._repo.get_suggested_foods(uid, meal)
 
     def get_food_logs_analytics(self, uid: str):
         # enforces 14-day cutoff for free users (used for analytics only)

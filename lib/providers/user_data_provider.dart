@@ -198,7 +198,6 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
               : null,
           shieldCount: shieldCount,
           shieldsResetAt: shieldsResetAt,
-          recentFoodsMax: data['recent_foods_max'] as int?,
           foodLogStreak: foodStreak,
           foodLogStreakBest: foodStreakBest,
           foodLogStreakLastDate: foodStreakLastDate,

@@ -1106,3 +1106,30 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_preserve_public_routines
 BEFORE DELETE ON users
 FOR EACH ROW EXECUTE FUNCTION preserve_public_routines_on_user_delete();
+
+-- get_recent_foods: returns the most recently logged unique foods for a user, deduped by food_name
+-- uses DISTINCT ON to pick the most recent row per food_name in one query, no row limit issues
+CREATE OR REPLACE FUNCTION get_recent_foods(p_uid TEXT, p_limit INT DEFAULT 20)
+RETURNS TABLE (
+    id UUID, date DATE, meal TEXT, food_name TEXT, brand_name TEXT,
+    food_description TEXT, food_id TEXT, calories INTEGER,
+    protein NUMERIC, carbs NUMERIC, fat NUMERIC,
+    fiber NUMERIC, sugar NUMERIC, sodium NUMERIC,
+    serving_size TEXT, logged_at TIMESTAMPTZ
+)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT DISTINCT ON (food_name)
+        id, date, meal, food_name, brand_name,
+        food_description, food_id, calories,
+        protein, carbs, fat,
+        fiber, sugar, sodium,
+        serving_size, logged_at
+    FROM food_logs_v2
+    WHERE uid = p_uid
+      AND food_name IS NOT NULL
+      AND food_name <> ''
+    ORDER BY food_name, logged_at DESC
+    LIMIT p_limit;
+$$;

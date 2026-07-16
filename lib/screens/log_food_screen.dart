@@ -21,7 +21,6 @@ import '../services/voice_search_service.dart';
 import '../utility/food_logging_helper.dart';
 import '../utility/shared_preferences/shared_prefs_async.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'dart:math';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_animate/flutter_animate.dart' hide ShimmerEffect;
 
@@ -130,22 +129,6 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     );
     _loadRecentFoods();
     _loadSuggestedFoods();
-    // recompute both if the provider resolves after this screen opens
-    ref.listenManual(foodLogsProvider, (_, next) {
-      if (next.hasValue) {
-        _loadRecentFoods();
-        _loadSuggestedFoods();
-      }
-    });
-    // re-load recent foods when premium status or the limit changes, since the cap depends on both
-    ref.listenManual(
-      userDataProvider.select(
-        (s) => (s.value?.isPremium, s.value?.recentFoodsMax),
-      ),
-      (prev, next) {
-        if (prev != next) _loadRecentFoods();
-      },
-    );
     _loadRecentExpanded();
     _voiceSearch.init(() {
       if (mounted) setState(() {});
@@ -270,74 +253,36 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
         .then((_) => snackbarActive = false);
   }
 
-  // Derives suggested foods: meal-slot match, recency-weighted frequency, min 2 occurrences
-  void _loadSuggestedFoods() {
-    final currentMeal = widget.meal;
-    const lookbackDays = 14;
-    final cutoff = DateTime.now().subtract(const Duration(days: lookbackDays));
-    const minOccurrences = 2; // must appear at least twice to count
-    const decayFactor = 0.85; // recent logs weigh more than older ones
-    final logs = ref.read(foodLogsProvider).value ?? [];
-    final scores = <String, double>{};
-    final rawCounts = <String, int>{};
-    final byName = <String, FoodLog>{};
-
-    for (final food in logs) {
-      if (food.loggedAt == null) continue;
-      final loggedAt = DateTime.tryParse(food.loggedAt!);
-      if (loggedAt == null) continue;
-      if (loggedAt.isBefore(cutoff)) continue;
-
-      // only count logs from the same meal slot as the one being logged now
-      if (food.meal != currentMeal) continue;
-
-      final name = food.foodName;
-      if (name.isEmpty) continue;
-
-      final daysAgo = DateTime.now().difference(loggedAt).inDays;
-      final weight = pow(decayFactor, daysAgo).toDouble(); // decay by age
-
-      scores[name] = (scores[name] ?? 0) + weight;
-      rawCounts[name] = (rawCounts[name] ?? 0) + 1;
-      byName.putIfAbsent(name, () => food);
-    }
-
-    // filter by min occurrences, sort by weighted score
-    final sorted =
-        scores
-            .entries // score = recency-weighted value per food
-            .where(
-              (e) => (rawCounts[e.key] ?? 0) >= minOccurrences,
-            ) // gate: min 2 raw logs
-            .toList()
-          ..sort(
-            (a, b) => b.value.compareTo(a.value),
-          ); // order: higher score first
-    if (mounted) {
+  // Fetches suggested foods from the server: meal-slot match, recency-weighted frequency
+  Future<void> _loadSuggestedFoods() async {
+    if (isGuest) return;
+    try {
+      final response = await authenticatedGet(
+        'suggested_foods?meal=${widget.meal}',
+      );
+      if (response.statusCode != 200 || !mounted) return;
+      final List data = jsonDecode(response.body)['food_logs_v2'];
       setState(() {
-        _suggestedFoods = sorted.map((e) => byName[e.key]!).toList();
+        _suggestedFoods = data
+            .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
       });
-    }
+    } catch (_) {}
   }
 
-  // Derives recent foods from food_logs_v2, deduped by food_name, newest first, capped by user preference
+  // Fetches recent foods from the server: deduped by name, most recent first, capped by premium status
   Future<void> _loadRecentFoods() async {
-    final userData = ref.read(userDataProvider).value;
-    final stored = userData?.recentFoodsMax;
-    final max = stored ?? 20;
-    final logs = ref.read(foodLogsProvider).value ?? [];
-    final seen = <String>{};
-    final recents = <FoodLog>[];
-    final sorted = [...logs]
-      ..sort((a, b) => (b.loggedAt ?? '').compareTo(a.loggedAt ?? ''));
-    for (final food in sorted) {
-      final name = food.foodName;
-      if (name.isEmpty || seen.contains(name)) continue;
-      seen.add(name);
-      recents.add(food);
-      if (max != 0 && recents.length >= max) break;
-    }
-    if (mounted) setState(() => _recentFoods = recents);
+    if (isGuest) return;
+    try {
+      final response = await authenticatedGet('recent_foods');
+      if (response.statusCode != 200 || !mounted) return;
+      final List data = jsonDecode(response.body)['food_logs_v2'];
+      setState(() {
+        _recentFoods = data
+            .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadRecentExpanded() async {
