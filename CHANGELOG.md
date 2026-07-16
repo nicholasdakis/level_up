@@ -2761,3 +2761,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Replaced the bulk food log fetch (all-time, 1000+ rows) with a per-day fetch via a new GET /food_logs_for_date?date= endpoint; the food tab now loads only the selected day on open, caches fetched days in memory for instant switching, and never hits the Supabase 1000-row limit regardless of how much history a user has
 - Added in-memory date cache to the food logs provider so navigating back to an already-viewed day is instant with no network request
 - Skeletonizer now shows when switching to an uncached date, matching the existing loading UX
+
+## 2026-07-16
+- Made the empty state of Recent Foods card also show the Suggested card so users know it exists

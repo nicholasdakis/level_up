@@ -76,6 +76,10 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         ? _cutoff
         : widget.initialDate;
     _loadForDate(currentDate);
+    // reload once the analytics provider finishes loading in case it wasn't ready on initState
+    ref.listenManual(foodLogsAnalyticsProvider, (_, next) {
+      if (next.hasValue && mounted) _loadForDate(currentDate);
+    });
   }
 
   @override

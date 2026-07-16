@@ -75,6 +75,13 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                 context,
                 appColor,
                 date: 'July 15, 2026',
+                version: '1.2.41',
+                changes: ['Performance improvements to the Food Logging tab'],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
+                date: 'July 15, 2026',
                 version: '1.2.4',
                 changes: [
                   'New Workout Analytics screen with workout trends, muscle group insights, personal record tracking, and session statistics',

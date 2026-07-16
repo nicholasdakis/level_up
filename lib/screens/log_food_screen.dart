@@ -2114,34 +2114,30 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                 ],
                               ),
                             ),
-                            if (_suggestedFoods.isNotEmpty) ...[
-                              SizedBox(width: Responsive.width(context, 16)),
-                              GestureDetector(
-                                onTap: () =>
-                                    setState(() => _showingSuggested = true),
-                                child: Row(
-                                  children: [
-                                    HugeIcon(
-                                      icon: HugeIcons.strokeRoundedSparkles,
+                            SizedBox(width: Responsive.width(context, 16)),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => _showingSuggested = true),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedSparkles,
+                                    color: _showingSuggested ? accent : dim,
+                                    size: Responsive.scale(context, 14),
+                                  ),
+                                  SizedBox(width: Responsive.width(context, 5)),
+                                  Text(
+                                    "SUGGESTED",
+                                    style: GoogleFonts.manrope(
+                                      fontSize: Responsive.font(context, 13),
+                                      fontWeight: FontWeight.w700,
                                       color: _showingSuggested ? accent : dim,
-                                      size: Responsive.scale(context, 14),
+                                      letterSpacing: 1.2,
                                     ),
-                                    SizedBox(
-                                      width: Responsive.width(context, 5),
-                                    ),
-                                    Text(
-                                      "SUGGESTED",
-                                      style: GoogleFonts.manrope(
-                                        fontSize: Responsive.font(context, 13),
-                                        fontWeight: FontWeight.w700,
-                                        color: _showingSuggested ? accent : dim,
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
@@ -2175,7 +2171,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                             if (_showingSuggested) ...[
                               if (_suggestedFoods.isEmpty)
                                 Text(
-                                  "Nothing suggested, try logging more foods first.",
+                                  "Nothing suggested, try logging more foods first",
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 13),
                                     color: c.onCard.withAlpha(100),
