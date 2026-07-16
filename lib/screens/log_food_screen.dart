@@ -479,7 +479,11 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     final dateKey = FoodLoggingHelper.formatDateKey(widget.currentDate);
 
     // Build meal map for the current date including the new food
-    final existingLogs = await ref.read(foodLogsProvider.future);
+    // use current state if already loaded to avoid a stale future that returns empty
+    final existingLogs =
+        ref.read(foodLogsProvider).value ??
+        await ref.read(foodLogsProvider.future) ??
+        <FoodLog>[];
     final existing = existingLogs.where((f) => f.date == dateKey).toList();
     // Strip id and logged_at so re-logged foods get a fresh row and timestamp
     final newFood = FoodLog(

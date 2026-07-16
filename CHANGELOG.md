@@ -2751,3 +2751,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Edited the routines schema so that if a user's account is deleted, instead of cascade-deleting all their data including workout templates, workout templates are not deleted if they are public
 - Upgraded the UI of the update username dialog and made it cap at 20 characters client-side too
 - Fixed a bug where saving a routine would strip out estimated_duration_minutes
+- Fixed food logs bug, the backend delete sweep now runs after inserts complete instead of before, preventing a race where the DB was briefly empty between the delete and the insert; also removed the redundant full server refetch triggered after every food log since the upsert response already patches local state
+- Fixed recent foods limit resetting to 20 on account switch by invalidating all user-scoped providers on sign out via a new invalidateAll helper, preventing stale state from a previous session carrying over on re-login
+- Extracted provider invalidation on sign out into a single invalidateAllProviders function so new providers are never silently skipped on account switch
+- Fixed food log race condition where logging a food while the provider was still loading would build the meal map from an empty list, causing an upsert that wiped all existing logs for that date

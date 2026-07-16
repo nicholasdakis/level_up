@@ -1745,7 +1745,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               extra: {
                 'meal': mealKey,
                 'currentDate': currentDate,
-                'onFoodLogged': () async => await _refreshAndLoadFood(),
+                'onFoodLogged': () => loadFoodForDate(currentDate),
                 'achievementId': 'food_search',
               },
             );
