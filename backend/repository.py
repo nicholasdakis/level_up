@@ -581,21 +581,6 @@ class WorkoutRepository:
             "pr_counts": pr_counts,
         }
 
-    def get_pr_summary(self, uid: str, since: str | None = None) -> dict:
-        # counts PRs broken per type in the given date range
-        query = self._supabase.table("pr_history") \
-            .select("pr_type") \
-            .eq("uid", uid)
-        if since:
-            query = query.gte("achieved_at", since)
-        rows = query.execute().data or []
-        counts = {"weight": 0, "reps": 0, "volume": 0}
-        for r in rows:
-            t = r["pr_type"]
-            if t in counts:
-                counts[t] += 1
-        return counts
-
     def get_every_prev_set(self, uid: str, exercise_names: list[str]) -> list[dict]:
         # calls the RPC that returns all sets from the most recent session per exercise
         return self._supabase.rpc("get_every_prev_set", {
