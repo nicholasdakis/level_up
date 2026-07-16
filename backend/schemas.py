@@ -235,6 +235,7 @@ class DailyRewardResponse(BaseModel):
     claimed: bool  # true if successfully claimed
     xp_gained: int = 0
     base_xp: int = 0
+    bonus_xp: int = 0
     new_level: int = 1
     new_exp: int = 0
     seconds_remaining: int = 0

@@ -342,6 +342,7 @@ class ProgressionService: # Service class to handle all progression-related busi
             "referral_used": self._repo.has_used_referral(uid),
             "units": settings.get("units") or user.get("units", "metric"),
             "recent_foods_max": settings.get("recent_foods_max"),
+            "can_claim_daily_reward": self._can_claim_daily_reward(user),
             "created_at": user.get("created_at"),
             "is_premium": user.get("is_premium", False),
             "premium_expires_at": user.get("premium_expires_at"),
