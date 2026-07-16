@@ -354,24 +354,24 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     if (reachable && !claimed) {
       final controller = index.isOdd ? _oddPulse : _evenPulse;
       // autoPlay: false because the shared controller is already running, letting it autoPlay would restart it
-      return chip
-          .animate(controller: controller, autoPlay: false)
-          .scaleXY(
-            begin: 0.95,
-            end: 1.05, // goes between slightly smaller and larger sizes
-            duration: 1200.ms,
-            curve: Curves.easeInOut,
-          )
-          .tint(
-            color: lightenColor(
-              appColor,
-              0.3,
-            ), // lightened app color for contrast against the chip
-            begin: 0.0,
-            end: 0.35, // pulses toward a lighter version of the theme color
-            duration: 1200.ms,
-            curve: Curves.easeInOut,
-          );
+      // RepaintBoundary isolates each pulsing chip so only it repaints each animation frame
+      return RepaintBoundary(
+        child: chip
+            .animate(controller: controller, autoPlay: false)
+            .scaleXY(
+              begin: 0.95,
+              end: 1.05,
+              duration: 1200.ms,
+              curve: Curves.easeInOut,
+            )
+            .tint(
+              color: lightenColor(appColor, 0.3),
+              begin: 0.0,
+              end: 0.35,
+              duration: 1200.ms,
+              curve: Curves.easeInOut,
+            ),
+      );
     }
     return chip;
   }
