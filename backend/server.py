@@ -190,9 +190,10 @@ def _parse_body(schema):
 
 def _try_verify_token(id_token: str):
     try:
-        return verify_token(id_token), None  # (uid, no error)
+        uid, decoded = verify_token(id_token)
+        return uid, decoded, None
     except ValueError as e:
-        return None, (jsonify({"error": str(e)}), 401)  # (no uid, 401 error response)
+        return None, None, (jsonify({"error": str(e)}), 401)
 
 def _parse_and_auth(schema=None):
     token, err = _get_token()
@@ -205,7 +206,8 @@ def _parse_and_auth(schema=None):
         if err:
             return None, None, err
 
-    uid, err = _try_verify_token(token)
+    uid, decoded, err = _try_verify_token(token)
+    g.decoded_token = decoded
     if err:
         return None, None, err
     g.uid = uid  # stored so after_request can log it for every route
@@ -634,15 +636,7 @@ def get_user_data():
     if err:
         return err
 
-    # Extract email from the Firebase token to store on new user creation
-    from firebase_admin import auth as fb_auth
-    token, _ = _get_token()
-    try:
-        decoded = fb_auth.verify_id_token(token)
-        email = decoded.get("email")
-    except Exception:
-        email = None
-
+    email = (g.decoded_token or {}).get("email")
     result = progression_service.get_user_data(uid, email=email)
     response = GetUserDataResponse(**result)
     return jsonify(response.model_dump()), 200

@@ -1372,7 +1372,10 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     // session is cleared just before pushReplacement to finish screen;
     // guard here so the brief rebuild during the transition doesn't crash
     final sessionReady =
-        ref.watch(workoutProvider).value?.activeSession != null;
+        ref.watch(
+          workoutProvider.select((s) => s.value?.activeSession != null),
+        ) ==
+        true;
     if (_localSession == null) return const SizedBox.shrink();
 
     final double vol = _totalVolumeKg;

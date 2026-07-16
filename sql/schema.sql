@@ -343,8 +343,7 @@ CREATE TABLE user_settings (
     app_color BIGINT,                       -- Flutter Color value stored as an integer
     units TEXT NOT NULL DEFAULT 'metric',   -- display units preference: 'metric' or 'imperial'
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,  -- whether the user has push notifications turned on
-    pfp_base64 TEXT,                        -- profile picture stored as a Base64-encoded string
-    recent_foods_max INTEGER                -- max recent foods shown in quick logging; NULL means use default (20), 0 means unlimited (premium only)
+    pfp_base64 TEXT                         -- profile picture stored as a Base64-encoded string
 );
 
 -- RPC to atomically increment download_count on a workout template
