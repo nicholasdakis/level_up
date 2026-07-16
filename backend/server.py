@@ -839,14 +839,6 @@ def get_reminders():
     response = GetRemindersResponse(reminders=reminders)
     return jsonify(response.model_dump()), 200
 
-@app.route("/food_logs_v2", methods=["GET"])
-def get_food_logs_v2():
-    uid, _, err = _parse_and_auth()
-    if err:
-        return err
-    logs = progression_service.get_food_logs_v2(uid=uid)
-    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
-
 @app.route("/food_logs_for_date", methods=["GET"])
 def get_food_logs_for_date():
     uid, _, err = _parse_and_auth()

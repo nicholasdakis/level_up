@@ -2789,3 +2789,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added the micros per meal breakdown to the summary card
 - Added the same empty-state UI improvements to weight and water analytics
 - Added UI improvements to empty state workout analytics
+- Added system source to daily reward reminders so they no longer count toward the set_reminder achievement and no longer appear in the user's reminders list
+- Replaced get_food_logs_v2, get_water_logs, and get_weight_logs with paginated versions that fetch in chunks of 1000 to bypass Supabase's hard row cap
+- Removed the get_food_logs_v2 route as this is already handled by food_analytics route and food data is now queried for by date, not all at once

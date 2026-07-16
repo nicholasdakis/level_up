@@ -384,10 +384,6 @@ class ProgressionService: # Service class to handle all progression-related busi
             return None
         return (datetime.now(timezone.utc) - timedelta(days=14)).strftime("%Y-%m-%d")
 
-    def get_food_logs_v2(self, uid: str):
-        # no cutoff, returns all logs (used for the food logging tab)
-        return self._repo.get_food_logs_v2(uid)
-
     def get_food_logs_for_date(self, uid: str, date: str):
         return self._repo.get_food_logs_for_date(uid, date)
 

@@ -369,10 +369,19 @@ class UserRepository:
         self._supabase.table("food_logs_v2").delete().eq("id", food_id).eq("uid", uid).execute()
 
     def get_water_logs(self, uid: str, cutoff: str | None = None):
-        query = self._supabase.table("water_logs").select("*").eq("uid", uid)
-        if cutoff:
-            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
-        return query.execute().data
+        page_size = 1000
+        offset = 0
+        all_rows = []
+        while True:
+            query = self._supabase.table("water_logs").select("*").eq("uid", uid)
+            if cutoff:
+                query = query.gte("date", cutoff)
+            rows = query.order("date", desc=False).range(offset, offset + page_size - 1).execute().data or []
+            all_rows.extend(rows)
+            if len(rows) < page_size:
+                break
+            offset += page_size
+        return all_rows
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._supabase.table("water_logs").upsert({
@@ -382,10 +391,19 @@ class UserRepository:
         }).execute()
 
     def get_weight_logs(self, uid: str, cutoff: str | None = None):
-        query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
-        if cutoff:
-            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
-        return query.execute().data
+        page_size = 1000
+        offset = 0
+        all_rows = []
+        while True:
+            query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
+            if cutoff:
+                query = query.gte("date", cutoff)
+            rows = query.order("date", desc=False).range(offset, offset + page_size - 1).execute().data or []
+            all_rows.extend(rows)
+            if len(rows) < page_size:
+                break
+            offset += page_size
+        return all_rows
 
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._supabase.table("weight_logs").upsert({
