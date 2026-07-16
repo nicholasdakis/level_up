@@ -285,11 +285,14 @@ class UserRepository:
         results = []
 
         if existing:
+            # batch all existing rows into a single upsert instead of one per row
+            rows = []
             for item in existing:
                 row = build_row(item)
                 row["id"] = item["id"]  # include id so Postgres matches the existing row
-                res = self._supabase.table("food_logs_v2").upsert(row).execute()
-                results.extend(res.data)
+                rows.append(row)
+            res = self._supabase.table("food_logs_v2").upsert(rows).execute()
+            results.extend(res.data)
 
         if new_items:
             # No id provided, Postgres generates one and sets logged_at to NOW()

@@ -2772,3 +2772,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Updated the badges tab skeletonizers
 - Used RepaintBoundary for pulsing badges chips to optimize the Badges
 - Made user_data and streaks fetches run in parallel as they are independent
+- Made upsert food log repo method batch all the foods into rows and send that one row to Supabase instead of sending one row at a time to Supabase so it only requires 1 HTTP request as opposed to many
