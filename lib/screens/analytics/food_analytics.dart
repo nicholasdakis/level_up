@@ -213,14 +213,24 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   // Same as _totalMacros but scoped to a single meal list
   Map<String, double> _mealMacros(List<FoodLog> foods) {
-    double protein = 0, carbs = 0, fat = 0;
+    double protein = 0, carbs = 0, fat = 0, fiber = 0, sugar = 0, sodium = 0;
     for (var food in foods) {
       final m = FoodLoggingHelper.extractMacrosFromFood(food);
       protein += m['protein'] ?? 0;
       carbs += m['carbs'] ?? 0;
       fat += m['fat'] ?? 0;
+      fiber += m['fiber'] ?? 0;
+      sugar += m['sugar'] ?? 0;
+      sodium += m['sodium'] ?? 0;
     }
-    return {'protein': protein, 'carbs': carbs, 'fat': fat};
+    return {
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+      'fiber': fiber,
+      'sugar': sugar,
+      'sodium': sodium,
+    };
   }
 
   // Goes through all days and sums the calories and macros
@@ -939,18 +949,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
 
   // Shown in place of the chart when no data is logged for the selected day
   Widget _emptyState(BuildContext context, String message) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 24)),
-      child: Center(
-        child: Text(
-          message,
-          style: GoogleFonts.manrope(
-            fontSize: Responsive.font(context, 14),
-            color: Colors.white38,
-          ),
-        ),
-      ),
-    );
+    return _chartEmptyState(context, message);
   }
 
   @override
@@ -2410,6 +2409,7 @@ class _DailyTab extends StatelessWidget {
                   appColor: appColor,
                   totalCal: totalCal,
                   macros: macros,
+                  micros: micros,
                   breakfastCal: breakfastCal,
                   lunchCal: lunchCal,
                   dinnerCal: dinnerCal,
@@ -2435,7 +2435,7 @@ class _DailyTab extends StatelessWidget {
                   color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalCal == 0
-                      ? emptyState(ctx, "No calories logged for this day")
+                      ? _chartEmptyState(ctx, "No calories logged for this day")
                       : mealBarChart(
                           ctx,
                           breakfastCal: breakfastCal,
@@ -2470,7 +2470,7 @@ class _DailyTab extends StatelessWidget {
                   color: appColor,
                   padding: EdgeInsets.all(Responsive.scale(ctx, 20)),
                   child: totalMacroCal == 0
-                      ? emptyState(ctx, "No macro data for this day")
+                      ? _chartEmptyState(ctx, "No macro data for this day")
                       : macroBarChart(
                           ctx,
                           proteinG: macros['protein']!,
@@ -2507,7 +2507,7 @@ class _DailyTab extends StatelessWidget {
                               micros['sugar']! +
                               micros['sodium']!) ==
                           0
-                      ? emptyState(ctx, "No micro data for this day")
+                      ? _chartEmptyState(ctx, "No micro data for this day")
                       : microBarChart(
                           ctx,
                           fiberG: micros['fiber']!,
@@ -2530,12 +2530,37 @@ class _DailyTab extends StatelessWidget {
   }
 }
 
-// Daily summary card: total calories + stacked meal bar + macro row
+Widget _chartEmptyState(BuildContext context, String message) {
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 28)),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedChartHistogram,
+          color: Colors.white24,
+          size: Responsive.scale(context, 28),
+        ),
+        SizedBox(height: Responsive.height(context, 10)),
+        Text(
+          message,
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 13),
+            color: Colors.white38,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Daily summary card: total calories + stacked meal bar + nutrients row
 Widget _statTilesRow({
   required BuildContext context,
   required Color appColor,
   required double totalCal,
   required Map<String, double> macros,
+  Map<String, double> micros = const {},
   double breakfastCal = 0,
   double lunchCal = 0,
   double dinnerCal = 0,
@@ -2557,6 +2582,9 @@ Widget _statTilesRow({
   final protein = macros['protein'] ?? 0;
   final carbs = macros['carbs'] ?? 0;
   final fat = macros['fat'] ?? 0;
+  final fiber = micros['fiber'] ?? 0;
+  final sugar = micros['sugar'] ?? 0;
+  final sodium = micros['sodium'] ?? 0;
 
   return frostedGlassCard(
     context,
@@ -2570,7 +2598,7 @@ Widget _statTilesRow({
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              totalCal == 0 ? '—' : _fmtCal(totalCal),
+              _fmtCal(totalCal),
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 28),
                 fontWeight: FontWeight.w800,
@@ -2589,66 +2617,94 @@ Widget _statTilesRow({
             ),
           ],
         ),
-        if (totalCal > 0) ...[
-          SizedBox(height: Responsive.height(context, 16)),
-          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
-          SizedBox(height: Responsive.height(context, 12)),
-          for (int i = 0; i < meals.length; i++) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  meals[i].$1,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 13),
-                    fontWeight: FontWeight.w500,
-                    color: dim,
-                  ),
+        SizedBox(height: Responsive.height(context, 16)),
+        Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+        SizedBox(height: Responsive.height(context, 12)),
+        for (int i = 0; i < meals.length; i++) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                meals[i].$1,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.w500,
+                  color: dim,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${_fmtCal(meals[i].$2)} kcal',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 13),
+                      fontWeight: FontWeight.w700,
+                      color: meals[i].$2 > 0 ? accent : dim.withAlpha(100),
+                    ),
+                  ),
+                  if (meals[i].$2 > 0 && mealMacros[i] != null) ...[
+                    SizedBox(height: Responsive.height(context, 2)),
                     Text(
-                      meals[i].$2 > 0
-                          ? '${_fmtCal(meals[i].$2)} kcal'
-                          : 'No data',
+                      'P ${(mealMacros[i]!['protein'] ?? 0).round()}g · C ${(mealMacros[i]!['carbs'] ?? 0).round()}g · F ${(mealMacros[i]!['fat'] ?? 0).round()}g',
                       style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 13),
-                        fontWeight: FontWeight.w700,
-                        color: meals[i].$2 > 0 ? accent : dim.withAlpha(100),
+                        fontSize: Responsive.font(context, 10),
+                        color: dim,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (meals[i].$2 > 0 && mealMacros[i] != null) ...[
-                      SizedBox(height: Responsive.height(context, 2)),
+                    if ((mealMacros[i]!['fiber'] ?? 0) > 0 ||
+                        (mealMacros[i]!['sugar'] ?? 0) > 0 ||
+                        (mealMacros[i]!['sodium'] ?? 0) > 0) ...[
+                      SizedBox(height: Responsive.height(context, 1)),
                       Text(
-                        'P ${(mealMacros[i]!['protein'] ?? 0).round()}g · C ${(mealMacros[i]!['carbs'] ?? 0).round()}g · F ${(mealMacros[i]!['fat'] ?? 0).round()}g',
+                        [
+                          if ((mealMacros[i]!['fiber'] ?? 0) > 0)
+                            'Fiber ${(mealMacros[i]!['fiber'] ?? 0).round()}g',
+                          if ((mealMacros[i]!['sugar'] ?? 0) > 0)
+                            'Sugar ${(mealMacros[i]!['sugar'] ?? 0).round()}g',
+                          if ((mealMacros[i]!['sodium'] ?? 0) > 0)
+                            'Na ${(mealMacros[i]!['sodium'] ?? 0).round()}mg',
+                        ].join(' · '),
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 10),
-                          color: dim,
+                          color: dim.withAlpha(180),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ],
-                ),
-              ],
-            ),
-            if (i < meals.length - 1)
-              SizedBox(height: Responsive.height(context, 8)),
-          ],
-          SizedBox(height: Responsive.height(context, 16)),
-          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
-          SizedBox(height: Responsive.height(context, 12)),
-          Row(
-            children: [
-              _macroInline(context, 'Protein', protein, accent, dim),
-              SizedBox(width: Responsive.width(context, 20)),
-              _macroInline(context, 'Carbs', carbs, accent, dim),
-              SizedBox(width: Responsive.width(context, 20)),
-              _macroInline(context, 'Fat', fat, accent, dim),
+                ],
+              ),
             ],
           ),
+          if (i < meals.length - 1)
+            SizedBox(height: Responsive.height(context, 8)),
         ],
+        SizedBox(height: Responsive.height(context, 16)),
+        Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+        SizedBox(height: Responsive.height(context, 12)),
+        Row(
+          children: [
+            Expanded(
+              child: _macroInline(context, 'Protein', protein, accent, dim),
+            ),
+            Expanded(child: _macroInline(context, 'Carbs', carbs, accent, dim)),
+            Expanded(child: _macroInline(context, 'Fat', fat, accent, dim)),
+            Expanded(child: _macroInline(context, 'Fiber', fiber, accent, dim)),
+            Expanded(child: _macroInline(context, 'Sugar', sugar, accent, dim)),
+            Expanded(
+              child: _macroInline(
+                context,
+                'Sodium',
+                sodium,
+                accent,
+                dim,
+                unit: 'mg',
+              ),
+            ),
+          ],
+        ),
       ],
     ),
   );
@@ -2659,10 +2715,11 @@ Widget _macroInline(
   String label,
   double grams,
   Color accent,
-  Color dim,
-) {
+  Color dim, {
+  String unit = 'g',
+}) {
   return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Text(
         label,
@@ -2673,7 +2730,7 @@ Widget _macroInline(
         ),
       ),
       Text(
-        grams == 0 ? '—' : '${grams.round()}g',
+        '${grams.round()}$unit',
         style: GoogleFonts.manrope(
           fontSize: Responsive.font(context, 14),
           fontWeight: FontWeight.w700,

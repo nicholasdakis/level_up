@@ -2783,3 +2783,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Skeletonizer now wraps the real card structure instead of hand-built placeholder widgets so the skeleton accurately reflects the loaded layout
 - Reordered the home dashboard so that daily rewards are in their own section at the top and extra xp features (ads, referrals) are lower down
 - Made the calorie calculator and reminders buttons bigger so they stand out better
+- Added a source column to reminders to differentiate user vs system reminders
+- Removed the empty states from food analytics day view for the Summary card so it just shows the real cards with zeros
+- Added micros to the food analytics summary card
+- Added the micros per meal breakdown to the summary card
