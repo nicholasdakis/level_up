@@ -1103,6 +1103,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- get_referral_summary: returns referral count (as referrer) and whether uid has used a code (as referee) in one call
+CREATE OR REPLACE FUNCTION get_referral_summary(p_uid TEXT)
+RETURNS TABLE(referral_count BIGINT, referral_used BOOLEAN)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT
+        (SELECT COUNT(*) FROM referrals WHERE referrer_uid = p_uid) AS referral_count,
+        (SELECT EXISTS(SELECT 1 FROM referrals WHERE referee_uid = p_uid)) AS referral_used;
+$$;
+
 CREATE TRIGGER trg_preserve_public_routines
 BEFORE DELETE ON users
 FOR EACH ROW EXECUTE FUNCTION preserve_public_routines_on_user_delete();

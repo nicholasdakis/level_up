@@ -139,13 +139,11 @@ class UserRepository:
             return result.data[0]["referral_code"]
         return None
 
-    def get_referral_count(self, uid: str) -> int:
-        result = self._supabase.table("referrals").select("referee_uid", count="exact").eq("referrer_uid", uid).execute()
-        return result.count or 0
+    def get_referral_summary(self, uid: str) -> dict:
+        result = self._supabase.rpc("get_referral_summary", {"p_uid": uid}).execute()
+        row = result.data[0] if result.data else {}
+        return {"referral_count": row.get("referral_count", 0), "referral_used": row.get("referral_used", False)}
 
-    def has_used_referral(self, uid: str) -> bool:
-        result = self._supabase.table("referrals").select("referee_uid").eq("referee_uid", uid).limit(1).execute()
-        return len(result.data) > 0
 
     def referral_code_exists(self, code: str) -> bool:
         result = self._supabase.table("users").select("referral_code").eq("referral_code", code).limit(1).execute()
