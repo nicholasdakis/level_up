@@ -81,7 +81,15 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
     final current = state.value;
     if (current == null) return;
     try {
-      final response = await authenticatedGet('user_data');
+      // fetch user_data and streaks in parallel
+      final results = await Future.wait([
+        authenticatedGet('user_data'),
+        UserDataManager.fetchStreaks().catchError(
+          (_) => <Map<String, dynamic>>[],
+        ),
+      ]);
+
+      final response = results[0] as dynamic;
       if (response.statusCode != 200) {
         throw Exception(
           'get_user_data failed: ${response.statusCode} ${response.body}',
@@ -89,6 +97,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final streaksList = results[1] as List<Map<String, dynamic>>;
 
       // compute canClaimDailyReward from last_daily_claim
       DateTime? lastDailyClaim;
@@ -102,7 +111,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         canClaim = secondsSince >= dailyRewardCooldown.inSeconds;
       }
 
-      // fetch streaks, non-fatal if it fails
+      // parse streaks from parallel fetch
       int foodStreak = 0,
           foodStreakBest = 0,
           workoutStreak = 0,
@@ -113,16 +122,15 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
       int shieldCount = 0;
       DateTime? shieldsResetAt;
       try {
-        final streaks = await UserDataManager.fetchStreaks();
-        final foodRow = streaks.firstWhere(
+        final foodRow = streaksList.firstWhere(
           (s) => s['streak_type'] == 'food_streak',
           orElse: () => {},
         );
-        final claimRow = streaks.firstWhere(
+        final claimRow = streaksList.firstWhere(
           (s) => s['streak_type'] == 'daily_consecutive_streak',
           orElse: () => {},
         );
-        final workoutRow = streaks.firstWhere(
+        final workoutRow = streaksList.firstWhere(
           (s) => s['streak_type'] == 'workout_streak',
           orElse: () => {},
         );
@@ -135,7 +143,7 @@ class UserDataNotifierNew extends AsyncNotifier<UserData?> {
         workoutStreakLastDate = workoutRow['last_date'] as String?;
       } catch (_) {}
 
-      // fetch premium perks only if premium, non-fatal if it fails
+      // fetch premium perks if premium, non-fatal if it fails
       if (data['is_premium'] == true) {
         try {
           final perksResponse = await authenticatedGet('premium_perks');

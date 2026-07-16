@@ -2770,4 +2770,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the recent foods variable and column entirely as it is now just enforced directly in the route
 - Added skeletonizers when recent and suggested foods are loading
 - Updated the badges tab skeletonizers
-- Used RepaintBoundary for pulsing badges chips to optimize the Badges tab
+- Used RepaintBoundary for pulsing badges chips to optimize the Badges
+- Made user_data and streaks fetches run in parallel as they are independent

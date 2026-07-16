@@ -1541,7 +1541,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                                   ),
                                                   Flexible(
                                                     child: Text(
-                                                      "Calorie Calculator",
+                                                      "Calculator",
                                                       style:
                                                           GoogleFonts.manrope(
                                                             color: lightenColor(
