@@ -12,6 +12,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '../../utility/unit_converter.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'analytics_components.dart';
 import '../premium_sheet.dart' show showPremiumSheet;
 
@@ -338,117 +339,84 @@ class _WorkoutAnalyticsScreenState
                         ),
                         SizedBox(height: Responsive.height(context, 20)),
 
-                        if (!_loading && _workouts.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 40),
-                              ),
-                              child: Text(
-                                'No workouts in this range',
-                                style: GoogleFonts.manrope(
-                                  color: Colors.white38,
-                                  fontSize: Responsive.font(context, 13),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          Skeletonizer(
-                            enabled: _loading,
-                            effect: ShimmerEffect(
-                              baseColor: lightenColor(appColor, 0.3),
-                              highlightColor: lightenColor(appColor, 0.1),
-                              duration: const Duration(milliseconds: 1200),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                sectionHeader(
-                                  "OVERVIEW",
-                                  context,
-                                  appColor: appColor,
-                                ),
-                                _buildSummaryCards(context, accent, dim)
-                                    .animate(
-                                      key: ValueKey(('summary', _animationKey)),
-                                    )
-                                    .fadeIn(duration: 300.ms)
-                                    .slideY(begin: 0.1, curve: Curves.easeOut),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 16),
-                                ),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 24),
-                                ),
-                                sectionHeader(
-                                  "PERSONAL RECORDS",
-                                  context,
-                                  appColor: appColor,
-                                ),
-                                _buildPrCard(context, accent, dim)
-                                    .animate(
-                                      key: ValueKey(('pr', _animationKey)),
-                                    )
-                                    .fadeIn(delay: 40.ms, duration: 300.ms)
-                                    .slideY(begin: 0.1, curve: Curves.easeOut),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 16),
-                                ),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 24),
-                                ),
-                                sectionHeader(
-                                  "MUSCLE GROUPS",
-                                  context,
-                                  appColor: appColor,
-                                ),
-                                _buildMuscleRadar(context, accent, dim)
-                                    .animate(
-                                      key: ValueKey(('radar', _animationKey)),
-                                    )
-                                    .fadeIn(delay: 80.ms, duration: 300.ms)
-                                    .slideY(begin: 0.1, curve: Curves.easeOut),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 24),
-                                ),
-                                sectionHeader(
-                                  "VOLUME TREND",
-                                  context,
-                                  appColor: appColor,
-                                ),
-                                _buildVolumeChart(context, accent, dim)
-                                    .animate(
-                                      key: ValueKey(('volume', _animationKey)),
-                                    )
-                                    .fadeIn(delay: 120.ms, duration: 300.ms)
-                                    .slideY(begin: 0.1, curve: Curves.easeOut),
-
-                                SizedBox(
-                                  height: Responsive.height(context, 24),
-                                ),
-                                sectionHeader(
-                                  "DURATION TREND",
-                                  context,
-                                  appColor: appColor,
-                                ),
-                                _buildDurationChart(context, accent, dim)
-                                    .animate(
-                                      key: ValueKey((
-                                        'duration',
-                                        _animationKey,
-                                      )),
-                                    )
-                                    .fadeIn(delay: 160.ms, duration: 300.ms)
-                                    .slideY(begin: 0.1, curve: Curves.easeOut),
-                              ],
-                            ),
+                        Skeletonizer(
+                          enabled: _loading,
+                          effect: ShimmerEffect(
+                            baseColor: lightenColor(appColor, 0.3),
+                            highlightColor: lightenColor(appColor, 0.1),
+                            duration: const Duration(milliseconds: 1200),
                           ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              sectionHeader(
+                                "OVERVIEW",
+                                context,
+                                appColor: appColor,
+                              ),
+                              _buildSummaryCards(context, accent, dim)
+                                  .animate(
+                                    key: ValueKey(('summary', _animationKey)),
+                                  )
+                                  .fadeIn(duration: 300.ms)
+                                  .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                              SizedBox(height: Responsive.height(context, 16)),
+
+                              SizedBox(height: Responsive.height(context, 24)),
+                              sectionHeader(
+                                "PERSONAL RECORDS",
+                                context,
+                                appColor: appColor,
+                              ),
+                              _buildPrCard(context, accent, dim)
+                                  .animate(key: ValueKey(('pr', _animationKey)))
+                                  .fadeIn(delay: 40.ms, duration: 300.ms)
+                                  .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                              SizedBox(height: Responsive.height(context, 16)),
+
+                              SizedBox(height: Responsive.height(context, 24)),
+                              sectionHeader(
+                                "MUSCLE GROUPS",
+                                context,
+                                appColor: appColor,
+                              ),
+                              _buildMuscleRadar(context, accent, dim)
+                                  .animate(
+                                    key: ValueKey(('radar', _animationKey)),
+                                  )
+                                  .fadeIn(delay: 80.ms, duration: 300.ms)
+                                  .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                              SizedBox(height: Responsive.height(context, 24)),
+                              sectionHeader(
+                                "VOLUME TREND",
+                                context,
+                                appColor: appColor,
+                              ),
+                              _buildVolumeChart(context, accent, dim)
+                                  .animate(
+                                    key: ValueKey(('volume', _animationKey)),
+                                  )
+                                  .fadeIn(delay: 120.ms, duration: 300.ms)
+                                  .slideY(begin: 0.1, curve: Curves.easeOut),
+
+                              SizedBox(height: Responsive.height(context, 24)),
+                              sectionHeader(
+                                "DURATION TREND",
+                                context,
+                                appColor: appColor,
+                              ),
+                              _buildDurationChart(context, accent, dim)
+                                  .animate(
+                                    key: ValueKey(('duration', _animationKey)),
+                                  )
+                                  .fadeIn(delay: 160.ms, duration: 300.ms)
+                                  .slideY(begin: 0.1, curve: Curves.easeOut),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -791,6 +759,42 @@ class _WorkoutAnalyticsScreenState
     color: Colors.white.withAlpha(15),
   );
 
+  Widget _workoutChartEmptyState(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: frostedGlassCard(
+        context,
+        color: appColor,
+        padding: EdgeInsets.all(Responsive.scale(context, 20)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 28),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedChartHistogram,
+                color: Colors.white24,
+                size: Responsive.scale(context, 32),
+              ),
+              SizedBox(height: Responsive.height(context, 10)),
+              Text(
+                "No workouts in this range",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: Colors.white38,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildVolumeChart(BuildContext context, Color accent, Color dim) {
     // group by date, sum volume
     final Map<String, double> byDate = {};
@@ -801,7 +805,7 @@ class _WorkoutAnalyticsScreenState
     }
     final sorted = byDate.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
-    if (sorted.isEmpty) return const SizedBox.shrink();
+    if (sorted.isEmpty) return _workoutChartEmptyState(context);
 
     final spots = sorted.asMap().entries.map((e) {
       final volKg = e.value.value;
@@ -958,7 +962,7 @@ class _WorkoutAnalyticsScreenState
     }).toList();
 
     final maxY = spots.map((s) => s.y).fold(0.0, (a, b) => a > b ? a : b);
-    if (maxY == 0) return const SizedBox.shrink();
+    if (maxY == 0) return _workoutChartEmptyState(context);
 
     return frostedGlassCard(
       context,

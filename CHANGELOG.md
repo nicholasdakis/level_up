@@ -2787,3 +2787,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the empty states from food analytics day view for the Summary card so it just shows the real cards with zeros
 - Added micros to the food analytics summary card
 - Added the micros per meal breakdown to the summary card
+- Added the same empty-state UI improvements to weight and water analytics
+- Added UI improvements to empty state workout analytics

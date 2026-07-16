@@ -191,21 +191,32 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
         context,
         color: appColor,
         padding: EdgeInsets.all(Responsive.scale(context, 20)),
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: Responsive.height(context, 32),
-            ),
-            child: Text(
-              _rangeSelected
-                  ? "No water logged in this range"
-                  : "Pick a range to view your water trend",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 14),
-                color: dimAccent,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Responsive.height(context, 28),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(
+                icon: _rangeSelected
+                    ? HugeIcons.strokeRoundedDroplet
+                    : HugeIcons.strokeRoundedCalendar02,
+                color: Colors.white24,
+                size: Responsive.scale(context, 28),
               ),
-            ),
+              SizedBox(height: Responsive.height(context, 10)),
+              Text(
+                _rangeSelected
+                    ? "No water logged in this range"
+                    : "Pick a range to view your water trend",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 13),
+                  color: dimAccent,
+                ),
+              ),
+            ],
           ),
         ),
       );
