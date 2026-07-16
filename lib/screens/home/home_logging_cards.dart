@@ -128,8 +128,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                     extra: {
                       'meal': m.meal,
                       'currentDate': DateTime.now(),
-                      'onFoodLogged': () =>
-                          ref.read(foodLogsProvider.notifier).refresh(),
+                      'onFoodLogged': () {},
                       'achievementId': null,
                     },
                   );

@@ -1810,9 +1810,10 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         !ref.watch(userDataLoadedProvider) ||
         ref.watch(foodLogsProvider).isLoading;
     final dateKey = FoodLoggingHelper.formatDateKey(currentDate);
+    final foodLogsState = ref.watch(foodLogsProvider);
     final logs = isGuest
         ? Guest.fakeFoodLogs(dateKey)
-        : (ref.watch(foodLogsProvider).value ?? []);
+        : (foodLogsState.value ?? []);
     // sort by logged_at so moved foods stay in chronological order within the meal
     breakfastFoods =
         logs.where((f) => f.date == dateKey && f.meal == 'breakfast').toList()
