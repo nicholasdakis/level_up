@@ -823,6 +823,7 @@ def set_reminder():
         message=body.message,
         scheduled_at=body.scheduled_at,
         notification_id=body.notification_id,
+        source=body.source,
     )
 
     return jsonify({"success": True}), 200

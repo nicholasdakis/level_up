@@ -1128,7 +1128,7 @@ class ReminderRepository:
     def __init__(self, supabase: Client):
         self._supabase = supabase
 
-    def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int):
+    def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int, source: str = "user"):
         # Insert reminder into Postgres via Supabase
         result = (
             self._supabase
@@ -1138,14 +1138,15 @@ class ReminderRepository:
                 "message": message,
                 "scheduled_at": scheduled_at,
                 "notification_id": notification_id,
+                "source": source,
             })
             .execute()
         )
         return result.data
 
     def get_reminders(self, uid: str):
-        # Fetches all reminders for a user
-        result = self._supabase.table("reminders").select("*").eq("uid", uid).order("scheduled_at", desc=False).execute()
+        # Fetches all of a user's user-made reminders
+        result = self._supabase.table("reminders").select("*").eq("uid", uid).eq("source", "user").order("scheduled_at", desc=False).execute()
         return result.data
 
     def get_due_reminders(self, now_iso: str):

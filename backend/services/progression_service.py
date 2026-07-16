@@ -450,14 +450,16 @@ class ProgressionService: # Service class to handle all progression-related busi
         # Returns all reminders for a user
         return self._reminder_repo.get_reminders(uid)
 
-    def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int):
+    def set_reminder(self, uid: str, message: str, scheduled_at: str, notification_id: int, source: str = "user"):
         result = self._reminder_repo.set_reminder(
             uid=uid,
             message=message,
             scheduled_at=scheduled_at,
             notification_id=notification_id,
+            source=source,
         )
-        self._track_achievement(uid, "set_reminder")
+        if source == "user":
+            self._track_achievement(uid, "set_reminder")
         return result
 
     def delete_reminder(self, uid: str, reminder_id: str):

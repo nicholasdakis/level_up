@@ -98,13 +98,14 @@ CREATE TABLE weight_logs (
     PRIMARY KEY (uid, date)            -- one row per user per day, overwritten on re-log
 );
 
--- Scheduled push notification reminders set by the user
+-- Scheduled push notification reminders
 CREATE TABLE reminders (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT, -- auto-generated unique ID
     uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
     scheduled_at TIMESTAMPTZ,          -- when the notification should be sent
     message TEXT,                      -- the notification message body
-    notification_id BIGINT             -- client-side notification ID for cancellation
+    notification_id BIGINT,            -- client-side notification ID for cancellation
+    source TEXT NOT NULL DEFAULT 'user' -- 'user' = shown in reminders list, 'system' = server-generated, hidden from list
 );
 
 -- Tracks the last time a user visited each point of interest for the 24-hour cooldown
