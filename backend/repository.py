@@ -178,7 +178,10 @@ class UserRepository:
 
     def get_user_settings(self, uid: str) -> dict:
         result = self._supabase.table("user_settings").select("*").eq("uid", uid).execute()
-        return result.data[0] if result.data else {}
+        defaults = {"units": "metric", "notifications_enabled": True, "recent_foods_max": 20}
+        if not result.data:
+            return defaults
+        return {**defaults, **result.data[0]}
 
     # Write operations
 

@@ -371,9 +371,6 @@ class ProgressionService: # Service class to handle all progression-related busi
         self._repo.set_user_data(uid, {"units": units})
         self._repo.set_user_settings(uid, {"units": units})
 
-    def update_recent_foods_max(self, uid: str, max: int):
-        self._repo.set_user_settings(uid, {"recent_foods_max": max})
-
     def add_fcm_token(self, uid: str, token: str):
         # Adds an FCM token to the user's list
         self._repo.add_fcm_token(uid, token)

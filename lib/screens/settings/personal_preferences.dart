@@ -18,7 +18,6 @@ import '/guest.dart';
 import '/services/user_data_manager.dart';
 import '/utility/responsive.dart';
 import '/services/fcm/notification_service.dart';
-import '/services/recent_foods_service.dart';
 import '../premium_sheet.dart' show showPremiumSheet;
 import 'dart:math';
 
@@ -186,9 +185,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
   late bool notificationsEnabled; // tracks the notification toggle state
   late String _units; // tracks the selected unit system (metric or imperial)
   bool _cropLoading = false;
-  int _recentFoodsMax = 20;
-
-  final _recentFoodsService = RecentFoodsService();
 
   @override
   void initState() {
@@ -218,8 +214,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             if (c != null) setState(() {});
           }
         });
-    final storedMax = ref.read(userDataProvider).value?.recentFoodsMax;
-    if (storedMax != null) _recentFoodsMax = storedMax;
   }
 
   Future pickProfileImage() async {
@@ -1502,239 +1496,6 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       SizedBox(height: Responsive.height(context, 28)),
 
                       // Food Logging section
-                      sectionHeader(
-                        "FOOD LOGGING",
-                        context,
-                        appColor: appColor,
-                        padding: EdgeInsets.only(
-                          bottom: Responsive.height(context, 4),
-                          left: Responsive.width(context, 4),
-                        ),
-                      ),
-                      frostedGlassCard(
-                        context,
-                        color: appColor,
-                        child: Column(
-                          children: [
-                            buildPreferenceRow(
-                              icon: HugeIcons.strokeRoundedClock01,
-                              label: "Recent Foods Limit",
-                              subtitle:
-                                  _recentFoodsMax ==
-                                      RecentFoodsService.unlimited
-                                  ? "No limit"
-                                  : "Up to $_recentFoodsMax foods",
-                              onTap: () async {
-                                if (isGuest) {
-                                  Guest.block(context);
-                                  return;
-                                }
-                                final isPremium =
-                                    ref
-                                        .read(userDataProvider)
-                                        .value
-                                        ?.isPremium ??
-                                    false;
-                                final accent = lightenColor(appColor, 0.45);
-                                final dim = lightenColor(appColor, 0.35);
-
-                                Future<void> pick(int val) async {
-                                  // client-side gate: free users cannot select unlimited
-                                  if (!isPremium &&
-                                      val == RecentFoodsService.unlimited) {
-                                    showProFeatureDialog(
-                                      context,
-                                      feature: 'Unlimited Quick Logging',
-                                      appColor: appColor,
-                                      onLearnMore: () {
-                                        logAnalyticsEvent(
-                                          'premium_sheet_opened_from_learn_more',
-                                        );
-                                        showPremiumSheet(context, ref);
-                                      },
-                                    );
-                                    return;
-                                  }
-                                  final ok = await _recentFoodsService
-                                      .setRecentFoodsMax(val);
-                                  if (!mounted) return;
-                                  if (ok) {
-                                    ref
-                                        .read(userDataProvider.notifier)
-                                        .patch(
-                                          (u) =>
-                                              u.copyWith(recentFoodsMax: val),
-                                        );
-                                    setState(() => _recentFoodsMax = val);
-                                  }
-                                  if (context.mounted) {
-                                    Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          ok
-                                              ? (val ==
-                                                        RecentFoodsService
-                                                            .unlimited
-                                                    ? "Recent foods limit set to Unlimited"
-                                                    : "Recent foods limit set to $val foods")
-                                              : "Failed to update recent foods limit.",
-                                        ),
-                                        duration: snackBarDuration,
-                                      ),
-                                    );
-                                  }
-                                }
-
-                                Widget option(
-                                  String label,
-                                  int val, {
-                                  bool locked = false,
-                                }) {
-                                  final selected = _recentFoodsMax == val;
-                                  return GestureDetector(
-                                    onTap: () => pick(val),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      width: double.infinity,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Responsive.width(
-                                          context,
-                                          16,
-                                        ),
-                                        vertical: Responsive.height(
-                                          context,
-                                          14,
-                                        ),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: selected
-                                            ? accent.withAlpha(30)
-                                            : accent.withAlpha(10),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: selected
-                                              ? accent.withAlpha(160)
-                                              : accent.withAlpha(40),
-                                          width: selected ? 1.5 : 1,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            label,
-                                            style: GoogleFonts.manrope(
-                                              fontSize: Responsive.font(
-                                                context,
-                                                15,
-                                              ),
-                                              fontWeight: selected
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w500,
-                                              color: selected ? accent : dim,
-                                            ),
-                                          ),
-                                          if (locked)
-                                            Icon(
-                                              Icons.lock_rounded,
-                                              color: dim,
-                                              size: Responsive.scale(
-                                                context,
-                                                16,
-                                              ),
-                                            )
-                                          else if (selected)
-                                            Icon(
-                                              Icons.check_rounded,
-                                              color: accent,
-                                              size: Responsive.scale(
-                                                context,
-                                                18,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                await showFrostedDialog<void>(
-                                  context: context,
-                                  appColor: appColor,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        'Recent Foods Limit',
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            17,
-                                          ),
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 6),
-                                      ),
-                                      Text(
-                                        'How many recent foods to keep in your quick-log list',
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.manrope(
-                                          fontSize: Responsive.font(
-                                            context,
-                                            12,
-                                          ),
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 20),
-                                      ),
-                                      option('20 foods', 20),
-                                      SizedBox(
-                                        height: Responsive.height(context, 10),
-                                      ),
-                                      option(
-                                        'Unlimited',
-                                        RecentFoodsService.unlimited,
-                                        locked: !isPremium,
-                                      ),
-                                      SizedBox(
-                                        height: Responsive.height(context, 20),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.of(
-                                          context,
-                                          rootNavigator: true,
-                                        ).pop(),
-                                        child: Text(
-                                          'Cancel',
-                                          style: dialogButtonStyle(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: Responsive.height(context, 28)),
-
                       // Notifications section
                       sectionHeader(
                         "NOTIFICATIONS",
