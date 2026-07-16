@@ -1107,6 +1107,46 @@ CREATE TRIGGER trg_preserve_public_routines
 BEFORE DELETE ON users
 FOR EACH ROW EXECUTE FUNCTION preserve_public_routines_on_user_delete();
 
+-- get_suggested_foods: top foods by recency-weighted frequency over the last 30 days
+-- optionally filtered by meal slot; requires at least 2 occurrences to qualify
+CREATE OR REPLACE FUNCTION get_suggested_foods(p_uid TEXT, p_meal TEXT DEFAULT NULL, p_limit INT DEFAULT 20)
+RETURNS TABLE (
+    id UUID, date DATE, meal TEXT, food_name TEXT, brand_name TEXT,
+    food_description TEXT, food_id TEXT, calories INTEGER,
+    protein NUMERIC, carbs NUMERIC, fat NUMERIC,
+    fiber NUMERIC, sugar NUMERIC, sodium NUMERIC,
+    serving_size TEXT, logged_at TIMESTAMPTZ
+)
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+    SELECT DISTINCT ON (scored.food_name)
+        f.id, f.date, f.meal, f.food_name, f.brand_name,
+        f.food_description, f.food_id, f.calories,
+        f.protein, f.carbs, f.fat,
+        f.fiber, f.sugar, f.sodium,
+        f.serving_size, f.logged_at
+    FROM (
+        SELECT
+            food_name,
+            SUM(POWER(0.85, CURRENT_DATE - date)) AS score,
+            COUNT(*) AS occurrences
+        FROM food_logs_v2
+        WHERE uid = p_uid
+          AND date >= CURRENT_DATE - INTERVAL '30 days'
+          AND food_name IS NOT NULL
+          AND food_name <> ''
+          AND (p_meal IS NULL OR meal = p_meal)
+        GROUP BY food_name
+        HAVING COUNT(*) >= 2
+        ORDER BY score DESC
+        LIMIT p_limit
+    ) scored
+    JOIN food_logs_v2 f ON f.uid = p_uid AND f.food_name = scored.food_name
+    ORDER BY scored.food_name, f.logged_at DESC
+    LIMIT p_limit;
+$$;
+
 -- get_recent_foods: returns the most recently logged unique foods for a user, deduped by food_name
 -- uses DISTINCT ON to pick the most recent row per food_name in one query, no row limit issues
 CREATE OR REPLACE FUNCTION get_recent_foods(p_uid TEXT, p_limit INT DEFAULT 20)
