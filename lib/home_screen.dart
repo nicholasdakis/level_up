@@ -1312,33 +1312,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                           ...[
                             sectionHeader(
-                              "EARN XP",
+                              "DAILY REWARD",
                               context,
                               appColor: appColor,
                             ),
-                            _maybeAnimate(
-                              IntrinsicHeight(
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(child: _buildEarnXpCard()),
-                                    SizedBox(
-                                      width: Responsive.width(context, 12),
-                                    ),
-                                    Expanded(
-                                      child: buildReferralsCard(
-                                        context,
-                                        appColor,
-                                        ref,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              120.ms,
-                            ),
-                            SizedBox(height: Responsive.height(context, 12)),
+
                             // Daily reward sits below the earn XP tiles as a slim full-width row
                             _maybeAnimate(_buildDailyRewardCard(), 150.ms),
                             SizedBox(height: Responsive.height(context, 20)),
@@ -1374,6 +1352,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           SizedBox(height: Responsive.height(context, 20)),
 
                           sectionHeader("STREAKS", context, appColor: appColor),
+
                           _maybeAnimate(
                             isGuest
                                 ? GestureDetector(
@@ -1397,6 +1376,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   )
                                 : _buildStreakCard(),
                             180.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader(
+                            "EARN MORE XP",
+                            context,
+                            appColor: appColor,
+                          ),
+                          _maybeAnimate(
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(child: _buildEarnXpCard()),
+                                  SizedBox(
+                                    width: Responsive.width(context, 12),
+                                  ),
+                                  Expanded(
+                                    child: buildReferralsCard(
+                                      context,
+                                      appColor,
+                                      ref,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            120.ms,
                           ),
                           SizedBox(height: Responsive.height(context, 20)),
 
