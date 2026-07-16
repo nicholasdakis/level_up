@@ -635,7 +635,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                   width: Responsive.scale(context, 40),
                   height: Responsive.scale(context, 40),
                   decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(30),
+                    color: Colors.white.withAlpha(60),
                     borderRadius: BorderRadius.circular(
                       Responsive.scale(context, 10),
                     ),
@@ -649,13 +649,19 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                       Container(
                         height: Responsive.height(context, 14),
                         width: Responsive.width(context, 120),
-                        color: Colors.white.withAlpha(30),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(60),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                       SizedBox(height: Responsive.height(context, 6)),
                       Container(
                         height: Responsive.height(context, 10),
                         width: Responsive.width(context, 180),
-                        color: Colors.white.withAlpha(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(40),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ],
                   ),
@@ -666,7 +672,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
             Container(
               height: Responsive.height(context, 6),
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(20),
+                color: Colors.white.withAlpha(40),
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 6),
                 ),
@@ -682,7 +688,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                     height: Responsive.scale(context, 56),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(20),
+                      color: Colors.white.withAlpha(50),
                     ),
                   ),
                 ],
@@ -754,54 +760,32 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 
     final slivers = <Widget>[];
     if (_isLoading) {
-      // Show 3 skeleton rows, each with 3 cards horizontally
-      for (int row = 0; row < 3; row++) {
-        slivers.add(
-          SliverToBoxAdapter(
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Skeletonizer(
+            enabled: true,
+            effect: ShimmerEffect(
+              baseColor: darkenColor(appColor, 0.1),
+              highlightColor: lightenColor(appColor, 0.2),
+              duration: const Duration(milliseconds: 1200),
+            ),
             child: Padding(
-              padding: EdgeInsets.only(
-                left: hPad,
-                top: Responsive.height(context, 12),
-                bottom: Responsive.height(context, 4),
-              ),
-              child: Container(
-                width: Responsive.scale(context, 80),
-                height: Responsive.height(context, 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(25),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 4),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-        slivers.add(
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: Row(
+              child: Column(
                 children: List.generate(
-                  3,
-                  (i) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (i > 0) SizedBox(width: Responsive.width(context, 10)),
-                      SizedBox(
-                        width: Responsive.scale(context, 260),
-                        child: _buildSkeletonCard(),
-                      ),
-                    ],
+                  4,
+                  (_) => Padding(
+                    padding: EdgeInsets.only(
+                      top: Responsive.height(context, 12),
+                    ),
+                    child: _buildSkeletonCard(),
                   ),
                 ),
               ),
             ),
           ),
-        );
-      }
+        ),
+      );
     } else {
       int globalCardIndex = 0;
       for (final section in tabSections) {
@@ -1017,122 +1001,113 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
       );
     }
 
-    return Skeletonizer(
-      enabled: _isLoading,
-      effect: ShimmerEffect(
-        baseColor: darkenColor(appColor, 0.1),
-        highlightColor: lightenColor(appColor, 0.2),
-        duration: const Duration(milliseconds: 1200),
-      ),
-      child: Container(
-        decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: AppRefreshIndicator(
-            onRefresh: _fetchBadgesData,
-            appColor: appColor,
-            child: ScrollConfiguration(
-              behavior: NoGlowScrollBehavior(),
-              child: Stack(
-                children: [
-                  CustomScrollView(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Column(
-                          children: [
-                            SizedBox(height: MediaQuery.paddingOf(context).top),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: Responsive.height(context, 8),
-                                bottom: Responsive.height(context, 8),
-                                left: Responsive.centeredHorizontalPadding(
-                                  context,
-                                  20,
-                                ),
-                                right: Responsive.centeredHorizontalPadding(
-                                  context,
-                                  20,
-                                ),
+    return Container(
+      decoration: BoxDecoration(gradient: buildThemeGradient(appColor)),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AppRefreshIndicator(
+          onRefresh: _fetchBadgesData,
+          appColor: appColor,
+          child: ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          SizedBox(height: MediaQuery.paddingOf(context).top),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: Responsive.height(context, 8),
+                              bottom: Responsive.height(context, 8),
+                              left: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
                               ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => context.pop(),
-                                    child: Container(
-                                      padding: EdgeInsets.all(
-                                        Responsive.scale(context, 12),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.1,
-                                        ).withAlpha(20),
-                                        border: Border.all(
-                                          color: lightenColor(
-                                            appColor,
-                                            0.3,
-                                          ).withAlpha(180),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.arrow_back_ios_new,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
-                                        size: Responsive.font(context, 13),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: _fetchBadgesData,
-                                    child: Container(
-                                      padding: EdgeInsets.all(
-                                        Responsive.scale(context, 12),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.1,
-                                        ).withAlpha(20),
-                                        border: Border.all(
-                                          color: lightenColor(
-                                            appColor,
-                                            0.3,
-                                          ).withAlpha(180),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.refresh,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
-                                        size: Responsive.font(context, 13),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              right: Responsive.centeredHorizontalPadding(
+                                context,
+                                20,
                               ),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => context.pop(),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_back_ios_new,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      size: Responsive.font(context, 13),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: _fetchBadgesData,
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      Responsive.scale(context, 12),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.1,
+                                      ).withAlpha(20),
+                                      border: Border.all(
+                                        color: lightenColor(
+                                          appColor,
+                                          0.3,
+                                        ).withAlpha(180),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.refresh,
+                                      color: lightenColor(
+                                        appColor,
+                                        0.3,
+                                      ).withAlpha(180),
+                                      size: Responsive.font(context, 13),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      ...slivers,
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: buildDailyRewardConfetti(badgesConfettiController),
-                  ),
-                ],
-              ),
+                    ),
+                    ...slivers,
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: buildDailyRewardConfetti(badgesConfettiController),
+                ),
+              ],
             ),
           ),
         ),
