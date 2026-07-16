@@ -861,6 +861,7 @@ def get_food_logs_v2():
     if err:
         return err
     logs = progression_service.get_food_logs_v2(uid=uid)
+    logger.info(f"food_logs_v2 uid={uid} count={len(logs)}")
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 # separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data
