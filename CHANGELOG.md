@@ -2764,3 +2764,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-16
 - Made the empty state of Recent Foods card also show the Suggested card so users know it exists
+- Made primary and secondary muscles in the Todays Overview card show even when empty

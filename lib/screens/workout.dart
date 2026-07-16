@@ -1255,7 +1255,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                 ],
               ),
             ),
-            if (primaryMuscles.isNotEmpty || secondaryMuscles.isNotEmpty) ...[
+            ...[
               SizedBox(height: Responsive.height(context, 12)),
               Divider(
                 color: c.onCard.withAlpha(30),
@@ -1264,10 +1264,8 @@ class _WorkoutState extends ConsumerState<Workout> {
               ),
               SizedBox(height: Responsive.height(context, 12)),
               for (final entry in [
-                if (primaryMuscles.isNotEmpty)
-                  ('PRIMARY MUSCLES WORKED', primaryMuscles),
-                if (secondaryMuscles.isNotEmpty)
-                  ('SECONDARY MUSCLES WORKED', secondaryMuscles),
+                ('PRIMARY MUSCLES WORKED', primaryMuscles),
+                ('SECONDARY MUSCLES WORKED', secondaryMuscles),
               ]) ...[
                 SizedBox(
                   width: double.infinity,
@@ -1288,6 +1286,28 @@ class _WorkoutState extends ConsumerState<Workout> {
                     spacing: Responsive.width(context, 6),
                     runSpacing: Responsive.height(context, 4),
                     children: [
+                      if (entry.$2.isEmpty)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
+                            vertical: Responsive.height(context, 3),
+                          ),
+                          decoration: BoxDecoration(
+                            color: c.onCard.withAlpha(20),
+                            borderRadius: BorderRadius.circular(
+                              Responsive.scale(context, 20),
+                            ),
+                            border: Border.all(color: c.onCard.withAlpha(20)),
+                          ),
+                          child: Text(
+                            'None worked today',
+                            style: GoogleFonts.manrope(
+                              color: subtle,
+                              fontSize: Responsive.font(context, 10),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       for (final muscle in entry.$2)
                         Container(
                           padding: EdgeInsets.symmetric(
