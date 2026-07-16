@@ -301,6 +301,7 @@ class GetUserDataResponse(BaseModel):
     created_at: str | None = None
     is_premium: bool = False
     premium_expires_at: str | None = None
+    recent_foods_max: int | None = None
 
 class SimpleSuccessResponse(BaseModel):
     # Reusable for routes that just need to confirm success
