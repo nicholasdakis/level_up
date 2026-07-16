@@ -115,9 +115,11 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
   // Recent foods
   List<FoodLog> _recentFoods = [];
+  bool _recentLoading = true;
 
   // Suggested foods: top foods by log frequency in the past 7 days
   List<FoodLog> _suggestedFoods = [];
+  bool _suggestedLoading = true;
   bool _showingSuggested = false;
 
   @override
@@ -255,34 +257,50 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
 
   // Fetches suggested foods from the server: meal-slot match, recency-weighted frequency
   Future<void> _loadSuggestedFoods() async {
-    if (isGuest) return;
+    if (isGuest) {
+      if (mounted) setState(() => _suggestedLoading = false);
+      return;
+    }
     try {
       final response = await authenticatedGet(
         'suggested_foods?meal=${widget.meal}',
       );
-      if (response.statusCode != 200 || !mounted) return;
-      final List data = jsonDecode(response.body)['food_logs_v2'];
+      if (!mounted) return;
+      final List data = response.statusCode == 200
+          ? jsonDecode(response.body)['food_logs_v2']
+          : [];
       setState(() {
         _suggestedFoods = data
             .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
             .toList();
+        _suggestedLoading = false;
       });
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _suggestedLoading = false);
+    }
   }
 
   // Fetches recent foods from the server: deduped by name, most recent first, capped by premium status
   Future<void> _loadRecentFoods() async {
-    if (isGuest) return;
+    if (isGuest) {
+      if (mounted) setState(() => _recentLoading = false);
+      return;
+    }
     try {
       final response = await authenticatedGet('recent_foods');
-      if (response.statusCode != 200 || !mounted) return;
-      final List data = jsonDecode(response.body)['food_logs_v2'];
+      if (!mounted) return;
+      final List data = response.statusCode == 200
+          ? jsonDecode(response.body)['food_logs_v2']
+          : [];
       setState(() {
         _recentFoods = data
             .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
             .toList();
+        _recentLoading = false;
       });
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _recentLoading = false);
+    }
   }
 
   Future<void> _loadRecentExpanded() async {
@@ -1326,6 +1344,78 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     );
   }
 
+  Widget _buildRecentSkeleton(BuildContext context, Color appColor) {
+    return Skeletonizer(
+      enabled: true,
+      ignoreContainers: false,
+      effect: ShimmerEffect(
+        baseColor: lightenColor(appColor, 0.15),
+        highlightColor: lightenColor(appColor, 0.35),
+        duration: const Duration(milliseconds: 1200),
+      ),
+      child: Column(
+        children: List.generate(4, (i) {
+          return Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: Responsive.height(context, 13),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: Responsive.scale(context, 38),
+                      height: Responsive.scale(context, 38),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(appColor, 0.20),
+                      ),
+                    ),
+                    SizedBox(width: Responsive.width(context, 12)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: Responsive.height(context, 14),
+                            width: Responsive.width(context, 160),
+                            decoration: BoxDecoration(
+                              color: lightenColor(appColor, 0.20),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          SizedBox(height: Responsive.height(context, 5)),
+                          Container(
+                            height: Responsive.height(context, 11),
+                            width: Responsive.width(context, 100),
+                            decoration: BoxDecoration(
+                              color: lightenColor(appColor, 0.20),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: Responsive.scale(context, 30),
+                      height: Responsive.scale(context, 30),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lightenColor(appColor, 0.20),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (i < 3)
+                Container(height: 1, color: lightenColor(appColor, 0.15)),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
   // A single search result or recent-match row, name bold, description dim, + button on right
   Widget _buildFoodRow(FoodLog food, {required VoidCallback onTap}) {
     return _FoodResultRow(food: food, onTap: onTap, appColor: appColor);
@@ -2114,7 +2204,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                           children: [
                             SizedBox(height: Responsive.height(context, 10)),
                             if (_showingSuggested) ...[
-                              if (_suggestedFoods.isEmpty)
+                              if (_suggestedLoading)
+                                _buildRecentSkeleton(context, appColor)
+                              else if (_suggestedFoods.isEmpty)
                                 Text(
                                   "Nothing suggested, try logging more foods first",
                                   style: GoogleFonts.manrope(
@@ -2155,7 +2247,9 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                     ),
                                   ),
                                 ),
-                            ] else if (_recentFoods.isEmpty)
+                            ] else if (_recentLoading)
+                              _buildRecentSkeleton(context, appColor)
+                            else if (_recentFoods.isEmpty)
                               Text(
                                 "Nothing logged recently",
                                 style: GoogleFonts.manrope(

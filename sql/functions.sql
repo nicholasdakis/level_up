@@ -1120,16 +1120,20 @@ RETURNS TABLE (
 LANGUAGE SQL
 SECURITY DEFINER
 AS $$
-    SELECT DISTINCT ON (food_name)
-        id, date, meal, food_name, brand_name,
-        food_description, food_id, calories,
-        protein, carbs, fat,
-        fiber, sugar, sodium,
-        serving_size, logged_at
-    FROM food_logs_v2
-    WHERE uid = p_uid
-      AND food_name IS NOT NULL
-      AND food_name <> ''
-    ORDER BY food_name, logged_at DESC
+    SELECT *
+    FROM (
+        SELECT DISTINCT ON (food_name)
+            id, date, meal, food_name, brand_name,
+            food_description, food_id, calories,
+            protein, carbs, fat,
+            fiber, sugar, sodium,
+            serving_size, logged_at
+        FROM food_logs_v2
+        WHERE uid = p_uid
+          AND food_name IS NOT NULL
+          AND food_name <> ''
+        ORDER BY food_name, logged_at DESC
+    ) deduped
+    ORDER BY logged_at DESC
     LIMIT p_limit;
 $$;
