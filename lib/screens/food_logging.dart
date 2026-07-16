@@ -145,9 +145,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
 
   Future<void> loadFoodForDate(DateTime date) async {
     final dateKey = FoodLoggingHelper.formatDateKey(date);
-    final alreadyCached = ref
-        .read(foodLogsProvider.notifier)
-        .isCached(dateKey);
+    final alreadyCached = ref.read(foodLogsProvider.notifier).isCached(dateKey);
     setState(() {
       currentDate = date;
       _dateLoading = !alreadyCached && !isGuest;
@@ -174,21 +172,37 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
         _mealCalories(snacksFoods);
   }
 
-  double _totalMacro(String macroKey) {
-    final allFoods = [
+  Map<String, double>? _cachedTotalNutrition;
+
+  Map<String, double> _computeTotalNutrition() {
+    if (_cachedTotalNutrition != null) return _cachedTotalNutrition!;
+    double protein = 0, carbs = 0, fat = 0, fiber = 0, sugar = 0, sodium = 0;
+    for (final food in [
       ...breakfastFoods,
       ...lunchFoods,
       ...dinnerFoods,
       ...snacksFoods,
-    ];
-    double total = 0;
-    for (var food in allFoods) {
-      final macros = FoodLoggingHelper.extractMacrosFromFood(food);
-      // Add onto the macro based on the macro type
-      total += macros[macroKey] ?? 0;
+    ]) {
+      final m = FoodLoggingHelper.extractMacrosFromFood(food);
+      protein += m['protein'] ?? 0;
+      carbs += m['carbs'] ?? 0;
+      fat += m['fat'] ?? 0;
+      fiber += m['fiber'] ?? 0;
+      sugar += m['sugar'] ?? 0;
+      sodium += m['sodium'] ?? 0;
     }
-    return total;
+    _cachedTotalNutrition = {
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+      'fiber': fiber,
+      'sugar': sugar,
+      'sodium': sodium,
+    };
+    return _cachedTotalNutrition!;
   }
+
+  double _totalNutrient(String key) => _computeTotalNutrition()[key] ?? 0;
 
   Future<void> _deleteFood(String mealKey, int idx, List<FoodLog> foods) async {
     if (isGuest) {
@@ -1160,7 +1174,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           child: _goalProtein > 0
               ? _buildMacroGauge(
                   label: "Protein",
-                  current: _totalMacro('protein'),
+                  current: _totalNutrient('protein'),
                   goal: _goalProtein,
                   color: lightenColor(appColor, 0.30),
                 )
@@ -1171,7 +1185,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           child: _goalCarbs > 0
               ? _buildMacroGauge(
                   label: "Carbs",
-                  current: _totalMacro('carbs'),
+                  current: _totalNutrient('carbs'),
                   goal: _goalCarbs,
                   color: lightenColor(appColor, 0.30),
                 )
@@ -1182,7 +1196,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           child: _goalFat > 0
               ? _buildMacroGauge(
                   label: "Fat",
-                  current: _totalMacro('fat'),
+                  current: _totalNutrient('fat'),
                   goal: _goalFat,
                   color: lightenColor(appColor, 0.30),
                 )
@@ -1389,9 +1403,9 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       );
     }
 
-    final totalFiber = _totalMacro('fiber');
-    final totalSugar = _totalMacro('sugar');
-    final totalSodium = _totalMacro('sodium');
+    final totalFiber = _totalNutrient('fiber');
+    final totalSugar = _totalNutrient('sugar');
+    final totalSodium = _totalNutrient('sodium');
     final noGoals = _goalFiber == 0 && _goalSugar == 0 && _goalSodium == 0;
 
     return AnimatedCrossFade(
@@ -1831,6 +1845,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     final logs = isGuest
         ? Guest.fakeFoodLogs(dateKey)
         : (foodLogsState.value ?? []);
+    _cachedTotalNutrition = null;
     // sort by logged_at so moved foods stay in chronological order within the meal
     breakfastFoods =
         logs.where((f) => f.date == dateKey && f.meal == 'breakfast').toList()

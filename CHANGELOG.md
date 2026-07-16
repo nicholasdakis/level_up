@@ -2776,3 +2776,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Combined get_referral_count and has_used_referral into one referral summary method to save a database trip
 - Firebase token is now verified once per request instead of twice on the /user_data route
 - Scoped the active workout screen provider watch to only rebuild when the session existence changes rather than on every workout state update
+- Food logging macro totals now computed in a single pass per build and cached for that build instead of one pass per macro type
