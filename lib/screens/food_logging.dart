@@ -128,19 +128,27 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     // Track that the user opened food logging
     trackTrivialAchievement("open_food_logging");
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!isGuest && ref.read(foodLogsProvider).value == null) {
-        ref.read(foodLogsProvider.notifier).refresh();
+      if (!isGuest) {
+        ref
+            .read(foodLogsProvider.notifier)
+            .loadDate(FoodLoggingHelper.formatDateKey(currentDate));
       }
     });
   }
 
   Future<void> _refreshAndLoadFood() async {
-    await ref.read(foodLogsProvider.notifier).refresh();
-    loadFoodForDate(currentDate);
+    await ref
+        .read(foodLogsProvider.notifier)
+        .refresh(FoodLoggingHelper.formatDateKey(currentDate));
   }
 
   void loadFoodForDate(DateTime date) {
     setState(() => currentDate = date);
+    if (!isGuest) {
+      ref
+          .read(foodLogsProvider.notifier)
+          .loadDate(FoodLoggingHelper.formatDateKey(date));
+    }
   }
 
   // Helper method for getting calories per meal type

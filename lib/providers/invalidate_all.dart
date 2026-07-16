@@ -9,7 +9,7 @@ import 'workout_provider.dart';
 // Add new providers here so sign out never silently skips one.
 void invalidateAllProviders(WidgetRef ref) {
   ref.invalidate(userDataProvider);
-  ref.invalidate(foodLogsProvider);
+  ref.read(foodLogsProvider.notifier).clear();
   ref.invalidate(waterLogsProvider);
   ref.invalidate(weightLogsProvider);
   ref.invalidate(workoutProvider);

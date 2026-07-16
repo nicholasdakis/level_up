@@ -393,6 +393,9 @@ class ProgressionService: # Service class to handle all progression-related busi
         # no cutoff, returns all logs (used for the food logging tab)
         return self._repo.get_food_logs_v2(uid)
 
+    def get_food_logs_for_date(self, uid: str, date: str):
+        return self._repo.get_food_logs_for_date(uid, date)
+
     def get_food_logs_analytics(self, uid: str):
         # enforces 14-day cutoff for free users (used for analytics only)
         return self._repo.get_food_logs_v2(uid, cutoff=self._analytics_cutoff(uid))

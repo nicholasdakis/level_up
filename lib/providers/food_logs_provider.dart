@@ -6,40 +6,54 @@ import '../models/food_log.dart';
 import '../services/user_data_manager.dart';
 
 class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
+  // cache of already-fetched dates so switching days doesn't re-fetch
+  final Map<String, List<FoodLog>> _cache = {};
+
   @override
-  Future<List<FoodLog>> build() async {
-    if (isGuest) return [];
+  Future<List<FoodLog>> build() async => [];
+
+  // fetches a single day from the server, caches the result, merges into state
+  Future<void> loadDate(String date) async {
+    if (isGuest) return;
+    if (_cache.containsKey(date)) return;
     try {
-      return await loadFromServer();
-    } catch (_) {
-      return [];
+      final response = await authenticatedGet('food_logs_for_date?date=$date');
+      if (response.statusCode != 200) return;
+      final List data = jsonDecode(response.body)['food_logs_v2'];
+      final logs = data
+          .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+      _cache[date] = logs;
+      final current = List<FoodLog>.from(state.value ?? []);
+      current.removeWhere((f) => f.date == date);
+      current.addAll(logs);
+      state = AsyncData(current);
+    } catch (e) {
+      if (kDebugMode) debugPrint('Failed to load food logs for $date: $e');
     }
   }
 
-  // fetches the full food log list from the server and returns it
-  Future<List<FoodLog>> loadFromServer() async {
-    if (isGuest) return [];
-    final response = await authenticatedGet('food_logs_v2');
-    if (response.statusCode != 200) {
-      throw Exception('food_logs_v2 fetch failed: ${response.body}');
-    }
-    final List data = jsonDecode(response.body)['food_logs_v2'];
-    return data
-        .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-  }
-
-  // re-fetches from the server and replaces local state
-  Future<void> refresh() async {
+  // re-fetches a specific date from the server, bypassing cache
+  Future<void> refresh(String date) async {
     if (isGuest) return;
     try {
-      state = AsyncData(await loadFromServer());
+      final response = await authenticatedGet('food_logs_for_date?date=$date');
+      if (response.statusCode != 200) return;
+      final List data = jsonDecode(response.body)['food_logs_v2'];
+      final logs = data
+          .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+      _cache[date] = logs;
+      final current = List<FoodLog>.from(state.value ?? []);
+      current.removeWhere((f) => f.date == date);
+      current.addAll(logs);
+      state = AsyncData(current);
     } catch (e) {
-      if (kDebugMode) debugPrint('Failed to refresh food logs: $e');
+      if (kDebugMode) debugPrint('Failed to refresh food logs for $date: $e');
     }
   }
 
-  // upserts food items for a given date and patches local state with the backend response; returns false on failure
+  // upserts food items for a given date and patches local state with the backend response
   Future<bool> upsertForDate(
     String date,
     Map<String, List<FoodLog>> mealMap,
@@ -50,8 +64,6 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
         items.add({...food.toJson(), 'meal': meal});
       }
     }
-    // never send empty items for edit/move, the backend delete sweep would wipe every food log for this entire day
-    // deletion now goes through deleteFoodLog directly so this path is only reached for edit and move
     if (items.isEmpty) return true;
 
     try {
@@ -68,6 +80,7 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
           .map((e) => FoodLog.fromJson(Map<String, dynamic>.from(e)))
           .toList();
 
+      _cache[date] = returnedItems;
       final current = List<FoodLog>.from(state.value ?? []);
       current.removeWhere((f) => f.date == date);
       current.addAll(returnedItems);
@@ -95,6 +108,7 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
       );
       final current = List<FoodLog>.from(state.value ?? []);
       current.add(returned);
+      _cache[date] = current.where((f) => f.date == date).toList();
       state = AsyncData(current);
       return returned;
     } catch (_) {
@@ -107,7 +121,7 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
     final current = List<FoodLog>.from(state.value ?? []);
     state = AsyncData(current.where((f) => f.id != log.id).toList());
     if (log.id == null) {
-      return true; // legacy food with no id, local-only removal
+      return true;
     }
     try {
       final response = await authenticatedPost(
@@ -116,14 +130,23 @@ class FoodLogsNotifier extends AsyncNotifier<List<FoodLog>> {
         timeout: const Duration(seconds: 10),
       );
       if (response.statusCode != 200) {
-        state = AsyncData(current); // rollback
+        state = AsyncData(current);
         return false;
       }
+      _cache[log.date] = (state.value ?? [])
+          .where((f) => f.date == log.date)
+          .toList();
       return true;
     } catch (_) {
-      state = AsyncData(current); // rollback
+      state = AsyncData(current);
       return false;
     }
+  }
+
+  // clears the cache and all state on sign out
+  void clear() {
+    _cache.clear();
+    state = const AsyncData([]);
   }
 }
 

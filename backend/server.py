@@ -861,7 +861,17 @@ def get_food_logs_v2():
     if err:
         return err
     logs = progression_service.get_food_logs_v2(uid=uid)
-    logger.info(f"food_logs_v2 uid={uid} count={len(logs)}")
+    return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
+
+@app.route("/food_logs_for_date", methods=["GET"])
+def get_food_logs_for_date():
+    uid, _, err = _parse_and_auth()
+    if err:
+        return err
+    date = request.args.get("date")
+    if not date or not re.match(r'^\d{4}-\d{2}-\d{2}$', date):
+        return jsonify({"error": "date query param required (YYYY-MM-DD)"}), 400
+    logs = progression_service.get_food_logs_for_date(uid=uid, date=date)
     return jsonify(GetFoodLogsV2Response(food_logs_v2=[FoodLogItem(**l) for l in logs]).model_dump()), 200
 
 # separate from /food_logs_v2 because that endpoint is also used for the food logging tab and must return all data

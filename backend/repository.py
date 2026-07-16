@@ -307,6 +307,17 @@ class UserRepository:
 
         return results
 
+    def get_food_logs_for_date(self, uid: str, date: str) -> list:
+        return (
+            self._supabase.table("food_logs_v2")
+            .select("*")
+            .eq("uid", uid)
+            .eq("date", date)
+            .order("logged_at", desc=False)
+            .execute()
+            .data
+        )
+
     def add_food_log(self, uid: str, date: str, item: dict) -> dict:
         row = {
             "uid": uid,

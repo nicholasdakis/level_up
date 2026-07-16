@@ -46,6 +46,16 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
 
   bool _showMicros = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!isGuest) {
+        ref.read(foodLogsProvider.notifier).loadDate(_todayDateKey());
+      }
+    });
+  }
+
   // Calculates total calories logged today
   int _todayCalories(List<FoodLog> logs) {
     final key = _todayDateKey();
