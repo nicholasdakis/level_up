@@ -419,9 +419,9 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
               child: Padding(
                 padding: EdgeInsets.all(Responsive.scale(context, 12)),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize
-                      .max, // stretches to match sibling tile height via IntrinsicHeight
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
                     // Icon at the top of the tile
                     Container(
@@ -431,6 +431,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         borderRadius: BorderRadius.circular(
                           Responsive.scale(context, 10),
                         ),
+                        border: Border.all(color: accent.withAlpha(40), width: 1),
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedUserAdd01,
@@ -438,21 +439,21 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                         size: Responsive.scale(context, 22),
                       ),
                     ),
-                    SizedBox(height: Responsive.height(context, 12)),
+                    SizedBox(height: Responsive.height(context, 8)),
                     Text(
                       "Refer a Friend",
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 14),
                         color: accent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    // Spacer pushes the count row to the bottom to match the Watch an Ad tile height
-                    const Spacer(),
                     Text(
                       referralCount == 1
                           ? '1 referred'
                           : '$referralCount referred',
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 11),
                         color: accentDim,

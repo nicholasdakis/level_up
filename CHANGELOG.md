@@ -2781,3 +2781,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Filter chips use backend section keys mapped to display names (Progression, Explore, Food, Workout, Reminders, Personal, Social, Other, General) with a Claimable filter for quick access to unclaimed tiers
 - Removed the dot indicators and section headers
 - Skeletonizer now wraps the real card structure instead of hand-built placeholder widgets so the skeleton accurately reflects the loaded layout
+- Reordered the home dashboard so that daily rewards are in their own section at the top and extra xp features (ads, referrals) are lower down
+- Made the calorie calculator and reminders buttons bigger so they stand out better
