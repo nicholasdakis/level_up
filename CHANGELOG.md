@@ -2792,3 +2792,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added system source to daily reward reminders so they no longer count toward the set_reminder achievement and no longer appear in the user's reminders list
 - Replaced get_food_logs_v2, get_water_logs, and get_weight_logs with paginated versions that fetch in chunks of 1000 to bypass Supabase's hard row cap
 - Removed the get_food_logs_v2 route as this is already handled by food_analytics route and food data is now queried for by date, not all at once
+- Added pagination for workouts, workout_exercises, and workout_sets as well so that workout analytics work when All is chosen and there are 1000+ rows
+- Made a paginate method to contain repeated pagination code

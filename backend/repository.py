@@ -233,24 +233,10 @@ class UserRepository:
 
     def get_food_logs_v2(self, uid: str, cutoff: str | None = None):
         # Fetches normalized food log rows, one per food item, sorted by date and logged_at
-        # Paginates in chunks of 1000 to work around Supabase's hard row limit
-        page_size = 1000
-        offset = 0
-        all_rows = []
-        while True:
-            query = (
-                self._supabase.table("food_logs_v2")
-                .select("*")
-                .eq("uid", uid)
-            )
-            if cutoff:
-                query = query.gte("date", cutoff)
-            rows = query.order("date", desc=False).order("logged_at", desc=False).range(offset, offset + page_size - 1).execute().data or []
-            all_rows.extend(rows)
-            if len(rows) < page_size:
-                break
-            offset += page_size
-        return all_rows
+        query = self._supabase.table("food_logs_v2").select("*").eq("uid", uid)
+        if cutoff:
+            query = query.gte("date", cutoff)
+        return self._paginate(query.order("date", desc=False).order("logged_at", desc=False))
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Upserts food log rows for a given date
@@ -369,19 +355,10 @@ class UserRepository:
         self._supabase.table("food_logs_v2").delete().eq("id", food_id).eq("uid", uid).execute()
 
     def get_water_logs(self, uid: str, cutoff: str | None = None):
-        page_size = 1000
-        offset = 0
-        all_rows = []
-        while True:
-            query = self._supabase.table("water_logs").select("*").eq("uid", uid)
-            if cutoff:
-                query = query.gte("date", cutoff)
-            rows = query.order("date", desc=False).range(offset, offset + page_size - 1).execute().data or []
-            all_rows.extend(rows)
-            if len(rows) < page_size:
-                break
-            offset += page_size
-        return all_rows
+        query = self._supabase.table("water_logs").select("*").eq("uid", uid)
+        if cutoff:
+            query = query.gte("date", cutoff)
+        return self._paginate(query.order("date", desc=False))
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._supabase.table("water_logs").upsert({
@@ -391,19 +368,10 @@ class UserRepository:
         }).execute()
 
     def get_weight_logs(self, uid: str, cutoff: str | None = None):
-        page_size = 1000
-        offset = 0
-        all_rows = []
-        while True:
-            query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
-            if cutoff:
-                query = query.gte("date", cutoff)
-            rows = query.order("date", desc=False).range(offset, offset + page_size - 1).execute().data or []
-            all_rows.extend(rows)
-            if len(rows) < page_size:
-                break
-            offset += page_size
-        return all_rows
+        query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
+        if cutoff:
+            query = query.gte("date", cutoff)
+        return self._paginate(query.order("date", desc=False))
 
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._supabase.table("weight_logs").upsert({
@@ -508,6 +476,18 @@ class WorkoutRepository:
         }).execute()
         return result.data
 
+    def _paginate(self, query, page_size: int = 1000) -> list:
+        # Fetches all rows from a query by paginating through in chunks to bypass Supabase's hard row cap
+        offset = 0
+        all_rows = []
+        while True:
+            rows = query.range(offset, offset + page_size - 1).execute().data or []
+            all_rows.extend(rows)
+            if len(rows) < page_size:
+                break
+            offset += page_size
+        return all_rows
+
     def get_workout_analytics(self, uid: str, since: str | None = None) -> dict:
         # fetch workouts
         query = self._supabase.table("workouts") \
@@ -517,7 +497,7 @@ class WorkoutRepository:
             .order("date", desc=False)
         if since:
             query = query.gte("date", since)
-        workouts = query.execute().data or []
+        workouts = self._paginate(query)
 
         if not workouts:
             return {"workouts": [], "primary_muscles": {}, "secondary_muscles": {}, "pr_counts": {"weight": 0, "reps": 0, "volume": 0}}
@@ -525,18 +505,20 @@ class WorkoutRepository:
         workout_ids = [w["workout_id"] for w in workouts]
 
         # fetch exercises for these workouts with muscle data in one query
-        ex_rows = self._supabase.table("workout_exercises") \
-            .select("workout_id, workout_exercise_id, exercise_id") \
-            .in_("workout_id", workout_ids) \
-            .execute().data or []
+        ex_rows = self._paginate(
+            self._supabase.table("workout_exercises")
+                .select("workout_id, workout_exercise_id, exercise_id")
+                .in_("workout_id", workout_ids)
+        )
 
         ex_ids = [e["workout_exercise_id"] for e in ex_rows]
 
         # fetch sets to compute volume per workout
-        set_rows = self._supabase.table("workout_sets") \
-            .select("workout_exercise_id, reps, weight_kg") \
-            .in_("workout_exercise_id", ex_ids) \
-            .execute().data or [] if ex_ids else []
+        set_rows = self._paginate(
+            self._supabase.table("workout_sets")
+                .select("workout_exercise_id, reps, weight_kg")
+                .in_("workout_exercise_id", ex_ids)
+        ) if ex_ids else []
 
         # fetch muscle groups for built-in exercises
         builtin_ex_ids = list({e["exercise_id"] for e in ex_rows if e["exercise_id"] is not None})
