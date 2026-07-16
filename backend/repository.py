@@ -233,15 +233,24 @@ class UserRepository:
 
     def get_food_logs_v2(self, uid: str, cutoff: str | None = None):
         # Fetches normalized food log rows, one per food item, sorted by date and logged_at
-        # query is built incrementally so the cutoff filter can be conditionally added before executing
-        query = (
-            self._supabase.table("food_logs_v2")
-            .select("*")
-            .eq("uid", uid)
-        )
-        if cutoff:
-            query = query.gte("date", cutoff)  # filter in the DB to avoid fetching rows that will be discarded
-        return query.order("date", desc=False).order("logged_at", desc=False).execute().data
+        # Paginates in chunks of 1000 to work around Supabase's hard row limit
+        page_size = 1000
+        offset = 0
+        all_rows = []
+        while True:
+            query = (
+                self._supabase.table("food_logs_v2")
+                .select("*")
+                .eq("uid", uid)
+            )
+            if cutoff:
+                query = query.gte("date", cutoff)
+            rows = query.order("date", desc=False).order("logged_at", desc=False).range(offset, offset + page_size - 1).execute().data or []
+            all_rows.extend(rows)
+            if len(rows) < page_size:
+                break
+            offset += page_size
+        return all_rows
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Upserts food log rows for a given date
