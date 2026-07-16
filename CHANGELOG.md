@@ -2777,3 +2777,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Firebase token is now verified once per request instead of twice on the /user_data route
 - Scoped the active workout screen provider watch to only rebuild when the session existence changes rather than on every workout state update
 - Food logging macro totals now computed in a single pass per build and cached for that build instead of one pass per macro type
+- Replaced the per-section horizontal scroll layout on the Badges tab with filter chips and a flat vertical card list
+- Filter chips use backend section keys mapped to display names (Progression, Explore, Food, Workout, Reminders, Personal, Social, Other, General) with a Claimable filter for quick access to unclaimed tiers
+- Removed the dot indicators and section headers
+- Skeletonizer now wraps the real card structure instead of hand-built placeholder widgets so the skeleton accurately reflects the loaded layout
