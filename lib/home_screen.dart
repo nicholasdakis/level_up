@@ -1420,34 +1420,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                           SizedBox(height: Responsive.height(context, 20)),
 
-                          sectionHeader("STREAKS", context, appColor: appColor),
-
-                          _maybeAnimate(
-                            isGuest
-                                ? GestureDetector(
-                                    onTap: () => Guest.block(
-                                      context,
-                                      title: 'Sign up to track streaks',
-                                      description:
-                                          'Create a free account to build daily reward, food logging, and workout streaks.',
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        IgnorePointer(
-                                          child: Opacity(
-                                            opacity: 0.35,
-                                            child: _buildStreakCard(),
-                                          ),
-                                        ),
-                                        guestLockOverlay(context, appColor),
-                                      ],
-                                    ),
-                                  )
-                                : _buildStreakCard(),
-                            180.ms,
-                          ),
-                          SizedBox(height: Responsive.height(context, 20)),
-
                           sectionHeader("TOOLS", context, appColor: appColor),
                           _maybeAnimate(
                             IntrinsicHeight(
@@ -1495,6 +1467,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ),
                             ),
                             240.ms,
+                          ),
+                          SizedBox(height: Responsive.height(context, 20)),
+
+                          sectionHeader("STREAKS", context, appColor: appColor),
+                          _maybeAnimate(
+                            isGuest
+                                ? GestureDetector(
+                                    onTap: () => Guest.block(
+                                      context,
+                                      title: 'Sign up to track streaks',
+                                      description:
+                                          'Create a free account to build daily reward, food logging, and workout streaks.',
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        IgnorePointer(
+                                          child: Opacity(
+                                            opacity: 0.35,
+                                            child: _buildStreakCard(),
+                                          ),
+                                        ),
+                                        guestLockOverlay(context, appColor),
+                                      ],
+                                    ),
+                                  )
+                                : _buildStreakCard(),
+                            180.ms,
                           ),
                           SizedBox(height: Responsive.height(context, 20)),
 

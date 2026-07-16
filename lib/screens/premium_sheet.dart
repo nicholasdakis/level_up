@@ -785,10 +785,10 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
         'Unlimited',
       ),
       (
-        'Unlimited Quick Logging',
+        'Extended Quick Logging',
         'Every food you\'ve tracked, always accessible',
         '20 foods',
-        'Unlimited',
+        '500 foods',
       ),
       (
         'Unlimited Themes',
