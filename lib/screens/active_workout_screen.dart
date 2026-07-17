@@ -57,6 +57,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
   final Map<String, Map<String, dynamic>> _prDetails = {};
 
   bool _reordering = false;
+  bool _isSaving = false;
   WorkoutSession?
   _localSession; // holds the session before the provider updates
 
@@ -417,6 +418,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
   }
 
   Future<void> _finishWorkout() async {
+    if (_isSaving) return;
     // require at least one checked set before saving
     if (_completedSets == 0) {
       showFrostedAlertDialog<void>(
@@ -588,6 +590,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       return;
     }
 
+    _isSaving = true;
     try {
       final response = await authenticatedPost(
         'log_workout',
@@ -596,6 +599,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
           'date': dateStr,
           'duration_seconds': durationSeconds,
           'exercises': exercises,
+          'workout_id': _s.sessionId,
         },
         timeout: const Duration(seconds: 10),
       );
@@ -679,6 +683,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
         _showSnackbar('Failed to save workout. Try again.');
       }
     } catch (_) {
+      _isSaving = false;
       if (mounted) _showSnackbar('No connection. Workout not saved.');
     }
   }

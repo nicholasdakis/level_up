@@ -1357,6 +1357,7 @@ def log_workout():
             date=body.date,
             duration_seconds=body.duration_seconds,
             exercises=[ex.model_dump() for ex in body.exercises],
+            workout_id=body.workout_id,
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

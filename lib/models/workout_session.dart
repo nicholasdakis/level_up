@@ -1,3 +1,5 @@
+import 'dart:math';
+
 // Holds all mutable state for an in-progress workout session
 // The active workout screen reads and writes through this object so that
 // state survives navigation away from the screen and app kills
@@ -5,6 +7,8 @@ class WorkoutSession {
   final List<Map<String, dynamic>> exercises;
   int startedAtMs; // DateTime.now().millisecondsSinceEpoch at session start
   String? workoutName;
+  final String
+  sessionId; // generated once at session start, sent with log_workout for idempotency
   final Map<String, bool> checked; // "exIndex_setIndex" -> true
   final Map<String, String> weights; // "exIndex_setIndex_weight" -> raw string
   final Map<String, String> reps; // "exIndex_setIndex_reps" -> raw string
@@ -26,9 +30,21 @@ class WorkoutSession {
     this.routineId,
     this.routineName,
     this.uid,
+    String? sessionId,
   }) : checked = checked ?? {},
        weights = weights ?? {},
-       reps = reps ?? {};
+       reps = reps ?? {},
+       sessionId = sessionId ?? _generateId();
+
+  static String _generateId() {
+    final r = Random.secure();
+    final bytes = List<int>.generate(16, (_) => r.nextInt(256));
+    // format as xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx (UUID v4)
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
 
   Duration get elapsed => Duration(
     milliseconds: DateTime.now().millisecondsSinceEpoch - startedAtMs,
@@ -46,6 +62,7 @@ class WorkoutSession {
     'routineId': routineId,
     'routineName': routineName,
     'uid': uid,
+    'sessionId': sessionId,
   };
 
   factory WorkoutSession.fromJson(Map<String, dynamic> json) {
@@ -69,6 +86,7 @@ class WorkoutSession {
       routineId: json['routineId'] as String?,
       routineName: json['routineName'] as String?,
       uid: json['uid'] as String?,
+      sessionId: json['sessionId'] as String?,
     );
   }
 }

@@ -2796,3 +2796,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made a paginate method to contain repeated pagination code
 - Added structured request logging middleware to the backend: every request now logs method, path, uid, status code, duration, and safe query params
 - Added a global exception handler that logs uid and full traceback for unhandled errors and returns consistent JSON 500 responses
+- Added an isSaving guard to the client so workouts cannot be recompleted
+- Fixed a bug where finishing a workout multiple times would create duplicate workout entries
+- The client now generates a UUID per session and the backend uses ON CONFLICT DO NOTHING so only the first submission inserts

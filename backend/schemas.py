@@ -345,6 +345,7 @@ class LogWorkoutRequest(BaseModel):
     date: str = Field(..., min_length=1)                # "YYYY-MM-DD"
     duration_seconds: int = Field(..., ge=0)
     exercises: list[LoggedExerciseRequest] = Field(..., min_length=1)  # must have at least one exercise
+    workout_id: str | None = None                       # client-generated UUID for idempotency
 
 class LogWorkoutResponse(BaseModel):
     workout_id: str

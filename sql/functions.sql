@@ -687,7 +687,8 @@ CREATE OR REPLACE FUNCTION log_workout(
     p_name             TEXT,
     p_date             DATE,
     p_duration_seconds INTEGER,
-    p_exercises        JSONB
+    p_exercises        JSONB,
+    p_workout_id       UUID DEFAULT NULL
 )
 RETURNS JSONB AS $$
 DECLARE
@@ -733,10 +734,16 @@ BEGIN
     INTO v_xp_already_awarded_today
     FROM users WHERE uid = p_uid;
 
-    -- insert workout row
-    INSERT INTO workouts (uid, name, date, duration_seconds, completed)
-    VALUES (p_uid, p_name, p_date, p_duration_seconds, true)
+    -- insert workout row, using client-supplied id for idempotency (duplicate submissions are ignored)
+    INSERT INTO workouts (workout_id, uid, name, date, duration_seconds, completed)
+    VALUES (COALESCE(p_workout_id, gen_random_uuid()), p_uid, p_name, p_date, p_duration_seconds, true)
+    ON CONFLICT (workout_id) DO NOTHING
     RETURNING workout_id INTO v_workout_id;
+
+    -- if DO NOTHING fired, this is a duplicate submission — return the existing workout_id
+    IF v_workout_id IS NULL THEN
+        RETURN jsonb_build_object('workout_id', p_workout_id, 'duplicate', true);
+    END IF;
 
     -- insert exercises and sets
     FOR v_exercise IN SELECT * FROM jsonb_array_elements(p_exercises) LOOP

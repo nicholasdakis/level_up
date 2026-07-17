@@ -460,7 +460,7 @@ class WorkoutRepository:
         }).execute().data[0]
         return workout_row["workout_id"]
 
-    def log_workout(self, uid: str, name: str | None, date: str, duration_seconds: int, exercises: list[dict]) -> dict:
+    def log_workout(self, uid: str, name: str | None, date: str, duration_seconds: int, exercises: list[dict], workout_id: str | None = None) -> dict:
         # strip parenthetical suffixes from exercise names before sending to the RPC
         clean = []
         for ex in exercises:
@@ -474,6 +474,7 @@ class WorkoutRepository:
             "p_date": date,
             "p_duration_seconds": duration_seconds,
             "p_exercises": clean,
+            "p_workout_id": workout_id,
         }).execute()
         return result.data
 
