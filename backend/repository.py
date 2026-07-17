@@ -3,6 +3,7 @@
 import re
 from supabase import Client
 from backend.valid_achievements import VALID_ACHIEVEMENT_IDS
+from backend.utils import paginate_query
 
 class UserRepository:
     # Repository class to handle all Postgres operations related to user data
@@ -236,7 +237,7 @@ class UserRepository:
         query = self._supabase.table("food_logs_v2").select("*").eq("uid", uid)
         if cutoff:
             query = query.gte("date", cutoff)
-        return self._paginate(query.order("date", desc=False).order("logged_at", desc=False))
+        return paginate_query(query.order("date", desc=False).order("logged_at", desc=False))
 
     def upsert_food_log_v2(self, uid: str, date: str, items: list):
         # Upserts food log rows for a given date
@@ -358,7 +359,7 @@ class UserRepository:
         query = self._supabase.table("water_logs").select("*").eq("uid", uid)
         if cutoff:
             query = query.gte("date", cutoff)
-        return self._paginate(query.order("date", desc=False))
+        return paginate_query(query.order("date", desc=False))
 
     def upsert_water_log(self, uid: str, date: str, entries_ml: list):
         self._supabase.table("water_logs").upsert({
@@ -371,7 +372,7 @@ class UserRepository:
         query = self._supabase.table("weight_logs").select("*").eq("uid", uid)
         if cutoff:
             query = query.gte("date", cutoff)
-        return self._paginate(query.order("date", desc=False))
+        return paginate_query(query.order("date", desc=False))
 
     def upsert_weight_log(self, uid: str, date: str, weight_kg: float):
         self._supabase.table("weight_logs").upsert({
@@ -476,18 +477,6 @@ class WorkoutRepository:
         }).execute()
         return result.data
 
-    def _paginate(self, query, page_size: int = 1000) -> list:
-        # Fetches all rows from a query by paginating through in chunks to bypass Supabase's hard row cap
-        offset = 0
-        all_rows = []
-        while True:
-            rows = query.range(offset, offset + page_size - 1).execute().data or []
-            all_rows.extend(rows)
-            if len(rows) < page_size:
-                break
-            offset += page_size
-        return all_rows
-
     def get_workout_analytics(self, uid: str, since: str | None = None) -> dict:
         # fetch workouts
         query = self._supabase.table("workouts") \
@@ -497,7 +486,7 @@ class WorkoutRepository:
             .order("date", desc=False)
         if since:
             query = query.gte("date", since)
-        workouts = self._paginate(query)
+        workouts = paginate_query(query)
 
         if not workouts:
             return {"workouts": [], "primary_muscles": {}, "secondary_muscles": {}, "pr_counts": {"weight": 0, "reps": 0, "volume": 0}}
@@ -505,7 +494,7 @@ class WorkoutRepository:
         workout_ids = [w["workout_id"] for w in workouts]
 
         # fetch exercises for these workouts with muscle data in one query
-        ex_rows = self._paginate(
+        ex_rows = paginate_query(
             self._supabase.table("workout_exercises")
                 .select("workout_id, workout_exercise_id, exercise_id")
                 .in_("workout_id", workout_ids)
@@ -514,7 +503,7 @@ class WorkoutRepository:
         ex_ids = [e["workout_exercise_id"] for e in ex_rows]
 
         # fetch sets to compute volume per workout
-        set_rows = self._paginate(
+        set_rows = paginate_query(
             self._supabase.table("workout_sets")
                 .select("workout_exercise_id, reps, weight_kg")
                 .in_("workout_exercise_id", ex_ids)

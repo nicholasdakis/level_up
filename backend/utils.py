@@ -44,6 +44,18 @@ FREE_PRESET_COLORS = {
     0xFF3A1A1A,  # Crimson
 }
 
+def paginate_query(query, page_size: int = 1000) -> list:
+    # Fetches all rows from a query by paginating through in chunks to bypass Supabase's hard row cap
+    offset = 0
+    all_rows = []
+    while True:
+        rows = query.range(offset, offset + page_size - 1).execute().data or []
+        all_rows.extend(rows)
+        if len(rows) < page_size:
+            break
+        offset += page_size
+    return all_rows
+
 # ----------------------
 # Daily Snapshot related utility functions
 MINUTES_IN_DAY = 1440 # for wrapping around the time when converting it

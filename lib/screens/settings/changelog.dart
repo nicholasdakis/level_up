@@ -74,6 +74,18 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
               _buildChangelogCard(
                 context,
                 appColor,
+                date: 'July 16, 2026',
+                version: '1.2.42',
+                changes: [
+                  'Badges tab redesigned with filters for greater convenience',
+                  'Micronutrients have been better implemented into Food Analytics',
+                  'Improved empty states, loading animations, and overall UI polish',
+                  'Many performance improvements for a smoother app experience',
+                ],
+              ),
+              _buildChangelogCard(
+                context,
+                appColor,
                 date: 'July 15, 2026',
                 version: '1.2.41',
                 changes: ['Performance improvements to the Food Logging tab'],
