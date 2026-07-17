@@ -538,51 +538,51 @@ def test_haversine_is_symmetric():
 
 # award_ad_xp tests -----------------
 
-# XP awarded must be 5-10% of the XP needed for the user's current level
-def test_award_ad_xp_range(mocker):
+# XP calculation and idempotency are handled inside the RPC; the service just reads the result
+def test_award_ad_xp_returns_xp_from_rpc(mocker):
     fake_repo = mocker.Mock()
-    fake_repo.get_user.return_value = {"level": 10, "exp_points": 0}
+    fake_repo.award_ad_xp.return_value = {"duplicate": False, "xp_gained": 50, "old_level": 5, "new_level": 5, "new_exp": 100}
     fake_achievement_repo = mocker.Mock()
     service = ProgressionService(fake_repo, None, fake_achievement_repo)
 
-    xp = service.award_ad_xp("user_123")
+    xp = service.award_ad_xp("user_123", "txn_abc", "admob")
 
-    needed = experience_needed(10)
-    assert int(needed * 0.05) <= xp <= int(needed * 0.10)
+    assert xp == 50
+    fake_repo.award_ad_xp.assert_called_once_with("user_123", "txn_abc", "admob")
 
-# When the user doesn't level up, the level achievement must not be tracked
-def test_award_ad_xp_no_level_up_no_achievement(mocker):
+# When the RPC signals a duplicate transaction, return 0 and skip achievement update
+def test_award_ad_xp_duplicate_returns_zero(mocker):
     fake_repo = mocker.Mock()
-    fake_repo.get_user.return_value = {"level": 5, "exp_points": 0}
+    fake_repo.award_ad_xp.return_value = {"duplicate": True, "xp_gained": 0}
     fake_achievement_repo = mocker.Mock()
-    mocker.patch("backend.services.progression_service.random.uniform", return_value=0.05)
     service = ProgressionService(fake_repo, None, fake_achievement_repo)
 
-    service.award_ad_xp("user_123")
+    xp = service.award_ad_xp("user_123", "txn_abc", "admob")
 
+    assert xp == 0
     fake_achievement_repo.set_achievement_progress.assert_not_called()
 
-# When the awarded XP causes a level-up, the level achievement must be tracked with the new level
+# When the RPC reports a level-up, the level achievement must be updated
 def test_award_ad_xp_level_up_tracks_achievement(mocker):
     fake_repo = mocker.Mock()
-    needed = experience_needed(5)
-    fake_repo.get_user.return_value = {"level": 5, "exp_points": needed - 1}
+    fake_repo.award_ad_xp.return_value = {"duplicate": False, "xp_gained": 50, "old_level": 5, "new_level": 6, "new_exp": 10}
     fake_achievement_repo = mocker.Mock()
-    mocker.patch("backend.services.progression_service.random.uniform", return_value=0.10)
     service = ProgressionService(fake_repo, None, fake_achievement_repo)
 
-    service.award_ad_xp("user_123")
+    service.award_ad_xp("user_123", "txn_abc", "admob")
 
     fake_achievement_repo.set_achievement_progress.assert_called_once_with("user_123", "level", 6)
 
-# A missing user must raise before touching the repo's XP update
-def test_award_ad_xp_user_not_found_raises(mocker):
+# When no level-up occurs, the level achievement must not be updated
+def test_award_ad_xp_no_level_up_no_achievement(mocker):
     fake_repo = mocker.Mock()
-    fake_repo.get_user.return_value = None
-    service = ProgressionService(fake_repo, None, mocker.Mock())
+    fake_repo.award_ad_xp.return_value = {"duplicate": False, "xp_gained": 50, "old_level": 5, "new_level": 5, "new_exp": 100}
+    fake_achievement_repo = mocker.Mock()
+    service = ProgressionService(fake_repo, None, fake_achievement_repo)
 
-    with pytest.raises(ValueError):
-        service.award_ad_xp("user_123")
+    service.award_ad_xp("user_123", "txn_abc", "admob")
+
+    fake_achievement_repo.set_achievement_progress.assert_not_called()
 
 # get_referral_code tests -----------------
 
