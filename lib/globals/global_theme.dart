@@ -80,6 +80,25 @@ Color _oklabShift(Color color, double amount) {
   return _fromOklab(lab);
 }
 
+// Button gradient colors: brighter/more saturated than card colors so the button stands out
+({
+  List<Color> gradient,
+  Color border,
+  Color label, // text/icon color on the button surface
+})
+buttonColors(Color base) {
+  final isDark = _relativeLuminance(base) < 0.18;
+  return (
+    gradient: isDark
+        ? [_oklabShift(base, 0.32), _oklabShift(base, 0.10)]
+        : [_oklabShift(base, -0.04), _oklabShift(base, -0.14)],
+    border: isDark
+        ? _oklabShift(base, 0.35).withAlpha(180)
+        : _oklabShift(base, -0.14).withAlpha(180),
+    label: Colors.white,
+  );
+}
+
 // Consistent card surface colors using perceptually uniform Oklab shifts
 // Branches on relative luminance (not HSL lightness) so red/pink/purple are handled correctly
 ({

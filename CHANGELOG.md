@@ -2838,3 +2838,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Consolidated the two duplicate workout name dialogs into a single shared _showNameWorkoutDialog method
 - Changed the weight card empty state value from "--" to "Not logged" with a smaller font size
 - Extracted a shared gradientButton widget in globals.dart and replaced all inline gradient button implementations across exercise_picker_screen, create_routine_screen, and active_workout_screen with it
+- Made the gradient button look better on light themes
+- Made near-invisible text look more visible on light themes

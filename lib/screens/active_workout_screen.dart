@@ -921,11 +921,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 decoration: BoxDecoration(
                   gradient: (_restEnabled == (option == 'On'))
                       ? LinearGradient(
-                          colors: [
-                            lightenColor(appColor, 0.38),
-                            lightenColor(appColor, 0.22),
-                            lightenColor(appColor, 0.06),
-                          ],
+                          colors: buttonColors(appColor).gradient,
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         )
@@ -942,8 +938,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         ? FontWeight.w700
                         : FontWeight.w500,
                     color: (_restEnabled == (option == 'On'))
-                        ? Colors.white
-                        : Colors.white.withAlpha(70),
+                        ? buttonColors(appColor).label
+                        : cardColors(appColor).onCard.withAlpha(120),
                   ),
                 ),
               ),
@@ -2352,10 +2348,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(8),
+                        color: cardColors(
+                          appColor,
+                        ).gradient.first.withAlpha(60),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withAlpha(28),
+                          color: cardColors(appColor).border.withAlpha(80),
                           width: 1.5,
                         ),
                       ),
@@ -2364,14 +2362,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         children: [
                           Icon(
                             Icons.delete_outline_rounded,
-                            color: Colors.white.withAlpha(90),
+                            color: cardColors(appColor).onCard.withAlpha(160),
                             size: Responsive.scale(context, 15),
                           ),
                           SizedBox(width: Responsive.width(context, 5)),
                           Text(
                             'Discard',
                             style: GoogleFonts.manrope(
-                              color: Colors.white.withAlpha(90),
+                              color: cardColors(appColor).onCard.withAlpha(160),
                               fontSize: Responsive.font(context, 13),
                               fontWeight: FontWeight.w600,
                             ),
@@ -2391,10 +2389,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         vertical: Responsive.height(context, 12),
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(8),
+                        color: cardColors(
+                          appColor,
+                        ).gradient.first.withAlpha(60),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withAlpha(28),
+                          color: cardColors(appColor).border.withAlpha(80),
                           width: 1.5,
                         ),
                       ),
@@ -2402,7 +2402,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         'Settings',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          color: Colors.white.withAlpha(140),
+                          color: cardColors(appColor).onCard,
                           fontSize: Responsive.font(context, 13),
                           fontWeight: FontWeight.w600,
                         ),
