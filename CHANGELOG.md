@@ -2809,3 +2809,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Made a globals folder and split the globals.dart file into smaller sub files
 - globals.dart now only contains the export of the new files so other screens can import globals with one line
 - Split repository.py into sub files in a repositories folder
+- AdMob SSV public keys are now cached in Redis for 24h instead of fetching from Google on every ad completion
+- Stale cache is invalidated and re-fetched if the key_id is not found
+- Google response parsing is now guarded against malformed JSON
+- Fixed Base64 padding in AdMob signature decoding to use correct length-based padding instead of always appending two characters

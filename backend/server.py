@@ -1075,21 +1075,53 @@ def admob_ssv():
         if not signature or not key_id:
             return jsonify({"error": "Missing required parameters"}), 400
 
-        # Fetch Google's public keys for SSV verification
-        keys_response = requests.get(
-            "https://gstatic.com/admob/reward/verifier-keys.json",
-            timeout=5
-        )
-        if keys_response.status_code != 200:
+        # Google publishes ECDSA public keys for verifying SSV callbacks at a well-known URL.
+        # Keys rotate infrequently so fetching on every ad completion is wasteful.
+        # Cache them in Redis for 24h to avoid the outbound HTTP call on the hot path.
+        import json as _json
+        _cache_key = "admob_verifier_keys"
+
+        def _fetch_admob_keys():
+            # Fetches fresh keys from Google and writes them to cache. Returns None if the request fails.
+            keys_response = requests.get(
+                "https://gstatic.com/admob/reward/verifier-keys.json",
+                timeout=5
+            )
+            if keys_response.status_code != 200:
+                return None
+            try:
+                fetched = keys_response.json()["keys"]
+            except (ValueError, KeyError):
+                logger.exception("Invalid AdMob verifier keys response")
+                return None
+            redis.setex(_cache_key, 86400, _json.dumps(fetched))
+            return fetched
+
+        _cached = redis.get(_cache_key)
+        _stale_keys = _json.loads(_cached) if _cached else None
+        # Use cached keys if available, otherwise fetch fresh (Redis TTL handles expiry)
+        keys = _stale_keys if _stale_keys is not None else _fetch_admob_keys()
+        if keys is None:
             logger.error("Failed to fetch AdMob verifier keys")
             return jsonify({"error": "Could not verify signature"}), 500
 
-        keys = keys_response.json()["keys"]
+        # Find the public key matching the key_id Google sent with this callback
         public_key_pem = None
         for key in keys:
             if str(key["keyId"]) == str(key_id):
                 public_key_pem = key["pem"]
                 break
+
+        if not public_key_pem and _stale_keys:
+            # key_id missing from cached keys means Google may have rotated since last fetch.
+            # Delete stale cache and re-fetch once before giving up.
+            redis.delete(_cache_key)
+            fresh = _fetch_admob_keys()
+            if fresh:
+                for key in fresh:
+                    if str(key["keyId"]) == str(key_id):
+                        public_key_pem = key["pem"]
+                        break
 
         if not public_key_pem:
             return jsonify({"error": "Key not found"}), 400
@@ -1102,7 +1134,7 @@ def admob_ssv():
 
         msg_end = query_string.rfind("&signature=")
         message = query_string[:msg_end].encode("utf-8")
-        sig_bytes = base64.urlsafe_b64decode(signature + "==")
+        sig_bytes = base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4))
 
         public_key = serialization.load_pem_public_key(public_key_pem.encode())
         public_key.verify(sig_bytes, message, ec.ECDSA(hashes.SHA256()))
