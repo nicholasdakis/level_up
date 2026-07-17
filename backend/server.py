@@ -7,6 +7,7 @@ import logging
 import requests
 from datetime import timezone, datetime
 from flask import Flask, jsonify, request, g
+from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
 from pydantic import ValidationError
 from firebase_admin import messaging
@@ -126,6 +127,7 @@ from google.auth.transport import requests as google_requests
 from googleapiclient.discovery import build as google_build
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Get the environmental variables from Render
@@ -185,6 +187,14 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
     return response
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    uid = getattr(g, 'uid', 'unauthenticated')
+    logger.exception("[%s] %s uid=%s unhandled exception", request.method, request.path, uid)
+    if isinstance(e, HTTPException):
+        return jsonify({"error": e.description}), e.code
+    return jsonify({"error": "internal server error"}), 500
 
 def _get_token():
     auth = request.headers.get("Authorization", "")  # e.g. "Bearer 12345..."

@@ -2794,3 +2794,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the get_food_logs_v2 route as this is already handled by food_analytics route and food data is now queried for by date, not all at once
 - Added pagination for workouts, workout_exercises, and workout_sets as well so that workout analytics work when All is chosen and there are 1000+ rows
 - Made a paginate method to contain repeated pagination code
+- Added structured request logging middleware to the backend: every request now logs method, path, uid, status code, duration, and safe query params
+- Added a global exception handler that logs uid and full traceback for unhandled errors and returns consistent JSON 500 responses
