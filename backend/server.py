@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import time
 import random
 import logging
 import requests
@@ -124,6 +125,7 @@ from google.oauth2 import service_account, id_token as google_id_token
 from google.auth.transport import requests as google_requests
 from googleapiclient.discovery import build as google_build
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 # Get the environmental variables from Render
@@ -159,11 +161,19 @@ if not firebase_admin._apps:
 app = Flask(__name__)
 CORS(app) # allow requests from desktop device browsers
 
-# Logs every request with the uid and status code for debugging user-specific issues in Render logs
+# Logs every request with uid, status, duration, and query params for debugging in Render logs
+@app.before_request
+def start_timer():
+    g.start_time = time.time()
+
 @app.after_request
 def log_request(response):
     uid = getattr(g, 'uid', 'unauthenticated')
-    logger.info(f"[{request.method}] {request.path} uid={uid} status={response.status_code}")
+    duration_ms = int((time.time() - getattr(g, 'start_time', time.time())) * 1000)
+    _safe = {'date', 'page'}
+    params = {k: v for k, v in request.args.items() if k in _safe}
+    param_str = f" params={params}" if params else ""
+    logger.info(f"[{request.method}] {request.path} uid={uid} status={response.status_code} {duration_ms}ms{param_str}")
     return response
 
 @app.after_request # runs after every request
