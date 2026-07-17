@@ -140,6 +140,14 @@ class WorkoutNotifier extends AsyncNotifier<WorkoutState> {
     );
   }
 
+  // called on logout: resets in-memory state only, leaves SharedPreferences intact so the session restores on re-login
+  void resetSessionState() {
+    _ticker?.cancel();
+    state = AsyncData(
+      (state.value ?? const WorkoutState()).copyWith(clearSession: true),
+    );
+  }
+
   // called on app launch to restore a session that survived a kill or navigation away
   Future<void> checkAndRestoreWorkoutSession() async {
     if (isGuest) return;

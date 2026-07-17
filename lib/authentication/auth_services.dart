@@ -48,7 +48,6 @@ class AuthService {
       if (kDebugMode) debugPrint('Error removing FCM token during signOut: $e');
     }
 
-    workoutNotifier.clearSession();
     appInitialized = false;
     appLaunchUri =
         Uri(); // clear stale route so sign-in doesn't restore previous user's screen

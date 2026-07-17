@@ -2830,3 +2830,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Upgraded the empty search state with an icon, descriptive message, a Create Exercise CTA button, and browse-by-muscle and browse-by-equipment grids
 - Restyled the exercise picker search bar to use OutlineInputBorder with a tinted accent border on focus, matching the app's input field style
 - Restyled the food logging search bar to match, preserving the shimmer Search button, mic, and clear button behavior
+- Added a check icon to the Save button in the routine creator and the Finish button in the active workout screen for visual consistency with the + Create button
+- The empty state shimmer in the routine creator now only animates the icon, not the text, to reduce visual noise
+- Made workouts stay stored in SharedPreferences on log out
