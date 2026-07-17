@@ -191,9 +191,9 @@ def add_cors_headers(response):
 @app.errorhandler(Exception)
 def handle_exception(e):
     uid = getattr(g, 'uid', 'unauthenticated')
-    logger.exception("[%s] %s uid=%s unhandled exception", request.method, request.path, uid)
     if isinstance(e, HTTPException):
         return jsonify({"error": e.description}), e.code
+    logger.exception("[%s] %s uid=%s unhandled exception", request.method, request.path, uid)
     return jsonify({"error": "internal server error"}), 500
 
 def _get_token():
