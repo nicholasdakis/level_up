@@ -608,21 +608,64 @@ RETURNS TABLE(rank BIGINT, total BIGINT) LANGUAGE sql STABLE AS $$
     (SELECT total_users FROM totals) AS total;
 $$;
 
--- award_ad_xp: Atomically awards XP for a verified rewarded ad watch
--- Called only by the AdMob SSV backend route, never by the client directly
+-- award_ad_xp: Atomically records the transaction, calculates XP, and awards it for a verified rewarded ad watch
+-- XP is calculated inside the RPC from the locked user row so Python cannot influence the award amount
+-- The user row is locked first, then ssv_transactions is inserted in the same transaction so
+-- two simultaneous callbacks cannot both pass the idempotency check and double-award XP
 CREATE OR REPLACE FUNCTION award_ad_xp(
     p_uid TEXT,
-    p_new_level INTEGER,
-    p_new_exp INTEGER
+    p_transaction_id TEXT,
+    p_source TEXT
 )
-RETURNS VOID AS $$
+RETURNS JSONB AS $$
+DECLARE
+    v_level INTEGER;
+    v_exp INTEGER;
+    v_is_premium BOOLEAN;
+    v_xp_gained INTEGER;
+    v_new_level INTEGER;
+    v_new_exp INTEGER;
 BEGIN
-    -- Lock the row so two simultaneous SSV callbacks can't double-award
-    PERFORM uid FROM users WHERE uid = p_uid FOR UPDATE;
+    -- Lock the user row first so concurrent callbacks queue up before the idempotency check
+    SELECT level, exp_points, COALESCE(is_premium, false)
+    INTO v_level, v_exp, v_is_premium
+    FROM users WHERE uid = p_uid FOR UPDATE;
 
-    UPDATE users
-    SET level = p_new_level, exp_points = p_new_exp
-    WHERE uid = p_uid;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    -- Insert the transaction ID; if it already exists this is a duplicate callback, return early
+    BEGIN
+        INSERT INTO ssv_transactions (transaction_id, uid, source)
+        VALUES (p_transaction_id, p_uid, p_source);
+    EXCEPTION WHEN unique_violation THEN
+        RETURN jsonb_build_object('duplicate', true, 'xp_gained', 0);
+    END;
+
+    -- Award 5-10% of XP needed for next level, with 1.2x premium multiplier
+    v_xp_gained := (experience_needed(v_level) * (0.05 + random() * 0.05))::INTEGER;
+    IF v_is_premium THEN
+        v_xp_gained := ROUND(v_xp_gained * 1.2);
+    END IF;
+
+    -- Apply level-ups
+    v_new_exp := v_exp + v_xp_gained;
+    v_new_level := v_level;
+    WHILE v_new_exp >= experience_needed(v_new_level) LOOP
+        v_new_exp := v_new_exp - experience_needed(v_new_level);
+        v_new_level := v_new_level + 1;
+    END LOOP;
+
+    UPDATE users SET level = v_new_level, exp_points = v_new_exp WHERE uid = p_uid;
+
+    RETURN jsonb_build_object(
+        'duplicate', false,
+        'xp_gained', v_xp_gained,
+        'old_level', v_level,
+        'new_level', v_new_level,
+        'new_exp', v_new_exp
+    );
 END
 $$ LANGUAGE plpgsql;
 

@@ -419,13 +419,14 @@ class UserRepository:
             .execute()
         return result.data[0] if result.data else {"is_premium": False, "premium_expires_at": None}
 
-    def update_user_xp(self, uid: str, new_level: int, new_exp: int):
-        # Uses award_ad_xp RPC for row-level locking to prevent double-awarding from concurrent SSV callbacks
-        self._supabase.rpc("award_ad_xp", {
+    def award_ad_xp(self, uid: str, transaction_id: str, source: str) -> dict:
+        # Calculates XP, records the transaction, and awards XP atomically inside the RPC
+        result = self._supabase.rpc("award_ad_xp", {
             "p_uid": uid,
-            "p_new_level": new_level,
-            "p_new_exp": new_exp,
+            "p_transaction_id": transaction_id,
+            "p_source": source,
         }).execute()
+        return result.data or {}
 
     def upsert_goals(self, uid: str, data: dict):
         # Insert or update goals row for this user

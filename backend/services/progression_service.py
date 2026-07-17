@@ -529,17 +529,14 @@ class ProgressionService: # Service class to handle all progression-related busi
                 return code
         raise ValueError("Failed to generate a unique referral code after 10 attempts")
 
-    def award_ad_xp(self, uid: str) -> int:
-        user = self._repo.get_user(uid)
-        if not user:
-            raise ValueError(f"User {uid} not found")
-        needed = experience_needed(user["level"])
-        xp_gained = int(needed * random.uniform(0.05, 0.10))  # 5-10% of XP needed for next level
-        if user.get("is_premium", False):
-            xp_gained = round(xp_gained * 1.2)
-        new_level, new_exp = calculate_level_up(user["level"], user["exp_points"], xp_gained)
-        self._repo.update_user_xp(uid, new_level, new_exp)
-        if new_level > user["level"]:
+    def award_ad_xp(self, uid: str, transaction_id: str, source: str) -> int:
+        result = self._repo.award_ad_xp(uid, transaction_id, source)
+        if result.get("duplicate"):
+            return 0
+        xp_gained = result.get("xp_gained", 0)
+        new_level = result.get("new_level")
+        old_level = result.get("old_level")
+        if new_level and old_level and new_level > old_level:
             self._achievement_repo.set_achievement_progress(uid, "level", new_level)
         return xp_gained
 

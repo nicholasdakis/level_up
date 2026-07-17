@@ -118,15 +118,12 @@ CREATE TABLE poi_visits (
     PRIMARY KEY (uid, poi_name)        -- one row per user per POI
 );
 
--- Stores processed responses so retried requests return the same result instead of re-executing
-CREATE TABLE idempotency_keys (
-    key TEXT,                          -- client-generated unique key (e.g. UUID) per request
-    uid TEXT REFERENCES users(uid) ON DELETE CASCADE,
-    endpoint TEXT,                     -- which route was called (e.g. "claim_daily_reward")
-    response JSONB,                    -- the exact JSON response returned the first time
-    created_at TIMESTAMPTZ DEFAULT now(),
-    expires_at TIMESTAMPTZ,
-    PRIMARY KEY (uid, key)             -- one key per user per request
+-- One row per ad callback transaction, prevents duplicate XP awards from AdMob and Unity retries
+CREATE TABLE ssv_transactions (
+    transaction_id TEXT PRIMARY KEY,
+    uid TEXT NOT NULL,
+    source TEXT NOT NULL, -- 'admob' or 'unity'
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Tracks user progress toward each achievement category (e.g. "level", "poi_visits")

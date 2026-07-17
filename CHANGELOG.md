@@ -2813,3 +2813,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Stale cache is invalidated and re-fetched if the key_id is not found
 - Google response parsing is now guarded against malformed JSON
 - Fixed Base64 padding in AdMob signature decoding to use correct length-based padding instead of always appending two characters
+- Added idempotency to AdMob and Unity SSV callbacks via a ssv_transactions table; the transaction_id insert and XP award now happen atomically inside the award_ad_xp RPC so duplicate callbacks cannot double-award XP even under concurrent load
+- Moved XP calculation entirely into the award_ad_xp RPC so Python can no longer influence the award amount
+- The RPC reads level and premium status directly from the locked user row, computes 5-10% of XP needed for next level, applies level-ups, and returns old_level and new_level so the achievement update only fires on actual level-ups

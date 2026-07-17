@@ -1144,7 +1144,8 @@ def admob_ssv():
             logger.info("[admob_ssv] Signature verified but no uid (test request)")
             return jsonify({"success": True, "xp_gained": 0}), 200
 
-        xp_gained = progression_service.award_ad_xp(uid)
+        transaction_id = request.args.get("transaction_id")
+        xp_gained = progression_service.award_ad_xp(uid, transaction_id=transaction_id, source="admob")
         logger.info(f"[admob_ssv] Awarded {xp_gained} XP to {uid}")
         return jsonify({"success": True, "xp_gained": xp_gained}), 200
 
@@ -1190,7 +1191,7 @@ def unity_ssv():
             logger.warning("[unity_ssv] Invalid HMAC")
             return "1", 200  # Unity expects "1" even on failure to prevent retries
 
-        xp_gained = progression_service.award_ad_xp(sid)
+        xp_gained = progression_service.award_ad_xp(sid, transaction_id=oid, source="unity")
         logger.info(f"[unity_ssv] Awarded {xp_gained} XP to {sid}")
         return "1", 200  # Unity requires body to be "1" on success
 
