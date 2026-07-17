@@ -718,7 +718,14 @@ AS $$
         array_length(p_muscle, 1) IS NULL OR               -- muscle filter goes in HAVING because it depends on the aggregated join
         BOOL_OR(LOWER(mg.name) = ANY(p_muscle))            -- BOOL_OR checks if any of the exercise's muscles match the filter
     )
-    ORDER BY e.name
+    ORDER BY
+        CASE                                                                   -- rank by match quality: prefix > word boundary > substring
+            WHEN p_q = '' THEN 0                                               -- no query, treat everything as equal so alphabetical takes over
+            WHEN LOWER(e.name) LIKE LOWER(p_q) || '%' THEN 0                  -- name starts with query, e.g. "Bench Press" for "bench"
+            WHEN LOWER(e.name) LIKE '% ' || LOWER(p_q) || '%' THEN 1         -- word within name starts with query, e.g. "Incline Bench Press"
+            ELSE 2                                                             -- substring anywhere, e.g. "Cable Bench Press"
+        END,
+        e.name
     LIMIT p_limit;
 $$;
 
