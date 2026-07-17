@@ -2800,7 +2800,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Fixed a bug where finishing a workout multiple times would create duplicate workout entries
 - The client now generates a UUID per session and the backend uses ON CONFLICT DO NOTHING so only the first submission inserts
 
-## 2026-07-17
+## 2026-07-18
 - Deleted dead textWithFont method
 - Extracted shared analytics stat tile widget and premium gate helper into analytics_components.dart; water, weight, and workout analytics screens now use these instead of duplicating the logic
 - Collapsed the three near-identical food analytics line chart classes (meal, macro, micro) into a single _FoodLineChart widget parameterized by series names, spot extraction, and tooltip/axis formatters
@@ -2816,3 +2816,9 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added idempotency to AdMob and Unity SSV callbacks via a ssv_transactions table; the transaction_id insert and XP award now happen atomically inside the award_ad_xp RPC so duplicate callbacks cannot double-award XP even under concurrent load
 - Moved XP calculation entirely into the award_ad_xp RPC so Python can no longer influence the award amount
 - The RPC reads level and premium status directly from the locked user row, computes 5-10% of XP needed for next level, applies level-ups, and returns old_level and new_level so the achievement update only fires on actual level-ups
+- Removed many junk exercises from the exercise list and added missing ones
+- Added a + icon to the Create button in the exercise picker so users can see it creates a new exercise
+- Removed the Level filter chip from the exercise picker, leaving Equipment and Muscle only
+- Custom exercises in the search results now show a "Custom" badge pill next to the muscle name
+- Removed the chevron icon from standard exercise rows in the picker since the entire row is tappable
+- Added "End of results" footer to the exercise search results list

@@ -1122,13 +1122,24 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                               width: 1.5,
                             ),
                           ),
-                          child: Text(
-                            'Create',
-                            style: GoogleFonts.manrope(
-                              color: Colors.white,
-                              fontSize: Responsive.font(context, 13),
-                              fontWeight: FontWeight.w700,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: Responsive.scale(context, 15),
+                              ),
+                              SizedBox(width: Responsive.width(context, 4)),
+                              Text(
+                                'Create',
+                                style: GoogleFonts.manrope(
+                                  color: Colors.white,
+                                  fontSize: Responsive.font(context, 13),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1236,21 +1247,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       ),
                     ),
                     SizedBox(width: Responsive.width(context, 10)),
-                    Expanded(
-                      child: _filterButton(
-                        'Level',
-                        _selectedLevel,
-                        () => _showFilterDialog(
-                          'Level',
-                          _levelOptions,
-                          _selectedLevel,
-                          (v) => setState(() => _selectedLevel = v),
-                        ),
-                      ),
-                    ),
                     if (_selectedEquipment.isNotEmpty ||
-                        _selectedMuscle.isNotEmpty ||
-                        _selectedLevel.isNotEmpty) ...[
+                        _selectedMuscle.isNotEmpty) ...[
                       SizedBox(width: Responsive.width(context, 10)),
                       GestureDetector(
                         onTap: () {
@@ -1374,13 +1372,32 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       : ScrollConfiguration(
                           behavior: NoGlowScrollBehavior(),
                           child: ListView.separated(
-                            itemCount: _results.length,
-                            separatorBuilder: (_, idx) => Divider(
-                              color: Colors.white.withAlpha(12),
-                              height: 1,
-                              thickness: 1,
-                            ),
+                            itemCount: _results.length + 1,
+                            separatorBuilder: (_, idx) =>
+                                idx < _results.length - 1 || _results.isEmpty
+                                ? Divider(
+                                    color: Colors.white.withAlpha(12),
+                                    height: 1,
+                                    thickness: 1,
+                                  )
+                                : const SizedBox.shrink(),
                             itemBuilder: (context, i) {
+                              if (i == _results.length) {
+                                return Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: Responsive.height(context, 12),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'End of results',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: Responsive.font(context, 12),
+                                        color: Colors.white.withAlpha(60),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
                               final ex = _results[i];
                               // strip trailing parenthetical suffixes from seeded data e.g. "Box Jump (Multiple Response)" -> "Box Jump"
                               final name = (ex['name'] as String? ?? '')
@@ -1496,15 +1513,50 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (subtitle.isNotEmpty)
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        color: Colors.white54,
-                        fontSize: Responsive.font(context, 12),
-                      ),
+                  if (subtitle.isNotEmpty || isCustom)
+                    Row(
+                      children: [
+                        if (subtitle.isNotEmpty)
+                          Flexible(
+                            child: Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.manrope(
+                                color: Colors.white54,
+                                fontSize: Responsive.font(context, 12),
+                              ),
+                            ),
+                          ),
+                        if (isCustom) ...[
+                          if (subtitle.isNotEmpty)
+                            SizedBox(width: Responsive.width(context, 6)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Responsive.width(context, 6),
+                              vertical: Responsive.height(context, 2),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(18),
+                              borderRadius: BorderRadius.circular(
+                                Responsive.scale(context, 4),
+                              ),
+                              border: Border.all(
+                                color: Colors.white.withAlpha(35),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              'Custom',
+                              style: GoogleFonts.manrope(
+                                color: Colors.white38,
+                                fontSize: Responsive.font(context, 10),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                 ],
               ),
@@ -1523,11 +1575,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 ),
               )
             else
-              Icon(
-                Icons.chevron_right,
-                color: Colors.white30,
-                size: Responsive.scale(context, 20),
-              ),
+              const SizedBox.shrink(),
           ],
         ),
       ),
