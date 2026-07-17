@@ -68,16 +68,7 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
   // Sets the chart range based on the selected quick-select chip
   void _applyChip(int index) {
-    if (!_isPremium && index >= 2) {
-      showProFeatureDialog(
-        context,
-        feature: 'Full Progress History',
-        appColor: appColor,
-        onLearnMore: () {
-          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
-          showPremiumSheet(context, ref);
-        },
-      );
+    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index)) {
       return;
     }
     final now = DateTime.now();
@@ -396,7 +387,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     List<MapEntry<String, double>> entries,
   ) {
     final unit = UnitConverter.weightUnit(imperial: isImperial);
-    final accent = lightenColor(appColor, 0.45);
 
     String fmt(double kg) => isImperial
         ? '${UnitConverter.displayWeight(kg, imperial: true)} $unit'
@@ -408,66 +398,6 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
     // positive delta = gained, negative = lost
     final delta = (first != null && last != null) ? last - first : null;
 
-    Widget tile(
-      IconData icon,
-      String label,
-      String value, {
-      Color? valueColor,
-    }) {
-      return Expanded(
-        child: frostedGlassCard(
-          context,
-          color: appColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 10),
-            vertical: Responsive.height(context, 14),
-          ),
-          child: Column(
-            children: [
-              HugeIcon(
-                icon: icon,
-                color: accent,
-                size: Responsive.font(context, 18),
-              ),
-              SizedBox(height: Responsive.height(context, 6)),
-              Text(
-                value,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  fontSize: Responsive.font(context, 13),
-                  fontWeight: FontWeight.w800,
-                  color: valueColor ?? lightenColor(appColor, 0.45),
-                  height: 1.1,
-                ),
-              ),
-              SizedBox(height: Responsive.height(context, 6)),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 8),
-                    vertical: Responsive.height(context, 3),
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withAlpha(40),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    label,
-                    style: GoogleFonts.manrope(
-                      fontSize: Responsive.font(context, 10),
-                      fontWeight: FontWeight.w600,
-                      color: accent,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     String deltaStr = '--';
     if (delta != null) {
       final sign = delta > 0 ? '+' : '';
@@ -478,19 +408,29 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
 
     return Row(
       children: [
-        tile(
-          HugeIcons.strokeRoundedWeightScale,
-          "Start",
-          first != null ? fmt(first) : '--',
+        analyticsStatTile(
+          context,
+          appColor,
+          icon: HugeIcons.strokeRoundedWeightScale,
+          label: "Start",
+          value: first != null ? fmt(first) : '--',
         ),
         SizedBox(width: Responsive.width(context, 10)),
-        tile(
-          HugeIcons.strokeRoundedWeightScale,
-          "Current",
-          last != null ? fmt(last) : '--',
+        analyticsStatTile(
+          context,
+          appColor,
+          icon: HugeIcons.strokeRoundedWeightScale,
+          label: "Current",
+          value: last != null ? fmt(last) : '--',
         ),
         SizedBox(width: Responsive.width(context, 10)),
-        tile(HugeIcons.strokeRoundedActivity01, "Change", deltaStr),
+        analyticsStatTile(
+          context,
+          appColor,
+          icon: HugeIcons.strokeRoundedActivity01,
+          label: "Change",
+          value: deltaStr,
+        ),
       ],
     );
   }

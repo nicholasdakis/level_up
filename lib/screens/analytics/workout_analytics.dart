@@ -121,17 +121,7 @@ class _WorkoutAnalyticsScreenState
   }
 
   void _applyChip(int index) {
-    // chips 2+ (1M, 3M, All) require premium
-    if (!_isPremium && index >= 2) {
-      showProFeatureDialog(
-        context,
-        feature: 'Full Progress History',
-        appColor: appColor,
-        onLearnMore: () {
-          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
-          showPremiumSheet(context, ref);
-        },
-      );
+    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index)) {
       return;
     }
     final now = DateTime.now();

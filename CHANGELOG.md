@@ -2802,3 +2802,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 
 ## 2026-07-17
 - Deleted dead textWithFont method
+- Extracted shared analytics stat tile widget and premium gate helper into analytics_components.dart; water, weight, and workout analytics screens now use these instead of duplicating the logic

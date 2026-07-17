@@ -106,16 +106,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
 
   // Sets the chart range based on the selected quick-select chip
   void _applyChip(int index) {
-    if (!_isPremium && index >= 2) {
-      showProFeatureDialog(
-        context,
-        feature: 'Full Progress History',
-        appColor: appColor,
-        onLearnMore: () {
-          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
-          showPremiumSheet(context, ref);
-        },
-      );
+    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index)) {
       return;
     }
     final now = DateTime.now();
@@ -400,7 +391,6 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
     List<MapEntry<String, int>> entries,
   ) {
     final unit = isImperial ? 'oz' : 'ml';
-    final accent = lightenColor(appColor, 0.45);
 
     String fmt(int ml) => isImperial
         ? '${UnitConverter.displayWater(ml, imperial: true)} $unit'
@@ -416,71 +406,22 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
         ? entries.reduce((a, b) => a.value > b.value ? a : b).value
         : 0;
 
-    Widget tile(IconData icon, String label, String value) => Expanded(
-      child: frostedGlassCard(
-        context,
-        color: appColor,
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.width(context, 10),
-          vertical: Responsive.height(context, 14),
-        ),
-        child: Column(
-          children: [
-            HugeIcon(
-              icon: icon,
-              color: accent,
-              size: Responsive.font(context, 18),
-            ),
-            SizedBox(height: Responsive.height(context, 6)),
-            Text(
-              value,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 13),
-                fontWeight: FontWeight.w800,
-                color: accent,
-                height: 1.1,
-              ),
-            ),
-            SizedBox(height: Responsive.height(context, 6)),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 8),
-                  vertical: Responsive.height(context, 3),
-                ),
-                decoration: BoxDecoration(
-                  color: accent.withAlpha(40),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  label,
-                  style: GoogleFonts.manrope(
-                    fontSize: Responsive.font(context, 10),
-                    fontWeight: FontWeight.w600,
-                    color: accent,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
     return Row(
       children: [
-        tile(
-          HugeIcons.strokeRoundedDroplet,
-          'Avg/day',
-          entries.isEmpty ? '--' : fmt(avg),
+        analyticsStatTile(
+          context,
+          appColor,
+          icon: HugeIcons.strokeRoundedDroplet,
+          label: 'Avg/day',
+          value: entries.isEmpty ? '--' : fmt(avg),
         ),
         SizedBox(width: Responsive.width(context, 10)),
-        tile(
-          HugeIcons.strokeRoundedStar,
-          'Best day',
-          entries.isEmpty ? '--' : fmt(best),
+        analyticsStatTile(
+          context,
+          appColor,
+          icon: HugeIcons.strokeRoundedStar,
+          label: 'Best day',
+          value: entries.isEmpty ? '--' : fmt(best),
         ),
       ],
     );

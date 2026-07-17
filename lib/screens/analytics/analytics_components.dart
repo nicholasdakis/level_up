@@ -7,6 +7,93 @@ import '../../globals.dart';
 import '../../utility/responsive.dart';
 import '/providers/user_data_provider.dart';
 import '/services/user_data_manager.dart' show defaultAppColor;
+import '../premium_sheet.dart' show showPremiumSheet;
+
+// Stat tile used in the summary row across analytics screens
+Widget analyticsStatTile(
+  BuildContext context,
+  Color appColor, {
+  required IconData icon,
+  required String label,
+  required String value,
+  Color? valueColor,
+}) {
+  final accent = lightenColor(appColor, 0.45);
+  return Expanded(
+    child: frostedGlassCard(
+      context,
+      color: appColor,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, 10),
+        vertical: Responsive.height(context, 14),
+      ),
+      child: Column(
+        children: [
+          HugeIcon(
+            icon: icon,
+            color: accent,
+            size: Responsive.font(context, 18),
+          ),
+          SizedBox(height: Responsive.height(context, 6)),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.manrope(
+              fontSize: Responsive.font(context, 13),
+              fontWeight: FontWeight.w800,
+              color: valueColor ?? accent,
+              height: 1.1,
+            ),
+          ),
+          SizedBox(height: Responsive.height(context, 6)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 8),
+                vertical: Responsive.height(context, 3),
+              ),
+              decoration: BoxDecoration(
+                color: accent.withAlpha(40),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 10),
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Returns true if the premium gate was shown (caller should return early)
+// Used in _applyChip across analytics screens to block chips 2+ for free users
+bool showAnalyticsPremiumGate(
+  BuildContext context,
+  WidgetRef ref,
+  Color appColor,
+  bool isPremium,
+  int index,
+) {
+  if (isPremium || index < 2) return false;
+  showProFeatureDialog(
+    context,
+    feature: 'Full Progress History',
+    appColor: appColor,
+    onLearnMore: () {
+      logAnalyticsEvent('premium_sheet_opened_from_learn_more');
+      showPremiumSheet(context, ref);
+    },
+  );
+  return true;
+}
 
 // Calendar range picker card + hint text, shared across analytics screens
 // onRangeSelected fires when both dates are picked; rangeLabel appears in the hint text
