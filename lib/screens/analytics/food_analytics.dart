@@ -113,8 +113,9 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   DateTime get _cutoff => DateTime.now().subtract(const Duration(days: 13));
 
   void _applyChip(int index) {
-    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index))
+    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index)) {
       return;
+    }
     final now = DateTime.now();
     final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     setState(() {

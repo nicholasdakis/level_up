@@ -2806,3 +2806,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Collapsed the three near-identical food analytics line chart classes (meal, macro, micro) into a single _FoodLineChart widget parameterized by series names, spot extraction, and tooltip/axis formatters
 - Collapsed the three food analytics bar charts into a shared _foodBarChart method parameterized by labels, values, and a top title builder callback
 - Moved the inline premium gate and locked chip tap callbacks out of all four analytics screens into shared helpers in analytics_components.dart
+- Made a globals folder and split the globals.dart file into smaller sub files
+- globals.dart now only contains the export of the new files so other screens can import globals with one line
