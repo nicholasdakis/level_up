@@ -784,16 +784,10 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                               shimmerIndices: _isPremium ? [] : [2, 3, 4],
                               onLockedTap: _isPremium
                                   ? null
-                                  : () => showProFeatureDialog(
+                                  : analyticsLockedChipTap(
                                       context,
-                                      feature: 'Full Progress History',
-                                      appColor: appColor,
-                                      onLearnMore: () {
-                                        logAnalyticsEvent(
-                                          'premium_sheet_opened_from_learn_more',
-                                        );
-                                        showPremiumSheet(context, ref);
-                                      },
+                                      ref,
+                                      appColor,
                                     ),
                             )
                             .animate(key: ValueKey(('chips', _animationKey)))

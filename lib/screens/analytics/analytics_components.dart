@@ -83,6 +83,23 @@ bool showAnalyticsPremiumGate(
   int index,
 ) {
   if (isPremium || index < 2) return false;
+  _showAnalyticsProDialog(context, ref, appColor);
+  return true;
+}
+
+// Callback for onLockedTap on shimmer chips, shows the pro feature dialog
+VoidCallback analyticsLockedChipTap(
+  BuildContext context,
+  WidgetRef ref,
+  Color appColor,
+) =>
+    () => _showAnalyticsProDialog(context, ref, appColor);
+
+void _showAnalyticsProDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Color appColor,
+) {
   showProFeatureDialog(
     context,
     feature: 'Full Progress History',
@@ -92,7 +109,6 @@ bool showAnalyticsPremiumGate(
       showPremiumSheet(context, ref);
     },
   );
-  return true;
 }
 
 // Calendar range picker card + hint text, shared across analytics screens

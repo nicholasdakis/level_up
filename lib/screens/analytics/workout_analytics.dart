@@ -284,17 +284,7 @@ class _WorkoutAnalyticsScreenState
                           shimmerIndices: _isPremium ? [] : [2, 3, 4],
                           onLockedTap: _isPremium
                               ? null
-                              : () => showProFeatureDialog(
-                                  context,
-                                  feature: 'Full Progress History',
-                                  appColor: appColor,
-                                  onLearnMore: () {
-                                    logAnalyticsEvent(
-                                      'premium_sheet_opened_from_learn_more',
-                                    );
-                                    showPremiumSheet(context, ref);
-                                  },
-                                ),
+                              : analyticsLockedChipTap(context, ref, appColor),
                         ),
                         SizedBox(height: Responsive.height(context, 12)),
 

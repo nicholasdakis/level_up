@@ -113,18 +113,8 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   DateTime get _cutoff => DateTime.now().subtract(const Duration(days: 13));
 
   void _applyChip(int index) {
-    if (!_isPremium && index >= 2) {
-      showProFeatureDialog(
-        context,
-        feature: 'Full Progress History',
-        appColor: appColor,
-        onLearnMore: () {
-          logAnalyticsEvent('premium_sheet_opened_from_learn_more');
-          showPremiumSheet(context, ref);
-        },
-      );
+    if (showAnalyticsPremiumGate(context, ref, appColor, _isPremium, index))
       return;
-    }
     final now = DateTime.now();
     final logs = ref.read(foodLogsAnalyticsProvider).value ?? [];
     setState(() {
@@ -1184,17 +1174,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
               shimmerIndices: _isPremium ? [] : [2, 3, 4],
               onLockedTap: _isPremium
                   ? null
-                  : () => showProFeatureDialog(
-                      context,
-                      feature: 'Full Progress History',
-                      appColor: appColor,
-                      onLearnMore: () {
-                        logAnalyticsEvent(
-                          'premium_sheet_opened_from_learn_more',
-                        );
-                        showPremiumSheet(context, ref);
-                      },
-                    ),
+                  : analyticsLockedChipTap(context, ref, appColor),
             ),
             SizedBox(height: Responsive.height(context, 12)),
             RangePickerCard(
