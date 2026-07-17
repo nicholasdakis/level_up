@@ -1848,13 +1848,24 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                   width: 1.5,
                 ),
               ),
-              child: Text(
-                'Finish',
-                style: GoogleFonts.manrope(
-                  color: Colors.white,
-                  fontSize: Responsive.font(context, 15),
-                  fontWeight: FontWeight.w700,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: Responsive.scale(context, 15),
+                  ),
+                  SizedBox(width: Responsive.width(context, 4)),
+                  Text(
+                    'Finish',
+                    style: GoogleFonts.manrope(
+                      color: Colors.white,
+                      fontSize: Responsive.font(context, 15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -591,13 +591,24 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
                         color: Colors.white,
                       ),
                     )
-                  : Text(
-                      'Save',
-                      style: GoogleFonts.manrope(
-                        color: Colors.white,
-                        fontSize: Responsive.font(context, 14),
-                        fontWeight: FontWeight.w700,
-                      ),
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: Responsive.scale(context, 15),
+                        ),
+                        SizedBox(width: Responsive.width(context, 4)),
+                        Text(
+                          'Save',
+                          style: GoogleFonts.manrope(
+                            color: Colors.white,
+                            fontSize: Responsive.font(context, 14),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
@@ -607,13 +618,13 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
   }
 
   Widget _buildEmptyState(BuildContext context, Color accent, Color dim) {
-    return ShimmerWidget(
-      accent: lightenColor(appColor, 0.45),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ShimmerWidget(
+          accent: lightenColor(appColor, 0.45),
+          child: AnimatedBuilder(
             animation: _pulseScale,
             builder: (context, child) =>
                 Transform.scale(scale: _pulseScale.value, child: child),
@@ -623,17 +634,17 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
               size: Responsive.scale(context, 54),
             ),
           ),
-          SizedBox(height: Responsive.height(context, 16)),
-          Text(
-            'Add an Exercise',
-            style: GoogleFonts.manrope(
-              color: Colors.white.withAlpha(180),
-              fontSize: Responsive.font(context, 16),
-              fontWeight: FontWeight.w600,
-            ),
+        ),
+        SizedBox(height: Responsive.height(context, 16)),
+        Text(
+          'Add an Exercise',
+          style: GoogleFonts.manrope(
+            color: Colors.white.withAlpha(180),
+            fontSize: Responsive.font(context, 16),
+            fontWeight: FontWeight.w600,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

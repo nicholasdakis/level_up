@@ -229,6 +229,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     manualSodiumController.dispose();
     manualServingAmountController.dispose();
     _recentServingController.dispose();
+    _searchFocusNode.unfocus();
     _searchFocusNode.dispose();
     super.dispose();
   }
