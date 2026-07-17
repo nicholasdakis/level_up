@@ -94,6 +94,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
   ];
 
   final TextEditingController searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController _customUnitController = TextEditingController();
   final TextEditingController manualNameController = TextEditingController();
   final TextEditingController manualCaloriesController =
@@ -228,6 +229,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
     manualSodiumController.dispose();
     manualServingAmountController.dispose();
     _recentServingController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -1614,151 +1616,159 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
               ),
 
               // Search bar, mic on the right, no leading icon
-              frostedGlassCard(
-                context,
-                color: appColor,
-                baseRadius: 14,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.width(context, 14),
-                  vertical: Responsive.height(context, 8),
+              TextField(
+                controller: searchController,
+                focusNode: _searchFocusNode,
+                readOnly: isGuest,
+                onTap: isGuest ? () => Guest.block(context) : null,
+                keyboardType: TextInputType.text,
+                style: GoogleFonts.manrope(
+                  fontSize: Responsive.font(context, 15),
+                  color: accent,
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.search,
-                      color: c.onCard.withAlpha(120),
-                      size: Responsive.font(context, 20),
-                    ),
-                    SizedBox(width: Responsive.width(context, 10)),
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        readOnly: isGuest,
-                        onTap: isGuest ? () => Guest.block(context) : null,
-                        keyboardType: TextInputType.text,
-                        style: GoogleFonts.manrope(
-                          fontSize: Responsive.font(context, 15),
-                          color: accent,
-                        ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Search for a food...",
-                          hintStyle: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 15),
-                            color: c.onCard.withAlpha(100),
-                          ),
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(
-                            vertical: Responsive.height(context, 16),
-                            horizontal: Responsive.width(context, 4),
-                          ),
-                        ),
-                        onChanged: _filterRecents,
-                        onSubmitted: (v) {
-                          _searchHintTimer?.cancel();
-                          setState(() => _showSearchHint = false);
-                          handleApiCall(v);
-                        },
-                      ),
-                    ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeOut,
-                      child: searchController.text.isNotEmpty
-                          ? GestureDetector(
-                              onTap: () {
-                                _searchHintTimer?.cancel();
-                                setState(() {
-                                  _showingRecentMatches = false;
-                                  _showSearchHint = false;
-                                });
-                                handleApiCall(searchController.text);
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 10),
-                                  vertical: Responsive.height(context, 8),
-                                ),
-                                child: _showSearchHint
-                                    ? Text(
-                                            'Search',
-                                            style: GoogleFonts.manrope(
-                                              color: accent,
-                                              fontSize: Responsive.font(
-                                                context,
-                                                13,
+                decoration: InputDecoration(
+                  hintText: "Search for a food...",
+                  hintStyle: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 15),
+                    color: c.onCard.withAlpha(100),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: c.onCard.withAlpha(120),
+                    size: Responsive.font(context, 20),
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOut,
+                        child: searchController.text.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  _searchHintTimer?.cancel();
+                                  setState(() {
+                                    _showingRecentMatches = false;
+                                    _showSearchHint = false;
+                                  });
+                                  handleApiCall(searchController.text);
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(context, 10),
+                                    vertical: Responsive.height(context, 8),
+                                  ),
+                                  child: _showSearchHint
+                                      ? Text(
+                                              'Search',
+                                              style: GoogleFonts.manrope(
+                                                color: accent,
+                                                fontSize: Responsive.font(
+                                                  context,
+                                                  13,
+                                                ),
+                                                fontWeight: FontWeight.w700,
                                               ),
-                                              fontWeight: FontWeight.w700,
+                                            )
+                                            .animate(onPlay: (c) => c.repeat())
+                                            .shimmer(
+                                              duration: 2000.ms,
+                                              color:
+                                                  accent.computeLuminance() >
+                                                      0.5
+                                                  ? darkenColor(
+                                                      accent,
+                                                      0.35,
+                                                    ).withAlpha(200)
+                                                  : lightenColor(
+                                                      accent,
+                                                      0.4,
+                                                    ).withAlpha(200),
+                                            )
+                                      : Text(
+                                          'Search',
+                                          style: GoogleFonts.manrope(
+                                            color: accent,
+                                            fontSize: Responsive.font(
+                                              context,
+                                              13,
                                             ),
-                                          )
-                                          .animate(onPlay: (c) => c.repeat())
-                                          .shimmer(
-                                            duration: 2000.ms,
-                                            color:
-                                                accent.computeLuminance() > 0.5
-                                                ? darkenColor(
-                                                    accent,
-                                                    0.35,
-                                                  ).withAlpha(200)
-                                                : lightenColor(
-                                                    accent,
-                                                    0.4,
-                                                  ).withAlpha(200),
-                                          )
-                                    : Text(
-                                        'Search',
-                                        style: GoogleFonts.manrope(
-                                          color: accent,
-                                          fontSize: Responsive.font(
-                                            context,
-                                            13,
+                                            fontWeight: FontWeight.w700,
                                           ),
-                                          fontWeight: FontWeight.w700,
                                         ),
-                                      ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    // mic icon in search bar shows active state when listening
-                    GestureDetector(
-                      onTap: _toggleListening,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.width(context, 8),
-                        ),
-                        child: HugeIcon(
-                          icon: _voiceSearch.isListening
-                              ? HugeIcons.strokeRoundedMic01
-                              : HugeIcons.strokeRoundedMic02,
-                          color: _voiceSearch.isListening
-                              ? accent
-                              : c.onCard.withAlpha(140),
-                          size: Responsive.font(context, 20),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      // mic icon in search bar shows active state when listening
+                      GestureDetector(
+                        onTap: _toggleListening,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.width(context, 8),
+                          ),
+                          child: HugeIcon(
+                            icon: _voiceSearch.isListening
+                                ? HugeIcons.strokeRoundedMic01
+                                : HugeIcons.strokeRoundedMic02,
+                            color: _voiceSearch.isListening
+                                ? accent
+                                : c.onCard.withAlpha(140),
+                            size: Responsive.font(context, 20),
+                          ),
                         ),
                       ),
-                    ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeOut,
-                      child: searchController.text.isNotEmpty
-                          ? GestureDetector(
-                              onTap: _clearSelection,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Responsive.width(context, 8),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOut,
+                        child: searchController.text.isNotEmpty
+                            ? GestureDetector(
+                                onTap: _clearSelection,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Responsive.width(context, 8),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: c.onCard.withAlpha(140),
+                                    size: Responsive.font(context, 20),
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.close,
-                                  color: c.onCard.withAlpha(140),
-                                  size: Responsive.font(context, 20),
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withAlpha(12),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
                     ),
-                  ],
+                    borderSide: BorderSide(
+                      color: lightenColor(appColor, 0.2).withAlpha(80),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    borderSide: BorderSide(
+                      color: lightenColor(appColor, 0.4),
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: Responsive.height(context, 13),
+                    horizontal: Responsive.width(context, 4),
+                  ),
                 ),
+                onChanged: _filterRecents,
+                onSubmitted: (v) {
+                  _searchHintTimer?.cancel();
+                  setState(() => _showSearchHint = false);
+                  handleApiCall(v);
+                },
               ),
 
               SizedBox(height: Responsive.height(context, 20)),

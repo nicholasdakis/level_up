@@ -1116,72 +1116,66 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 ),
 
                 // search bar
-                frostedGlassCard(
-                  context,
-                  color: appColor,
-                  baseRadius: 14,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 14),
-                    vertical: Responsive.height(context, 10),
+                TextField(
+                  controller: _searchController,
+                  keyboardType: TextInputType.text,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 14),
+                    color: Colors.white,
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.search,
-                        color: Colors.white38,
-                        size: Responsive.font(context, 18),
-                      ),
-                      SizedBox(width: Responsive.width(context, 10)),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          keyboardType: TextInputType.text,
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 14),
-                            color: Colors.white,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Search exercise...',
-                            hintStyle: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 14),
-                              color: Colors.white30,
+                  decoration: InputDecoration(
+                    hintText: 'Search exercise...',
+                    hintStyle: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 14),
+                      color: Colors.white30,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.white38,
+                      size: Responsive.font(context, 18),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _debounce?.cancel();
+                              _searchController.clear();
+                              setState(() {
+                                _results = [];
+                                _hasSearched = false;
+                              });
+                            },
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white38,
+                              size: Responsive.font(context, 16),
                             ),
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: Responsive.height(context, 12),
-                            ),
-                          ),
-                          onChanged: _onSearchChanged,
-                        ),
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white.withAlpha(12),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 12),
                       ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 200),
-                        child: _searchController.text.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () {
-                                  _debounce?.cancel();
-                                  _searchController.clear();
-                                  setState(() {
-                                    _results = [];
-                                    _hasSearched = false;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                    left: Responsive.width(context, 8),
-                                  ),
-                                  child: Icon(
-                                    Icons.close,
-                                    color: Colors.white38,
-                                    size: Responsive.font(context, 16),
-                                  ),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
+                      borderSide: BorderSide(
+                        color: lightenColor(appColor, 0.2).withAlpha(80),
                       ),
-                    ],
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        Responsive.scale(context, 12),
+                      ),
+                      borderSide: BorderSide(
+                        color: lightenColor(appColor, 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: Responsive.width(context, 14),
+                      vertical: Responsive.height(context, 13),
+                    ),
                   ),
+                  onChanged: _onSearchChanged,
                 ),
 
                 SizedBox(height: Responsive.height(context, 12)),
@@ -1214,7 +1208,6 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(width: Responsive.width(context, 10)),
                     if (_selectedEquipment.isNotEmpty ||
                         _selectedMuscle.isNotEmpty) ...[
                       SizedBox(width: Responsive.width(context, 10)),

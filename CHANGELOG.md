@@ -2828,3 +2828,5 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the "Add Exercise" title from the picker header
 - Increased search bar padding
 - Upgraded the empty search state with an icon, descriptive message, a Create Exercise CTA button, and browse-by-muscle and browse-by-equipment grids
+- Restyled the exercise picker search bar to use OutlineInputBorder with a tinted accent border on focus, matching the app's input field style
+- Restyled the food logging search bar to match, preserving the shimmer Search button, mic, and clear button behavior
