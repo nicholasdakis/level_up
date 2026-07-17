@@ -1328,14 +1328,9 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                             ? _buildRecentsSkeleton(context)
                             : _buildRecentExercisesList(context)
                       : _results.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No exercises found',
-                            style: GoogleFonts.manrope(
-                              color: Colors.white38,
-                              fontSize: Responsive.font(context, 13),
-                            ),
-                          ),
+                      ? _buildRecentExercisesList(
+                          context,
+                          emptyStateHeader: true,
                         )
                       : ScrollConfiguration(
                           behavior: NoGlowScrollBehavior(),
@@ -1569,6 +1564,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   Widget _buildRecentExercisesList(
     BuildContext context, {
     List<Map<String, dynamic>>? skeletonRecents,
+    bool emptyStateHeader = false,
   }) {
     Widget sectionHeader(String label) => Padding(
       padding: EdgeInsets.only(
@@ -1589,6 +1585,83 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       behavior: NoGlowScrollBehavior(),
       child: ListView(
         children: [
+          if (emptyStateHeader) ...[
+            SizedBox(height: Responsive.height(context, 40)),
+            Icon(
+              Icons.search_off_rounded,
+              color: Colors.white24,
+              size: Responsive.scale(context, 40),
+            ),
+            SizedBox(height: Responsive.height(context, 12)),
+            Text(
+              'No exercises found',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: Colors.white54,
+                fontSize: Responsive.font(context, 15),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 6)),
+            Text(
+              'Try a different search or create your own',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                color: Colors.white30,
+                fontSize: Responsive.font(context, 13),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 24)),
+            Center(
+              child: GestureDetector(
+                onTap: _showCreateExerciseDialog,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.width(context, 20),
+                    vertical: Responsive.height(context, 12),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        lightenColor(appColor, 0.35),
+                        lightenColor(appColor, 0.20),
+                        lightenColor(appColor, 0.05),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.scale(context, 12),
+                    ),
+                    border: Border.all(
+                      color: lightenColor(appColor, 0.25).withAlpha(180),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: Responsive.scale(context, 16),
+                      ),
+                      SizedBox(width: Responsive.width(context, 6)),
+                      Text(
+                        'Create Exercise',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: Responsive.font(context, 14),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: Responsive.height(context, 36)),
+          ],
           if (_recommendedExercises.isNotEmpty) ...[
             sectionHeader('RECOMMENDED'),
             for (int i = 0; i < _recommendedExercises.length; i++) ...[
@@ -1613,7 +1686,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ],
             SizedBox(height: Responsive.height(context, 16)),
           ],
-          if ((skeletonRecents ?? _recentExercises).isNotEmpty) ...[
+          if (!emptyStateHeader &&
+              (skeletonRecents ?? _recentExercises).isNotEmpty) ...[
             sectionHeader('RECENTLY LOGGED EXERCISES'),
             for (
               int i = 0;

@@ -2821,4 +2821,10 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Removed the Level filter chip from the exercise picker, leaving Equipment and Muscle only
 - Custom exercises in the search results now show a "Custom" badge pill next to the muscle name
 - Removed the chevron icon from standard exercise rows in the picker since the entire row is tappable
-- Added "End of results" footer to the exercise search results list- Exercise search results are now ranked by match quality: names starting with the query appear first, then word boundary matches, then substring matches anywhere in the name
+- Added "End of results" footer to the exercise search results list
+- Exercise search results are now ranked by match quality: names starting with the query appear first, then word boundary matches, then substring matches anywhere in the name
+- Redesigned the exercise picker filter chips to use a single bold label instead of a two-line category/value layout
+- Removed the "Muscle:" and "Equipment:" prefixes from exercise row subtitles
+- Removed the "Add Exercise" title from the picker header
+- Increased search bar padding
+- Upgraded the empty search state with an icon, descriptive message, a Create Exercise CTA button, and browse-by-muscle and browse-by-equipment grids
