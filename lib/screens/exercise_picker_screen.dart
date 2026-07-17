@@ -298,34 +298,12 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
           void goTo(int s) => setDialogState(() => step = s);
           void advance() => setDialogState(() => step = (step + 1).clamp(0, 5));
 
-          Widget gradientButton(String label, VoidCallback onTap) =>
-              GestureDetector(
+          Widget dialogGradientButton(String label, VoidCallback onTap) =>
+              gradientButton(
+                context,
+                label: label,
+                color: appColor,
                 onTap: onTap,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    vertical: Responsive.height(context, 15),
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: accentGradient,
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 12),
-                    ),
-                    border: Border.all(
-                      color: lightenColor(appColor, 0.25).withAlpha(180),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 14),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
               );
 
           Widget ghostButton(String label, VoidCallback onTap) =>
@@ -621,7 +599,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       ),
                     ],
                     SizedBox(height: Responsive.height(context, 14)),
-                    gradientButton('Continue', () {
+                    dialogGradientButton('Continue', () {
                       if (nameController.text.trim().isEmpty) {
                         setDialogState(() => errorMsg = 'Name is required');
                         return;
@@ -689,7 +667,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                       ),
                     ),
                     SizedBox(height: Responsive.height(context, 10)),
-                    gradientButton('Continue', advance),
+                    dialogGradientButton('Continue', advance),
                   ],
                 ),
               ),
@@ -765,7 +743,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                               ),
                             ),
                           )
-                        : gradientButton(
+                        : dialogGradientButton(
                             isEditing ? 'Save Changes' : 'Create Exercise',
                             submit,
                           ),
@@ -1062,54 +1040,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                         ),
                       ),
                       const Spacer(),
-                      GestureDetector(
+                      gradientButton(
+                        context,
+                        label: 'Create',
+                        color: appColor,
+                        icon: Icons.add,
+                        fullWidth: false,
                         onTap: _showCreateExerciseDialog,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.width(context, 14),
-                            vertical: Responsive.height(context, 8),
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 12),
-                            ),
-                            gradient: LinearGradient(
-                              colors: [
-                                lightenColor(appColor, 0.35),
-                                lightenColor(appColor, 0.20),
-                                lightenColor(appColor, 0.05),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            border: Border.all(
-                              color: lightenColor(
-                                appColor,
-                                0.25,
-                              ).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.add,
-                                color: Colors.white,
-                                size: Responsive.scale(context, 15),
-                              ),
-                              SizedBox(width: Responsive.width(context, 4)),
-                              Text(
-                                'Create',
-                                style: GoogleFonts.manrope(
-                                  color: Colors.white,
-                                  fontSize: Responsive.font(context, 13),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -1606,51 +1543,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ),
             SizedBox(height: Responsive.height(context, 24)),
             Center(
-              child: GestureDetector(
+              child: gradientButton(
+                context,
+                label: 'Create Exercise',
+                color: appColor,
+                icon: Icons.add,
+                fullWidth: false,
                 onTap: _showCreateExerciseDialog,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.width(context, 20),
-                    vertical: Responsive.height(context, 12),
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        lightenColor(appColor, 0.35),
-                        lightenColor(appColor, 0.20),
-                        lightenColor(appColor, 0.05),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 12),
-                    ),
-                    border: Border.all(
-                      color: lightenColor(appColor, 0.25).withAlpha(180),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: Responsive.scale(context, 16),
-                      ),
-                      SizedBox(width: Responsive.width(context, 6)),
-                      Text(
-                        'Create Exercise',
-                        style: GoogleFonts.manrope(
-                          color: Colors.white,
-                          fontSize: Responsive.font(context, 14),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
             SizedBox(height: Responsive.height(context, 36)),

@@ -217,6 +217,73 @@ class _ShimmerProRowState extends State<ShimmerProRow>
   }
 }
 
+// Primary gradient button, use for all main CTAs across the app
+// Pass a base color (appColor for themed screens, hardcoded color for onboarding)
+Widget gradientButton(
+  BuildContext context, {
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+  IconData? icon,
+  bool loading = false,
+  bool fullWidth = true,
+}) {
+  final gradient = LinearGradient(
+    colors: [
+      lightenColor(color, 0.35),
+      lightenColor(color, 0.20),
+      lightenColor(color, 0.05),
+    ],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+  final border = Border.all(
+    color: lightenColor(color, 0.25).withAlpha(180),
+    width: 1.5,
+  );
+  return GestureDetector(
+    onTap: loading ? null : onTap,
+    child: Container(
+      width: fullWidth ? double.infinity : null,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.width(context, fullWidth ? 0 : 20),
+        vertical: Responsive.height(context, 14),
+      ),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+        border: border,
+      ),
+      child: loading
+          ? Center(
+              child: SizedBox(
+                width: Responsive.scale(context, 18),
+                height: Responsive.scale(context, 18),
+                child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+            )
+          : Row(
+              mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, color: Colors.white, size: Responsive.scale(context, 16)),
+                  SizedBox(width: Responsive.width(context, 6)),
+                ],
+                Text(
+                  label,
+                  style: GoogleFonts.manrope(
+                    color: Colors.white,
+                    fontSize: Responsive.font(context, 14),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+    ),
+  );
+}
+
 // Frosted glass tappable button
 Widget frostedButton(
   String text,

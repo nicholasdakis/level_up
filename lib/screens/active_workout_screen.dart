@@ -844,42 +844,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 ],
               ),
               SizedBox(height: Responsive.height(context, 20)),
-              GestureDetector(
+              gradientButton(
+                context,
+                label: 'Done',
+                color: appColor,
                 onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    vertical: Responsive.height(context, 14),
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        lightenColor(appColor, 0.35),
-                        lightenColor(appColor, 0.20),
-                        lightenColor(appColor, 0.05),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      Responsive.scale(context, 14),
-                    ),
-                    border: Border.all(
-                      color: lightenColor(appColor, 0.35).withAlpha(180),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Text(
-                    'Done',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
               ),
               SizedBox(height: Responsive.height(context, 10)),
               GestureDetector(
@@ -1104,42 +1073,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
               ),
             ),
             SizedBox(height: Responsive.height(context, 20)),
-            GestureDetector(
+            gradientButton(
+              context,
+              label: 'Done',
+              color: appColor,
               onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  vertical: Responsive.height(context, 14),
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      lightenColor(appColor, 0.35),
-                      lightenColor(appColor, 0.20),
-                      lightenColor(appColor, 0.05),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 14),
-                  ),
-                  border: Border.all(
-                    color: lightenColor(appColor, 0.35).withAlpha(180),
-                    width: 1.5,
-                  ),
-                ),
-                child: Text(
-                  'Done',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: Colors.white,
-                    fontSize: Responsive.font(context, 15),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -1478,47 +1416,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                         ),
                         vertical: Responsive.height(context, 8),
                       ),
-                      child: GestureDetector(
+                      child: gradientButton(
+                        context,
+                        label: 'Done Reordering',
+                        color: appColor,
                         onTap: () {
                           HapticFeedback.lightImpact();
                           setState(() => _reordering = false);
                         },
-                        child: Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                            vertical: Responsive.height(context, 13),
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              Responsive.scale(context, 14),
-                            ),
-                            gradient: LinearGradient(
-                              colors: [
-                                lightenColor(appColor, 0.35),
-                                lightenColor(appColor, 0.20),
-                                lightenColor(appColor, 0.05),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            border: Border.all(
-                              color: lightenColor(
-                                appColor,
-                                0.25,
-                              ).withAlpha(180),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Text(
-                            'Done Reordering',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 15),
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   AnimatedOpacity(
@@ -1783,51 +1688,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
           ),
           SizedBox(width: Responsive.width(context, 12)),
           // finish button
-          GestureDetector(
+          gradientButton(
+            context,
+            label: 'Finish',
+            color: appColor,
+            icon: Icons.check,
+            fullWidth: false,
             onTap: _finishWorkout,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 20),
-                vertical: Responsive.height(context, 10),
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 14),
-                ),
-                gradient: LinearGradient(
-                  colors: [
-                    lightenColor(appColor, 0.35),
-                    lightenColor(appColor, 0.20),
-                    lightenColor(appColor, 0.05),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                border: Border.all(
-                  color: lightenColor(appColor, 0.25).withAlpha(180),
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: Responsive.scale(context, 15),
-                  ),
-                  SizedBox(width: Responsive.width(context, 4)),
-                  Text(
-                    'Finish',
-                    style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -2451,52 +2318,12 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
+          gradientButton(
+            context,
+            label: 'Add Exercise',
+            color: appColor,
+            icon: Icons.add_rounded,
             onTap: _openExercisePicker,
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 15),
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 14),
-                ),
-                gradient: LinearGradient(
-                  colors: [
-                    lightenColor(appColor, 0.40),
-                    lightenColor(appColor, 0.25),
-                    lightenColor(appColor, 0.08),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(180),
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: Responsive.scale(context, 20),
-                  ),
-                  SizedBox(width: Responsive.width(context, 6)),
-                  Text(
-                    'Add Exercise',
-                    style: GoogleFonts.manrope(
-                      color: Colors.white,
-                      fontSize: Responsive.font(context, 15),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
           SizedBox(height: Responsive.height(context, 12)),
           IntrinsicHeight(

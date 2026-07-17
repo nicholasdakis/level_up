@@ -455,46 +455,15 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
             cursorColor: lightenColor(appColor, 0.45),
           ),
           SizedBox(height: Responsive.height(context, 24)),
-          GestureDetector(
+          gradientButton(
+            context,
+            label: 'Done',
+            color: appColor,
             onTap: () {
               _nameController.text = tempName.text;
               _durationController.text = tempDuration.text;
               Navigator.of(context, rootNavigator: true).pop();
             },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: Responsive.height(context, 14),
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    lightenColor(appColor, 0.35),
-                    lightenColor(appColor, 0.20),
-                    lightenColor(appColor, 0.05),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(
-                  Responsive.scale(context, 14),
-                ),
-                border: Border.all(
-                  color: lightenColor(appColor, 0.35).withAlpha(180),
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                'Done',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  color: Colors.white,
-                  fontSize: Responsive.font(context, 15),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
           ),
           SizedBox(height: Responsive.height(context, 10)),
           GestureDetector(
@@ -524,23 +493,6 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
 
   Widget _buildHeader(BuildContext context, Color accent, Color dim) {
     final hPad = Responsive.centeredHorizontalPadding(context, 20);
-    final gradientDeco = BoxDecoration(
-      borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-      gradient: LinearGradient(
-        colors: [
-          lightenColor(appColor, 0.35),
-          lightenColor(appColor, 0.20),
-          lightenColor(appColor, 0.05),
-        ],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      ),
-      border: Border.all(
-        color: lightenColor(appColor, 0.25).withAlpha(180),
-        width: 1.5,
-      ),
-    );
-
     return Padding(
       padding: EdgeInsets.only(
         left: hPad,
@@ -574,43 +526,14 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen>
           ),
           const Spacer(),
           // save button
-          GestureDetector(
-            onTap: _saving ? null : _saveRoutine,
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.width(context, 20),
-                vertical: Responsive.height(context, 10),
-              ),
-              decoration: gradientDeco,
-              child: _saving
-                  ? SizedBox(
-                      width: Responsive.scale(context, 14),
-                      height: Responsive.scale(context, 14),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: Responsive.scale(context, 15),
-                        ),
-                        SizedBox(width: Responsive.width(context, 4)),
-                        Text(
-                          'Save',
-                          style: GoogleFonts.manrope(
-                            color: Colors.white,
-                            fontSize: Responsive.font(context, 14),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+          gradientButton(
+            context,
+            label: 'Save',
+            color: appColor,
+            icon: Icons.check,
+            fullWidth: false,
+            loading: _saving,
+            onTap: _saveRoutine,
           ),
         ],
       ),
