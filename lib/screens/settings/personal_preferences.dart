@@ -976,18 +976,33 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(maxLength),
         ],
+        style: GoogleFonts.manrope(color: Colors.white),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: TextStyle(color: Colors.white54),
-          floatingLabelStyle: TextStyle(color: Colors.white70),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+          labelStyle: GoogleFonts.manrope(color: Colors.white54),
+          floatingLabelStyle: GoogleFonts.manrope(
+            color: lightenColor(appColor, 0.4),
           ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
+          filled: true,
+          fillColor: Colors.white.withAlpha(12),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: BorderSide(
+              color: lightenColor(appColor, 0.2).withAlpha(80),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: BorderSide(
+              color: lightenColor(appColor, 0.4),
+              width: 1.5,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
           ),
         ),
-        style: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -1008,18 +1023,33 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             return newValue;
           }),
         ],
+        style: GoogleFonts.manrope(color: Colors.white),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: TextStyle(color: Colors.white54),
-          floatingLabelStyle: TextStyle(color: Colors.white70),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+          labelStyle: GoogleFonts.manrope(color: Colors.white54),
+          floatingLabelStyle: GoogleFonts.manrope(
+            color: lightenColor(appColor, 0.4),
           ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
+          filled: true,
+          fillColor: Colors.white.withAlpha(12),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: BorderSide(
+              color: lightenColor(appColor, 0.2).withAlpha(80),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
+            borderSide: BorderSide(
+              color: lightenColor(appColor, 0.4),
+              width: 1.5,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: Responsive.width(context, 16),
+            vertical: Responsive.height(context, 14),
           ),
         ),
-        style: TextStyle(color: Colors.white),
       ),
     );
   }

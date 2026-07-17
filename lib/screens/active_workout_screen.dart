@@ -456,69 +456,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       _persist();
     } else {
       // prompt for a name before saving
-      final nameCtrl = TextEditingController(text: '');
-      final confirmedName = await showFrostedDialog<String>(
-        context: context,
-        appColor: appColor,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Name this workout',
-              style: GoogleFonts.manrope(
-                color: lightenColor(appColor, 0.45),
-                fontSize: Responsive.font(context, 16),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: Responsive.height(context, 16)),
-            TextField(
-              controller: nameCtrl,
-              autofocus: true,
-              maxLength: 40,
-              style: GoogleFonts.manrope(
-                color: lightenColor(appColor, 0.45),
-                fontSize: Responsive.font(context, 15),
-              ),
-              decoration: InputDecoration(
-                hintText: 'e.g. Push Day',
-                hintStyle: GoogleFonts.manrope(color: Colors.white38),
-                counterStyle: GoogleFonts.manrope(
-                  color: Colors.white38,
-                  fontSize: Responsive.font(context, 10),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white24),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: appColor.withAlpha(200)),
-                ),
-              ),
-              cursorColor: lightenColor(appColor, 0.45),
-            ),
-            SizedBox(height: Responsive.height(context, 8)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () =>
-                      Navigator.of(context, rootNavigator: true).pop(null),
-                  child: Text('Cancel', style: dialogButtonStyle()),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop(nameCtrl.text.trim()),
-                  child: Text('Save', style: dialogButtonStyle(confirm: true)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-      WidgetsBinding.instance.addPostFrameCallback((_) => nameCtrl.dispose());
+      final confirmedName = await _showNameWorkoutDialog();
       if (confirmedName == null) return; // user tapped Cancel
       _s.workoutName = confirmedName.isEmpty ? null : confirmedName;
       _persist();
@@ -1600,8 +1538,8 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     );
   }
 
-  Future<void> _renameWorkout() async {
-    final ctrl = TextEditingController(text: _workoutName);
+  Future<String?> _showNameWorkoutDialog({String? initial}) async {
+    final ctrl = TextEditingController(text: initial ?? '');
     final result = await showFrostedDialog<String>(
       context: context,
       appColor: appColor,
@@ -1633,11 +1571,28 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
                 color: Colors.white38,
                 fontSize: Responsive.font(context, 10),
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24),
+              filled: true,
+              fillColor: Colors.white.withAlpha(12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: BorderSide(
+                  color: lightenColor(appColor, 0.2).withAlpha(80),
+                ),
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: appColor.withAlpha(200)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  Responsive.scale(context, 12),
+                ),
+                borderSide: BorderSide(
+                  color: lightenColor(appColor, 0.4),
+                  width: 1.5,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Responsive.width(context, 16),
+                vertical: Responsive.height(context, 14),
               ),
             ),
             cursorColor: lightenColor(appColor, 0.45),
@@ -1664,6 +1619,11 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => ctrl.dispose());
+    return result;
+  }
+
+  Future<void> _renameWorkout() async {
+    final result = await _showNameWorkoutDialog(initial: _workoutName);
     if (result != null && mounted) {
       setState(() {
         _s.workoutName = result.isEmpty ? null : result;

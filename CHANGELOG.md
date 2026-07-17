@@ -2833,3 +2833,7 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added a check icon to the Save button in the routine creator and the Finish button in the active workout screen for visual consistency with the + Create button
 - The empty state shimmer in the routine creator now only animates the icon, not the text, to reduce visual noise
 - Made workouts stay stored in SharedPreferences on log out
+- Updated goal input fields in settings to use the new OutlineInputBorder style with accent color on focus
+- Updated the workout name dialog to use the new OutlineInputBorder style
+- Consolidated the two duplicate workout name dialogs into a single shared _showNameWorkoutDialog method
+- Changed the weight card empty state value from "--" to "Not logged" with a smaller font size

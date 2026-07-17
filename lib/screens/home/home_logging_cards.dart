@@ -269,7 +269,9 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                   value,
                   style: GoogleFonts.manrope(
                     color: accentColor,
-                    fontSize: Responsive.font(context, 22),
+                    fontSize: value == 'Not logged'
+                        ? Responsive.font(context, 14)
+                        : Responsive.font(context, 22),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -726,7 +728,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
                                   ..sort((a, b) => b.key.compareTo(a.key)))
                                 .firstOrNull
                                 ?.value;
-                        if (kg == null) return "--";
+                        if (kg == null) return "Not logged";
                         return isImperial
                             ? UnitConverter.displayWeight(
                                 kg,
