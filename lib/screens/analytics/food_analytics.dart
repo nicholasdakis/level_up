@@ -626,25 +626,24 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     );
   }
 
-  // Bar chart showing calorie breakdown by meal
-  Widget _mealBarChart(
+  // Shared bar chart for meal, macro, and micro breakdowns
+  // formatTopTitle returns the widget shown above each bar; ghostBar=true renders a dim placeholder for zero values
+  Widget _foodBarChart(
     BuildContext context, {
-    required double breakfastCal,
-    required double lunchCal,
-    required double dinnerCal,
-    required double snacksCal,
+    required List<String> labels,
+    required List<double> values,
+    required Widget Function(int i, double v) formatTopTitle,
+    bool ghostBars = false,
   }) {
-    final labels = ["Breakfast", "Lunch", "Dinner", "Snacks"];
-    final values = [breakfastCal, lunchCal, dinnerCal, snacksCal];
-    final total = values.fold(0.0, (a, b) => a + b);
     final maxVal = values.fold(0.0, (a, b) => a > b ? a : b);
-    // a tiny floor value keeps empty bars visible so the chart always shows all four meals
-    final minBarVal = (maxVal * 0.03).clamp(1.0, double.infinity);
+    final minBarVal = ghostBars
+        ? (maxVal * 0.03).clamp(1.0, double.infinity)
+        : 0.0;
 
     final groups = <BarChartGroupData>[];
     for (int i = 0; i < values.length; i++) {
       final empty = values[i] == 0;
-      final barVal = empty ? minBarVal : values[i];
+      final barVal = (ghostBars && empty) ? minBarVal : values[i];
       groups.add(
         BarChartGroupData(
           x: i,
@@ -654,7 +653,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: empty
+                colors: (ghostBars && empty)
                     ? [
                         lightenColor(appColor, 0.2).withAlpha(50),
                         lightenColor(appColor, 0.1).withAlpha(50),
@@ -700,39 +699,11 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                   if (i < 0 || i >= values.length) {
                     return const SizedBox.shrink();
                   }
-                  final v = values[i];
-                  final pct = total > 0 ? (v / total * 100).round() : 0;
-                  final empty = v == 0;
-                  final labelColor = empty
-                      ? lightenColor(appColor, 0.25)
-                      : lightenColor(appColor, 0.45);
                   return Padding(
                     padding: EdgeInsets.only(
                       bottom: Responsive.height(context, 4),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          empty ? '' : '$pct%',
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 12),
-                            fontWeight: FontWeight.w700,
-                            color: labelColor,
-                          ),
-                        ),
-                        Text(
-                          empty ? '0 kcal' : '${v.round()} kcal',
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 12),
-                            fontWeight: empty
-                                ? FontWeight.w400
-                                : FontWeight.w700,
-                            color: labelColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: formatTopTitle(i, values[i]),
                   );
                 },
               ),
@@ -768,130 +739,89 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     );
   }
 
-  // Bar chart showing macro breakdown (protein, carbs, fat) in grams
+  Widget _mealBarChart(
+    BuildContext context, {
+    required double breakfastCal,
+    required double lunchCal,
+    required double dinnerCal,
+    required double snacksCal,
+  }) {
+    final values = [breakfastCal, lunchCal, dinnerCal, snacksCal];
+    final total = values.fold(0.0, (a, b) => a + b);
+    return _foodBarChart(
+      context,
+      labels: const ["Breakfast", "Lunch", "Dinner", "Snacks"],
+      values: values,
+      ghostBars: true,
+      formatTopTitle: (i, v) {
+        final empty = v == 0;
+        final pct = total > 0 ? (v / total * 100).round() : 0;
+        final labelColor = empty
+            ? lightenColor(appColor, 0.25)
+            : lightenColor(appColor, 0.45);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              empty ? '' : '$pct%',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                fontWeight: FontWeight.w700,
+                color: labelColor,
+              ),
+            ),
+            Text(
+              empty ? '0 kcal' : '${v.round()} kcal',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 12),
+                fontWeight: empty ? FontWeight.w400 : FontWeight.w700,
+                color: labelColor,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _macroBarChart(
     BuildContext context, {
     required double proteinG,
     required double carbsG,
     required double fatG,
   }) {
-    final labels = ["Protein", "Carbs", "Fat"];
     final values = [proteinG, carbsG, fatG];
-    final totalG = values.fold(0.0, (a, b) => a + b);
-    final maxVal = values.fold(0.0, (a, b) => a > b ? a : b);
-
-    final groups = <BarChartGroupData>[];
-    for (int i = 0; i < values.length; i++) {
-      groups.add(
-        BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: values[i],
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  lightenColor(appColor, 0.45),
-                  lightenColor(appColor, 0.2),
-                ],
+    final total = values.fold(0.0, (a, b) => a + b);
+    return _foodBarChart(
+      context,
+      labels: const ["Protein", "Carbs", "Fat"],
+      values: values,
+      formatTopTitle: (i, v) {
+        if (v == 0) return const SizedBox.shrink();
+        final pct = total > 0 ? (v / total * 100).round() : 0;
+        final accent = lightenColor(appColor, 0.45);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$pct%',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 10),
+                fontWeight: FontWeight.w700,
+                color: accent,
               ),
-              width: Responsive.scale(context, 18),
-              borderRadius: BorderRadius.circular(4),
-              backDrawRodData: BackgroundBarChartRodData(show: false),
+            ),
+            Text(
+              '${v.round()}g',
+              style: GoogleFonts.manrope(
+                fontSize: Responsive.font(context, 10),
+                fontWeight: FontWeight.w700,
+                color: accent,
+              ),
             ),
           ],
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: Responsive.isDesktop(context)
-          ? 420
-          : Responsive.height(context, 220),
-      child: BarChart(
-        BarChartData(
-          maxY: maxVal == 0 ? 1 : maxVal * 1.15,
-          barGroups: groups,
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          barTouchData: BarTouchData(enabled: false),
-          titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: Responsive.height(context, 48),
-                getTitlesWidget: (value, meta) {
-                  final i = value.toInt();
-                  if (i < 0 || i >= values.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final v = values[i];
-                  final pct = totalG > 0 ? (v / totalG * 100).round() : 0;
-                  if (v == 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: Responsive.height(context, 4),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "$pct%",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 10),
-                            fontWeight: FontWeight.w700,
-                            color: lightenColor(appColor, 0.45),
-                          ),
-                        ),
-                        Text(
-                          "${v.round()}g",
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 10),
-                            fontWeight: FontWeight.w700,
-                            color: lightenColor(appColor, 0.45),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: Responsive.height(context, 32),
-                getTitlesWidget: (value, meta) {
-                  final i = value.toInt();
-                  if (i < 0 || i >= labels.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: Responsive.height(context, 6),
-                    ),
-                    child: Text(
-                      labels[i],
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -901,109 +831,23 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
     required double sugarG,
     required double sodiumMg,
   }) {
-    final labels = ["Fiber", "Sugar", "Sodium"];
     final values = [fiberG, sugarG, sodiumMg];
-    final maxVal = values.fold(0.0, (a, b) => a > b ? a : b);
-
-    final groups = <BarChartGroupData>[];
-    for (int i = 0; i < values.length; i++) {
-      groups.add(
-        BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: values[i],
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  lightenColor(appColor, 0.45),
-                  lightenColor(appColor, 0.2),
-                ],
-              ),
-              width: Responsive.scale(context, 18),
-              borderRadius: BorderRadius.circular(4),
-              backDrawRodData: BackgroundBarChartRodData(show: false),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: Responsive.isDesktop(context)
-          ? 420
-          : Responsive.height(context, 220),
-      child: BarChart(
-        BarChartData(
-          maxY: maxVal == 0 ? 1 : maxVal * 1.15,
-          barGroups: groups,
-          gridData: const FlGridData(show: false),
-          borderData: FlBorderData(show: false),
-          barTouchData: BarTouchData(enabled: false),
-          titlesData: FlTitlesData(
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: Responsive.height(context, 48),
-                getTitlesWidget: (value, meta) {
-                  final i = value.toInt();
-                  if (i < 0 || i >= values.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final v = values[i];
-                  if (v == 0) return const SizedBox.shrink();
-                  final unit = i == 2 ? 'mg' : 'g';
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: Responsive.height(context, 4),
-                    ),
-                    child: Text(
-                      "${v.round()}$unit",
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 10),
-                        fontWeight: FontWeight.w700,
-                        color: lightenColor(appColor, 0.45),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: Responsive.height(context, 32),
-                getTitlesWidget: (value, meta) {
-                  final i = value.toInt();
-                  if (i < 0 || i >= labels.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: Responsive.height(context, 6),
-                    ),
-                    child: Text(
-                      labels[i],
-                      style: GoogleFonts.manrope(
-                        fontSize: Responsive.font(context, 12),
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+    const units = ['g', 'g', 'mg'];
+    return _foodBarChart(
+      context,
+      labels: const ["Fiber", "Sugar", "Sodium"],
+      values: values,
+      formatTopTitle: (i, v) {
+        if (v == 0) return const SizedBox.shrink();
+        return Text(
+          '${v.round()}${units[i]}',
+          style: GoogleFonts.manrope(
+            fontSize: Responsive.font(context, 10),
+            fontWeight: FontWeight.w700,
+            color: lightenColor(appColor, 0.45),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1861,8 +1705,9 @@ class _FoodLineChartState extends ConsumerState<_FoodLineChart> {
                       interval: points.length <= 5 ? 1 : 2,
                       getTitlesWidget: (val, info) {
                         final i = val.toInt();
-                        if (i < 0 || i >= points.length)
+                        if (i < 0 || i >= points.length) {
                           return const SizedBox.shrink();
+                        }
                         final d = points[i].date;
                         return SideTitleWidget(
                           meta: info,
