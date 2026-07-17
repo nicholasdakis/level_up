@@ -539,7 +539,27 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         child: _emptyState(context, "No micro data in this range"),
       );
     }
-    return _MicroLineChart(points: points);
+    return _FoodLineChart(
+      points: points,
+      names: const ['Fiber', 'Sugar', 'Sodium'],
+      spotsOf: (pts) => [
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].fiber),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].sugar),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].sodium),
+        ],
+      ],
+      formatTooltip: (name, y, idx) =>
+          '$name: ${y.round()}${const ['g', 'g', 'mg'][idx]}',
+      formatLeftAxis: (val) => '${val.round()}',
+    );
   }
 
   Widget _mealLineChart(BuildContext context, List<_DayPoint> points) {
@@ -551,7 +571,31 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         child: _emptyState(context, "No meal data in this range"),
       );
     }
-    return _MealLineChart(points: points);
+    return _FoodLineChart(
+      points: points,
+      names: const ['Breakfast', 'Lunch', 'Dinner', 'Snacks'],
+      spotsOf: (pts) => [
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].breakfastCal),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].lunchCal),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].dinnerCal),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].snacksCal),
+        ],
+      ],
+      formatTooltip: (name, y, idx) => '$name: ${_fmtCal(y)} kcal',
+      formatLeftAxis: (val) => _fmtCal(val),
+      leftAxisWidth: 44,
+    );
   }
 
   Widget _macroLineChart(BuildContext context, List<_DayPoint> points) {
@@ -563,7 +607,23 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
         child: _emptyState(context, "No macro data in this range"),
       );
     }
-    return _MacroLineChart(points: points);
+    return _FoodLineChart(
+      points: points,
+      names: const ['Protein', 'Carbs', 'Fat'],
+      spotsOf: (pts) => [
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].protein),
+        ],
+        [
+          for (int i = 0; i < pts.length; i++)
+            FlSpot(i.toDouble(), pts[i].carbs),
+        ],
+        [for (int i = 0; i < pts.length; i++) FlSpot(i.toDouble(), pts[i].fat)],
+      ],
+      formatTooltip: (name, y, idx) => '$name: ${y.round()}g',
+      formatLeftAxis: (val) => '${val.round()}g',
+    );
   }
 
   // Bar chart showing calorie breakdown by meal
@@ -1604,280 +1664,53 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
   }
 }
 
-class _MealLineChart extends ConsumerStatefulWidget {
+// Generic multi-series line chart for food analytics (meals, macros, micros)
+// spotsOf extracts the data series from the points list
+// formatTooltip formats the tooltip text for a given series name, y value, and index
+// formatLeftAxis formats the left axis labels
+class _FoodLineChart extends ConsumerStatefulWidget {
   final List<_DayPoint> points;
-  const _MealLineChart({required this.points});
+  final List<String> names;
+  final List<List<FlSpot>> Function(List<_DayPoint>) spotsOf;
+  final String Function(String name, double y, int idx) formatTooltip;
+  final String Function(double val) formatLeftAxis;
+  final double leftAxisWidth;
+
+  const _FoodLineChart({
+    required this.points,
+    required this.names,
+    required this.spotsOf,
+    required this.formatTooltip,
+    required this.formatLeftAxis,
+    this.leftAxisWidth = 36,
+  });
 
   @override
-  ConsumerState<_MealLineChart> createState() => _MealLineChartState();
+  ConsumerState<_FoodLineChart> createState() => _FoodLineChartState();
 }
 
-class _MealLineChartState extends ConsumerState<_MealLineChart> {
+class _FoodLineChartState extends ConsumerState<_FoodLineChart> {
   Color get appColor => ref.watch(
     userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
   );
 
-  // null = all meals shown
   int? _focus;
-
-  static const _names = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
 
   @override
   Widget build(BuildContext context) {
     final accent = lightenColor(appColor, 0.45);
     final dim = lightenColor(appColor, 0.35);
     final points = widget.points;
+    final names = widget.names;
 
-    final allSpots = [
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].breakfastCal),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].lunchCal),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].dinnerCal),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].snacksCal),
-      ],
-    ];
-    final colors = [
+    final allSpots = widget.spotsOf(points);
+    final baseColors = [
       accent,
       accent.withAlpha(200),
       accent.withAlpha(130),
       accent.withAlpha(70),
     ];
-
-    final visibleSpots = _focus != null ? [allSpots[_focus!]] : allSpots;
-    final visibleColors = _focus != null ? [colors[_focus!]] : colors;
-    final allY = visibleSpots.expand((s) => s).map((s) => s.y).toList();
-    final maxY = allY.isEmpty ? 1.0 : allY.reduce((a, b) => a > b ? a : b);
-
-    LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
-      spots: spots,
-      isCurved: true,
-      curveSmoothness: 0.35,
-      color: color,
-      barWidth: 2,
-      dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
-          radius: Responsive.scale(context, 3),
-          color: color,
-          strokeWidth: 1,
-          strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
-        ),
-      ),
-    );
-
-    Widget focusChip(String label, int? index) {
-      final selected = _focus == index;
-      final chipColor = index != null ? colors[index] : accent;
-      return GestureDetector(
-        onTap: () => setState(() => _focus = selected ? null : index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 10),
-            vertical: Responsive.height(context, 5),
-          ),
-          decoration: BoxDecoration(
-            color: selected ? chipColor.withAlpha(50) : chipColor.withAlpha(15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? chipColor.withAlpha(140)
-                  : chipColor.withAlpha(30),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            label,
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 11),
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? chipColor : dim,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return frostedGlassCard(
-      context,
-      color: appColor,
-      padding: EdgeInsets.all(Responsive.scale(context, 16)),
-      child: Column(
-        children: [
-          SizedBox(
-            height: Responsive.height(context, 200),
-            child: LineChart(
-              LineChartData(
-                clipData: const FlClipData.none(),
-                gridData: const FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                minY: 0,
-                maxY: maxY * 1.2,
-                lineTouchData: LineTouchData(
-                  touchSpotThreshold: 20,
-                  touchTooltipData: LineTouchTooltipData(
-                    fitInsideHorizontally: true,
-                    fitInsideVertically: true,
-                    getTooltipColor: (_) =>
-                        darkenColor(appColor, 0.1).withAlpha(220),
-                    getTooltipItems: (touched) {
-                      // sort by barIndex so the date header always appears on the first line
-                      final sorted = [...touched]
-                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-                      return sorted.asMap().entries.map((entry) {
-                        final s = entry.value;
-                        final p = points[s.spotIndex];
-                        final isFirst = entry.key == 0;
-                        // when a meal is focused, barIndex is always 0 so fall back to _focus for the name
-                        final idx = _focus ?? s.barIndex;
-                        return LineTooltipItem(
-                          isFirst ? '${formatDateShort(p.date)}\n' : '',
-                          GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: dim,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '${_names[idx]}: ${_fmtCal(s.y)} kcal',
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 13),
-                                color: accent,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: Responsive.width(context, 44),
-                      getTitlesWidget: (val, info) {
-                        if (val == info.min || val == info.max) {
-                          return const SizedBox.shrink();
-                        }
-                        return SideTitleWidget(
-                          meta: info,
-                          child: Text(
-                            _fmtCal(val),
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 9),
-                              color: dim,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: points.length <= 10,
-                      reservedSize: Responsive.height(context, 28),
-                      interval: points.length <= 5 ? 1 : 2,
-                      getTitlesWidget: (val, info) {
-                        final i = val.toInt();
-                        if (i < 0 || i >= points.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final d = points[i].date;
-                        return SideTitleWidget(
-                          meta: info,
-                          fitInside: SideTitleFitInsideData.fromTitleMeta(info),
-                          child: Text(
-                            '${d.month}/${d.day}',
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 9),
-                              color: dim,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                lineBarsData: [
-                  for (int i = 0; i < visibleSpots.length; i++)
-                    line(visibleSpots[i], visibleColors[i]),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 12)),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: Responsive.width(context, 8),
-            runSpacing: Responsive.height(context, 6),
-            children: [
-              focusChip('All', null),
-              for (int i = 0; i < _names.length; i++) focusChip(_names[i], i),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MacroLineChart extends ConsumerStatefulWidget {
-  final List<_DayPoint> points;
-  const _MacroLineChart({required this.points});
-
-  @override
-  ConsumerState<_MacroLineChart> createState() => _MacroLineChartState();
-}
-
-class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
-  Color get appColor => ref.watch(
-    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
-  );
-
-  // null = all macros shown
-  int? _focus;
-
-  static const _names = ['Protein', 'Carbs', 'Fat'];
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final points = widget.points;
-
-    final allSpots = [
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].protein),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].carbs),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].fat),
-      ],
-    ];
-    final colors = [accent, accent.withAlpha(160), accent.withAlpha(90)];
+    final colors = baseColors.take(names.length).toList();
 
     final visibleSpots = _focus != null ? [allSpots[_focus!]] : allSpots;
     final visibleColors = _focus != null ? [colors[_focus!]] : colors;
@@ -1966,7 +1799,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
                         final s = entry.value;
                         final isFirst = entry.key == 0;
                         final p = points[s.spotIndex];
-                        // when a macro is focused, barIndex is always 0 so fall back to _focus for the name
+                        // when a series is focused, barIndex is always 0 so fall back to _focus for the name
                         final idx = _focus ?? s.barIndex;
                         return LineTooltipItem(
                           isFirst ? '${formatDateShort(p.date)}\n' : '',
@@ -1977,7 +1810,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
                           ),
                           children: [
                             TextSpan(
-                              text: '${_names[idx]}: ${s.y.round()}g',
+                              text: widget.formatTooltip(names[idx], s.y, idx),
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
                                 color: accent,
@@ -1994,7 +1827,10 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: Responsive.width(context, 36),
+                      reservedSize: Responsive.width(
+                        context,
+                        widget.leftAxisWidth,
+                      ),
                       getTitlesWidget: (val, info) {
                         if (val == info.min || val == info.max) {
                           return const SizedBox.shrink();
@@ -2002,7 +1838,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
                         return SideTitleWidget(
                           meta: info,
                           child: Text(
-                            '${val.round()}g',
+                            widget.formatLeftAxis(val),
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 9),
                               color: dim,
@@ -2025,9 +1861,8 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
                       interval: points.length <= 5 ? 1 : 2,
                       getTitlesWidget: (val, info) {
                         final i = val.toInt();
-                        if (i < 0 || i >= points.length) {
+                        if (i < 0 || i >= points.length)
                           return const SizedBox.shrink();
-                        }
                         final d = points[i].date;
                         return SideTitleWidget(
                           meta: info,
@@ -2058,233 +1893,7 @@ class _MacroLineChartState extends ConsumerState<_MacroLineChart> {
             runSpacing: Responsive.height(context, 6),
             children: [
               focusChip('All', null),
-              for (int i = 0; i < _names.length; i++) focusChip(_names[i], i),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MicroLineChart extends ConsumerStatefulWidget {
-  final List<_DayPoint> points;
-  const _MicroLineChart({required this.points});
-
-  @override
-  ConsumerState<_MicroLineChart> createState() => _MicroLineChartState();
-}
-
-class _MicroLineChartState extends ConsumerState<_MicroLineChart> {
-  Color get appColor => ref.watch(
-    userDataProvider.select((s) => s.value?.appColor ?? defaultAppColor),
-  );
-
-  int? _focus;
-
-  static const _names = ['Fiber', 'Sugar', 'Sodium'];
-  static const _units = ['g', 'g', 'mg'];
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = lightenColor(appColor, 0.45);
-    final dim = lightenColor(appColor, 0.35);
-    final points = widget.points;
-
-    final allSpots = [
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].fiber),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].sugar),
-      ],
-      [
-        for (int i = 0; i < points.length; i++)
-          FlSpot(i.toDouble(), points[i].sodium),
-      ],
-    ];
-    final colors = [accent, accent.withAlpha(160), accent.withAlpha(90)];
-
-    final visibleSpots = _focus != null ? [allSpots[_focus!]] : allSpots;
-    final visibleColors = _focus != null ? [colors[_focus!]] : colors;
-    final allY = visibleSpots.expand((s) => s).map((s) => s.y).toList();
-    final maxY = allY.isEmpty ? 1.0 : allY.reduce((a, b) => a > b ? a : b);
-
-    LineChartBarData line(List<FlSpot> spots, Color color) => LineChartBarData(
-      spots: spots,
-      isCurved: true,
-      curveSmoothness: 0.35,
-      color: color,
-      barWidth: 2,
-      dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
-          radius: Responsive.scale(context, 3),
-          color: color,
-          strokeWidth: 1,
-          strokeColor: darkenColor(appColor, 0.05).withAlpha(180),
-        ),
-      ),
-    );
-
-    Widget focusChip(String label, int? index) {
-      final selected = _focus == index;
-      final chipColor = index != null ? colors[index] : accent;
-      return GestureDetector(
-        onTap: () => setState(() => _focus = selected ? null : index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.width(context, 10),
-            vertical: Responsive.height(context, 5),
-          ),
-          decoration: BoxDecoration(
-            color: selected ? chipColor.withAlpha(50) : chipColor.withAlpha(15),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? chipColor.withAlpha(140)
-                  : chipColor.withAlpha(30),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            label,
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 11),
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? chipColor : dim,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return frostedGlassCard(
-      context,
-      color: appColor,
-      padding: EdgeInsets.all(Responsive.scale(context, 16)),
-      child: Column(
-        children: [
-          SizedBox(
-            height: Responsive.isDesktop(context)
-                ? 320
-                : Responsive.height(context, 200),
-            child: LineChart(
-              LineChartData(
-                clipData: const FlClipData.none(),
-                gridData: const FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                minY: 0,
-                maxY: maxY * 1.2,
-                lineTouchData: LineTouchData(
-                  touchSpotThreshold: 20,
-                  touchTooltipData: LineTouchTooltipData(
-                    fitInsideHorizontally: true,
-                    fitInsideVertically: true,
-                    getTooltipColor: (_) =>
-                        darkenColor(appColor, 0.1).withAlpha(220),
-                    getTooltipItems: (touched) {
-                      final sorted = [...touched]
-                        ..sort((a, b) => a.barIndex.compareTo(b.barIndex));
-                      return sorted.asMap().entries.map((entry) {
-                        final s = entry.value;
-                        final isFirst = entry.key == 0;
-                        final p = points[s.spotIndex];
-                        final idx = _focus ?? s.barIndex;
-                        return LineTooltipItem(
-                          isFirst ? '${formatDateShort(p.date)}\n' : '',
-                          GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 11),
-                            color: dim,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  '${_names[idx]}: ${s.y.round()}${_units[idx]}',
-                              style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 13),
-                                color: accent,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: Responsive.width(context, 36),
-                      getTitlesWidget: (val, info) {
-                        if (val == info.min || val == info.max) {
-                          return const SizedBox.shrink();
-                        }
-                        return SideTitleWidget(
-                          meta: info,
-                          child: Text(
-                            '${val.round()}',
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 9),
-                              color: dim,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: points.length <= 10,
-                      reservedSize: Responsive.height(context, 28),
-                      interval: points.length <= 5 ? 1 : 2,
-                      getTitlesWidget: (val, info) {
-                        final i = val.toInt();
-                        if (i < 0 || i >= points.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final d = points[i].date;
-                        return SideTitleWidget(
-                          meta: info,
-                          fitInside: SideTitleFitInsideData.fromTitleMeta(info),
-                          child: Text(
-                            '${d.month}/${d.day}',
-                            style: GoogleFonts.manrope(
-                              fontSize: Responsive.font(context, 9),
-                              color: dim,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                lineBarsData: [
-                  for (int i = 0; i < visibleSpots.length; i++)
-                    line(visibleSpots[i], visibleColors[i]),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: Responsive.height(context, 12)),
-          Wrap(
-            spacing: Responsive.width(context, 8),
-            runSpacing: Responsive.height(context, 6),
-            children: [
-              focusChip('All', null),
-              for (int i = 0; i < _names.length; i++) focusChip(_names[i], i),
+              for (int i = 0; i < names.length; i++) focusChip(names[i], i),
             ],
           ),
         ],
