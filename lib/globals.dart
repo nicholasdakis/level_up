@@ -345,29 +345,6 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
   sendEmail(context, "n1ch0lasd4k1s@gmail.com", subject);
 }
 
-// CREATE TEXT WITH THE MAIN APP FONT
-Widget textWithFont(
-  String text,
-  BuildContext context,
-  double baseFontSize, {
-  TextDecoration? decoration,
-  Color? color,
-  TextAlign? alignment,
-}) {
-  return RichText(
-    textAlign: alignment ?? TextAlign.center,
-    text: TextSpan(
-      text: text,
-      style: GoogleFonts.manrope(
-        fontSize: Responsive.font(context, baseFontSize),
-        color: color ?? Colors.white,
-        shadows: [textDropShadow(context)],
-        decoration: decoration ?? TextDecoration.none,
-      ),
-    ),
-  );
-}
-
 // Custom date picker using CalendarDatePicker inside showFrostedDialog
 Future<DateTime?> showThemedDatePicker({
   required BuildContext context,

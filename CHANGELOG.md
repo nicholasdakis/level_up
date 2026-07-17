@@ -2799,3 +2799,6 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Added an isSaving guard to the client so workouts cannot be recompleted
 - Fixed a bug where finishing a workout multiple times would create duplicate workout entries
 - The client now generates a UUID per session and the backend uses ON CONFLICT DO NOTHING so only the first submission inserts
+
+## 2026-07-17
+- Deleted dead textWithFont method
