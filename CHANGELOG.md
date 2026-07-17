@@ -2808,3 +2808,4 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Moved the inline premium gate and locked chip tap callbacks out of all four analytics screens into shared helpers in analytics_components.dart
 - Made a globals folder and split the globals.dart file into smaller sub files
 - globals.dart now only contains the export of the new files so other screens can import globals with one line
+- Split repository.py into sub files in a repositories folder
