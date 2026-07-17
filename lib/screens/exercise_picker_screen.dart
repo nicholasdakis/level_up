@@ -980,60 +980,38 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
 
   Widget _filterButton(String label, Set<String> selected, VoidCallback onTap) {
     final active = selected.isNotEmpty;
+    // show the selected value, "Multiple" if several, or "All <label>" if none
+    final displayLabel = selected.isEmpty
+        ? 'All $label'
+        : selected.length == 1
+        ? selected.first
+        : 'Multiple';
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 10)),
+        padding: EdgeInsets.symmetric(vertical: Responsive.height(context, 13)),
         decoration: BoxDecoration(
           color: active
               ? Colors.white.withAlpha(30)
               : Colors.white.withAlpha(18),
-          borderRadius: BorderRadius.circular(Responsive.scale(context, 10)),
+          borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
           border: Border.all(
             color: active
-                ? Colors.white.withAlpha(80)
+                ? Colors.white.withAlpha(90)
                 : Colors.white.withAlpha(30),
             width: active ? 1.5 : 1,
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                color: Colors.white60,
-                fontSize: Responsive.font(context, 9),
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-              ),
-            ),
-            // show the selected value if one, "Multiple" if several, or "All"
-            // if none selected or every option is selected (equivalent to no filter)
-            Text(
-              selected.isEmpty
-                  ? 'All'
-                  : selected.length == 1
-                  ? selected.first
-                  : selected.length >=
-                        (label == 'Equipment'
-                            ? _equipmentOptions.length
-                            : label == 'Muscle'
-                            ? _muscleOptions.length
-                            : _levelOptions.length)
-                  ? 'All'
-                  : 'Multiple',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(
-                color: active ? Colors.white : Colors.white70,
-                fontSize: Responsive.font(context, 12),
-                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-              ),
-            ),
-          ],
+        child: Text(
+          displayLabel,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.manrope(
+            color: active ? Colors.white : Colors.white70,
+            fontSize: Responsive.font(context, 13),
+            fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -1083,17 +1061,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(width: Responsive.width(context, 16)),
-                      Expanded(
-                        child: Text(
-                          'Add Exercise',
-                          style: GoogleFonts.manrope(
-                            fontSize: Responsive.font(context, 20),
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                      const Spacer(),
                       GestureDetector(
                         onTap: _showCreateExerciseDialog,
                         child: Container(
@@ -1154,7 +1122,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                   baseRadius: 14,
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.width(context, 14),
-                    vertical: Responsive.height(context, 4),
+                    vertical: Responsive.height(context, 10),
                   ),
                   child: Row(
                     children: [
@@ -1236,7 +1204,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     SizedBox(width: Responsive.width(context, 10)),
                     Expanded(
                       child: _filterButton(
-                        'Muscle',
+                        'Muscles',
                         _selectedMuscle,
                         () => _showFilterDialog(
                           'Muscle',
@@ -1416,10 +1384,9 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                 context,
                                 name: name,
                                 subtitle: [
-                                  if (muscle.isNotEmpty)
-                                    'Muscle: ${capitalize(muscle)}',
+                                  if (muscle.isNotEmpty) capitalize(muscle),
                                   if (equipment.isNotEmpty)
-                                    'Equipment: ${capitalize(equipment)}',
+                                    capitalize(equipment),
                                 ].join(' · '),
                                 isCustom: isCustom,
                                 onTap: () {
