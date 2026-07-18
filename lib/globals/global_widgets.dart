@@ -9,6 +9,43 @@ import 'global_theme.dart';
 import 'global_state.dart';
 import 'global_dialogs.dart';
 
+// Unified themed icon box used throughout the app
+// Renders an icon inside a rounded or circular box with consistent iconBox/iconBorder colors
+Widget themedIconBox(
+  BuildContext context, {
+  required IconData icon,
+  required Color color,
+  double iconSize = 22,
+  double padding = 10,
+  double radius = 12,
+  bool circle = false,
+  bool hugeIcon = false,
+  VoidCallback? onTap,
+}) {
+  final c = cardColors(color);
+  final Widget iconWidget = hugeIcon
+      ? HugeIcon(
+          icon: icon,
+          color: c.onCard,
+          size: Responsive.scale(context, iconSize),
+        )
+      : Icon(icon, color: c.onCard, size: Responsive.scale(context, iconSize));
+  final container = Container(
+    padding: EdgeInsets.all(Responsive.scale(context, padding)),
+    decoration: BoxDecoration(
+      color: c.iconBox,
+      shape: circle ? BoxShape.circle : BoxShape.rectangle,
+      borderRadius: circle
+          ? null
+          : BorderRadius.circular(Responsive.scale(context, radius)),
+      border: Border.all(color: c.iconBorder, width: 1.5),
+    ),
+    child: iconWidget,
+  );
+  if (onTap == null) return container;
+  return GestureDetector(onTap: onTap, child: container);
+}
+
 // Text drop shadow used across the app
 Shadow textDropShadow(BuildContext context) {
   return Shadow(
@@ -233,7 +270,7 @@ Widget gradientButton(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
-  final border = Border.all(color: btn.border, width: 1.5);
+  final border = Border.all(color: cardColors(color).border, width: 1.5);
   return GestureDetector(
     onTap: loading ? null : onTap,
     child: Container(
@@ -265,7 +302,7 @@ Widget gradientButton(
                 if (icon != null) ...[
                   Icon(
                     icon,
-                    color: Colors.white,
+                    color: btn.label,
                     size: Responsive.scale(context, 16),
                   ),
                   SizedBox(width: Responsive.width(context, 6)),
@@ -273,7 +310,7 @@ Widget gradientButton(
                 Text(
                   label,
                   style: GoogleFonts.manrope(
-                    color: Colors.white,
+                    color: btn.label,
                     fontSize: Responsive.font(context, 14),
                     fontWeight: FontWeight.w700,
                   ),
@@ -828,7 +865,7 @@ class DateNavigationRow extends StatelessWidget {
       'November',
       'December',
     ];
-    final accent = lightenColor(appColor, 0.45);
+    final accent = onTheme(appColor);
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,

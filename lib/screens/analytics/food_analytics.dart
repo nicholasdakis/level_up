@@ -885,24 +885,14 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
+                  child: themedIconBox(
+                    context,
+                    icon: Icons.arrow_back_ios_new,
+                    color: appColor,
+                    iconSize: 13,
+                    padding: 12,
+                    circle: true,
                     onTap: () => context.pop(),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cardColors(appColor).iconBox,
-                        border: Border.all(
-                          color: cardColors(appColor).iconBorder,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: cardColors(appColor).onCard,
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -1225,7 +1215,7 @@ class _FoodAnalyticsScreenState extends ConsumerState<FoodAnalyticsScreen>
                         "No data logged in this range",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 14),
-                          color: onTheme(appColor).withAlpha(140),
+                          color: onTheme(appColor),
                         ),
                       ),
                     );
@@ -1992,7 +1982,7 @@ Widget _chartEmptyState(BuildContext context, String message, Color appColor) {
           message,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
-            color: onTheme(appColor).withAlpha(140),
+            color: onTheme(appColor),
           ),
         ),
       ],
@@ -2064,7 +2054,11 @@ Widget _statTilesRow({
           ],
         ),
         SizedBox(height: Responsive.height(context, 16)),
-        Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+        Divider(
+          color: onTheme(appColor).withAlpha(120),
+          height: 1,
+          thickness: 1.5,
+        ),
         SizedBox(height: Responsive.height(context, 12)),
         for (int i = 0; i < meals.length; i++) ...[
           Row(
@@ -2128,7 +2122,11 @@ Widget _statTilesRow({
             SizedBox(height: Responsive.height(context, 8)),
         ],
         SizedBox(height: Responsive.height(context, 16)),
-        Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+        Divider(
+          color: onTheme(appColor).withAlpha(120),
+          height: 1,
+          thickness: 1.5,
+        ),
         SizedBox(height: Responsive.height(context, 12)),
         Row(
           children: [
@@ -2235,7 +2233,11 @@ Widget _calorieSummaryCard(
         ),
         if (total > 0) ...[
           SizedBox(height: Responsive.height(context, 16)),
-          Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            height: 1,
+            thickness: 1.5,
+          ),
           SizedBox(height: Responsive.height(context, 12)),
           for (int i = 0; i < meals.length; i++) ...[
             Row(
@@ -2271,7 +2273,11 @@ Widget _calorieSummaryCard(
           ],
           if (days > 0 && total > 0) ...[
             SizedBox(height: Responsive.height(context, 12)),
-            Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+            Divider(
+              color: onTheme(appColor).withAlpha(120),
+              height: 1,
+              thickness: 1.5,
+            ),
             SizedBox(height: Responsive.height(context, 12)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2378,26 +2384,30 @@ Widget _rangeTile({
             size: Responsive.font(context, 20),
           ),
           SizedBox(height: Responsive.height(context, 6)),
-          Text(
-            total,
-            style: GoogleFonts.manrope(
-              fontSize: Responsive.font(context, 18),
-              fontWeight: FontWeight.w800,
-              color: iconColor,
-              height: 1,
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: total,
+                  style: GoogleFonts.manrope(
+                    fontSize: Responsive.font(context, 18),
+                    fontWeight: FontWeight.w800,
+                    color: iconColor,
+                    height: 1,
+                  ),
+                ),
+                if (unit.isNotEmpty)
+                  TextSpan(
+                    text: ' $unit',
+                    style: GoogleFonts.manrope(
+                      fontSize: Responsive.font(context, 10),
+                      fontWeight: FontWeight.w500,
+                      color: iconColor,
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (unit.isNotEmpty) ...[
-            SizedBox(height: Responsive.height(context, 2)),
-            Text(
-              unit,
-              style: GoogleFonts.manrope(
-                fontSize: Responsive.font(context, 10),
-                fontWeight: FontWeight.w500,
-                color: iconColor.withAlpha(140),
-              ),
-            ),
-          ],
           if (avg.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 4)),
             Text(
@@ -2421,6 +2431,10 @@ Widget _rangeTile({
               decoration: BoxDecoration(
                 color: iconColor.withAlpha(40),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: cardColors(appColor).border,
+                  width: 1.5,
+                ),
               ),
               child: Text(
                 label,

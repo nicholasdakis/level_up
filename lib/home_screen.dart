@@ -292,7 +292,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         title: "Failed to load",
         content: Text(
           "Check your connection and try again.",
-          style: GoogleFonts.manrope(color: onTheme(appColor), fontSize: 13),
+          style: GoogleFonts.manrope(color: Colors.white, fontSize: 13),
           textAlign: TextAlign.center,
         ),
         actions: [
@@ -499,7 +499,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Text(
                       "You're in guest mode",
                       style: GoogleFonts.manrope(
-                        color: lightenColor(appColor, 0.45),
+                        color: onTheme(appColor),
                         fontSize: Responsive.font(context, 14),
                         fontWeight: FontWeight.w700,
                       ),
@@ -1006,20 +1006,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 8)),
-                decoration: BoxDecoration(
-                  color: c.iconBox,
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 10),
-                  ),
-                  border: Border.all(color: c.iconBorder, width: 1.5),
-                ),
-                child: HugeIcon(
-                  icon: icon,
-                  color: accent,
-                  size: Responsive.scale(context, 22),
-                ),
+              themedIconBox(
+                context,
+                icon: icon,
+                color: appColor,
+                iconSize: 22,
+                padding: 8,
+                radius: 10,
+                hugeIcon: true,
               ),
               SizedBox(height: Responsive.height(context, 8)),
               Text(
@@ -1072,20 +1066,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              Container(
-                padding: EdgeInsets.all(Responsive.scale(context, 8)),
-                decoration: BoxDecoration(
-                  color: c.iconBox,
-                  borderRadius: BorderRadius.circular(
-                    Responsive.scale(context, 10),
-                  ),
-                  border: Border.all(color: c.iconBorder, width: 1.5),
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedPlayCircle,
-                  color: accent,
-                  size: Responsive.scale(context, 22),
-                ),
+              themedIconBox(
+                context,
+                icon: HugeIcons.strokeRoundedPlayCircle,
+                color: appColor,
+                iconSize: 22,
+                padding: 8,
+                radius: 10,
+                hugeIcon: true,
               ),
               SizedBox(height: Responsive.height(context, 8)),
               Text(
@@ -1126,7 +1114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     "Rewarded ads are currently under review and will be available soon.",
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: onTheme(appColor),
+                      color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -1164,7 +1152,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           "Sign up to earn XP for every ad you watch and start leveling up.",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 13),
-                            color: onTheme(appColor),
+                            color: Colors.white,
                           ),
                           textAlign: TextAlign.center,
                         ),

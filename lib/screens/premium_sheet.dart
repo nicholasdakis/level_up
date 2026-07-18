@@ -450,7 +450,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                 '$xp / $xpNeeded XP',
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 11),
-                  color: cardColors(appColor).onCard.withAlpha(130),
+                  color: cardColors(appColor).onCard,
                 ),
               ),
             ],
@@ -717,7 +717,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedAdd01,
-                    color: Colors.white70,
+                    color: onTheme(appColor),
                     size: Responsive.scale(context, 16),
                   ),
                 ),
@@ -845,7 +845,11 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
               return Column(
                 children: [
                   if (i > 0)
-                    Divider(color: Colors.white.withAlpha(12), height: 1),
+                    Divider(
+                      color: Colors.white.withAlpha(80),
+                      height: 1,
+                      thickness: 1.5,
+                    ),
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: Responsive.width(context, 16),
@@ -989,14 +993,22 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                   ],
                 ),
               ),
-              Divider(color: accent.withAlpha(60), height: 1),
+              Divider(
+                color: Colors.white.withAlpha(80),
+                height: 1,
+                thickness: 1.5,
+              ),
               ...proRows.asMap().entries.map((e) {
                 final i = e.key;
                 final r = e.value;
                 return Column(
                   children: [
                     if (i > 0)
-                      Divider(color: Colors.white.withAlpha(12), height: 1),
+                      Divider(
+                        color: Colors.white.withAlpha(80),
+                        height: 1,
+                        thickness: 1.5,
+                      ),
                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: Responsive.width(context, 16),
@@ -1374,10 +1386,7 @@ class _PremiumSheetState extends ConsumerState<_PremiumSheet>
                 ),
 
                 // CTA
-                Divider(
-                  color: lightenColor(appColor, 0.2).withAlpha(60),
-                  height: 1,
-                ),
+                Divider(color: Colors.white.withAlpha(80), height: 1),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     hPad,

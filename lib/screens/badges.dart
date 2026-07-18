@@ -304,14 +304,14 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
     final IconData statusIcon;
 
     if (claimed) {
-      bgColor = appColor.withAlpha(60);
-      labelColor = onTheme(appColor).withAlpha(140);
-      borderColor = lightenColor(appColor, 0.25).withAlpha(60);
+      bgColor = cardColors(appColor).iconBox;
+      labelColor = onTheme(appColor);
+      borderColor = cardColors(appColor).border;
       statusIcon = HugeIcons.strokeRoundedCheckmarkCircle01;
     } else if (reachable) {
       bgColor = appColor.withAlpha(180);
       labelColor = onTheme(appColor);
-      borderColor = lightenColor(appColor, 0.4).withAlpha(220);
+      borderColor = cardColors(appColor).iconBorder;
       statusIcon = HugeIcons.strokeRoundedGift;
     } else {
       bgColor = cardColors(appColor).iconBox;
@@ -464,33 +464,14 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 10),
-                        ),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
-                            padding: EdgeInsets.all(
-                              Responsive.scale(context, 9),
-                            ),
-                            decoration: BoxDecoration(
-                              color: appColor.withAlpha(50),
-                              borderRadius: BorderRadius.circular(
-                                Responsive.scale(context, 10),
-                              ),
-                              border: Border.all(
-                                color: barColor.withAlpha(80),
-                                width: Responsive.width(context, 1),
-                              ),
-                            ),
-                            child: HugeIcon(
-                              icon: def.icon,
-                              color: barColor,
-                              size: Responsive.scale(context, 22),
-                            ),
-                          ),
-                        ),
+                      themedIconBox(
+                        context,
+                        icon: def.icon,
+                        color: appColor,
+                        iconSize: 22,
+                        padding: 9,
+                        radius: 10,
+                        hugeIcon: true,
                       ),
                       SizedBox(width: Responsive.width(context, 12)),
                       Expanded(
@@ -508,8 +489,9 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                             Text(
                               def.description,
                               style: GoogleFonts.manrope(
-                                fontSize: Responsive.font(context, 11),
+                                fontSize: Responsive.font(context, 12),
                                 color: onTheme(appColor),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -529,19 +511,13 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                                 vertical: Responsive.height(context, 4),
                               ),
                               decoration: BoxDecoration(
-                                color: lightenColor(
-                                  appColor,
-                                  0.3,
-                                ).withAlpha(60),
+                                color: cardColors(appColor).iconBox,
                                 borderRadius: BorderRadius.circular(
                                   Responsive.scale(context, 20),
                                 ),
                                 border: Border.all(
-                                  color: lightenColor(
-                                    appColor,
-                                    0.4,
-                                  ).withAlpha(160),
-                                  width: Responsive.width(context, 1),
+                                  color: cardColors(appColor).border,
+                                  width: 1.5,
                                 ),
                               ),
                               child: Text(
@@ -567,7 +543,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                     ],
                   ),
                   SizedBox(height: Responsive.height(context, 12)),
-                  // Progress label + bar — hidden when all tiers are claimed
+                  // Progress label and bar, hidden when all tiers are claimed
                   if (!allClaimed) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -594,6 +570,7 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                     _ProgressBar(
                       fraction: progressFraction,
                       barColor: barColor,
+                      appColor: appColor,
                       tiers: def.tiers,
                       maxTier: def.tiers.last,
                     ),
@@ -725,24 +702,14 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
+                  child: themedIconBox(
+                    context,
+                    icon: Icons.arrow_back_ios_new,
+                    color: appColor,
+                    iconSize: 13,
+                    padding: 12,
+                    circle: true,
                     onTap: () => context.pop(),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cardColors(appColor).iconBox,
-                        border: Border.all(
-                          color: cardColors(appColor).iconBorder,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: cardColors(appColor).onCard,
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -868,52 +835,23 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  GestureDetector(
+                                  themedIconBox(
+                                    context,
+                                    icon: Icons.arrow_back_ios_new,
+                                    color: appColor,
+                                    iconSize: 13,
+                                    padding: 12,
+                                    circle: true,
                                     onTap: () => context.pop(),
-                                    child: Container(
-                                      padding: EdgeInsets.all(
-                                        Responsive.scale(context, 12),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: cardColors(appColor).iconBox,
-                                        border: Border.all(
-                                          color: cardColors(
-                                            appColor,
-                                          ).iconBorder,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.arrow_back_ios_new,
-                                        color: cardColors(appColor).onCard,
-                                        size: Responsive.font(context, 13),
-                                      ),
-                                    ),
                                   ),
-                                  GestureDetector(
+                                  themedIconBox(
+                                    context,
+                                    icon: Icons.refresh,
+                                    color: appColor,
+                                    iconSize: 13,
+                                    padding: 12,
+                                    circle: true,
                                     onTap: _fetchBadgesData,
-                                    child: Container(
-                                      padding: EdgeInsets.all(
-                                        Responsive.scale(context, 12),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: lightenColor(
-                                          appColor,
-                                          0.1,
-                                        ).withAlpha(20),
-                                        border: Border.all(
-                                          color: onTheme(appColor),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.refresh,
-                                        color: onTheme(appColor),
-                                        size: Responsive.font(context, 13),
-                                      ),
-                                    ),
                                   ),
                                 ],
                               ),
@@ -942,12 +880,14 @@ class _BadgesState extends ConsumerState<Badges> with TickerProviderStateMixin {
 class _ProgressBar extends StatelessWidget {
   final double fraction;
   final Color barColor;
+  final Color appColor;
   final List<int> tiers;
   final int maxTier;
 
   const _ProgressBar({
     required this.fraction,
     required this.barColor,
+    required this.appColor,
     required this.tiers,
     required this.maxTier,
   });
@@ -956,23 +896,25 @@ class _ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final barHeight = Responsive.height(context, 8);
     final value = fraction.clamp(0.0, 1.0);
+    final radius = Responsive.scale(context, 6);
 
-    return SizedBox(
+    return Container(
       height: barHeight,
-      child: Stack(
-        children: [
-          // Background track
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-            child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: cardColors(appColor).border, width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Stack(
+          children: [
+            // Background track
+            Container(
               height: barHeight,
-              color: Colors.white.withAlpha(18),
+              color: onTheme(appColor).withAlpha(30),
             ),
-          ),
-          // Filled portion
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Responsive.scale(context, 6)),
-            child: FractionallySizedBox(
+            // Filled portion
+            FractionallySizedBox(
               widthFactor: value,
               child: Container(
                 height: barHeight,
@@ -983,8 +925,8 @@ class _ProgressBar extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

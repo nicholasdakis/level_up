@@ -37,7 +37,7 @@ class _RegisterOrLoginState extends ConsumerState<RegisterOrLogin>
   // true once the user taps "Continue with email instead"
   bool showEmailForm = false;
 
-  // Drives the XP preview card — one continuous 0→1 tween split into two phases
+  // Drives the XP preview card, one continuous 0 to 1 tween split into two phases
   late final AnimationController _xpController;
   // t < _level1Fraction: filling level 1 (0→130 XP)
   // t >= _level1Fraction: filling level 2 (0→_level2Xp XP)

@@ -233,7 +233,7 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
         ? [
             HorizontalLine(
               y: toDisplay(goalMl),
-              color: accent.withAlpha(160),
+              color: accent,
               strokeWidth: 1.5,
               dashArray: [6, 4],
               label: HorizontalLineLabel(
@@ -549,7 +549,11 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
             ),
           ),
           if (all.isNotEmpty) ...[
-            Divider(color: accent.withAlpha(30), height: 1, thickness: 1),
+            Divider(
+              color: onTheme(appColor).withAlpha(120),
+              height: 1,
+              thickness: 1.5,
+            ),
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: Responsive.height(context, 220),
@@ -561,9 +565,9 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                     for (int i = 0; i < all.length; i++) ...[
                       if (i > 0)
                         Divider(
-                          color: accent.withAlpha(15),
+                          color: onTheme(appColor).withAlpha(120),
                           height: 1,
-                          thickness: 1,
+                          thickness: 1.5,
                         ),
                       Padding(
                         padding: EdgeInsets.symmetric(
@@ -655,24 +659,14 @@ class _WaterAnalyticsScreenState extends ConsumerState<WaterAnalyticsScreen> {
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
+                  child: themedIconBox(
+                    context,
+                    icon: Icons.arrow_back_ios_new,
+                    color: appColor,
+                    iconSize: 13,
+                    padding: 12,
+                    circle: true,
                     onTap: () => context.pop(),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cardColors(appColor).iconBox,
-                        border: Border.all(
-                          color: cardColors(appColor).iconBorder,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: cardColors(appColor).onCard,
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
                   ),
                 ),
               ),

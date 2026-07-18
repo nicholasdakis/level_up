@@ -254,14 +254,14 @@ class _RemindersState extends ConsumerState<Reminders> {
       content: RichText(
         text: TextSpan(
           style: GoogleFonts.manrope(
-            color: onTheme(appColor),
+            color: Colors.white,
             fontSize: Responsive.font(context, 13),
           ),
           children: [
             TextSpan(
               text: '"${reminder.message}"',
               style: GoogleFonts.manrope(
-                color: onTheme(appColor),
+                color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: Responsive.font(context, 13),
               ),
@@ -502,21 +502,14 @@ class _RemindersState extends ConsumerState<Reminders> {
               ),
               child: Row(
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(Responsive.scale(context, 8)),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: cardColors(appColor).iconBox,
-                      border: Border.all(
-                        color: cardColors(appColor).iconBorder,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedNotification01,
-                      color: onTheme(appColor),
-                      size: Responsive.scale(context, 20),
-                    ),
+                  themedIconBox(
+                    context,
+                    icon: HugeIcons.strokeRoundedNotification01,
+                    color: appColor,
+                    iconSize: 20,
+                    padding: 8,
+                    circle: true,
+                    hugeIcon: true,
                   ),
                   SizedBox(width: Responsive.width(context, 14)),
                   Expanded(
@@ -536,7 +529,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                           _formatDateTime(reminder.scheduledAt),
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: cardColors(appColor).onCard.withAlpha(150),
+                            color: cardColors(appColor).onCard,
                           ),
                         ),
                       ],
@@ -592,26 +585,14 @@ class _RemindersState extends ConsumerState<Reminders> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              GestureDetector(
+                              themedIconBox(
+                                context,
+                                icon: Icons.arrow_back_ios_new,
+                                color: appColor,
+                                iconSize: 13,
+                                padding: 12,
+                                circle: true,
                                 onTap: () => context.pop(),
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    Responsive.scale(context, 12),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: cardColors(appColor).iconBox,
-                                    border: Border.all(
-                                      color: cardColors(appColor).iconBorder,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    Icons.arrow_back_ios_new,
-                                    color: cardColors(appColor).onCard,
-                                    size: Responsive.font(context, 13),
-                                  ),
-                                ),
                               ),
                               if (kIsWeb)
                                 GestureDetector(
@@ -631,7 +612,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                               context,
                                               13,
                                             ),
-                                            color: onTheme(appColor),
+                                            color: Colors.white,
                                             fontWeight: FontWeight.w600,
                                             height: 1.5,
                                           ),
@@ -646,7 +627,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                               context,
                                               13,
                                             ),
-                                            color: onTheme(appColor),
+                                            color: Colors.white,
                                             height: 1.6,
                                           ),
                                         ),
@@ -663,9 +644,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             HugeIcon(
                                               icon: HugeIcons
                                                   .strokeRoundedSmartPhone01,
-                                              color: onTheme(
-                                                appColor,
-                                              ).withAlpha(140),
+                                              color: Colors.white.withAlpha(
+                                                140,
+                                              ),
                                               size: Responsive.scale(
                                                 context,
                                                 18,
@@ -685,7 +666,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                                     context,
                                                     13,
                                                   ),
-                                                  color: onTheme(appColor),
+                                                  color: Colors.white,
                                                   height: 1.5,
                                                 ),
                                               ),
@@ -705,7 +686,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                             child: Text(
                                               "Dismiss",
                                               style: GoogleFonts.manrope(
-                                                color: onTheme(appColor),
+                                                color: Colors.white,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -719,15 +700,9 @@ class _RemindersState extends ConsumerState<Reminders> {
                                     height: Responsive.scale(context, 37),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: lightenColor(
-                                        appColor,
-                                        0.1,
-                                      ).withAlpha(20),
+                                      color: cardColors(appColor).iconBox,
                                       border: Border.all(
-                                        color: lightenColor(
-                                          appColor,
-                                          0.3,
-                                        ).withAlpha(180),
+                                        color: cardColors(appColor).iconBorder,
                                         width: 1.5,
                                       ),
                                     ),
@@ -822,7 +797,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       "Enter a reminder message (E.g. $placeholderMessage)",
                                   hintStyle: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 14),
-                                    color: onTheme(appColor).withAlpha(140),
+                                    color: onTheme(appColor),
                                   ),
                                   filled: true,
                                   fillColor: Colors.white.withAlpha(12),
@@ -930,7 +905,7 @@ class _RemindersState extends ConsumerState<Reminders> {
                                       HugeIcon(
                                         icon:
                                             HugeIcons.strokeRoundedArrowRight01,
-                                        color: onTheme(appColor).withAlpha(140),
+                                        color: onTheme(appColor),
                                         size: Responsive.scale(context, 18),
                                       ),
                                     ],

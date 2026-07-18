@@ -194,24 +194,14 @@ class _WorkoutAnalyticsScreenState
                 ),
                 child: Row(
                   children: [
-                    GestureDetector(
+                    themedIconBox(
+                      context,
+                      icon: Icons.arrow_back_ios_new,
+                      color: appColor,
+                      iconSize: 13,
+                      padding: 10,
+                      circle: true,
                       onTap: () => context.pop(),
-                      child: Container(
-                        padding: EdgeInsets.all(Responsive.scale(context, 10)),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: cardColors(appColor).iconBox,
-                          border: Border.all(
-                            color: cardColors(appColor).iconBorder,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_ios_new,
-                          color: cardColors(appColor).onCard,
-                          size: Responsive.font(context, 13),
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -605,7 +595,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             'primary muscles, by frequency',
             style: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -660,7 +650,11 @@ class _WorkoutAnalyticsScreenState
           ),
           if (_secondaryMuscles.isNotEmpty) ...[
             SizedBox(height: Responsive.height(context, 12)),
-            Divider(color: onTheme(appColor).withAlpha(40), height: 1),
+            Divider(
+              color: onTheme(appColor).withAlpha(120),
+              height: 1,
+              thickness: 1.5,
+            ),
             SizedBox(height: Responsive.height(context, 10)),
             Text(
               'Secondary muscles',
@@ -729,7 +723,7 @@ class _WorkoutAnalyticsScreenState
         Text(
           label,
           style: GoogleFonts.manrope(
-            color: onTheme(appColor).withAlpha(140),
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 11),
           ),
         ),
@@ -769,7 +763,7 @@ class _WorkoutAnalyticsScreenState
                 textAlign: TextAlign.center,
                 style: GoogleFonts.manrope(
                   fontSize: Responsive.font(context, 13),
-                  color: onTheme(appColor).withAlpha(140),
+                  color: onTheme(appColor),
                 ),
               ),
             ],
@@ -812,7 +806,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             isImperial ? 'lbs' : 'kg',
             style: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -870,7 +864,7 @@ class _WorkoutAnalyticsScreenState
                       getTitlesWidget: (v, _) => Text(
                         v.toInt().toString(),
                         style: GoogleFonts.manrope(
-                          color: onTheme(appColor).withAlpha(140),
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 9),
                         ),
                       ),
@@ -888,7 +882,7 @@ class _WorkoutAnalyticsScreenState
                         return Text(
                           formatDateKeyShort(sorted[i].key),
                           style: GoogleFonts.manrope(
-                            color: onTheme(appColor).withAlpha(140),
+                            color: onTheme(appColor),
                             fontSize: Responsive.font(context, 9),
                           ),
                         );
@@ -961,7 +955,7 @@ class _WorkoutAnalyticsScreenState
           Text(
             'minutes',
             style: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 11),
             ),
           ),
@@ -1021,7 +1015,7 @@ class _WorkoutAnalyticsScreenState
                       getTitlesWidget: (v, _) => Text(
                         '${v.toInt()}m',
                         style: GoogleFonts.manrope(
-                          color: onTheme(appColor).withAlpha(140),
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 9),
                         ),
                       ),
@@ -1041,7 +1035,7 @@ class _WorkoutAnalyticsScreenState
                             sorted[i]['date'] as String? ?? '',
                           ),
                           style: GoogleFonts.manrope(
-                            color: onTheme(appColor).withAlpha(140),
+                            color: onTheme(appColor),
                             fontSize: Responsive.font(context, 9),
                           ),
                         );

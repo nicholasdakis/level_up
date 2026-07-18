@@ -302,20 +302,14 @@ class _ProgressionState extends ConsumerState<Progression> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 11)),
-                      decoration: BoxDecoration(
-                        color: c.iconBox,
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 13),
-                        ),
-                        border: Border.all(color: c.iconBorder, width: 1.5),
-                      ),
-                      child: HugeIcon(
-                        icon: icon,
-                        color: accent,
-                        size: Responsive.scale(context, 22),
-                      ),
+                    themedIconBox(
+                      context,
+                      icon: icon,
+                      color: base,
+                      iconSize: 22,
+                      padding: 11,
+                      radius: 13,
+                      hugeIcon: true,
                     ),
                     SizedBox(width: Responsive.width(context, 16)),
                     Expanded(

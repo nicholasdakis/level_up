@@ -15,7 +15,7 @@ external void _showJsNotification(JSString title, JSString body);
 
 // Calls getToken() via JS interop, passing the service worker registration
 // so Firebase can locate the SW on subdirectory web deployments.
-// Only proceeds if the browser has already granted notification permission —
+// Only proceeds if the browser has already granted notification permission
 // calling getToken() without permission triggers an automatic request that Chrome blocks.
 Future<String?> getWebFcmToken(String vapidKey) async {
   if (_notificationPermission != 'granted') return null;

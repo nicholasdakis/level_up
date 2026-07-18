@@ -297,7 +297,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                 Text(
                   trailingText(),
                   style: GoogleFonts.manrope(
-                    color: onTheme(appColor).withAlpha(140),
+                    color: onTheme(appColor),
                     fontSize: Responsive.font(context, 12),
                   ),
                 ),
@@ -503,7 +503,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                     "Failed to load the leaderboard.",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       fontSize: 13,
                     ),
                   ),
@@ -515,7 +515,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       },
                       child: Text(
                         "Go back",
-                        style: GoogleFonts.manrope(color: onTheme(appColor)),
+                        style: GoogleFonts.manrope(color: Colors.white),
                       ),
                     ),
                     TextButton(
@@ -526,7 +526,7 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                       child: Text(
                         "Retry",
                         style: GoogleFonts.manrope(
-                          color: onTheme(appColor),
+                          color: Colors.white,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -555,26 +555,14 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                     ),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: GestureDetector(
+                      child: themedIconBox(
+                        context,
+                        icon: Icons.arrow_back_ios_new,
+                        color: appColor,
+                        iconSize: 13,
+                        padding: 12,
+                        circle: true,
                         onTap: () => context.pop(),
-                        child: Container(
-                          padding: EdgeInsets.all(
-                            Responsive.scale(context, 12),
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: cardColors(appColor).iconBox,
-                            border: Border.all(
-                              color: cardColors(appColor).iconBorder,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.arrow_back_ios_new,
-                            color: cardColors(appColor).onCard,
-                            size: Responsive.font(context, 13),
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -626,50 +614,23 @@ class _LeaderboardState extends ConsumerState<Leaderboard> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                GestureDetector(
+                                themedIconBox(
+                                  context,
+                                  icon: Icons.arrow_back_ios_new,
+                                  color: appColor,
+                                  iconSize: 13,
+                                  padding: 12,
+                                  circle: true,
                                   onTap: () => context.pop(),
-                                  child: Container(
-                                    padding: EdgeInsets.all(
-                                      Responsive.scale(context, 12),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: cardColors(appColor).iconBox,
-                                      border: Border.all(
-                                        color: cardColors(appColor).iconBorder,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      Icons.arrow_back_ios_new,
-                                      color: cardColors(appColor).onCard,
-                                      size: Responsive.font(context, 13),
-                                    ),
-                                  ),
                                 ),
-                                GestureDetector(
+                                themedIconBox(
+                                  context,
+                                  icon: Icons.refresh,
+                                  color: appColor,
+                                  iconSize: 13,
+                                  padding: 12,
+                                  circle: true,
                                   onTap: _refreshLeaderboard,
-                                  child: Container(
-                                    padding: EdgeInsets.all(
-                                      Responsive.scale(context, 12),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: lightenColor(
-                                        appColor,
-                                        0.1,
-                                      ).withAlpha(20),
-                                      border: Border.all(
-                                        color: onTheme(appColor),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      Icons.refresh,
-                                      color: onTheme(appColor),
-                                      size: Responsive.font(context, 13),
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),

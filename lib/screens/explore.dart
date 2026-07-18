@@ -717,7 +717,8 @@ class _ExploreState extends ConsumerState<Explore> {
                             Guest.block(
                               context,
                               title: 'Sign up to explore',
-                              description: 'Create a free account to check in to nearby spots and earn bonus XP.',
+                              description:
+                                  'Create a free account to check in to nearby spots and earn bonus XP.',
                             );
                             return;
                           }

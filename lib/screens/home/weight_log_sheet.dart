@@ -130,7 +130,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
       content: Text(
         "Delete $entryDisplay ${UnitConverter.weightUnit(imperial: isImperial)} from ${labelFor(DateTime.parse(entryKey))}?",
         style: GoogleFonts.manrope(
-          color: onTheme(widget.appColor),
+          color: Colors.white,
           fontSize: 13,
         ),
         textAlign: TextAlign.center,
@@ -352,7 +352,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                                 vertical: Responsive.height(context, 12),
                               ),
                               decoration: BoxDecoration(
-                                color: onCard.withAlpha(20),
+                                color: onTheme(appColor).withAlpha(120),
                                 borderRadius: BorderRadius.circular(
                                   Responsive.scale(context, 12),
                                 ),
@@ -393,7 +393,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                                 for (int i = 0; i < recent.length; i++) ...[
                                   if (i > 0)
                                     Divider(
-                                      color: onCard.withAlpha(20),
+                                      color: onTheme(appColor).withAlpha(120),
                                       height: 1,
                                     ),
                                   GestureDetector(

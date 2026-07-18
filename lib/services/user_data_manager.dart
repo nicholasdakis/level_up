@@ -11,7 +11,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 // Base URL for the backend hosted on Render. All backend requests go to this URL
 const String backendBaseUrl = 'https://level-up-69vz.onrender.com';
 
-// The default dark grey app color — used as a fallback when no color has been set
+// The default dark grey app color, used as a fallback when no color has been set
 const Color defaultAppColor = Color.fromARGB(255, 45, 45, 45);
 
 // Firebase Cloud Messaging VAPID key for web push notifications

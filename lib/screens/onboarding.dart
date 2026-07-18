@@ -2856,7 +2856,7 @@ Widget _activationOption(
                     description,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 11),
-                      color: Colors.white.withAlpha(140),
+                      color: Colors.white,
                     ),
                   ),
                 ],

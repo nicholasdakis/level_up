@@ -59,7 +59,7 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
               text,
               style: GoogleFonts.manrope(
                 fontSize: Responsive.font(context, 14),
-                color: Colors.white70,
+                color: onTheme(appColor),
                 height: 1.5,
               ),
             ),
@@ -123,7 +123,11 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
               ],
             ),
             SizedBox(height: Responsive.height(context, 14)),
-            Divider(color: Colors.white.withAlpha(20), height: 1),
+            Divider(
+              color: onTheme(appColor).withAlpha(120),
+              height: 1,
+              thickness: 1.5,
+            ),
             SizedBox(height: Responsive.height(context, 14)),
             ...steps, // Spread operator to lay out all the steps into the column
             if (extras != null)
@@ -307,7 +311,11 @@ class _InstallGuideState extends ConsumerState<InstallGuide> {
                       ),
                     ],
                     extras: [
-                      Divider(color: Colors.white.withAlpha(20), height: 1),
+                      Divider(
+                        color: onTheme(appColor).withAlpha(120),
+                        height: 1,
+                        thickness: 1.5,
+                      ),
                       SizedBox(height: Responsive.height(context, 12)),
                       Padding(
                         padding: EdgeInsets.all(

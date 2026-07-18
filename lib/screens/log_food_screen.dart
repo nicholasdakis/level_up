@@ -539,13 +539,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
           inputFormatters: inputFormatters,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(ctx, 15),
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
-          cursorColor: onTheme(appColor),
+          cursorColor: Colors.white,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: Colors.white,
               fontSize: Responsive.font(ctx, 14),
             ),
             contentPadding: EdgeInsets.only(
@@ -553,10 +553,10 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
               left: Responsive.width(ctx, 6),
             ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
+              borderSide: BorderSide(color: Colors.white.withAlpha(120)),
             ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: onTheme(appColor)),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
             ),
           ),
         ),
@@ -578,7 +578,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                   style: GoogleFonts.manrope(
                     fontSize: Responsive.font(context, 20),
                     fontWeight: FontWeight.w700,
-                    color: onTheme(appColor),
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -592,7 +592,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                         "REQUIRED",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(ctx, 11),
-                          color: onTheme(appColor).withAlpha(140),
+                          color: Colors.white,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.1,
                         ),
@@ -647,7 +647,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                                 20,
                                               ),
                                               fontWeight: FontWeight.w700,
-                                              color: onTheme(appColor),
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ),
@@ -683,8 +683,8 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                                         color:
                                                             manualSelectedUnit ==
                                                                 u
-                                                            ? onTheme(appColor)
-                                                            : onTheme(appColor),
+                                                            ? Colors.white
+                                                            : Colors.white,
                                                         fontWeight:
                                                             manualSelectedUnit ==
                                                                 u
@@ -696,7 +696,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                                   if (manualSelectedUnit == u)
                                                     Icon(
                                                       Icons.check,
-                                                      color: onTheme(appColor),
+                                                      color: Colors.white,
                                                       size: Responsive.scale(
                                                         ctx,
                                                         16,
@@ -708,9 +708,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           ),
                                         ),
                                         Divider(
-                                          color: onTheme(
-                                            appColor,
-                                          ).withAlpha(120),
+                                          color: Colors.white.withAlpha(120),
                                           thickness: 1.5,
                                         ),
                                         GestureDetector(
@@ -734,9 +732,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                                   ctx,
                                                   15,
                                                 ),
-                                                color: onTheme(
-                                                  appColor,
-                                                ).withAlpha(140),
+                                                color: Colors.white,
                                               ),
                                             ),
                                           ),
@@ -755,28 +751,25 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                         controller: _customUnitController,
                                         autofocus: true,
                                         style: GoogleFonts.manrope(
-                                          color: onTheme(appColor),
+                                          color: Colors.white,
                                         ),
                                         decoration: InputDecoration(
                                           hintText:
                                               "e.g. a slice, a can, a bag...",
                                           hintStyle: GoogleFonts.manrope(
-                                            color: onTheme(
-                                              appColor,
-                                            ).withAlpha(140),
+                                            color: Colors.white,
                                           ),
                                           enabledBorder: UnderlineInputBorder(
                                             borderSide: BorderSide(
-                                              color: onTheme(
-                                                appColor,
-                                              ).withAlpha(140),
+                                              color: Colors.white,
                                             ),
                                           ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: onTheme(appColor),
-                                            ),
-                                          ),
+                                          focusedBorder:
+                                              const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                       actions: [
@@ -788,7 +781,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           child: Text(
                                             "Cancel",
                                             style: GoogleFonts.manrope(
-                                              color: onTheme(appColor),
+                                              color: Colors.white,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -812,7 +805,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           child: Text(
                                             "OK",
                                             style: GoogleFonts.manrope(
-                                              color: onTheme(appColor),
+                                              color: Colors.white,
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
@@ -832,7 +825,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                   decoration: BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
-                                        color: onTheme(appColor).withAlpha(120),
+                                        color: Colors.white.withAlpha(120),
                                       ),
                                     ),
                                   ),
@@ -843,13 +836,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                           manualSelectedUnit,
                                           style: GoogleFonts.manrope(
                                             fontSize: Responsive.font(ctx, 14),
-                                            color: onTheme(appColor),
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
                                       Icon(
                                         Icons.chevron_right,
-                                        color: onTheme(appColor).withAlpha(140),
+                                        color: Colors.white,
                                         size: Responsive.scale(ctx, 16),
                                       ),
                                     ],
@@ -874,7 +867,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                         "OPTIONAL",
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(ctx, 11),
-                          color: onTheme(appColor).withAlpha(140),
+                          color: Colors.white,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.1,
                         ),
@@ -950,7 +943,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                         Text(
                           dialogError!,
                           style: GoogleFonts.manrope(
-                            color: onTheme(appColor),
+                            color: Colors.white,
                             fontSize: Responsive.font(ctx, 13),
                           ),
                         ),
@@ -992,9 +985,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                           title: "No macronutrients entered!",
                           content: Text(
                             "You haven't entered any fat, carbs, or protein. Log anyway?",
-                            style: GoogleFonts.manrope(
-                              color: onTheme(appColor),
-                            ),
+                            style: GoogleFonts.manrope(color: Colors.white),
                           ),
                           actions: [
                             // Dismiss alert only, manual entry dialog stays open
@@ -1292,24 +1283,14 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
+                  child: themedIconBox(
+                    context,
+                    icon: Icons.arrow_back_ios_new,
+                    color: appColor,
+                    iconSize: 13,
+                    padding: 12,
+                    circle: true,
                     onTap: () => setState(() => scannerActive = false),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cardColors(appColor).iconBox,
-                        border: Border.all(
-                          color: cardColors(appColor).iconBorder,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: cardColors(appColor).onCard,
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -1480,20 +1461,13 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 10)),
-                      decoration: BoxDecoration(
-                        color: c.iconBox,
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 12),
-                        ),
-                        border: Border.all(color: c.iconBorder, width: 1.5),
-                      ),
-                      child: HugeIcon(
-                        icon: icon,
-                        color: onTheme(base),
-                        size: Responsive.scale(context, 20),
-                      ),
+                    themedIconBox(
+                      context,
+                      icon: icon,
+                      color: base,
+                      iconSize: 20,
+                      padding: 10,
+                      hugeIcon: true,
                     ),
                     SizedBox(width: Responsive.width(context, 12)),
                     Expanded(
@@ -1569,24 +1543,14 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    GestureDetector(
+                    themedIconBox(
+                      context,
+                      icon: Icons.arrow_back_ios_new,
+                      color: appColor,
+                      iconSize: 13,
+                      padding: 12,
+                      circle: true,
                       onTap: () => context.pop(),
-                      child: Container(
-                        padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: cardColors(appColor).iconBox,
-                          border: Border.all(
-                            color: cardColors(appColor).iconBorder,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_ios_new,
-                          color: cardColors(appColor).onCard,
-                          size: Responsive.font(context, 13),
-                        ),
-                      ),
                     ),
                     SizedBox(width: Responsive.width(context, 16)),
                     Column(
@@ -1732,7 +1696,7 @@ class _LogFoodScreenState extends ConsumerState<LogFoodScreen>
                                   ),
                                   child: Icon(
                                     Icons.close,
-                                    color: c.onCard.withAlpha(140),
+                                    color: c.onCard,
                                     size: Responsive.font(context, 20),
                                   ),
                                 ),

@@ -618,7 +618,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                       Text(
                         oldVal,
                         style: GoogleFonts.manrope(
-                          color: onTheme(appColor).withAlpha(140),
+                          color: onTheme(appColor),
                           fontSize: Responsive.font(context, 11),
                           decoration: TextDecoration.lineThrough,
                           decorationColor: onTheme(appColor).withAlpha(140),
@@ -630,7 +630,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
                         ),
                         child: Icon(
                           Icons.arrow_forward_rounded,
-                          color: onTheme(appColor).withAlpha(140),
+                          color: onTheme(appColor),
                           size: Responsive.scale(context, 10),
                         ),
                       ),
@@ -859,7 +859,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
             '$setNum',
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 12),
               fontWeight: FontWeight.w600,
             ),
@@ -879,7 +879,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
           Text(
             ' x ',
             style: GoogleFonts.manrope(
-              color: onTheme(appColor).withAlpha(140),
+              color: onTheme(appColor),
               fontSize: Responsive.font(context, 13),
             ),
           ),
@@ -972,7 +972,7 @@ class _FinishWorkoutScreenState extends ConsumerState<FinishWorkoutScreen> {
         Text(
           label,
           style: GoogleFonts.manrope(
-            color: onTheme(appColor).withAlpha(140),
+            color: onTheme(appColor),
             fontSize: Responsive.font(context, 11),
           ),
         ),

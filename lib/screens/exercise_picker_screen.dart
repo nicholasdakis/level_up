@@ -126,7 +126,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 .replaceAll(RegExp(r'\s*\(.*?\)\s*$'), '')
                 .trim(),
             style: GoogleFonts.manrope(
-              color: onTheme(appColor),
+              color: Colors.white,
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -145,14 +145,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 children: [
                   Icon(
                     Icons.edit_outlined,
-                    color: onTheme(appColor),
+                    color: Colors.white,
                     size: Responsive.scale(context, 18),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Edit',
                     style: GoogleFonts.manrope(
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -161,7 +161,11 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               ),
             ),
           ),
-          Divider(color: cardColors(appColor).border.withAlpha(40), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            height: 1,
+            thickness: 1.5,
+          ),
           GestureDetector(
             onTap: () async {
               Navigator.of(context, rootNavigator: true).pop();
@@ -172,7 +176,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 content: Text(
                   'This will remove the exercise from your library. Past workouts won\'t be affected.',
                   style: GoogleFonts.manrope(
-                    color: cardColors(appColor).onCard,
+                    color: Colors.white,
                     fontSize: Responsive.font(this.context, 13),
                   ),
                 ),
@@ -192,7 +196,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     child: Text(
                       'Delete',
                       style: GoogleFonts.manrope(
-                        color: onTheme(appColor),
+                        color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -217,14 +221,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 children: [
                   Icon(
                     Icons.delete_outline,
-                    color: onTheme(appColor),
+                    color: Colors.white,
                     size: Responsive.scale(context, 18),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Delete',
                     style: GoogleFonts.manrope(
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -360,7 +364,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                             Responsive.scale(context, 20),
                           ),
                           border: Border.all(
-                            color: onTheme(appColor).withAlpha(120),
+                            color: Colors.white.withAlpha(120),
                             width: 1,
                           ),
                         ),
@@ -855,7 +859,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               Text(
                 title,
                 style: GoogleFonts.manrope(
-                  color: onTheme(appColor),
+                  color: Colors.white,
                   fontSize: Responsive.font(context, 18),
                   fontWeight: FontWeight.w800,
                 ),
@@ -892,13 +896,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: selected.contains(opt)
-                                      ? onTheme(appColor).withAlpha(30)
-                                      : onTheme(appColor).withAlpha(10),
+                                      ? Colors.white.withAlpha(30)
+                                      : Colors.white.withAlpha(10),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: selected.contains(opt)
-                                        ? onTheme(appColor)
-                                        : onTheme(appColor).withAlpha(40),
+                                        ? Colors.white
+                                        : Colors.white.withAlpha(40),
                                     width: selected.contains(opt) ? 1.5 : 1,
                                   ),
                                 ),
@@ -906,8 +910,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                                   opt,
                                   style: GoogleFonts.manrope(
                                     color: selected.contains(opt)
-                                        ? onTheme(appColor)
-                                        : onTheme(appColor),
+                                        ? Colors.white
+                                        : Colors.white,
                                     fontSize: Responsive.font(context, 14),
                                     fontWeight: selected.contains(opt)
                                         ? FontWeight.w700
@@ -971,12 +975,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               ? cardColors(appColor).gradient.first
               : cardColors(appColor).gradient.last,
           borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-          border: Border.all(
-            color: active
-                ? cardColors(appColor).border.withAlpha(90)
-                : cardColors(appColor).border.withAlpha(60),
-            width: active ? 1.5 : 1,
-          ),
+          border: Border.all(color: cardColors(appColor).border, width: 1.5),
         ),
         child: Text(
           displayLabel,
@@ -1062,7 +1061,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                     hintText: 'Search exercise...',
                     hintStyle: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 14),
-                      color: cardColors(appColor).onCard.withAlpha(140),
+                      color: cardColors(appColor).onCard,
                     ),
                     prefixIcon: Icon(
                       Icons.search,
@@ -1564,7 +1563,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             for (int i = 0; i < _recommendedExercises.length; i++) ...[
               if (i > 0)
                 Divider(
-                  color: cardColors(appColor).border.withAlpha(40),
+                  color: onTheme(appColor).withAlpha(120),
                   height: 1,
                   thickness: 1,
                 ),
@@ -1593,7 +1592,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ) ...[
               if (i > 0)
                 Divider(
-                  color: cardColors(appColor).border.withAlpha(40),
+                  color: onTheme(appColor).withAlpha(120),
                   height: 1,
                   thickness: 1,
                 ),
@@ -1616,12 +1615,20 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             ],
             SizedBox(height: Responsive.height(context, 20)),
           ],
-          Divider(color: cardColors(appColor).border.withAlpha(60), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            height: 1,
+            thickness: 1.5,
+          ),
           SizedBox(height: Responsive.height(context, 16)),
           sectionHeader('BROWSE BY MUSCLE'),
           _buildMuscleGrid(context),
           SizedBox(height: Responsive.height(context, 20)),
-          Divider(color: cardColors(appColor).border.withAlpha(60), height: 1),
+          Divider(
+            color: onTheme(appColor).withAlpha(120),
+            height: 1,
+            thickness: 1.5,
+          ),
           SizedBox(height: Responsive.height(context, 16)),
           sectionHeader('BROWSE BY EQUIPMENT'),
           _buildEquipmentGrid(context),

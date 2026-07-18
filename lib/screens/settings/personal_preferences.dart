@@ -27,8 +27,8 @@ Future<void> showUsernameDialogBox(
   WidgetRef ref,
   Color appColor,
 ) async {
-  final accent = onTheme(appColor);
-  final dim = onTheme(appColor);
+  final accent = Colors.white;
+  final dim = Colors.white;
   final currentUsername = ref.read(userDataProvider).value?.username;
   final hasUsername =
       currentUsername != null &&
@@ -66,36 +66,34 @@ Future<void> showUsernameDialogBox(
               controller: usernameController,
               autofocus: true,
               maxLength: 20,
-              style: GoogleFonts.manrope(color: onTheme(appColor)),
+              style: GoogleFonts.manrope(color: Colors.white),
               textCapitalization: TextCapitalization.none,
               decoration: InputDecoration(
                 hintText: 'Username',
-                hintStyle: GoogleFonts.manrope(
-                  color: onTheme(appColor).withAlpha(140),
-                ),
+                hintStyle: GoogleFonts.manrope(color: Colors.white),
                 filled: true,
                 fillColor: Colors.white.withAlpha(10),
                 counterStyle: GoogleFonts.manrope(
-                  color: dim,
+                  color: Colors.white,
                   fontSize: Responsive.font(context, 11),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(color: onTheme(appColor)),
+                  borderSide: const BorderSide(color: Colors.white),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(color: onTheme(appColor)),
+                  borderSide: const BorderSide(color: Colors.white),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 12),
                   ),
-                  borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
+                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
                 ),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: Responsive.width(context, 16),
@@ -689,7 +687,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
               Text(
                 "Goal type",
                 style: TextStyle(
-                  color: onTheme(appColor),
+                  color: Colors.white,
                   fontSize: Responsive.font(context, 13),
                 ),
               ),
@@ -734,8 +732,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                               textAlign: TextAlign.center,
                               style: GoogleFonts.manrope(
                                 color: weightGoalType == option
-                                    ? onTheme(appColor)
-                                    : onTheme(appColor),
+                                    ? Colors.white
+                                    : Colors.white,
                                 fontSize: Responsive.font(context, 14),
                                 fontWeight: weightGoalType == option
                                     ? FontWeight.w600
@@ -799,8 +797,8 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       title: "Weekly Workout Goal",
       content: StatefulBuilder(
         builder: (sbContext, setDialogState) {
-          final accent = onTheme(appColor);
-          final dim = onTheme(appColor);
+          final accent = Colors.white;
+          final dim = Colors.white;
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -824,7 +822,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       Icons.remove_circle_outline,
                       color: selected > 1
                           ? accent
-                          : onTheme(appColor).withAlpha(100),
+                          : Colors.white.withAlpha(100),
                     ),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
@@ -845,7 +843,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                       Icons.add_circle_outline,
                       color: selected < 7
                           ? accent
-                          : onTheme(appColor).withAlpha(100),
+                          : Colors.white.withAlpha(100),
                     ),
                   ),
                 ],
@@ -948,20 +946,20 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(maxLength),
         ],
-        style: GoogleFonts.manrope(color: onTheme(appColor)),
+        style: GoogleFonts.manrope(color: Colors.white),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
-          floatingLabelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
+          labelStyle: GoogleFonts.manrope(color: Colors.white),
+          floatingLabelStyle: GoogleFonts.manrope(color: Colors.white),
           filled: true,
           fillColor: Colors.white.withAlpha(12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(color: onTheme(appColor)),
+            borderSide: const BorderSide(color: Colors.white),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
+            borderSide: const BorderSide(color: Colors.white, width: 1.5),
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 16),
@@ -988,20 +986,20 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
             return newValue;
           }),
         ],
-        style: GoogleFonts.manrope(color: onTheme(appColor)),
+        style: GoogleFonts.manrope(color: Colors.white),
         decoration: InputDecoration(
           labelText: hint,
-          labelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
-          floatingLabelStyle: GoogleFonts.manrope(color: onTheme(appColor)),
+          labelStyle: GoogleFonts.manrope(color: Colors.white),
+          floatingLabelStyle: GoogleFonts.manrope(color: Colors.white),
           filled: true,
           fillColor: Colors.white.withAlpha(12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(color: onTheme(appColor)),
+            borderSide: const BorderSide(color: Colors.white),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Responsive.scale(context, 12)),
-            borderSide: BorderSide(color: onTheme(appColor), width: 1.5),
+            borderSide: const BorderSide(color: Colors.white, width: 1.5),
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: Responsive.width(context, 16),
@@ -1040,12 +1038,12 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
               Container(
                 padding: EdgeInsets.all(Responsive.scale(context, 8)),
                 decoration: BoxDecoration(
-                  color: lightenColor(appColor, 0.05).withAlpha(80),
+                  color: cardColors(appColor).iconBox,
                   borderRadius: BorderRadius.circular(
                     Responsive.scale(context, 10),
                   ),
                   border: Border.all(
-                    color: lightenColor(appColor, 0.25).withAlpha(60),
+                    color: cardColors(appColor).iconBorder,
                     width: Responsive.width(context, 2),
                   ),
                 ),
@@ -1152,32 +1150,14 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                         ),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: GestureDetector(
+                          child: themedIconBox(
+                            context,
+                            icon: Icons.arrow_back_ios_new,
+                            color: appColor,
+                            iconSize: 13,
+                            padding: 12,
+                            circle: true,
                             onTap: () => context.pop(),
-                            child: Container(
-                              padding: EdgeInsets.all(
-                                Responsive.scale(context, 12),
-                              ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: lightenColor(
-                                  appColor,
-                                  0.1,
-                                ).withAlpha(20),
-                                border: Border.all(
-                                  color: lightenColor(
-                                    appColor,
-                                    0.3,
-                                  ).withAlpha(180),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.arrow_back_ios_new,
-                                color: onTheme(appColor),
-                                size: Responsive.font(context, 13),
-                              ),
-                            ),
                           ),
                         ),
                       ),

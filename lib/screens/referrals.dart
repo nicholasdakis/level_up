@@ -42,7 +42,7 @@ Future<void> checkPendingReferralReward(
       children: [
         HugeIcon(
           icon: HugeIcons.strokeRoundedUserAdd01,
-          color: onTheme(appColor),
+          color: Colors.white,
           size: Responsive.scale(context, 40),
         ),
         SizedBox(height: Responsive.height(context, 12)),
@@ -184,14 +184,14 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: appColor.withAlpha(80),
-                                  border: Border.all(color: onTheme(appColor)),
+                                  border: Border.all(color: Colors.white),
                                 ),
                                 child: Center(
                                   child: Text(
                                     step.$1,
                                     style: GoogleFonts.manrope(
                                       fontSize: Responsive.font(context, 11),
-                                      color: accent,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -203,7 +203,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                   step.$2,
                                   style: GoogleFonts.manrope(
                                     fontSize: Responsive.font(context, 13),
-                                    color: Colors.white60,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -233,7 +233,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             borderRadius: BorderRadius.circular(
                               Responsive.scale(context, 12),
                             ),
-                            border: Border.all(color: onTheme(appColor)),
+                            border: Border.all(color: Colors.white),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -243,14 +243,14 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                                 style: GoogleFonts.manrope(
                                   fontSize: Responsive.font(context, 18),
                                   fontWeight: FontWeight.w700,
-                                  color: accent,
+                                  color: Colors.white,
                                   letterSpacing: 2,
                                 ),
                               ),
                               SizedBox(width: Responsive.width(context, 10)),
                               HugeIcon(
                                 icon: HugeIcons.strokeRoundedCopy01,
-                                color: accentDim,
+                                color: Colors.white,
                                 size: Responsive.scale(context, 16),
                               ),
                             ],
@@ -263,12 +263,12 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                           "${ref.read(userDataProvider).value?.referralCount ?? 0} friend${(ref.read(userDataProvider).value?.referralCount ?? 0) == 1 ? '' : 's'} referred",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 12),
-                            color: accentDim,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                       Divider(
-                        color: Colors.white12,
+                        color: onTheme(appColor).withAlpha(120),
                         height: Responsive.height(context, 32),
                       ),
                       if (ref.read(userDataProvider).value?.referralUsed ==
@@ -279,7 +279,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             textAlign: TextAlign.center,
                             style: GoogleFonts.manrope(
                               fontSize: Responsive.font(context, 13),
-                              color: Colors.white38,
+                              color: Colors.white60,
                             ),
                           ),
                         ),
@@ -288,7 +288,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                           "Have a referral code?",
                           style: GoogleFonts.manrope(
                             fontSize: Responsive.font(context, 13),
-                            color: Colors.white60,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(height: Responsive.height(context, 8)),
@@ -316,7 +316,7 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                             suffixIcon: IconButton(
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedArrowRight01,
-                                color: onTheme(appColor),
+                                color: Colors.white,
                                 size: Responsive.scale(context, 20),
                               ),
                               onPressed: () async {
@@ -417,20 +417,14 @@ Widget buildReferralsCard(BuildContext context, Color appColor, WidgetRef ref) {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     // Icon at the top of the tile
-                    Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 8)),
-                      decoration: BoxDecoration(
-                        color: c.iconBox,
-                        borderRadius: BorderRadius.circular(
-                          Responsive.scale(context, 10),
-                        ),
-                        border: Border.all(color: c.iconBorder, width: 1.5),
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedUserAdd01,
-                        color: accent,
-                        size: Responsive.scale(context, 22),
-                      ),
+                    themedIconBox(
+                      context,
+                      icon: HugeIcons.strokeRoundedUserAdd01,
+                      color: base,
+                      iconSize: 22,
+                      padding: 8,
+                      radius: 10,
+                      hugeIcon: true,
                     ),
                     SizedBox(height: Responsive.height(context, 8)),
                     Text(

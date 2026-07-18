@@ -2855,3 +2855,13 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - All back button icon boxes are now unified to use cardColors(appColor).iconBox, .iconBorder, and .onCard across all screens
 - Integrated Facebook App Events SDK to track sign-up conversions via CompleteRegistration events for both Google and email sign-up methods
 - Made near-invisible text look more visible on light themes
+- Added borders to the macro pill text in food analytics
+- Fixed more colors to make them more responsive to lighter themes
+- Updated the calorie calculator's UI to improve the text input boxes
+- Made a themedIconBox method to contain the scattered style of icon boxes across the app and rolled it out across all screens
+- All frosted dialog text and icons are now hardcoded to white since the dialog shell is always dark regardless of theme
+- Gradient button label color now adapts to light themes instead of always being white
+- Starfield background stars now use the theme color so they are visible on light themes
+- Food analytics macro tiles now show the unit inline with the number instead of on a separate line
+- All filter chip and action button borders strengthened to full card border color and width
+- Replaced some bare icons with themedIconBoxes

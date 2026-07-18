@@ -98,8 +98,8 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
   VoidCallback get onShowWeightSheet => widget.onShowWeightSheet;
 
   void _showMealPicker(BuildContext context) {
-    final accent = onTheme(appColor);
-    final dim = onTheme(appColor);
+    final accent = Colors.white;
+    final dim = Colors.white;
     final meals = [
       (
         label: 'Breakfast',
@@ -123,7 +123,7 @@ class _HomeLoggingCardsState extends ConsumerState<HomeLoggingCards> {
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 13),
-              color: onTheme(appColor),
+              color: Colors.white,
             ),
           ),
           SizedBox(height: Responsive.height(context, 16)),

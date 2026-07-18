@@ -50,24 +50,14 @@ class _ChangelogScreenState extends ConsumerState<ChangelogScreen> {
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
+                  child: themedIconBox(
+                    context,
+                    icon: Icons.arrow_back_ios_new,
+                    color: appColor,
+                    iconSize: 13,
+                    padding: 12,
+                    circle: true,
                     onTap: () => context.pop(),
-                    child: Container(
-                      padding: EdgeInsets.all(Responsive.scale(context, 12)),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cardColors(appColor).iconBox,
-                        border: Border.all(
-                          color: cardColors(appColor).iconBorder,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: cardColors(appColor).onCard,
-                        size: Responsive.font(context, 13),
-                      ),
-                    ),
                   ),
                 ),
               ),

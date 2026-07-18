@@ -194,8 +194,8 @@ class _WorkoutState extends ConsumerState<Workout> {
       appColor: appColor,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
-          final accent = onTheme(appColor);
-          final dim = onTheme(appColor);
+          final accent = Colors.white;
+          final dim = Colors.white;
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -228,7 +228,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                       Icons.remove_circle_outline,
                       color: selected > 1
                           ? accent
-                          : onTheme(appColor).withAlpha(100),
+                          : Colors.white.withAlpha(100),
                     ),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
@@ -249,7 +249,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                       Icons.add_circle_outline,
                       color: selected < 7
                           ? accent
-                          : onTheme(appColor).withAlpha(100),
+                          : Colors.white.withAlpha(100),
                     ),
                   ),
                 ],
@@ -418,7 +418,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                         content: Text(
                                           'Remove ${w['name'] != null ? '"${w['name']}"' : 'this workout'} from your history? This cannot be undone.',
                                           style: GoogleFonts.manrope(
-                                            color: onTheme(appColor),
+                                            color: Colors.white,
                                           ),
                                         ),
                                         actions: [
@@ -473,8 +473,8 @@ class _WorkoutState extends ConsumerState<Workout> {
     BuildContext context,
     Map<String, dynamic> routine,
   ) async {
-    final accent = onTheme(appColor);
-    final dim = onTheme(appColor);
+    final accent = Colors.white;
+    final dim = Colors.white;
     final confirmed = await showFrostedAlertDialog<bool>(
       context: context,
       appColor: appColor,
@@ -535,7 +535,7 @@ class _WorkoutState extends ConsumerState<Workout> {
           Text(
             'Get started',
             style: GoogleFonts.manrope(
-              color: accent,
+              color: Colors.white,
               fontSize: Responsive.font(context, 18),
               fontWeight: FontWeight.w800,
             ),
@@ -555,14 +555,14 @@ class _WorkoutState extends ConsumerState<Workout> {
                 children: [
                   Icon(
                     Icons.add_circle_outline_rounded,
-                    color: accent,
+                    color: Colors.white,
                     size: Responsive.scale(context, 20),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Create my own',
                     style: GoogleFonts.manrope(
-                      color: accent,
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -572,7 +572,7 @@ class _WorkoutState extends ConsumerState<Workout> {
             ),
           ),
           Divider(
-            color: onTheme(appColor).withAlpha(120),
+            color: Colors.white.withAlpha(120),
             thickness: 1.5,
             height: 1,
           ),
@@ -590,14 +590,14 @@ class _WorkoutState extends ConsumerState<Workout> {
                 children: [
                   Icon(
                     Icons.explore_outlined,
-                    color: accent,
+                    color: Colors.white,
                     size: Responsive.scale(context, 20),
                   ),
                   SizedBox(width: Responsive.width(context, 12)),
                   Text(
                     'Browse routines',
                     style: GoogleFonts.manrope(
-                      color: accent,
+                      color: Colors.white,
                       fontSize: Responsive.font(context, 14),
                       fontWeight: FontWeight.w600,
                     ),
@@ -904,7 +904,7 @@ class _WorkoutState extends ConsumerState<Workout> {
                                 content: Text(
                                   'Finish or discard your current workout before starting a new one.',
                                   style: GoogleFonts.manrope(
-                                    color: onTheme(appColor),
+                                    color: Colors.white,
                                   ),
                                 ),
                                 actions: [

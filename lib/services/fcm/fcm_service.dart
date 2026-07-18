@@ -32,7 +32,7 @@ class FcmService {
     // Background message handler must be registered before any other FCM events
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // iOS only — skip on web to avoid triggering an automatic permission request
+    // iOS only, skip on web to avoid triggering an automatic permission request
     if (!kIsWeb) {
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(

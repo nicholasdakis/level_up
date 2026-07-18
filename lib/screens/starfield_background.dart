@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 
 class StarfieldBackground extends StatefulWidget {
   final Widget child;
-  const StarfieldBackground({super.key, required this.child});
+  final Color color;
+  const StarfieldBackground({
+    super.key,
+    required this.child,
+    required this.color,
+  });
 
   @override
   State<StarfieldBackground> createState() => _StarfieldBackgroundState();
@@ -35,8 +40,9 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
       children: [
         AnimatedBuilder(
           animation: _ctrl,
-          builder: (context, _) =>
-              CustomPaint(painter: _StarfieldPainter(time: _ctrl.value)),
+          builder: (context, _) => CustomPaint(
+            painter: _StarfieldPainter(time: _ctrl.value, color: widget.color),
+          ),
         ),
         widget.child,
       ],
@@ -46,7 +52,8 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
 
 class _StarfieldPainter extends CustomPainter {
   final double time;
-  _StarfieldPainter({required this.time});
+  final Color color;
+  _StarfieldPainter({required this.time, required this.color});
 
   static const _stars = [
     (0.08, 0.11, 1.5, 0.00),
@@ -93,13 +100,13 @@ class _StarfieldPainter extends CustomPainter {
       final twinkle = (math.sin((time + phase) * math.pi * 2) + 1) / 2;
       final alpha = (30 + twinkle * 80).round();
       final radius = r * (0.6 + twinkle * 0.4);
-      paint.color = Colors.white.withAlpha((alpha * 0.2).round());
+      paint.color = color.withAlpha((alpha * 0.2).round());
       canvas.drawCircle(
         Offset(rx * size.width, ry * size.height),
         radius * 2.5,
         paint,
       );
-      paint.color = Colors.white.withAlpha(alpha);
+      paint.color = color.withAlpha(alpha);
       canvas.drawCircle(
         Offset(rx * size.width, ry * size.height),
         radius,
@@ -109,5 +116,6 @@ class _StarfieldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_StarfieldPainter old) => old.time != time;
+  bool shouldRepaint(_StarfieldPainter old) =>
+      old.time != time || old.color != color;
 }

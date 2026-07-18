@@ -19,7 +19,7 @@ Future<void> showForceUpdateDialog(BuildContext context, Color appColor) async {
     content: Text(
       "Hey! There's a new version of Level Up! ready for you. Update to get the latest features and keep everything running smoothly.",
       textAlign: TextAlign.center,
-      style: GoogleFonts.manrope(color: onTheme(appColor), fontSize: 14),
+      style: GoogleFonts.manrope(color: Colors.white, fontSize: 14),
     ),
     actions: [
       TextButton(
@@ -85,7 +85,7 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 18),
             fontWeight: FontWeight.w700,
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
         ),
         SizedBox(height: Responsive.height(context, 4)),
@@ -93,7 +93,7 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
           'What can we help you with?',
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
         ),
         SizedBox(height: Responsive.height(context, 16)),
@@ -140,7 +140,7 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
                       ),
                       child: Icon(
                         icon,
-                        color: onTheme(appColor),
+                        color: Colors.white,
                         size: Responsive.scale(context, 18),
                       ),
                     ),
@@ -150,14 +150,14 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
                         label,
                         style: GoogleFonts.manrope(
                           fontSize: Responsive.font(context, 14),
-                          color: onTheme(appColor),
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     Icon(
                       Icons.chevron_right,
-                      color: onTheme(appColor),
+                      color: Colors.white,
                       size: Responsive.scale(context, 18),
                     ),
                   ],
@@ -174,7 +174,7 @@ Future<void> showContactDialog(BuildContext context, Color appColor) async {
             'Cancel',
             style: GoogleFonts.manrope(
               fontSize: Responsive.font(context, 13),
-              color: onTheme(appColor),
+              color: Colors.white,
             ),
           ),
         ),
@@ -423,7 +423,7 @@ Future<void> showProFeatureDialog(
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 17),
             fontWeight: FontWeight.w700,
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
         ),
         SizedBox(height: Responsive.height(context, 8)),
@@ -432,7 +432,7 @@ Future<void> showProFeatureDialog(
           textAlign: TextAlign.center,
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 13),
-            color: onTheme(appColor),
+            color: Colors.white,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -487,7 +487,7 @@ Future<T?> showFrostedAlertDialog<T>({
           style: GoogleFonts.manrope(
             fontSize: Responsive.font(context, 20),
             fontWeight: FontWeight.w700,
-            color: onTheme(appColor),
+            color: Colors.white,
           ),
         ),
         if (content != null) ...[

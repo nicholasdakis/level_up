@@ -87,7 +87,7 @@ Color onTheme(Color base) {
   final lum = _relativeLuminance(base);
   if (lum < 0.18) return lightenColor(base, 0.45); // dark theme: light text
   if (lum < 0.40) return Colors.white; // medium theme: pure white reads cleanly
-  return darkenColor(base, 0.40); // light theme: dark tinted text
+  return darkenColor(base, 0.50); // light theme: dark tinted text
 }
 
 // Button gradient colors: brighter/more saturated than card colors so the button stands out
@@ -105,7 +105,7 @@ buttonColors(Color base) {
     border: isDark
         ? _oklabShift(base, 0.35).withAlpha(180)
         : _oklabShift(base, -0.14).withAlpha(180),
-    label: Colors.white,
+    label: isDark ? lightenColor(base, 0.45) : darkenColor(base, 0.50),
   );
 }
 
@@ -130,7 +130,7 @@ cardColors(Color base) {
     border: isDark
         ? _oklabShift(base, 0.20).withAlpha(180)
         : _oklabShift(base, -0.22).withAlpha(220),
-    iconBox: isDark ? _oklabShift(base, 0.20) : _oklabShift(base, -0.08),
+    iconBox: isDark ? _oklabShift(base, 0.20) : _oklabShift(base, -0.01),
     iconBorder: isDark
         ? _oklabShift(base, 0.30).withAlpha(180)
         : _oklabShift(base, -0.30).withAlpha(220),

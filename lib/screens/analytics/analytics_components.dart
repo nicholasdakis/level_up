@@ -195,7 +195,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                       style: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 11),
                         fontWeight: FontWeight.w500,
-                        color: onTheme(appColor).withAlpha(140),
+                        color: onTheme(appColor),
                       ),
                     ),
                     if (_collapsed) ...[
@@ -326,12 +326,12 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                             ),
                             daysOfWeekStyle: DaysOfWeekStyle(
                               weekdayStyle: GoogleFonts.manrope(
-                                color: onTheme(appColor).withAlpha(140),
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 12),
                                 fontWeight: FontWeight.w600,
                               ),
                               weekendStyle: GoogleFonts.manrope(
-                                color: onTheme(appColor).withAlpha(140),
+                                color: onTheme(appColor),
                                 fontSize: Responsive.font(context, 12),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -339,8 +339,8 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                           ),
                           if (!widget.rangeSelected) ...[
                             Divider(
-                              color: onTheme(appColor).withAlpha(50),
-                              thickness: 1,
+                              color: onTheme(appColor).withAlpha(120),
+                              thickness: 1.5,
                               height: Responsive.height(context, 32),
                             ),
                             Text(
@@ -349,7 +349,7 @@ class _RangePickerCardState extends ConsumerState<RangePickerCard> {
                               style: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 13),
                                 fontWeight: FontWeight.w500,
-                                color: onTheme(appColor).withAlpha(140),
+                                color: onTheme(appColor),
                               ),
                             ),
                             SizedBox(height: Responsive.height(context, 8)),

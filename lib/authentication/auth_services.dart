@@ -71,7 +71,7 @@ class AuthService {
         final user = firebaseAuth.currentUser;
         final email = user?.email;
         if (agreedToTerms && user != null && email != null) {
-          // TOS accepted and already signed in from previous popup — just register and proceed
+          // TOS accepted and already signed in from previous popup, just register and proceed
           suppressAuthRedirect = false;
           return null;
         }
@@ -108,7 +108,7 @@ class AuthService {
       final googleUser = await gsi.signIn();
       if (googleUser == null) return null; // user cancelled
 
-      // Check by email before touching Firebase — no auth state change for new users
+      // Check by email before touching Firebase, no auth state change for new users
       final response = await http
           .post(
             Uri.parse('$backendBaseUrl/check_user_email_exists'),
@@ -123,7 +123,7 @@ class AuthService {
         throw FirebaseAuthException(code: 'new-user-no-tos');
       }
 
-      // User exists or TOS accepted — safe to sign into Firebase
+      // User exists or TOS accepted, safe to sign into Firebase
       if (!exists) {
         await FirebaseAnalytics.instance.logSignUp(signUpMethod: 'google.com');
         logFacebookSignUp('google.com');

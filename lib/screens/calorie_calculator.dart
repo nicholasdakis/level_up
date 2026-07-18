@@ -447,8 +447,8 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
           data: Theme.of(context).copyWith(
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
-            textSelectionTheme: const TextSelectionThemeData(
-              cursorColor: Colors.white,
+            textSelectionTheme: TextSelectionThemeData(
+              cursorColor: onTheme(appColor),
             ),
           ),
           child: TextField(
@@ -466,7 +466,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.manrope(
-                color: onTheme(appColor).withAlpha(140),
+                color: onTheme(appColor),
                 fontSize: Responsive.font(context, 16),
               ),
               suffix: Text(
@@ -790,8 +790,8 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                             splashColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             textSelectionTheme: TextSelectionThemeData(
-                              cursorColor: Colors.white,
-                              selectionHandleColor: Colors.white,
+                              cursorColor: onTheme(appColor),
+                              selectionHandleColor: onTheme(appColor),
                               selectionColor: const Color.fromARGB(
                                 255,
                                 83,
@@ -862,7 +862,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                               ),
                               hintStyle: GoogleFonts.manrope(
                                 fontSize: Responsive.font(context, 14),
-                                color: onTheme(appColor).withAlpha(140),
+                                color: onTheme(appColor),
                               ),
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: Responsive.width(context, 16),
@@ -1000,11 +1000,11 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                   SizedBox(height: Responsive.height(context, 28)),
 
                   // RESULTS BUTTON
-                  frostedButton(
-                    "Get Results",
+                  gradientButton(
                     context,
+                    label: "Get Results",
                     color: appColor,
-                    onPressed: () {
+                    onTap: () {
                       // Validity checks: all fields must be filled
                       if (units == null ||
                           equation == null ||
@@ -1100,7 +1100,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
           HugeIcon(
             icon: icon,
             size: Responsive.scale(context, 16),
-            color: onTheme(appColor).withAlpha(140),
+            color: onTheme(appColor),
           ),
           SizedBox(width: Responsive.width(context, 10)),
           Expanded(
@@ -1119,7 +1119,7 @@ class _CalorieCalculatorState extends ConsumerState<CalorieCalculator> {
                     text: description,
                     style: GoogleFonts.manrope(
                       fontSize: Responsive.font(context, 13),
-                      color: onTheme(appColor).withAlpha(140),
+                      color: onTheme(appColor),
                     ),
                   ),
                 ],

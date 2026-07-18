@@ -215,7 +215,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
       title: "Delete food?",
       content: Text(
         "Are you sure you want to remove ${foods[idx].foodName.isNotEmpty ? foods[idx].foodName : 'this food'}?",
-        style: GoogleFonts.manrope(color: onTheme(appColor)),
+        style: GoogleFonts.manrope(color: Colors.white),
       ),
       actions: [
         TextButton(
@@ -254,8 +254,8 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
   Future<void> _moveFood(String fromMeal, FoodLog food) async {
     const meals = ['breakfast', 'lunch', 'dinner', 'snacks'];
     const labels = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
-    final accent = onTheme(appColor);
-    final dim = onTheme(appColor);
+    final accent = Colors.white;
+    final dim = Colors.white;
 
     final toMeal = await showFrostedDialog<String>(
       context: context,
@@ -327,7 +327,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
     FoodLog food,
     int idx,
   ) async {
-    final accent = onTheme(appColor);
+    final accent = Colors.white;
 
     Widget menuItem(IconData icon, String label, String value) =>
         GestureDetector(
@@ -374,7 +374,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             ),
           ),
           SizedBox(height: Responsive.height(context, 4)),
-          Divider(color: onTheme(appColor).withAlpha(120), thickness: 1.5),
+          Divider(color: Colors.white.withAlpha(120), thickness: 1.5),
           menuItem(HugeIcons.strokeRoundedEdit03, 'Edit Serving', 'edit'),
           menuItem(HugeIcons.strokeRoundedArrowRight01, 'Move Food', 'move'),
         ],
@@ -620,7 +620,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
           Text(
             label,
             style: GoogleFonts.manrope(
-              color: onTheme(appColor),
+              color: Colors.white,
               fontSize: Responsive.font(context, 16),
               fontWeight: FontWeight.w700,
             ),
@@ -632,21 +632,21 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
-              color: onTheme(appColor),
+              color: Colors.white,
               fontSize: Responsive.font(context, 24),
               fontWeight: FontWeight.w700,
             ),
             decoration: InputDecoration(
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(
-                color: onTheme(appColor),
+                color: Colors.white,
                 fontSize: Responsive.font(context, 14),
               ),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
+                borderSide: BorderSide(color: Colors.white.withAlpha(120)),
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor)),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
               ),
             ),
           ),
@@ -924,7 +924,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                       onTap: () => _editGoal(context, 'calories'),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedPencilEdit01,
-                        color: onTheme(appColor).withAlpha(140),
+                        color: onTheme(appColor),
                         size: Responsive.scale(context, 13),
                       ),
                     ),
@@ -1094,7 +1094,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               onTap: () => _editGoal(context, label.toLowerCase()),
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedPencilEdit01,
-                color: onTheme(appColor).withAlpha(140),
+                color: onTheme(appColor),
                 size: Responsive.scale(context, 10),
               ),
             ),
@@ -1259,25 +1259,25 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
               LengthLimitingTextInputFormatter(5),
             ],
             style: GoogleFonts.manrope(
-              color: onTheme(appColor),
+              color: Colors.white,
               fontSize: Responsive.font(context, 20),
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               labelText: '$label ($unit)',
-              labelStyle: TextStyle(color: onTheme(appColor)),
-              floatingLabelStyle: TextStyle(color: onTheme(appColor)),
+              labelStyle: const TextStyle(color: Colors.white),
+              floatingLabelStyle: const TextStyle(color: Colors.white),
               suffixText: unit,
               suffixStyle: GoogleFonts.manrope(
-                color: onTheme(appColor),
+                color: Colors.white,
                 fontSize: Responsive.font(context, 14),
               ),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor).withAlpha(120)),
+                borderSide: BorderSide(color: Colors.white.withAlpha(120)),
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: onTheme(appColor)),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
               ),
             ),
           ),
@@ -1449,7 +1449,7 @@ class _FoodLoggingState extends ConsumerState<FoodLogging> {
                                   onTap: _editMicroGoals,
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedPencilEdit01,
-                                    color: onTheme(appColor).withAlpha(140),
+                                    color: onTheme(appColor),
                                     size: Responsive.scale(context, 13),
                                   ),
                                 ),
