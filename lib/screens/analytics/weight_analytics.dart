@@ -477,10 +477,31 @@ class _WeightAnalyticsScreenState extends ConsumerState<WeightAnalyticsScreen> {
                       hintText: 'Add weight ($unit)',
                       hintStyle: GoogleFonts.manrope(
                         fontSize: Responsive.font(context, 13),
-                        color: dimAccent,
+                        color: onTheme(appColor).withAlpha(120),
                       ),
-                      isDense: true,
-                      border: InputBorder.none,
+                      filled: true,
+                      fillColor: cardColors(appColor).iconBox,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 10),
+                        ),
+                        borderSide: BorderSide(
+                          color: cardColors(appColor).border,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.scale(context, 10),
+                        ),
+                        borderSide: BorderSide(
+                          color: onTheme(appColor),
+                          width: 1.5,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: Responsive.width(context, 12),
+                        vertical: Responsive.height(context, 10),
+                      ),
                     ),
                   ),
                 ),

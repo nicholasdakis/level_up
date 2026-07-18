@@ -118,6 +118,7 @@ Widget socialLink({
                 borderRadius: BorderRadius.circular(
                   Responsive.scale(context, 8),
                 ),
+                border: Border.all(color: cardColors(appColor).iconBorder, width: 1.5),
               ),
               child: Icon(
                 icon,

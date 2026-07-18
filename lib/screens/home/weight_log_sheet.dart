@@ -129,10 +129,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
       title: "Delete Entry",
       content: Text(
         "Delete $entryDisplay ${UnitConverter.weightUnit(imperial: isImperial)} from ${labelFor(DateTime.parse(entryKey))}?",
-        style: GoogleFonts.manrope(
-          color: Colors.white,
-          fontSize: 13,
-        ),
+        style: GoogleFonts.manrope(color: Colors.white, fontSize: 13),
         textAlign: TextAlign.center,
       ),
       actions: [
@@ -168,8 +165,8 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
     final dateKey = dateKeyFor(selectedDate);
     final existingKg = ref.watch(weightLogsProvider).value?[dateKey];
     final c = cardColors(appColor);
-    final onCard = c.onCard;
-    final onCardDim = c.onCard.withAlpha(140);
+    final onCard = Colors.white;
+    final onCardDim = Colors.white70;
     final recent = recentEntries();
 
     return SizedBox(
@@ -323,7 +320,7 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                               decoration: InputDecoration(
                                 hintText: weightHint,
                                 hintStyle: GoogleFonts.manrope(
-                                  color: onCardDim,
+                                  color: Colors.white38,
                                 ),
                                 suffix: Text(
                                   " ${UnitConverter.weightUnit(imperial: isImperial)}",
@@ -332,13 +329,28 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                                     fontSize: Responsive.font(context, 16),
                                   ),
                                 ),
-                                enabledBorder: UnderlineInputBorder(
+                                filled: true,
+                                fillColor: Colors.white.withAlpha(12),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 12),
+                                  ),
                                   borderSide: BorderSide(
-                                    color: onCard.withAlpha(60),
+                                    color: Colors.white.withAlpha(60),
                                   ),
                                 ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: onCard),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    Responsive.scale(context, 12),
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: Responsive.width(context, 16),
+                                  vertical: Responsive.height(context, 14),
                                 ),
                               ),
                             ),
@@ -347,24 +359,20 @@ class _WeightLogSheetState extends ConsumerState<_WeightLogSheet> {
                           GestureDetector(
                             onTap: () => _save(dateKey, existingKg),
                             child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Responsive.width(context, 20),
-                                vertical: Responsive.height(context, 12),
-                              ),
+                              width: Responsive.scale(context, 44),
+                              height: Responsive.scale(context, 44),
                               decoration: BoxDecoration(
-                                color: onTheme(appColor).withAlpha(120),
-                                borderRadius: BorderRadius.circular(
-                                  Responsive.scale(context, 12),
+                                shape: BoxShape.circle,
+                                color: Colors.white.withAlpha(20),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(80),
+                                  width: 1.5,
                                 ),
-                                border: Border.all(color: onCard.withAlpha(60)),
                               ),
-                              child: Text(
-                                existingKg != null ? "Update" : "Log",
-                                style: GoogleFonts.manrope(
-                                  color: onCard,
-                                  fontSize: Responsive.font(context, 14),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              child: Icon(
+                                Icons.add_rounded,
+                                color: Colors.white,
+                                size: Responsive.scale(context, 22),
                               ),
                             ),
                           ),

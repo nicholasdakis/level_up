@@ -1044,7 +1044,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                   ),
                   border: Border.all(
                     color: cardColors(appColor).iconBorder,
-                    width: Responsive.width(context, 2),
+                    width: 1.5,
                   ),
                 ),
                 child: HugeIcon(
@@ -1120,7 +1120,7 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
       decoration: BoxDecoration(
         color: baseColor,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withAlpha(60), width: 1.5),
+        border: Border.all(color: cardColors(appColor).iconBorder, width: 1.5),
       ),
     );
 
@@ -1489,12 +1489,14 @@ class _PersonalPreferencesState extends ConsumerState<PersonalPreferences>
                               // Switch.adaptive uses the platform's native switch style (Material on Android, Cupertino on iOS)
                               trailing: Switch.adaptive(
                                 value: notificationsEnabled,
-                                activeThumbColor: appColor == defaultAppColor
-                                    ? Colors.white70
-                                    : lightenColor(appColor, 0.2),
-                                activeTrackColor: appColor.withAlpha(100),
-                                inactiveThumbColor: Colors.white38,
-                                inactiveTrackColor: Colors.white.withAlpha(20),
+                                activeThumbColor: onTheme(appColor),
+                                activeTrackColor: cardColors(appColor).border,
+                                inactiveThumbColor: onTheme(
+                                  appColor,
+                                ).withAlpha(120),
+                                inactiveTrackColor: cardColors(
+                                  appColor,
+                                ).iconBox,
                                 onChanged: (value) async {
                                   if (isGuest) {
                                     Guest.block(context);

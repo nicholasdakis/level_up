@@ -224,10 +224,14 @@ class _AboutTheDeveloperState extends ConsumerState<AboutTheDeveloper> {
                               ),
                               child: Row(
                                 children: [
-                                  HugeIcon(
+                                  themedIconBox(
+                                    context,
                                     icon: HugeIcons.strokeRoundedFavourite,
-                                    color: onTheme(appColor),
-                                    size: Responsive.scale(context, 20),
+                                    color: appColor,
+                                    iconSize: 20,
+                                    padding: 8,
+                                    radius: 8,
+                                    hugeIcon: true,
                                   ),
                                   SizedBox(
                                     width: Responsive.width(context, 12),

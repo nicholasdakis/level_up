@@ -2865,3 +2865,8 @@ Removed kcal from the macro donut chart entirely since macro-derived calories (p
 - Food analytics macro tiles now show the unit inline with the number instead of on a separate line
 - All filter chip and action button borders strengthened to full card border color and width
 - Replaced some bare icons with themedIconBoxes
+- Weight and water log sheets now use white text and OutlineInputBorder inputs since they sit on a dark frosted surface
+- Log button in weight and water sheets replaced with a clean circle icon button matching the rest of the app
+- Add entry input fields in water and weight analytics now use OutlineInputBorder consistent with other inputs
+- Notification toggle switch colors now adapt to theme
+- Color preview swatch border now uses cardColors iconBorder for better contrast
